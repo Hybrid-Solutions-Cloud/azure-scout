@@ -86,7 +86,7 @@ If ($Task -eq 'Processing')
                 # Check eligibility authorizations
                 $eligibleAuthCount = 0
                 if ($data.eligibleAuthorizations) {
-                    $eligibleAuthCount = $data.eligibleAuthorizations.Count
+                    $eligibleAuthCount = @($data.eligibleAuthorizations).Count
                 }
 
                 foreach ($Tag in $Tags) {

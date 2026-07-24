@@ -47,11 +47,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -121,13 +121,13 @@ If ($Task -eq 'Processing') {
                 foreach ($Tag in $Tags) {
                     if (![string]::IsNullOrEmpty($2.properties.sourceAddressPrefixes))
                         {
-                            $Source = if ($2.properties.sourceAddressPrefixes.count -gt 1) { $2.properties.sourceAddressPrefixes | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourceAddressPrefixes }
+                            $Source = if (@($2.properties.sourceAddressPrefixes).count -gt 1) { $2.properties.sourceAddressPrefixes | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourceAddressPrefixes }
                             $Source = [string]$Source
                             $Source = if ($Source -like '* ,*') { $Source -replace ".$" }else { $Source }
                         }
                     elseif(![string]::IsNullOrEmpty($2.properties.sourceAddressPrefix))
                         {
-                            $Source = if ($2.properties.sourceAddressPrefix.count -gt 1) { $2.properties.sourceAddressPrefix | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourceAddressPrefix }
+                            $Source = if (@($2.properties.sourceAddressPrefix).count -gt 1) { $2.properties.sourceAddressPrefix | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourceAddressPrefix }
                             $Source = [string]$Source
                             $Source = if ($Source -like '* ,*') { $Source -replace ".$" }else { $Source }
                         }
@@ -138,13 +138,13 @@ If ($Task -eq 'Processing') {
 
                     if (![string]::IsNullOrEmpty($2.properties.sourcePortRanges))
                         {
-                            $SourcePort = if ($2.properties.sourcePortRanges.count -gt 1) { $2.properties.sourcePortRanges | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourcePortRanges }
+                            $SourcePort = if (@($2.properties.sourcePortRanges).count -gt 1) { $2.properties.sourcePortRanges | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourcePortRanges }
                             $SourcePort = [string]$SourcePort
                             $SourcePort = if ($SourcePort -like '* ,*') { $SourcePort -replace ".$" }else { $SourcePort }
                         }
                     elseif(![string]::IsNullOrEmpty($2.properties.sourcePortRange))
                         {
-                            $SourcePort = if ($2.properties.sourcePortRange.count -gt 1) { $2.properties.sourcePortRange | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourcePortRange }
+                            $SourcePort = if (@($2.properties.sourcePortRange).count -gt 1) { $2.properties.sourcePortRange | ForEach-Object { $_ + ' ,' } }else { $2.properties.sourcePortRange }
                             $SourcePort = [string]$SourcePort
                             $SourcePort = if ($SourcePort -like '* ,*') { $SourcePort -replace ".$" }else { $SourcePort }
                         }
@@ -155,13 +155,13 @@ If ($Task -eq 'Processing') {
 
                     if (![string]::IsNullOrEmpty($2.properties.destinationAddressPrefixes))
                         {
-                            $Destination = if ($2.properties.destinationAddressPrefixes.count -gt 1) { $2.properties.destinationAddressPrefixes | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationAddressPrefixes }
+                            $Destination = if (@($2.properties.destinationAddressPrefixes).count -gt 1) { $2.properties.destinationAddressPrefixes | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationAddressPrefixes }
                             $Destination = [string]$Destination
                             $Destination = if ($Destination -like '* ,*') { $Destination -replace ".$" }else { $Destination }
                         }
                     elseif(![string]::IsNullOrEmpty($2.properties.destinationAddressPrefix))
                         {
-                            $Destination = if ($2.properties.destinationAddressPrefix.count -gt 1) { $2.properties.destinationAddressPrefix | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationAddressPrefix }
+                            $Destination = if (@($2.properties.destinationAddressPrefix).count -gt 1) { $2.properties.destinationAddressPrefix | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationAddressPrefix }
                             $Destination = [string]$Destination
                             $Destination = if ($Destination -like '* ,*') { $Destination -replace ".$" }else { $Destination }
                         }
@@ -172,13 +172,13 @@ If ($Task -eq 'Processing') {
 
                     if (![string]::IsNullOrEmpty($2.properties.destinationPortRanges))
                         {
-                            $DestinationPort = if ($2.properties.destinationPortRanges.count -gt 1) { $2.properties.destinationPortRanges | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationPortRanges }
+                            $DestinationPort = if (@($2.properties.destinationPortRanges).count -gt 1) { $2.properties.destinationPortRanges | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationPortRanges }
                             $DestinationPort = [string]$DestinationPort
                             $DestinationPort = if ($DestinationPort -like '* ,*') { $DestinationPort -replace ".$" }else { $DestinationPort }
                         }
                     elseif(![string]::IsNullOrEmpty($2.properties.destinationPortRange))
                         {
-                            $DestinationPort = if ($2.properties.destinationPortRange.count -gt 1) { $2.properties.destinationPortRange | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationPortRange }
+                            $DestinationPort = if (@($2.properties.destinationPortRange).count -gt 1) { $2.properties.destinationPortRange | ForEach-Object { $_ + ' ,' } }else { $2.properties.destinationPortRange }
                             $DestinationPort = [string]$DestinationPort
                             $DestinationPort = if ($DestinationPort -like '* ,*') { $DestinationPort -replace ".$" }else { $DestinationPort }
                         }
@@ -187,7 +187,7 @@ If ($Task -eq 'Processing') {
                             $DestinationPort = ''
                         }
 
-                    if ($data.networkInterfaces.count -eq 0 -and $data.subnets.count -eq 0) 
+                    if (@($data.networkInterfaces).count -eq 0 -and @($data.subnets).count -eq 0)
                         {
                             $Orphaned = $true;
                         } else {

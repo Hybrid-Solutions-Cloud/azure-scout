@@ -48,11 +48,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -85,11 +85,11 @@ If ($Task -eq 'Processing') {
                                 $tmps
                             }
                     }
-                $Backends = $data.backendAddressPools.count
+                $Backends = @($data.backendAddressPools).count
 
                 $BackendState = if(![string]::IsNullOrEmpty($data.backendAddressPools.properties.loadBalancerBackendAddresses)){'In Use'}else{'Not In Use'}
 
-                $Probes = $data.probes.count
+                $Probes = @($data.probes).count
 
                 $FrontEnds = if(![string]::IsNullOrEmpty($FrontEnds)){$FrontEnds}else{'0'}
 

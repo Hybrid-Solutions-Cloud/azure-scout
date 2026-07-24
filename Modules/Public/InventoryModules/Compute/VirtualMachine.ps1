@@ -88,11 +88,11 @@ If ($Task -eq 'Processing')
                                         }
                                     $tmp0
                                 }
-                            $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                            $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                             $RetiringFeature = [string]$RetiringFeature
                             $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                            $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                            $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
@@ -179,9 +179,9 @@ If ($Task -eq 'Processing')
 
                     if ($data.storageProfile.dataDisks.managedDisk.id)
                         {
-                            if ($data.storageProfile.dataDisks.managedDisk.id.count -ge 2) 
-                            { 
-                                $StorAcc = ($data.storageProfile.dataDisks.managedDisk.id.count.ToString() + ' Disks found.')
+                            if (@($data.storageProfile.dataDisks.managedDisk.id).count -ge 2)
+                            {
+                                $StorAcc = (@($data.storageProfile.dataDisks.managedDisk.id).count.ToString() + ' Disks found.')
                                 foreach ($VMDisk in $disk)
                                     {
                                         if ($VMDisk.id -in $data.storageProfile.dataDisks.managedDisk.id)
@@ -237,7 +237,7 @@ If ($Task -eq 'Processing')
 
                         if(![string]::IsNullOrEmpty($DNSServer))
                             {
-                                $FinalDNS = if ($DNSServer.count -gt 1) { $DNSServer | ForEach-Object { $_ + ' ,' } }else { $DNSServer }
+                                $FinalDNS = if (@($DNSServer).count -gt 1) { $DNSServer | ForEach-Object { $_ + ' ,' } }else { $DNSServer }
                                 $FinalDNS = [string]$FinalDNS
                                 $FinalDNS = if ($FinalDNS -like '* ,*') { $FinalDNS -replace ".$" }else { $FinalDNS }
                                 $FinalDNS = ('VNET: ( ' + $FinalDNS + ')')

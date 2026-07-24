@@ -48,7 +48,7 @@ If ($Task -eq 'Processing')
                     $_.TYPE -eq 'Microsoft.Network/networkWatchers/flowLogs' -and
                     $_.id -like "$($1.id)/*"
                 }
-                $flowLogCount = $flowLogs.Count
+                $flowLogCount = @($flowLogs).Count
                 $flowLogNames = @()
                 if ($flowLogs) {
                     foreach ($fl in $flowLogs) {
@@ -62,7 +62,7 @@ If ($Task -eq 'Processing')
                     $_.TYPE -eq 'Microsoft.Network/networkWatchers/connectionMonitors' -and
                     $_.id -like "$($1.id)/*"
                 }
-                $connMonitorCount = $connMonitors.Count
+                $connMonitorCount = @($connMonitors).Count
                 $connMonitorNames = @()
                 if ($connMonitors) {
                     foreach ($cm in $connMonitors) {
@@ -76,7 +76,7 @@ If ($Task -eq 'Processing')
                     $_.TYPE -eq 'Microsoft.Network/networkWatchers/packetCaptures' -and
                     $_.id -like "$($1.id)/*"
                 }
-                $packetCaptureCount = $packetCaptures.Count
+                $packetCaptureCount = @($packetCaptures).Count
 
                 foreach ($Tag in $Tags) {
                     $obj = @{

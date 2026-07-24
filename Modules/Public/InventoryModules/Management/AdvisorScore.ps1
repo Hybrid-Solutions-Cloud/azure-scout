@@ -77,7 +77,7 @@ Else {
 
     if ($SmaResources) {
 
-        $TableName = ('AdvScTab_'+($SmaResources.'Resource U').count)
+        $TableName = ('AdvScTab_'+(@($SmaResources.'Resource U')).count)
         $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0'
 
         $condtxt = @()

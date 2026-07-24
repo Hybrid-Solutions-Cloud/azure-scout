@@ -49,11 +49,11 @@ If ($Task -eq 'Processing')
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -68,15 +68,15 @@ If ($Task -eq 'Processing')
                 $AccessPol = if(![string]::IsNullOrEmpty($data.accessPolicies)){$data.accessPolicies}else{'0'}
                 Foreach($2 in $AccessPol)
                     {
-                        $Secrets = if ($2.permissions.secrets.count -gt 1) { $2.permissions.secrets | ForEach-Object { $_ + ' ,' } }else { $2.permissions.secrets }
+                        $Secrets = if (@($2.permissions.secrets).count -gt 1) { $2.permissions.secrets | ForEach-Object { $_ + ' ,' } }else { $2.permissions.secrets }
                         $Secrets = [string]$Secrets
                         $Secrets = if ($Secrets -like '* ,*') { $Secrets -replace ".$" }else { $Secrets }
 
-                        $Keys = if ($2.permissions.keys.count -gt 1) { $2.permissions.keys | ForEach-Object { $_ + ' ,' } }else { $2.permissions.keys }
+                        $Keys = if (@($2.permissions.keys).count -gt 1) { $2.permissions.keys | ForEach-Object { $_ + ' ,' } }else { $2.permissions.keys }
                         $Keys = [string]$Keys
                         $Keys = if ($Keys -like '* ,*') { $Keys -replace ".$" }else { $Keys }
 
-                        $Certs = if ($2.permissions.certificates.count -gt 1) { $2.permissions.certificates | ForEach-Object { $_ + ' ,' } }else { $2.permissions.certificates }
+                        $Certs = if (@($2.permissions.certificates).count -gt 1) { $2.permissions.certificates | ForEach-Object { $_ + ' ,' } }else { $2.permissions.certificates }
                         $Certs = [string]$Certs
                         $Certs = if ($Certs -like '* ,*') { $Certs -replace ".$" }else { $Certs }
 

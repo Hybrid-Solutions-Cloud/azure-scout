@@ -33,7 +33,7 @@ function Start-AZSCPolicyJob {
                                     $PolDe.properties.displayName
                                 }
                         }
-                    $Initiative = if($TempPolDef.count -gt 1){$TempPolDef[0]}else{$TempPolDef}
+                    $Initiative = if(@($TempPolDef).count -gt 1){$TempPolDef[0]}else{$TempPolDef}
                     $InitNonCompRes = $1.results.nonCompliantResources
                     $InitNonCompPol = $1.results.nonCompliantPolicies
                 }

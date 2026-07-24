@@ -147,6 +147,13 @@ Function Build-AZSCDiagramSubnet {
                         }
                     }
 
+                # Force array context: a subnet with exactly one matching resource collapses
+                # the pipeline result to a single scalar object/hashtable, and .Count/.Name
+                # member access on that scalar throws "property cannot be found on this
+                # object" on Windows PowerShell 5.1 under Set-StrictMode -Version Latest (the
+                # module runs under it once imported alongside the assessment platform).
+                $ResNames = @($ResNames)
+
                 if ($ResNames.count -gt 1)
                     {
                         Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Multiple Resources Found in the Subnet: " + $ResNames.count)
@@ -310,10 +317,10 @@ Function Build-AZSCDiagramSubnet {
 
                                                         $XmlTempWriter.WriteAttributeString($Attr1, [string]$ResName.name)
                                                         $XmlTempWriter.WriteAttributeString($Attr2, [string]$ResName.sku.name)
-                                                        $XmlTempWriter.WriteAttributeString($Attr3, [string]$ResName.properties.backendAddressPools.properties.backendIPConfigurations.id.count)
-                                                        $XmlTempWriter.WriteAttributeString($Attr4, [string]$ResName.properties.frontendIPConfigurations.properties.count)
-                                                        $XmlTempWriter.WriteAttributeString($Attr5, [string]$ResName.properties.loadBalancingRules.count)
-                                                        $XmlTempWriter.WriteAttributeString($Attr6, [string]$ResName.properties.probes.count)
+                                                        $XmlTempWriter.WriteAttributeString($Attr3, [string]@($ResName.properties.backendAddressPools.properties.backendIPConfigurations.id).count)
+                                                        $XmlTempWriter.WriteAttributeString($Attr4, [string]@($ResName.properties.frontendIPConfigurations.properties).count)
+                                                        $XmlTempWriter.WriteAttributeString($Attr5, [string]@($ResName.properties.loadBalancingRules).count)
+                                                        $XmlTempWriter.WriteAttributeString($Attr6, [string]@($ResName.properties.probes).count)
 
                                                         $Count ++
                                                     }
@@ -331,10 +338,10 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('Load_Balancer_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Load_Balancer_SKU', [string]$ResNames.sku.name)
-                                                    $XmlTempWriter.WriteAttributeString('Backends', [string]$ResNames.properties.backendAddressPools.properties.backendIPConfigurations.id.count)
-                                                    $XmlTempWriter.WriteAttributeString('Frontends', [string]$ResNames.properties.frontendIPConfigurations.properties.count)
-                                                    $XmlTempWriter.WriteAttributeString('LB_Rules', [string]$ResNames.properties.loadBalancingRules.count)
-                                                    $XmlTempWriter.WriteAttributeString('Probes', [string]$ResNames.properties.probes.count)
+                                                    $XmlTempWriter.WriteAttributeString('Backends', [string]@($ResNames.properties.backendAddressPools.properties.backendIPConfigurations.id).count)
+                                                    $XmlTempWriter.WriteAttributeString('Frontends', [string]@($ResNames.properties.frontendIPConfigurations.properties).count)
+                                                    $XmlTempWriter.WriteAttributeString('LB_Rules', [string]@($ResNames.properties.loadBalancingRules).count)
+                                                    $XmlTempWriter.WriteAttributeString('Probes', [string]@($ResNames.properties.probes).count)
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
@@ -732,8 +739,9 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteAttributeString('ARO_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('OpenShift_Version', [string]$RESNames.properties.clusterProfile.version)
                                                     $XmlTempWriter.WriteAttributeString('OpenShift_Console', [string]$RESNames.properties.consoleProfile.url)
-                                                    $XmlTempWriter.WriteAttributeString('Worker_VM_Count', [string]$RESNames.properties.workerprofiles.Count)
-                                                    $XmlTempWriter.WriteAttributeString('Worker_VM_Size', [string]$RESNames.properties.workerprofiles.vmSize[0])
+                                                    $WorkerProfileVmSizes = @($RESNames.properties.workerprofiles.vmSize)
+                                                    $XmlTempWriter.WriteAttributeString('Worker_VM_Count', [string]@($RESNames.properties.workerprofiles).Count)
+                                                    $XmlTempWriter.WriteAttributeString('Worker_VM_Size', [string]$(if ($WorkerProfileVmSizes.Count -gt 0) { $WorkerProfileVmSizes[0] } else { '' }))
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
@@ -892,7 +900,13 @@ Function Build-AZSCDiagramSubnet {
                         'EmptySubnet' {Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: " + 'Blank Resource Type Name')}
                         default {Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: $TrueTemp - " + 'Missing ResourceType in the list')}
                     }
-                    if($sub.properties.networkSecurityGroup.id)
+                    # Guard on the intermediate object first: a subnet with no NSG attached
+                    # (the common case) has networkSecurityGroup = $null, and dotting .id off
+                    # that $null value throws "the property 'id' cannot be found on this
+                    # object" under Set-StrictMode -Version Latest (the module runs under it
+                    # once imported alongside the assessment platform) -- the -and below
+                    # short-circuits before ever evaluating .id on a null networkSecurityGroup.
+                    if($null -ne $sub.properties.networkSecurityGroup -and $sub.properties.networkSecurityGroup.id)
                         {
                             $NSG = $sub.properties.networkSecurityGroup.id.split('/')[8]
                             $XmlTempWriter.WriteStartElement('object')            
@@ -905,7 +919,9 @@ Function Build-AZSCDiagramSubnet {
 
                             $XmlTempWriter.WriteEndElement()  
                         }
-                    if($sub.properties.routeTable.id)
+                    # Same guard as the NSG check above: routeTable is $null for any subnet
+                    # with no route table associated (the common case).
+                    if($null -ne $sub.properties.routeTable -and $sub.properties.routeTable.id)
                         {
                             $UDR = $sub.properties.routeTable.id.split('/')[8]
                             $XmlTempWriter.WriteStartElement('object')            
@@ -1030,7 +1046,15 @@ Function Build-AZSCDiagramSubnet {
 
                 if([string]::IsNullOrEmpty($TrueTemp))
                     {
-                        if ($sub.id -in ($Job.VMSS).properties.virtualMachineProfile.networkprofile.networkInterfaceConfigurations.properties.ipconfigurations.properties.subnet.id)
+                        # As above: guard with a Count check before member-enumerating .properties
+                        # off $Job.VMSS. An environment with zero VM Scale Sets (the common case)
+                        # makes $Job.VMSS an empty array, and enumerating .properties over zero
+                        # elements throws "the property cannot be found on this object" under
+                        # Set-StrictMode -Version Latest (the module runs under it once imported
+                        # alongside the assessment platform) -- this silently broke resource-type
+                        # detection (caught by the caller's try/catch and logged, never surfaced)
+                        # for every ordinary subnet whenever there were no VMSS resources at all.
+                        if (@($Job.VMSS).Count -gt 0 -and $sub.id -in ($Job.VMSS).properties.virtualMachineProfile.networkprofile.networkInterfaceConfigurations.properties.ipconfigurations.properties.subnet.id)
                             {
                                 $TrueTemp = 'microsoft.compute/virtualmachinescalesets'
                             }
@@ -1046,6 +1070,14 @@ Function Build-AZSCDiagramSubnet {
 
         Function Get-AZSCDiagramSubnetResourcesName {
             Param($sub,$TrueTemp,$LogFile)
+
+            # Predeclare: $TrueTemp values that match none of the branches below (e.g.
+            # 'EmptySubnet', or an unrecognized delegation service name) would otherwise
+            # leave $ResNames/$RESNames unset in this scope, and `return $ResNames` throws
+            # "the variable '$ResNames' cannot be retrieved because it has not been set"
+            # under Set-StrictMode -Version Latest (the module runs under it once imported
+            # alongside the assessment platform).
+            $ResNames = $null
 
             if($TrueTemp -eq 'microsoft.containerservice/managedclusters')
                 {

@@ -45,11 +45,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -67,21 +67,21 @@ If ($Task -eq 'Processing') {
                 if([string]::IsNullOrEmpty($data.customDnsConfigs.ipAddresses))
                     {
                         $NIC = $NICs | Where-Object {$_.id -eq $data.networkInterfaces.id}
-                        $IPAddress = if ($NIC.properties.ipconfigurations.properties.privateipaddress.count -gt 1) { $NIC.properties.ipconfigurations.properties.privateipaddress | ForEach-Object { $_ + ' ,' } }else { $NIC.properties.ipconfigurations.properties.privateipaddress }
+                        $IPAddress = if (@($NIC.properties.ipconfigurations.properties.privateipaddress).count -gt 1) { $NIC.properties.ipconfigurations.properties.privateipaddress | ForEach-Object { $_ + ' ,' } }else { $NIC.properties.ipconfigurations.properties.privateipaddress }
                         $IPAddress = [string]$IPAddress
                         $IPAddress = if ($IPAddress -like '* ,*') { $IPAddress -replace ".$" }else { $IPAddress }
 
-                        $FQDN = if ($NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns.count -gt 1) { $NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns | ForEach-Object { $_ + ' ,' } }else { $NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns }
+                        $FQDN = if (@($NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns).count -gt 1) { $NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns | ForEach-Object { $_ + ' ,' } }else { $NIC.properties.ipconfigurations.properties.privatelinkconnectionproperties.fqdns }
                         $FQDN = [string]$FQDN
                         $FQDN = if ($FQDN -like '* ,*') { $FQDN -replace ".$" }else { $FQDN }
                     }
                 else
                     {
-                        $IPAddress = if ($data.customDnsConfigs.ipAddresses.count -gt 1) { $data.customDnsConfigs.ipAddresses | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.ipAddresses }
+                        $IPAddress = if (@($data.customDnsConfigs.ipAddresses).count -gt 1) { $data.customDnsConfigs.ipAddresses | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.ipAddresses }
                         $IPAddress = [string]$IPAddress
                         $IPAddress = if ($IPAddress -like '* ,*') { $IPAddress -replace ".$" }else { $IPAddress }
 
-                        $FQDN = if ($data.customDnsConfigs.fqdn.count -gt 1) { $data.customDnsConfigs.fqdn | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.fqdn }
+                        $FQDN = if (@($data.customDnsConfigs.fqdn).count -gt 1) { $data.customDnsConfigs.fqdn | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.fqdn }
                         $FQDN = [string]$FQDN
                         $FQDN = if ($FQDN -like '* ,*') { $FQDN -replace ".$" }else { $FQDN }
                     }

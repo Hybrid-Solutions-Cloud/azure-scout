@@ -53,11 +53,11 @@ If ($Task -eq 'Processing') {
                                         }
                                     $tmp0
                                 }
-                            $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                            $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                             $RetiringFeature = [string]$RetiringFeature
                             $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                            $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                            $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
@@ -92,7 +92,7 @@ If ($Task -eq 'Processing') {
                     $FinalPrivIP = if ($PrivIPs.count -gt 1) { $PrivIPs | ForEach-Object { $_ + ' ,' } }else { $PrivIPs }
                     $FinalPrivIP = [string]$FinalPrivIP
                     $FinalPrivIP = if ($FinalPrivIP -like '* ,*') { $FinalPrivIP -replace ".$" }else { $FinalPrivIP }
-                    $FinalDNSServers = if ($Policy.properties.dnssettings.servers.count -gt 1) { $Policy.properties.dnssettings.servers | ForEach-Object { $_ + ' ,' } }else { $Policy.properties.dnssettings.servers }
+                    $FinalDNSServers = if (@($Policy.properties.dnssettings.servers).count -gt 1) { $Policy.properties.dnssettings.servers | ForEach-Object { $_ + ' ,' } }else { $Policy.properties.dnssettings.servers }
                     $FinalDNSServers = [string]$FinalDNSServers
                     $FinalDNSServers = if ($FinalDNSServers -like '* ,*') { $FinalDNSServers -replace ".$" }else { $FinalDNSServers }
 
@@ -106,18 +106,18 @@ If ($Task -eq 'Processing') {
                                     $RuleCoreCollections = if(![string]::IsNullOrEmpty($RuleCoreCollections)){$RuleCoreCollections}else{'0'}
                                     foreach ($Rule in $RuleCoreCollections)
                                         {
-                                            $FinalProtocol = if ($Rule.ipprotocols.count -gt 1) { $Rule.ipprotocols | ForEach-Object { $_ + ' ,' } }else { $Rule.ipprotocols}
+                                            $FinalProtocol = if (@($Rule.ipprotocols).count -gt 1) { $Rule.ipprotocols | ForEach-Object { $_ + ' ,' } }else { $Rule.ipprotocols}
                                             $FinalProtocol = [string]$FinalProtocol
                                             $FinalProtocol = if ($FinalProtocol -like '* ,*') { $FinalProtocol -replace ".$" }else { $FinalProtocol }
 
-                                            $FinalPort = if ($Rule.destinationports.count -gt 1) { $Rule.destinationports | ForEach-Object { $_ + ' ,' } }else { $Rule.destinationports}
+                                            $FinalPort = if (@($Rule.destinationports).count -gt 1) { $Rule.destinationports | ForEach-Object { $_ + ' ,' } }else { $Rule.destinationports}
                                             $FinalPort = [string]$FinalPort
                                             $FinalPort = if ($FinalPort -like '* ,*') { $FinalPort -replace ".$" }else { $FinalPort }
 
                                             if(![string]::IsNullOrEmpty($Rule.sourceipgroups))
                                                 {
                                                     $SourceIpGroup = ($AzureIPGroups | Where-Object {$_.id -eq $Rule.sourceipgroups}).properties.ipaddresses
-                                                    $SourceIP = if ($SourceIpGroup.count -gt 1) { $SourceIpGroup | ForEach-Object { $_ + ' ,' } }else { $SourceIpGroup }
+                                                    $SourceIP = if (@($SourceIpGroup).count -gt 1) { $SourceIpGroup | ForEach-Object { $_ + ' ,' } }else { $SourceIpGroup }
                                                     $SourceIP = [string]$SourceIP
                                                     $SourceIP = if ($SourceIP -like '* ,*') { $SourceIP -replace ".$" }else { $SourceIP }
                                                     $SourceType = 'IP Group'
@@ -131,7 +131,7 @@ If ($Task -eq 'Processing') {
                                             if(![string]::IsNullOrEmpty($Rule.destinationipgroups))
                                                 {
                                                     $DestinationIpGroup = ($AzureIPGroups | Where-Object {$_.id -eq $Rule.destinationipgroups}).properties.ipaddresses
-                                                    $DestinationIP = if ($DestinationIpGroup.count -gt 1) { $DestinationIpGroup | ForEach-Object { $_ + ' ,' } }else { $DestinationIpGroup }
+                                                    $DestinationIP = if (@($DestinationIpGroup).count -gt 1) { $DestinationIpGroup | ForEach-Object { $_ + ' ,' } }else { $DestinationIpGroup }
                                                     $DestinationIP = [string]$DestinationIP
                                                     $DestinationIP = if ($DestinationIP -like '* ,*') { $DestinationIP -replace ".$" }else { $DestinationIP }
                                                     $DestionationType = 'IP Group'

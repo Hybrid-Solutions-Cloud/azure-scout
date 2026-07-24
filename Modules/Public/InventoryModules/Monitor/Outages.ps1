@@ -52,7 +52,7 @@ If ($Task -eq 'Processing') {
                         $Mitigation = [datetime]$Mitigation
                         $Mitigation = $Mitigation.ToString("yyyy-MM-dd HH:mm")
 
-                        $ImpactedService = if ($1.properties.impact.impactedService.count -gt 1) { $1.properties.impact.impactedService | ForEach-Object { $_ + ' ,' } }else { $1.properties.impact.impactedService}
+                        $ImpactedService = if (@($1.properties.impact.impactedService).count -gt 1) { $1.properties.impact.impactedService | ForEach-Object { $_ + ' ,' } }else { $1.properties.impact.impactedService}
                         $ImpactedService = [string]$ImpactedService
                         $ImpactedService = if ($ImpactedService -like '* ,*') { $ImpactedService -replace ".$" }else { $ImpactedService }
 
@@ -94,7 +94,7 @@ Else {
 
     if ($SmaResources) {
 
-        $TableName = ('OutageTab_'+($SmaResources.'Resource U').count)
+        $TableName = ('OutageTab_'+(@($SmaResources.'Resource U')).count)
 
         $Style = @(
         New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0' -Range 'A:E'

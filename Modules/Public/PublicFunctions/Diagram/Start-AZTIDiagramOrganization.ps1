@@ -238,22 +238,22 @@ Function Start-AZSCDiagramOrganization {
             $Lvl4 = @()
             foreach($org in $OrgObjs)
                 {
-                    if($org.properties.managementgroupancestorschain.count -eq 2)
-                        {                            
+                    if(@($org.properties.managementgroupancestorschain).count -eq 2)
+                        {
                             $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 0)
                         }
-                    if($org.properties.managementgroupancestorschain.count -eq 3)
+                    if(@($org.properties.managementgroupancestorschain).count -eq 3)
                         {
                             $Lvl2 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
                             $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 1)
                         }
-                    if($org.properties.managementgroupancestorschain.count -eq 4)
+                    if(@($org.properties.managementgroupancestorschain).count -eq 4)
                         {
                             $Lvl3 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
                             $Lvl2 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 1)
                             $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 2)
                         }
-                    if($org.properties.managementgroupancestorschain.count -eq 5)
+                    if(@($org.properties.managementgroupancestorschain).count -eq 5)
                         {
                             $Lvl4 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
                             $Lvl3 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 1)
@@ -801,28 +801,34 @@ Function Start-AZSCDiagramOrganization {
                                         $4thLevel = @($4thLevel | Select-Object -Unique)
 
                                         $XXXXLeft = 0
-                                        if($4thLevel.count  % 2 -eq 1 )
+                                        if(@($4thLevel).count  % 2 -eq 1 )
                                             {
                                                 $Align4 = $true
-                                                $loops4 = -[Math]::ceiling($sub4th.count / 2 - 1)
+                                                $loops4 = -[Math]::ceiling(@($sub4th).count / 2 - 1)
                                             }
                                         else
                                             {
                                                 $Align4 = $false
-                                                $loops4 = [Math]::ceiling($sub4th.count / 2) - 1
-                                                
+                                                $loops4 = [Math]::ceiling(@($sub4th).count / 2) - 1
+
                                             }
-                                        if($4thLevel.count -eq 1)
+                                        if(@($4thLevel).count -eq 1)
                                             {
                                                 $loops4 = 1
                                             }
 
 
                                     foreach($4th in $4thLevel)
-                                        {                              
-                                            $RoundSubs4 = @() 
+                                        {
+                                            $RoundSubs4 = @()
+                                            # Predeclare: referenced below (alongside $Temp5th4) but this tier never
+                                            # populates it; without this, the bare reference throws "the variable
+                                            # '$Temp4rd4' cannot be retrieved because it has not been set" under
+                                            # Set-StrictMode -Version Latest (the module runs under it once imported
+                                            # alongside the assessment platform).
+                                            $Temp4rd4 = @()
                                             $Temp5th4 = @()
-                                    
+
                                             foreach($Sub in $OrgObjs)
                                                 {
                                                     if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0) -eq $4th)

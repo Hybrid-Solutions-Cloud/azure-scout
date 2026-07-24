@@ -105,8 +105,8 @@ If ($Task -eq 'Processing')
                 $destinationsStr = if ($destinations.Count -gt 0) { $destinations -join '; ' } else { 'None' }
 
                 # Count enabled categories
-                $enabledCount = ($data.Logs | Where-Object { $_.Enabled -eq $true }).Count
-                $totalCount = $data.Logs.Count
+                $enabledCount = @($data.Logs | Where-Object { $_.Enabled -eq $true }).Count
+                $totalCount = @($data.Logs).Count
 
                 $obj = @{
                     'ID'                        = $1.Id;

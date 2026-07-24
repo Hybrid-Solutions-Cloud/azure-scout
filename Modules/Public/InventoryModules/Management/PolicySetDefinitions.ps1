@@ -49,7 +49,7 @@ If ($Task -eq 'Processing')
                 $version = if ($props.Metadata.version) { $props.Metadata.version } else { 'N/A' }
 
                 # Count policy definitions in the initiative
-                $policyCount = if ($props.PolicyDefinitions) { $props.PolicyDefinitions.Count } else { 0 }
+                $policyCount = if ($props.PolicyDefinitions) { @($props.PolicyDefinitions).Count } else { 0 }
 
                 # Get list of policy definition references
                 $policyRefs = if ($props.PolicyDefinitions) {
@@ -60,7 +60,7 @@ If ($Task -eq 'Processing')
                 } else { 'None' }
 
                 # Parse policy groups
-                $groupCount = if ($props.PolicyDefinitionGroups) { $props.PolicyDefinitionGroups.Count } else { 0 }
+                $groupCount = if ($props.PolicyDefinitionGroups) { @($props.PolicyDefinitionGroups).Count } else { 0 }
 
                 $obj = @{
                     'ID'                        = $policySet.PolicySetDefinitionId;

@@ -54,11 +54,11 @@ If ($Task -eq 'Processing')
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -71,7 +71,7 @@ If ($Task -eq 'Processing')
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
                 $NetworkPlugin = if($data.networkprofile.networkplugin -eq 'azure'){'Azure CNI'}else{$data.networkprofile.networkplugin}
                 $LocalAccounts = if($data.disablelocalaccounts -eq $true){$false}else{$true}
-                $GroupsChosen = if($data.aadprofile.admingroupobjectids){[string]$data.aadprofile.admingroupobjectids.count}else{'0'}
+                $GroupsChosen = if($data.aadprofile.admingroupobjectids){[string]@($data.aadprofile.admingroupobjectids).count}else{'0'}
                 $GroupsChosen = ($GroupsChosen+' groups chosen')
                 $NodeChannel = if([string]::IsNullOrEmpty($data.autoupgradeprofile.nodeosupgradechannel)){'None'}else{$data.autoupgradeprofile.nodeosupgradechannel}
                 $UpgradeChannel = if([string]::IsNullOrEmpty($data.autoUpgradeProfile.upgradeChannel)){'Disabled'}else{$data.autoUpgradeProfile.upgradeChannel}
@@ -84,11 +84,11 @@ If ($Task -eq 'Processing')
                         $AutoScale = if([string]::IsNullOrEmpty($2.enableAutoScaling)){$false}else{if($2.enableautoscaling -eq $true){$true}else{$false}}
                         $AVZone = if([string]::IsNullOrEmpty($2.availabilityZones)){'None'}else{[string]$2.availabilityZones}
 
-                        $Taints = if ($2.nodetaints.count -gt 1) { $2.nodetaints | ForEach-Object { $_ + ' ,' } }else { $2.nodetaints }
+                        $Taints = if (@($2.nodetaints).count -gt 1) { $2.nodetaints | ForEach-Object { $_ + ' ,' } }else { $2.nodetaints }
                         $Taints = [string]$Taints
                         $Taints = if ($Taints -like '* ,*') { $Taints -replace ".$" }else { $Taints }
 
-                        $Labels = if ($2.nodelabels.count -gt 1) { $2.nodelabels | ForEach-Object { $_ + ' ,' } }else { $2.nodelabels }
+                        $Labels = if (@($2.nodelabels).count -gt 1) { $2.nodelabels | ForEach-Object { $_ + ' ,' } }else { $2.nodelabels }
                         $Labels = [string]$Labels
                         $Labels = if ($Labels -like '* ,*') { $Labels -replace ".$" }else { $Labels }
 

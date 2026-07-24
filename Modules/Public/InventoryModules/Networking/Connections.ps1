@@ -49,11 +49,11 @@ If ($Task -eq 'Processing')
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -65,7 +65,7 @@ If ($Task -eq 'Processing')
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 
                 # IPsec Policy (first policy if multiple)
-                $ipsecPolicy = if ($data.ipsecPolicies -and $data.ipsecPolicies.count -gt 0) { $data.ipsecPolicies[0] } else { $null }
+                $ipsecPolicy = if ($data.ipsecPolicies -and @($data.ipsecPolicies).count -gt 0) { @($data.ipsecPolicies)[0] } else { $null }
                 $IPsecEncryption = if ($ipsecPolicy) { $ipsecPolicy.ipsecEncryption } else { $null }
                 $IPsecIntegrity = if ($ipsecPolicy) { $ipsecPolicy.ipsecIntegrity } else { $null }
                 $IKEEncryption = if ($ipsecPolicy) { $ipsecPolicy.ikeEncryption } else { $null }
@@ -76,7 +76,7 @@ If ($Task -eq 'Processing')
                 $SADataSize = if ($ipsecPolicy) { $ipsecPolicy.saDataSizeKilobytes } else { $null }
 
                 # Traffic selectors
-                $TrafficSelectors = if ($data.trafficSelectorPolicies -and $data.trafficSelectorPolicies.count -gt 0) {
+                $TrafficSelectors = if ($data.trafficSelectorPolicies -and @($data.trafficSelectorPolicies).count -gt 0) {
                     ($data.trafficSelectorPolicies | ForEach-Object {
                         'Local:' + ($_.localAddressRanges -join ',') + ' Remote:' + ($_.remoteAddressRanges -join ',')
                     }) -join '; '

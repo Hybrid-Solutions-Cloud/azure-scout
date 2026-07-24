@@ -505,7 +505,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:Alt0 = $Script:Alt
                                 if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                                     {
-                                        if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
+                                        if(@($VNET2.properties.addressSpace.addressPrefixes).count -ge 10)
                                         {
                                             $AddSpace = ($VNET2.properties.addressSpace.addressPrefixes | Select-Object -First 20 |  ForEach-Object {$_ + "`n"} ) + "`n" +'...'
                                         }Else{
@@ -553,7 +553,7 @@ Function Start-AZSCDiagramNetwork {
 
                                             New-AZSCDiagramVNET $Script:VNET2
 
-                                        if($VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
+                                        if(@($VNET2.properties.virtualNetworkPeerings).Count -gt 0 -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
                                             {
                                                 New-AZSCDiagramPeerVNET $Script:VNET2
                                             }
@@ -579,7 +579,7 @@ Function Start-AZSCDiagramNetwork {
 
                     }
 
-                    if($Con1.count -gt 1)
+                    if(@($Con1).count -gt 1)
                     {
                         $Script:Alt = $Script:Alt + 250
                     }
@@ -649,7 +649,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:Alt0 = $Script:Alt
                                 if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                                     {
-                                        if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
+                                        if(@($VNET2.properties.addressSpace.addressPrefixes).count -ge 10)
                                         {
                                             $AddSpace = ($VNET2.properties.addressSpace.addressPrefixes | Select-Object -First 20 |  ForEach-Object {$_ + "`n"} ) + "`n" +'...'
                                         }Else{
@@ -696,7 +696,7 @@ Function Start-AZSCDiagramNetwork {
 
                                             New-AZSCDiagramVNET $Script:VNET2
 
-                                        if($VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id -notlike ('*/HV_'+$VHUB.name+'_*'))
+                                        if(@($VNET2.properties.virtualNetworkPeerings).Count -gt 0 -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id -notlike ('*/HV_'+$VHUB.name+'_*'))
                                             {
                                                 New-AZSCDiagramPeerVNET $Script:VNET2
                                             }
@@ -719,7 +719,7 @@ Function Start-AZSCDiagramNetwork {
                         }
                     }
 
-                    if($Con1.count -gt 1)
+                    if(@($Con1).count -gt 1)
                     {
                         $Script:Alt = $Script:Alt + 250
                     }
@@ -746,7 +746,7 @@ Function Start-AZSCDiagramNetwork {
                     if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                         {
 
-                            if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
+                            if(@($VNET2.properties.addressSpace.addressPrefixes).count -ge 10)
                             {
                                 $AddSpace = ($VNET2.properties.addressSpace.addressPrefixes | Select-Object -First 20 |  ForEach-Object {$_ + "`n"} ) + "`n" +'...'
                             }Else{
@@ -792,7 +792,7 @@ Function Start-AZSCDiagramNetwork {
 
                                 New-AZSCDiagramVNET $Script:VNET2
 
-                            if($VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
+                            if(@($VNET2.properties.virtualNetworkPeerings).Count -gt 0 -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
                                 {
                                     New-AZSCDiagramPeerVNET $Script:VNET2
                                 }
@@ -839,7 +839,7 @@ Function Start-AZSCDiagramNetwork {
 
                     if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                         {
-                            if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
+                            if(@($VNET2.properties.addressSpace.addressPrefixes).count -ge 10)
                             {
                                 $AddSpace = ($VNET2.properties.addressSpace.addressPrefixes | Select-Object -First 20 |  ForEach-Object {$_ + "`n"} ) + "`n" +'...'
                             }Else{
@@ -868,7 +868,7 @@ Function Start-AZSCDiagramNetwork {
 
                             New-AZSCDiagramVNET $Script:VNET2
 
-                            if($VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
+                            if(@($VNET2.properties.virtualNetworkPeerings).Count -gt 0 -and $VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
                                 {
                                     New-AZSCDiagramPeerVNET $Script:VNET2
                                 }
@@ -1070,7 +1070,7 @@ Function Start-AZSCDiagramNetwork {
                         $Script:sizeL =  @($VNETSUB.properties.subnets.properties.addressPrefix).Count
                         $BrokenVNET = if(@($VNETSUB.properties.subnets.properties.addressPrefix).Count){'Not Broken'}else{'Broken'}
 
-                        if($VNETSUB.properties.addressSpace.addressPrefixes.count -ge 10)
+                        if(@($VNETSUB.properties.addressSpace.addressPrefixes).count -ge 10)
                         {
                             $AddSpace = ($VNETSUB.properties.addressSpace.addressPrefixes | Select-Object -First 20 |  ForEach-Object {$_ + "`n"} ) + "`n" +'...'
                         }Else{

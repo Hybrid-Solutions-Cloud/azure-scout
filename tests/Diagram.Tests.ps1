@@ -286,3 +286,66 @@ Describe 'Merged .drawio output quality' {
         $mgCell | Should -Not -BeNullOrEmpty
     }
 }
+
+# =====================================================================
+# REGRESSION: subnet with no recognizable resource type ("EmptySubnet")
+# =====================================================================
+Describe 'Build-AZSCDiagramSubnet handles a subnet with no matching resource type' {
+
+    BeforeAll {
+        # A subnet with no delegation, no links, and no IP configurations at all
+        # drives Get-AZSCDiagramSubnetResourceType to its 'EmptySubnet' fallback,
+        # which none of the branches in the nested Get-AZSCDiagramSubnetResourcesName
+        # switch match. Before the fix, $ResNames/$RESNames was never assigned in
+        # that function's scope for this case, and `return $ResNames` threw "the
+        # variable '$ResNames' cannot be retrieved because it has not been set"
+        # under Set-StrictMode -Version Latest -- breaking the diagram for any
+        # ordinary unused/empty subnet (an extremely common real-world shape).
+        $script:EmptySubnetFixture = [PSCustomObject]@{
+            Name       = 'snet-truly-empty'
+            id         = '/subscriptions/sub-0001/resourceGroups/rg-network/providers/Microsoft.Network/virtualNetworks/vnet-empty/subnets/snet-truly-empty'
+            properties = [PSCustomObject]@{
+                addressPrefix                      = '10.0.2.0/24'
+                networkSecurityGroup               = $null
+                routeTable                         = $null
+                delegations                        = @()
+                resourceNavigationLinks            = @()
+                serviceAssociationLinks            = @()
+                applicationGatewayIPConfigurations = @()
+                ipconfigurations                   = @()
+            }
+        }
+
+        $script:EmptySubnetVnet = [PSCustomObject]@{
+            Name           = 'vnet-empty-test'
+            id             = '/subscriptions/sub-0001/resourceGroups/rg-network/providers/Microsoft.Network/virtualNetworks/vnet-empty'
+            subscriptionId = 'sub-0001'
+            properties     = [PSCustomObject]@{
+                addressSpace           = [PSCustomObject]@{ addressPrefixes = @('10.0.2.0/16') }
+                subnets                = @($script:EmptySubnetFixture)
+                virtualNetworkPeerings = @()
+                enableDdosProtection   = $false
+                dhcpoptions            = [PSCustomObject]@{ dnsServers = @() }
+            }
+        }
+
+        # Empty on every resource-type bucket the nested resolver switches on, so
+        # none of its branches match and $ResNames is left to fall through.
+        $script:EmptyJob = @{
+            AZVNETs = @($script:EmptySubnetVnet); AZLGWs = @(); AZEXPROUTEs = @(); AZVPNSITES = @(); AZVERs = @()
+            AKS = @(); VMSS = @(); NIC = @(); PrivEnd = @(); VM = @(); ARO = @(); Kusto = @(); AppGtw = @()
+            Databricks = @(); AppWeb = @(); APIM = @(); LB = @(); Bastion = @(); FW = @(); NetProf = @()
+            Container = @(); ANF = @(); AZVGWs = @(); AZCONs = @(); PIPs = @(); AZVWAN = @(); AZVHUB = @()
+        }
+    }
+
+    It 'does not throw when the subnet has no delegation, links, or IP configurations and no resource matches it' {
+        { Build-AZSCDiagramSubnet -SubnetLocation 0 -VNET $script:EmptySubnetVnet -IDNum 0 `
+            -DiagramCache $script:CacheDir -ContainerID 1 -Job $script:EmptyJob -LogFile $script:LogFile } |
+            Should -Not -Throw
+    }
+
+    It 'still produces a subnet cache .xml file for the empty subnet' {
+        Get-ChildItem -Path $script:CacheDir -Filter '*.xml' | Should -Not -BeNullOrEmpty
+    }
+}

@@ -45,11 +45,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -72,10 +72,10 @@ If ($Task -eq 'Processing') {
                     ($vpnClientConfig.vpnAuthenticationTypes) -join ', '
                 } else { $null }
                 $P2SRootCertCount = if ($vpnClientConfig.vpnClientRootCertificates) {
-                    $vpnClientConfig.vpnClientRootCertificates.count
+                    @($vpnClientConfig.vpnClientRootCertificates).count
                 } else { 0 }
                 $P2SRevokedCertCount = if ($vpnClientConfig.vpnClientRevokedCertificates) {
-                    $vpnClientConfig.vpnClientRevokedCertificates.count
+                    @($vpnClientConfig.vpnClientRevokedCertificates).count
                 } else { 0 }
                 $P2SRadiusServer = $vpnClientConfig.radiusServerAddress
                 $P2SAADTenant = $vpnClientConfig.aadTenant
@@ -84,9 +84,9 @@ If ($Task -eq 'Processing') {
                 $CustomDNS = if ($data.customDnsServers) {
                     ($data.customDnsServers) -join ', '
                 } else { $null }
-                $NATRulesCount = if ($data.natRules) { $data.natRules.count } else { 0 }
+                $NATRulesCount = if ($data.natRules) { @($data.natRules).count } else { 0 }
                 $PolicyGroupCount = if ($vpnClientConfig.vngClientConnectionConfigurations) {
-                    $vpnClientConfig.vngClientConnectionConfigurations.count
+                    @($vpnClientConfig.vngClientConnectionConfigurations).count
                 } else { 0 }
 
                     foreach ($Tag in $Tags) {

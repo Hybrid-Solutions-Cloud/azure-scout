@@ -61,11 +61,11 @@ If ($Task -eq 'Processing')
             # Action groups
             $actionGroupIds = @()
             if ($data.actions -and $data.actions.actionGroups) {
-                $actionGroupIds = $data.actions.actionGroups | ForEach-Object {
+                $actionGroupIds = @($data.actions.actionGroups | ForEach-Object {
                     ($_.actionGroupId -split '/')[-1]
-                }
+                })
             }
-            $actionGroupStr = if ($actionGroupIds.Count -gt 0) { $actionGroupIds -join '; ' } else { 'None' }
+            $actionGroupStr = if (@($actionGroupIds).Count -gt 0) { $actionGroupIds -join '; ' } else { 'None' }
 
             foreach ($Tag in $Tags) {
                 $obj = @{

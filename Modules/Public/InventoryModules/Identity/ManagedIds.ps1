@@ -65,7 +65,7 @@ Else {
 
     if ($SmaResources) {
 
-        $TableName = ('ManIdTable_'+($SmaResources.'Resource U').count)
+        $TableName = ('ManIdTable_'+(@($SmaResources.'Resource U')).count)
         $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0'
 
         $Exc = New-Object System.Collections.Generic.List[System.Object]

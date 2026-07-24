@@ -48,11 +48,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -63,22 +63,22 @@ If ($Task -eq 'Processing') {
                     }
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 
-                $AddrPool = if ($data.addressSpace.addressPrefixes.count -gt 1) { $data.addressSpace.addressPrefixes | ForEach-Object { $_ + ' ,' } }else { $data.addressSpace.addressPrefixes }
+                $AddrPool = if (@($data.addressSpace.addressPrefixes).count -gt 1) { $data.addressSpace.addressPrefixes | ForEach-Object { $_ + ' ,' } }else { $data.addressSpace.addressPrefixes }
                 $AddrPool = [string]$AddrPool
                 $AddrPool = if ($AddrPool -like '* ,*') { $AddrPool -replace ".$" }else { $AddrPool }
 
-                $DNSServers = if ($data.dhcpOptions.dnsServers.count -gt 1) { $data.dhcpOptions.dnsServers| ForEach-Object { $_ + ' ,' } }else { $data.dhcpOptions.dnsServers }
+                $DNSServers = if (@($data.dhcpOptions.dnsServers).count -gt 1) { $data.dhcpOptions.dnsServers| ForEach-Object { $_ + ' ,' } }else { $data.dhcpOptions.dnsServers }
                 $DNSServers = [string]$DNSServers
                 $DNSServers = if ($DNSServers -like '* ,*') { $DNSServers -replace ".$" }else { $DNSServers }
 
                 foreach ($2 in $data.subnets)
                     {
-                        $ConsumedIPs = [int]$2.properties.ipConfigurations.id.count
+                        $ConsumedIPs = [int]@($2.properties.ipConfigurations.id).count
                         $Prefixes = if(![string]::IsNullOrEmpty($2.properties.addressPrefix)){$2.properties.addressPrefix}else{$2.properties.addressPrefixes}
                         $Prefix = $Prefixes.split('/')[1]
                         $AvailableIPs = $null
 
-                        $Delegations = if ($2.properties.delegations.properties.servicename.count -gt 1) { $2.properties.delegations.properties.servicename | ForEach-Object { $_ + ' ,' } }else { $2.properties.delegations.properties.servicename}
+                        $Delegations = if (@($2.properties.delegations.properties.servicename).count -gt 1) { $2.properties.delegations.properties.servicename | ForEach-Object { $_ + ' ,' } }else { $2.properties.delegations.properties.servicename}
                         $Delegations = [string]$Delegations
                         $Delegations = if ($Delegations -like '* ,*') { $Delegations -replace ".$" }else { $Delegations }
 

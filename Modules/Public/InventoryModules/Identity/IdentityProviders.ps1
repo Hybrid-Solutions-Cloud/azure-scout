@@ -24,7 +24,7 @@ Register-AZSCInventoryModule -ModuleId 'entra/identityproviders' -PhaseId 'Proce
         return
     }
 
-    Write-AZSCLog -Message "Processing $($Resources.Count) identity provider(s)"
+    Write-AZSCLog -Message "Processing $(@($Resources).Count) identity provider(s)"
 
     foreach ($Provider in $Resources) {
         try {
@@ -115,7 +115,7 @@ Register-AZSCInventoryModule -ModuleId 'entra/identityproviders' -PhaseId 'Repor
         return
     }
 
-    Write-AZSCLog -Message "Exporting $($Data.Count) identity provider(s) to Excel"
+    Write-AZSCLog -Message "Exporting $(@($Data).Count) identity provider(s) to Excel"
 
     try {
         $ExcelParams = @{

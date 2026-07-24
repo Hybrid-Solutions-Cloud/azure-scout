@@ -49,11 +49,11 @@ If ($Task -eq 'Processing') {
                                         }
                                     $tmp0
                                 }
-                            $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                            $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                             $RetiringFeature = [string]$RetiringFeature
                             $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                            $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                            $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
@@ -81,7 +81,7 @@ If ($Task -eq 'Processing') {
                     
                     $NSG = if(![string]::IsNullOrEmpty($data.networksecuritygroup.id)){$data.networksecuritygroup.id.split('/')[8]}else{$null}
 
-                    $DNS = if ($data.dnssettings.dnsservers.count -gt 1) { $data.dnssettings.dnsservers | ForEach-Object { $_ + ' ,' } }else { $data.dnssettings.dnsservers }
+                    $DNS = if (@($data.dnssettings.dnsservers).count -gt 1) { $data.dnssettings.dnsservers | ForEach-Object { $_ + ' ,' } }else { $data.dnssettings.dnsservers }
                     $DNS = [string]$DNS
                     $DNS = if ($DNS -like '* ,*') { $DNS -replace ".$" }else { $DNS }
 

@@ -47,7 +47,7 @@ If ($Task -eq 'Processing')
                 $Compression = if(![string]::IsNullOrEmpty($data.settings.iscompression)){$data.settings.iscompression}else{$false}
                 $SQLCompression = if(![string]::IsNullOrEmpty($data.settings.issqlcompression)){$data.settings.issqlcompression}else{$false}
 
-                $PolicyType = if ($data.subprotectionpolicy.policytype.count -gt 1) { $data.subprotectionpolicy.policytype | ForEach-Object { $_ + ' ,' } }else { $data.subprotectionpolicy.policytype }
+                $PolicyType = if (@($data.subprotectionpolicy.policytype).count -gt 1) { $data.subprotectionpolicy.policytype | ForEach-Object { $_ + ' ,' } }else { $data.subprotectionpolicy.policytype }
                 $PolicyType = [string]$PolicyType
                 $PolicyType = if ($PolicyType -like '* ,*') { $PolicyType -replace ".$" }else { $PolicyType }
 

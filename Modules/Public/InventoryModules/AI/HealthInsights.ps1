@@ -58,11 +58,11 @@ If ($Task -eq 'Processing')
                                     }
                                 $tmp
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     } 
@@ -94,8 +94,8 @@ If ($Task -eq 'Processing')
                                     'Custom Domain Name'                        = $data.customsubdomainname;
                                     'Endpoint'                                  = $data.endpoint;
                                     'Network Default Action'                    = $data.networkacls.defaultaction;
-                                    'IP Rules'                                  = $data.networkacls.iprules.count;
-                                    'Virtual Network Rules'                     = $data.networkacls.virtualnetworkrules.count;
+                                    'IP Rules'                                  = @($data.networkacls.iprules).count;
+                                    'Virtual Network Rules'                     = @($data.networkacls.virtualnetworkrules).count;
                                     'Private Endpoint'                          = $priv;
                                     'Resource U'                                = $ResUCount;
                                     'Tag Name'                                  = [string]$Tag.Name;

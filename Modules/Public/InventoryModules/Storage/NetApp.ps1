@@ -47,11 +47,11 @@ If ($Task -eq 'Processing') {
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -62,7 +62,7 @@ If ($Task -eq 'Processing') {
                     }
                 $VNET = if(![string]::IsNullOrEmpty($data.subnetId)){$data.subnetId.split('/')[8]}else{$null}
                 $Subnet = if(![string]::IsNullOrEmpty($data.subnetId)){$data.subnetId.split('/')[10]}else{$null}
-                $ExportPolicy = $data.exportPolicy.rules.count
+                $ExportPolicy = @($data.exportPolicy.rules).count
                 $NetApp = if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[0]}else{$null}
                 $CapacityPool = if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[1]}else{$null}
                 $Volume =if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[2]}else{$null}

@@ -50,11 +50,11 @@ If ($Task -eq 'Processing')
                                     }
                                 $tmp0
                             }
-                        $RetiringFeature = if ($RetiredFeature.RetiredFeature.count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
+                        $RetiringFeature = if (@($RetiredFeature.RetiredFeature).count -gt 1) { $RetiredFeature.RetiredFeature | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredFeature}
                         $RetiringFeature = [string]$RetiringFeature
                         $RetiringFeature = if ($RetiringFeature -like '* ,*') { $RetiringFeature -replace ".$" }else { $RetiringFeature }
 
-                        $RetiringDate = if ($RetiredFeature.RetiredDate.count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
+                        $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
@@ -66,7 +66,7 @@ If ($Task -eq 'Processing')
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
                 $ingress = if(![string]::IsNullOrEmpty($data.configuration.ingress)){$true}else{$false}
                 $dapr = if(![string]::IsNullOrEmpty($data.configuration.dapr)){$true}else{$false}
-                $secrets = if(![string]::IsNullOrEmpty($data.configuration.secrets)){$data.configuration.secrets.count}else{0}
+                $secrets = if(![string]::IsNullOrEmpty($data.configuration.secrets)){@($data.configuration.secrets).count}else{0}
                 $Env = $data.environmentId.split('/')[8]
                 foreach ($2 in $data.template) {
                     foreach ($3 in $2.containers) {
