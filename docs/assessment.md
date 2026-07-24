@@ -270,13 +270,18 @@ Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Html
 Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Pptx
 Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Excel
 Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Json
+Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat JsonEvidence
 Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat React
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, React
+Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Word
+Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat EChartsDashboard
+Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Pdf
+Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
 ```
 
 `-OutputFormat` also accepts an array (`-OutputFormat Html,Pptx`). `React`
-produces a single self-contained `report-react.html` — see
-[Report tiers](#report-tiers) below — and is also available on
+produces a single self-contained `report-react.html`; `Word`, `EChartsDashboard`,
+and `Pdf` are three more self-contained tiers added in v2.2.0 — see
+[Report tiers](#report-tiers) below — and all are also available on
 `Invoke-ScoutPipeline` via its own `-OutputFormat` parameter.
 
 ### `-OutputPath`
@@ -315,16 +320,111 @@ drift automatically after scoring and feeds it into the [React
 report](#report-tiers)'s Drift tab; a drift computation failure is non-fatal
 to the rest of the run.
 
+## Cross-run resource (inventory) drift
+
+`Get-ScoutInventoryDrift` (AB#326) is the resource-level counterpart to
+`Get-ScoutDrift` above: `Get-ScoutDrift` tracks how each **rule** scored across
+runs, while `Get-ScoutInventoryDrift` tracks what actually changed in the
+**collected Azure estate itself** — independent of how any rule scored it.
+It is not wired into `Invoke-ScoutAssessment` automatically; call it yourself
+with the same `collect.json` and a caller-controlled run id:
+
+```powershell
+$collect = Get-Content ./output/20260724_101500/collect.json -Raw | ConvertFrom-Json
+Get-ScoutInventoryDrift -Collect $collect -HistoryPath ./output/.scout-history -RunId '20260724_101500'
+```
+
+Each resource gets a stable id built from whichever recognized identity
+fields it carries (falling back to a content hash so nothing is silently
+dropped), then compared against the previous run's snapshot: **Added**,
+**Removed**, **Changed** (with a per-field before/after diff), or
+**Unchanged** (rolled into the summary count only). The first-ever run for a
+given `-HistoryPath` returns an explicit baseline (`IsBaseline = $true`)
+rather than reporting every resource as Added. History is appended to
+`inventory-history.json`, alongside `Get-ScoutDrift`'s
+`findings-history.json`, under the same `.scout-history/` folder.
+
+## Cost anomaly detection
+
+`Get-ScoutCostAnomaly` (AB#324) is an offline analysis function — it never
+calls Azure. Point it at an already-collected cost dataset (the raw
+`Get-AZSCCostInventory` shape, or a pre-normalized array of cost records) and
+it flags outliers using three independent techniques: a sudden month-over-month
+spike, a z-score check, and an IQR (Tukey) check, grouped by `-GroupBy`
+(default `Scope`, `ResourceType`). It also always returns the top movers by
+absolute dollar swing, independent of whether anything crossed a threshold.
+
+```powershell
+Get-ScoutCostAnomaly -CostData $costData -ZScoreThreshold 2.5 -SpikeThresholdPct 75
+```
+
+::: tip Needs more than the default 2-month lookback for z-score/IQR
+The z-score and IQR techniques need at least `-MinDataPoints` (default 4)
+periods per group; the default `Get-AZSCCostInventory` lookback is only 2
+months, so only spike detection reliably fires unless you collect cost data
+with a longer `-Days` window first.
+:::
+
+## IaC gap detection
+
+`Get-ScoutIacGap` (AB#325) is an offline analysis function — it never calls
+Azure. It compares resources discovered in `collect.json` against a folder of
+`.bicep`/ARM-JSON templates (best-effort text/JSON parsing — no `bicep build`
+or other external dependency) and reports resources that exist in Azure but
+aren't represented in any template (`Unmanaged`).
+
+```powershell
+Get-ScoutIacGap -CollectData $collect -TemplatePath ./infra -IncludeTemplatedButMissing
+```
+
+Matching is exact on a normalized (Type, Name) pair — it does not currently
+account for a resource being deployed to a different resource group/
+subscription than its template declares.
+
+## IoT deep coverage
+
+The Collect layer's IoT queries (`Invoke-Collect`, AB#330) now go beyond IoT
+Hub device registries to include **Device Provisioning Service** (DPS) and
+**Azure Digital Twins** instances, scored by the `caf.iot` rule file — so
+`-Assessment IoT` (and `LandingZone`) picks up DPS/Digital Twins findings
+without any extra configuration.
+
+## Assessment config load/save
+
+`Import-ScoutConfig` / `Export-ScoutConfig` (AB#373–375) let you save and
+reload the effective assessment config — an alternative benchmark,
+rule-selection glob patterns, and per-rule threshold overrides — as a single
+JSON file, mirroring exactly what the engine already consumes (no new schema
+invented):
+
+```powershell
+# Load a config (falls back to the built-in ALZ reference benchmark if the
+# file is absent, missing, or unparsable -- never throws)
+$config = Import-ScoutConfig -ConfigPath ./my-config.json
+
+# Round-trip: save the effective config back out
+Export-ScoutConfig -Config $config -Path ./my-config.json -Force
+```
+
+Every key (`benchmark`, `rulePatterns`, `ruleOverrides`) is optional and
+independently overridable. A missing/invalid `-ConfigPath` degrades to
+"run with defaults" with a `Write-Warning` rather than aborting the
+assessment.
+
 ## Report tiers
 
 | Tier | Output | Notes |
 |------|--------|-------|
-| Power BI | `powerbi/*.csv` + `.pbit` | Primary analytics tier (star schema) |
+| Power BI | `powerbi/*.csv` + `.pbit` | Primary analytics tier (star schema); the `.pbit` template is bound to the CSVs so it opens pre-wired in Power BI Desktop. |
 | HTML | `report.html` | Self-contained, single file |
 | PowerPoint | `assessment_deck.pptx` | Executive deck via the OpenXML SDK — **no Python dependency**. First use needs the `dotnet` SDK; see [Assessment Prerequisites](assessment-prerequisites.md#powerpoint-tier-net-sdk-not-python). |
-| Excel | `assessment_evidence.xlsx` | Evidence tier |
-| JSON | `findings.json` | The machine-readable contract |
-| React | `report-react.html` | Self-contained (CSS/JS inline, findings embedded as a JSON blob, no external/CDN requests). Client-side filter by Framework/Area/Severity/Status, sortable/searchable findings table, a summary dashboard, and a Drift tab showing cross-run drift (see [Cross-run drift](#cross-run-drift)). |
+| Excel | `assessment_evidence.xlsx` | Evidence tier, plus pivot-chart visual dashboard tabs (Findings-by-Severity, Score-by-Area, Pass-Fail-Manual, Resource-Counts) generated with `ImportExcel` — each tab is omitted when its underlying data is empty. |
+| JSON | `findings.json` | The machine-readable contract — full assessment metadata, scores, and findings. |
+| JSON evidence | `evidence.json` (`Export-JsonEvidence`) | Resources-only export of the raw `collect.json` data (**AB#396**) — no assessment metadata, scores, or findings. For callers that just want the discovered resources as JSON. |
+| React | `report-react.html` | Self-contained (CSS/JS inline, findings embedded as a JSON blob, no external/CDN requests). A vis.js VNet topology diagram with click-to-details and reset/fit controls, an MG-hierarchy diagram, 14 KPI cards, an Azure Firewall drill-down, a Governance section (budgets/locks/tag chips), a policy-enforcement badge, per-section search/filter, clickable rows with a side panel, scope tooltips, client-side filter by Framework/Area/Severity/Status, a sortable/searchable findings table, and a Drift tab showing cross-run drift (see [Cross-run drift](#cross-run-drift)). |
+| Word | `assessment_report.docx` (`Export-Word`) | Self-contained `.docx` via the OpenXML SDK — **no Python dependency**, same NuGet-on-first-use pattern as the PowerPoint tier (**AB#333**). Falls back to a plain HTML file (clearly labeled, not a renamed `.docx`) if generation fails. |
+| ECharts dashboard | `assessment_dashboard.html` (`Export-EChartsDashboard`) | Self-contained offline HTML dashboard — Apache ECharts is inlined into the file, no CDN/external requests (**AB#344**). |
+| PDF | `assessment_report.pdf` (`Export-Pdf`) | Hand-rolled, dependency-free PDF renderer — cover page, executive summary, per-area findings table with a repeating header, prioritized gaps, and the manual-review worklist (**AB#379/394/395**). Falls back to an HTML file with print-to-PDF instructions if generation fails. |
 
 ## Minimum auth per scan type
 

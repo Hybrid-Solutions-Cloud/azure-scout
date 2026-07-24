@@ -13,7 +13,34 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.0.0 — CAF/WAF Assessment Platform
+## Current Release — v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
+
+Delivered on `main` (not yet tagged/published — see
+[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+for cut status). Four new report tiers, richer visuals on the existing ones,
+three new offline analysis functions, deeper collector coverage, and a round
+of platform hardening on top of v2.1.0.
+
+| Capability | What shipped |
+|---|---|
+| Report tiers | `Word` (`.docx` via OpenXML, AB#333), `EChartsDashboard` (offline ECharts HTML, AB#344), `Pdf` (dependency-free, AB#379/394/395), `JsonEvidence` (resources-only, AB#396) — all on `Export-Report` / `-OutputFormat` |
+| Reporting depth | Excel visual dashboard tabs with pivot charts (AB#322); richer React report — topology diagram, MG hierarchy, 14 KPI cards, Governance section, drill-downs, search/filter, badges, tooltips (AB#376–378, 380, 386, 387, 389–393); `report.pbit` generation (AB#5046) |
+| New analysis | `Get-ScoutInventoryDrift` (cross-run resource drift, AB#326), `Get-ScoutCostAnomaly` (cost outliers, AB#324), `Get-ScoutIacGap` (Bicep/IaC coverage gaps, AB#325) — all offline, never call Azure |
+| Collect layer | IoT deep coverage — DPS + Digital Twins (AB#330); tag-value aggregation (AB#367); deeper Database/Analytics/IoT rule automation (AB#5068/5071/5075); per-subscription collector/pipeline resilience + live progress (AB#397–402, 405) |
+| Config | `Import-ScoutConfig` / `Export-ScoutConfig` (AB#373–375) — save/reload a benchmark + rule-selection + threshold-override config as JSON, with a safe fallback to the built-in default |
+| Platform | CI pipeline (AB#317); a real, non-simulated `azure-inventory` workflow (AB#340); module auto-update check (AB#369); login auth banner (AB#349); five v1 inventory bug fixes (AB#335–340); draw.io merge/StrictMode repairs (AB#342); documented Entra Graph delegated scopes (AB#347/338) |
+
+Full detail: [CHANGELOG.md § 2.2.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#220---2026-07-24).
+
+## v2.1.0 — Platform Hardening
+
+Released 23 July 2026. Native governance collector (AB#5041), unattended
+one-command pipeline (AB#5050), and the React report variant + cross-run
+drift tracking (AB#5053). See the
+[v2.1.0 section](#major-—-v2-1-0-—-platform-hardening-epic-ab-5023-carryover-—-released-2026-07-23)
+below for the full breakdown.
+
+## v2.0.0 — CAF/WAF Assessment Platform
 
 Released 23 July 2026. Turns AzureScout from an inventory tool into a read-only
 CAF/WAF landing-zone assessment. Runtime-verified offline (Pester) and against a
@@ -33,8 +60,9 @@ live Azure tenant.
 
 Deferred to v2.1.0: full per-category rule depth (AB#5061–5075). The native
 governance collector (AB#5041), the fully unattended pipeline (AB#5050), and
-the React report variant + cross-run drift tracking (AB#5053) have since
-shipped on `main` — see **v2.1.0 (in development)** below.
+the React report variant + cross-run drift tracking (AB#5053) shipped in
+v2.1.0; four new report tiers, deeper analysis functions, and collector
+hardening shipped in v2.2.0 above.
 
 ## Previous Release — v1.0.0
 
@@ -93,16 +121,16 @@ Focus: depth, breadth, and multi-tenant scenarios.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Multi-tenant scanning | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. Builds on non-destructive cache (v1.1.0) for run isolation. | :blue_circle: Planned |
-| Word document export (#22) | `-OutputFormat Word` generates a `.docx` report with cover page, table of contents, per-category sections with summary tables, resource counts, and key metrics. Suitable for client deliverables, executive summaries, and formal documentation. | :blue_circle: Planned |
-| PDF report export (#23) | `-OutputFormat PDF` generates a `.pdf` report with cover page, table of contents, paginated resource tables, and headers/footers. Ideal for archival, compliance evidence, and stakeholder distribution. | :blue_circle: Planned |
-| Cost anomaly detection | Surface Azure Cost Management anomalies in the Cost Management tab | :bulb: Idea |
-| Bicep / IaC gap detection | Compare discovered resources against known IaC templates; flag unmanaged resources | :bulb: Idea |
-| Resource drift reporting | Compare two inventory runs and report what was added, removed, or changed | :bulb: Idea |
+| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. Builds on non-destructive cache (v1.1.0) for run isolation. | :bulb: Idea (AB#323, AB#332) |
+| Word document export (#22) | Shipped as `-OutputFormat Word` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
+| PDF report export (#23) | Shipped as `-OutputFormat Pdf` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
+| Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |
+| Bicep / IaC gap detection | Shipped as the offline `Get-ScoutIacGap` function (v2.2.0) — compares discovered resources against a folder of Bicep/ARM-JSON templates and flags unmanaged resources; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#325) |
+| Resource drift reporting | Shipped as the offline `Get-ScoutInventoryDrift` function (v2.2.0) — compares the current `collect.json` against the previous run's snapshot and reports Added/Removed/Changed resources. | :white_check_mark: Done (v2.2.0, AB#326) |
 | Azure DevOps integration | Inventory Azure DevOps organizations, projects, pipelines alongside Azure resources | :bulb: Idea |
-| GitHub Actions module | Publish as a GitHub Action so pipelines can generate inventory reports without local setup | :bulb: Idea |
+| GitHub Actions module | Publish as a GitHub Action so pipelines can generate inventory reports without local setup | :bulb: Idea (AB#328) |
 | Fabric / Power BI export (#17) | `-OutputFormat PowerBI` generates a flat normalized CSV bundle (`PowerBI/` folder) with `_metadata.csv`, `Subscriptions.csv`, per-module `Resources_*.csv` and `Entra_*.csv` files, and a `_relationships.json` star-schema manifest for Power BI Desktop / Microsoft Fabric | :white_check_mark: Done |
-| IoT deep coverage | IoT Hub device registry, Device Provisioning Service, Digital Twins topology | :bulb: Idea |
+| IoT deep coverage | Shipped in the assessment Collect layer (v2.2.0) — `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them. | :white_check_mark: Done (v2.2.0, AB#330) |
 
 ## Major — v2.0.0 — CAF/WAF Assessment Platform (Epic AB#5023) — Delivered
 
@@ -120,10 +148,10 @@ Turned inventory into a **scored CAF/WAF landing-zone assessment**. Collection s
 
 ## Major — v2.1.0 — Platform Hardening (Epic AB#5023 carryover) — Released 2026-07-23
 
-Three more Epic AB#5023 capabilities have shipped on `main` ahead of the full
-per-domain analytics epic below. Not yet tagged/released — see
+Three more Epic AB#5023 capabilities shipped ahead of the full per-domain
+analytics epic below. Tagged and released as `v2.1.0` — see
 [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
-for status.
+for the build ledger.
 
 | Capability | Description | Status |
 |---|---|---|
@@ -131,7 +159,33 @@ for status.
 | Unattended pipeline | `Invoke-ScoutPipeline` runs collect → assess → report headless into one dated run folder — non-interactive throughout, runs the read-only permission pre-flight first, and degrades to `PartialSuccess` (rather than losing output) if an exporter fails. Writes `pipeline-summary.json`/`.md`. | :white_check_mark: Done (AB#5050) |
 | React report + cross-run drift | `-OutputFormat React` renders a single self-contained `report-react.html` (client-side filter/sort/search, summary dashboard, Drift tab). `Get-ScoutDrift` computes cross-run New / Resolved / Regressed / Unchanged findings plus a weighted score delta, tracked in an append-only `.scout-history/findings-history.json`. | :white_check_mark: Done (AB#5053) |
 
-Not yet included in this dev line: full per-category rule depth (AB#5061–5075) — tracked below.
+Not included in v2.1.0: full per-category rule depth (AB#5061–5075) — tracked
+below. Four new report tiers, richer report visuals, and three new offline
+analysis functions shipped in v2.2.0 next.
+
+## Major — v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
+
+Delivered on `main` — not yet tagged/published, see
+[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+for cut status.
+
+| Capability | Description | Status |
+|---|---|---|
+| Report tiers — Word/ECharts/PDF/JSON evidence | `Export-Word` (`.docx` via OpenXML), `Export-EChartsDashboard` (offline ECharts HTML, no CDN), `Export-Pdf` (hand-rolled, dependency-free), `Export-JsonEvidence` (resources-only JSON, no assessment metadata/scores). All wired into `Export-Report` and `-OutputFormat` on `Invoke-ScoutAssessment`/`Invoke-ScoutPipeline`. | :white_check_mark: Done (AB#333, AB#344, AB#396, AB#379/394/395) |
+| Excel visual dashboard tabs | Native ImportExcel PivotTable/PivotChart dashboard sheets in the assessment Excel evidence tier: Findings-by-Severity (pie), Score-by-Area (column), Pass-Fail-Manual (stacked column), Resource-Counts (bar) — omitted when a sheet's data is empty. | :white_check_mark: Done (AB#322) |
+| Richer React report + `report.pbit` | The self-contained `report-react.html` gains a vis.js VNet topology diagram, an MG-hierarchy diagram, 14 KPI cards, an Azure Firewall drill-down, a Governance section (budgets/locks/tag chips), a policy-enforcement badge, per-section search/filter, clickable rows with a side panel, and scope tooltips. The Power BI tier also generates a `report.pbit` bound to the star-schema CSVs. | :white_check_mark: Done (AB#376–378, 380, 386, 387, 389–393, AB#5046) |
+| Cross-run resource drift | `Get-ScoutInventoryDrift` — offline, compares the current `collect.json` against the previous run and reports Added/Removed/Changed resources, complementing the existing findings-level `Get-ScoutDrift` (v2.1.0). | :white_check_mark: Done (AB#326) |
+| Cost anomaly detection | `Get-ScoutCostAnomaly` — offline, flags statistical outliers (month-over-month spike, z-score, IQR) in an already-collected cost dataset. | :white_check_mark: Done (AB#324) |
+| Bicep / IaC gap detection | `Get-ScoutIacGap` — offline, compares discovered resources against a folder of Bicep/ARM-JSON templates (best-effort text/JSON parsing) and flags resources not represented in any template. | :white_check_mark: Done (AB#325) |
+| IoT deep coverage | `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them. | :white_check_mark: Done (AB#330) |
+| Tag aggregation | `Invoke-Collect` aggregates tag values to their unique set per key across subscriptions instead of last-write-wins. | :white_check_mark: Done (AB#367) |
+| Database/Analytics/IoT rule depth | New `sqlDefenderPricing`/`purviewAccounts` collect queries plus `iotHubs.disableLocalAuth`; CAF-DB-04, CAF-ANL-02, and new CAF-IOT-06 flip from `Manual` to automated. | :white_check_mark: Done (AB#5068, AB#5071, AB#5075) |
+| Collector/pipeline resilience + progress | Per-subscription try/catch/continue in `Invoke-Collect`; a management-group role-requirement hint on RP/authorization errors; an empty-data guard; a pipeline `HadErrors` summary flag; live `Write-ScoutProgress` output during collection. | :white_check_mark: Done (AB#397–402, AB#405) |
+| Assessment config load/save | `Import-ScoutConfig` / `Export-ScoutConfig` — load/save an alternative benchmark, rule-selection patterns, and per-rule threshold overrides as JSON; never throws on a bad file (falls back to the built-in default with a warning). | :white_check_mark: Done (AB#373–375) |
+| Platform hardening | CI pipeline (`ci.yml`); a real, non-simulated `azure-inventory` workflow; module auto-update check on import; UPN/subscription auth banner; five v1 inventory bug fixes; draw.io merge/StrictMode repairs; documented Entra Graph delegated scopes. | :white_check_mark: Done (AB#317, AB#340, AB#369, AB#349, AB#335–340, AB#342, AB#347/338) |
+
+Not yet included: full per-category rule depth (AB#5061–5075) — tracked below
+under Epic AB#5056.
 
 ## Major — v2.1.0 — Per-Domain CAF/WAF Analytics (Epic AB#5056)
 

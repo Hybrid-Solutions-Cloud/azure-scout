@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-07-24
+
+### Added
+
+- **Report tiers — Word, ECharts dashboard, PDF, JSON evidence** (AB#333, AB#344, AB#396, AB#379, AB#394, AB#395): four new renderers, all wired into `Export-Report` and `Invoke-ScoutAssessment -OutputFormat` / `Invoke-ScoutPipeline -OutputFormat`.
+  - `Export-Word` (`src/report/renderers/Export-Word.ps1`, AB#333) — self-contained `.docx` via OpenXML, no Python.
+  - `Export-EChartsDashboard` (`src/report/renderers/Export-EChartsDashboard.ps1`, AB#344) — a single offline HTML dashboard with ECharts inlined (no CDN).
+  - `Export-Pdf` (`src/report/renderers/Export-Pdf.ps1`, AB#379/394/395) — a hand-rolled, dependency-free `.pdf` renderer (cover, executive summary, per-area findings table with repeating header, gaps, manual review).
+  - `Export-JsonEvidence` (`src/report/renderers/Export-JsonEvidence.ps1`, AB#396) — resources-only JSON evidence export (raw Collect data, no assessment metadata/scores/findings).
+  - `-OutputFormat` on `Invoke-ScoutAssessment` gains `Word`, `EChartsDashboard`, `Pdf`, `JsonEvidence` values (all included in `All`); `Export-Report`'s dispatcher switch gains matching cases.
+- **Excel visual dashboard tabs** (AB#322): pivot-chart dashboard worksheets added to the assessment Excel evidence tier, mirroring the v1 inventory's Cost/Security/Update Manager/Monitor dashboard pattern.
+- **Richer interactive React report** (AB#376, 377, 378, 380, 386, 387, 389–393): the self-contained `report-react.html` (`-OutputFormat React`) gains a vis.js VNet topology diagram with click-to-details and reset/fit controls, a management-group hierarchy diagram, 14 KPI cards, an Azure Firewall drill-down, a Governance section (budgets/locks/tag chips), a policy-enforcement badge, per-section search/filter, clickable rows with a side panel, and scope tooltips.
+- **`report.pbit` generation** (AB#5046): `Invoke-ScoutAssessment`'s Power BI tier now wires the existing `New-AZSCPowerBITemplate` generator to produce a `.pbit` bound to the star-schema CSVs, alongside the CSV bundle.
+- **Cross-run resource/inventory drift** — `Get-ScoutInventoryDrift` (`src/report/Get-ScoutInventoryDrift.ps1`, AB#326): computes Added/Removed/Changed drift between the current `collect.json` and the previous run's snapshot, independent of how any rule scored a resource. Complements the existing findings-level `Get-ScoutDrift` (v2.1.0). Maintains a durable inventory-history log alongside `.scout-history/findings-history.json`.
+- **Cost anomaly detection** — `Get-ScoutCostAnomaly` (`src/analyze/Get-ScoutCostAnomaly.ps1`, AB#324): offline, never calls Azure. Flags statistical outliers in an already-collected cost dataset using three additive techniques (month-over-month spike, z-score, IQR), grouped by `-GroupBy` (default `Scope`, `ResourceType`). Accepts both the raw `Get-AZSCCostInventory` shape and a pre-normalized cost dataset.
+- **Bicep/IaC gap detection** — `Get-ScoutIacGap` (`src/analyze/Get-ScoutIacGap.ps1`, AB#325): offline, never calls Azure. Compares discovered resources (from `collect.json`) against a folder of `.bicep`/ARM-JSON templates (best-effort text/JSON parsing, no `bicep build`) and reports resources present in Azure but not represented in any template (`Unmanaged`).
+- **IoT deep coverage** (AB#330): `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them.
+- **Tag aggregation** (AB#367): `Invoke-Collect` now aggregates tag values to their unique set per key across subscriptions instead of last-write-wins.
+- **Database/Analytics/IoT rule depth** (AB#5068, AB#5071, AB#5075): new `sqlDefenderPricing` / `purviewAccounts` collect queries plus `iotHubs.disableLocalAuth`; CAF-DB-04, CAF-ANL-02, and new CAF-IOT-06 flip from `Manual` to automated.
+- **Collector/pipeline resilience + progress UX** (AB#397–402, 405): per-subscription try/catch/continue in `Invoke-Collect` so one subscription's failure doesn't abort the run; a management-group role-requirement hint on RP/authorization errors; an empty-data guard; a pipeline `HadErrors` summary flag surfaced in `pipeline-summary.json`; live `Write-ScoutProgress` (`src/Write-ScoutProgress.ps1`) output during collection.
+- **Assessment config load/save** (AB#373, 374, 375): `Import-ScoutConfig` (`src/assess/Import-ScoutConfig.ps1`) loads an optional JSON config — an alternative benchmark, rule-selection patterns, and/or per-rule threshold overrides — falling back to the built-in ALZ reference benchmark whenever the path is absent, missing, or unparsable (never throws). `Export-ScoutConfig` (`src/assess/Export-ScoutConfig.ps1`) writes the identical schema back out, so a round trip reproduces the same effective config.
+- **UPN + active-subscription auth banner** (AB#349): login now prints the signed-in UPN and active subscription before a run starts.
+- **CI pipeline** (AB#317): `.github/workflows/ci.yml` runs the Pester suite and PSScriptAnalyzer on PR + push.
+
+### Changed
+
+- **`azure-inventory.yml` workflow is a real inventory run** (AB#340): replaced the echo-only simulation with a headless run that validates SPN secrets, installs `Az` + `AzureScout` from PSGallery, authenticates non-interactively, runs the inventory, and uploads the reports as a build artifact.
+- **Module auto-update check** (AB#369): importing `AzureScout` checks PSGallery for a newer version and notifies by default (CI-guarded so it never runs in automated pipelines); no forced update.
+
+### Fixed
+
+- **v1 inventory collector bugs** (AB#335, 336, 337, 339): automation-mode batch cache writes no longer target a null path (missing `$DefaultPath` parameter); the progress bar advances instead of sticking at 0% (undeclared `$ReportCounter` → `$Counter`); the automation branch assigns `$JobNames` after `Wait-Job` so the final cache flush gets the full job list; `$VMQuotas` is initialized up front so the `Quotas` return field is populated and safe under `-SkipVMDetails`.
+- **draw.io diagram merge + StrictMode crashes** (AB#342): repaired a broken draw.io XML merge that produced invalid diagrams under some topologies, and fixed StrictMode violations in the diagram build path that could crash mid-run; general diagram-quality improvements.
+
+### Documentation
+
+- **Entra Graph delegated scopes** (AB#347, AB#338): documented the required Microsoft Graph delegated scopes in `docs/entra-modules.md`; confirmed the "fails with Global Admin" report (AB#347) is a Graph consent/scope issue, not a code defect — it degrades per-endpoint as designed.
+- **Roadmap reconciliation** (AB#5093, AB#5094): corrected the web-portal vision to explicit feature parity with the PowerShell version rather than a separate product; the served web portal is marked exploratory/far-future, not scheduled.
+
 ## [2.1.0] - 2026-07-23
 
 ### Added
@@ -373,6 +412,6 @@ Azure tenant.
 
 **Version Control**
 - Created: 2026-02-22 by Kristopher Turner
-- Last Edited: 2026-07-23 by Kristopher Turner
-- Version: 2.0.0
-- Tags: changelog, AzureScout, assessment, CAF, WAF, landing-zone, openxml, pptx, ingest, runtime-verification
+- Last Edited: 2026-07-24 by Kristopher Turner
+- Version: 2.2.0
+- Tags: changelog, AzureScout, assessment, CAF, WAF, landing-zone, openxml, pptx, ingest, runtime-verification, report-tiers, drift, cost-anomaly, iac-gap

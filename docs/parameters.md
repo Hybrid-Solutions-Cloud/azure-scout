@@ -91,7 +91,7 @@ examples: [Assessment guide](assessment.md#run-modes).
 | `-Assessment` | One, several, or `All` assessment names from `manifests/assessments.psd1` (default: `Estate`). See the [Assessment Registry](design/assessment-registry.md) for all 22. |
 | `-Scope` | `All` (default), `ArmOnly`, or `EntraOnly` — accepted and recorded, but currently does not change what the Collect layer queries; see [the caveat](assessment.md#-scope). |
 | `-Category` | Overrides the categories recorded for the run; does not change which rules are scored. See [the caveat](assessment.md#-category-override). |
-| `-OutputFormat` | `PowerBi`, `Html`, `Pptx`, `Excel`, `Json`, `React`, or `All` (default: `Html`) — accepts an array. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab. |
+| `-OutputFormat` | `PowerBi`, `Html`, `Pptx`, `Excel`, `Json`, `JsonEvidence`, `React`, `Word`, `EChartsDashboard`, `Pdf`, or `All` (default: `Html`) — accepts an array. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab; `Word`/`EChartsDashboard`/`Pdf` (v2.2.0) are three more self-contained tiers; `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](assessment.md#report-tiers). |
 | `-OutputPath` | Base output directory (default: `./output`); each run writes to a `<OutputPath>/yyyyMMdd_HHmmss/` subfolder. |
 | `-PermissionAudit` | Switch — runs `Test-ScoutPermission` for the requested `-Assessment` set and returns before any collection happens. |
 | `-CollectOnly` | Switch — stop after Collect; returns the path to `collect.json`. |
@@ -107,7 +107,7 @@ See [Assessment guide — unattended, one-command run](assessment.md#unattended-
 | Parameter | Description |
 |-----------|-------------|
 | `-Assessment` | Same as `Invoke-ScoutAssessment -Assessment` — one, several, or `All`. |
-| `-OutputFormat` | Same values as `Invoke-ScoutAssessment -OutputFormat`, including `React` (default: `All`). |
+| `-OutputFormat` | Same values as `Invoke-ScoutAssessment -OutputFormat`, including `React`, `Word`, `EChartsDashboard`, `Pdf`, and `JsonEvidence` (default: `All`). |
 | `-OutputPath` | Base output directory; each run writes to a dated subfolder. |
 | `-ManagementGroupId` | Same scoping behavior as `Invoke-ScoutAssessment -ManagementGroupId`. |
 | `-Category` | Same as `Invoke-ScoutAssessment -Category`. |

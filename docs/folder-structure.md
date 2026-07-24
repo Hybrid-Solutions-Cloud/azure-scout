@@ -87,12 +87,20 @@ azure-scout/
 │   ├── assess/                         #   Rule engine (JSONPath + assert types) -> findings.json
 │   │   ├── benchmarks/                 #     ALZ reference benchmark data
 │   │   ├── engine/                     #     Resolve-JsonPath, Invoke-Rule, Get-Score
-│   │   └── rules/                      #     23 version-controlled YAML rule files (139 rules)
-│   ├── report/                         #   Tiered report rendering (Power BI, HTML, PPTX, Excel, JSON, React)
-│   │   ├── renderers/                  #     incl. Export-React.ps1 (v2.1.0, self-contained report-react.html)
+│   │   ├── rules/                      #     23 version-controlled YAML rule files (139 rules)
+│   │   ├── Import-ScoutConfig.ps1      #     Load an optional benchmark/rule-pattern/override config JSON (v2.2.0, AB#374)
+│   │   └── Export-ScoutConfig.ps1      #     Save the effective config back out as JSON (v2.2.0, AB#373)
+│   ├── analyze/                        #   Offline analysis -- never call Azure (v2.2.0)
+│   │   ├── Get-ScoutCostAnomaly.ps1    #     Cost outlier detection: spike/z-score/IQR (AB#324)
+│   │   └── Get-ScoutIacGap.ps1         #     Bicep/ARM-JSON coverage gap detection (AB#325)
+│   ├── report/                         #   Tiered report rendering (Power BI, HTML, PPTX, Excel, JSON, JsonEvidence, React, Word, EChartsDashboard, Pdf)
+│   │   ├── renderers/                  #     incl. Export-React.ps1 (v2.1.0), Export-Word.ps1/Export-EChartsDashboard.ps1/Export-Pdf.ps1/Export-JsonEvidence.ps1 (v2.2.0)
+│   │   ├── Get-ScoutDrift.ps1          #     Cross-run FINDINGS drift (v2.1.0, AB#5053)
+│   │   ├── Get-ScoutInventoryDrift.ps1 #     Cross-run RESOURCE/inventory drift (v2.2.0, AB#326)
 │   │   └── templates/
 │   ├── Invoke-ScoutAssessment.ps1      #   Assessment platform entry point
-│   └── Invoke-ScoutPipeline.ps1        #   Unattended collect->assess->report pipeline (v2.1.0, AB#5050)
+│   ├── Invoke-ScoutPipeline.ps1        #   Unattended collect->assess->report pipeline (v2.1.0, AB#5050)
+│   └── Write-ScoutProgress.ps1         #   Live collection progress output (v2.2.0, AB#405)
 ├── manifests/
 │   └── assessments.psd1                # Registry of all 22 assessments (Collect/Ingest/Rules/report tiers)
 ├── tests/                              # Pester test suites (34 files, offline/mock-driven)

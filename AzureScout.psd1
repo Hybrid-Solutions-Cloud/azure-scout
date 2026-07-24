@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.1.0'
+ModuleVersion = '2.2.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Desktop', 'Core')
@@ -95,7 +95,16 @@ FunctionsToExport = @(
             'Test-ScoutPermission',
 
             #Unattended pipeline entry point (AB#5050)
-            'Invoke-ScoutPipeline'
+            'Invoke-ScoutPipeline',
+
+            #Analysis functions -- offline, never call Azure (AB#324/AB#325/AB#326)
+            'Get-ScoutInventoryDrift',
+            'Get-ScoutCostAnomaly',
+            'Get-ScoutIacGap',
+
+            #Assessment config load/save (AB#373/AB#374)
+            'Import-ScoutConfig',
+            'Export-ScoutConfig'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -134,7 +143,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v2.1.0 — Platform hardening. Native governance collector (Import-Governance) replaces the Azure Governance Visualizer dependency: management-group, policy-assignment, role-assignment, budget, and resource-lock data now come from Azure Resource Graph + ARM REST directly, so the ALZ benchmark needs only ARM Reader at the management-group root (no Microsoft Graph app permissions by default). New unattended one-command pipeline (Invoke-ScoutPipeline) for CI/cron with a machine-readable run summary and exit codes. New self-contained interactive React HTML report (-OutputFormat React) plus cross-run drift tracking (New/Resolved/Regressed deltas across runs). v2.0.1 — Point the Project Site link at the documentation site (thisismydemo.cloud/azure-scout). v2.0.0 — CAF/WAF Assessment Platform (major). Adds a read-only, three-layer assessment engine (collect.json -> findings.json -> report) on top of the v1 inventory tool: a declarative CAF/WAF rule engine (139 rules across 8 CAF design areas + 5 WAF pillars, dual scoring, prioritized gaps), an Azure Resource Graph collect layer, AzGovViz/Advisor/ARG ingest, an ALZ benchmark diff, and tiered reporting (Power BI, self-contained HTML, executive PowerPoint via the OpenXML SDK, plus Excel + JSON evidence). Per-domain analytics: every discovery category is an independently runnable, tagged assessment via Invoke-ScoutAssessment -Assessment <Category>. Runtime-verified offline (Pester) and against a live tenant. BREAKING: introduces the findings.json output contract and demotes Excel-first output to an evidence tier. Assessment features require PowerShell 7. Full inventory functionality from v1.0.0 is unchanged. See CHANGELOG.md for details.'
+        ReleaseNotes = 'v2.2.0 — Report tiers, deeper analytics, hardened collectors. New report tiers: Word (.docx, Export-Word), an offline ECharts HTML dashboard (Export-EChartsDashboard), a dependency-free PDF (Export-Pdf), and a resources-only JSON evidence export (Export-JsonEvidence) -- all wired into Export-Report and Invoke-ScoutAssessment -OutputFormat. Excel gains visual dashboard tabs with pivot charts; the React report gains richer interactive visuals (topology, management-group hierarchy, KPI cards, a Governance section, drill-downs, search/filter, badges, tooltips) plus report.pbit generation. New offline analysis functions: Get-ScoutInventoryDrift (cross-run resource drift), Get-ScoutCostAnomaly (cost outlier detection), and Get-ScoutIacGap (Bicep/ARM-JSON coverage gaps) -- none of these call Azure. Collect layer gains IoT deep coverage (Device Provisioning Service + Digital Twins), tag-value aggregation, deeper Database/Analytics/IoT rule automation, and collector/pipeline resilience (per-subscription continue-on-error, management-group hints, an empty-data guard, and a HadErrors summary flag) plus live Write-ScoutProgress output. New Import-ScoutConfig/Export-ScoutConfig let you save and reload an assessment config (benchmark, rule patterns, rule overrides) as JSON, with a safe fallback to the built-in default. Also: a CI pipeline (ci.yml), a real (non-simulated) azure-inventory workflow, five v1 inventory bug fixes, draw.io merge/StrictMode repairs, and documented Entra Graph delegated scopes. v2.1.0 — Platform hardening. Native governance collector (Import-Governance) replaces the Azure Governance Visualizer dependency: management-group, policy-assignment, role-assignment, budget, and resource-lock data now come from Azure Resource Graph + ARM REST directly, so the ALZ benchmark needs only ARM Reader at the management-group root (no Microsoft Graph app permissions by default). New unattended one-command pipeline (Invoke-ScoutPipeline) for CI/cron with a machine-readable run summary and exit codes. New self-contained interactive React HTML report (-OutputFormat React) plus cross-run drift tracking (New/Resolved/Regressed deltas across runs). v2.0.1 — Point the Project Site link at the documentation site (thisismydemo.cloud/azure-scout). v2.0.0 — CAF/WAF Assessment Platform (major). Adds a read-only, three-layer assessment engine (collect.json -> findings.json -> report) on top of the v1 inventory tool: a declarative CAF/WAF rule engine (139 rules across 8 CAF design areas + 5 WAF pillars, dual scoring, prioritized gaps), an Azure Resource Graph collect layer, AzGovViz/Advisor/ARG ingest, an ALZ benchmark diff, and tiered reporting (Power BI, self-contained HTML, executive PowerPoint via the OpenXML SDK, plus Excel + JSON evidence). Per-domain analytics: every discovery category is an independently runnable, tagged assessment via Invoke-ScoutAssessment -Assessment <Category>. Runtime-verified offline (Pester) and against a live tenant. BREAKING: introduces the findings.json output contract and demotes Excel-first output to an evidence tier. Assessment features require PowerShell 7. Full inventory functionality from v1.0.0 is unchanged. See CHANGELOG.md for details.'
 
         # Prerelease string of this module
         # Prerelease = ''
