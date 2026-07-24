@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-07-24
+
+### Fixed
+
+- **Repo-wide `.Count`-on-null/scalar crash class** — hardened ~180 sites across the whole
+  solution (`Modules/Private` ~45, `Modules/Public` 63 across 106 files, `src/` 6, plus the
+  permission audit). These threw `The property 'Count' cannot be found on this object` on
+  Windows PowerShell 5.1 and under `Set-StrictMode -Version Latest` whenever a value collapsed
+  to `$null` or a single scalar. Root case: `Invoke-AzureScout -EntraAudit` crashed at
+  `Invoke-AZSCPermissionAudit` (`$targetSubs.Count` on a single-subscription tenant). Other real
+  crashers fixed: `Get-AZTIVMQuotas` (any env with a VM location), `Start-AZTIGraphExtraction`
+  (uninitialised vars on the default path), the `$RetiredFeature.count` pattern copy-pasted
+  across 87 inventory modules, `Test-ScoutPermission` leaking `Format-Table` objects into its
+  return stream, `Export-Pptx` on all-Pass assessments, and several diagram null-property chains
+  on ordinary single-subnet environments. Fixes are surgical (`@()`-wrap, null-guards, `@()`
+  initialisers, `return ,$x`); no logic changes. ~35 new regression tests. Full suite 1582/0/3.
+
+### Changed
+
+- **Requires PowerShell 7** — `AzureScout.psd1` now declares `PowerShellVersion = '7.0'` and
+  `CompatiblePSEditions = @('Core')`, and `Invoke-AzureScout` fails fast with a clear
+  "requires PowerShell 7+, run in `pwsh`" message on Windows PowerShell 5.1 instead of crashing
+  deep in a run. This enforces the long-documented PS7 requirement (per `AGENTS.md`).
+  **Breaking** for anyone importing the module under Windows PowerShell 5.1.
+
 ## [2.2.0] - 2026-07-24
 
 ### Added
