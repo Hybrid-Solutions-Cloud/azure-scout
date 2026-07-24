@@ -68,3 +68,87 @@ rules:
     assert: { type: countEquals, value: 0 }
     remediation: "Disable shared access policies (disableLocalAuth) on production IoT Hubs not linked to a Device Provisioning Service, and require Microsoft Entra ID + RBAC for service-API access."
     manual: false
+  - id: CAF-IOT-07
+    title: "Device Provisioning Service (DPS) instances disable public network access"
+    severity: high
+    # Microsoft.Devices/provisioningServices IS ARG-indexed (AB#330); publicAccess
+    # is the documented IotDpsPropertiesDescription.publicNetworkAccess field
+    # (Invoke-Collect.ps1).
+    query: "$.domains.iot.dpsInstances[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Restrict Device Provisioning Service instances to private endpoints / selected networks."
+    manual: false
+  - id: CAF-IOT-08
+    title: "Private endpoint adoption for Device Provisioning Service instances"
+    severity: medium
+    # networking.privateEndpoints' targetProvider/targetType projection (AB#5057)
+    # is resource-type-agnostic, so PEs pointed at a DPS instance are counted the
+    # same way CAF-IOT-05 counts them for IoT Hubs (AB#330).
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.devices' && @.targetType == 'provisioningservices')]"
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.dpsInstances[*]" }
+    remediation: "Confirm Device Provisioning Service instances handling production device enrollment have a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
+    manual: false
+  - id: CAF-IOT-09
+    title: "Azure Digital Twins instances disable public network access"
+    severity: high
+    # Microsoft.DigitalTwins/digitalTwinsInstances IS ARG-indexed (AB#330);
+    # publicAccess is the documented top-level publicNetworkAccess property
+    # (Invoke-Collect.ps1).
+    query: "$.domains.iot.digitalTwinsInstances[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Restrict Azure Digital Twins instances to private endpoints / selected networks."
+    manual: false
+  - id: CAF-IOT-10
+    title: "Private endpoint adoption for Azure Digital Twins instances"
+    severity: medium
+    # Same targetProvider/targetType pattern as CAF-IOT-05/08 (AB#330).
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.digitaltwins' && @.targetType == 'digitaltwinsinstances')]"
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.digitalTwinsInstances[*]" }
+    remediation: "Confirm Azure Digital Twins instances have a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
+    manual: false
+  - id: CAF-IOT-11
+    title: "Azure Digital Twins instances use managed identity, not routing-endpoint keys"
+    severity: medium
+    # `identity` is a top-level Resource Graph column; Invoke-Collect.ps1 projects
+    # it as identityType (AB#330), same pattern as CAF-AI-03's cognitiveAccounts
+    # check. Confirms a managed identity exists on the instance — it cannot
+    # confirm the instance's event routes actually authenticate to their
+    # EventGrid/EventHub/ServiceBus endpoint via that identity instead of a
+    # connection-string/key (that per-route authentication choice lives on the
+    # digitalTwinsInstances/endpoints child resource, which Resource Graph does
+    # not index — see CAF-IOT-13), so treat a Pass here as necessary, not
+    # sufficient.
+    query: "$.domains.iot.digitalTwinsInstances[?(@.identityType == '' || @.identityType == 'None')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Assign a system- or user-assigned managed identity to each Azure Digital Twins instance and confirm its event routes authenticate via that identity rather than a stored connection string/key."
+    manual: false
+  - id: CAF-IOT-12
+    title: "IoT Edge module/deployment governance reviewed"
+    severity: medium
+    # Edge-enabled devices/modules are a per-device concept (capabilities.iotEdge
+    # on a device twin, deployment manifests, module twins) living entirely in
+    # the IoT Hub Registry Manager / Device Twin data plane. Checked the full
+    # IotHubProperties ARM template reference (AB#330): there is NO Edge-specific
+    # field on the Microsoft.Devices/IotHubs resource itself — not even a coarse
+    # existence signal — so there is genuinely nothing for Resource Graph to
+    # return here. Stays manual; do not confuse with the unrelated
+    # Microsoft.DeviceRegistry/* resource family (Azure IoT Operations' newer,
+    # ARC-facing device/asset registry), which is a distinct service and out of
+    # scope for this classic IoT Hub Edge check.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm IoT Edge deployment manifests are scoped least-privilege, module images are pulled from a private/trusted registry, and edge devices are enrolled via DPS with certificate-based attestation rather than shared symmetric keys."
+    manual: true
+  - id: CAF-IOT-13
+    title: "Azure Digital Twins routing-endpoint (EventGrid/EventHub/ServiceBus) security reviewed"
+    severity: medium
+    # Microsoft.DigitalTwins/digitalTwinsInstances/endpoints is a distinct ARM
+    # child resource type (confirmed via the Microsoft.DigitalTwins resource-type/
+    # version reference) but it does NOT appear in the Resource Graph
+    # supported-tables-and-resource-types reference (only the parent
+    # digitalTwinsInstances type does) — AB#330 investigation. Not ARG-queryable;
+    # stays manual.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm each Digital Twins event route's target endpoint uses identity-based authentication (not a stored connection string/key) and that dead-letter targets are configured for failed deliveries."
+    manual: true

@@ -41,7 +41,9 @@ $ErrorActionPreference = 'Stop'
                              azureLocalClusters[{connectivityStatus}]},
                       integration{eventHubNamespaces[{autoInflateEnabled}], apiManagement[],
                                   serviceBusNamespaces[{publicAccess}]},
-                      iot{iotHubs[{disableLocalAuth}]},
+                      iot{iotHubs[{disableLocalAuth}],
+                          dpsInstances[{publicAccess,allocationPolicy,linkedHubCount}],
+                          digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
                       analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[]} }   (per-category scalars, Epic AB#5056)
         advisor[]                                                                   (filled by ingest)
 
@@ -72,6 +74,45 @@ $ErrorActionPreference = 'Stop'
     Data Factory/Synapse pipeline linked-service definitions, Synapse workspace
     firewall rules, DPS enrollment groups, per-device IoT credential type, and any
     metric- or Monitor-backed signal (IoT Hub throughput right-sizing).
+
+    AB#330 follow-up (IoT deep coverage: Device Provisioning Service, Digital
+    Twins, Edge): added `domains.iot.dpsInstances` (Microsoft.Devices/
+    provisioningServices — confirmed ARG-indexed, entry 473 in the ARG
+    supported-tables-and-resource-types reference) projecting `publicAccess`,
+    `allocationPolicy` (documented IotDpsPropertiesDescription fields) and
+    `linkedHubCount` (`array_length(properties.iotHubs)` — a COUNT only; the
+    array's `connectionString` entries are secrets and are never projected), and
+    `domains.iot.digitalTwinsInstances` (Microsoft.DigitalTwins/
+    digitalTwinsInstances — confirmed ARG-indexed, entry 491 in that same
+    reference) projecting `publicAccess`, `privateEndpointConnectionCount`
+    (`array_length(properties.privateEndpointConnections)`, a top-level
+    resource property, not a sub-resource join) and `identityType` (`identity`
+    is a top-level Resource Graph column, same pattern as
+    `cognitiveAccounts.identityType`). `networking.privateEndpoints` needed no
+    change — its `targetProvider`/`targetType` projection is already
+    type-agnostic, so PEs pointed at either new resource type are picked up by
+    the existing query.
+
+    Deliberately NOT collected here, confirmed absent/out of scope after
+    checking the ARM template references before writing this note:
+      - DPS enrollment groups (individualEnrollments/enrollmentGroups) — a
+        data-plane child store, not a distinct ARM resource type Resource Graph
+        indexes (unchanged from the AB#5057 finding; CAF-IOT-03 stays manual).
+      - `Microsoft.DigitalTwins/digitalTwinsInstances/endpoints` (the
+        EventGrid/EventHub/ServiceBus routing-endpoint child resource) — listed
+        in the Microsoft.DigitalTwins resource-type/version reference as its
+        own ARM resource type, but it does NOT appear in the Resource Graph
+        supported-tables-and-resource-types reference (only the parent
+        `digitalTwinsInstances` type does), so it is not ARG-queryable; stays
+        manual.
+      - An "IoT Edge-enabled hub" indicator — checked the full IotHubProperties
+        template reference and found NO Edge-specific field on
+        Microsoft.Devices/IotHubs itself. Edge is a per-device concept
+        (`capabilities.iotEdge` on a device twin, in the Registry Manager /
+        Device Twin data plane), not a hub-level ARM property, so there is
+        genuinely nothing honest to add here — not even a coarse/existence
+        signal. Left as a documented manual rule (CAF-IOT-12) rather than
+        inventing a proxy field.
 
     Parameter wiring (this pass):
       - `-ManagementGroupId`, when supplied, is passed as `-ManagementGroup` to
@@ -364,6 +405,37 @@ resources | where type =~ "microsoft.devices/iothubs"
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
 | project name, resourceGroup, sku = tostring(sku.name), publicAccess, disableLocalAuth
 '@
+        # AB#330: Microsoft.Devices/provisioningServices (Device Provisioning Service) IS
+        # indexed by Resource Graph (confirmed via the ARG supported-tables-and-resource-types
+        # reference, entry 473). allocationPolicy and publicNetworkAccess are documented
+        # top-level IotDpsPropertiesDescription fields. linkedHubCount is a COUNT of the
+        # linked-hub array only (array_length(properties.iotHubs)) -- each entry's
+        # `connectionString` is a secret and is never read or projected here. DPS enrollment
+        # groups (where the per-device cert-vs-symmetric-key auth type actually lives) remain
+        # a data-plane child store Resource Graph does not index -- CAF-IOT-03 stays manual.
+        dpsInstances = @'
+resources | where type =~ "microsoft.devices/provisioningservices"
+| extend publicAccess = tostring(properties.publicNetworkAccess)
+| extend allocationPolicy = tostring(properties.allocationPolicy)
+| extend linkedHubCount = array_length(properties.iotHubs)
+| project name, resourceGroup, sku = tostring(sku.name), publicAccess, allocationPolicy, linkedHubCount
+'@
+        # AB#330: Microsoft.DigitalTwins/digitalTwinsInstances IS indexed by Resource Graph
+        # (confirmed via the ARG supported-tables-and-resource-types reference, entry 491).
+        # publicNetworkAccess and privateEndpointConnections are documented top-level
+        # properties on the digitalTwinsInstances resource itself (not a sub-resource join).
+        # `identity` is a top-level Resource Graph column -- same pattern as
+        # cognitiveAccounts.identityType (AB#5057) -- CAF-IOT-11. The message-routing
+        # endpoints (Microsoft.DigitalTwins/digitalTwinsInstances/endpoints -- EventGrid/
+        # EventHub/ServiceBus routes) are a distinct ARM child resource type that does NOT
+        # appear in that same ARG reference, so they are not ARG-queryable and stay manual.
+        digitalTwinsInstances = @'
+resources | where type =~ "microsoft.digitaltwins/digitaltwinsinstances"
+| extend publicAccess = tostring(properties.publicNetworkAccess)
+| extend privateEndpointConnectionCount = array_length(properties.privateEndpointConnections)
+| extend identityType = tostring(identity.type)
+| project name, resourceGroup, publicAccess, privateEndpointConnectionCount, identityType
+'@
         synapseWorkspaces = @'
 resources | where type =~ "microsoft.synapse/workspaces"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
@@ -448,6 +520,8 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         apiManagement       = @('Integration')
         serviceBusNamespaces = @('Integration')
         iotHubs             = @('IoT')
+        dpsInstances        = @('IoT')
+        digitalTwinsInstances = @('IoT')
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
@@ -713,7 +787,10 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement
                 serviceBusNamespaces = $r.serviceBusNamespaces
             }
-            iot          = [pscustomobject]@{ iotHubs = $r.iotHubs }
+            iot          = [pscustomobject]@{
+                iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances
+                digitalTwinsInstances = $r.digitalTwinsInstances
+            }
             analytics    = [pscustomobject]@{
                 synapseWorkspaces = $r.synapseWorkspaces; purviewAccounts = $r.purviewAccounts
             }
