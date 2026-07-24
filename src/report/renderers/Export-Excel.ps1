@@ -226,6 +226,11 @@ function Add-ScoutExcelDashboard {
 function Export-Excel {
     param($Findings, $Collect, [string] $OutputPath)
     $xlsx = "$OutputPath/assessment_evidence.xlsx"
+    # $Findings.Findings dots directly into a possibly-$null $Findings, or a
+    # $Findings object that legitimately omits the key (e.g. a caller-built test
+    # fixture) -- both throw PropertyNotFoundException under Set-StrictMode
+    # -Version Latest, same reasoning as every Get-ScoutExcelProp call above.
+    $allFindings = @(Get-ScoutExcelProp -Obj $Findings -Name 'Findings' -Default @())
     if (Get-Module -ListAvailable -Name ImportExcel) {
         Import-Module ImportExcel
         Add-ScoutExcelDashboard -Findings $Findings -Collect $Collect -Path $xlsx
@@ -233,7 +238,7 @@ function Export-Excel {
         # similarly-prefixed areas into one sheet and -Append silently interleaves
         # their evidence. Disambiguate on collision (AB#5091).
         $used = @{}
-        $Findings.Findings | Group-Object Area | ForEach-Object {
+        $allFindings | Group-Object Area | ForEach-Object {
             $base = ($_.Name -replace '[^\w]', '_')
             $sheet = $base.Substring(0, [math]::Min(31, $base.Length))
             if ($used.ContainsKey($sheet)) {
@@ -253,7 +258,7 @@ function Export-Excel {
         Write-Warning 'ImportExcel module not found — writing CSV evidence pack instead.'
         $evDir = Join-Path $OutputPath 'evidence'
         New-Item -ItemType Directory -Path $evDir -Force | Out-Null
-        $Findings.Findings | Group-Object Area | ForEach-Object {
+        $allFindings | Group-Object Area | ForEach-Object {
             $name = ($_.Name -replace '[^\w]', '_')
             $_.Group | Export-Csv "$evDir/$name.csv" -NoTypeInformation
         }

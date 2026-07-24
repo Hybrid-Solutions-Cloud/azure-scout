@@ -50,3 +50,27 @@ Describe 'Export-PowerBi (.pbit generation) AB#5046' {
         (Get-Content (Join-Path $script:PbiDir 'README.txt') -Raw) | Should -Match 'star schema'
     }
 }
+
+Describe 'Export-PowerBi -- $null -Findings crash class (StrictMode sweep)' {
+    # $Findings.Areas/.Frameworks/.Gaps/.Findings previously dotted directly into
+    # a possibly-$null $Findings, throwing PropertyNotFoundException under
+    # Set-StrictMode -Version Latest instead of degrading to empty CSVs like
+    # every other renderer in this folder.
+    BeforeAll {
+        . "$PSScriptRoot/../src/report/renderers/Export-PowerBi.ps1"
+    }
+
+    It 'does not throw and still emits empty star-schema CSVs when -Findings is $null' {
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ("pbit-null-pester-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        try {
+            Export-PowerBi -Findings $null -Collect ([pscustomobject]@{}) -OutputPath $dir
+            $pbiDir = Join-Path $dir 'powerbi'
+            foreach ($csv in 'fact_area_scores', 'fact_framework', 'dim_gaps', 'fact_findings') {
+                Join-Path $pbiDir "$csv.csv" | Should -Exist
+            }
+        }
+        finally {
+            if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+}

@@ -19,12 +19,25 @@ function Export-PowerBi {
     # key instead of fragile raw-text (Framework, Area) equality (AB#5092).
     function New-AreaKey($fw, $ar) { ("{0}|{1}" -f $fw, $ar).ToLower().Trim() }
 
-    $Findings.Areas | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
+    # $Findings.Areas/.Frameworks/.Gaps/.Findings dot directly into a possibly-
+    # $null $Findings (e.g. a standalone re-render from a hand-edited/partial
+    # findings.json) -- $null.Areas throws PropertyNotFoundException under
+    # Set-StrictMode -Version Latest rather than returning $null, unlike every
+    # other renderer in this folder (which all read through a Get-Scout*Prop
+    # helper for exactly this reason). @() degrades to empty CSVs, not a crash.
+    function Get-ScoutPowerBiProp {
+        param($Obj, [Parameter(Mandatory)][string] $Name)
+        if ($null -eq $Obj) { return @() }
+        $prop = $Obj.PSObject.Properties[$Name]
+        if ($prop) { return @($prop.Value) } else { return @() }
+    }
+
+    (Get-ScoutPowerBiProp $Findings 'Areas') | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
         Export-Csv "$pbiDir/fact_area_scores.csv" -NoTypeInformation
-    $Findings.Frameworks | Export-Csv "$pbiDir/fact_framework.csv" -NoTypeInformation
-    $Findings.Gaps | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
+    (Get-ScoutPowerBiProp $Findings 'Frameworks') | Export-Csv "$pbiDir/fact_framework.csv" -NoTypeInformation
+    (Get-ScoutPowerBiProp $Findings 'Gaps') | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
         Export-Csv "$pbiDir/dim_gaps.csv" -NoTypeInformation
-    $Findings.Findings |
+    (Get-ScoutPowerBiProp $Findings 'Findings') |
         Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, Id, Framework, Area, Severity, Status, EvidenceCount, Title, Remediation, Manual |
         Export-Csv "$pbiDir/fact_findings.csv" -NoTypeInformation
 

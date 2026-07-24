@@ -29,10 +29,20 @@ function Get-RuleSet {
         $Patterns | Where-Object { $f -like $_ }
     }
     $sets = foreach ($file in $files) {
+        # ConvertFrom-Yaml returns a plain Hashtable (not a PSCustomObject) -- dotting into
+        # a key that isn't present (e.g. a hand-edited/custom rule file missing `rules`/
+        # `area`/`framework`/`weight`, or an empty file, which parses to $null outright)
+        # throws PropertyNotFoundException under Set-StrictMode -Version Latest rather
+        # than returning $null, so every top-level key is read via ContainsKey below.
         $doc = ConvertFrom-Yaml (Get-Content $file.FullName -Raw)
-        $rules = $doc.rules
+        if ($null -eq $doc) {
+            Write-Warning "Get-RuleSet: '$($file.Name)' parsed to an empty/null YAML document -- skipping this rule file."
+            continue
+        }
+        $rules = if ($doc.ContainsKey('rules')) { $doc.rules } else { @() }
         if ($Overrides -and $Overrides.Count -gt 0) {
             foreach ($rule in $rules) {
+                if (-not $rule.ContainsKey('id')) { continue }
                 if (-not $Overrides.ContainsKey($rule.id)) { continue }
                 if ($rule.ContainsKey('manual') -and $rule.manual) { continue }   # manual rules have no numeric threshold to override
                 if (-not $rule.ContainsKey('assert') -or $null -eq $rule.assert) { continue }
@@ -55,9 +65,9 @@ function Get-RuleSet {
             }
         }
         [pscustomobject]@{
-            Area      = $doc.area
-            Framework = $doc.framework
-            Weight    = [double]($doc.weight ?? 1.0)
+            Area      = if ($doc.ContainsKey('area'))      { $doc.area }      else { $null }
+            Framework = if ($doc.ContainsKey('framework')) { $doc.framework } else { $null }
+            Weight    = [double]($(if ($doc.ContainsKey('weight')) { $doc.weight } else { $null }) ?? 1.0)
             Rules     = $rules
         }
     }

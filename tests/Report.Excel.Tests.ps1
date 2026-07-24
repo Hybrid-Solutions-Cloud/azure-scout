@@ -166,6 +166,23 @@ Describe 'Export-Excel -- dashboards omit when data is absent (no empty dashboar
     }
 }
 
+Describe 'Export-Excel -- $null -Findings crash class (StrictMode sweep)' {
+    # $Findings.Findings previously dotted directly into a possibly-$null
+    # $Findings, throwing PropertyNotFoundException under Set-StrictMode
+    # -Version Latest instead of degrading gracefully like every other
+    # renderer in this folder (which all read through Get-ScoutExcelProp).
+    It 'does not throw when -Findings is $null' {
+        $dir = Join-Path $script:Root 'tests' 'test-output' 'excel-null-findings'
+        if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
+        try {
+            { Export-Excel -Findings $null -Collect $null -OutputPath $dir } | Should -Not -Throw
+        }
+        finally {
+            if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+}
+
 Describe 'Get-ScoutExcelResourceCount' {
     It 'returns an empty array for a $null Collect' {
         @(Get-ScoutExcelResourceCount -Collect $null).Count | Should -Be 0

@@ -213,3 +213,56 @@ Describe 'Get-RuleSet -Overrides' {
         $rule.assert.type | Should -Be 'manual'
     }
 }
+
+Describe 'Get-RuleSet -- malformed rule file crash class (StrictMode sweep)' {
+    # ConvertFrom-Yaml returns a plain Hashtable, not a PSCustomObject -- dotting
+    # into a top-level key it doesn't have (rules/area/framework/weight), or an
+    # empty file (which parses to $null outright), throws PropertyNotFoundException
+    # under Set-StrictMode -Version Latest rather than returning $null. Get-RuleSet
+    # has no -RuleDir override, so these tests drop a uniquely-named, pattern-
+    # isolated throwaway file into the real src/assess/rules folder and always
+    # remove it again in -finally, even on assertion failure.
+    BeforeAll {
+        $script:MalformedRuleDir = "$root/src/assess/rules"
+    }
+
+    It 'does not throw and skips an empty (blank) rule YAML file, with a warning' {
+        $tempFile = Join-Path $script:MalformedRuleDir 'zzz-test-empty.yaml'
+        try {
+            '' | Out-File -LiteralPath $tempFile -Encoding utf8
+
+            # Get-RuleSet has no [CmdletBinding()], so -WarningVariable is not
+            # bound as a real common parameter on it (silently a no-op) -- capture
+            # stream 3 (the warning stream) directly instead, which works
+            # regardless of CmdletBinding. Also called directly (not wrapped in
+            # `{ } | Should -Not -Throw`): that wrapper invokes the scriptblock in
+            # a child scope, so a `$result =` assignment inside it would never
+            # leak back out; a throw here still fails the It block on its own.
+            $result = Get-RuleSet -Patterns @('zzz-test-empty') 3>$null
+            @($result).Count | Should -Be 0
+
+            $warnings = @(Get-RuleSet -Patterns @('zzz-test-empty') 3>&1 |
+                Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+            $warnings.Count | Should -BeGreaterThan 0
+        }
+        finally {
+            if (Test-Path $tempFile) { Remove-Item -LiteralPath $tempFile -Force }
+        }
+    }
+
+    It 'does not throw on a rule file missing the top-level rules/area/framework/weight keys' {
+        $tempFile = Join-Path $script:MalformedRuleDir 'zzz-test-nokeys.yaml'
+        try {
+            'someOtherKey: true' | Out-File -LiteralPath $tempFile -Encoding utf8
+
+            $result = Get-RuleSet -Patterns @('zzz-test-nokeys')
+            $result.Area | Should -BeNullOrEmpty
+            $result.Framework | Should -BeNullOrEmpty
+            $result.Weight | Should -Be 1.0
+            @($result.Rules).Count | Should -Be 0
+        }
+        finally {
+            if (Test-Path $tempFile) { Remove-Item -LiteralPath $tempFile -Force }
+        }
+    }
+}

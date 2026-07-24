@@ -865,7 +865,11 @@ function New-ScoutExecSummarySlide {
 function New-ScoutAreaTableSlides {
     param($Shell, $Areas, [ref]$PageCounter, [int]$TotalPages)
 
-    $rows = @($Areas) | Sort-Object Framework, Area
+    # @(...) wraps the WHOLE pipeline, not just $Areas -- a Sort-Object over zero
+    # input collapses the bare assignment to $null, and $null.Count throws
+    # PropertyNotFoundException under Set-StrictMode -Version Latest. Same
+    # load-bearing pattern Get-Score.ps1 documents for its own Pass/Fail counters.
+    $rows = @(@($Areas) | Sort-Object Framework, Area)
     if ($rows.Count -eq 0) { return }
     $chunks = Split-ScoutChunks -Items $rows -Size 10
     $pageOfPages = $chunks.Count
@@ -914,9 +918,11 @@ function New-ScoutGapsSlides {
 
     # AB#5089: defensive re-sort at render time too — null/unrecognized severity
     # sorts LAST — even if the caller passes gaps that were never run through
-    # Get-Score's own sort.
-    $sorted = @($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutProp $_ 'Severity') } }, Area
-    $top = $sorted | Select-Object -First $MaxGaps
+    # Get-Score's own sort. Both @(...) wraps are load-bearing: a Sort-Object/
+    # Select-Object over zero input collapses the bare assignment to $null, and
+    # $null.Count throws PropertyNotFoundException under Set-StrictMode -Version Latest.
+    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutProp $_ 'Severity') } }, Area)
+    $top = @($sorted | Select-Object -First $MaxGaps)
 
     if ($top.Count -eq 0) {
         New-ScoutContentSlide -Shell $Shell -Title 'Prioritized Gaps' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
@@ -976,7 +982,12 @@ function New-ScoutManualSlide {
         return
     }
 
-    $shown = $items | Select-Object -First $MaxRows
+    # @() keeps $shown a real array regardless of how many items Select-Object
+    # -First actually returns -- Select-Object over exactly one input otherwise
+    # collapses the bare assignment to a scalar, which is the same fragile
+    # single-item-collapse shape the zero-item $null collapse guarded elsewhere
+    # in this file comes from ($items.Count -eq 0 is already ruled out above).
+    $shown = @($items | Select-Object -First $MaxRows)
     $truncated = $items.Count - $shown.Count
     New-ScoutContentSlide -Shell $Shell -Title 'Manual Review Worklist' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
         param($tree)
@@ -1073,7 +1084,10 @@ function Export-Pptx {
     # Slide count plan (used for the "n / total" footer):
     #   1 title + 1 summary + area-table pages + gap pages (>=1) + 1 manual + 1 next-steps
     $areaPages = if (@($areas).Count -gt 0) { [Math]::Ceiling(@($areas).Count / 10.0) } else { 0 }
-    $gapCandidates = @($gaps) | Select-Object -First 15
+    # @() wraps the WHOLE pipeline -- Select-Object -First over zero input
+    # collapses the bare assignment to $null, and $null.Count throws under
+    # Set-StrictMode -Version Latest.
+    $gapCandidates = @(@($gaps) | Select-Object -First 15)
     $gapPages = if ($gapCandidates.Count -gt 0) { [Math]::Ceiling($gapCandidates.Count / 10.0) } else { 1 }
     $totalPages = 1 + 1 + $areaPages + $gapPages + 1 + 1
 
