@@ -21,7 +21,46 @@ Function Start-AZSCDiagramOrganization {
     Param($ResourceContainers,$DiagramCache,$LogFile)
 
     Write-Output ('DrawIOOrgsFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Function')
-    Function Add-Icon {    
+
+    <# Safely reads managementgroupancestorschain[$Index].$Property without throwing
+       when a subscription's chain is shallower than the index being probed (e.g. a
+       subscription attached two levels below the tenant root has no 3rd/4th-level
+       ancestor). Plain array indexing past the end of the chain is silently $null
+       under normal PowerShell, but throws "Index was outside the bounds of the
+       array" once the module is imported alongside the assessment platform (which
+       enables Set-StrictMode -Version Latest) -- this previously broke the
+       Organization diagram for the very common case of a 2-3 level management
+       group hierarchy. #>
+    Function Get-AZSCDiagramChainValue {
+        Param($Chain, [string]$Property, [int]$Index)
+
+            $Values = @($Chain.$Property)
+
+            if ($Index -lt $Values.Count)
+                {
+                    return $Values[$Index]
+                }
+
+            return $null
+    }
+
+    <# Truncates long management group / subscription names so labels stay
+       legible inside the fixed-width containers, while keeping the full
+       name available for callers that also record a Full_Name attribute. #>
+    Function Get-AZSCDiagramSafeLabel {
+        Param($Text, $MaxLength = 30)
+
+            $Value = [string]$Text
+
+            if ([string]::IsNullOrEmpty($Value) -or $Value.Length -le $MaxLength)
+                {
+                    return $Value
+                }
+
+            return ($Value.Substring(0, $MaxLength - 1) + [char]0x2026)
+    }
+
+    Function Add-Icon {
         Param($Style,$x,$y,$w,$h,$p)
         
             $Script:XmlWriter.WriteStartElement('mxCell')
@@ -47,9 +86,11 @@ Function Start-AZSCDiagramOrganization {
         
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
-            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
+            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
+            # A cell is either a vertex or an edge, never both -- the erroneous vertex="1"
+            # here (alongside edge="1") was harmless to draw.io's renderer but confused
+            # any tooling/tests that select on vertex="1" to enumerate shape nodes.
             $Script:XmlWriter.WriteAttributeString('edge', "1")
-            $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $Parent)
             $Script:XmlWriter.WriteAttributeString('source', $Source)
             $Script:XmlWriter.WriteAttributeString('target', $Target)
@@ -69,7 +110,7 @@ Function Start-AZSCDiagramOrganization {
     
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID0)
-            $Script:XmlWriter.WriteAttributeString('value', "$title")
+            $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;swimlaneFillColor=#F5F5F5;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', "1")
@@ -91,7 +132,7 @@ Function Start-AZSCDiagramOrganization {
     
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID)
-            $Script:XmlWriter.WriteAttributeString('value', "$title")
+            $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', "1")
@@ -113,7 +154,7 @@ Function Start-AZSCDiagramOrganization {
     
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID2)
-            $Script:XmlWriter.WriteAttributeString('value', "$title")
+            $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
@@ -135,7 +176,7 @@ Function Start-AZSCDiagramOrganization {
     
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID3)
-            $Script:XmlWriter.WriteAttributeString('value', "$title")
+            $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;swimlaneFillColor=#FFE6CC;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
@@ -154,11 +195,14 @@ Function Start-AZSCDiagramOrganization {
     Function Add-Container4 {
         Param($x,$y,$w,$h,$title,$p)
             $Script:ContID4 = (-join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})+'-'+1)
-    
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID4)
-            $Script:XmlWriter.WriteAttributeString('value', "$title")
-            $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;swimlaneFillColor=#FFE6CC;rounded=1;")
+            $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
+            # 4th-level management groups get a distinct color (matching the Ret4 subscription
+            # stencil palette below) so they are visually distinguishable from 3rd-level groups,
+            # which previously shared the same orange fill/stroke as this container.
+            $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
         
@@ -196,32 +240,32 @@ Function Start-AZSCDiagramOrganization {
                 {
                     if($org.properties.managementgroupancestorschain.count -eq 2)
                         {                            
-                            $Script:1stLevel += $org.properties.managementgroupancestorschain.displayname[0]
+                            $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 0)
                         }
                     if($org.properties.managementgroupancestorschain.count -eq 3)
                         {
-                            $Lvl2 += $org.properties.managementgroupancestorschain.name[0]
-                            $Script:1stLevel += $org.properties.managementgroupancestorschain.displayname[1]
+                            $Lvl2 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
+                            $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 1)
                         }
                     if($org.properties.managementgroupancestorschain.count -eq 4)
                         {
-                            $Lvl3 += $org.properties.managementgroupancestorschain.name[0]
-                            $Lvl2 += $org.properties.managementgroupancestorschain.name[1]
-                            $Script:1stLevel += $org.properties.managementgroupancestorschain.displayname[2]
+                            $Lvl3 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
+                            $Lvl2 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 1)
+                            $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 2)
                         }
                     if($org.properties.managementgroupancestorschain.count -eq 5)
                         {
-                            $Lvl4 += $org.properties.managementgroupancestorschain.name[0]
-                            $Lvl3 += $org.properties.managementgroupancestorschain.name[1]
-                            $Lvl2 += $org.properties.managementgroupancestorschain.name[2]
-                            $Script:1stLevel += $org.properties.managementgroupancestorschain.displayname[3]
+                            $Lvl4 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 0)
+                            $Lvl3 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 1)
+                            $Lvl2 += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "name" -Index 2)
+                            $Script:1stLevel += (Get-AZSCDiagramChainValue -Chain $org.properties.managementgroupancestorschain -Property "displayname" -Index 3)
                         }
                 }
 
-            $Script:1stLevel = $Script:1stLevel | Select-Object -Unique
-            $Lvl2 = $Lvl2 | Select-Object -Unique
-            $Lvl3 = $Lvl3 | Select-Object -Unique
-            $Lvl4 = $Lvl4 | Select-Object -Unique
+            $Script:1stLevel = @($Script:1stLevel | Select-Object -Unique)
+            $Lvl2 = @($Lvl2 | Select-Object -Unique)
+            $Lvl3 = @($Lvl3 | Select-Object -Unique)
+            $Lvl4 = @($Lvl4 | Select-Object -Unique)
 
             $Script:XLeft = 0
             $Script:XTop = 100
@@ -238,7 +282,13 @@ Function Start-AZSCDiagramOrganization {
                             }
                     }
             
-            $MgmtHeight0 = (($RoundSubs00.id.count * 70) + 80)
+            # Use the array's own .Count rather than member-enumerating .id.count: when
+            # $RoundSubs00 is empty, property-enumeration over zero elements throws
+            # "the property 'id' cannot be found" under strict mode (the module runs
+            # under Set-StrictMode -Version Latest once imported alongside the
+            # assessment platform), which previously broke this diagram for any
+            # management group tier with no directly-attached subscriptions.
+            $MgmtHeight0 = ((@($RoundSubs00).Count * 70) + 80)
 
             Add-Container0 '0' '0' '200' $MgmtHeight0 'tenant root group'
 
@@ -266,7 +316,8 @@ Function Start-AZSCDiagramOrganization {
                 $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                 $Script:XmlWriter.WriteStartElement('object')            
-                $Script:XmlWriter.WriteAttributeString('label', $sub.name)
+                $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
+                if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
                     Add-Icon $Ret1 $LocalLeft $LocalTop '150' '70' $Script:ContID0
@@ -303,13 +354,13 @@ Function Start-AZSCDiagramOrganization {
                 
                 foreach($Sub in $OrgObjs)
                     {
-                        if($Sub.properties.managementgroupancestorschain.displayname[0] -eq $1stlvl)
+                        if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "displayname" -Index 0) -eq $1stlvl)
                             {
                                 $RoundSubs0 += $Sub
                             }
                     }
 
-                $MgmtHeight = (($RoundSubs0.id.count * 70) + 80)
+                $MgmtHeight = ((@($RoundSubs0).Count * 70) + 80)
 
                 Add-Container1 $XLeft $XTop '200' $MgmtHeight $1stlvl $Script:ContID0       
                 
@@ -339,7 +390,8 @@ Function Start-AZSCDiagramOrganization {
                         $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                         $Script:XmlWriter.WriteStartElement('object')            
-                        $Script:XmlWriter.WriteAttributeString('label', $sub.name)
+                        $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
+                if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
                             Add-Icon $Ret1 $LocalLeft $LocalTop '150' '70' $Script:ContID
@@ -372,20 +424,20 @@ Function Start-AZSCDiagramOrganization {
                 $2ndLevel = @()
                 foreach($sub2nd in $OrgObjs)
                 {                 
-                    if($sub2nd.properties.managementgroupancestorschain.displayname[1] -eq $1stlvl)
+                    if((Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "displayname" -Index 1) -eq $1stlvl)
                         {
-                            $2ndLevel += $sub2nd.properties.managementgroupancestorschain.name[0]
+                            $2ndLevel += (Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "name" -Index 0)
                         }
-                    if($sub2nd.properties.managementgroupancestorschain.displayname[2] -eq $1stlvl)
+                    if((Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "displayname" -Index 2) -eq $1stlvl)
                         {
-                            $2ndLevel += $sub2nd.properties.managementgroupancestorschain.name[1]
+                            $2ndLevel += (Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "name" -Index 1)
                         }
-                    if($sub2nd.properties.managementgroupancestorschain.displayname[3] -eq $1stlvl)
+                    if((Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "displayname" -Index 3) -eq $1stlvl)
                         {
-                            $2ndLevel += $sub2nd.properties.managementgroupancestorschain.name[2]
+                            $2ndLevel += (Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "name" -Index 2)
                         }
                 }
-                $2ndLevel = $2ndLevel | Select-Object -Unique
+                $2ndLevel = @($2ndLevel | Select-Object -Unique)
                 
                 $XXLeft = 0
                 if($2ndLevel.count  % 2 -eq 1 )
@@ -415,30 +467,30 @@ Function Start-AZSCDiagramOrganization {
 
                         foreach($Sub in $OrgObjs)
                             {
-                                if($Sub.properties.managementgroupancestorschain.name[0] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0) -eq $2nd)
                                     {
                                         $RoundSubs += $Sub
                                     }
-                                if($Sub.properties.managementgroupancestorschain.name[1] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $2nd)
                                     {
-                                        $Temp3rd += $Sub.properties.managementgroupancestorschain.name[0]
+                                        $Temp3rd += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
                                     }
-                                if($Sub.properties.managementgroupancestorschain.name[2] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 2) -eq $2nd)
                                     {
-                                        $Temp4rd += $Sub.properties.managementgroupancestorschain.name[0]
-                                        $Temp3rd += $Sub.properties.managementgroupancestorschain.name[1]
+                                        $Temp4rd += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
+                                        $Temp3rd += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1)
                                     }
-                                if($Sub.properties.managementgroupancestorschain.name[3] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 3) -eq $2nd)
                                     {
-                                        $Temp5th += $Sub.properties.managementgroupancestorschain.name[0]
-                                        $Temp4rd += $Sub.properties.managementgroupancestorschain.name[1]
-                                        $Temp3rd += $Sub.properties.managementgroupancestorschain.name[2]
+                                        $Temp5th += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
+                                        $Temp4rd += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1)
+                                        $Temp3rd += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 2)
                                     }
                             }
 
-                        $Temp3rd = $Temp3rd | Select-Object -Unique
-                        $Temp4rd = $Temp4rd | Select-Object -Unique
-                        $Temp5th = $Temp5th | Select-Object -Unique
+                        $Temp3rd = @($Temp3rd | Select-Object -Unique)
+                        $Temp4rd = @($Temp4rd | Select-Object -Unique)
+                        $Temp5th = @($Temp5th | Select-Object -Unique)
 
                         if($XXLeft -eq 0 -and $Align -eq $true)
                             {
@@ -477,7 +529,7 @@ Function Start-AZSCDiagramOrganization {
                                 $loops++
                             }
 
-                        $MgmtHeight1 = if((($RoundSubs.id.count * 90) + 50) -eq 50){80}else{(($RoundSubs.id.count * 90) + 50)}
+                        $MgmtHeight1 = if(((@($RoundSubs).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs).Count * 90) + 50)}
                         
                         $XXTop = $MgmtHeight + 200
 
@@ -520,7 +572,8 @@ Function Start-AZSCDiagramOrganization {
                                 $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                                 $Script:XmlWriter.WriteStartElement('object')
-                                $Script:XmlWriter.WriteAttributeString('label', $sub.name)
+                                $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
+                if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
                                     Add-Icon $Ret2 $LocalLeft $LocalTop '150' '70' $Script:ContID2
@@ -553,20 +606,20 @@ Function Start-AZSCDiagramOrganization {
                         $3rdLevel = @()
                         foreach($sub3rd in $OrgObjs)
                             {                 
-                                if($sub3rd.properties.managementgroupancestorschain.name[1] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $2nd)
                                     {
-                                        $3rdLevel += $sub3rd.properties.managementgroupancestorschain.name[0]
+                                        $3rdLevel += (Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 0)
                                     }
-                                if($sub3rd.properties.managementgroupancestorschain.name[2] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 2) -eq $2nd)
                                     {
-                                        $3rdLevel += $sub3rd.properties.managementgroupancestorschain.name[1]
+                                        $3rdLevel += (Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 1)
                                     }
-                                if($sub3rd.properties.managementgroupancestorschain.name[3] -eq $2nd)
+                                if((Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 3) -eq $2nd)
                                     {
-                                        $3rdLevel += $sub3rd.properties.managementgroupancestorschain.name[2]
+                                        $3rdLevel += (Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 2)
                                     }
                             }
-                            $3rdLevel = $3rdLevel | Select-Object -Unique
+                            $3rdLevel = @($3rdLevel | Select-Object -Unique)
 
                             $XXXLeft = 0
                             if($3rdLevel.count  % 2 -eq 1 )
@@ -594,23 +647,23 @@ Function Start-AZSCDiagramOrganization {
                         
                                 foreach($Sub in $OrgObjs)
                                     {
-                                        if($Sub.properties.managementgroupancestorschain.name[0] -eq $3rd)
+                                        if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0) -eq $3rd)
                                             {
                                                 $RoundSubs3 += $Sub
                                             }
-                                        if($Sub.properties.managementgroupancestorschain.name[1] -eq $3rd)
+                                        if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $3rd)
                                             {
-                                                $Temp4rd3 += $Sub.properties.managementgroupancestorschain.name[0]
+                                                $Temp4rd3 += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
                                             }
-                                        if($Sub.properties.managementgroupancestorschain.name[2] -eq $3rd)
+                                        if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 2) -eq $3rd)
                                             {
-                                                $Temp5th3 += $Sub.properties.managementgroupancestorschain.name[0]
-                                                $Temp4rd3 += $Sub.properties.managementgroupancestorschain.name[1]
+                                                $Temp5th3 += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
+                                                $Temp4rd3 += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1)
                                             }
                                     }
 
-                                $Temp4rd3 = $Temp4rd3 | Select-Object -Unique
-                                $Temp5th3 = $Temp5th3 | Select-Object -Unique
+                                $Temp4rd3 = @($Temp4rd3 | Select-Object -Unique)
+                                $Temp5th3 = @($Temp5th3 | Select-Object -Unique)
                             
 
                                 if($XXXLeft -eq 0 -and $Align3 -eq $true)
@@ -656,7 +709,7 @@ Function Start-AZSCDiagramOrganization {
                                     }
 
                                 
-                                $MgmtHeight2 = if((($RoundSubs3.id.count * 90) + 50) -eq 50){80}else{(($RoundSubs3.id.count * 90) + 50)}
+                                $MgmtHeight2 = if(((@($RoundSubs3).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs3).Count * 90) + 50)}
 
                                 $XXXTop = $MgmtHeight1 + 200
 
@@ -698,7 +751,8 @@ Function Start-AZSCDiagramOrganization {
                                         $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                                         $Script:XmlWriter.WriteStartElement('object')
-                                        $Script:XmlWriter.WriteAttributeString('label', $sub.name)
+                                        $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
+                if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
                                             Add-Icon $Ret3 $LocalLeft $LocalTop '150' '70' $Script:ContID3
@@ -731,20 +785,20 @@ Function Start-AZSCDiagramOrganization {
                                     $4thLevel = @()
                                     foreach($sub4th in $OrgObjs)
                                         {                 
-                                            if($sub4th.properties.managementgroupancestorschain.name[1] -eq $3rd)
+                                            if((Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $3rd)
                                                 {
-                                                    $4thLevel += $sub4th.properties.managementgroupancestorschain.name[0]
+                                                    $4thLevel += (Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 0)
                                                 }
-                                            if($sub4th.properties.managementgroupancestorschain.name[2] -eq $3rd)
+                                            if((Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 2) -eq $3rd)
                                                 {
-                                                    $4thLevel += $sub4th.properties.managementgroupancestorschain.name[1]
+                                                    $4thLevel += (Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 1)
                                                 }
-                                            if($sub4th.properties.managementgroupancestorschain.name[3] -eq $3rd)
+                                            if((Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 3) -eq $3rd)
                                                 {
-                                                    $4thLevel += $sub4th.properties.managementgroupancestorschain.name[2]
+                                                    $4thLevel += (Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 2)
                                                 }
                                         }
-                                        $4thLevel = $4thLevel | Select-Object -Unique
+                                        $4thLevel = @($4thLevel | Select-Object -Unique)
 
                                         $XXXXLeft = 0
                                         if($4thLevel.count  % 2 -eq 1 )
@@ -771,21 +825,21 @@ Function Start-AZSCDiagramOrganization {
                                     
                                             foreach($Sub in $OrgObjs)
                                                 {
-                                                    if($Sub.properties.managementgroupancestorschain.name[0] -eq $4th)
+                                                    if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0) -eq $4th)
                                                         {
                                                             $RoundSubs4 += $Sub
                                                         }
-                                                    if($Sub.properties.managementgroupancestorschain.name[1] -eq $4th)
+                                                    if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $4th)
                                                         {
-                                                            $Temp5th4 += $Sub.properties.managementgroupancestorschain.name[0]
+                                                            $Temp5th4 += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
                                                         }
-                                                    if($Sub.properties.managementgroupancestorschain.name[2] -eq $4th)
+                                                    if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 2) -eq $4th)
                                                         {
-                                                            $Temp5th4 += $Sub.properties.managementgroupancestorschain.name[0]
+                                                            $Temp5th4 += (Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0)
                                                         }
                                                 }
 
-                                            $Temp5th4 = $Temp5th4 | Select-Object -Unique
+                                            $Temp5th4 = @($Temp5th4 | Select-Object -Unique)
 
                                             if($XXXXLeft -eq 0 -and $Align4 -eq $true)
                                                 {
@@ -830,7 +884,7 @@ Function Start-AZSCDiagramOrganization {
                                                 }
                 
                                             
-                                            $MgmtHeight3 = if((($RoundSubs4.id.count * 90) + 50) -eq 50){80}else{(($RoundSubs4.id.count * 90) + 50)}
+                                            $MgmtHeight3 = if(((@($RoundSubs4).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs4).Count * 90) + 50)}
 
                                             $XXXXTop = $MgmtHeight2 + 200
 
@@ -872,7 +926,8 @@ Function Start-AZSCDiagramOrganization {
                                                     $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                                                     $Script:XmlWriter.WriteStartElement('object')
-                                                    $Script:XmlWriter.WriteAttributeString('label', $sub.name)
+                                                    $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
+                if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
                                                         Add-Icon $Ret4 $LocalLeft $LocalTop '150' '70' $Script:ContID4
@@ -916,6 +971,12 @@ Function Start-AZSCDiagramOrganization {
     $Script:etag = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
     $Script:DiagID = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
     $Script:CellID = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
+    # Subscription-box ids use a dedicated id prefix (mirroring Start-AZSCDiagramSubscription's
+    # own $Script:CellIDRes). This was previously never initialized in this file, which relied
+    # on module-scope leakage from another diagram job having already set it; when this diagram
+    # is generated in isolation (its own job/runspace, or with no prior Subscription run in the
+    # same scope) referencing it threw under strict mode.
+    $Script:CellIDRes = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 
     $Script:IDNum = 0
     $Script:CelNum = 0

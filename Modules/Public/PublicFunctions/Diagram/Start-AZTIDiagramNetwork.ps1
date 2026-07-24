@@ -25,6 +25,23 @@ Function Start-AZSCDiagramNetwork {
         $Script:jobs = @()
         $Script:jobs2 = @()
 
+        <# Truncates long resource names for a legible on-canvas label while keeping
+           the full value recoverable: callers should also stash the untruncated
+           text in a dedicated custom attribute (e.g. Full_VNET_Name) when this
+           function reports the text was shortened. #>
+        Function Get-AZSCDiagramSafeLabel {
+            Param($Text, $MaxLength = 40)
+
+                $Value = [string]$Text
+
+                if ([string]::IsNullOrEmpty($Value) -or $Value.Length -le $MaxLength)
+                    {
+                        return $Value
+                    }
+
+                return ($Value.Substring(0, $MaxLength - 1) + [char]0x2026)
+        }
+
         Function New-AZSCDiagramIcon {
             Param($Style,$x,$y,$w,$h,$p)
 
@@ -125,9 +142,8 @@ Function Start-AZSCDiagramNetwork {
 
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
-            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
+            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
             $Script:XmlWriter.WriteAttributeString('edge', "1")
-            $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $Parent)
             $Script:XmlWriter.WriteAttributeString('source', $Source)
             $Script:XmlWriter.WriteAttributeString('target', $Target)
@@ -181,7 +197,7 @@ Function Start-AZSCDiagramNetwork {
         <# Function to begin OnPrem environment drawing. Will begin by Local network Gateway, then Express Route.#>
         Function Invoke-AZSCDiagramOnPremNetwork {
             $Script:VNETHistory = @()
-            $Script:RoutsW = $Job.AZVNETs | Select-Object -Property Name, @{N="Subnets";E={$_.properties.subnets.properties.addressPrefix.count}} | Sort-Object -Property Subnets -Descending
+            $Script:RoutsW = $Job.AZVNETs | Select-Object -Property Name, @{N="Subnets";E={@($_.properties.subnets.properties.addressPrefix).Count}} | Sort-Object -Property Subnets -Descending
 
             $Script:Alt = 0
 
@@ -487,7 +503,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:VNET2 = $AZVNETs2
 
                                 $Script:Alt0 = $Script:Alt
-                                if($VNET2.id -notin $VNETHistory.vnet)
+                                if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                                     {
                                         if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
                                         {
@@ -497,7 +513,8 @@ Function Start-AZSCDiagramNetwork {
                                         }
 
                                         $Script:XmlWriter.WriteStartElement('object')
-                                        $Script:XmlWriter.WriteAttributeString('label', ([string]$VNET2.Name + "`n" + $AddSpace))
+                                        $Script:XmlWriter.WriteAttributeString('label', ((Get-AZSCDiagramSafeLabel -Text $VNET2.Name) + "`n" + $AddSpace))
+                                        if(([string]$VNET2.Name).Length -gt 40){$Script:XmlWriter.WriteAttributeString('Full_VNET_Name', [string]$VNET2.Name)}
                                         if($VNET2.properties.dhcpoptions.dnsServers)
                                             {
                                                 $Script:XmlWriter.WriteAttributeString('Custom_DNS_Servers', [string]$VNET2.properties.dhcpoptions.dnsServers)
@@ -630,7 +647,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:VNET2 = $AZVNETs2
 
                                 $Script:Alt0 = $Script:Alt
-                                if($VNET2.id -notin $VNETHistory.vnet)
+                                if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                                     {
                                         if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
                                         {
@@ -640,7 +657,8 @@ Function Start-AZSCDiagramNetwork {
                                         }
 
                                         $Script:XmlWriter.WriteStartElement('object')
-                                        $Script:XmlWriter.WriteAttributeString('label', ([string]$VNET2.Name + "`n" + $AddSpace))
+                                        $Script:XmlWriter.WriteAttributeString('label', ((Get-AZSCDiagramSafeLabel -Text $VNET2.Name) + "`n" + $AddSpace))
+                                        if(([string]$VNET2.Name).Length -gt 40){$Script:XmlWriter.WriteAttributeString('Full_VNET_Name', [string]$VNET2.Name)}
                                         if($VNET2.properties.dhcpoptions.dnsServers)
                                             {
                                                 $Script:XmlWriter.WriteAttributeString('Custom_DNS_Servers', [string]$VNET2.properties.dhcpoptions.dnsServers)
@@ -711,7 +729,7 @@ Function Start-AZSCDiagramNetwork {
 
         <# Function for Cloud Only Environments #>
         Function Invoke-AZSCDiagramCloudOnly {
-        $Script:RoutsW = $Job.AZVNETs | Select-Object -Property Name, @{N="Subnets";E={$_.properties.subnets.properties.addressPrefix.count}} | Sort-Object -Property Subnets -Descending
+        $Script:RoutsW = $Job.AZVNETs | Select-Object -Property Name, @{N="Subnets";E={@($_.properties.subnets.properties.addressPrefix).Count}} | Sort-Object -Property Subnets -Descending
 
         $Script:VNETHistory = @()
         if([string]::IsNullOrEmpty($Script:vnetLoc))
@@ -725,7 +743,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:VNET2 = $AZVNETs2
 
                     $Script:Alt0 = $Script:Alt
-                    if($VNET2.id -notin $VNETHistory.vnet)
+                    if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                         {
 
                             if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
@@ -736,7 +754,8 @@ Function Start-AZSCDiagramNetwork {
                             }
 
                             $Script:XmlWriter.WriteStartElement('object')
-                            $Script:XmlWriter.WriteAttributeString('label', ([string]$VNET2.Name + "`n" + $AddSpace))
+                            $Script:XmlWriter.WriteAttributeString('label', ((Get-AZSCDiagramSafeLabel -Text $VNET2.Name) + "`n" + $AddSpace))
+                            if(([string]$VNET2.Name).Length -gt 40){$Script:XmlWriter.WriteAttributeString('Full_VNET_Name', [string]$VNET2.Name)}
                             if($VNET2.properties.dhcpoptions.dnsServers)
                                 {
                                     $Script:XmlWriter.WriteAttributeString('Custom_DNS_Servers', [string]$VNET2.properties.dhcpoptions.dnsServers)
@@ -818,7 +837,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:VNET2 = $AZVNETs2
                     $Script:Alt0 = $Script:Alt
 
-                    if($VNET2.id -notin $VNETHistory.vnet)
+                    if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                         {
                             if($VNET2.properties.addressSpace.addressPrefixes.count -ge 10)
                             {
@@ -828,7 +847,8 @@ Function Start-AZSCDiagramNetwork {
                             }
 
                             $Script:XmlWriter.WriteStartElement('object')
-                            $Script:XmlWriter.WriteAttributeString('label', ([string]$VNET2.Name + "`n" + $AddSpace))
+                            $Script:XmlWriter.WriteAttributeString('label', ((Get-AZSCDiagramSafeLabel -Text $VNET2.Name) + "`n" + $AddSpace))
+                            if(([string]$VNET2.Name).Length -gt 40){$Script:XmlWriter.WriteAttributeString('Full_VNET_Name', [string]$VNET2.Name)}
                             if($VNET2.properties.dhcpoptions.dnsServers)
                                 {
                                     $Script:XmlWriter.WriteAttributeString('Custom_DNS_Servers', [string]$VNET2.properties.dhcpoptions.dnsServers)
@@ -882,11 +902,11 @@ Function Start-AZSCDiagramNetwork {
         <# Function for VNET creation #>
         Function New-AZSCDiagramVNET {
         Param($VNET2)
-                $Script:sizeL =  $VNET2.properties.subnets.properties.addressPrefix.count
+                $Script:sizeL =  @($VNET2.properties.subnets.properties.addressPrefix).Count
 
                 [System.GC]::GetTotalMemory($true) | out-null
 
-                if($VNET2.id -notin $VNETHistory.vnet)
+                if($VNETHistory.Count -eq 0 -or $VNET2.id -notin $VNETHistory.vnet)
                     {
                     if ($Script:sizeL -gt 5)
                     {
@@ -1016,7 +1036,7 @@ Function Start-AZSCDiagramNetwork {
                 {
                     $VNETSUB = $Job.AZVNETs | Where-Object {$_.id -eq $Peer.properties.remoteVirtualNetwork.id}
 
-                    if($VNETSUB.id -in $VNETHistory.VNET)
+                    if($VNETHistory.Count -gt 0 -and $VNETSUB.id -in $VNETHistory.VNET)
                         {
                             $VNETDID = $VNETHistory | Where-Object {$_.VNET -eq $VNETSUB.id}
 
@@ -1030,9 +1050,8 @@ Function Start-AZSCDiagramNetwork {
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                 $Script:XmlWriter.WriteStartElement('mxCell')
-                                $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
+                                $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
                                 $Script:XmlWriter.WriteAttributeString('edge', "1")
-                                $Script:XmlWriter.WriteAttributeString('vertex', "1")
                                 $Script:XmlWriter.WriteAttributeString('parent', "1")
                                 $Script:XmlWriter.WriteAttributeString('source', $Script:VNETDrawID)
                                 $Script:XmlWriter.WriteAttributeString('target', $VNETDID.VNETid)
@@ -1048,8 +1067,8 @@ Function Start-AZSCDiagramNetwork {
                         }
                     else
                     {
-                        $Script:sizeL =  $VNETSUB.properties.subnets.properties.addressPrefix.count
-                        $BrokenVNET = if($VNETSUB.properties.subnets.properties.addressPrefix.count){'Not Broken'}else{'Broken'}
+                        $Script:sizeL =  @($VNETSUB.properties.subnets.properties.addressPrefix).Count
+                        $BrokenVNET = if(@($VNETSUB.properties.subnets.properties.addressPrefix).Count){'Not Broken'}else{'Broken'}
 
                         if($VNETSUB.properties.addressSpace.addressPrefixes.count -ge 10)
                         {
@@ -1059,7 +1078,8 @@ Function Start-AZSCDiagramNetwork {
                         }
 
                         $Script:XmlWriter.WriteStartElement('object')
-                        $Script:XmlWriter.WriteAttributeString('label', ($VNETSUB.name + "`n" + $AddSpace))
+                        $Script:XmlWriter.WriteAttributeString('label', ((Get-AZSCDiagramSafeLabel -Text $VNETSUB.name) + "`n" + $AddSpace))
+                        if(([string]$VNETSUB.name).Length -gt 40){$Script:XmlWriter.WriteAttributeString('Full_VNET_Name', [string]$VNETSUB.name)}
                         if($VNETSUB.properties.dhcpoptions.dnsServers)
                             {
                                 $Script:XmlWriter.WriteAttributeString('Custom_DNS_Servers', [string]$VNETSUB.properties.dhcpoptions.dnsServers)
@@ -1087,9 +1107,8 @@ Function Start-AZSCDiagramNetwork {
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                             $Script:XmlWriter.WriteStartElement('mxCell')
-                            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
+                            $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
                             $Script:XmlWriter.WriteAttributeString('edge', "1")
-                            $Script:XmlWriter.WriteAttributeString('vertex', "1")
                             $Script:XmlWriter.WriteAttributeString('parent', "1")
                             $Script:XmlWriter.WriteAttributeString('source', $Script:Source)
                             $Script:XmlWriter.WriteAttributeString('target', $TwoTarget)
@@ -1375,6 +1394,12 @@ Function Start-AZSCDiagramNetwork {
                 $Script:CellID = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 
                 $Script:IDNum = 0
+                # Predeclare so the "if([string]::IsNullOrEmpty($Script:vnetLoc))" self-init
+                # checks further down can safely reference the variable. Merely referencing a
+                # never-assigned $Script: variable throws once the module is imported alongside
+                # the assessment platform (Set-StrictMode -Version Latest leaks into the shared
+                # module scope), which previously broke every Network Topology diagram.
+                $Script:vnetLoc = $null
 
                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Defining XML file')
 
@@ -1515,5 +1540,25 @@ Function Start-AZSCDiagramNetwork {
         catch
             {
                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message)
+            }
+        finally
+            {
+                # If the try block above threw before reaching its own WriteEndDocument/
+                # Flush/Close, $DDFile is left open and locked for the rest of the process
+                # -- which then makes the Organization/Subscriptions merge step (which needs
+                # to Load() this same file) fail with "being used by another process" on top
+                # of the original error. Always release the handle so a partial failure here
+                # doesn't cascade into breaking diagram pages that generated successfully.
+                if ($Script:XmlWriter)
+                    {
+                        try
+                            {
+                                $Script:XmlWriter.Close()
+                            }
+                        catch
+                            {
+                                Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Warning: could not close DDFile writer cleanly: ' + $_.Exception.Message)
+                            }
+                    }
             }
 }

@@ -21,6 +21,23 @@ Authors: Claudio Merola
 Function Build-AZSCDiagramSubnet {
     Param($SubnetLocation,$VNET,$IDNum,$DiagramCache,$ContainerID,$Job,$LogFile)
 
+    <# Truncates long subnet/resource names for a legible on-canvas label
+       while the full value remains available on the object's other
+       custom attributes (e.g. the resource-specific *_Name attributes
+       already written alongside each label in this module). #>
+    Function Get-AZSCDiagramSafeLabel {
+        Param($Text, $MaxLength = 40)
+
+            $Value = [string]$Text
+
+            if ([string]::IsNullOrEmpty($Value) -or $Value.Length -le $MaxLength)
+                {
+                    return $Value
+                }
+
+            return ($Value.Substring(0, $MaxLength - 1) + [char]0x2026)
+    }
+
     try
         {
         $etag = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
@@ -907,26 +924,35 @@ Function Build-AZSCDiagramSubnet {
         Function Get-AZSCDiagramSubnetResourceType {
             Param($Sub,$LogFile)
 
-            if (![string]::IsNullOrEmpty($sub.properties.delegations.properties.serviceName))
+            <# Every branch below guards the collection ($sub.properties.delegations, etc.)
+               with a "-gt 0"/"Count -gt 0" check before indexing into it. A subnet with no
+               delegation/links/app-gateway config (the overwhelmingly common case) has these
+               as empty arrays, and member-enumerating a *.properties (or *.id) chain off an
+               empty array throws "the property cannot be found on this object" once the
+               module is imported alongside the assessment platform (Set-StrictMode -Version
+               Latest leaks into the shared module scope) -- this previously broke resource-type
+               detection, and therefore the whole subnet, for any ordinary (non-delegated)
+               subnet. #>
+            if (@($sub.properties.delegations).Count -gt 0 -and ![string]::IsNullOrEmpty($sub.properties.delegations.properties.serviceName))
                 {
                     $TrueTemp = $Sub.properties.delegations.properties.serviceName
                 }
-            elseif ($sub.id -in $Job.AKS.properties.agentPoolProfiles.vnetSubnetID)
+            elseif (@($Job.AKS).Count -gt 0 -and $sub.id -in $Job.AKS.properties.agentPoolProfiles.vnetSubnetID)
                 {
                     $TrueTemp = 'microsoft.containerservice/managedclusters'
                 }
-            elseif ($sub.properties.resourceNavigationLinks.properties.linkedResourceType -eq 'Microsoft.ApiManagement/service')
+            elseif (@($sub.properties.resourceNavigationLinks).Count -gt 0 -and $sub.properties.resourceNavigationLinks.properties.linkedResourceType -eq 'Microsoft.ApiManagement/service')
                 {
                     $TrueTemp = 'microsoft.apimanagement/service'
                 }
-            elseif (![string]::IsNullOrEmpty($sub.properties.serviceAssociationLinks.properties.link))
+            elseif (@($sub.properties.serviceAssociationLinks).Count -gt 0 -and ![string]::IsNullOrEmpty($sub.properties.serviceAssociationLinks.properties.link))
                 {
                     if ($sub.properties.serviceAssociationLinks.properties.link.split("/")[6] -eq 'Microsoft.Web')
                         {
                             $TrueTemp = 'microsoft.web/serverfarms'
                         }
                 }
-            elseif (![string]::IsNullOrEmpty($sub.properties.applicationGatewayIPConfigurations.id))
+            elseif (@($sub.properties.applicationGatewayIPConfigurations).Count -gt 0 -and ![string]::IsNullOrEmpty($sub.properties.applicationGatewayIPConfigurations.id))
                 {
                     if($sub.properties.applicationGatewayIPConfigurations.id.split("/")[7] -eq 'applicationGateways')
                         {
@@ -935,7 +961,7 @@ Function Build-AZSCDiagramSubnet {
                 }
             else
                 {
-                    $Types = Foreach($type in $sub.properties.ipconfigurations.id)
+                    $Types = if (@($sub.properties.ipconfigurations).Count -gt 0) { Foreach($type in $sub.properties.ipconfigurations.id)
                         {
                             $SplitedTypes = $type.Split("/")
                             if($SplitedTypes[8] -like 'aks-*')
@@ -950,8 +976,13 @@ Function Build-AZSCDiagramSubnet {
                                 {
                                     ($SplitedTypes[6] + '/' + $SplitedTypes[7])
                                 }
-                        }
-                        $TrueTemp = ($Types | Group-Object | Sort-Object -Property Count -Descending | Select-Object -First 1).Name
+                        } }
+                        # A subnet with no IP configurations (e.g. an unused/empty subnet) makes
+                        # $Types empty, and .Name on the resulting $null Select-Object result
+                        # throws under strict mode instead of falling through to 'EmptySubnet'
+                        # below, as intended.
+                        $GroupedType = $Types | Group-Object | Sort-Object -Property Count -Descending | Select-Object -First 1
+                        $TrueTemp = if ($GroupedType) { $GroupedType.Name } else { $null }
                 }
 
                 if($TrueTemp -eq 'microsoft.network/networkinterfaces')
@@ -1218,7 +1249,12 @@ Function Build-AZSCDiagramSubnet {
                         $XmlTempWriter.WriteAttributeString('parent', "0")
                         $XmlTempWriter.WriteEndElement()
 
-                            $sizeL =  $VNET.properties.subnets.properties.addressPrefix.count
+                            # Force array context: a VNET with exactly one subnet collapses the
+                            # .properties.addressPrefix member-enumeration chain to a scalar
+                            # string, and .count on a scalar throws under strict mode (the module
+                            # runs under Set-StrictMode -Version Latest once imported alongside
+                            # the assessment platform).
+                            $sizeL =  @($VNET.properties.subnets.properties.addressPrefix).Count
                             if ($sizeL -gt 5)
                                 {                                           
                                     $sizeL = $sizeL / 2
@@ -1243,7 +1279,8 @@ Function Build-AZSCDiagramSubnet {
                                         Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Subnet ($LoggingSubnetName): " + $CellID2+'-'+$IDNum)
 
                                         $XmlTempWriter.WriteStartElement('object')            
-                                        $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +[string]$sub.Name + "`n" + [string]$sub.properties.addressPrefix))
+                                        $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +(Get-AZSCDiagramSafeLabel -Text $sub.Name) + "`n" + [string]$sub.properties.addressPrefix))
+                                        if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
                                             New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 $Alt1 "200" "200" $ContainerID
@@ -1270,7 +1307,8 @@ Function Build-AZSCDiagramSubnet {
 
 
                                         $XmlTempWriter.WriteStartElement('object')            
-                                        $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +[string]$sub.Name + "`n" + [string]$sub.properties.addressPrefix))
+                                        $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +(Get-AZSCDiagramSafeLabel -Text $sub.Name) + "`n" + [string]$sub.properties.addressPrefix))
+                                        if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
                                             New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 40 "200" "200" $ContainerID

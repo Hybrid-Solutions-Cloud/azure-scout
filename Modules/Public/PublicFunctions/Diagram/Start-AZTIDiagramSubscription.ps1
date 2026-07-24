@@ -1700,6 +1700,18 @@ Function Start-AZSCDiagramSubscription {
 
                                 $Counter = 1
                                 $ZCounter = 0
+                                # Predeclared: with a single resource group, the loop below only ever
+                                # takes the "$Counter -eq 1" branch, leaving $TempHeight2 unset by the
+                                # time the post-loop "$TempHeight1 -gt $TempHeight2" comparison runs.
+                                $TempHeight1 = $RGTop
+                                $TempHeight2 = $RGTop
+                                # Predeclared: this first pass only sizes $SubHeight via $RGHeigh (below), but
+                                # still references $RGWitdh (real value assigned in the second, rendering pass
+                                # further down) to advance a $RGLeft that this pass never actually consumes.
+                                # Referencing it unset threw once the module is imported alongside the
+                                # assessment platform (Set-StrictMode -Version Latest leaks into the shared
+                                # module scope).
+                                $RGWitdh = 960
                                     foreach($RG in $Resource0.Name)
                                         {
 
@@ -1708,7 +1720,7 @@ Function Start-AZSCDiagramSubscription {
                                             $Res = $Resource | Where-Object {$_.resourceGroup -eq $RG -and $_.Type -notin $NonTypes}
                                             $Resource1 = $Res | Group-Object -Property type | Sort-Object -Property Count -Descending                        
 
-                                            $RGHeigh = if($Resource1.name.count -le 8){1}else{[math]::ceiling($Resource1.name.count / 8)}
+                                            $RGHeigh = if(@($Resource1).Count -le 8){1}else{[math]::ceiling(@($Resource1).Count / 8)}
 
                                             if($Counter -eq 1)
                                                 {
@@ -1755,13 +1767,17 @@ Function Start-AZSCDiagramSubscription {
 
                                 $Counter = 1
                                 $ZCounter = 0
+                                # See predeclare note above: single-resource-group subscriptions never
+                                # take the "else" branch that sets $TempHeight2.
+                                $TempHeight1 = $RGTop
+                                $TempHeight2 = $RGTop
                                     foreach($RG in $Resource0.Name)
                                         {
                                             $Res = $Resource | Where-Object {$_.resourceGroup -eq $RG -and $_.subscriptionId -eq $Sub -and $_.Type -notin $NonTypes}
                                             $Resource1 = $Res | Group-Object -Property type | Sort-Object -Property Count -Descending 
 
                                             $RGWitdh = 960
-                                            $RGHeigh = if($Resource1.name.count -le 8){1}else{[math]::ceiling($Resource1.name.count / 8)}
+                                            $RGHeigh = if(@($Resource1).Count -le 8){1}else{[math]::ceiling(@($Resource1).Count / 8)}
 
                                             $Script:XmlWriter.WriteStartElement('object')
                                             $Script:XmlWriter.WriteAttributeString('label', '')
