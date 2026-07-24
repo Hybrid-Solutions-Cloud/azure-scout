@@ -60,7 +60,7 @@ function Invoke-ScoutAssessment {
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works
-        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'All')]
+        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
         [string[]] $OutputFormat = @('Html'),
         [string]   $OutputPath = './output',
         [switch]   $PermissionAudit,
@@ -173,7 +173,7 @@ function Invoke-ScoutAssessment {
     }
 
     # ---- REPORT ----
-    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf') } else { $OutputFormat }
+    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') } else { $OutputFormat }
     $reporterIndex = 0
     foreach ($r in $reporters) {
         $reporterIndex++

@@ -27,6 +27,9 @@ function Export-Report {
         # summary, per-area findings table with repeating header, gaps, manual
         # review). See Export-Pdf.ps1's own header for the offline-PDF design.
         'Pdf' { Export-Pdf -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#333: Word (.docx) via OpenXML. AB#344: self-contained offline ECharts HTML dashboard.
+        'Word' { Export-Word -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        'EChartsDashboard' { Export-EChartsDashboard -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         default   { Write-Warning "Unknown renderer '$Renderer' — skipped." }
     }
 }
