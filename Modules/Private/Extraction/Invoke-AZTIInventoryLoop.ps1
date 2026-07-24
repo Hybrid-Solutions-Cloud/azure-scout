@@ -38,19 +38,19 @@ function Invoke-AZSCInventoryLoop {
     Write-Progress -Id 1 -activity 'Azure Inventory' -Status "1% Complete." -PercentComplete 1 -CurrentOperation ('Extracting: ' + $LoopName)
     $ReportCounter = 1
     $LocalResults = @()
-    if($FSubscri.count -gt 200)
+    if(@($FSubscri).count -gt 200)
         {
             # Batch in non-overlapping windows of 200. The previous inclusive range
             # $FSubscri[$NStart..$NEnd] produced 201-item batches and re-queried the
             # boundary subscription in two consecutive batches, double-counting its
             # resources; clamp the upper bound to the array end (AB#5078).
-            $SubLoop = [math]::Ceiling($FSubscri.count / 200)
+            $SubLoop = [math]::Ceiling(@($FSubscri).count / 200)
             $SubLooper = 0
             $NStart = 0
             $NEnd = 199
             while ($SubLooper -lt $SubLoop)
                 {
-                    $upper = [math]::Min($NEnd, $FSubscri.count - 1)
+                    $upper = [math]::Min($NEnd, @($FSubscri).count - 1)
                     $Sub = $FSubscri[$NStart..$upper]
                     try
                         {
@@ -73,7 +73,7 @@ function Invoke-AZSCInventoryLoop {
                             }
                         }
                     $LocalResults += $QueryResult
-                    while ($QueryResult.SkipToken) {
+                    while ($QueryResult -and $QueryResult.PSObject.Properties['SkipToken'] -and $QueryResult.SkipToken) {
                         $ReportCounterVar = [string]$ReportCounter
                         try
                             {
@@ -93,7 +93,7 @@ function Invoke-AZSCInventoryLoop {
                     $NEnd = $NEnd + 200
                     $SubLooper ++
                     $ReportCounter ++
-                    if ($NStart -ge $FSubscri.count) { break }
+                    if ($NStart -ge @($FSubscri).count) { break }
                 }
         }
     else
@@ -111,7 +111,7 @@ function Invoke-AZSCInventoryLoop {
                 }
 
             $LocalResults += $QueryResult
-            while ($QueryResult.SkipToken) {
+            while ($QueryResult -and $QueryResult.PSObject.Properties['SkipToken'] -and $QueryResult.SkipToken) {
                 $ReportCounterVar = [string]$ReportCounter
                 try
                     {
@@ -130,5 +130,7 @@ function Invoke-AZSCInventoryLoop {
             }
         }
         Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "100% Complete." -Completed
-    return $LocalResults
+    # Comma-prefix prevents PowerShell from unrolling an empty $LocalResults to $null
+    # on return, which would crash any caller doing `.Count` under StrictMode (AB#5041 sweep).
+    return ,$LocalResults
 }

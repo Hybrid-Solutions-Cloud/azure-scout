@@ -120,8 +120,8 @@ function Build-AZSCUpdateManagerReport {
         if ($MaintenanceConfigCount -gt 0) {
             [pscustomobject]@{
                 'Maintenance Configurations' = $MaintenanceConfigCount
-                'VMs Listed'                 = ($Rows | Where-Object { $_.'Platform' -eq 'Azure VM' }).Count
-                'Arc Servers Listed'         = ($Rows | Where-Object { $_.'Platform' -eq 'Arc Server' }).Count
+                'VMs Listed'                 = @($Rows | Where-Object { $_.'Platform' -eq 'Azure VM' }).Count
+                'Arc Servers Listed'         = @($Rows | Where-Object { $_.'Platform' -eq 'Arc Server' }).Count
             } | Export-Excel -Path $File `
                 -WorksheetName 'Azure Update Manager' `
                 -StartRow ($Rows.Count + 5) `

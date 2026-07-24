@@ -58,7 +58,10 @@ function Start-AZSCExcelCustomization {
 
     $TotalRes = 0
     $Table = Foreach ($WorkS in $Worksheets) {
-        if(![string]::IsNullOrEmpty($WorkS.Tables.Name))
+        # $WorkS.Tables.Name throws under StrictMode whenever a worksheet has zero tables
+        # (e.g. Overview, or the shape/chart-only dashboard tabs) — a bare collection has no
+        # element to resolve 'Name' against. Gate on Tables.Count first (always safe).
+        if($WorkS.Tables.Count -gt 0 -and ![string]::IsNullOrEmpty($WorkS.Tables.Name))
             {
                 $Number = $WorkS.Tables.Name.split('_')
                 $tmp = @{

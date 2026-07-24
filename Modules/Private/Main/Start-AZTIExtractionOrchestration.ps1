@@ -108,21 +108,26 @@ function Start-AZSCExtractionOrchestration {
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Entra ID extraction for tenant: ' + $TenantID)
 
             $EntraData = Start-AZSCEntraExtraction -TenantID $TenantID
-            $EntraResources = $EntraData.EntraResources
+            $EntraResources = if ($EntraData) { $EntraData.EntraResources } else { @() }
 
-            # Merge Entra resources into the main Resources array
-            $Resources += $EntraResources
+            # Merge Entra resources into the main Resources array. Guarded so a $null
+            # EntraResources doesn't add a spurious null element to $Resources, which
+            # would crash later property-chain access (e.g. '.type') under StrictMode.
+            if ($EntraResources) { $Resources += $EntraResources }
 
             Remove-Variable -Name EntraData -ErrorAction SilentlyContinue
 
-            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Entra ID extraction complete. ' + $EntraResources.Count + ' resources added.')
+            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Entra ID extraction complete. ' + @($EntraResources).Count + ' resources added.')
         }
     }
 
-    $ResourcesCount = [string]$Resources.Count
-    $AdvisoryCount = [string]$Advisories.Count
-    $SecCenterCount = [string]$Security.Count
-    $PolicyCount = [string]$PolicyAssign.policyAssignments.Count
+    $ResourcesCount = [string]@($Resources).Count
+    $AdvisoryCount = [string]@($Advisories).Count
+    $SecCenterCount = [string]@($Security).Count
+    # $PolicyAssign's shape varies (empty string, a single REST payload, or an array of
+    # per-subscription payloads) — a plain property chain throws under StrictMode whenever
+    # 'policyAssignments' isn't present on whatever shape it currently is.
+    $PolicyCount = try { [string]@($PolicyAssign.policyAssignments).Count } catch { '0' }
 
     $ReturnData = [PSCustomObject]@{
         Resources          = $Resources

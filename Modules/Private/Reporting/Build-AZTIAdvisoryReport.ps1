@@ -25,7 +25,9 @@ function Build-AZSCAdvisoryReport {
 
     $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '#,##0.00' -Range O:O
 
-    [PSCustomObject]$Adv |
+    # [PSCustomObject]$null throws ("cannot call a method on a null-valued expression") under
+    # StrictMode — guard so a job that returned no Advisory data doesn't crash the report.
+    $(if ($Adv) { [PSCustomObject]$Adv } else { @() }) |
     ForEach-Object { $_ } |
     Select-Object 'Subscription',
     'Resource Group',

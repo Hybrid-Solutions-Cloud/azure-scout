@@ -19,7 +19,10 @@ Authors: Claudio Merola
 
 function Build-AZSCSubsReport {
     param($File, $Sub, $IncludeCosts, $TableStyle)
-    $TableName = ('SubsTable_'+($Sub.Subscription | Select-Object -Unique).count)
+    # Guarded: $Sub can be $null (job returned no subscription data), and a plain property
+    # chain / .count on that throws under StrictMode.
+    $SubUniqueCount = if ($Sub) { @($Sub.Subscription | Select-Object -Unique).count } else { 0 }
+    $TableName = ('SubsTable_'+$SubUniqueCount)
 
     if ($IncludeCosts.IsPresent)
         {
@@ -27,7 +30,7 @@ function Build-AZSCSubsReport {
             $Style += New-ExcelStyle -AutoSize -HorizontalAlignment Center -NumberFormat '0'
             $Style += New-ExcelStyle -Width 55 -NumberFormat '$#,#########0.000000000' -Range J:J
             $Style += New-ExcelStyle -AutoSize -NumberFormat '$#,##0.00' -Range I:I
-            [PSCustomObject]$Sub |
+            $(if ($Sub) { [PSCustomObject]$Sub } else { @() }) |
                 ForEach-Object { $_ } |
                 Select-Object 'Subscription',
                 'Resource Group',
@@ -44,7 +47,7 @@ function Build-AZSCSubsReport {
     else
         {
             $Style = New-ExcelStyle -HorizontalAlignment Center -NumberFormat '0'
-            [PSCustomObject]$Sub |
+            $(if ($Sub) { [PSCustomObject]$Sub } else { @() }) |
                 ForEach-Object { $_ } |
                 Select-Object 'Subscription',
                 'Resource Group',

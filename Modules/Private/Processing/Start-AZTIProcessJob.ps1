@@ -22,7 +22,7 @@ function Start-AZSCProcessJob {
 
     Write-Progress -activity 'Azure Inventory' -Status "22% Complete." -PercentComplete 22 -CurrentOperation "Creating Jobs to Process Data.."
 
-    switch ($Resources.count)
+    switch (@($Resources).count)
     {
         {$_ -le 12500}
             {
@@ -55,11 +55,14 @@ function Start-AZSCProcessJob {
     # Filter to requested categories (default is 'All' = no filtering)
     if ($Category -and $Category -notcontains 'All') {
         $ModuleFolders = $ModuleFolders | Where-Object { $Category -contains $_.Name }
-        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Category filter applied. Processing folders: '+($ModuleFolders.Name -join ', '))
+        # $ModuleFolders.Name throws under StrictMode when the filter above matches nothing
+        # (an empty array has no elements to resolve the 'Name' property against).
+        $ModuleFoldersNameList = if ($ModuleFolders) { $ModuleFolders.Name -join ', ' } else { '(none)' }
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Category filter applied. Processing folders: '+$ModuleFoldersNameList)
     }
 
     $JobLoop = 1
-    $TotalFolders = $ModuleFolders.count
+    $TotalFolders = @($ModuleFolders).count
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Converting Resource data to JSON for Jobs')
     $NewResources = ($Resources | ConvertTo-Json -Depth 40 -Compress)
@@ -101,9 +104,12 @@ function Start-AZSCProcessJob {
             # the .CATEGORY header. Files without a .CATEGORY header fall back to folder category.
             if ($Category -and $Category -notcontains 'All') {
                 $ModuleInfoList = $ModuleInfoList | Where-Object {
-                    ($_.Categories | Where-Object { $Category -contains $_ }).Count -gt 0
+                    @($_.Categories | Where-Object { $Category -contains $_ }).Count -gt 0
                 }
-                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Per-file category filter applied in folder '+$ModuleName+'. Files: '+($ModuleInfoList.Name -join ', '))
+                # $ModuleInfoList.Name throws under StrictMode when the filter above matches
+                # nothing (an empty array has no elements to resolve 'Name' against).
+                $ModuleInfoNameList = if ($ModuleInfoList) { $ModuleInfoList.Name -join ', ' } else { '(none)' }
+                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Per-file category filter applied in folder '+$ModuleName+'. Files: '+$ModuleInfoNameList)
             }
 
             # Unwrap back to FileInfo objects for the job (keeps downstream job code unchanged)
@@ -113,7 +119,7 @@ function Start-AZSCProcessJob {
 
             $c = (($JobLoop / $TotalFolders) * 100)
             $c = [math]::Round($c)
-            $filesInFolder = $ModuleFiles.Count
+            $filesInFolder = @($ModuleFiles).Count
             Write-Progress -Id 1 -activity "Creating Jobs" -Status "$c% Complete." -PercentComplete $c -CurrentOperation "Processing module category: $ModuleName ($filesInFolder modules)"
 
             Start-Job -Name ('ResourceJob_'+$ModuleName) -ScriptBlock {

@@ -26,7 +26,9 @@ function Get-AZSCVMQuotas {
                 {
                     Foreach($Loc in $Locs)
                         {
-                            if($Loc.count -eq 1)
+                            # $Loc is a plain string here (one location name); bare strings have
+                            # no native .Count and throw under StrictMode — wrap in @().
+                            if(@($Loc).count -eq 1)
                                 {
                                     Set-AzContext -Subscription $Sub.Id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Debug:$false
                                     $Quota = get-azvmusage -location $Loc -Debug:$false

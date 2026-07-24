@@ -20,7 +20,9 @@ Authors: Claudio Merola
 function Build-AZSCQuotaReport {
     param($File, $AzQuota, $TableStyle)
 
-    $Total = ($AzQuota.properties.Data).count
+    # Guarded: $AzQuota / $AzQuota.properties can be $null (e.g. no VM quota data collected),
+    # and a plain property chain on $null throws under StrictMode.
+    $Total = if ($AzQuota -and $AzQuota.properties) { @($AzQuota.properties.Data).count } else { 0 }
     $tmp = foreach($Quota in $AzQuota.properties)
     {
         foreach($Data in $Quota.Data)
@@ -42,8 +44,12 @@ function Build-AZSCQuotaReport {
 
     $ExcelVar = $tmp
 
-    $TableName = ('QuotaTable_'+$ExcelVar[0].Total)
-    [PSCustomObject]$ExcelVar |
+    # Guarded: indexing [0] into a $null/empty $ExcelVar (no quota data at all) throws
+    # "Cannot index into a null array" under StrictMode.
+    $TableName = if (@($ExcelVar).Count -gt 0) { 'QuotaTable_' + $ExcelVar[0].Total } else { 'QuotaTable_0' }
+    # [PSCustomObject]$null throws ("cannot call a method on a null-valued expression") under
+    # StrictMode — guard so an environment with zero VM quota data doesn't crash the report.
+    $(if ($ExcelVar) { [PSCustomObject]$ExcelVar } else { @() }) |
     ForEach-Object { $_ } |
     Select-Object -Unique 'Subscription',
     'Region',

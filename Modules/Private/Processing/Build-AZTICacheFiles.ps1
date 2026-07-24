@@ -22,7 +22,7 @@ function Build-AZSCCacheFiles {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking Cache Folder.')
 
-    $Lops = $JobNames.count
+    $Lops = @($JobNames).count
     $Counter = 0
 
     Foreach ($Job in $JobNames)
@@ -33,7 +33,7 @@ function Build-AZSCCacheFiles {
 
             $NewJobName = ($Job -replace 'ResourceJob_','')
             $TempJob = Receive-Job -Name $Job
-            if (![string]::IsNullOrEmpty($TempJob.values))
+            if ($TempJob -and ![string]::IsNullOrEmpty($TempJob.values))
                 {
                     $JobJSONName = ($NewJobName+'.json')
                     $JobFileName = Join-Path $DefaultPath 'ReportCache' $JobJSONName

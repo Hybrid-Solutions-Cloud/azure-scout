@@ -43,7 +43,7 @@ Function Start-AZSCGraphExtraction {
             $Subscriptions = Get-AZSCManagementGroups -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions
         }
 
-    $SubCount = [string]$Subscriptions.id.count
+    $SubCount = [string]@(if ($Subscriptions) { $Subscriptions.id }).count
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Subscriptions Found: ' + $SubCount)
     Write-Progress -activity 'Azure Inventory' -Status "3% Complete." -PercentComplete 3 -CurrentOperation "$SubCount Subscriptions found.."
@@ -60,7 +60,7 @@ Function Start-AZSCGraphExtraction {
         }
     else
         {
-            $Subscri = $Subscriptions.id
+            $Subscri = @(if ($Subscriptions) { $Subscriptions.id })
             $RGQueryExtension = ''
             $TagQueryExtension = ''
             $MGQueryExtension = ''
@@ -89,6 +89,17 @@ Function Start-AZSCGraphExtraction {
                     $MGContainerExtension = "| mv-expand managementGroupParent = properties.managementGroupAncestorsChain | where managementGroupParent.name =~ '$ManagementGroup'"
                 }
         }
+
+            # Initialize as a real (possibly empty) array so the += accumulation below
+            # never silently collapses to $null, which would crash any later
+            # `.Count`/`@($Resources).Count` consumer under StrictMode.
+            $Resources = @()
+            # $Advisories / $Security are only assigned inside the -SkipAdvisory / -SecurityCenter
+            # conditional blocks below; without this, skipping either (the common default path)
+            # leaves the variable completely unset, and referencing it in $tmp further down
+            # throws "variable cannot be retrieved because it has not been set" under StrictMode.
+            $Advisories = @()
+            $Security = @()
 
             $ExcludedTypes = "| where type !in ('microsoft.logic/workflows','microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
 
@@ -125,7 +136,7 @@ Function Start-AZSCGraphExtraction {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Resource Containers')
             $ResourceContainers = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Subscriptions and Resource Groups'
 
-            $ContainerCount = $ResourceContainers.count
+            $ContainerCount = @($ResourceContainers).count
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Resource Containers: '+ $ContainerCount)
 
             if (!($SkipAdvisory.IsPresent))
@@ -135,7 +146,7 @@ Function Start-AZSCGraphExtraction {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Advisories')
                     $Advisories = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Advisories'
 
-                    $AdvisorCount = $Advisories.count
+                    $AdvisorCount = @($Advisories).count
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Advisors: '+ $AdvisorCount)
                 }
             if ($SecurityCenter.IsPresent)
@@ -145,7 +156,7 @@ Function Start-AZSCGraphExtraction {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Security Resources')
                     $Security = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Security Center'
 
-                    $SecurityCount = $Security.count
+                    $SecurityCount = @($Security).count
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Security Center Advisors: '+ $SecurityCount)
                 }
 
@@ -159,7 +170,7 @@ Function Start-AZSCGraphExtraction {
 
     $ResourceRetirements = Invoke-AZSCInventoryLoop -GraphQuery $RetirementQuery -FSubscri $Subscri -LoopName 'Retirements'
 
-    $RetirementCount = $ResourceRetirements.count
+    $RetirementCount = @($ResourceRetirements).count
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Retirements: '+ $RetirementCount)
 

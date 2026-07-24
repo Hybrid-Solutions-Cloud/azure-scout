@@ -116,7 +116,7 @@ function Export-AZSCMarkdownReport {
 
             # Build table from first row's properties
             $props = $rows[0].PSObject.Properties.Name | Where-Object { $_ -notmatch 'Tag (Name|Value)|Resource U' }
-            if ($props.Count -gt 0) {
+            if (@($props).Count -gt 0) {
                 $header = '| ' + ($props -join ' | ') + ' |'
                 $sep    = '| ' + (($props | ForEach-Object { '---' }) -join ' | ') + ' |'
                 $folderSections.Add($header)

@@ -146,10 +146,10 @@ function Get-AZSCAPIResources {
 
             $tmp = @{
                 'Subscription'          = $Sub;
-                'ResourceHealth'        = $ResourceHealth.value;
-                'ManagedIdentities'     = $Identities.value;
-                'AdvisorScore'          = $ADVScore.value;
-                'ReservationRecomen'    = $ReservationRecon.value;
+                'ResourceHealth'        = if ($ResourceHealth) { $ResourceHealth.value } else { $null };
+                'ManagedIdentities'     = if ($Identities) { $Identities.value } else { $null };
+                'AdvisorScore'          = if ($ADVScore) { $ADVScore.value } else { $null };
+                'ReservationRecomen'    = if ($ReservationRecon) { $ReservationRecon.value } else { $null };
                 'PolicyAssign'          = $PolicyAssign;
                 'PolicyDef'             = $PolicyDef;
                 'PolicySetDef'          = $PolicySetDef

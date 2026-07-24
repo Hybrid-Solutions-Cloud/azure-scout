@@ -26,7 +26,7 @@ function Start-AZSCExcelJob {
 
     Write-Progress -activity 'Azure Inventory' -Status "68% Complete." -PercentComplete 68 -CurrentOperation "Starting the Report Loop.."
 
-    $ModulesCount = [string](Get-ChildItem -Path $InventoryModulesPath -Recurse -Filter "*.ps1").count
+    $ModulesCount = [string]@(Get-ChildItem -Path $InventoryModulesPath -Recurse -Filter "*.ps1").count
 
     Write-Output 'Starting to Build Excel Report.'
     Write-Host 'Supported Resource Types: ' -NoNewline -ForegroundColor Green
@@ -68,9 +68,12 @@ function Start-AZSCExcelJob {
                     $ModuleFileContent.Dispose()
                     $ModName = $Module.Name.replace(".ps1","")
 
-                    $SmaResources = $CacheData.$ModName
+                    # Guarded: $CacheData can be $null (no cache file for this folder), and
+                    # dynamic property access ($CacheData.$ModName) on $null — or on a key that
+                    # doesn't exist in the parsed JSON — throws under StrictMode.
+                    $SmaResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
 
-                    $ModuleResourceCount = $SmaResources.count
+                    $ModuleResourceCount = @($SmaResources).count
 
                     if ($ModuleResourceCount -gt 0)
                     {

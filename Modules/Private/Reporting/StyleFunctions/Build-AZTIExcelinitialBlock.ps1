@@ -28,7 +28,10 @@ function Build-AZSCInitialBlock {
     $ReportTime = if($ReportingRunTime.Elapsed.Totalminutes -lt 1){($ReportingRunTime.Elapsed.Seconds.ToString()+' Seconds')}else{($ReportingRunTime.Elapsed.Totalminutes.ToString('#######.##')+' Minutes')}
 
     $DebugPreference = 'SilentlyContinue'
-    $User = (get-azcontext -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Select-Object -Property Account -Unique).Account.Id
+    # Guarded: no Az context (e.g. unusual auth flow) makes the pipeline emit nothing, and
+    # a plain property chain on that $null throws under StrictMode.
+    $ContextAccount = get-azcontext -WarningAction SilentlyContinue -InformationAction SilentlyContinue | Select-Object -Property Account -Unique
+    $User = if ($ContextAccount -and $ContextAccount.Account) { $ContextAccount.Account.Id } else { 'Unknown' }
     $DebugPreference = 'Continue'
 
     $WS = $Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Overview' }

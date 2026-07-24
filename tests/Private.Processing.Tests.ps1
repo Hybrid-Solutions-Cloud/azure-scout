@@ -115,3 +115,59 @@ Describe 'Private/Processing Function Definitions' {
         $content | Should -Match 'function\s+Start-AZSCProcessJob'
     }
 }
+
+# =====================================================================
+# STRICTMODE CRASH-HARDENING REGRESSION TESTS (AB#5041 sweep)
+# =====================================================================
+# Start-AZSCProcessJob / Build-AZSCCacheFiles filter folders/files/categories
+# with Where-Object and then read .Count / .Name off the result. When a
+# -Category filter (or a job that returned no output) matches nothing,
+# Where-Object's result collapses to $null, and a bare `.Count`/`.Name` on
+# that throws under `Set-StrictMode -Version Latest`. These tests reproduce
+# the exact filter-to-zero-matches shape without needing to spin up real
+# background jobs.
+Describe 'Category-filter-to-zero-matches StrictMode hardening' {
+    BeforeAll {
+        Set-StrictMode -Version Latest
+
+        # Mirrors Start-AZTIProcessJob.ps1's folder-level category filter (post-fix).
+        function Get-FilteredFolderNameList {
+            param($ModuleFolders, $Category)
+            if ($Category -and $Category -notcontains 'All') {
+                $ModuleFolders = $ModuleFolders | Where-Object { $Category -contains $_.Name }
+                $nameList = if ($ModuleFolders) { $ModuleFolders.Name -join ', ' } else { '(none)' }
+                return $nameList
+            }
+            return $null
+        }
+
+        # Mirrors Start-AZTIProcessJob.ps1's per-file .Categories intersection check (post-fix).
+        function Test-HasMatchingCategory {
+            param($FileCategories, $Category)
+            return @($FileCategories | Where-Object { $Category -contains $_ }).Count -gt 0
+        }
+    }
+
+    It 'a folder-name filter that matches nothing does not throw (was: $ModuleFolders.Name on $null)' {
+        $folders = @([pscustomobject]@{ Name = 'Compute' }, [pscustomobject]@{ Name = 'Storage' })
+        { Get-FilteredFolderNameList -ModuleFolders $folders -Category @('NoSuchCategory') } | Should -Not -Throw
+        Get-FilteredFolderNameList -ModuleFolders $folders -Category @('NoSuchCategory') | Should -Be '(none)'
+    }
+
+    It 'a per-file category intersection with zero overlap does not throw (was: (...).Count on $null)' {
+        { Test-HasMatchingCategory -FileCategories @('Storage') -Category @('Compute') } | Should -Not -Throw
+        Test-HasMatchingCategory -FileCategories @('Storage') -Category @('Compute') | Should -BeFalse
+    }
+
+    It 'a per-file category intersection with overlap still returns true' {
+        Test-HasMatchingCategory -FileCategories @('Compute', 'Storage') -Category @('Compute') | Should -BeTrue
+    }
+
+    It 'Build-AZTICacheFiles.ps1 guards $JobNames.count for a null/empty job list' {
+        . (Join-Path $script:ProcessingPath 'Build-AZTICacheFiles.ps1')
+        . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Clear-AZTIMemory.ps1')
+        Mock Receive-Job { }
+        Mock Remove-Job { }
+        { Build-AZSCCacheFiles -DefaultPath $TestDrive -JobNames $null } | Should -Not -Throw
+    }
+}

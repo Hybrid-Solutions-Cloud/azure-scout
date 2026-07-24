@@ -22,7 +22,9 @@ function Build-AZSCSecCenterReport {
     $condtxtsec = $(New-ConditionalText High -Range G:G
     New-ConditionalText High -Range L:L)
 
-    [PSCustomObject]$Sec |
+    # [PSCustomObject]$null throws ("cannot call a method on a null-valued expression") under
+    # StrictMode — guard so a job that returned no Security Center data doesn't crash the report.
+    $(if ($Sec) { [PSCustomObject]$Sec } else { @() }) |
     ForEach-Object { $_ } |
     Select-Object 'Subscription',
     'Resource Group',

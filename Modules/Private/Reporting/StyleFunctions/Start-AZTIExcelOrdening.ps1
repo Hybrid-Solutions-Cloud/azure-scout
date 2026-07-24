@@ -23,9 +23,17 @@ function Start-AZSCExcelOrdening {
     $Excel = Open-ExcelPackage -Path $File
     $Worksheets = $Excel.Workbook.Worksheets
 
-    $Order = $Worksheets | Where-Object { $_.Name -notin 'Overview','Policy', 'Advisor', 'Security Center', 'Subscriptions', 'Quota Usage', 'AdvisorScore', 'Outages', 'Support Tickets', 'Reservation Advisor', 'Cost Management', 'Security Overview', 'Azure Update Manager', 'Azure Monitor', 'Cost Dashboard', 'Security Dashboard', 'Update Manager Dashboard', 'Monitor Dashboard' } | Select-Object -Property Index, name, @{N = "Dimension"; E = { $_.dimension.Rows - 1 } } | Sort-Object -Property Dimension -Descending
+    # $_.dimension is $null for a worksheet with no cell content (e.g. a shapes/charts-only
+    # tab), and .Rows on that throws under StrictMode — guard it in the calculated property.
+    $Order = $Worksheets | Where-Object { $_.Name -notin 'Overview','Policy', 'Advisor', 'Security Center', 'Subscriptions', 'Quota Usage', 'AdvisorScore', 'Outages', 'Support Tickets', 'Reservation Advisor', 'Cost Management', 'Security Overview', 'Azure Update Manager', 'Azure Monitor', 'Cost Dashboard', 'Security Dashboard', 'Update Manager Dashboard', 'Monitor Dashboard' } | Select-Object -Property Index, name, @{N = "Dimension"; E = { if ($_.dimension) { $_.dimension.Rows - 1 } else { 0 } } } | Sort-Object -Property Dimension -Descending
 
-    $Order0 = $Order | Where-Object { $_.Name -ne $Order[0].name -and $_.Name -ne ($Order | select-object -Last 1).Name }
+    # Guarded: $Order can be $null/empty (a minimal report where every worksheet is one of the
+    # excluded standard tabs) — indexing [0] or .Name on that throws under StrictMode.
+    $Order0 = if (@($Order).Count -gt 0) {
+        $Order | Where-Object { $_.Name -ne $Order[0].name -and $_.Name -ne ($Order | select-object -Last 1).Name }
+    } else {
+        @()
+    }
 
     #$Worksheets.MoveAfter(($Order | select-object -Last 1).Name, 'Subscriptions')
 
@@ -73,7 +81,7 @@ function Start-AZSCExcelOrdening {
     $Worksheets.MoveAfter('Subscriptions','Overview')
 
     # Re-anchor all data tabs after the blue tab group in row-count order
-    if ($Order.Count -gt 0) {
+    if (@($Order).Count -gt 0) {
         # Advisor was moved first so it is the rightmost blue tab; fall back through the chain
         $RightmostBlue = 'Subscriptions'
         foreach ($Name in @('Advisor','Policy','Security Center','Quota Usage','AdvisorScore','Support Tickets','Reservation Advisor')) {

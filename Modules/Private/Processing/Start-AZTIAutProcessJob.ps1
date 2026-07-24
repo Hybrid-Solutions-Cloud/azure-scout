@@ -27,7 +27,10 @@ function Start-AZSCAutProcessJob {
     # Filter to requested categories (default is 'All' = no filtering)
     if ($Category -and $Category -notcontains 'All') {
         $Modules = $Modules | Where-Object { $Category -contains $_.Name }
-        Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Category filter applied. Processing folders: '+($Modules.Name -join ', '))
+        # $Modules.Name throws under StrictMode when the filter above matches nothing
+        # (an empty array has no elements to resolve the 'Name' property against).
+        $ModulesNameList = if ($Modules) { $Modules.Name -join ', ' } else { '(none)' }
+        Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Category filter applied. Processing folders: '+$ModulesNameList)
     }
 
     $NewResources = ($Resources | ConvertTo-Json -Depth 40 -Compress)

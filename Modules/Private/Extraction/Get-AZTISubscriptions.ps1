@@ -24,7 +24,7 @@ function Get-AZSCSubscriptions {
             
             if ($SubscriptionID)
                 {
-                    if($SubscriptionID.count -gt 1)
+                    if(@($SubscriptionID).count -gt 1)
                         {
                             $Subscriptions = $Subscriptions | Where-Object { $_.ID -in $SubscriptionID }
                         }
@@ -49,7 +49,7 @@ function Get-AZSCSubscriptions {
             
             if ($SubscriptionID)
                 {
-                    if($SubscriptionID.count -gt 1)
+                    if(@($SubscriptionID).count -gt 1)
                         {
                             $Subscriptions = $Subscriptions | Where-Object { $_.ID -in $SubscriptionID }
                         }
@@ -59,6 +59,6 @@ function Get-AZSCSubscriptions {
                         }
                 }
         }
-    
+
     return $Subscriptions
 }

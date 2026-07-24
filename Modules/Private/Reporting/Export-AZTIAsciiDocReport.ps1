@@ -119,7 +119,7 @@ function Export-AZSCAsciiDocReport {
 
             # Build AsciiDoc table
             $props = $rows[0].PSObject.Properties.Name | Where-Object { $_ -notmatch 'Tag (Name|Value)|Resource U' }
-            if ($props.Count -gt 0) {
+            if (@($props).Count -gt 0) {
                 $colSpec = ($props | ForEach-Object { '1' }) -join ','
                 $folderSections.Add("[%header,cols=""$colSpec""]")
                 $folderSections.Add('|===')
