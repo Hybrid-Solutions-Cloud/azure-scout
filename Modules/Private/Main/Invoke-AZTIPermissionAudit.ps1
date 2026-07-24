@@ -275,7 +275,12 @@ function Invoke-AZSCPermissionAudit {
         'Microsoft.Kubernetes'              = 'Arc-enabled Kubernetes'
     }
 
-    $targetSubs = if ($subs) { $subs | Where-Object { $_.State -eq 'Enabled' } | Select-Object -First 3 } else { @() }
+    # NOTE: wrap in @() — Where-Object/Select-Object collapse a single match to a bare
+    # scalar object (not an array). Accessing .Count on that scalar is silently coerced
+    # to 1 by PowerShell 7's intrinsic Count/Length member, but THROWS under strict mode
+    # on Windows PowerShell 5.1 ("The property 'Count' cannot be found on this object"),
+    # since Desktop edition has no such intrinsic. @() guarantees a real array here.
+    $targetSubs = @(if ($subs) { $subs | Where-Object { $_.State -eq 'Enabled' } | Select-Object -First 3 } else { @() })
 
     if ($targetSubs.Count -gt 0) {
         $checkSub = $targetSubs[0]
@@ -413,7 +418,10 @@ function Invoke-AZSCPermissionAudit {
     Write-Host $readinessText -ForegroundColor $readinessColor
     Write-Host ''
 
-    $recCount = ($recommendations | Sort-Object -Unique).Count
+    # @() guard: when $recommendations is empty, piping it through Sort-Object -Unique
+    # emits nothing at all, so the expression evaluates to $null — and $null.Count
+    # throws under strict mode on every PowerShell edition/version, not just 5.1.
+    $recCount = @($recommendations | Sort-Object -Unique).Count
     if ($recCount -gt 0) {
         Write-Host "  Recommendations ($recCount):" -ForegroundColor Yellow
         Write-Host ''

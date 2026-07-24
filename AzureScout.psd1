@@ -15,7 +15,7 @@ RootModule = 'AzureScout.psm1'
 ModuleVersion = '2.2.0'
 
 # Supported PSEditions
-CompatiblePSEditions = @('Desktop', 'Core')
+CompatiblePSEditions = @('Core')
 
 # ID used to uniquely identify this module
 GUID = 'a0785538-fd96-4960-bf93-c733f88519e0'
@@ -33,7 +33,11 @@ Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment. Inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc), and runs a read-only CAF/WAF landing-zone assessment: a declarative rule engine scores the tenant against Cloud Adoption Framework design areas and Well-Architected pillars, producing Power BI, self-contained HTML, executive PowerPoint, and JSON/Excel evidence. See everything. Own your cloud. (Assessment features require PowerShell 7.)'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '5.1'
+# AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
+# Windows PowerShell 5.1 (Desktop) cleanly and immediately, instead of the module
+# loading and later crashing deep inside a strict-mode-sensitive code path (e.g. the
+# Entra/Graph permission audit — see Invoke-AZTIPermissionAudit.ps1).
+PowerShellVersion = '7.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''

@@ -176,3 +176,47 @@ Describe 'Invoke-AzureScout — Parameter Validation' {
         }
     }
 }
+
+# ===================================================================
+# PowerShell edition guard (fail-fast on Windows PowerShell 5.1 Desktop)
+#
+# The test host here runs PowerShell 7 (Core), so the guard cannot be
+# exercised end-to-end in-process against a real Desktop session. These
+# tests instead pin: (1) the guard exists in source, is unconditional,
+# and fires before any Azure/Graph work begins, (2) it does NOT fire on
+# the Core edition this suite actually runs under, and (3) the manifest
+# backstop (PowerShellVersion = 7.0) rejects 5.1 at Import-Module time —
+# verified live against powershell.exe in a separate check (see repo
+# engineer session notes / manual verification).
+# ===================================================================
+Describe 'Invoke-AzureScout — PowerShell edition guard' {
+    BeforeAll {
+        $script:InvokeSource = Get-Content -Path (Join-Path -Path $ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Public', 'PublicFunctions', 'Invoke-AzureScout.ps1') -Raw
+    }
+
+    It 'Source contains an explicit PSEdition guard' {
+        $script:InvokeSource | Should -Match "PSVersionTable\.PSEdition\s+-ne\s+'Core'"
+    }
+
+    It 'The guard throws an actionable, specific error message' {
+        $script:InvokeSource | Should -Match "AzureScout requires PowerShell 7\+"
+        $script:InvokeSource | Should -Match "Run in 'pwsh'"
+    }
+
+    It 'The guard runs before Test-AZSCPS (i.e. before any inventory/audit work begins)' {
+        $guardIndex = $script:InvokeSource.IndexOf('PSVersionTable.PSEdition')
+        $platOsIndex = $script:InvokeSource.IndexOf('$PlatOS = Test-AZSCPS')
+        $guardIndex | Should -BeGreaterThan -1
+        $platOsIndex | Should -BeGreaterThan -1
+        $guardIndex | Should -BeLessThan $platOsIndex
+    }
+
+    It 'The guard condition itself evaluates to $false on this (Core) test host' {
+        # Deliberately does NOT invoke Invoke-AzureScout end-to-end: beyond the guard,
+        # the function calls Exit (on -Help) or attempts a live Connect-AzAccount /
+        # device-code sign-in (on any other path), either of which is unsafe inside a
+        # Pester run. Evaluating the guard's own condition is a safe, faithful proxy —
+        # it is the exact expression used in the source (see previous test).
+        ($PSVersionTable.PSEdition -ne 'Core') | Should -BeFalse
+    }
+}

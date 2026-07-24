@@ -255,3 +255,80 @@ Describe 'PermissionAudit routing in Invoke-AzureScout source' {
         $script:InvokeSource | Should -Match 'PermissionAudit'
     }
 }
+
+# ===================================================================
+# Entra/Graph audit path — null/scalar-safe .Count regression tests
+#
+# Root cause: Get-AzSubscription/Where-Object/Select-Object collapse a SINGLE
+# matching result to a bare scalar object instead of an array. Calling .Count
+# on that scalar is silently coerced to 1 by PowerShell 7's intrinsic
+# Count/Length member, but THROWS under strict mode on Windows PowerShell 5.1
+# ("The property 'Count' cannot be found on this object") because Desktop
+# edition has no such intrinsic. These tests pin the fix (@() wrapping) with
+# a fully mocked, offline audit run — no live Azure/Graph access required.
+# ===================================================================
+Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph and ARM data' {
+    BeforeAll {
+        # Bring the private Graph helper functions into scope so they can be mocked
+        # (they are dot-sourced by the module but not by this test's BeforeAll).
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Private', 'Main', 'Get-AZTIGraphToken.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Private', 'Main', 'Invoke-AZTIGraphRequest.ps1')
+
+        # Exactly ONE enabled subscription — the precise shape that collapses
+        # $subs | Where-Object {...} | Select-Object -First 3 to a scalar.
+        $script:FakeSub = [PSCustomObject]@{
+            Id    = '11111111-1111-1111-1111-111111111111'
+            Name  = 'demo-sub'
+            State = 'Enabled'
+        }
+
+        Mock -CommandName Get-AzContext -MockWith {
+            [PSCustomObject]@{
+                Account = [PSCustomObject]@{ Id = 'user@contoso.com'; Type = 'User' }
+                Tenant  = [PSCustomObject]@{ Id = '22222222-2222-2222-2222-222222222222' }
+            }
+        }
+        Mock -CommandName Get-AzSubscription -MockWith { $script:FakeSub }
+        Mock -CommandName Get-AzRoleAssignment -MockWith {
+            [PSCustomObject]@{ RoleDefinitionName = 'Reader' }
+        }
+        Mock -CommandName Set-AzContext -MockWith { $null }
+        Mock -CommandName Get-AzResourceProvider -MockWith {
+            [PSCustomObject]@{ RegistrationState = 'Registered' }
+        }
+        # Graph token acquisition succeeds, but every Graph request returns $null —
+        # simulating an empty/absent Graph response rather than a hard failure.
+        Mock -CommandName Get-AZSCGraphToken -MockWith { @{ Authorization = 'Bearer faketoken' } }
+        Mock -CommandName Invoke-AZSCGraphRequest -MockWith { $null }
+    }
+
+    It 'Does not throw when Get-AzSubscription returns a single (scalar-collapsing) subscription and Graph returns $null' {
+        # Set-StrictMode is dynamically scoped and propagates into functions called from
+        # here (verified against both Windows PowerShell 5.1 and PowerShell 7). Enabling it
+        # is what actually exercises the crash condition: without it, a scalar's missing
+        # .Count silently evaluates to $null/1 instead of throwing, so this assertion would
+        # pass even against the un-fixed code. This is the same failure mode a caller with
+        # `Set-StrictMode -Version Latest` in their profile hits on Windows PowerShell 5.1.
+        Set-StrictMode -Version Latest
+        { $script:Result = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console } | Should -Not -Throw
+    }
+
+    It 'Returns a populated result object instead of crashing mid-audit' {
+        $script:Result | Should -Not -BeNullOrEmpty
+        $script:Result.OverallReadiness | Should -Not -BeNullOrEmpty
+    }
+
+    It 'GraphDetails is present (an array, possibly empty) rather than the audit crashing before reaching Section 3' {
+        , $script:Result.GraphDetails | Should -Not -BeNullOrEmpty
+        $script:Result.GraphDetails.Count | Should -BeGreaterOrEqual 0
+    }
+
+    It 'ProviderResults reflects the single scalar-collapsing subscription without throwing on .Count' {
+        , $script:Result.ProviderResults | Should -Not -BeNullOrEmpty
+        $script:Result.ProviderResults.Count | Should -BeGreaterThan 0
+    }
+
+    It 'Recommendations is a real array whose .Count never throws even when empty (Sort-Object -Unique null-collapse guard)' {
+        { $script:Result.Recommendations.Count } | Should -Not -Throw
+    }
+}

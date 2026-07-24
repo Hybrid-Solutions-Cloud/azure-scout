@@ -378,6 +378,17 @@ Function Invoke-AzureScout {
         Exit
     }
 
+    # ── PowerShell edition guard ──────────────────────────────────────────────
+    # Fail fast and clearly here rather than letting Windows PowerShell 5.1 (Desktop)
+    # run deep into the permission audit / Entra-Graph code path and crash on a
+    # strict-mode member-resolution error (e.g. ".Count" on a scalar) that PowerShell 7
+    # tolerates silently. AzureScout.psd1 also declares PowerShellVersion = '7.0' so
+    # Import-Module rejects Desktop up front, but this guard covers callers that
+    # dot-source the function directly or import with -SkipEditionCheck.
+    if ($PSVersionTable.PSEdition -ne 'Core') {
+        throw "AzureScout requires PowerShell 7+. You are on Windows PowerShell $($PSVersionTable.PSVersion). Run in 'pwsh'."
+    }
+
     $PlatOS = Test-AZSCPS
 
     # ── Permission Audit mode (early exit — no inventory collected) ──────────

@@ -51,6 +51,16 @@ Describe 'Module Manifest Tests' {
     It 'Has a root module' {
         $ModulePath | Should -Exist
     }
+
+    It 'Requires PowerShell 7.0+ (rejects Windows PowerShell 5.1 Desktop cleanly at Import-Module time)' {
+        $Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
+        $Manifest.PowerShellVersion | Should -Be ([version]'7.0')
+    }
+
+    It 'Declares only the Core PSEdition as compatible' {
+        $ManifestData = Import-PowerShellDataFile -Path $ManifestPath
+        $ManifestData.CompatiblePSEditions | Should -Be @('Core')
+    }
 }
 
 Describe 'Module Import Tests' {
