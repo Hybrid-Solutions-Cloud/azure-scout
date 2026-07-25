@@ -16,10 +16,10 @@ import{_ as n,o as a,c as e,a2 as p}from"./chunks/framework.il0noOp3.js";const m
 <span class="line"><span>│   ├── images/                         #   Banner, icons</span></span>
 <span class="line"><span>│   ├── index.md                        #   Home page</span></span>
 <span class="line"><span>│   ├── overview.md                     #   Inventory vs Assessment decision guide (first Getting Started page)</span></span>
-<span class="line"><span>│   ├── prerequisites.md                #   v1 inventory prerequisites &amp; modules</span></span>
+<span class="line"><span>│   ├── prerequisites.md                #   Inventory-mode prerequisites &amp; modules</span></span>
 <span class="line"><span>│   ├── authentication.md               #   Authentication methods</span></span>
 <span class="line"><span>│   ├── usage.md                        #   Usage guide (Scope, OutputFormat, examples)</span></span>
-<span class="line"><span>│   ├── permissions.md                  #   v1 inventory required permissions</span></span>
+<span class="line"><span>│   ├── permissions.md                  #   Inventory-mode required permissions</span></span>
 <span class="line"><span>│   ├── category-filtering.md           #   -Category parameter guide</span></span>
 <span class="line"><span>│   ├── parameters.md                   #   Full parameter reference (both cmdlets)</span></span>
 <span class="line"><span>│   ├── output.md                       #   Output files &amp; formats</span></span>
@@ -83,7 +83,7 @@ import{_ as n,o as a,c as e,a2 as p}from"./chunks/framework.il0noOp3.js";const m
 <span class="line"><span>│   │   ├── Get-ScoutDrift.ps1          #     Cross-run FINDINGS drift (v2.1.0, AB#5053)</span></span>
 <span class="line"><span>│   │   ├── Get-ScoutInventoryDrift.ps1 #     Cross-run RESOURCE/inventory drift (v2.2.0, AB#326)</span></span>
 <span class="line"><span>│   │   └── templates/</span></span>
-<span class="line"><span>│   ├── Invoke-ScoutAssessment.ps1      #   Assessment platform entry point</span></span>
+<span class="line"><span>│   ├── Invoke-ScoutAssessment.ps1      #   Assessment implementation (deprecated public name)</span></span>
 <span class="line"><span>│   ├── Invoke-ScoutPipeline.ps1        #   Unattended collect-&gt;assess-&gt;report pipeline (v2.1.0, AB#5050)</span></span>
 <span class="line"><span>│   └── Write-ScoutProgress.ps1         #   Live collection progress output (v2.2.0, AB#405)</span></span>
 <span class="line"><span>├── manifests/</span></span>
@@ -96,7 +96,7 @@ import{_ as n,o as a,c as e,a2 as p}from"./chunks/framework.il0noOp3.js";const m
 <span class="line"><span>│   └── Test-PptxFromDataDump.ps1       #   Renders PowerPoint deck from datadump fixtures</span></span>
 <span class="line"><span>├── config/                             # Runtime configuration</span></span>
 <span class="line"><span>├── package.json                        # VitePress dev dependency + docs:dev/build/preview scripts</span></span>
-<span class="line"><span>├── AzureScout.psd1                     # Module manifest (PowerShellVersion 5.1, CompatiblePSEditions Desktop+Core)</span></span>
+<span class="line"><span>├── AzureScout.psd1                     # Module manifest (PowerShellVersion 7.0, CompatiblePSEditions Core)</span></span>
 <span class="line"><span>├── AzureScout.psm1                     # Module loader (dot-sources Modules/Private, Modules/Public/PublicFunctions, then src/)</span></span>
 <span class="line"><span>├── CHANGELOG.md</span></span>
 <span class="line"><span>├── CODE_OF_CONDUCT.md</span></span>
