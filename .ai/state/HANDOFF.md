@@ -6,7 +6,61 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.5.1 SHIPPED: Scout now completes a live run
+## Last session (2026-07-25, Claude Code) — v2.5.2 SHIPPED: runs are now deterministic
+
+**Both remaining open questions from v2.5.1 are root-caused, fixed, released and verified. Nothing
+is left as an unknown.**
+
+### AB#5629 — a whole report category could silently vanish
+
+`ReportCache/Compute.json` came back **5,158 bytes on one run and 470 on the next**, same tenant,
+same scope. Every Compute module reported zero rows while the hashtable keys were still present —
+which located the loss at the **job** level, not the collector.
+
+**It was a race, not Resource Graph throttling.** `Start-Job` is asynchronous, so a job created
+moments earlier sits in `NotStarted`. That state satisfied neither `Wait-AZSCJob`'s loop condition
+(`State -eq 'Running'`) nor `Start-AZSCProcessJob`'s batch filter, so it was never waited on —
+then `Build-AZSCCacheFiles` ran `Receive-Job` (nothing to receive) and `Remove-Job`, destroying it.
+
+A second, independent bug in the same path: `While ($Job.Runspace.IsCompleted -contains $false)`
+was a **no-op**. Those handles are `PowerShellAsyncResult` and have **no `Runspace` property**, so
+the expression was empty and `-contains $false` was always false. Proven in isolation before
+fixing.
+
+| File | Change |
+|---|---|
+| `Wait-AZTIJob.ps1` | wait on every non-terminal state, not just `Running` |
+| `Start-AZTIProcessJob.ps1` | include `NotStarted` in the batch wait; `$Job.Runspace.IsCompleted` → `$Job.IsCompleted` |
+| `Build-AZTICacheFiles.ps1` | warn when a job is harvested non-`Completed`, or a category returns nothing |
+| `Build-AZTIExcelComObject.ps1` | detect a missing `Excel.Application` ProgID and explain, instead of a raw `0x80040154` |
+
+`tests/JobWait.Tests.ps1` (5 tests) pins the contract and pins the `Runspace`-vs-`IsCompleted`
+distinction so the no-op cannot come back.
+
+### Verified — three consecutive live runs, byte-identical
+
+227 Azure resources · 994 Excel rows · 40 Power BI files / 1013 rows · 166 Azure DevOps resources ·
+**0** empty-category warnings · **0** raw COM errors. Runtimes 4:49 / 4:13 / 4:07. Before the fix
+these varied run to run.
+
+Tag `v2.5.2`, GitHub release, **PSGallery → 2.5.2**. Board: 199 items, 183 Closed, **0 conformance
+failures**, 134 GitHub issues linked. Pester **1697 / 0 / 3**.
+
+### Diagnostic note worth keeping
+
+**An empty `ReportCache` folder after a successful run is not data loss** — a completed run cleans
+it up. Earlier runs only left cache files behind because they *crashed* before cleanup. I nearly
+misread that as a regression.
+
+### Trap repeated a third time
+
+I wrote `AB#5568` into five files before creating the item; the real id came back **`5629`**. All
+references corrected. **Create the work item first, then write its id.** This has now happened
+three times in this repo (5418, 5548, 5568).
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.5.1 SHIPPED: Scout now completes a live run
 
 **The headline: before this session, `Invoke-AzureScout` could not finish a full run against a real
 tenant. It can now.** The operator asked "test it on mine", and the live run found **seven** defects
