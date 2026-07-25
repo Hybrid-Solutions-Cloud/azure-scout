@@ -47,7 +47,7 @@ import{_ as n,o as a,c as e,a2 as p}from"./chunks/framework.il0noOp3.js";const m
 <span class="line"><span>│   │   └── Reporting/                  #   24 — Excel, JSON, Markdown, AsciiDoc, Power BI export</span></span>
 <span class="line"><span>│   │       └── StyleFunctions/</span></span>
 <span class="line"><span>│   └── Public/                         # Exported functions &amp; runtime modules</span></span>
-<span class="line"><span>│       ├── InventoryModules/           #   171 modules across 15 categories (154 ARM + 17 Entra)</span></span>
+<span class="line"><span>│       ├── InventoryModules/           #   176 modules across 15 categories (159 ARM + 17 Entra)</span></span>
 <span class="line"><span>│       │   ├── AI/                     #   27 modules</span></span>
 <span class="line"><span>│       │   ├── Analytics/              #   6 modules</span></span>
 <span class="line"><span>│       │   ├── Compute/                #   14 modules</span></span>
