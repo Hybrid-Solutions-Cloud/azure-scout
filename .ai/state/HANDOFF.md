@@ -6,7 +6,52 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.4.0 SHIPPED: one command, guided wizard, docs collapsed
+## Last session (2026-07-25, Claude Code) — post-v2.4.0 conformance sweep: board back to zero failures
+
+**Question asked: is the solution done?** Code: yes. Board: it was not, and every failure was created
+by the previous session.
+
+`./scripts/Test-BoardConformance.ps1` reported **15 failures**, all on the three items v2.4.0 created
+(AB#5540, AB#5541, AB#5543). The previous session wrote those items without running the conformance
+script it had itself committed for exactly this purpose. Fixed:
+
+| Failure | Fix |
+|---|---|
+| No acceptance criteria on any of the three (need 2 / 3 / 3) | Wrote AC as `<ul><li>` — the checker counts `<li>`, so plain text scores 0 |
+| 9 non-vocabulary tags (`api-surface`, `regression`, `onboarding`, `ux`, `architecture`, `collect`, `performance`, `tech-debt`) | Remapped to the approved vocabulary via `op=replace` |
+| AB#5540 (Bug) and AB#5541 (User Story) parented straight to Epic AB#5023 | Created Feature **AB#5544** (entry-point unification, Closed) as their parent |
+| AB#5543 (New) hanging off Closed Epic AB#5023 | Created Epic **AB#5545** *Collapse the Azure Scout collection layer onto a single pass*; AB#5543 reparented under it |
+| AB#5540 Bug with no GitHub master record | Filed **GH#182**, typed Bug, labels `ado-tracked`+`resolved`, closed completed, hyperlinked from ADO |
+| AB#5540 / AB#5541 still `Resolved` after shipping in v2.4.0 | Moved to `Closed`, along with the new Feature AB#5544 |
+
+**Now: 196 items — 178 Closed / 16 New / 2 Removed. 0 ADO failures, 0 GitHub reconcile failures,
+131 GitHub issues all linked. No item is left in Resolved.**
+
+### Release state verified live, not asserted
+
+- PowerShell Gallery: `Find-Module AzureScout` returns **2.4.0**, published 2026-07-25 14:29.
+- `AzureScout.psd1` `ModuleVersion = '2.4.0'`; `CHANGELOG.md` newest heading is `[2.4.0]`.
+- "Build and Deploy Documentation" succeeded on `a63712d`, the last docs-touching commit. `d2e07f7`
+  touched only `.ai/state/HANDOFF.md`, so the deployed site was already current.
+
+### Docs bug found and fixed
+
+`docs/changelog.md` — the summary table stopped at **v2.2.0**. Both v2.3.0 and v2.4.0 were missing, so
+the published changelog page understated the product by two minor releases. Added both rows. (v2.2.1 is
+still absent by the page's existing convention of listing minor releases only — left alone deliberately.)
+
+`.ai/state/CURRENT_TASK.md` still described v2.3.0 as the current release; rewritten.
+
+⚠ **Trap hit again:** hardcoding the area path as `This Is My Demo - Azure Scout\Platform` fails with
+`TF401347`. The project name contains U+2014 and the console mangles it. The fix script now reads both
+the area and iteration trees from `_apis/wit/classificationnodes` and uses those strings verbatim. This
+is already in the memory notes — read them before writing to the board.
+
+**Verification:** `npm run docs:build` clean. Conformance script **PASS**.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.4.0 SHIPPED: one command, guided wizard, docs collapsed
 
 **v2.4.0 is released and live on the PowerShell Gallery** (published 2026-07-25 14:29).
 Tag `v2.4.0`, GitHub release created, `main` at `a63712d`.
