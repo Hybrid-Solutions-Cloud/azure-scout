@@ -60,16 +60,27 @@ Invoke-AzureScout -OutputFormat Excel
 
 ## Report Location
 
-Reports are saved to a timestamped folder:
+Every run writes to its own folder, so a rerun never overwrites the previous one:
 
-- **Windows**: `C:\AzureScout\<timestamp>\`
-- **Linux/macOS**: `$HOME/AzureScout/<timestamp>/`
+- **Windows**: `C:\AzureScout\<timestamp>_<tenant>\`
+- **Linux/macOS**: `$HOME/AzureScout/<timestamp>_<tenant>/`
 
-Override with `-ReportDir`:
+Override the base path with `-ReportDir`, name the run folder with `-RunName`, or skip the run
+folder entirely with `-Force`:
 
 ```powershell
+# Different base path
 Invoke-AzureScout -ReportDir 'D:\Reports'
+
+# Friendly run folder name instead of the timestamp
+Invoke-AzureScout -RunName 'Production-TenantA'
+
+# Write straight into the base path, overwriting in place
+Invoke-AzureScout -ReportDir 'D:\Reports' -Force
 ```
+
+Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`, is in
+[Output Files & Formats](output.md#run-isolation).
 
 ## Content Toggles
 
@@ -79,9 +90,26 @@ Switch parameters to include/exclude specific content:
 |-----------|--------|
 | `-SecurityCenter` | Include Microsoft Defender for Cloud findings |
 | `-IncludeTags` | Include resource tags in Excel worksheets |
+| `-IncludeDevOps` | Include Azure DevOps projects, pipelines, service connections, repositories, and agent pools |
 | `-SkipAdvisory` | Skip Azure Advisor recommendations |
 | `-SkipPolicy` | Skip Azure Policy compliance data |
 | `-SkipPermissionCheck` | Skip the pre-flight permission validation |
+
+## Azure DevOps
+
+`-IncludeDevOps` adds five worksheets covering your Azure DevOps estate. It reuses the current
+Azure sign-in, so no personal access token is needed in the common case:
+
+```powershell
+# Organizations discovered from the signed-in profile
+Invoke-AzureScout -TenantID '00000000-...' -IncludeDevOps
+
+# Name them explicitly (required for service principals)
+Invoke-AzureScout -TenantID '00000000-...' -IncludeDevOps -DevOpsOrganization 'contoso','fabrikam'
+```
+
+See [Azure DevOps](azure-devops.md) for the service-connection-to-subscription cross-reference
+and the full permission model.
 
 ## Subscription & Management Group Filters
 

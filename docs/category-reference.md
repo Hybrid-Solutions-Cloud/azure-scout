@@ -30,15 +30,18 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Identity | `Identity` | `Modules/Public/InventoryModules/Identity/` | 18 |
 | Integration | `Integration` | `Modules/Public/InventoryModules/Integration/` | 2 |
 | Internet of Things | `IoT` | `Modules/Public/InventoryModules/IoT/` | 1 |
-| Management and governance | `Management` | `Modules/Public/InventoryModules/Management/` | 14 |
+| Management and governance | `Management` | `Modules/Public/InventoryModules/Management/` | 19 |
 | Monitor | `Monitor` | `Modules/Public/InventoryModules/Monitor/` | 24 |
 | Networking | `Networking` | `Modules/Public/InventoryModules/Networking/` | 21 |
 | Security | `Security` | `Modules/Public/InventoryModules/Security/` | 5 |
 | Storage | `Storage` | `Modules/Public/InventoryModules/Storage/` | 2 |
 | Web and mobile | `Web` | `Modules/Public/InventoryModules/Web/` | 2 |
 
-**171 collector modules across 15 categories.** Counts are the `.ps1` file count in each
+**176 collector modules across 15 categories.** Counts are the `.ps1` file count in each
 folder; one module generally maps to one worksheet in the Excel report.
+
+The five Azure DevOps collectors sit under `Management`, which is why that count jumped in
+v2.3.0. They only run when `-IncludeDevOps` is supplied — see [Azure DevOps](azure-devops.md).
 
 ## Accepted aliases
 
@@ -88,7 +91,7 @@ or Migration collector folder to filter to.
 | `Identity` | Entra ID users, groups, app registrations, Conditional Access, PIM, directory roles, administrative units, domains |
 | `Integration` | API Management, Service Bus |
 | `IoT` | IoT Hubs |
-| `Management` | Subscriptions, management groups, policy, custom role definitions, Automation Accounts, Backup, Advisor score, Lighthouse delegations |
+| `Management` | Subscriptions, management groups, policy, custom role definitions, Automation Accounts, Backup, Advisor score, Lighthouse delegations, plus the five Azure DevOps collectors (projects, pipelines, service connections, repositories, agent pools) gated behind `-IncludeDevOps` |
 | `Monitor` | Action groups, alert rules, Application Insights and its deep-data modules, data collection rules, diagnostic settings, Log Analytics |
 | `Networking` | VNets, NSGs, load balancers, application gateways, Front Door, Azure Firewall, Bastion, ExpressRoute, VPN connections |
 | `Security` | Microsoft Defender for Cloud alerts, assessments, pricing, secure score; Key Vault |

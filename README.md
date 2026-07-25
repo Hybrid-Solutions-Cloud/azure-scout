@@ -27,7 +27,7 @@ Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 
 > **Built on [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)**
 >
-> AzureScout is a fork of Microsoft's [Azure Resource Inventory](https://github.com/microsoft/ARI) (ARI) v3.6.11, created by **[Claudio Merola](https://github.com/Claudio-Merola)** and **[Renato Gregio](https://github.com/RenatoGregio)**. The ARI project provided the entire foundation — 171 ARM inventory modules, draw.io diagram engine, Excel reporting pipeline, and Azure Automation support — that AzureScout builds upon. We are deeply grateful for their work.
+> AzureScout is a fork of Microsoft's [Azure Resource Inventory](https://github.com/microsoft/ARI) (ARI) v3.6.11, created by **[Claudio Merola](https://github.com/Claudio-Merola)** and **[Renato Gregio](https://github.com/RenatoGregio)**. The ARI project provided the entire foundation — 154 ARM inventory modules, draw.io diagram engine, Excel reporting pipeline, and Azure Automation support — that AzureScout builds upon. We are deeply grateful for their work.
 >
 > See [CREDITS.md](CREDITS.md) for full attribution and [Differences from ARI](docs/ari-differences.md) for what AzureScout has changed.
 
@@ -98,7 +98,7 @@ names; Microsoft's portal long names are accepted as aliases.
 | `Identity` | Identity | — | 18 |
 | `Integration` | Integration | — | 2 |
 | `IoT` | Internet of Things | `Internet of Things` | 1 |
-| `Management` | Management and governance | `Management and governance`, `DevOps`, `Migration` | 14 |
+| `Management` | Management and governance | `Management and governance`, `DevOps`, `Migration` | 19 |
 | `Monitor` | Monitor | `Monitoring` | 24 |
 | `Networking` | Networking | `Networking + CDN` | 21 |
 | `Security` | Security | — | 5 |

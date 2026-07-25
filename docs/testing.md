@@ -4,7 +4,7 @@ description: How to run and write Pester tests for AzureScout.
 
 # Testing
 
-AzureScout maintains **100 % test coverage** across all 274 PowerShell scripts.
+AzureScout maintains **100 % test coverage** across all 280 PowerShell scripts.
 The test suite uses [Pester 5](https://pester.dev) and runs entirely offline — no Azure credentials or live API calls required.
 
 ## Prerequisites
@@ -54,6 +54,7 @@ Each category of Azure resource modules has a dedicated test file that validates
 | `Integration.Module.Tests.ps1` | 2 | Integration |
 | `IoT.Module.Tests.ps1` | 1 | IoT |
 | `Management.Module.Tests.ps1` | 14 | Management & Governance |
+| `DevOps.Module.Tests.ps1` | 5 | Azure DevOps (in the Management folder) |
 | `Monitor.Module.Tests.ps1` | 24 | Monitoring |
 | `Networking.Module.Tests.ps1` | 21 | Networking |
 | `Security.Module.Tests.ps1` | 5 | Security |

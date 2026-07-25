@@ -62,7 +62,7 @@ azure-scout/
 │   │   └── Reporting/                  #   24 — Excel, JSON, Markdown, AsciiDoc, Power BI export
 │   │       └── StyleFunctions/
 │   └── Public/                         # Exported functions & runtime modules
-│       ├── InventoryModules/           #   171 modules across 15 categories (154 ARM + 17 Entra)
+│       ├── InventoryModules/           #   176 modules across 15 categories (159 ARM + 17 Entra)
 │       │   ├── AI/                     #   27 modules
 │       │   ├── Analytics/              #   6 modules
 │       │   ├── Compute/                #   14 modules

@@ -16,6 +16,14 @@ description: Common errors and solutions when running AzureScout.
 | `Connect-AzAccount: interactive login failed` | Running in a non-interactive session (CI/CD, SSH) | Use `-DeviceLogin`, SPN with secret, or SPN with certificate. See [Authentication](authentication.md). |
 | `Token acquisition failed for MSGraph` | Az.Accounts version too old or tenant configuration issue | Update `Az.Accounts` to latest: `Update-Module Az.Accounts -Force` |
 | `Export-Excel: file is locked` | Excel report file is open in another application | Close the file and re-run. |
+| Management Groups worksheet is empty, no error | Identity has no tenant-root role | Assign `Management Group Reader` at the tenant root. Since v2.3.0 the login summary reports the visible count and prints this tip, so you find out at sign-in rather than after the run. |
+| Reports are not where a previous version left them | Run isolation (v2.3.0) | Each run now writes to its own folder under the base path. Use `-Force` for the old overwrite-in-place behaviour, or `-RunName` to control the folder name. See [Output Files & Formats](output.md#run-isolation). |
+| Output folders accumulating on disk | One folder per run, by design | `Clear-AZSCCacheFolder -OlderThan 30` prunes runs not written to in the last 30 days. |
+| `No Azure DevOps organizations could be discovered` | Service principals have no profile to enumerate | Pass `-DevOpsOrganization 'contoso','fabrikam'`. See [Azure DevOps](azure-devops.md). |
+| `Could not acquire an Azure DevOps token` | Not signed in, or the sign-in cannot reach Azure DevOps | Run `Connect-AzAccount`, or pass `-DevOpsPat`. |
+| ADO Service Connections worksheet missing | Identity holds project read but not service connection read | Expected and handled — that slice is skipped and the rest still collects. Grant the scope to include it. |
+| Runbook uploads fail with `blob already exists` | Module older than v2.3.0 | Upgrade. Uploads now pass `-Force`, so a second scheduled run overwrites rather than failing. See [Azure Automation Account](automation.md). |
+| Chart step fails on a GitHub-hosted runner | Chart customization drives Excel over COM; no hosted runner has Excel | Keep `lite: true` in the action. See [GitHub Actions](github-actions.md). |
 
 ## Debugging
 

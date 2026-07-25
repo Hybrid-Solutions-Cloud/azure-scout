@@ -13,13 +13,25 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
+## Current Release — v2.3.0 — Collection Hardening & External Platform Integrations
 
-Delivered on `main` (not yet tagged/published — see
-[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
-for cut status). Four new report tiers, richer visuals on the existing ones,
-three new offline analysis functions, deeper collector coverage, and a round
-of platform hardening on top of v2.1.0.
+Released 25 July 2026, published to the PowerShell Gallery. Closes the collection-hardening
+epic and the external-platform integrations.
+
+| Capability | What shipped |
+|---|---|
+| Run isolation | Every invocation writes to its own run folder, so a rescan — or a scan of a second tenant — can no longer destroy the previous run's cache or report. `-RunName`, `-Force`, `Clear-AZSCCacheFolder -OlderThan <days>` (AB#331) |
+| Azure DevOps inventory | `-IncludeDevOps` adds projects, pipelines, service connections, repositories, and agent pools. The service-connection sheet cross-references each ARM connection against the subscriptions in scope (AB#327) |
+| Unattended execution | Composite GitHub Action at the repository root (AB#328); the eight-step [Azure Automation Account](automation.md) guide plus two runbook upload fixes (AB#343) |
+| Reliability | Subscription context restored in a `finally` at all five `Set-AzContext` sites (AB#368); post-login management group access probe naming the role to assign (AB#351) |
+| Documentation | [Category Reference](category-reference.md) (AB#318/5417) and [Validation Matrix](validation-matrix.md) (AB#315) |
+
+Full detail: [CHANGELOG.md § 2.3.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#230---2026-07-25).
+
+## v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
+
+Four new report tiers, richer visuals on the existing ones, three new offline analysis
+functions, deeper collector coverage, and a round of platform hardening on top of v2.1.0.
 
 | Capability | What shipped |
 |---|---|
@@ -291,7 +303,7 @@ Pull requests are welcome — see [Contributing](contributing.md) for guidelines
 ## Fork Attribution
 
 ::: info Fork Attribution
-**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 154 ARM + 17 Entra ID = 171 inventory modules — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
+**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 159 ARM + 17 Entra ID = 176 inventory modules — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
 
 See [Credits & Attribution](credits.md) for full details, or [Differences from ARI](ari-differences.md) for what has changed.
 :::

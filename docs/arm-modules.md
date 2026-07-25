@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout Azure Resource Manager inventory mod
 
 ## Overview
 
-AzureScout includes **154 ARM inventory modules** organized into **15 categories**
+AzureScout includes **159 ARM inventory modules** organized into **15 categories**
 (the `Identity` category folder also holds AzureScout's 17 Entra ID modules — those
 are cataloged separately on the [Entra ID Modules](entra-modules.md) page, since they
 query Microsoft Graph rather than ARM).

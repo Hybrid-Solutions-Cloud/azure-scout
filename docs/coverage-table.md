@@ -19,13 +19,13 @@ This page lists every inventory module in AzureScout, the Azure resource type(s)
 | Identity | 18 | 17 Entra ID (Graph) + 1 ARM (`ManagedIds`) — Users, Groups, Apps, Roles, PIM, Conditional Access |
 | Integration | 2 | API Management, Service Bus |
 | IoT | 1 | IoT Hub |
-| Management | 14 | Advisor, Backup, Policy, Subscriptions, Recovery Vault |
+| Management | 19 | Advisor, Backup, Policy, Subscriptions, Recovery Vault, Azure DevOps (5, via `-IncludeDevOps`) |
 | Monitor | 24 | App Insights, DCRs, Action Groups, Alert Rules, Workspaces |
 | Networking | 21 | VNets, NSGs, Load Balancers, VPN, Firewall, Front Door |
 | Security | 5 | Defender Alerts, Assessments, Secure Score, Key Vault |
 | Storage | 2 | Storage Accounts, NetApp Files |
 | Web | 2 | App Service, App Service Plans |
-| **Total** | **171** | 154 ARM + 17 Entra ID — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md) |
+| **Total** | **176** | 159 ARM + 17 Entra ID — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md) |
 
 ## AI Category (27 modules)
 
