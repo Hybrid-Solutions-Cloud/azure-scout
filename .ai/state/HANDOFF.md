@@ -6,7 +6,89 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.5.2 SHIPPED: runs are now deterministic
+## Last session (2026-07-25, Claude Code) — v2.5.3 SHIPPED, and the engine rewrite is approved
+
+**The operator's run crashed with `The property 'ReservationRecomen' cannot be found on this
+object`. It turned out to be six crashes stacked behind each other, one root cause, and it ended
+with the owner approving a full rewrite of the inventory engine.**
+
+### Root cause — read this before touching anything in `Modules/`
+
+Every `src/*.ps1` calls `Set-StrictMode -Version Latest` at **file** scope, and `AzureScout.psm1`
+dot-sources them — so StrictMode applied to the **whole module**, including the v1 inventory engine
+forked from `microsoft/ARI`, which was never written for it.
+
+Under StrictMode, member enumeration over a collection (`$coll.Prop`) throws *"property cannot be
+found"* when the enumeration yields **nothing at all**. That is what an **empty collection** on
+every element produces — the empties flatten away. **A `$null` value is safe; an empty one is not.**
+
+Azure returns `{ "value": [] }` for a subscription with no reservation recommendations. A perfectly
+healthy tenant crashed the run. Data-dependent, which is why 1697 tests and three earlier live runs
+never saw it.
+
+### Six crashes, each only reachable once the previous cleared
+
+| Where | Fault |
+|---|---|
+| `Start-AZTIExtractionOrchestration.ps1:59-65` | 7 member-enumeration reads → `Get-AZSCCollectedValue` |
+| `Get-AZTIVMQuotas.ps1` / `Get-AZTIVMSkuDetails.ps1` | `$_.subscriptionId` / `$_.TYPE` over the **mixed** `$Resources` array — aborted the pipeline, so **no** subscription got quota data |
+| 6 sites + `Wait-AZTIJob.ps1` | `(Get-Job \| Where-Object).Name` threw when nothing matched; `Wait-AZSCJob` then rejected the empty list |
+| `Build-AZTIQuotaReport.ps1` | `$AzQuota.properties.Data` |
+| `Start-AZTISecCenterJob.ps1` | `.Split('/')[7]`/`[8]` — a subscription-scoped Defender assessment id has only 7 segments |
+| `Start-AZTIDiagramJob.ps1` | `$Job.Runspace.IsCompleted` — `PowerShellAsyncResult` has no `.Runspace`, so the wait was a **no-op** and `EndInvoke` raced its own work. v2.5.2 fixed the identical line in only one of its two copies |
+
+Plus **AB#5636**: `Get-AZSCCostInventory` ended its catch in `throw $_.Exception.Message` with an
+**unreachable** `$Costs = @()` after it, so a missing `Az.CostManagement` destroyed the whole report.
+
+### The boundary — 17 entry points, not 5
+
+An AST sweep found **~800** module-scope reads only valid without StrictMode. Chasing them one live
+run at a time was hopeless (~7 min per discovery), so the engine entry points now `Set-StrictMode
+-Off` for their own call tree. **It had to be applied at 17 places, not 5**: `Start-Job` script
+blocks **re-import the module**, so module-scope StrictMode returns inside the job even when the
+caller opted out — the opt-out must sit on each job/diagram function itself.
+`tests/StrictModeMemberEnumeration.Tests.ps1` pins both halves: engine off, `src/` on, and the
+`.psm1` must never disable it module-wide.
+
+### Added — the run log (AB#5634/5635)
+
+`Modules/Private/Main/Write-AZTIRunLog.ps1`. Every run writes `scout-run.log` (metadata header,
+phase boundaries with elapsed time and counts, warnings, and on failure the **full error record with
+script, line and script stack trace**) plus `scout-console.log`. A `trap` in `Invoke-AzureScout`
+catches anything, logs it, prints the path, and rethrows with **`break`** — a bare `throw` in a trap
+raises `ScriptHalted` and destroys the original error.
+
+**The operator asked for this and was right — it found two of the six defects on its first run.**
+
+### Shipped
+
+Commit `97e6031`, tag `v2.5.3`, GitHub release, **PSGallery 2.5.3**, and installed into the
+operator's module path. Live run: **6:43**, 105 resources, 425 Excel rows, 37 Power BI files / 989
+rows, all formats written. Pester **1766 / 0 / 3**. Board 240 items, **0 conformance failures**,
+137 GitHub issues linked.
+
+### ⚠ I broke the operator's machine and had to repair it
+
+Adding `Az.CostManagement` to the auto-install bootstrap made PowerShellGet pull down
+**`Az.Accounts 5.5.1`** as a dependency (the main install then failed on admin rights). Two
+side-by-side `Az.Accounts` versions make **every** `Import-Module` die with a stack overflow inside
+Az.Accounts' own assembly-load-context resolver. Removed 5.5.1 with the operator's approval.
+**Never add an `Az.*` module to that bootstrap.** `Az.CostManagement` is an optional documented
+prerequisite instead, and a test asserts it stays out.
+
+### APPROVED — Epic AB#5638, rebuild the engine
+
+The owner challenged why we are running the ARI fork at all, and approved a full rewrite:
+**AB#5638** Epic → Features **AB#5639** (one collector), **AB#5649** (deterministic pipeline),
+**AB#5656** (declarative collectors), **AB#5662** (unified reporting), **AB#5667** (StrictMode +
+live-payload fixtures) → 15 User Stories → 15 Tasks, all conformant.
+
+**Start with AB#5649** — deleting the background-job machinery kills the whole crash class.
+The end state is the deletion of `Modules/`.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.5.2 SHIPPED: runs are now deterministic
 
 **Both remaining open questions from v2.5.1 are root-caused, fixed, released and verified. Nothing
 is left as an unknown.**
