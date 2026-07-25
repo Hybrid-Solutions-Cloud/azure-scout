@@ -9,15 +9,15 @@ Do not edit this page by hand. Azure DevOps and GitHub are the source of truth; 
 a rendering of them. Regenerate it with `./scripts/Build-TaskList.ps1`.
 :::
 
-Generated **2026-07-25 05:00 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
+Generated **2026-07-25 06:19 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
 
 ## Summary
 
 | Measure | Count |
 |---|---|
 | Work items | 191 |
-| State: Closed | 165 |
-| State: New | 24 |
+| State: Closed | 175 |
+| State: New | 14 |
 | State: Removed | 2 |
 | Type: Bug | 26 |
 | Type: Epic | 7 |
@@ -49,22 +49,7 @@ Generated **2026-07-25 05:00 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | Item | Type | P | Area | Title | GitHub |
 |---|---|---|---|---|---|
 | AB#323 | Feature | 3 | Platform | Build multi-tenant support with Azure Lighthouse cross-tenant scanning | [#11](https://github.com/thisismydemo/azure-scout/issues/11) (open) |
-| AB#327 | Feature | 3 | Platform | Build Azure DevOps integration for Azure Scout inventory | [#15](https://github.com/thisismydemo/azure-scout/issues/15) (open) |
-| AB#328 | Feature | 3 | Platform | Build GitHub Actions module to run Azure Scout as a GitHub Action | [#16](https://github.com/thisismydemo/azure-scout/issues/16) (open) |
-| AB#343 | Feature | 3 | Platform | Add Azure Automation Account support with first-class unattended execution | [#32](https://github.com/thisismydemo/azure-scout/issues/32) (open) |
 | AB#5410 | Epic | 3 | Platform | Integrate Azure Scout with external platforms and multi-tenant estates | — |
-
-### AB#5411 — Harden the Azure Scout collection run and close the remaining documentation gaps
-
-| Item | Type | P | Area | Title | GitHub |
-|---|---|---|---|---|---|
-| AB#315 | Feature | 2 | Platform | Build phase testing and validation matrix for all collection phases (5-21) | [#1](https://github.com/thisismydemo/azure-scout/issues/1) (open) |
-| AB#318 | User Story | 4 | Collect | Document category alias reference for Azure Scout report sections | [#6](https://github.com/thisismydemo/azure-scout/issues/6) (open) |
-| AB#331 | Feature | 2 | Platform | Implement non-destructive cache to prevent overwriting previous scan data | [#20](https://github.com/thisismydemo/azure-scout/issues/20) (open) |
-| AB#351 | Feature | 3 | Platform | Add post-login management group access probe | [#42](https://github.com/thisismydemo/azure-scout/issues/42) (open) |
-| AB#368 | Feature | 3 | Platform | Build cross-subscription context switching with restore | [#124](https://github.com/thisismydemo/azure-scout/issues/124) (open) |
-| AB#5411 | Epic | 2 | Platform | Harden the Azure Scout collection run and close the remaining documentation gaps | — |
-| AB#5417 | Feature | 4 | Report | Close the Azure Scout report documentation gaps | — |
 
 ## Delivered
 
@@ -252,6 +237,26 @@ Generated **2026-07-25 05:00 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#5414 | Feature | 2 | Platform | Harden the Azure Scout module estate against the StrictMode null-reference crash class | — |
 | AB#5415 | Feature | 3 | Platform | Build the Azure Scout AI agent and session-protocol scaffold | — |
 | AB#5416 | Feature | 3 | Platform | Build the Azure Scout work-tracking and roadmap generation surface | — |
+
+### AB#5410 — Integrate Azure Scout with external platforms and multi-tenant estates
+
+| Item | Type | P | Area | Title | GitHub |
+|---|---|---|---|---|---|
+| AB#327 | Feature | 3 | Platform | Build Azure DevOps integration for Azure Scout inventory | [#15](https://github.com/thisismydemo/azure-scout/issues/15) |
+| AB#328 | Feature | 3 | Platform | Build GitHub Actions module to run Azure Scout as a GitHub Action | [#16](https://github.com/thisismydemo/azure-scout/issues/16) |
+| AB#343 | Feature | 3 | Platform | Add Azure Automation Account support with first-class unattended execution | [#32](https://github.com/thisismydemo/azure-scout/issues/32) |
+
+### AB#5411 — Harden the Azure Scout collection run and close the remaining documentation gaps
+
+| Item | Type | P | Area | Title | GitHub |
+|---|---|---|---|---|---|
+| AB#315 | Feature | 2 | Platform | Build phase testing and validation matrix for all collection phases (5-21) | [#1](https://github.com/thisismydemo/azure-scout/issues/1) |
+| AB#318 | User Story | 4 | Collect | Document category alias reference for Azure Scout report sections | [#6](https://github.com/thisismydemo/azure-scout/issues/6) |
+| AB#331 | Feature | 2 | Platform | Implement non-destructive cache to prevent overwriting previous scan data | [#20](https://github.com/thisismydemo/azure-scout/issues/20) |
+| AB#351 | Feature | 3 | Platform | Add post-login management group access probe | [#42](https://github.com/thisismydemo/azure-scout/issues/42) |
+| AB#368 | Feature | 3 | Platform | Build cross-subscription context switching with restore | [#124](https://github.com/thisismydemo/azure-scout/issues/124) |
+| AB#5411 | Epic | 2 | Platform | Harden the Azure Scout collection run and close the remaining documentation gaps | — |
+| AB#5417 | Feature | 4 | Report | Close the Azure Scout report documentation gaps | — |
 
 ## Dropped
 
