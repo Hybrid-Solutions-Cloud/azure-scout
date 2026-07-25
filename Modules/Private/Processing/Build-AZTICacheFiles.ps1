@@ -32,7 +32,24 @@ function Build-AZSCCacheFiles {
             Write-Progress -Id 1 -activity "Building Cache Files" -Status "$c% Complete." -PercentComplete $c
 
             $NewJobName = ($Job -replace 'ResourceJob_','')
+
+            # A job harvested before it finished yields nothing and is then destroyed by the
+            # Remove-Job below, so its whole category silently vanishes from the report. That used
+            # to happen without a trace. Surface it instead of writing a cache file that quietly
+            # says the estate is empty. (AB#5629)
+            $JobState = (Get-Job -Name $Job -ErrorAction SilentlyContinue).State
+            if ($JobState -and $JobState -ne 'Completed')
+                {
+                    Write-Warning ("[AzureScout] Category '$NewJobName' is being collected while its job is in state " +
+                        "'$JobState' rather than 'Completed'. Its data may be incomplete or empty in the report.")
+                }
+
             $TempJob = Receive-Job -Name $Job
+            if (-not $TempJob -or [string]::IsNullOrEmpty($TempJob.values))
+                {
+                    Write-Warning ("[AzureScout] Category '$NewJobName' returned no data; no cache file was written. " +
+                        "If this category should contain resources, re-run and check the job state above.")
+                }
             if ($TempJob -and ![string]::IsNullOrEmpty($TempJob.values))
                 {
                     $JobJSONName = ($NewJobName+'.json')

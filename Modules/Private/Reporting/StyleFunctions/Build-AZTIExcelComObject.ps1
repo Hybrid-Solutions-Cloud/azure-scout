@@ -21,6 +21,26 @@ function Build-AZSCExcelComObject {
     param($File)
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Validating if Excel is installed (Extra Customizations).')
+
+    # These customizations drive Excel itself over COM, so they need a local Excel install. On a
+    # machine without one -- every hosted CI runner, every container, most servers -- creating the
+    # COM object fails with 0x80040154 REGDB_E_CLASSNOTREG, and the old code surfaced that raw
+    # exception through Write-Error. The report is already complete and saved by this point, so a
+    # missing Excel is an expected environment condition, not a failure: detect it up front and
+    # say so plainly instead of emitting a red error the operator has to go and diagnose.
+    # (-Lite skips this whole path; that is why the GitHub Action defaults lite to true.)
+    # (AB#5629)
+    $ExcelComRegistered = $false
+    try   { $ExcelComRegistered = [bool][System.Type]::GetTypeFromProgID('Excel.Application') }
+    catch { $ExcelComRegistered = $false }
+
+    if (-not $ExcelComRegistered)
+        {
+            Write-Host '[AzureScout] Microsoft Excel is not installed on this machine, so the optional Excel chart customizations were skipped. The report is complete and saved; every worksheet, chart and pivot built by the report engine is present. Use -Lite to skip this step silently.' -ForegroundColor Yellow
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Excel COM (ProgID Excel.Application) is not registered -- skipping extra customizations.')
+            return
+        }
+
     try
         {
             $application = New-Object -ComObject Excel.Application

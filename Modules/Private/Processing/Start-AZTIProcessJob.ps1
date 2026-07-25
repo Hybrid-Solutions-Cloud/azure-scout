@@ -153,7 +153,12 @@ function Start-AZSCProcessJob {
                         Remove-Variable -Name ModName
                     }
 
-                While ($Job.Runspace.IsCompleted -contains $false) { Start-Sleep -Milliseconds 500 }
+                # $job holds the IAsyncResult handles returned by BeginInvoke(). Those are
+                # System.Management.Automation.PowerShellAsyncResult and have NO .Runspace
+                # property, so $Job.Runspace evaluated to an empty collection and
+                # "-contains $false" was ALWAYS false -- this loop never waited for anything.
+                # The completion flag lives directly on the handle. (AB#5629)
+                While ($Job.IsCompleted -contains $false) { Start-Sleep -Milliseconds 500 }
 
                 Foreach ($Module in $ModuleFiles)
                     {
@@ -190,7 +195,11 @@ function Start-AZSCProcessJob {
                 Write-Host 'Waiting Batch Jobs' -ForegroundColor Cyan -NoNewline
                 Write-Host '. This step may take several minutes to finish' -ForegroundColor Cyan
 
-                $InterJobNames = (Get-Job | Where-Object {$_.name -like 'ResourceJob_*' -and $_.State -eq 'Running'}).Name
+                # Must include NotStarted, not just Running. Start-Job is asynchronous, so a job
+                # created moments earlier may not have transitioned to Running yet; excluding it
+                # here meant it was never waited on, and the Build-AZSCCacheFiles call below then
+                # harvested and removed it while it was still empty. (AB#5629)
+                $InterJobNames = (Get-Job | Where-Object {$_.name -like 'ResourceJob_*' -and $_.State -in 'NotStarted','Running','Stopping','Suspending','Suspended'}).Name
 
                 Wait-AZSCJob -JobNames $InterJobNames -JobType 'Resource Batch' -LoopTime 5
 
