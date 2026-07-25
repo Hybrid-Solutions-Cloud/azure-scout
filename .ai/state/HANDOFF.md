@@ -6,7 +6,52 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — ONE COMMAND: inventory + assessment unified, wizard added
+## Last session (2026-07-25, Claude Code) — v2.4.0 SHIPPED: one command, guided wizard, docs collapsed
+
+**v2.4.0 is released and live on the PowerShell Gallery** (published 2026-07-25 14:29).
+Tag `v2.4.0`, GitHub release created, `main` at `a63712d`.
+
+Delivered across three commits:
+
+| Commit | What |
+|---|---|
+| `d5f3b45` | Entry-point unification + wizard (AB#5540, AB#5541) |
+| `8cd8c2e` | Site-wide docs collapse + v2.4.0 release prep |
+| `a63712d` | Known-limitation notes linked to AB#5543 |
+
+### Docs sweep — done
+
+Every page that framed inventory and assessment as two products now frames them as two modes.
+Runnable examples in `assessment.md`, `assessment-permissions.md`, and `src/README.md` use
+`Invoke-AzureScout -Assessment` (`-OutputPath`→`-ReportDir`, `-ManagementGroupId`→`-ManagementGroup`).
+"v1 inventory"/"v2 assessment" replaced with "inventory mode"/"assessment mode" throughout.
+
+**Two more false PowerShell-5.1 claims** were found and fixed beyond the three in `d5f3b45`:
+`assessment-prerequisites.md` ("the v1 inventory cmdlet … still runs on Windows PowerShell 5.1")
+and `folder-structure.md` (annotated the manifest as "PowerShellVersion 5.1, CompatiblePSEditions
+Desktop+Core"). Historical roadmap rows describing what v2.2.0 shipped were left alone — accurate
+as history.
+
+`parameters.md` also corrected two behaviours documented as no-ops that are not: `-Scope EntraOnly`
+throws in assessment mode, and `-Category` really does filter the collect.
+
+### ⚠ Still open — AB#5543
+
+**Feature AB#5543** (`New`, area `Collect`, under Epic 5023) now tracks the duplicate collection
+passes. NOT fixed in v2.4.0, deliberately: `Invoke-Collect` computes its scalars in KQL
+(`mv-expand`, `coalesce`, `array_length`, cross-table joins on `securityresources`/
+`networkresources`), and reimplementing ~30 projections in PowerShell against in-memory rows
+risks silently corrupting assessment scores. It needs its own design + verification cycle.
+Acceptance criteria are on the work item. Known-limitation notes in `CHANGELOG.md`,
+`docs/overview.md`, and `docs/roadmap.md` all cite AB#5543.
+
+Key finding for whoever picks it up: `Start-AZSCGraphExtraction.ps1` already pulls the **full
+`resources` table with `properties` projected** — a superset of what the assessment's 26 typed
+queries re-fetch. The data is already in memory; the work is the shaping, not the fetching.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — ONE COMMAND: inventory + assessment unified, wizard added
 
 **Trigger:** the operator challenged the published
 [Overview: Inventory vs Assessment](https://thisismydemo.cloud/azure-scout/overview.html) page —
