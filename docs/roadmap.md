@@ -13,7 +13,26 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.5.1 — Live-Run Hardening
+## Current Release — v2.5.2 — Determinism
+
+Released 25 July 2026, published to the PowerShell Gallery.
+
+A whole report category could silently vanish from a run. `Start-Job` is asynchronous, so a job
+created moments earlier sits in `NotStarted` — a state the wait loop and the batch filter both
+ignored, so it was never waited on, then harvested and destroyed before it produced anything.
+`Compute.json` came back 5,158 bytes on one run and 470 on the next against an unchanged tenant.
+
+Both now treat every non-terminal state as pending, a dropped category emits a warning naming it
+instead of failing silently, and a machine without Excel installed gets a plain one-line
+explanation rather than a raw COM `0x80040154` error on a run that otherwise succeeded.
+
+Verified by **three consecutive live runs producing byte-identical results**: 227 Azure resources,
+994 Excel rows, 40 Power BI files / 1013 rows, 166 Azure DevOps resources, 0 empty-category
+warnings, 0 raw COM errors.
+
+Full detail: [CHANGELOG.md § 2.5.2](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
+
+## Previous Release — v2.5.1 — Live-Run Hardening
 
 Released 25 July 2026, published to the PowerShell Gallery.
 

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.2] - 2026-07-25
+
+### Fixed
+
+- **A whole report category could silently vanish from a run** (AB#5629) — inventory output was
+  non-deterministic: `ReportCache/Compute.json` came back 5,158 bytes on one run and 470 on the
+  next, against the same tenant and the same scope. In the degraded run every Compute module
+  reported zero rows while the hashtable keys were still present, which located the loss at the
+  **job** level rather than the collector.
+
+  The cause was a race, not throttling. `Wait-AZSCJob` looped only while a job was `Running`, but
+  `Start-Job` is asynchronous — a job created moments earlier sits in `NotStarted`, a state that
+  satisfied neither the wait loop nor the caller's job-selection filter. It was therefore never
+  waited on, and `Build-AZSCCacheFiles` then ran `Receive-Job` (nothing to receive) followed by
+  `Remove-Job`, destroying the job before it had produced anything. Both now treat every
+  non-terminal state as pending.
+
+  The inner wait `While ($Job.Runspace.IsCompleted -contains $false)` was additionally a **no-op**:
+  those handles are `PowerShellAsyncResult` and have no `Runspace` property, so the expression was
+  empty and `-contains $false` was always false. It now reads `$Job.IsCompleted`.
+
+- **A dropped category left no trace** (AB#5629) — `Build-AZSCCacheFiles` now warns when a job is
+  harvested in a non-`Completed` state, and when a category returns no data, naming the category.
+  Previously a run could report an empty estate with complete silence.
+
+- **Excel chart customization raised a raw COM error on machines without Excel** (AB#5629) —
+  `Build-AZSCExcelComObject` surfaced `0x80040154 REGDB_E_CLASSNOTREG` through `Write-Error` on
+  every hosted runner and container. The report is already complete and saved at that point, so
+  the missing `Excel.Application` ProgID is now detected up front and explained in one line. This
+  is the same condition `-Lite` skips, and the reason the GitHub Action defaults `lite` to true.
+
+### Verified
+
+Three consecutive live runs against the same tenant produced **byte-identical** results: 227 Azure
+resources, 994 Excel rows, 40 Power BI files / 1013 rows, 166 Azure DevOps resources, **0**
+empty-category warnings and **0** raw COM errors. Before this change those numbers varied run to
+run. Pester **1697 passed, 0 failed, 3 skipped**.
+
 ## [2.5.1] - 2026-07-25
 
 ### Fixed
