@@ -4,13 +4,13 @@ description: ARM RBAC and Microsoft Graph permissions required by AzureScout.
 
 # Required Permissions
 
-::: tip This page covers the v1 inventory tool
-This page describes the permission model for the **v1 inventory cmdlet**
-(`Invoke-AzureScout` / `Test-AZSCPermissions`). The **CAF/WAF assessment platform**
-(`Invoke-ScoutAssessment` / `Test-ScoutPermission`) uses a different, narrower model
+::: tip This page covers inventory mode
+This page describes the permission model for **inventory mode**
+(`Invoke-AzureScout` / `Test-AZSCPermissions`). **Assessment mode**
+(`-Assessment` / `Test-ScoutPermission`) uses a different, narrower model
 — see the note at the bottom of this page, or go straight to
-[Assessment Permissions](assessment-permissions.md). Not sure which tool you need?
-See [Overview: Inventory vs Assessment](overview.md).
+[Assessment Permissions](assessment-permissions.md). New here?
+See the [Overview](overview.md).
 :::
 
 ## Overview
@@ -78,12 +78,12 @@ If the permission checker reports failures:
 
 ## A different, narrower model for the CAF/WAF assessment platform
 
-Everything above is the **v1 inventory** permission model
-(`Invoke-AzureScout` / `Test-AZSCPermissions`). The v2 **assessment platform**
-(`Invoke-ScoutAssessment` / `Test-ScoutPermission`) uses a different,
+Everything above is the **inventory mode** permission model
+(`Invoke-AzureScout` / `Test-AZSCPermissions`). **Assessment mode**
+(`-Assessment` / `Test-ScoutPermission`) uses a different,
 narrower model — do not conflate the two:
 
-| | v1 inventory (`Test-AZSCPermissions`) | v2 assessment (`Test-ScoutPermission`) |
+| | Inventory mode (`Test-AZSCPermissions`) | Assessment mode (`Test-ScoutPermission`) |
 |---|---|---|
 | ARM scope | `Reader` on each target **subscription** | `Reader` at the **tenant-root management group** |
 | Graph | Up to 9 permissions, required for `-Scope All`/`EntraOnly` | Not required by any assessment out of the box — governance data (`LandingZone`, `Management`, `Identity`, `Governance`, `Policy`) is collected natively via ARM/Resource Graph. 4 Graph permissions apply **only** if you opt one of those 5 into the legacy `AzGovViz` ingestor instead |

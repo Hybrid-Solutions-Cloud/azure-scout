@@ -5,8 +5,8 @@ description: The minimum RBAC and Microsoft Graph permissions each AzureScout as
 # Assessment Auth & Permissions
 
 This page is specific to the CAF/WAF assessment platform
-(`Invoke-ScoutAssessment`). It is a **different, narrower permission model**
-than the v1 inventory cmdlet's — see [Permissions](permissions.md) for the
+(`Invoke-AzureScout -Assessment`). It is a **different, narrower permission model**
+than inventory mode’s — see [Permissions](permissions.md) for the
 `Invoke-AzureScout` / `Test-AZSCPermissions` model, which is not the same
 function and is not what this page describes.
 
@@ -41,7 +41,7 @@ application, is required unless you deliberately switch an assessment's
 
 ::: tip Check before you scan
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone,Identity -PermissionAudit
+Invoke-AzureScout -Assessment LandingZone,Identity -PermissionAudit
 ```
 Runs `Test-ScoutPermission` for the given assessment(s) and returns/prints a
 table before any collection happens. See [what it actually checks](#what-permissionaudit-actually-verifies)
@@ -174,7 +174,7 @@ rather than a false 0%. This is not a permission failure and will not show
 up in `-PermissionAudit`.
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -ManagementGroupId 'contoso-root-mg' -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -OutputFormat Html
 ```
 
 `-ManagementGroupId` scopes the Resource Graph `Collect` layer —
@@ -199,4 +199,4 @@ behavior as before this default changed.
 - [Assessment guide — run modes and examples](assessment.md)
 - [Assessment Registry — all 22 assessments](design/assessment-registry.md)
 - [Assessment prerequisites](assessment-prerequisites.md)
-- v1 inventory's separate model: [Permissions](permissions.md), [Authentication](authentication.md)
+- Inventory mode's separate model: [Permissions](permissions.md), [Authentication](authentication.md)

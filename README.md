@@ -63,6 +63,13 @@ Import-Module ./azure-scout/AzureScout.psd1
 # Import the module
 Import-Module AzureScout
 
+# Guided wizard — no parameters needed. Signs you in, checks your rights,
+# then gives you a checklist of everything Scout can run.
+Invoke-AzureScout
+
+# Scored CAF/WAF assessment (same command, different mode)
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
+
 # Full inventory (ARM + Entra ID)
 Invoke-AzureScout -TenantID <your-tenant-id>
 

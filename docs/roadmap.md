@@ -13,7 +13,26 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.3.0 — Collection Hardening & External Platform Integrations
+## Current Release — v2.4.0 — One Command, and a Guided Wizard
+
+Released 25 July 2026, published to the PowerShell Gallery.
+
+| Capability | What shipped |
+|---|---|
+| One entry point | Inventory and assessment are modes of a single `Invoke-AzureScout`, not two cmdlets. `-Assessment` selects the CAF/WAF assessment; `-CollectOnly` and `-FromCollect` moved across too. Assessment mode now honours the inventory sign-in parameters, which the standalone cmdlet never did (AB#5540) |
+| Guided wizard | A bare `Invoke-AzureScout` in an interactive session signs you in, lets you pick the tenant, verifies your rights, then offers pre-selected checklists for run type, categories/assessments, formats, and report directory — and prints the equivalent one-liner. Never fires in CI; `-NoWizard` opts out (AB#5541) |
+| Output formats | `-OutputFormat` accepts several renderers in one run and spans both modes; a wrong-mode format now throws an error naming the switch you wanted |
+| Deprecation | `Invoke-ScoutAssessment` still works but will be removed in v3.0.0 |
+| Documentation | Corrected pages claiming a PowerShell 5.1 floor the module never had, and collapsed the "Inventory vs Assessment" framing across the site |
+
+Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
+
+::: warning Known limitation
+Inventory and assessment still collect their Azure data independently, so running
+both queries Azure twice. Collapsing them onto one collection pass is outstanding.
+:::
+
+## v2.3.0 — Collection Hardening & External Platform Integrations
 
 Released 25 July 2026, published to the PowerShell Gallery. Closes the collection-hardening
 epic and the external-platform integrations.
@@ -64,8 +83,8 @@ live Azure tenant.
 | Collect + ingest | Read-only ARG collect layer (`collect.json`); native governance collector (v2.1.0) / ARG query pack / Advisor ingest — AzGovViz retained as opt-in only |
 | ALZ benchmark | Live tenant diffed against a canonical ALZ reference |
 | Tiered reporting | Power BI, self-contained HTML, executive **PowerPoint (OpenXML SDK — no Python)**, Excel + JSON evidence |
-| Per-domain analytics | Every discovery category runnable + tagged: `Invoke-ScoutAssessment -Assessment <Category>` |
-| Entry point | `Invoke-ScoutAssessment` (run one/some/all), read-only permission pre-flight |
+| Per-domain analytics | Every discovery category runnable + tagged: `Invoke-AzureScout -Assessment <Category>` |
+| Entry point | `Invoke-AzureScout -Assessment` (run one/some/all), read-only permission pre-flight |
 
 > **Breaking:** introduces the `findings.json` contract and demotes Excel-first
 > output to an evidence tier. Assessment features require PowerShell 7.

@@ -35,9 +35,9 @@ Invoke-AzureScout -Scope EntraOnly
 ```
 
 ::: tip
-This is the `-Scope` default for the **inventory** cmdlet (`Invoke-AzureScout`) only. The
-**assessment platform** (`Invoke-ScoutAssessment`) has its own `-Scope` parameter with a
-different default (`All`) and different semantics — see [Assessment Platform: `-Scope`](assessment.md#-scope).
+This is the `-Scope` default for **inventory mode** only. In **assessment mode**
+(`-Assessment`) the same `-Scope` parameter defaults to `All` and has different
+semantics — see [Assessment mode: `-Scope`](assessment.md#-scope).
 :::
 
 ## Output Format

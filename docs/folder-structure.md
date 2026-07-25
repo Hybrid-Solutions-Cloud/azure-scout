@@ -31,10 +31,10 @@ azure-scout/
 │   ├── images/                         #   Banner, icons
 │   ├── index.md                        #   Home page
 │   ├── overview.md                     #   Inventory vs Assessment decision guide (first Getting Started page)
-│   ├── prerequisites.md                #   v1 inventory prerequisites & modules
+│   ├── prerequisites.md                #   Inventory-mode prerequisites & modules
 │   ├── authentication.md               #   Authentication methods
 │   ├── usage.md                        #   Usage guide (Scope, OutputFormat, examples)
-│   ├── permissions.md                  #   v1 inventory required permissions
+│   ├── permissions.md                  #   Inventory-mode required permissions
 │   ├── category-filtering.md           #   -Category parameter guide
 │   ├── parameters.md                   #   Full parameter reference (both cmdlets)
 │   ├── output.md                       #   Output files & formats
@@ -98,7 +98,7 @@ azure-scout/
 │   │   ├── Get-ScoutDrift.ps1          #     Cross-run FINDINGS drift (v2.1.0, AB#5053)
 │   │   ├── Get-ScoutInventoryDrift.ps1 #     Cross-run RESOURCE/inventory drift (v2.2.0, AB#326)
 │   │   └── templates/
-│   ├── Invoke-ScoutAssessment.ps1      #   Assessment platform entry point
+│   ├── Invoke-ScoutAssessment.ps1      #   Assessment implementation (deprecated public name)
 │   ├── Invoke-ScoutPipeline.ps1        #   Unattended collect->assess->report pipeline (v2.1.0, AB#5050)
 │   └── Write-ScoutProgress.ps1         #   Live collection progress output (v2.2.0, AB#405)
 ├── manifests/
@@ -111,7 +111,7 @@ azure-scout/
 │   └── Test-PptxFromDataDump.ps1       #   Renders PowerPoint deck from datadump fixtures
 ├── config/                             # Runtime configuration
 ├── package.json                        # VitePress dev dependency + docs:dev/build/preview scripts
-├── AzureScout.psd1                     # Module manifest (PowerShellVersion 5.1, CompatiblePSEditions Desktop+Core)
+├── AzureScout.psd1                     # Module manifest (PowerShellVersion 7.0, CompatiblePSEditions Core)
 ├── AzureScout.psm1                     # Module loader (dot-sources Modules/Private, Modules/Public/PublicFunctions, then src/)
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md

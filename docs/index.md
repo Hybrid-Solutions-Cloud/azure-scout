@@ -13,7 +13,7 @@ description: See everything. Own your cloud. A PowerShell module for comprehensi
 **AzureScout** (AZSC) is a PowerShell module that discovers and inventories everything in your Azure environment — ARM resources, Entra ID objects, costs, security posture, policies, and more. Reports are generated as Excel workbooks, JSON, Markdown, or AsciiDoc.
 
 ::: tip Inventory vs Assessment — two tools, one module
-AzureScout ships **two** entry points. `Invoke-AzureScout` (v1) builds a wide **inventory** of everything in your tenant. `Invoke-ScoutAssessment` (v2) runs a scored **CAF/WAF assessment** on top of that data. Not sure which one you need? Start with [Overview: Inventory vs Assessment](overview.md).
+AzureScout is **one command**, `Invoke-AzureScout`, with two modes. By default it builds a wide **inventory** of everything in your tenant; add `-Assessment` and it runs a scored **CAF/WAF assessment**. Run it with no parameters at all and it opens a guided wizard. Start with the [Overview](overview.md).
 :::
 
 | Feature | Description |
@@ -60,7 +60,7 @@ If you're already logged in via `Connect-AzAccount`, AzureScout uses your existi
 
 | Page | Description |
 |------|-------------|
-| [Overview: Inventory vs Assessment](overview.md) | Which tool do I need? Decision guide + two mini quickstarts |
+| [Overview](overview.md) | One command, two modes — the wizard, the switches, and which mode you need |
 | [Authentication](authentication.md) | Five authentication methods (interactive, device-code, SPN+secret, SPN+cert, managed identity) |
 | [Usage Guide](usage.md) | Scope, OutputFormat, Category filtering, and examples |
 | [Permissions](permissions.md) | Required ARM RBAC roles and Microsoft Graph API permissions |
@@ -77,5 +77,5 @@ If you're already logged in via `Connect-AzAccount`, AzureScout uses your existi
 | [Credits](credits.md) | Attribution and acknowledgments |
 | [Changelog](changelog.md) | Version history |
 | [Assessment Platform](assessment.md) | CAF/WAF landing-zone assessment — architecture, run modes, all 22 assessments |
-| [Assessment Prerequisites](assessment-prerequisites.md) | Software, module, and .NET SDK prerequisites specific to `Invoke-ScoutAssessment` |
+| [Assessment Prerequisites](assessment-prerequisites.md) | Software, module, and .NET SDK prerequisites specific to assessment mode (`-Assessment`) |
 | [Assessment Permissions](assessment-permissions.md) | Minimum RBAC and Graph permissions per assessment, and `-PermissionAudit` |

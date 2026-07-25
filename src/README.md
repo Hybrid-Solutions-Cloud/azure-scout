@@ -17,7 +17,7 @@ without re-scanning. **Read-only throughout** (Reader RBAC + read-only Graph).
 
 | Path | Purpose | ADO |
 |---|---|---|
-| `Invoke-ScoutAssessment.ps1` | Entry point / orchestrator | AB#5024 |
+| `Invoke-ScoutAssessment.ps1` | Assessment orchestrator. Reached via `Invoke-AzureScout -Assessment`; the same-named public cmdlet is deprecated (remove in v3.0.0) | AB#5024, AB#5540 |
 | `../manifests/assessments.psd1` | Module registry (run one/some/all) | AB#5025 |
 | `assess/engine/` | Rule loader, JSONPath resolver, evaluator, scoring | AB#5027, AB#5034 |
 | `assess/rules/*.yaml` | CAF 8-area + WAF 5-pillar rule files | AB#5031 |
@@ -31,20 +31,20 @@ without re-scanning. **Read-only throughout** (Reader RBAC + read-only Graph).
 
 ```powershell
 # Landing zone audit only, HTML + deck
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Html,Pptx
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html,Pptx
 
 # Two assessments at once
-Invoke-ScoutAssessment -Assessment LandingZone,Identity
+Invoke-AzureScout -Assessment LandingZone,Identity
 
 # Everything, every format
-Invoke-ScoutAssessment -Assessment All -OutputFormat All
+Invoke-AzureScout -Assessment All -OutputFormat All
 
 # Collect once, assess later (no re-scan)
-Invoke-ScoutAssessment -Assessment LandingZone -CollectOnly
-Invoke-ScoutAssessment -Assessment LandingZone -FromCollect ./output/<run>/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment LandingZone -CollectOnly
+Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/<run>/collect.json -OutputFormat PowerBi
 
 # Pre-flight permission check
-Invoke-ScoutAssessment -Assessment All -PermissionAudit
+Invoke-AzureScout -Assessment All -PermissionAudit
 ```
 
 ## Dependencies

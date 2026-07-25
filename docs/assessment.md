@@ -90,7 +90,7 @@ scored.
 ```powershell
 # Pulls only Security-relevant resource types (Key Vaults, NSGs, private
 # endpoints/DNS zones, SQL servers, ...) instead of the full ~25-query set.
-Invoke-ScoutAssessment -Assessment Security -OutputFormat Json
+Invoke-AzureScout -Assessment Security -OutputFormat Json
 ```
 :::
 
@@ -101,7 +101,7 @@ pass one, several, or `All` to `-Assessment`. All examples assume you've install
 and imported the module:
 
 ```powershell
-# Install once, from the PowerShell Gallery (current version 2.0.1)
+# Install once, from the PowerShell Gallery
 Install-Module -Name AzureScout
 
 # Or import from a local clone
@@ -114,19 +114,19 @@ Scores all 8 CAF areas and all 5 WAF pillars in one run, against an ALZ
 benchmark diff.
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat All
+Invoke-AzureScout -Assessment LandingZone -OutputFormat All
 ```
 
 ### Single category
 
 ```powershell
-Invoke-ScoutAssessment -Assessment Security -OutputFormat Html
+Invoke-AzureScout -Assessment Security -OutputFormat Html
 ```
 
 ### Multiple assessments in one run
 
 ```powershell
-Invoke-ScoutAssessment -Assessment Networking,Security -OutputFormat Html
+Invoke-AzureScout -Assessment Networking,Security -OutputFormat Html
 ```
 
 Findings from both are combined into one `findings.json` and one set of
@@ -135,7 +135,7 @@ reports for the run.
 ### Every assessment (`All`)
 
 ```powershell
-Invoke-ScoutAssessment -Assessment All -OutputFormat All
+Invoke-AzureScout -Assessment All -OutputFormat All
 ```
 
 `-Assessment All` expands to every key in `manifests/assessments.psd1` —
@@ -172,17 +172,17 @@ what to do with a partial run.
 
 Parameters: `-Assessment`, `-OutputFormat` (default `All`), `-OutputPath`,
 `-ManagementGroupId`, `-Category`, `-SkipPermissionAudit` — the same run-mode
-semantics as `Invoke-ScoutAssessment` described throughout this page apply
+semantics described throughout this page apply
 here too.
 
 ### Collect once, assess later (`-CollectOnly` / `-FromCollect`)
 
 ```powershell
 # Stop after Collect — writes collect.json and returns its path
-Invoke-ScoutAssessment -Assessment LandingZone -CollectOnly
+Invoke-AzureScout -Assessment LandingZone -CollectOnly
 
 # Re-run Assess + Report from that saved collect.json, no re-scan
-Invoke-ScoutAssessment -Assessment LandingZone -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
 ```
 
 Useful for iterating on rule changes or re-rendering a different output tier
@@ -191,7 +191,7 @@ without re-querying Azure.
 ### Permission pre-flight (`-PermissionAudit`)
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone,Identity -PermissionAudit
+Invoke-AzureScout -Assessment LandingZone,Identity -PermissionAudit
 ```
 
 Checks read-only access for the requested assessment(s) **before** any
@@ -201,7 +201,7 @@ for exactly what this does and does not verify.
 ### Scoping to a management group (`-ManagementGroupId`)
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -ManagementGroupId 'contoso-root-mg' -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -OutputFormat Html
 ```
 
 ::: warning Scopes Collect too now — and the benchmark still needs MG-root visibility
@@ -227,9 +227,9 @@ type](assessment-permissions.md#-managementgroupid-and-governance-data-collectio
 ### `-Scope`
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -Scope All        # default
-Invoke-ScoutAssessment -Assessment LandingZone -Scope ArmOnly    # identical to All today
-Invoke-ScoutAssessment -Assessment LandingZone -Scope EntraOnly  # throws -- see below
+Invoke-AzureScout -Assessment LandingZone -Scope All        # default
+Invoke-AzureScout -Assessment LandingZone -Scope ArmOnly    # identical to All today
+Invoke-AzureScout -Assessment LandingZone -Scope EntraOnly  # throws -- see below
 ```
 
 ::: info EntraOnly throws instead of silently collecting nothing
@@ -240,7 +240,7 @@ it now **throws immediately** with a redirect to the tool that actually has
 an Entra collection path:
 
 ```
-Invoke-ScoutAssessment collects ARM/Resource Graph data only -- the assessment
+Invoke-AzureScout collects ARM/Resource Graph data only -- the assessment
 platform's Collect layer has no Entra ID collection path. Use
 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead.
 ```
@@ -249,14 +249,14 @@ platform's Collect layer has no Entra ID collection path. Use
 ARM collect) — kept for forward compatibility rather than removed, since
 `Invoke-Collect` has no ARM-vs-Entra branch to differentiate them. This
 differs from `Invoke-AzureScout -Scope`, which does gate ARM vs. Entra
-extraction in the v1 inventory tool (see [Usage Guide](usage.md#scope)) — use
+extraction in inventory mode (see [Usage Guide](usage.md#scope)) — use
 that cmdlet for Entra ID inventory.
 :::
 
 ### `-Category` override
 
 ```powershell
-Invoke-ScoutAssessment -Assessment Compute -Category Compute,Storage
+Invoke-AzureScout -Assessment Compute -Category Compute,Storage
 ```
 
 `-Category` replaces the categories recorded for the run — and, per the note
@@ -273,17 +273,17 @@ sync with what its `Rules` actually reference.
 ### `-OutputFormat` — one example per tier
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat PowerBi
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Html
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Pptx
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Excel
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Json
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat JsonEvidence
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat React
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Word
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat EChartsDashboard
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Pdf
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
+Invoke-AzureScout -Assessment LandingZone -OutputFormat PowerBi
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Pptx
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Excel
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Json
+Invoke-AzureScout -Assessment LandingZone -OutputFormat JsonEvidence
+Invoke-AzureScout -Assessment LandingZone -OutputFormat React
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Word
+Invoke-AzureScout -Assessment LandingZone -OutputFormat EChartsDashboard
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Pdf
+Invoke-AzureScout -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
 ```
 
 `-OutputFormat` also accepts an array (`-OutputFormat Html,Pptx`). `React`
@@ -295,7 +295,7 @@ and `Pdf` are three more self-contained tiers added in v2.2.0 — see
 ### `-OutputPath`
 
 ```powershell
-Invoke-ScoutAssessment -Assessment LandingZone -OutputPath 'D:\Reports\Scout'
+Invoke-AzureScout -Assessment LandingZone -OutputPath 'D:\Reports\Scout'
 ```
 
 Each run writes into a timestamped subfolder (`<OutputPath>/yyyyMMdd_HHmmss/`).
@@ -323,7 +323,7 @@ for the same assessment: each finding is classified **New**, **Resolved**
 **Unchanged**, plus an overall weighted score delta. History is kept in an
 append-only `findings-history.json` under a `.scout-history/` folder in the
 output root, keyed by run id — the first run for a given assessment becomes
-the baseline (nothing to diff against yet). `Invoke-ScoutAssessment` computes
+the baseline (nothing to diff against yet). Assessment mode computes
 drift automatically after scoring and feeds it into the [React
 report](#report-tiers)'s Drift tab; a drift computation failure is non-fatal
 to the rest of the run.
@@ -334,7 +334,7 @@ to the rest of the run.
 `Get-ScoutDrift` above: `Get-ScoutDrift` tracks how each **rule** scored across
 runs, while `Get-ScoutInventoryDrift` tracks what actually changed in the
 **collected Azure estate itself** — independent of how any rule scored it.
-It is not wired into `Invoke-ScoutAssessment` automatically; call it yourself
+It is not wired into assessment mode automatically; call it yourself
 with the same `collect.json` and a caller-controlled run id:
 
 ```powershell
@@ -459,7 +459,7 @@ does not verify: **[Auth & permissions per scan type](assessment-permissions.md)
 
 ```powershell
 # Pre-flight before any collection runs
-Invoke-ScoutAssessment -Assessment LandingZone -PermissionAudit
+Invoke-AzureScout -Assessment LandingZone -PermissionAudit
 ```
 
 ## Design reference

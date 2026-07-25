@@ -1,19 +1,20 @@
 ---
-description: Software, PowerShell module, and .NET SDK prerequisites specific to the AzureScout CAF/WAF assessment platform (Invoke-ScoutAssessment).
+description: Software, PowerShell module, and .NET SDK prerequisites specific to AzureScout assessment mode (Invoke-AzureScout -Assessment).
 ---
 
 # Assessment Prerequisites
 
 These prerequisites are **specific to the CAF/WAF assessment platform**
-(`Invoke-ScoutAssessment`, `Test-ScoutPermission`). They are additional to —
-not a replacement for — the v1 inventory prerequisites in
+(`Invoke-AzureScout -Assessment`, `Test-ScoutPermission`). They are additional to —
+not a replacement for — the inventory-mode prerequisites in
 [Prerequisites & Required Modules](prerequisites.md).
 
 ::: tip PowerShell 7 is a hard requirement
-Every assessment-platform script starts with `#Requires -Version 7.0`. Unlike
-the v1 inventory cmdlet (`Invoke-AzureScout`), which still runs on Windows
-PowerShell 5.1, **`Invoke-ScoutAssessment` will not load under PowerShell
-5.1** — the `#Requires` statement blocks it outright.
+Every assessment script starts with `#Requires -Version 7.0`, and the module
+manifest declares `PowerShellVersion = '7.0'` with
+`CompatiblePSEditions = @('Core')` — so **Windows PowerShell 5.1 cannot import
+AzureScout at all**, in either mode. `Invoke-AzureScout` also throws on
+Desktop as a second guard. Run everything in `pwsh`.
 :::
 
 ## System requirements
@@ -31,9 +32,9 @@ PowerShell 5.1, **`Invoke-ScoutAssessment` will not load under PowerShell
 AzureScout's module bootstrap (`AzureScout.psm1`) auto-installs a fixed list
 of modules on import: `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`,
 `Az.Storage`, `Az.Compute`, `Az.Resources`. That list was written for the v1
-inventory cmdlet and **does not include `powershell-yaml` or `Az.Advisor`**,
-both of which the assessment platform needs. If either is missing,
-`Invoke-ScoutAssessment` throws when it reaches the step that needs it,
+inventory path and **does not include `powershell-yaml` or `Az.Advisor`**,
+both of which assessment mode needs. If either is missing,
+assessment mode throws when it reaches the step that needs it,
 rather than auto-installing it for you. Install them manually before your
 first assessment run (below).
 :::
@@ -105,12 +106,12 @@ accepted, implemented renderer described above and in
 the decision record, not `src/README.md`, for the PPTX tier.
 :::
 
-## What the Estate / v1 inventory does NOT need
+## What the Estate assessment does NOT need
 
 The `Estate` assessment (`-Assessment Estate`) is inventory-only — it has no
 `Rules`, so it never calls `Get-RuleSet` and therefore never needs
 `powershell-yaml`. It still runs under PowerShell 7 through the same
-`Invoke-ScoutAssessment` entry point, so the PS7 requirement above still
+`Invoke-AzureScout` entry point, so the PS7 requirement above still
 applies even though it doesn't score anything.
 
 ## Next steps

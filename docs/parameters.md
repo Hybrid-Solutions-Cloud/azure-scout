@@ -15,7 +15,9 @@ description: Complete reference of all Invoke-AzureScout and Test-AZSCPermission
 | `-ResourceGroup` | Limit to one or more specific resource groups |
 | `-ManagementGroup` | Inventory all subscriptions under a management group |
 | `-Scope` | `ArmOnly` (default), `All`, or `EntraOnly` — controls which data domains are inventoried |
-| `-OutputFormat` | `All` (default), `Excel`, `Json`, `Markdown` (`MD`), `AsciiDoc` (`Adoc`), `PowerBI` — controls report file types; `PowerBI` generates flat normalized CSVs in a `PowerBI/` subfolder optimized for Power BI / Microsoft Fabric |
+| `-OutputFormat` | `All` (default), `Excel`, `Json`, `Markdown` (`MD`), `AsciiDoc` (`Adoc`), `PowerBI` — controls report file types; `PowerBI` generates flat normalized CSVs in a `PowerBI/` subfolder optimized for Power BI / Microsoft Fabric. Accepts an array. Assessment-mode formats are listed [below](#assessment-mode-parameters) |
+| `-Assessment` | Switches the run to **assessment mode** — see [Assessment-mode Parameters](#assessment-mode-parameters). Omit for an inventory run |
+| `-NoWizard` | Skip the guided wizard that a bare, interactive `Invoke-AzureScout` opens, and run the default inventory instead. Alias: `-NonInteractive`. Never needed in CI — the wizard already suppresses itself in non-interactive hosts |
 | `-Category` | Filter by resource category: `AI`, `Analytics`, `Compute`, `Containers`, `Databases`, `Hybrid`, `Identity`, `Integration`, `IoT`, `Management`, `Monitor`, `Networking`, `Security`, `Storage`, `Web` — see [Category Filtering](category-filtering.md) |
 
 ### Authentication
@@ -98,23 +100,29 @@ $result.Details      # Array of check results with remediation guidance
 
 See [Permissions](permissions.md) for the full list of required roles and API permissions.
 
-## Invoke-ScoutAssessment Parameters
+## Assessment-mode Parameters
 
-Entry point for the **CAF/WAF assessment platform** (v2.0.0) — a separate
-cmdlet from `Invoke-AzureScout`, with its own parameter set. Full run-mode
-examples: [Assessment guide](assessment.md#run-modes).
+Adding `-Assessment` switches `Invoke-AzureScout` from inventory to the **CAF/WAF
+assessment**. All the sign-in and scoping parameters above still apply. Full
+run-mode examples: [Assessment guide](assessment.md#run-modes).
 
 | Parameter | Description |
 |-----------|-------------|
-| `-Assessment` | One, several, or `All` assessment names from `manifests/assessments.psd1` (default: `Estate`). See the [Assessment Registry](design/assessment-registry.md) for all 22. |
-| `-Scope` | `All` (default), `ArmOnly`, or `EntraOnly` — accepted and recorded, but currently does not change what the Collect layer queries; see [the caveat](assessment.md#-scope). |
-| `-Category` | Overrides the categories recorded for the run; does not change which rules are scored. See [the caveat](assessment.md#-category-override). |
-| `-OutputFormat` | `PowerBi`, `Html`, `Pptx`, `Excel`, `Json`, `JsonEvidence`, `React`, `Word`, `EChartsDashboard`, `Pdf`, or `All` (default: `Html`) — accepts an array. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab; `Word`/`EChartsDashboard`/`Pdf` (v2.2.0) are three more self-contained tiers; `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](assessment.md#report-tiers). |
-| `-OutputPath` | Base output directory (default: `./output`); each run writes to a `<OutputPath>/yyyyMMdd_HHmmss/` subfolder. |
+| `-Assessment` | One, several, or `All` assessment names from `manifests/assessments.psd1`. Supplying it is what selects assessment mode; omit it for an inventory run. Alias `-Assess`. See the [Assessment Registry](design/assessment-registry.md) for all 22. |
+| `-Scope` | `ArmOnly` or `All` — both run the ARM/Resource Graph collect. `EntraOnly` throws, because the assessment Collect layer has no Entra/Graph path; use an inventory run with `-Scope EntraOnly` for Entra ID. |
+| `-Category` | Filters which Resource Graph queries the Collect layer runs, narrowing the collect below the assessment's manifest default. |
+| `-OutputFormat` | `Html` (default), `Pptx`, `PowerBI`, `Excel`, `Json`, `JsonEvidence`, `React`, `Word`, `EChartsDashboard`, `Pdf`, or `All` — accepts an array, e.g. `-OutputFormat Html,Pptx`. Inventory-only formats (`Markdown`, `AsciiDoc`) are rejected here with a message naming the valid set. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab; `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](assessment.md#report-tiers). |
+| `-ReportDir` | Base output directory; each run writes to a dated subfolder. (The deprecated `Invoke-ScoutAssessment` called this `-OutputPath`.) |
 | `-PermissionAudit` | Switch — runs `Test-ScoutPermission` for the requested `-Assessment` set and returns before any collection happens. |
 | `-CollectOnly` | Switch — stop after Collect; returns the path to `collect.json`. |
-| `-FromCollect` | Path to an existing `collect.json` — skips Collect/Ingest and assesses/reports from it directly. |
-| `-ManagementGroupId` | Scopes the Resource Graph `Collect` layer (and the opt-in `AzGovViz` ingest, if selected instead of the native `Governance` default) for assessments that need it (`LandingZone`, `Management`, `Identity`, `Governance`, `Policy`). |
+| `-FromCollect` | Path to an existing `collect.json` — skips Collect/Ingest and assesses/reports from it directly. Runs fully offline, so it does **not** trigger a sign-in. |
+| `-ManagementGroup` | Scopes the Resource Graph `Collect` layer (and the opt-in `AzGovViz` ingest, if selected instead of the native `Governance` default) for assessments that need it (`LandingZone`, `Management`, `Identity`, `Governance`, `Policy`). |
+
+::: warning `Invoke-ScoutAssessment` is deprecated
+It still works and still accepts its original parameter names (including
+`-OutputPath` and `-ManagementGroupId`), but it will be removed in **v3.0.0**.
+Move to `Invoke-AzureScout -Assessment`.
+:::
 
 ## Invoke-ScoutPipeline Parameters
 
@@ -124,11 +132,11 @@ See [Assessment guide — unattended, one-command run](assessment.md#unattended-
 
 | Parameter | Description |
 |-----------|-------------|
-| `-Assessment` | Same as `Invoke-ScoutAssessment -Assessment` — one, several, or `All`. |
-| `-OutputFormat` | Same values as `Invoke-ScoutAssessment -OutputFormat`, including `React`, `Word`, `EChartsDashboard`, `Pdf`, and `JsonEvidence` (default: `All`). |
+| `-Assessment` | Same as `Invoke-AzureScout -Assessment` — one, several, or `All`. |
+| `-OutputFormat` | Same values as `Invoke-AzureScout -OutputFormat` in assessment mode, including `React`, `Word`, `EChartsDashboard`, `Pdf`, and `JsonEvidence` (default: `All`). |
 | `-OutputPath` | Base output directory; each run writes to a dated subfolder. |
-| `-ManagementGroupId` | Same scoping behavior as `Invoke-ScoutAssessment -ManagementGroupId`. |
-| `-Category` | Same as `Invoke-ScoutAssessment -Category`. |
+| `-ManagementGroupId` | Same scoping behaviour as assessment mode’s `-ManagementGroup`. |
+| `-Category` | Same as assessment mode’s `-Category`. |
 | `-SkipPermissionAudit` | Switch — skips the read-only permission pre-flight that otherwise runs first. |
 
 Returns the run-folder path. Throws and sets `$LASTEXITCODE = 1` only when
@@ -139,12 +147,12 @@ the run to `PartialSuccess` instead of losing the output that did succeed.
 
 Read-only permission pre-flight for the assessment platform — distinct from
 `Test-AZSCPermissions` above. Normally invoked via
-`Invoke-ScoutAssessment -PermissionAudit` rather than called directly.
+`Invoke-AzureScout -Assessment ... -PermissionAudit` rather than called directly.
 
 | Parameter | Description |
 |-----------|-------------|
 | `-Assessment` | The assessment name(s) to check permissions for. |
-| `-Manifest` | The imported `manifests/assessments.psd1` hashtable (passed automatically by `Invoke-ScoutAssessment`). |
+| `-Manifest` | The imported `manifests/assessments.psd1` hashtable (passed automatically by assessment mode). |
 
 Returns an array of `[pscustomobject]` results (`Check`, `Ok`, `Fix`) — the
 ARM check's `Ok` is a live-validated `$true`/`$false`; the Graph checks'

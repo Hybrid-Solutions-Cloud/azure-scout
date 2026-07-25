@@ -147,8 +147,8 @@ Use the `Module-template.tpl` in `Modules/Public/InventoryModules/` as the start
 
 ## Testing the CAF/WAF assessment platform
 
-The tests above cover the **v1 inventory** modules and pipeline. The **v2 assessment
-platform** (`src/collect`, `src/assess`, `src/report`) has its own, separate test
+The tests above cover the **inventory-mode** modules and pipeline. The **assessment
+layers** (`src/collect`, `src/assess`, `src/report`) have their own, separate test
 coverage:
 
 - **`tests/Assessment.Engine.Tests.ps1`** — pure-logic smoke tests for the rule

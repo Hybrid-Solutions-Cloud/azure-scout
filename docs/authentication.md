@@ -4,11 +4,10 @@ description: Five authentication methods supported by AzureScout.
 
 # Authentication
 
-::: tip This page covers the v1 inventory tool
-This page describes `Connect-AZSCLoginSession`, used by the **v1 inventory cmdlet**
-(`Invoke-AzureScout`). The **CAF/WAF assessment platform** (`Invoke-ScoutAssessment`)
-reuses this exact same sign-in flow — see the note at the bottom of this page. Not
-sure which tool you need? See [Overview: Inventory vs Assessment](overview.md).
+::: tip One sign-in for both modes
+This page describes `Connect-AZSCLoginSession`, which `Invoke-AzureScout` uses in
+**both** modes — inventory and `-Assessment` alike. New here? See the
+[Overview](overview.md).
 :::
 
 ## Overview
@@ -103,19 +102,25 @@ If enabled, it temporarily disables it to ensure compatibility, then restores th
 
 ## Assessment platform — same sign-in, broader permissions (no separate login)
 
-**The CAF/WAF assessment platform does not have its own authentication.** This
-section is an FYI to make that explicit: you sign in exactly as above, and the
-only difference is the *permissions* your identity needs.
+**Assessment mode does not have its own authentication.** You sign in exactly as
+above; the only difference is the *permissions* your identity needs.
 
-Everything above is `Connect-AZSCLoginSession`, used by the v1 inventory
-cmdlet (`Invoke-AzureScout`). The v2 assessment platform
-(`Invoke-ScoutAssessment`, `Test-ScoutPermission`) does **not** have its own
-sign-in flow — it reuses whatever `Get-AzContext` is already active (i.e.
-authenticate with `Connect-AzAccount`, any of the five methods above, or a
-managed identity, then run `Invoke-ScoutAssessment`). What differs is the
-**authorization** model, not the authentication mechanism: the identity you
-sign in as needs ARM `Reader` at the tenant-root management group for every
-assessment, and Microsoft Graph application permissions for 5 specific
-assessments. See [Auth & permissions per scan type](assessment-permissions.md)
-for the full breakdown and [Assessment Prerequisites](assessment-prerequisites.md)
-for the software/module prerequisites.
+`Invoke-AzureScout -Assessment` runs the same `Connect-AZSCLoginSession` flow as
+inventory mode and honours the same parameters — `-TenantID`, `-DeviceLogin`,
+`-AppId`/`-Secret`, and certificate auth all work identically. An already-active
+`Get-AzContext` (from `Connect-AzAccount` or a managed identity) is reused as-is.
+
+::: warning Changed in v2.4.0
+Before v2.4.0 the standalone `Invoke-ScoutAssessment` cmdlet had **no** sign-in
+step — it silently required a pre-existing `Connect-AzAccount` context and ignored
+the inventory's authentication parameters. Assessment mode on `Invoke-AzureScout`
+does not have that gap.
+:::
+
+What differs between the modes is the **authorization** model, not the
+authentication mechanism: the identity needs ARM `Reader` at the tenant-root
+management group for every assessment, plus Microsoft Graph application
+permissions for 5 specific assessments. See
+[Auth & permissions per scan type](assessment-permissions.md) for the full
+breakdown and [Assessment Prerequisites](assessment-prerequisites.md) for the
+software/module prerequisites.

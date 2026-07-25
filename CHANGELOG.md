@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-07-25
+
 ### Added
 
 - **Guided setup wizard** (AB#5541) — running `Invoke-AzureScout` with no parameters in an
