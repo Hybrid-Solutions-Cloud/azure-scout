@@ -6,7 +6,79 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — ADO/GitHub conformance drive COMPLETE (W2 + W3b + W4)
+## Last session (2026-07-25, Claude Code) — v2.3.0 SHIPPED: backlog closed except web + multi-tenant
+
+**Every open work item other than the two deliberately-excluded areas is built, tested, released,
+PSGallery-published, and Closed on the board.**
+
+Board: **191 items — 175 Closed / 14 New / 2 Removed**.
+`./scripts/Test-BoardConformance.ps1` → **0 ADO failures, 0 GitHub reconcile failures.**
+
+### What shipped (v2.3.0)
+
+Epic **AB#5411** (collection hardening) is Closed. Epic **AB#5410** retains only AB#323.
+
+| Item | What |
+|---|---|
+| AB#331 | Run isolation — each invocation gets its own run folder; `-RunName`, `-Force`, `Clear-AZSCCacheFolder -OlderThan` |
+| AB#368 | Caller's subscription context restored in a `finally` at all five `Set-AzContext` sites |
+| AB#351 | Post-login management group probe + cyan role tip; never aborts the run |
+| AB#327 | Azure DevOps inventory via `-IncludeDevOps` — five worksheets, service-connection-to-subscription cross-reference |
+| AB#328 | Composite `action.yml` at repo root; fixed the non-functional `azure-inventory.yml` |
+| AB#343 | `docs/automation.md` (eight-step guide) plus two real runbook fixes |
+| AB#318 / AB#5417 | `docs/category-reference.md` plus the README quick-reference table |
+| AB#315 | `docs/validation-matrix.md` — per-check automated vs live-tenant coverage |
+
+Commits `7c4380b`, `6574b76`, `9f3ba68`, `cad2b42`. Tag `v2.3.0`. GitHub release created.
+PSGallery: `Find-Module AzureScout` returns **2.3.0**.
+
+### Decisions made — do not relitigate
+
+- **Azure DevOps auth reuses the Azure sign-in**, requesting an Entra token for resource
+  `499b84ac-1321-427f-aa17-267ca6975798`. `-DevOpsPat` is the fallback, not the default. This
+  answers the work item's open question about PAT vs OAuth.
+- **ADO collectors live in `Management/`**, not a new `DevOps` category folder — the existing
+  `DevOps` to `Management` alias already declared that is where DevOps work lands.
+- **The GitHub Action ships as `action.yml` in this repo**, not a separate `azure-scout-action`
+  repo, so there is no second artifact to version.
+- **`lite` defaults to `true`** in the Action: chart customization drives Excel over COM and no
+  hosted runner has Excel installed.
+- **AB#321 `-WhatIf` is marked Won't do** on the roadmap — Scout is read-only, so there is no state
+  change to preview.
+
+### Bugs found and fixed that were not in any work item
+
+- `Set-AzStorageBlobContent` lacked `-Force`, so the **second** scheduled runbook run failed with
+  "blob already exists" and the report never landed.
+- `$Debug.IsPresent` is always `$null` (`-Debug` is a common parameter, not a declared one), so the
+  runbook diagnostic log never uploaded.
+- `docs/category-structure.md` documented `Networking + CDN` as an alias absent from
+  `$_categoryAliasMap`. Added the alias rather than deleting the documentation line.
+- `tests/AzureScout.Tests.ps1` pinned the version to the literal `2.2.1` and broke CI on the bump.
+  It now asserts the manifest against the newest `CHANGELOG.md` heading, so it needs no edit next
+  release.
+- `docs/testing.md` claimed 29 files / ~1,240 tests / 237 scripts. Real: 56 / 1,648 / 274.
+
+### Verification status
+
+- Pester **1,648 passed, 0 failed, 3 skipped** across 56 files (66 new).
+- PSScriptAnalyzer **0 Error-severity** findings across `Modules/`. The `Write-Host` warnings are
+  pre-existing and non-blocking — CI only fails on Error severity.
+- CI run `30147596840` succeeded. Docs site builds clean.
+- **Not verified against a live tenant.** The Azure DevOps collectors are covered by 36 mocked tests
+  only; nobody has pointed `-IncludeDevOps` at a real organization yet. That is the highest-value
+  next check — `docs/validation-matrix.md` lists every live-tenant row.
+
+### Deliberately still open (14 items)
+
+- **Epic AB#5093** — served web application, 11 children. Never approved for build; needs a
+  go/no-go. Web and PowerShell are ONE product at parity, never rival feature sets.
+- **AB#323** under Epic AB#5410 — multi-tenant Lighthouse cross-tenant scanning. Its run-isolation
+  prerequisite shipped in v2.3.0.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — ADO/GitHub conformance drive COMPLETE (W2 + W3b + W4)
 
 **Result: the board and the GitHub issue set now reconcile exactly, with zero standards violations.**
 Verification script: `scratchpad/conformance.ps1` — **185 ADO items, 0 conformance failures; 130 GitHub
