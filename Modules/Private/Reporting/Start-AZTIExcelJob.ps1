@@ -73,9 +73,23 @@ function Start-AZSCExcelJob {
                     # doesn't exist in the parsed JSON — throws under StrictMode.
                     $SmaResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
 
-                    $ModuleResourceCount = @($SmaResources).count
+                    # @($null).Count is 1, NOT 0. The guard below was `@($SmaResources).count`,
+                    # so a module with no cache data scored 1 and was invoked anyway — every one
+                    # of the 176 collectors ran in Reporting mode on every run, not just the
+                    # ~30 that had rows. Mostly that was only wasted work, because a collector
+                    # opens with `if ($SmaResources)`. It stopped being harmless for the two
+                    # Identity files whose top-level statement is Register-AZSCInventoryModule:
+                    # invoking them at all throws, and that killed the Excel build outright.
+                    # Filtering out the nulls makes the count mean what it reads as. (AB#5649)
+                    $ModuleResourceCount = @($SmaResources).Where({ $null -ne $_ }).Count
 
-                    if ($ModuleResourceCount -gt 0)
+                    # The same two files must never be invoked here either, data or not. The
+                    # processing pipeline already refuses them by contract; this is the second
+                    # place that iterates the collector set, and it had drifted apart from the
+                    # first — which is exactly how this reached a live run.
+                    $Unsupported = $ModuleData -match '(?m)^\s*Register-AZSCInventoryModule'
+
+                    if ($ModuleResourceCount -gt 0 -and -not $Unsupported)
                     {
                         Start-Sleep -Milliseconds 25
                         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Running Module: '$ModName'. Excel Rows: $ModuleResourceCount")

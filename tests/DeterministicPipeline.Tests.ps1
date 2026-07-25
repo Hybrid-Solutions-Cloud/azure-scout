@@ -422,6 +422,84 @@ Describe 'Start-AZSCExtraJobs — security, policy, advisory and subscriptions, 
     }
 }
 
+Describe 'Excel reporting only invokes collectors that have data' {
+
+    # Found by a live run, not by the suite. The reporting loop guarded on
+    # `@($SmaResources).count -gt 0`, and @($null).Count is 1 — so every collector was invoked
+    # in Reporting mode whether or not it had rows. That was invisible while it was merely
+    # wasted work; it became fatal at the two Identity files whose top-level statement is
+    # Register-AZSCInventoryModule, which is not a real function. The Excel build died.
+
+    It 'counts an absent cache entry as zero rows, not one' {
+        # The exact PowerShell behaviour behind the bug. @($null) is a one-element array
+        # containing $null, so a bare .Count reports 1 for "nothing".
+        @($null).Count | Should -Be 1
+        @($null).Where({ $null -ne $_ }).Count | Should -Be 0
+    }
+
+    It 'Start-AZSCExcelJob filters nulls out of the row count' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Reporting/Start-AZTIExcelJob.ps1') -Raw
+        $Source | Should -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.Where'
+        $Source | Should -Not -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.count\s*$'
+    }
+
+    It 'Start-AZSCExcelJob refuses the unimplemented-contract collectors outright' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Reporting/Start-AZTIExcelJob.ps1') -Raw
+        $Source | Should -Match 'Register-AZSCInventoryModule'
+        $Source | Should -Match '-not \$Unsupported'
+    }
+
+    It 'the two unimplemented collectors are still the only ones using that contract' {
+        # If a third appears, both the pipeline and the reporting loop need to know about it.
+        $Root  = Join-Path $script:RepoRoot 'Modules/Public/InventoryModules'
+        $Users = @(Get-ChildItem -LiteralPath $Root -Filter '*.ps1' -Recurse -File |
+            Where-Object { (Get-Content $_.FullName -Raw) -match '(?m)^\s*Register-AZSCInventoryModule' } |
+            ForEach-Object { $_.BaseName } | Sort-Object)
+
+        $Users | Should -Be @('IdentityProviders', 'SecurityDefaults')
+    }
+}
+
+Describe 'Every report exporter tolerates a cache with no entry for a collector' {
+
+    # The old pipeline created a hashtable key for EVERY module file, including ones that
+    # produced nothing, so `$CacheData.$ModName` always resolved. The deterministic pipeline
+    # writes keys only for collectors it actually ran — so a skipped or filtered collector
+    # legitimately has no key, and an unguarded read throws under StrictMode:
+    #     The property 'IdentityProviders' cannot be found on this object.
+    # All four exporters carried the identical unguarded line. Found by a live run.
+
+    $ExporterFiles = @(
+        'Modules/Private/Reporting/Export-AZTIJsonReport.ps1'
+        'Modules/Private/Reporting/Export-AZTIMarkdownReport.ps1'
+        'Modules/Private/Reporting/Export-AZTIAsciiDocReport.ps1'
+        'Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1'
+    )
+
+    It '<_> checks the property exists before reading it' -ForEach $ExporterFiles {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot $_) -Raw
+
+        $Source | Should -Not -Match '(?m)^\s*\$ModResources\s*=\s*\$CacheData\.\$ModName\s*$'
+        $Source | Should -Match 'PSObject\.Properties\.Name -contains \$ModName'
+    }
+
+    It 'reading a missing property on a PSCustomObject throws under StrictMode' {
+        # The behaviour the guard exists for, pinned so nobody "simplifies" it back.
+        $Obj = [PSCustomObject]@{ Present = 1 }
+        $Name = 'Absent'
+        { Set-StrictMode -Version Latest; $null = $Obj.$Name } |
+            Should -Throw -ExpectedMessage "*cannot be found on this object*"
+    }
+
+    It 'the guarded form returns $null instead of throwing' {
+        Set-StrictMode -Version Latest
+        $CacheData = [PSCustomObject]@{ Present = 1 }
+        $ModName = 'Absent'
+        $ModResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
+        $ModResources | Should -BeNullOrEmpty
+    }
+}
+
 Describe 'The processing path no longer depends on background jobs' {
 
     It 'Start-AZSCProcessOrchestration calls the deterministic pipeline' {

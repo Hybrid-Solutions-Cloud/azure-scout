@@ -83,11 +83,43 @@ does. AB#5650/5651/5652/5654/5655 are Resolved with per-item evidence.
 **StrictMode is still off for collectors** — that is AB#5667's job, with the recorded
 live-payload fixtures needed to do it safely.
 
-### ⚠ No live-tenant run yet
+### Live-tenant verified — and it found two more bugs the suite could not
 
-This phase is verified by tests and an in-process smoke run over the real collector set, **not**
-by a run against a real tenant. Given the v2.5.1 lesson (a green suite is not evidence the
-product works), **a live run is the highest-value next check** before this ships to PSGallery.
+Four runs against This Is My Demo (`d6fc73cf`). The first two **failed in the reporting phase**,
+and both causes were real:
+
+1. **`@($null).Count` is 1, not 0.** `Start-AZSCExcelJob` guarded on
+   `@($SmaResources).count -gt 0`, so a collector with **no** cache entry scored 1 and was
+   invoked anyway — all 176 ran in Reporting mode on every build instead of the ~30 with rows.
+   Harmless until it reached the two Identity files whose top-level statement is
+   `Register-AZSCInventoryModule`; invoking them at all threw and killed the Excel build.
+2. **All four exporters read `$CacheData.$ModName` unguarded**
+   (`Export-AZSCJsonReport`/`Markdown`/`AsciiDoc`/`PowerBI`) — under StrictMode that throws
+   *"The property 'IdentityProviders' cannot be found on this object"*. **This one is a
+   regression from the skip**: the old pipeline created a hashtable key for every module file
+   even when it produced nothing, so the read always resolved. All four now check first. They
+   were fixed in one pass rather than one live run at a time.
+
+**Final live run — complete, all formats:**
+
+```
+Processing Phase Finished: 00:00:01:57
+Report Complete. Total Runtime was: 00:00:05:16
+Total Resources on Azure: 117  |  Total Resources on Excel: 416
+Advisories 547 | Policies 3 | Security Advisories 484
+Power BI: 35 files / 602 rows.  Excel + JSON + Markdown + AsciiDoc all written.
+1 of 176 collectors failed: Management/ManagementGroups (needs MG permissions — environment)
+```
+
+**The Security Center fix is proven on real data: the `SecurityCenter` worksheet now carries
+484 rows.** It was empty in every shipped release. `Subscriptions` 48, `Advisor` 547,
+`Policy` 26 — all four converted paths produce data.
+
+**Determinism proven on real data.** Two consecutive full runs, compared collector-section by
+collector-section from the JSON report: **32 sections compared, 31 byte-identical.** The single
+difference (`containers/containerApp` 8 → 9) was verified against Resource Graph — the tenant
+really does have 9 now, so the first run caught one mid-creation. That is the estate changing,
+not the pipeline.
 
 ---
 

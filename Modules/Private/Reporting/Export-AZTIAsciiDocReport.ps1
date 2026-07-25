@@ -96,7 +96,14 @@ function Export-AZSCAsciiDocReport {
 
         foreach ($Module in $ModuleFiles) {
             $ModName      = $Module.BaseName
-            $ModResources = $CacheData.$ModName
+            # $CacheData.$ModName throws "The property ... cannot be found on this object"
+            # under StrictMode when the cache carries no entry for that collector. It always
+            # did; it went unnoticed only because the old pipeline created a hashtable key for
+            # EVERY module file, even one that produced nothing, so the key was always there.
+            # The deterministic pipeline writes keys only for collectors it actually ran, so a
+            # skipped or filtered collector now legitimately has no key. Ask before reading.
+            # (AB#5649)
+            $ModResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
             if (-not $ModResources -or @($ModResources).Count -eq 0) { continue }
 
             $rows = @($ModResources)

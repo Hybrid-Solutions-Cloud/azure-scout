@@ -69,6 +69,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   accepted. No collector currently declares a category different from its folder, so this
   changes no present behaviour — it makes the documented feature real.
 
+- **Every collector ran in Reporting mode whether or not it had data** (AB#5649) —
+  `Start-AZSCExcelJob` guarded on `@($SmaResources).count -gt 0`, and **`@($null).Count` is 1, not
+  0**, so a collector with no cache entry scored 1 and was invoked anyway. All 176 ran on every
+  report build instead of the ~30 with rows. That was merely wasted work until it reached the two
+  Identity files whose top-level statement is `Register-AZSCInventoryModule` — invoking them at
+  all throws, and that killed the Excel build. The count now filters nulls, and the reporting
+  loop refuses the unimplemented-contract collectors the same way discovery does.
+
+- **All four report exporters threw on a cache with no entry for a collector** (AB#5649) —
+  `Export-AZSCJsonReport`, `Export-AZSCMarkdownReport`, `Export-AZSCAsciiDocReport` and
+  `Export-AZSCPowerBIReport` each read `$CacheData.$ModName` unguarded, which under StrictMode
+  throws *"The property 'IdentityProviders' cannot be found on this object"*. It never fired
+  before because the old pipeline created a hashtable key for **every** module file, including
+  ones that produced nothing. The deterministic pipeline writes keys only for collectors it
+  actually ran, so a skipped or filtered collector legitimately has no key. All four now check
+  before reading.
+
 - **Four more copies of the AB#5629 `NotStarted` race** (AB#5649) — the security, policy,
   advisory and subscription sheets were harvested with
   `while (get-job -Name 'X' | Where-Object { $_.State -eq 'Running' })`, which does not match a
