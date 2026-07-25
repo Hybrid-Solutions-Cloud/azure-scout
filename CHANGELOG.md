@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inventory mode and assessment mode still collect their Azure data independently — the
   inventory runs its per-resource-type modules while the assessment runs its own ~26-query
   Resource Graph pack over the same resource types. Running both queries Azure twice.
-  Collapsing them onto one collection pass is outstanding work.
+  Collapsing them onto one collection pass is tracked as AB#5543.
 
 ## [2.3.0] - 2026-07-25
 

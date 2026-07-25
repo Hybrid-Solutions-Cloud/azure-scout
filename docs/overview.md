@@ -75,7 +75,7 @@ Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment
 The two modes currently collect their Azure data separately — the inventory runs its own
 per-resource-type modules, and the assessment runs its own Resource Graph query pack. Running
 both therefore queries Azure twice. Collapsing them onto a single collection pass is tracked
-work; until it lands, a "Both" run costs roughly two scans' worth of API calls.
+work (AB#5543); until it lands, a "Both" run costs roughly two scans’ worth of API calls.
 :::
 
 ## Requirements

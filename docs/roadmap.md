@@ -29,7 +29,7 @@ Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout
 
 ::: warning Known limitation
 Inventory and assessment still collect their Azure data independently, so running
-both queries Azure twice. Collapsing them onto one collection pass is outstanding.
+both queries Azure twice. Collapsing them onto one collection pass is tracked as AB#5543.
 :::
 
 ## v2.3.0 — Collection Hardening & External Platform Integrations
