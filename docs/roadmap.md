@@ -13,7 +13,26 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.5.0 — One Collection Pass
+## Current Release — v2.5.1 — Live-Run Hardening
+
+Released 25 July 2026, published to the PowerShell Gallery.
+
+Seven defects stopped a full `Invoke-AzureScout` run from completing against a real tenant.
+Extraction and processing succeeded, then the reporting layer threw *after* every worksheet had
+already been built. Fixed: an uninitialised extraction variable, 41 `.IsPresent` reads on
+parameters that are not declared `[switch]`, Excel styling and tables applied over empty
+worksheets, VM property names the Compute collector never emitted, 29 unguarded worksheet
+dereferences, 10 pivot titles read before assignment, and a Markdown string-interpolation bug.
+
+**Every one was found by running the product end to end against live Azure.** The 1692-test suite
+passed the whole time, because nothing exercised the extraction, processing and reporting chain
+against real collector output. This release also carries the first live-tenant verification of the
+`-IncludeDevOps` collectors — 166 resources across 74 projects — which previously had only mocked
+tests.
+
+Full detail: [CHANGELOG.md § 2.5.1](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#251---2026-07-25).
+
+## Previous Release — v2.5.0 — One Collection Pass
 
 Released 25 July 2026, published to the PowerShell Gallery.
 

@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-07-25
+
+### Fixed
+
+Seven defects that stopped a full `Invoke-AzureScout` inventory run from completing against a real
+tenant. **Every one was found by running the product end to end against live Azure — the 1692-test
+suite passed throughout, because nothing drove the extraction, processing and reporting chain
+against real collector output.**
+
+- **Extraction: `$MGContainerExtension` was never initialised** (AB#5547) — it is consumed
+  unconditionally by the `resourcecontainers` query but was only assigned inside the
+  `-ManagementGroup` branch, so a run without that switch died on an unset variable. Its three
+  sibling query-extension variables were all initialised; this one was missed.
+
+- **Processing: 41 `.IsPresent` reads on parameters that are not declared `[switch]`** (AB#5547) —
+  `$Heavy`, `$InTag`, `$Automation`, `$SkipAdvisory`, `$IncludeCosts` and others are `$null` when a
+  caller omits them, and `.IsPresent` on `$null` throws. Replaced with a null-safe `[bool]`
+  coercion, which is identical for a real `SwitchParameter` and yields `$false` for `$null`.
+
+- **Reporting: Excel styling on an empty worksheet** (AB#5567) — ImportExcel resolves a `-Style`
+  range against the written sheet; with zero data rows `Set-ExcelRange` throws *"The property
+  'HorizontalAlignment' cannot be found on this object"*. `-TableName` fails the same way. Style
+  and table arguments are now supplied only when there is at least one row.
+
+- **Reporting: the cost and update-manager worksheets read property names the collector does not
+  emit** (AB#5567) — `$vm.Name`, `$vm.Size` and `$vm.'OS SKU'` against a Compute collector that
+  emits `VM Name`, `VM Size` and `OS Version`. **These worksheets have never carried VM rows.**
+
+- **Charts: `$excel.'<Name>'` threw whenever the estate produced no such worksheet** (AB#5567) — no
+  public IPs, no disks, no VMs. 29 sites now resolve through a `Worksheets | Where-Object` lookup,
+  so the existing null guards actually apply.
+
+- **Charts: pivot titles read before assignment** (AB#5567) — each `$P<n>Name` is assigned only
+  inside a worksheet-exists branch but read unconditionally; P7 and P9 have a single branch. A
+  pivot that cannot be built now gets no title instead of killing the report.
+
+- **Markdown: `"$totalResources_"`** (AB#5567) — the trailing underscore closes a markdown italic
+  run, but an underscore is a legal identifier character, so PowerShell parsed it as a variable
+  that never existed.
+
+### Verified
+
+A full `Invoke-AzureScout -IncludeDevOps` run against a live tenant now completes: **227 Azure
+resources, 994 Excel rows, 40 Power BI CSVs / 1013 rows**, plus JSON, Markdown and the draw.io
+diagram. Azure DevOps extraction returned **166 resources** (74 projects, 4 pipelines, 4 service
+connections, 74 repositories, 10 agent pools) — the first live-tenant verification of the
+`-IncludeDevOps` collectors, which until now had only 36 mocked tests.
+
+### Known limitations
+
+- `Build-AZSCExcelComObject` emits a non-fatal error when Excel is not installed
+  (`0x80040154 Class not registered`). This is the existing limitation behind `lite` defaulting to
+  true; the run completes and every artifact is still produced.
+- Compute collection returned inconsistent row counts across otherwise-identical runs. Not yet
+  explained; possibly Resource Graph throttling.
+
 ## [2.5.0] - 2026-07-25
 
 ### Changed
