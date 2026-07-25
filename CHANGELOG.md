@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-07-25
+
+Closes the collection-hardening epic (AB#5411) and the external-platform integrations
+(AB#5410) other than multi-tenant Lighthouse, which stays on the roadmap.
+
+### Added
+
+- **Azure DevOps inventory** (AB#327) — `-IncludeDevOps` extends a scan to cover Azure
+  DevOps projects, pipelines, service connections, repositories, and agent pools, adding
+  five worksheets. Authentication reuses the current Azure sign-in by requesting an Entra
+  token for the Azure DevOps resource, so no personal access token is needed in the common
+  case; `-DevOpsPat` covers the case where the two identities differ. Organizations are
+  discovered from the signed-in profile, or named explicitly with `-DevOpsOrganization`
+  (required for service principals, which have no profile to enumerate).
+  The **ADO Service Connections** sheet cross-references every Azure Resource Manager
+  connection against the subscriptions in scope, so a pipeline with a credentialled path
+  into the inventoried estate is visible, and flags connections still using a secret or
+  certificate rather than workload identity federation. **ADO Agent Pools** highlights
+  self-hosted pools. Partial access is handled: a 401/403 on one endpoint skips that slice
+  and collection continues. Every call is a GET — Azure Scout stays read-only.
+- **Run isolation / non-destructive cache** (AB#331) — every invocation now gets its own
+  run folder under the base output directory, so rescanning, or scanning a second tenant,
+  can no longer destroy the previous run's `ReportCache`, `DiagramCache`, or report.
+  `-RunName` names the folder instead of using the generated timestamp; `-Force` restores
+  the previous overwrite-in-place behaviour; `Clear-AZSCCacheFolder -OlderThan <days>`
+  prunes aged run folders.
+- **Post-login management group access probe** (AB#351) — `Get-AzManagementGroup` is called
+  right after login and the count is reported in the login summary. An authorization
+  failure prints the exact role to assign rather than surfacing an hour later as a silently
+  empty worksheet. The probe never aborts the run; collection continues at subscription
+  scope.
+- **GitHub Action** (AB#328) — the repository now ships a composite `action.yml`, so a
+  workflow can generate an inventory with
+  `uses: thisismydemo/azure-scout@v2`. It installs the module and dependencies,
+  authenticates, runs the collection, and uploads the reports as an artifact. Every input
+  reaches PowerShell as an environment variable rather than through `${{ }}` interpolation
+  into a script body, so a crafted input value cannot break out and execute.
+- **Documentation** — [Azure Automation Account](docs/automation.md) (AB#343), the
+  eight-step unattended setup guide that previously did not exist;
+  [GitHub Actions](docs/github-actions.md) (AB#328); [Azure DevOps](docs/azure-devops.md)
+  (AB#327); [Category Reference](docs/category-reference.md) (AB#318, AB#5417), mapping
+  every report section heading to its category, aliases, collector folder, and module
+  count; and [Validation Matrix](docs/validation-matrix.md) (AB#315), recording for every
+  phase 5-21 check whether it is covered by an automated test or requires a live tenant.
+  README gains a category quick-reference table.
+
+### Fixed
+
+- **Cross-subscription context is restored** (AB#368) — every loop that called
+  `Set-AzContext` left the caller parked in whichever subscription came last, or in
+  whichever one an error surfaced from. All five call sites — the resource provider
+  pre-flight, VM quota collection, policy compliance states, and both permission-audit
+  sweeps — now capture the context up front and restore it in a `finally` block.
+- **Automation blob uploads on a second run** (AB#343) — `Set-AzStorageBlobContent` now
+  passes `-Force`. Without it the second scheduled runbook execution failed with "blob
+  already exists" and the report never landed.
+- **Diagnostic log never uploaded from a runbook** (AB#343) — the upload was gated on
+  `$Debug.IsPresent`, which is always `$null` because `-Debug` is a common parameter, not a
+  declared one. It now tests `$DebugPreference`. The diagram upload is additionally guarded
+  on the file existing.
+- **Documented category aliases that did not work** (AB#318) — `docs/category-structure.md`
+  listed `Networking + CDN` as an accepted alias, but it was absent from the alias map.
+  It has been added, along with `Web and mobile`, `Mobile`, and `Networking+CDN`, and the
+  documented table now matches the code in both directions.
+- **Stale figures in `docs/testing.md`** — the page claimed 29 test files and ~1,240 tests
+  across 237 scripts; the real numbers are 56 files, 1,648 tests, and 274 scripts.
+
+### Changed
+
+- Context-restore guards use `PSObject.Properties` rather than bare property access, which
+  throws under `Set-StrictMode` when the property is absent. The two sites that execute
+  inside thread jobs, and the permission audit (dot-sourced standalone by callers and
+  tests), carry the restore inline rather than depending on a sibling file being loaded.
+- `.github/workflows/azure-inventory.yml` now consumes the repository's own composite
+  action, so the workflow exercises the same code path external consumers get. It
+  previously omitted `ImportExcel` from its dependency install and interpolated workflow
+  inputs directly into a PowerShell script body.
+
+### Testing
+
+Full suite **1,648 passed, 0 failed, 3 skipped** across 56 files (66 new: 30 in
+`tests/RunIsolation.Tests.ps1`, 36 in `tests/DevOps.Module.Tests.ps1`).
+PSScriptAnalyzer: 0 Error-severity findings across `Modules/`.
+
 ## [2.2.1] - 2026-07-24
 
 ### Fixed

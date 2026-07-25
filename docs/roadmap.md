@@ -88,14 +88,16 @@ Focus: quality, reliability, and community onboarding.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Pester test suite | Full unit + integration tests for all public functions and key private functions | :blue_circle: Planned |
-| PSGallery publish | Publish `AzureScout` module to PowerShell Gallery | :blue_circle: Planned |
-| GitHub Actions CI | Run Pester tests on PR + push; block merge on failure | :blue_circle: Planned |
-| Category alias documentation | Comprehensive table of all accepted `-Category` aliases and their canonical names | :blue_circle: Planned |
-| Resource provider pre-flight | Warn before scan when required providers are not registered in a subscription | :blue_circle: Planned |
-| Throttling / retry improvements | Exponential backoff on ARM 429 responses; configurable `-ThrottleDelay` | :blue_circle: Planned |
-| `Invoke-AzureScout -WhatIf` | Show which modules would run without actually executing | :blue_circle: Planned |
-| Non-destructive cache | Prevent `ReportCache` and `DiagramCache` from being overwritten on subsequent runs. Each invocation writes to a timestamped (or `-RunName` named) subfolder. Previous scan data is never lost unless `-Force` is specified. `Clear-AZSCCacheFolder -OlderThan <days>` for cleanup. | :blue_circle: Planned |
+| Pester test suite | Full unit + integration tests for all public functions and key private functions | :white_check_mark: Done — 1,648 tests across 56 files, run offline |
+| PSGallery publish | Publish `AzureScout` module to PowerShell Gallery | :white_check_mark: Done (v2.0.0) |
+| GitHub Actions CI | Run Pester tests on PR + push; block merge on failure | :white_check_mark: Done — `ci.yml` runs Pester + PSScriptAnalyzer on every push and PR |
+| Category alias documentation | Comprehensive table of all accepted `-Category` aliases and their canonical names | :white_check_mark: Done (v2.3.0, AB#318/AB#5417) — see [Category Reference](category-reference.md) |
+| Resource provider pre-flight | Warn before scan when required providers are not registered in a subscription | :white_check_mark: Done — `-CheckResourceProviders` |
+| Throttling / retry improvements | Exponential backoff on 429 responses, honouring `Retry-After`, plus 5xx retry | :white_check_mark: Done — `Invoke-AZSCGraphRequest` (`-MaxRetries`, default 5) |
+| `Invoke-AzureScout -WhatIf` | Show which modules would run without actually executing | :x: Won't do (AB#321) — Azure Scout is read-only, so `-WhatIf` has no state change to preview |
+| Non-destructive cache | Prevent `ReportCache` and `DiagramCache` from being overwritten on subsequent runs. Each invocation writes to a timestamped (or `-RunName` named) subfolder. Previous scan data is never lost unless `-Force` is specified. `Clear-AZSCCacheFolder -OlderThan <days>` for cleanup. | :white_check_mark: Done (v2.3.0, AB#331) |
+| Cross-subscription context restore | Restore the caller's subscription context after every per-subscription loop, including on error | :white_check_mark: Done (v2.3.0, AB#368) |
+| Management group access probe | Report management group visibility at login and name the role to assign when it is missing | :white_check_mark: Done (v2.3.0, AB#351) |
 
 ### Visual Dashboard Tabs (DarkBlue "overview-style" worksheets)
 
@@ -121,14 +123,15 @@ Focus: depth, breadth, and multi-tenant scenarios.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. Builds on non-destructive cache (v1.1.0) for run isolation. | :bulb: Idea (AB#323, AB#332) |
+| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. The run-isolation prerequisite shipped in v2.3.0 (AB#331). | :bulb: Idea (AB#323) |
 | Word document export (#22) | Shipped as `-OutputFormat Word` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
 | PDF report export (#23) | Shipped as `-OutputFormat Pdf` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
 | Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |
 | Bicep / IaC gap detection | Shipped as the offline `Get-ScoutIacGap` function (v2.2.0) — compares discovered resources against a folder of Bicep/ARM-JSON templates and flags unmanaged resources; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#325) |
 | Resource drift reporting | Shipped as the offline `Get-ScoutInventoryDrift` function (v2.2.0) — compares the current `collect.json` against the previous run's snapshot and reports Added/Removed/Changed resources. | :white_check_mark: Done (v2.2.0, AB#326) |
-| Azure DevOps integration | Inventory Azure DevOps organizations, projects, pipelines alongside Azure resources | :bulb: Idea |
-| GitHub Actions module | Publish as a GitHub Action so pipelines can generate inventory reports without local setup | :bulb: Idea (AB#328) |
+| Azure DevOps integration | Shipped as `-IncludeDevOps` (v2.3.0) — inventories projects, pipelines, service connections, repositories, and agent pools across one or more organizations, adding five worksheets. Authentication reuses the current Azure sign-in; `-DevOpsPat` covers a separate identity. The ADO Service Connections sheet cross-references each ARM connection against the subscriptions in scope. | :white_check_mark: Done (v2.3.0, AB#327) |
+| GitHub Actions module | Shipped as a composite `action.yml` at the repository root (v2.3.0) — `uses: thisismydemo/azure-scout@v2` installs the module, authenticates, collects, and uploads reports as an artifact. | :white_check_mark: Done (v2.3.0, AB#328) |
+| Azure Automation Account | Shipped as first-class unattended execution (v2.3.0) — the eight-step setup guide now exists, plus fixes for the blob-upload collision on a second scheduled run and the diagnostic log that never uploaded. | :white_check_mark: Done (v2.3.0, AB#343) |
 | Fabric / Power BI export (#17) | `-OutputFormat PowerBI` generates a flat normalized CSV bundle (`PowerBI/` folder) with `_metadata.csv`, `Subscriptions.csv`, per-module `Resources_*.csv` and `Entra_*.csv` files, and a `_relationships.json` star-schema manifest for Power BI Desktop / Microsoft Fabric | :white_check_mark: Done |
 | IoT deep coverage | Shipped in the assessment Collect layer (v2.2.0) — `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them. | :white_check_mark: Done (v2.2.0, AB#330) |
 

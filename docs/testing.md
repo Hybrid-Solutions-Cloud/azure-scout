@@ -4,7 +4,7 @@ description: How to run and write Pester tests for AzureScout.
 
 # Testing
 
-AzureScout maintains **100 % test coverage** across all 237 PowerShell scripts.
+AzureScout maintains **100 % test coverage** across all 274 PowerShell scripts.
 The test suite uses [Pester 5](https://pester.dev) and runs entirely offline — no Azure credentials or live API calls required.
 
 ## Prerequisites
@@ -22,7 +22,7 @@ Import-Module Pester -RequiredVersion 5.3.2 -Force
 Invoke-Pester -Path .\tests\ -Output Detailed
 ```
 
-This runs all 29 test files (~1,240 tests) and typically completes in under 60 seconds.
+This runs all 55 test files (1,612 tests) and typically completes in seven to eight minutes.
 
 ## Running a Single Test File
 
@@ -36,7 +36,7 @@ Invoke-Pester -Path .\tests\Private.Main.Tests.ps1 -Output Detailed
 
 ## Test File Overview
 
-The `tests/` directory contains 29 Pester files organized by area:
+The `tests/` directory contains 55 Pester files organized by area:
 
 ### Inventory Module Tests (15 files)
 

@@ -21,7 +21,10 @@ function Start-AZSCExtractionOrchestration {
     Param($ManagementGroup, $Subscriptions, $SubscriptionID, $SkipPolicy, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $SkipAPIs, $SkipVMDetails, $IncludeCosts, $Automation, $AzureEnvironment,
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]$Scope = 'All',
-        [string]$TenantID
+        [string]$TenantID,
+        [switch]$IncludeDevOps,
+        [string[]]$DevOpsOrganization,
+        [string]$DevOpsPat
     )
 
     $Resources = @()
@@ -119,6 +122,25 @@ function Start-AZSCExtractionOrchestration {
 
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Entra ID extraction complete. ' + @($EntraResources).Count + ' resources added.')
         }
+    }
+
+    # ── Azure DevOps Extraction (opt-in via -IncludeDevOps) ──
+    # Opt-in rather than scope-driven: Azure DevOps is a separate service with its own
+    # authorization, and an inventory run should not fail or stall on it by default.
+    if ($IncludeDevOps.IsPresent) {
+        Write-Progress -activity 'Azure Inventory' -Status "18% Complete." -PercentComplete 18 -CurrentOperation "Starting Azure DevOps Extraction.."
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Azure DevOps extraction.')
+
+        $DevOpsData = Start-AZSCDevOpsExtraction -TenantID $TenantID -Organization $DevOpsOrganization -Pat $DevOpsPat
+        $DevOpsResources = if ($DevOpsData) { $DevOpsData.DevOpsResources } else { @() }
+
+        # Guarded exactly as the Entra merge is: a $null here would add a null element to
+        # $Resources and crash later property-chain access under StrictMode.
+        if ($DevOpsResources) { $Resources += $DevOpsResources }
+
+        Remove-Variable -Name DevOpsData -ErrorAction SilentlyContinue
+
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Azure DevOps extraction complete. ' + @($DevOpsResources).Count + ' resources added.')
     }
 
     $ResourcesCount = [string]@($Resources).Count

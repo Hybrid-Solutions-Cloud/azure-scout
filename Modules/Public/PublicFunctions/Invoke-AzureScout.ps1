@@ -114,6 +114,29 @@
     heading, its collector folder, and its module count — is on the docs site under
     "Category reference".
 
+.PARAMETER IncludeDevOps
+    Also inventory Azure DevOps: projects, pipelines, service connections, repositories, and
+    agent pools. Adds five worksheets (ADO Projects, ADO Pipelines, ADO Service Connections,
+    ADO Repositories, ADO Agent Pools).
+
+    Authentication reuses the current Azure sign-in by requesting an Entra token for the Azure
+    DevOps resource, so no personal access token is needed in the common case. Supply
+    -DevOpsPat when the Azure identity and the Azure DevOps identity differ.
+
+    The ADO Service Connections sheet cross-references each Azure Resource Manager connection
+    against the subscriptions in scope, so you can see which of your subscriptions are
+    reachable from a pipeline.
+
+.PARAMETER DevOpsOrganization
+    One or more Azure DevOps organization names to inventory (the 'contoso' in
+    dev.azure.com/contoso). When omitted, organizations are discovered from the signed-in
+    profile. Service principals cannot enumerate organizations, so an unattended run must
+    name them explicitly.
+
+.PARAMETER DevOpsPat
+    Azure DevOps personal access token, used instead of the current Azure sign-in. Needs read
+    scopes for Project and Team, Build, Release, Code, Service Connections, and Agent Pools.
+
 .PARAMETER RunName
     Friendly name for this run's output folder instead of the generated timestamp, for example
     -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'.
@@ -288,7 +311,13 @@ Function Invoke-AzureScout {
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
         [string]$RunName,
-        [switch]$Force
+        [switch]$Force,
+        [Alias('IncludeADO','DevOps')]
+        [switch]$IncludeDevOps,
+        [Alias('ADOOrganization')]
+        [string[]]$DevOpsOrganization,
+        [Alias('ADOPat')]
+        [string]$DevOpsPat
         )
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
@@ -316,8 +345,12 @@ Function Invoke-AzureScout {
         'Management and governance' = 'Management'
         'Management & governance'   = 'Management'
         'Web & Mobile'              = 'Web'
+        'Web and mobile'            = 'Web'
+        'Mobile'                    = 'Web'
         'Hybrid + multicloud'       = 'Hybrid'
         'Hybrid+multicloud'         = 'Hybrid'
+        'Networking + CDN'          = 'Networking'   # documented alias — portal groups CDN under Networking
+        'Networking+CDN'            = 'Networking'
         'DevOps'                    = 'Management'   # DevOps lives under Management folder
         'Migration'                 = 'Management'   # Migration lives under Management folder
     }
@@ -591,7 +624,7 @@ Function Invoke-AzureScout {
 
     $ExtractionRuntime = [System.Diagnostics.Stopwatch]::StartNew()
 
-        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID
+        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
 
     $ExtractionRuntime.Stop()
 

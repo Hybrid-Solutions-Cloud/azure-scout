@@ -33,11 +33,14 @@ Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 
 ## Key Features
 - ARM and Entra ID inventory
+- Azure DevOps inventory — projects, pipelines, service connections, repos, agent pools
 - Excel and JSON output
 - Scoped execution (ARM-only, Entra-only, or both)
 - Streamlined authentication
 - Permission checker
 - Network diagrams
+- Run isolation — a rescan never overwrites the previous run's data
+- Unattended execution via Azure Automation Account or GitHub Actions
 - Cross-platform (Windows, Linux, Mac)
 
 ## Quick Start
@@ -68,7 +71,43 @@ Invoke-AzureScout -TenantID <your-tenant-id> -Scope ArmOnly
 
 # Entra ID only
 Invoke-AzureScout -TenantID <your-tenant-id> -Scope EntraOnly
+
+# Narrow to specific categories
+Invoke-AzureScout -TenantID <your-tenant-id> -Category Compute,Networking
+
+# Include Azure DevOps
+Invoke-AzureScout -TenantID <your-tenant-id> -IncludeDevOps
+
+# Name this run's output folder
+Invoke-AzureScout -TenantID <your-tenant-id> -RunName 'Production-TenantA'
 ```
+
+## Category Quick Reference
+
+`-Category` narrows a scan to one or more categories. Values are the canonical short
+names; Microsoft's portal long names are accepted as aliases.
+
+| `-Category` | Report section heading | Aliases also accepted | Modules |
+|---|---|---|---|
+| `AI` | AI + machine learning | `AI + machine learning`, `Machine Learning` | 27 |
+| `Analytics` | Analytics | — | 6 |
+| `Compute` | Compute | — | 14 |
+| `Containers` | Containers | — | 6 |
+| `Databases` | Databases | — | 13 |
+| `Hybrid` | Hybrid + multicloud | `Hybrid + multicloud` | 16 |
+| `Identity` | Identity | — | 18 |
+| `Integration` | Integration | — | 2 |
+| `IoT` | Internet of Things | `Internet of Things` | 1 |
+| `Management` | Management and governance | `Management and governance`, `DevOps`, `Migration` | 14 |
+| `Monitor` | Monitor | `Monitoring` | 24 |
+| `Networking` | Networking | `Networking + CDN` | 21 |
+| `Security` | Security | — | 5 |
+| `Storage` | Storage | — | 2 |
+| `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 2 |
+
+Note that `Monitor` is canonical, not `Monitoring`. Matching is case-insensitive. The
+complete mapping — every alias, collector folder, and the resource types behind each
+heading — is in the [Category Reference](docs/category-reference.md).
 
 ## Documentation
 
@@ -81,8 +120,13 @@ For detailed guides, module catalog, parameters, permissions, troubleshooting, t
 - [Parameters Reference](docs/parameters.md)
 - [Permissions](docs/permissions.md)
 - [Category Filtering](docs/category-filtering.md)
+- [Category Reference](docs/category-reference.md)
 - [Output Files & Formats](docs/output.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Azure Automation Account](docs/automation.md)
+- [GitHub Actions](docs/github-actions.md)
+- [Azure DevOps](docs/azure-devops.md)
+- [Validation Matrix](docs/validation-matrix.md)
 - [ARM Modules](docs/arm-modules.md)
 - [Entra Modules](docs/entra-modules.md)
 - [Testing](docs/testing.md)

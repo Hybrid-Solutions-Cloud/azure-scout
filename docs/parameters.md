@@ -46,8 +46,26 @@ See [Authentication](authentication.md) for detailed examples of each method.
 | Parameter | Description |
 |-----------|-------------|
 | `-ReportName` | Custom report filename (default: `AzureScout_Report_<timestamp>`) |
-| `-ReportDir` | Custom output directory (default: `C:\AzureScout\` on Windows, `$HOME/AzureScout/` on Linux/Mac) |
+| `-ReportDir` | Base output directory (default: `C:\AzureScout\` on Windows, `$HOME/AzureScout/` on Linux/Mac) |
+| `-RunName` | Friendly name for this run's output folder instead of the generated timestamp, e.g. `-RunName 'Production-TenantA'`. Invalid path characters become `-` |
+| `-Force` | Write directly into `-ReportDir`, overwriting any previous run in place. Without it, each run gets its own timestamped folder so a rerun cannot destroy the previous run's cache or report |
 | `-Lite` | Lightweight Excel report — no charts or pivot tables |
+
+### Azure DevOps
+
+| Parameter | Description |
+|-----------|-------------|
+| `-IncludeDevOps` | Also inventory Azure DevOps: projects, pipelines, service connections, repositories, agent pools. Adds five worksheets. Aliases: `-IncludeADO`, `-DevOps`. See [Azure DevOps](azure-devops.md) |
+| `-DevOpsOrganization` | Organization name(s) to inventory. Omit to discover them from the signed-in profile — service principals must name them explicitly. Alias: `-ADOOrganization` |
+| `-DevOpsPat` | Personal access token, used instead of the current Azure sign-in. Needs read scope on Project and Team, Build, Release, Code, Service Connections, Agent Pools. Alias: `-ADOPat` |
+
+### Unattended execution
+
+| Parameter | Description |
+|-----------|-------------|
+| `-Automation` | Run non-interactively for an Azure Automation Account runbook: no interactive login, ThreadJob instead of background Job, progress to the job output stream. See [Azure Automation Account](automation.md) |
+| `-StorageAccount` | Storage account to upload the generated reports to. Authenticates to the data plane with the connected identity, so the identity needs **Storage Blob Data Contributor** |
+| `-StorageContainer` | Blob container within `-StorageAccount` that reports are written to |
 
 ### Diagram
 

@@ -1,0 +1,208 @@
+name: 'Azure Scout Inventory'
+description: 'Generate an Azure ARM + Entra ID inventory report and expose it as a workflow artifact.'
+author: 'thisismydemo'
+
+branding:
+  icon: 'search'
+  color: 'blue'
+
+inputs:
+  tenant-id:
+    description: 'Entra tenant (directory) ID.'
+    required: true
+  client-id:
+    description: 'App registration (service principal) client ID. Required unless using a federated/OIDC login established by an earlier step.'
+    required: false
+    default: ''
+  client-secret:
+    description: 'Client secret for the service principal. Pass from a secret, never a literal.'
+    required: false
+    default: ''
+  subscription-id:
+    description: 'Subscription to inventory. Blank scans every subscription the identity can read.'
+    required: false
+    default: ''
+  scope:
+    description: 'ArmOnly (default), EntraOnly, or All. EntraOnly and All require Microsoft Graph permissions.'
+    required: false
+    default: 'ArmOnly'
+  category:
+    description: 'Comma-separated category filter, e.g. Compute,Networking. Blank runs every category.'
+    required: false
+    default: ''
+  output-format:
+    description: 'All, Excel, Json, Markdown, AsciiDoc, or PowerBI.'
+    required: false
+    default: 'All'
+  report-name:
+    description: 'Report file name prefix.'
+    required: false
+    default: 'AzureScout'
+  report-dir:
+    description: 'Directory for generated reports, relative to the workspace.'
+    required: false
+    default: 'azure-scout-reports'
+  module-version:
+    description: 'AzureScout version to install from the PowerShell Gallery. Blank installs the latest.'
+    required: false
+    default: ''
+  lite:
+    description: 'Skip Excel chart customization. Must stay true on hosted runners — chart customization drives Excel over COM and no hosted runner has Excel installed.'
+    required: false
+    default: 'true'
+  include-costs:
+    description: 'Collect cost data. Requires Cost Management Reader.'
+    required: false
+    default: 'false'
+  upload-artifact:
+    description: 'Upload the report directory as a workflow artifact.'
+    required: false
+    default: 'true'
+  artifact-name:
+    description: 'Name for the uploaded artifact.'
+    required: false
+    default: 'azure-scout-reports'
+  artifact-retention-days:
+    description: 'Artifact retention in days.'
+    required: false
+    default: '30'
+
+outputs:
+  report-dir:
+    description: 'Absolute path to the directory holding the generated reports.'
+    value: ${{ steps.scout.outputs.report-dir }}
+  report-count:
+    description: 'Number of report files generated.'
+    value: ${{ steps.scout.outputs.report-count }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      shell: pwsh
+      env:
+        TENANT_ID: ${{ inputs.tenant-id }}
+        CLIENT_ID: ${{ inputs.client-id }}
+        CLIENT_SECRET: ${{ inputs.client-secret }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        if ([string]::IsNullOrWhiteSpace($env:TENANT_ID)) {
+            Write-Host '::error::tenant-id is required.'
+            exit 1
+        }
+        # client-id and client-secret travel together: either both, for a service
+        # principal login, or neither, when an earlier step has already established a
+        # federated/OIDC context that Connect-AzAccount can reuse.
+        $hasId     = -not [string]::IsNullOrWhiteSpace($env:CLIENT_ID)
+        $hasSecret = -not [string]::IsNullOrWhiteSpace($env:CLIENT_SECRET)
+        if ($hasId -ne $hasSecret) {
+            Write-Host '::error::client-id and client-secret must be supplied together.'
+            exit 1
+        }
+        if (-not $hasId) {
+            Write-Host 'No client-id supplied - relying on an Azure context established by an earlier step.'
+        }
+
+    - name: Install AzureScout and dependencies
+      shell: pwsh
+      env:
+        MODULE_VERSION: ${{ inputs.module-version }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+        # Installed explicitly rather than leaning on the module's import-time
+        # dependency bootstrap: in CI a surprise install mid-run is slow, and a failure
+        # there surfaces as a confusing downstream error instead of a clear one here.
+        $deps = @(
+            'Az.Accounts', 'Az.ResourceGraph', 'Az.Resources', 'Az.Storage',
+            'Az.Compute', 'Az.Advisor', 'ImportExcel', 'powershell-yaml'
+        )
+        foreach ($dep in $deps) {
+            Write-Host "Installing $dep..."
+            Install-Module $dep -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+        }
+
+        if ([string]::IsNullOrWhiteSpace($env:MODULE_VERSION)) {
+            Write-Host 'Installing AzureScout (latest)...'
+            Install-Module AzureScout -Scope CurrentUser -Force -ErrorAction Stop
+        } else {
+            Write-Host "Installing AzureScout $env:MODULE_VERSION..."
+            Install-Module AzureScout -RequiredVersion $env:MODULE_VERSION -Scope CurrentUser -Force -ErrorAction Stop
+        }
+
+        $installed = (Get-Module AzureScout -ListAvailable | Select-Object -First 1).Version
+        Write-Host "AzureScout $installed installed."
+
+    - name: Run Azure Scout
+      id: scout
+      shell: pwsh
+      env:
+        # Every value reaches PowerShell as an environment variable rather than through
+        # ${{ }} interpolation into the script body. Interpolating an input directly
+        # would let a crafted value terminate the string and run as code.
+        TENANT_ID:      ${{ inputs.tenant-id }}
+        CLIENT_ID:      ${{ inputs.client-id }}
+        CLIENT_SECRET:  ${{ inputs.client-secret }}
+        SUBSCRIPTION_ID: ${{ inputs.subscription-id }}
+        SCOUT_SCOPE:    ${{ inputs.scope }}
+        CATEGORY:       ${{ inputs.category }}
+        OUTPUT_FORMAT:  ${{ inputs.output-format }}
+        REPORT_NAME:    ${{ inputs.report-name }}
+        REPORT_DIR:     ${{ inputs.report-dir }}
+        LITE:           ${{ inputs.lite }}
+        INCLUDE_COSTS:  ${{ inputs.include-costs }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+
+        $reportDir = Join-Path $env:GITHUB_WORKSPACE $env:REPORT_DIR
+        New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
+
+        $params = @{
+            TenantID            = $env:TENANT_ID
+            ReportName          = $env:REPORT_NAME
+            ReportDir           = $reportDir
+            Scope               = $env:SCOUT_SCOPE
+            OutputFormat        = $env:OUTPUT_FORMAT
+            SkipDiagram         = $true
+            SkipPermissionCheck = $true
+            # -Force keeps output flat in ReportDir. A CI job is a fresh workspace with
+            # nothing to preserve, and the artifact upload path stays predictable.
+            Force               = $true
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($env:CLIENT_ID)) {
+            $params.AppId  = $env:CLIENT_ID
+            $params.Secret = $env:CLIENT_SECRET
+        }
+        if (-not [string]::IsNullOrWhiteSpace($env:SUBSCRIPTION_ID)) {
+            $params.SubscriptionID = $env:SUBSCRIPTION_ID
+        }
+        if (-not [string]::IsNullOrWhiteSpace($env:CATEGORY)) {
+            $params.Category = $env:CATEGORY -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+        }
+        if ($env:LITE -eq 'true')          { $params.Lite = $true }
+        if ($env:INCLUDE_COSTS -eq 'true') { $params.IncludeCosts = $true }
+
+        Import-Module AzureScout -Force
+        Invoke-AzureScout @params
+
+        $files = @(Get-ChildItem -Path $reportDir -File -Recurse)
+        Write-Host "Generated $($files.Count) file(s):"
+        $files | ForEach-Object { Write-Host "  $($_.Name)  ($([math]::Round($_.Length / 1KB, 1)) KB)" }
+
+        "report-dir=$reportDir"        | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "report-count=$($files.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+        if ($files.Count -eq 0) {
+            Write-Host '::warning::Azure Scout completed but produced no report files.'
+        }
+
+    - name: Upload reports
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.report-dir }}
+        retention-days: ${{ inputs.artifact-retention-days }}
+        if-no-files-found: warn

@@ -1,8 +1,11 @@
 name: Azure Scout
 
-# Runs a real, headless Azure Scout inventory against a subscription using a
-# service-principal (client-secret) login and uploads the generated reports as
-# build artifacts.
+# Runs a real, headless Azure Scout inventory using a service-principal
+# (client-secret) login and uploads the generated reports as build artifacts.
+#
+# This workflow consumes the repository's own composite action (./), so it
+# exercises the same code path external consumers get from
+# `uses: thisismydemo/azure-scout@v2`.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   AZURE_TENANT_ID        - Entra tenant (directory) ID
@@ -21,10 +24,19 @@ on:
         description: 'Subscription ID to inventory (blank = all readable subscriptions)'
         required: false
         default: ''
-      resourceGroup:
-        description: 'Limit to a single resource group (optional)'
+      category:
+        description: 'Comma-separated category filter (blank = all categories)'
         required: false
         default: ''
+      scope:
+        description: 'Data sources to query'
+        required: false
+        default: 'ArmOnly'
+        type: choice
+        options:
+          - ArmOnly
+          - EntraOnly
+          - All
       reportName:
         description: 'Report name prefix'
         required: false
@@ -60,72 +72,18 @@ jobs:
           if [ "$missing" -ne 0 ]; then exit 1; fi
           echo "Azure service-principal credentials present."
 
-      - name: Install Az and Azure Scout modules
-        shell: pwsh
-        run: |
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-          Write-Host 'Installing Az.Accounts, Az.ResourceGraph, Az.Resources...'
-          Install-Module Az.Accounts, Az.ResourceGraph, Az.Resources -Scope CurrentUser -Force -AllowClobber
-          Write-Host 'Installing AzureScout from PSGallery...'
-          Install-Module AzureScout -Scope CurrentUser -Force
-
       - name: Run Azure Scout inventory
-        shell: pwsh
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $reportDir = Join-Path $env:GITHUB_WORKSPACE 'AzureScout-Reports'
-          New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
-
-          $params = @{
-            TenantID          = $env:AZURE_TENANT_ID
-            AppId             = $env:AZURE_CLIENT_ID
-            Secret            = $env:AZURE_CLIENT_SECRET
-            ReportName        = '${{ github.event.inputs.reportName }}'
-            ReportDir         = $reportDir
-            SkipDiagram       = $true
-            SkipPermissionCheck = $true
-          }
-
-          # Prefer the workflow input, then the secret, else scan all readable subs.
-          $subId = '${{ github.event.inputs.subscriptionId }}'
-          if ([string]::IsNullOrWhiteSpace($subId)) { $subId = $env:AZURE_SUBSCRIPTION_ID }
-          if (-not [string]::IsNullOrWhiteSpace($subId)) { $params.SubscriptionID = $subId }
-
-          $rg = '${{ github.event.inputs.resourceGroup }}'
-          if (-not [string]::IsNullOrWhiteSpace($rg)) { $params.ResourceGroup = $rg }
-
-          Import-Module AzureScout
-          Invoke-AzureScout @params
-
-          Write-Host 'Generated files:'
-          Get-ChildItem -Path $reportDir -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
-
-      - name: Upload reports
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./
         with:
-          name: azure-scout-reports
-          path: AzureScout-Reports/
-          if-no-files-found: warn
-
-      # Optional: upload to Azure Storage (uncomment and provide a storage account
-      # the service principal can write to).
-      # - name: Upload to Azure Storage
-      #   shell: pwsh
-      #   env:
-      #     AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      #     AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      #     AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      #   run: |
-      #     $sec = ConvertTo-SecureString $env:AZURE_CLIENT_SECRET -AsPlainText -Force
-      #     $cred = [pscredential]::new($env:AZURE_CLIENT_ID, $sec)
-      #     Connect-AzAccount -ServicePrincipal -Tenant $env:AZURE_TENANT_ID -Credential $cred | Out-Null
-      #     $ctx = New-AzStorageContext -StorageAccountName 'yourstorageaccount' -UseConnectedAccount
-      #     Get-ChildItem -Path "$env:GITHUB_WORKSPACE/AzureScout-Reports" -File | ForEach-Object {
-      #       Set-AzStorageBlobContent -File $_.FullName -Container 'azurescout-reports' -Blob $_.Name -Context $ctx -Force
-      #     }
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          subscription-id: ${{ github.event.inputs.subscriptionId || secrets.AZURE_SUBSCRIPTION_ID }}
+          category: ${{ github.event.inputs.category }}
+          scope: ${{ github.event.inputs.scope }}
+          report-name: ${{ github.event.inputs.reportName }}
+          # Chart customization drives Excel over COM. No GitHub-hosted runner has
+          # Excel installed, so -Lite is mandatory here; the workbook is still
+          # generated, just without the COM-rendered charts.
+          lite: 'true'
+          artifact-name: azure-scout-reports

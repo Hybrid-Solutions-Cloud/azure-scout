@@ -28,17 +28,28 @@ This page maps the `-Category` parameter values to Microsoft's official Azure po
 
 ## Accepted Aliases
 
-The following long-form names (as shown in the Azure portal) are automatically normalized to their short equivalents:
+The following long-form names (as shown in the Azure portal) are automatically normalized to their short equivalents. Matching is case-insensitive.
 
 | Input | Normalized to |
 |-------|---------------|
 | `AI + machine learning` | `AI` |
+| `AI+machine learning` | `AI` |
+| `Machine Learning` | `AI` |
 | `Internet of Things` | `IoT` |
 | `Monitoring` | `Monitor` |
 | `Management and governance` | `Management` |
+| `Management & governance` | `Management` |
+| `DevOps` | `Management` |
+| `Migration` | `Management` |
 | `Web & Mobile` | `Web` |
+| `Web and mobile` | `Web` |
+| `Mobile` | `Web` |
 | `Hybrid + multicloud` | `Hybrid` |
+| `Hybrid+multicloud` | `Hybrid` |
 | `Networking + CDN` | `Networking` |
+| `Networking+CDN` | `Networking` |
+
+See the [Category Reference](category-reference.md) for the full mapping of report section headings to categories, collector folders, and module counts.
 
 ## Category Selection Logic
 

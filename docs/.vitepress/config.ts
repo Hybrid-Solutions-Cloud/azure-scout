@@ -33,6 +33,14 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Unattended Execution',
+        items: [
+          { text: 'Azure Automation Account', link: '/automation' },
+          { text: 'GitHub Actions', link: '/github-actions' },
+          { text: 'Azure DevOps', link: '/azure-devops' },
+        ],
+      },
+      {
         text: 'CAF/WAF Assessment',
         items: [
           { text: 'Assessment Platform', link: '/assessment' },
@@ -48,6 +56,8 @@ export default defineConfig({
           { text: 'Entra ID Modules', link: '/entra-modules' },
           { text: 'Coverage Table', link: '/coverage-table' },
           { text: 'Category Structure', link: '/category-structure' },
+          { text: 'Category Reference', link: '/category-reference' },
+          { text: 'Validation Matrix', link: '/validation-matrix' },
         ],
       },
       {
