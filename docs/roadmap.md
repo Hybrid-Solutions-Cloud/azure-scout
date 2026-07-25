@@ -13,7 +13,19 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.4.0 — One Command, and a Guided Wizard
+## Current Release — v2.5.0 — One Collection Pass
+
+Released 25 July 2026, published to the PowerShell Gallery.
+
+A combined inventory + assessment run now queries Azure **once** (AB#5543). The inventory pass
+already projects the full property bag for every resource, so the assessment shapes its scores
+from those rows rather than re-issuing its own Resource Graph pack over the same resource types.
+One query still goes to Azure in a combined run — the Defender for SQL pricing lookup, which
+reads a table the inventory does not collect. The assessment-only path is unchanged.
+
+Full detail: [CHANGELOG.md § 2.5.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#250---2026-07-25).
+
+## Previous Release — v2.4.0 — One Command, and a Guided Wizard
 
 Released 25 July 2026, published to the PowerShell Gallery.
 
@@ -27,9 +39,9 @@ Released 25 July 2026, published to the PowerShell Gallery.
 
 Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
 
-::: warning Known limitation
-Inventory and assessment still collect their Azure data independently, so running
-both queries Azure twice. Collapsing them onto one collection pass is tracked as AB#5543.
+::: tip Resolved in v2.5.0
+The duplicate collection pass described here was collapsed in v2.5.0 (AB#5543) — a combined run
+now collects from Azure once.
 :::
 
 ## v2.3.0 — Collection Hardening & External Platform Integrations

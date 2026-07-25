@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-07-25
+
+### Changed
+
+- **A combined run now collects from Azure once, not twice** (AB#5543) — when the setup wizard
+  is asked for both inventory and assessment, the assessment no longer issues its own Resource
+  Graph query pack over resource types the inventory pass has already fetched. The inventory
+  extraction already projects the full `properties` bag from `resources`, `networkresources` and
+  `resourcecontainers`, which is a superset of what the assessment's typed queries were
+  re-fetching, so the assessment's scalars are now shaped from those in-memory rows.
+
+  In a combined run, **one** Resource Graph query still goes to Azure: `sqlDefenderPricing`
+  reads the `SecurityResources` table (`Microsoft.Security/pricings`), which the inventory only
+  touches under `-SecurityCenter` and then filters to `microsoft.security/assessments`, so those
+  rows are genuinely never present. Every other query is served from memory.
+
+  The assessment-only path (`Invoke-AzureScout -Assessment` without an inventory pass) is
+  **unchanged** — it still runs the full Resource Graph pack, and that KQL remains the reference
+  implementation. If the shaping layer ever throws, the run falls back to querying Resource Graph
+  rather than costing the caller their assessment.
+
+### Added
+
+- `ConvertFrom-ScoutInventory` (`src/collect/ConvertFrom-ScoutInventory.ps1`) — derives every
+  assessment scalar from already-collected inventory rows, mirroring the KQL field for field.
+- `-FromInventory` on `Invoke-Collect` and `Invoke-ScoutAssessment`, threading the inventory
+  extraction result through to the collector.
+- `tests/CollectorCollapse.Tests.ps1` — 17 tests pinning the KQL semantics a naive PowerShell
+  rewrite gets wrong (`array_length(null)` is null and not `0`; `tobool(null)` is null and not
+  `$false`; subnet capacity is `2^(32-prefix) - 5`; `allPoolsZoned` only when every AKS pool has
+  zones), plus an assertion that a `-FromInventory` run reaches Resource Graph exactly once while
+  an assessment-only run still issues every query.
+
+### Fixed
+
+- Rows appearing in both the `resources` and `networkresources` tables are de-duplicated by
+  resource id before shaping. Without this a VNet present in both would be counted twice and
+  inflate every existence-count rule.
+
 ## [2.4.0] - 2026-07-25
 
 ### Added
@@ -67,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inventory runs its per-resource-type modules while the assessment runs its own ~26-query
   Resource Graph pack over the same resource types. Running both queries Azure twice.
   Collapsing them onto one collection pass is tracked as AB#5543.
+  **Resolved in 2.5.0 — see below.**
 
 ## [2.3.0] - 2026-07-25
 

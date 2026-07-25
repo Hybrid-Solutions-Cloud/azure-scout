@@ -71,11 +71,12 @@ Invoke-AzureScout -ReportDir ./scout                          # inventory
 Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment
 ```
 
-::: warning Known limitation
-The two modes currently collect their Azure data separately — the inventory runs its own
-per-resource-type modules, and the assessment runs its own Resource Graph query pack. Running
-both therefore queries Azure twice. Collapsing them onto a single collection pass is tracked
-work (AB#5543); until it lands, a "Both" run costs roughly two scans’ worth of API calls.
+::: tip One collection pass
+Since v2.5.0 a combined run collects from Azure **once**. The inventory pass already fetches the
+full property bag for every resource, and the assessment shapes its scores from those rows
+instead of re-querying the same resource types. Exactly one Resource Graph query still runs in a
+combined pass — the Defender for SQL pricing lookup, which reads a table the inventory does not
+collect. An assessment-only run is unchanged and still issues the full query pack.
 :::
 
 ## Requirements

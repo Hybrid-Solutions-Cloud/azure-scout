@@ -167,7 +167,14 @@ function Invoke-Collect {
         [string[]] $Categories = @('*'),
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',
-        [string]   $ManagementGroupId
+        [string]   $ManagementGroupId,
+
+        # AB#5543 — the result of Start-AZSCGraphExtraction from an inventory pass that already
+        # ran in this invocation. When supplied, every query below that can be satisfied from
+        # those already-fetched rows is shaped locally instead of re-querying Azure, so a
+        # combined inventory + assessment run collects once rather than twice. Omitted (the
+        # assessment-only path) behaves exactly as before: every query goes to Resource Graph.
+        [object]   $FromInventory
     )
     Import-Module Az.ResourceGraph -ErrorAction Stop
 
@@ -622,11 +629,45 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
 
     $r = @{}
 
+    # ---- reuse an inventory pass instead of re-querying Azure (AB#5543) ----
+    # Start-AZSCGraphExtraction already projects the FULL `properties` bag from `resources`,
+    # `networkresources` and `resourcecontainers`, which is a superset of what the typed queries
+    # above re-fetch. When those rows are handed in, shape them locally so the run costs one
+    # collection pass instead of two.
+    #
+    # `sqlDefenderPricing` is deliberately NOT satisfiable this way: it reads the
+    # SecurityResources table (Microsoft.Security/pricings), which inventory only touches under
+    # -SecurityCenter and then filters to microsoft.security/assessments. It still goes to ARG.
+    $inventoryShaped = @{}
+    if ($FromInventory) {
+        if (-not (Get-Command ConvertFrom-ScoutInventory -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'ConvertFrom-ScoutInventory.ps1')
+        }
+        try {
+            $invResources = if ($FromInventory.PSObject.Properties['Resources']) { $FromInventory.Resources } else { @() }
+            $invContainers = if ($FromInventory.PSObject.Properties['ResourceContainers']) { $FromInventory.ResourceContainers } else { @() }
+            $inventoryShaped = ConvertFrom-ScoutInventory -Resources $invResources -ResourceContainers $invContainers
+            Write-Verbose "Invoke-Collect: reusing the inventory collection pass for $($inventoryShaped.Keys.Count) queries (AB#5543); only 'sqlDefenderPricing' still goes to Resource Graph."
+        }
+        catch {
+            # Never let a shaping bug cost the caller their assessment — fall back to the ARG
+            # path, which is the reference implementation.
+            Write-Warning "Invoke-Collect: could not reuse the inventory collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
+            $inventoryShaped = @{}
+        }
+    }
+
     # Always collect `subscriptions` first, regardless of hashtable enumeration
     # order, so its subscription-id list is available for the AB#397 per-subscription
     # fallback used by every OTHER query below.
     $subscriptionIds = @()
-    if ($selectedKeys -contains 'subscriptions') {
+    if ($selectedKeys -contains 'subscriptions' -and $inventoryShaped.ContainsKey('subscriptions')) {
+        $r['subscriptions'] = @($inventoryShaped['subscriptions'])
+        $subscriptionIds = @($r['subscriptions'] | ForEach-Object {
+                if ($_ -and $_.PSObject.Properties['id']) { $_.id }
+            } | Where-Object { $_ })
+    }
+    elseif ($selectedKeys -contains 'subscriptions') {
         try {
             $r['subscriptions'] = Invoke-Arg -Query $q['subscriptions']
             $subscriptionIds = @($r['subscriptions'] | ForEach-Object {
@@ -645,6 +686,8 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
     foreach ($k in $remainingKeys) {
         $queryIndex++
         if ($selectedKeys -notcontains $k) { $r[$k] = @(); continue }
+        # AB#5543 — already satisfied from the inventory pass; do not query Azure again.
+        if ($inventoryShaped.ContainsKey($k)) { $r[$k] = @($inventoryShaped[$k]); continue }
         if ($progressAvailable) {
             $pct = if (@($remainingKeys).Count -gt 0) { [Math]::Min(100, [Math]::Round(($queryIndex / @($remainingKeys).Count) * 100)) } else { -1 }
             try { Write-ScoutProgress -Activity 'Scout Collect' -Status "Querying: $k" -PercentComplete $pct -Id 1 }

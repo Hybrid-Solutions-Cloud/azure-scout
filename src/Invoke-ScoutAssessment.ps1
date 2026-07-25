@@ -66,7 +66,11 @@ function Invoke-ScoutAssessment {
         [switch]   $PermissionAudit,
         [switch]   $CollectOnly,                 # stop after collect.json
         [string]   $FromCollect,                 # skip collect, assess an existing collect.json
-        [string]   $ManagementGroupId
+        [string]   $ManagementGroupId,
+        # AB#5543 — extraction data from an inventory pass that already ran in this invocation.
+        # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
+        # rows already in memory instead of querying Azure a second time.
+        [object]   $FromInventory
     )
 
     $runId   = Get-Date -Format 'yyyyMMdd_HHmmss'
@@ -112,7 +116,10 @@ function Invoke-ScoutAssessment {
         $categories = $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique
         if ($Category) { $categories = $Category }
         Write-ScoutAssessmentProgress -Status 'Collecting Azure resource data' -PercentComplete 5
-        $collect = Invoke-Collect -Categories $categories -Scope $Scope -ManagementGroupId $ManagementGroupId
+        $collectArgs = @{ Categories = $categories; Scope = $Scope; ManagementGroupId = $ManagementGroupId }
+        # AB#5543 — reuse the inventory pass when this run already made one.
+        if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
+        $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments
         $ingestors = $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique

@@ -484,6 +484,10 @@ Function Invoke-AzureScout {
     # inventory), so a scheduled `Invoke-AzureScout` in a pipeline can never
     # block on a prompt. -NoWizard forces that same path interactively.
     $wizardRunBoth = $false
+    # AB#5543 — holds the assessment arguments when the wizard asked for both modes, so the
+    # assessment can run AFTER the inventory pass and reuse its rows. Declared here so the
+    # reference below is always set under StrictMode.
+    $deferredAssessArgs = $null
     if ($PSBoundParameters.Count -eq 0 -and -not $NoWizard.IsPresent -and (Test-AZSCInteractiveHost)) {
         $wizard = Start-AZSCWizard -AzureEnvironment $AzureEnvironment -PlatOS $PlatOS
         if (-not $wizard) { return }   # operator cancelled
@@ -528,9 +532,12 @@ Function Invoke-AzureScout {
         if ($CollectOnly.IsPresent)                         { $assessArgs.CollectOnly = $true }
         if ($FromCollect)                                   { $assessArgs.FromCollect = $FromCollect }
 
-        # "Both" from the wizard: emit the assessment result now and keep going
-        # into the inventory pass rather than returning early.
-        if ($wizardRunBoth) { Write-Output (Invoke-ScoutAssessment @assessArgs) }
+        # "Both" from the wizard: DEFER the assessment until after the inventory pass instead of
+        # running it now (AB#5543). Running it here made the command collect from Azure twice —
+        # the assessment issued its own Resource Graph pack, then the inventory re-fetched the
+        # same resource types moments later. Inventory already projects the full `properties`
+        # bag, so running it first and handing those rows to the assessment collects once.
+        if ($wizardRunBoth) { $deferredAssessArgs = $assessArgs }
         else { return Invoke-ScoutAssessment @assessArgs }
     }
 
@@ -721,6 +728,13 @@ Function Invoke-AzureScout {
         $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
 
     $ExtractionRuntime.Stop()
+
+    # AB#5543 — the wizard asked for both modes. The inventory pass above has now fetched the
+    # resource rows, so hand them to the assessment instead of letting it collect from Azure a
+    # second time over the same resource types.
+    if ($deferredAssessArgs) {
+        Write-Output (Invoke-ScoutAssessment @deferredAssessArgs -FromInventory $ExtractionData)
+    }
 
     $Resources = $ExtractionData.Resources
     $EntraResources = $ExtractionData.EntraResources
