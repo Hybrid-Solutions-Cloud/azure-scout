@@ -6,7 +6,72 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.5.0 SHIPPED: one collection pass (AB#5543)
+## Last session (2026-07-25, Claude Code) — v2.5.1 SHIPPED: Scout now completes a live run
+
+**The headline: before this session, `Invoke-AzureScout` could not finish a full run against a real
+tenant. It can now.** The operator asked "test it on mine", and the live run found **seven** defects
+that **1692 passing tests did not**.
+
+### Why the suite missed all seven
+
+Nothing drove the extraction → processing → reporting chain against real collector output. Every
+test either mocked Azure or exercised a unit in isolation. A green suite was not evidence the
+product worked, and it should not be treated as such again.
+
+| Phase | Defect | Item |
+|---|---|---|
+| Extraction | `$MGContainerExtension` consumed unconditionally, assigned only in the `-ManagementGroup` branch | AB#5547 |
+| Processing | 41 `.IsPresent` reads on params not declared `[switch]` (`$null` when omitted) | AB#5547 |
+| Reporting | ImportExcel throws on `-Style`/`-TableName` over a zero-row worksheet | AB#5567 |
+| Reporting | Cost + update-manager sheets read `$vm.Name`/`$vm.Size`/`OS SKU`; collector emits `VM Name`/`VM Size`/`OS Version` — **those sheets had never carried VM rows** | AB#5567 |
+| Charts | 29 `$excel.'<Name>'` dereferences throw when the estate has no such worksheet | AB#5567 |
+| Charts | 10 pivot titles read before assignment (P7, P9 have a single branch) | AB#5567 |
+| Markdown | `"$totalResources_"` — trailing italic underscore parsed into the identifier | AB#5567 |
+
+### Live verification (This Is My Demo, tenant `d6fc73cf…`)
+
+```
+Azure DevOps Extraction Complete: 166 total resources
+Report Complete. Total Runtime: 00:03:58
+Total Resources on Azure: 227  |  Total Resources on Excel: 994
+Files: 40  |  Total rows: 1013
+```
+
+**`-IncludeDevOps` is live-verified for the first time** — 74 projects, 4 pipelines, 4 service
+connections, 74 repositories, 10 agent pools — closing the "36 mocked tests only" gap that had been
+open since v2.3.0. The auth decision holds: the Azure sign-in is reused for an Entra token, no PAT.
+
+### Release
+
+Tag `v2.5.1`, GitHub release, **PSGallery `Find-Module AzureScout` → 2.5.1**. Board: 198 items,
+182 Closed, **0 conformance failures**, 133 GitHub issues all linked. Pester **1692 / 0 / 3**.
+
+### Traps hit this session — read before repeating
+
+- ⚠ **PSGallery caps manifest `ReleaseNotes` at 10,600 characters.** The cumulative string hit
+  10,788 and the push was rejected with a 400. It now carries only the three most recent releases
+  plus a CHANGELOG link. **Do not go back to appending every release.**
+- ⚠ **`az` CLI and `Az` PowerShell keep separate contexts** and were signed into *different
+  tenants*. Scout's inventory path uses the Az PowerShell context. Check `Get-AzContext` before
+  claiming anything ran against a given tenant — and check whether a login already succeeded before
+  asking the operator to do it again.
+- ⚠ **I wrote `AB#5548` into six code comments before creating the item; the real id came back
+  `5567`.** All references were corrected. Never write a work-item id that has not been returned by
+  the API. This is the second occurrence.
+- ⚠ StrictMode is **dynamically scoped**. The v1 inventory path does not set it, so these bugs only
+  bite when the caller does — but the HCS scripting standard requires it of every script, and four
+  of the seven defects above threw *without* StrictMode too.
+
+### Open questions carried forward
+
+- **Compute collection is non-deterministic** — `ReportCache/Compute.json` was 5,158 bytes on one
+  run and 470 on the next, same scope. Possibly ARG throttling. No work item yet.
+- `Build-AZSCExcelComObject` needs Excel installed via COM (`0x80040154`); non-fatal, and the
+  reason `lite` defaults to true.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.5.0 SHIPPED: one collection pass (AB#5543)
 
 **The backlog outside web and multi-tenant is now empty.** Board: 196 items — **180 Closed / 14
 New / 2 Removed**, and all 14 open items are Epic AB#5093 (web app, 11 children) and Epic
