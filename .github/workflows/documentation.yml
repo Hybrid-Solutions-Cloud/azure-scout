@@ -8,6 +8,13 @@ on:
       - 'docs/**'
       - 'package.json'
       - '.github/workflows/documentation.yml'
+      # Version-bearing files. The docs site states the current release, so a release commit that
+      # touches only the manifest/changelog must still redeploy it. Without these, a release that
+      # forgot a docs/ edit shipped a silently stale site -- which is exactly how the published
+      # changelog page ended up two minor releases behind. (AB#5630)
+      - 'AzureScout.psd1'
+      - 'CHANGELOG.md'
+      - 'RELEASES.md'
   pull_request:
     branches:
       - main
@@ -15,6 +22,13 @@ on:
       - 'docs/**'
       - 'package.json'
       - '.github/workflows/documentation.yml'
+      # Version-bearing files. The docs site states the current release, so a release commit that
+      # touches only the manifest/changelog must still redeploy it. Without these, a release that
+      # forgot a docs/ edit shipped a silently stale site -- which is exactly how the published
+      # changelog page ended up two minor releases behind. (AB#5630)
+      - 'AzureScout.psd1'
+      - 'CHANGELOG.md'
+      - 'RELEASES.md'
   workflow_dispatch:
 
 permissions:
