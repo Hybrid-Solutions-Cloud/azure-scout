@@ -9,15 +9,15 @@ Do not edit this page by hand. Azure DevOps and GitHub are the source of truth; 
 a rendering of them. Regenerate it with `./scripts/Build-TaskList.ps1`.
 :::
 
-Generated **2026-07-25 04:30 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
+Generated **2026-07-25 04:39 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
 
 ## Summary
 
 | Measure | Count |
 |---|---|
 | Work items | 185 |
-| State: Closed | 161 |
-| State: New | 23 |
+| State: Closed | 162 |
+| State: New | 22 |
 | State: Removed | 1 |
 | Type: Bug | 26 |
 | Type: Epic | 5 |
@@ -39,7 +39,6 @@ Generated **2026-07-25 04:30 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#331 | Feature | 2 | Platform | Implement non-destructive cache to prevent overwriting previous scan data | [#20](https://github.com/thisismydemo/azure-scout/issues/20) (open) |
 | AB#332 | Feature | 3 | Platform | Add multi-tenant scanning support for Azure Scout | [#21](https://github.com/thisismydemo/azure-scout/issues/21) (open) |
 | AB#343 | Feature | 3 | Platform | Add Azure Automation Account support with first-class unattended execution | [#32](https://github.com/thisismydemo/azure-scout/issues/32) (open) |
-| AB#345 | User Story | 4 | Collect | Auto-generate roadmap from GitHub Issues as single source of truth | [#36](https://github.com/thisismydemo/azure-scout/issues/36) (open) |
 | AB#350 | Feature | 3 | Platform | Add Save-AzContext/Import-AzContext for background collection runspace | [#41](https://github.com/thisismydemo/azure-scout/issues/41) (open) |
 | AB#351 | Feature | 3 | Platform | Add post-login management group access probe | [#42](https://github.com/thisismydemo/azure-scout/issues/42) (open) |
 | AB#352 | Feature | 3 | Platform | Add 10-minute AbortController timeout on collection fetch | [#43](https://github.com/thisismydemo/azure-scout/issues/43) (open) |
@@ -87,6 +86,7 @@ Generated **2026-07-25 04:30 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#341 | User Story | 3 | Assess | Track tech debt, inconsistencies, gaps, improvements, and unknowns in azure-scout | [#30](https://github.com/thisismydemo/azure-scout/issues/30) (open) |
 | AB#342 | Feature | 3 | Report | Improve draw.io diagram quality and consistency for Azure Scout | [#31](https://github.com/thisismydemo/azure-scout/issues/31) (open) |
 | AB#344 | Feature | 3 | Report | Replace Excel charts with standalone HTML dashboard using Apache ECharts | [#33](https://github.com/thisismydemo/azure-scout/issues/33) (open) |
+| AB#345 | User Story | 4 | Collect | Auto-generate roadmap from GitHub Issues as single source of truth | [#36](https://github.com/thisismydemo/azure-scout/issues/36) |
 | AB#347 | Bug | 1 | Platform | Fix Entra ID modules failing with Global Admin permissions | [#38](https://github.com/thisismydemo/azure-scout/issues/38) (open) |
 | AB#348 | Feature | 3 | Platform | Implement auto device-code login with no browser pop-up on headless servers | [#39](https://github.com/thisismydemo/azure-scout/issues/39) (open) |
 | AB#349 | Feature | 3 | Platform | Add auth status banner showing UPN and subscription name on login success | [#40](https://github.com/thisismydemo/azure-scout/issues/40) (open) |

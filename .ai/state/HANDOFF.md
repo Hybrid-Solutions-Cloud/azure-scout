@@ -49,18 +49,27 @@ and hyperlinked back to their ADO items. **0 ADO Bugs now lack a GitHub master r
 **Board now: 185 items — 158 Resolved / 23 New / 3 Closed / 1 Removed.**
 GitHub: 130 issues — 90 open / 40 closed.
 
-**⏳ Open decisions for the owner (nothing else is blocking):**
-1. **Mass Resolved → Closed.** 158 items sit in Resolved. The `work-items.md` closing criteria are
-   now all satisfiable (AC verified in prior sessions, code shipped in v2.2.1, GitHub issues carry a
-   status comment, successors exist). Closing them would also close ~108 GitHub issues. I did not do
-   this unilaterally because criterion 1 says the closer verifies the AC personally.
-2. **W5 — `docs/design/task-list.md` fate.** The precondition ("board is provably exact") is now met.
-   Delete it, or regenerate it from ADO/GitHub (AB#345). Nothing has been deleted.
-3. The 4 issues GH#1/3/30/31 are typed `Task` in GitHub but Feature/User Story in ADO. GitHub is
-   master for Flow 1 types, so I left both sides alone; harmless, flagged for completeness.
+**Resolved → Closed, done.** All 158 Resolved items moved to **Closed** (closing criteria met: AC
+verified during delivery, code shipped in v2.2.1, linked issues carry a status comment, successors
+exist) and the 68 still-open linked GitHub issues were closed as completed with a status comment.
 
-**Branch:** main. **No code changes, no commits** beyond this handoff — all writes were to ADO,
-GitHub, and the Platform Engineering repo.
+**W5 — `docs/design/task-list.md` is now generated, not hand-maintained (AB#345, Closed).**
+`scripts/Build-TaskList.ps1` renders the page from the live board (WIQL + workitemsbatch) plus the
+GitHub issue set, grouped by epic into open / delivered / dropped. Auth is the ambient `az` session
+and the `gh` CLI — no PAT stored. Regenerate with `./scripts/Build-TaskList.ps1`.
+- ⚠️ GOTCHA: VitePress compiles Markdown as a Vue template, so a work-item title containing
+  `<domain>` fails the build as an unclosed tag. The generator HTML-escapes titles.
+- Verified: `npm run docs:build` green, Pester **1582 pass / 0 fail / 3 skip**, analyzer clean apart
+  from the repo-wide BOM style warning.
+
+**Final state: 185 ADO items — 162 Closed / 22 New / 1 Removed. 130 GitHub issues, all linked.
+`conformance.ps1`: 0 ADO failures, 0 GitHub reconcile failures.**
+
+**Note (not a defect):** GH#1/3/30/31 are typed `Task` in GitHub but Feature/User Story in ADO.
+GitHub is master for Flow 1 types, so both sides were left alone.
+
+**Branch:** main — commits `999839c` (handoff), `b1d931b` (generator + regenerated task list) —
+pushed. The rest of the drive wrote to ADO, GitHub, and the Platform Engineering repo.
 **Scripts:** `scratchpad/{board,tag-remap,close-5385,link-map,gh-labels,gh-bug-backfill,gh-reconcile-plan,gh-reconcile-apply,gh-dedupe-comments,ado-backfill-gh,conformance}.ps1`.
 
 ## Prior session (2026-07-24, Claude Code) — ADO standards conformance drive (IN PROGRESS)
