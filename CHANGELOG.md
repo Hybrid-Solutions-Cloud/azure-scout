@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The inventory processing phase no longer uses background jobs** (AB#5649, Epic AB#5638) —
+  first phase of the engine rebuild. Processing was four coordinated pieces of job machinery:
+  `Start-AZSCProcessJob` (or `Start-AZSCAutProcessJob` under `-Automation`) created one
+  `Start-Job` per category, each of which then created one `[PowerShell]::Create()` runspace per
+  collector; `Wait-AZSCJob` waited on them; `Build-AZSCCacheFiles` harvested and destroyed them.
+
+  Every defect of the v2.5.x wave lived in that coordination rather than in the collectors:
+
+  | Mechanism | What it produced |
+  |---|---|
+  | `Start-Job` is asynchronous | a `NotStarted` job was excluded from the wait, harvested empty and then deleted — the category vanished with no trace (AB#5629) |
+  | `$Job.Runspace.IsCompleted` | `PowerShellAsyncResult` has no `.Runspace`, so the wait was a no-op and `EndInvoke` raced its own work |
+  | each job re-imports the module | module-scope StrictMode returned inside the job, which is why the v2.5.3 opt-out needed **17** entry points rather than 5 |
+  | `Get-Job` ordering | the same tenant produced different reports on consecutive runs |
+  | the whole estate serialised to JSON per category | 16 round-trips through `ConvertTo-Json -Depth 40` |
+
+  Collectors are pure functions of the resource set, so none of that concurrency was ever
+  required. `Invoke-ScoutProcessing` (new, `src/pipeline/`) runs all 176 in-process in a fixed
+  order and writes the same `ReportCache` layout. Identical input now produces an identical
+  report cache — pinned by a test that hashes the cache files across two runs.
+
+  Resilience improved rather than regressed: each collector's failure is contained
+  individually, so one bad collector no longer empties its category or aborts the batch. The
+  run reports what failed instead of silently shipping a thinner report.
+
+  The `-Automation` processing branch is gone. It existed only to substitute `Start-ThreadJob`
+  where `Start-Job` was unavailable; with no jobs, both modes execute the same code and can no
+  longer drift apart — as the two collector-discovery implementations already had.
+
+  Deleted: `Start-AZTIProcessJob.ps1`, `Start-AZTIAutProcessJob.ps1`, `Build-AZTICacheFiles.ps1`,
+  `Invoke-AZTIAdvisoryJob.ps1`, `Invoke-AZTIPolicyJob.ps1`, `Invoke-AZTISecurityCenterJob.ps1`,
+  `Invoke-AZTISubJob.ps1`. `-Heavy` no longer affects this phase (it only sized the job batch);
+  it still applies to extraction.
+
+  The draw.io diagram subsystem still uses background jobs and is unchanged.
+
+### Fixed
+
+- **The Security Center sheet has been empty in every release that had one** (AB#5649) —
+  `Invoke-AZSCSecurityCenterJob` was called with `-SecurityCenter $SecurityCenter` against a
+  parameter block that declared no such parameter. PowerShell does **not** reject an unknown
+  named argument to a simple function; it collects it into `$args` and carries on. So
+  `$SecurityCenter` was undefined inside the wrapper, `$null` crossed the job boundary as the
+  `-Security` argument, and `Start-AZSCSecCenterJob`'s `foreach ($1 in $Security)` iterated
+  nothing. Calling the function directly is what surfaced it; it now receives `$Security`.
+
+- **Five collectors threw on their first log call** (AB#5649) —
+  `Monitor/SubscriptionDiagnosticSettings` and the four `Security/Defender*` collectors call
+  `Write-AZSCLog -Color 'Cyan'` and `-Level Verbose`. The function accepted neither, so each
+  threw *"A parameter cannot be found that matches parameter name 'Color'"* the moment it was
+  reached, and produced nothing. The old pipeline surfaced runspace errors detached at
+  `EndInvoke` time, so this was invisible. `Write-AZSCLog` now accepts both.
+
+- **Per-file `.CATEGORY` filtering never worked** (AB#5649) — the engine matched
+  `\.CATEGORY\s*[\r\n]+\s*(...)`, which requires a line break between the keyword and its value.
+  All 176 collectors write `.CATEGORY Compute` on one line, so the expression never matched a
+  single file and every collector silently fell back to its folder name. Both forms are now
+  accepted. No collector currently declares a category different from its folder, so this
+  changes no present behaviour — it makes the documented feature real.
+
+- **Four more copies of the AB#5629 `NotStarted` race** (AB#5649) — the security, policy,
+  advisory and subscription sheets were harvested with
+  `while (get-job -Name 'X' | Where-Object { $_.State -eq 'Running' })`, which does not match a
+  job that has not started yet. The resource pipeline's copy of this bug was fixed in v2.5.2;
+  these four were missed. All four now run in-process and hand their results over directly.
+
+### Known limitation
+
+- `Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` are written against a
+  registration API (`Register-AZSCInventoryModule`, `Get-AZSCProcessedData`, `$Context.EntraData`)
+  that exists **only as a mock inside `tests/Identity.Module.Tests.ps1`** and was never
+  implemented in the module. They have never produced a row in any release. They are now
+  detected during discovery and reported as skipped rather than executed, so a genuine collector
+  failure is not buried under two guaranteed ones. Porting them needs the Entra data plumbing
+  and is tracked under AB#5656.
+
 ## [2.5.3] - 2026-07-25
 
 ### Fixed

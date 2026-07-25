@@ -5,9 +5,8 @@
     Pester tests for Private/Processing modules.
 
 .DESCRIPTION
-    Tests processing pipeline functions: cache file building, advisory jobs,
-    draw.io jobs, policy jobs, security center jobs, subscription jobs,
-    automation processing, extra jobs, and main process job.
+    Tests processing pipeline functions: the draw.io job wrapper and the extra-processing
+    step, plus the AB#5649 pins that keep the deleted background-job machinery deleted.
     No live Azure authentication is required.
 
 .NOTES
@@ -18,22 +17,34 @@
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
     $script:ProcessingPath  = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Processing'
+
+    # Return a file's executable code with ALL comments removed, using the PowerShell
+    # tokenizer. A line regex is not good enough here: these files document the machinery they
+    # replaced inside <# … #> blocks, whose inner lines do not begin with '#', so a regex
+    # strip leaves the old command names behind and the assertions below match the prose
+    # instead of the code.
+    function Get-StrippedCode {
+        Param([string]$Path)
+
+        $Tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            $Path, [ref]$Tokens, [ref]$null)
+
+        ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
+    }
 }
 
 # =====================================================================
 # FILE EXISTENCE
 # =====================================================================
 Describe 'Private/Processing Module Files Exist' {
+    # Build-AZTICacheFiles, Start-AZTIProcessJob and Start-AZTIAutProcessJob were DELETED by
+    # AB#5649 — see the regression Describe at the end of this file.
+    # Only the draw.io wrapper survives — the Advisory, Policy, SecurityCenter and Sub wrappers
+    # were deleted by AB#5649 along with the jobs they existed to wrap.
     $processingFiles = @(
-        'Build-AZTICacheFiles.ps1',
-        'Invoke-AZTIAdvisoryJob.ps1',
         'Invoke-AZTIDrawIOJob.ps1',
-        'Invoke-AZTIPolicyJob.ps1',
-        'Invoke-AZTISecurityCenterJob.ps1',
-        'Invoke-AZTISubJob.ps1',
-        'Start-AZTIAutProcessJob.ps1',
-        'Start-AZTIExtraJobs.ps1',
-        'Start-AZTIProcessJob.ps1'
+        'Start-AZTIExtraJobs.ps1'
     )
 
     It '<_> exists' -ForEach $processingFiles {
@@ -45,16 +56,13 @@ Describe 'Private/Processing Module Files Exist' {
 # SYNTAX VALIDATION
 # =====================================================================
 Describe 'Private/Processing Script Syntax Validation' {
+    # Build-AZTICacheFiles, Start-AZTIProcessJob and Start-AZTIAutProcessJob were DELETED by
+    # AB#5649 — see the regression Describe at the end of this file.
+    # Only the draw.io wrapper survives — the Advisory, Policy, SecurityCenter and Sub wrappers
+    # were deleted by AB#5649 along with the jobs they existed to wrap.
     $processingFiles = @(
-        'Build-AZTICacheFiles.ps1',
-        'Invoke-AZTIAdvisoryJob.ps1',
         'Invoke-AZTIDrawIOJob.ps1',
-        'Invoke-AZTIPolicyJob.ps1',
-        'Invoke-AZTISecurityCenterJob.ps1',
-        'Invoke-AZTISubJob.ps1',
-        'Start-AZTIAutProcessJob.ps1',
-        'Start-AZTIExtraJobs.ps1',
-        'Start-AZTIProcessJob.ps1'
+        'Start-AZTIExtraJobs.ps1'
     )
 
     It '<_> parses without errors' -ForEach $processingFiles {
@@ -70,104 +78,81 @@ Describe 'Private/Processing Script Syntax Validation' {
 # =====================================================================
 Describe 'Private/Processing Function Definitions' {
 
-    It 'Build-AZTICacheFiles.ps1 defines Build-AZSCCacheFiles' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Build-AZTICacheFiles.ps1') -Raw
-        $content | Should -Match 'function\s+Build-AZSCCacheFiles'
-    }
-
-    It 'Invoke-AZTIAdvisoryJob.ps1 defines Invoke-AZSCAdvisoryJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTIAdvisoryJob.ps1') -Raw
-        $content | Should -Match 'function\s+Invoke-AZSCAdvisoryJob'
-    }
-
     It 'Invoke-AZTIDrawIOJob.ps1 defines Invoke-AZSCDrawIOJob' {
         $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTIDrawIOJob.ps1') -Raw
         $content | Should -Match 'function\s+Invoke-AZSCDrawIOJob'
-    }
-
-    It 'Invoke-AZTIPolicyJob.ps1 defines Invoke-AZSCPolicyJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTIPolicyJob.ps1') -Raw
-        $content | Should -Match 'function\s+Invoke-AZSCPolicyJob'
-    }
-
-    It 'Invoke-AZTISecurityCenterJob.ps1 defines Invoke-AZSCSecurityCenterJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTISecurityCenterJob.ps1') -Raw
-        $content | Should -Match 'function\s+Invoke-AZSCSecurityCenterJob'
-    }
-
-    It 'Invoke-AZTISubJob.ps1 defines Invoke-AZSCSubJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTISubJob.ps1') -Raw
-        $content | Should -Match 'function\s+Invoke-AZSCSubJob'
-    }
-
-    It 'Start-AZTIAutProcessJob.ps1 defines Start-AZSCAutProcessJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIAutProcessJob.ps1') -Raw
-        $content | Should -Match 'function\s+Start-AZSCAutProcessJob'
     }
 
     It 'Start-AZTIExtraJobs.ps1 defines Start-AZSCExtraJobs' {
         $content = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExtraJobs'
     }
-
-    It 'Start-AZTIProcessJob.ps1 defines Start-AZSCProcessJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIProcessJob.ps1') -Raw
-        $content | Should -Match 'function\s+Start-AZSCProcessJob'
-    }
 }
 
 # =====================================================================
-# STRICTMODE CRASH-HARDENING REGRESSION TESTS (AB#5041 sweep)
+# THE RESOURCE-PROCESSING JOB MACHINERY IS GONE (AB#5649)
 # =====================================================================
-# Start-AZSCProcessJob / Build-AZSCCacheFiles filter folders/files/categories
-# with Where-Object and then read .Count / .Name off the result. When a
-# -Category filter (or a job that returned no output) matches nothing,
-# Where-Object's result collapses to $null, and a bare `.Count`/`.Name` on
-# that throws under `Set-StrictMode -Version Latest`. These tests reproduce
-# the exact filter-to-zero-matches shape without needing to spin up real
-# background jobs.
-Describe 'Category-filter-to-zero-matches StrictMode hardening' {
-    BeforeAll {
-        Set-StrictMode -Version Latest
+# Start-AZSCProcessJob, Start-AZSCAutProcessJob and Build-AZSCCacheFiles were deleted when the
+# processing phase moved to the deterministic in-process pipeline. Every crash-hardening test
+# that used to live here existed to make that machinery survive its own edge cases -- a
+# category filter matching nothing, a job list that was null, a job harvested before it
+# finished. None of those states exist any more, so the tests are not ported: the equivalent
+# behaviour is covered directly in tests/DeterministicPipeline.Tests.ps1.
+#
+# This block pins the deletion so the machinery cannot quietly return.
+Describe 'Resource-processing background jobs stay deleted' {
 
-        # Mirrors Start-AZTIProcessJob.ps1's folder-level category filter (post-fix).
-        function Get-FilteredFolderNameList {
-            param($ModuleFolders, $Category)
-            if ($Category -and $Category -notcontains 'All') {
-                $ModuleFolders = $ModuleFolders | Where-Object { $Category -contains $_.Name }
-                $nameList = if ($ModuleFolders) { $ModuleFolders.Name -join ', ' } else { '(none)' }
-                return $nameList
-            }
-            return $null
-        }
-
-        # Mirrors Start-AZTIProcessJob.ps1's per-file .Categories intersection check (post-fix).
-        function Test-HasMatchingCategory {
-            param($FileCategories, $Category)
-            return @($FileCategories | Where-Object { $Category -contains $_ }).Count -gt 0
-        }
+    It '<_> no longer exists' -ForEach @(
+        'Build-AZTICacheFiles.ps1',
+        'Start-AZTIAutProcessJob.ps1',
+        'Start-AZTIProcessJob.ps1',
+        # Wrappers whose whole body was "Start-Job { import-module; Start-AZSC<X>Job }".
+        'Invoke-AZTIAdvisoryJob.ps1',
+        'Invoke-AZTIPolicyJob.ps1',
+        'Invoke-AZTISecurityCenterJob.ps1',
+        'Invoke-AZTISubJob.ps1'
+    ) {
+        Join-Path $script:ProcessingPath $_ | Should -Not -Exist
     }
 
-    It 'a folder-name filter that matches nothing does not throw (was: $ModuleFolders.Name on $null)' {
-        $folders = @([pscustomobject]@{ Name = 'Compute' }, [pscustomobject]@{ Name = 'Storage' })
-        { Get-FilteredFolderNameList -ModuleFolders $folders -Category @('NoSuchCategory') } | Should -Not -Throw
-        Get-FilteredFolderNameList -ModuleFolders $folders -Category @('NoSuchCategory') | Should -Be '(none)'
+    It 'no file under Modules/Private/Processing starts a ResourceJob_* background job' {
+        $Offenders = Get-ChildItem -Path $script:ProcessingPath -Filter '*.ps1' -File |
+            Where-Object { (Get-Content $_.FullName -Raw) -match "ResourceJob_" }
+
+        @($Offenders).Count | Should -Be 0
     }
 
-    It 'a per-file category intersection with zero overlap does not throw (was: (...).Count on $null)' {
-        { Test-HasMatchingCategory -FileCategories @('Storage') -Category @('Compute') } | Should -Not -Throw
-        Test-HasMatchingCategory -FileCategories @('Storage') -Category @('Compute') | Should -BeFalse
+    It 'Start-AZSCExtraJobs runs the four processing steps in-process, not as jobs' {
+        # Comments describing the old design are allowed; executable calls are not. Stripped
+        # with the tokenizer rather than a line regex: the design note in that file is a
+        # <# … #> block, whose inner lines do not start with '#'.
+        $Code = Get-StrippedCode (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1')
+
+        $Code | Should -Not -Match 'Start-Job'
+        $Code | Should -Not -Match 'Start-ThreadJob'
+
+        # …and it calls the real work directly instead.
+        $Code | Should -Match 'Start-AZSCSecCenterJob'
+        $Code | Should -Match 'Start-AZSCPolicyJob'
+        $Code | Should -Match 'Start-AZSCAdvisoryJob'
+        $Code | Should -Match 'Start-AZSCSubscriptionJob'
     }
 
-    It 'a per-file category intersection with overlap still returns true' {
-        Test-HasMatchingCategory -FileCategories @('Compute', 'Storage') -Category @('Compute') | Should -BeTrue
+    It 'Start-AZSCSecCenterJob receives the security ROWS, not the on/off switch' {
+        # It was called as `-SecurityCenter $SecurityCenter` against a parameter block that
+        # declared no such parameter. PowerShell silently routes an unknown named argument to
+        # $args for a simple function, so $null crossed the job boundary as -Security and
+        # `foreach ($1 in $Security)` iterated nothing — the Security Center sheet was empty in
+        # every release that had one. (AB#5649)
+        $Source = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1') -Raw
+        $Source | Should -Match 'Start-AZSCSecCenterJob\s+-Subscriptions\s+\$Subscriptions\s+-Security\s+\$Security'
     }
 
-    It 'Build-AZTICacheFiles.ps1 guards $JobNames.count for a null/empty job list' {
-        . (Join-Path $script:ProcessingPath 'Build-AZTICacheFiles.ps1')
-        . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Clear-AZTIMemory.ps1')
-        Mock Receive-Job { }
-        Mock Remove-Job { }
-        { Build-AZSCCacheFiles -DefaultPath $TestDrive -JobNames $null } | Should -Not -Throw
+    It 'Start-AZSCExtraReports no longer harvests background jobs' {
+        $ReportingPath = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Reporting'
+        $Code = Get-StrippedCode (Join-Path $ReportingPath 'Start-AZTIExtraReports.ps1')
+
+        $Code | Should -Not -Match 'Receive-Job'
+        $Code | Should -Not -Match 'Remove-Job'
     }
 }

@@ -772,7 +772,9 @@ Function Invoke-AzureScout {
 
     Clear-AZSCCacheFolder -ReportCache $ReportCache
 
-    Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | Remove-Job -Force | Out-Null
+    # The ResourceJob_* sweep that stood here is gone with the jobs themselves (AB#5649). The
+    # processing phase runs collectors in-process, so there is no leftover job state from a
+    # previous run in this session to clear.
 
     $ExtractionRuntime = [System.Diagnostics.Stopwatch]::StartNew()
 
@@ -845,7 +847,11 @@ Function Invoke-AzureScout {
 
     $ProcessingRunTime = [System.Diagnostics.Stopwatch]::StartNew()
 
-        Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Security $Security -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
+        # Returns the Security / Policy / Advisory / Subscriptions results directly. These were
+        # background jobs the reporting phase harvested with Receive-Job; that harvest carried
+        # the AB#5629 NotStarted race in four more places, so it is now a plain value handed to
+        # Start-AZSCReporOrchestration below. (AB#5649)
+        $ExtraData = Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Security $Security -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
 
         Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category
 
@@ -877,7 +883,7 @@ Function Invoke-AzureScout {
     # ── Excel Report ─────────────────────────────────────────────────────
     if ($WantExcel)
     {
-        Start-AZSCReporOrchestration -ReportCache $ReportCache -SecurityCenter $SecurityCenter -File $File -Quotas $Quotas -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -Automation $Automation -TableStyle $TableStyle
+        Start-AZSCReporOrchestration -ReportCache $ReportCache -SecurityCenter $SecurityCenter -File $File -Quotas $Quotas -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -Automation $Automation -TableStyle $TableStyle -ExtraData $ExtraData
 
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Overview sheet (Charts).')
 

@@ -19,6 +19,10 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCProcessOrchestration {
+    # $Heavy is retained for caller compatibility but no longer does anything in this phase.
+    # It only ever shrank the parallel job batch size to keep CPU and memory in check; with the
+    # jobs gone (AB#5649) there is no batch to shrink, and peak memory is now one category at a
+    # time regardless. It still applies to the extraction phase, which does its own throttling.
     Param($Subscriptions, $Resources, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
@@ -52,47 +56,43 @@ function Start-AZSCProcessOrchestration {
 
         $Unsupported = Get-AZSCUnsupportedData
 
-        <######################################################### RESOURCE GROUP JOB ######################################################################>
+        <######################################################### RESOURCE PROCESSING ######################################################################>
+
+        # AB#5649 -- the deterministic pipeline.
+        #
+        # This used to be four coordinated pieces of background-job machinery: create jobs
+        # (Start-AZSCProcessJob, or Start-AZSCAutProcessJob under -Automation), wait for them
+        # (Wait-AZSCJob), then harvest and destroy them (Build-AZSCCacheFiles). Every defect of
+        # the v2.5.x wave lived in that coordination rather than in the collectors themselves --
+        # a wait that excluded NotStarted jobs and then deleted them empty (AB#5629), a wait
+        # loop reading a property that does not exist so it never waited at all, Get-Job
+        # ordering that varied run to run, and the module re-import inside each job that leaked
+        # StrictMode back in and forced the opt-out to 17 separate entry points.
+        #
+        # Collectors are pure functions of the resource set, so none of that concurrency was
+        # ever required. Invoke-ScoutProcessing runs them in-process in a fixed order, contains
+        # each collector's failure individually, and writes the same ReportCache layout. The
+        # automation branch is gone because there are no jobs left for it to substitute -- both
+        # modes now execute identical code and can no longer drift apart.
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing resources through the deterministic pipeline.')
 
         if ([bool]$Automation)
             {
-                Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources in Automation Mode')
-
-                Start-AZSCAutProcessJob -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -Heavy $Heavy -InTag $InTag -Unsupported $Unsupported -Category $Category -DefaultPath $DefaultPath
+                Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources')
             }
-        else
-            {
-                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources in Regular Mode')
 
-                Start-AZSCProcessJob -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Heavy $Heavy -Unsupported $Unsupported -Category $Category
-            }
+        $ProcessingSummary = Invoke-ScoutProcessing -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category
 
         Remove-Variable -Name Unsupported -ErrorAction SilentlyContinue
 
-        <############################################################## RESOURCES PROCESSING #############################################################>
-
         if ([bool]$Automation)
             {
-                Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Waiting for Resource Jobs to Complete in Automation Mode')
-                Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | Wait-Job
-                $JobNames = @(Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | ForEach-Object { $_.Name })
+                Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processed '+$ProcessingSummary.CollectorCount+' collectors across '+@($ProcessingSummary.Categories).Count+' categories.')
             }
         else
             {
-                $JobNames = @(Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | ForEach-Object { $_.Name })
-                Wait-AZSCJob -JobNames $JobNames -JobType 'Resource' -LoopTime 5
+                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished processing resources.')
             }
-
-        if ([bool]$Automation)
-            {
-                Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources in Automation Mode')
-            }
-        else
-            {
-                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished Waiting for Resource Jobs.')
-            }
-
-        Build-AZSCCacheFiles -DefaultPath $DefaultPath -JobNames $JobNames
 
         Write-Progress -activity 'Azure Inventory' -Status "60% Complete." -PercentComplete 60 -CurrentOperation "Completed Data Processing Phase.."
 

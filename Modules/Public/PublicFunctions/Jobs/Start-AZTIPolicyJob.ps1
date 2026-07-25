@@ -19,13 +19,17 @@ Authors: Claudio Merola
 #>
 function Start-AZSCPolicyJob {
     param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
-    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
-    # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
-    # functions run inside Start-Job script blocks that RE-IMPORT the module, so module-scope
-    # StrictMode -- leaked in by src/*.ps1 setting it at file scope -- applies again inside the
-    # job even though the calling orchestrator opted out. The opt-out has to be on the function
-    # itself. Without it, a Defender assessment or Advisor recommendation whose payload simply
-    # omits an optional field aborts the whole run.
+    # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
+    # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads
+    # optional fields off Azure payloads whose shape varies by tenant, so a Defender assessment
+    # or Advisor recommendation that simply omits one would abort the run.
+    #
+    # This function is now CALLED DIRECTLY by Start-AZSCExtraJobs, in-process. It used to run
+    # inside a Start-Job script block that re-imported the module, which re-applied module-scope
+    # StrictMode inside the job even when the caller had opted out -- that is why the v2.5.3
+    # opt-out had to be repeated at 17 entry points. With the job gone, this opt-out covers the
+    # functions own call tree and nothing else. Removing it altogether is AB#5667s job, with
+    # the recorded live-payload fixtures needed to do it safely.
     Set-StrictMode -Off
 
 

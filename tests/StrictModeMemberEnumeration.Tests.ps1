@@ -216,9 +216,11 @@ Describe 'An empty job set is a valid state, not a failure' {
     }
 
     It 'callers build the job list without member-enumerating an empty result' {
+        # Start-AZTIProcessJob.ps1 and Start-AZTIAutProcessJob.ps1 were in this list until
+        # AB#5649 deleted them along with the resource-processing jobs. The remaining two are
+        # still job-adjacent: the orchestration hands off to the deterministic pipeline, and
+        # Invoke-AzureScout still waits on the draw.io diagram jobs.
         foreach ($File in 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1',
-                          'Modules/Private/Processing/Start-AZTIProcessJob.ps1',
-                          'Modules/Private/Processing/Start-AZTIAutProcessJob.ps1',
                           'Modules/Public/PublicFunctions/Invoke-AzureScout.ps1') {
             $Raw = Get-Content -Path (Join-Path $script:RepoRoot $File)
             $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
@@ -229,15 +231,15 @@ Describe 'An empty job set is a valid state, not a failure' {
 
 Describe 'Job waits never member-enumerate a possibly-empty handle collection' {
 
-    It 'Start-AZTIProcessJob waits on the handle itself, not $Job.IsCompleted' {
-        $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Private/Processing/Start-AZTIProcessJob.ps1')
-        $Text | Should -Not -Match ([regex]::Escape('$Job.IsCompleted -contains'))
-        $Text | Should -Match ([regex]::Escape('$_.IsCompleted'))
-    }
+    # The Start-AZTIProcessJob assertion that stood here is gone with the file: AB#5649 deleted
+    # the resource-processing runspace machinery outright, so there is no handle collection left
+    # to member-enumerate. tests/Private.Processing.Tests.ps1 pins the deletion, and
+    # tests/DeterministicPipeline.Tests.ps1 pins that the replacement starts no jobs at all.
+    # The diagram subsystem still uses jobs, so its assertion stays.
 
     It 'Start-AZTIDiagramJob no longer reads the non-existent .Runspace property' {
         # PowerShellAsyncResult has no .Runspace, so the old condition was always false and
-        # the wait was a no-op. v2.5.2 fixed the identical line in Start-AZTIProcessJob only.
+        # the wait was a no-op. v2.5.2 fixed the identical line in the resource pipeline only.
         $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
         $Active = ($Text -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }
         ($Active -join "`n") | Should -Not -Match ([regex]::Escape('$Job.Runspace.IsCompleted'))

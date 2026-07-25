@@ -1,0 +1,444 @@
+<#
+    AB#5649 — the deterministic pipeline.
+
+    The v1 processing phase coordinated background jobs and nested runspaces. Every defect of
+    the v2.5.x wave lived in that coordination, not in the collectors:
+
+      * Start-Job is asynchronous, so a NotStarted job was excluded from the wait, harvested
+        empty by Receive-Job and then destroyed by Remove-Job — the category vanished from the
+        report with no trace (AB#5629).
+      * The wait loop read $Job.Runspace.IsCompleted. PowerShellAsyncResult has no .Runspace,
+        so the expression was empty and the loop never waited at all.
+      * Get-Job ordering varied, so the same tenant produced different reports run to run.
+      * Each job re-imported the module, leaking module-scope StrictMode back in — which is why
+        the v2.5.3 opt-out had to be applied at 17 entry points rather than 5.
+
+    These tests pin the properties that replaced it: fixed ordering, contained per-collector
+    failure, and byte-identical output for identical input. They run against a fixture tree, so
+    they need no Azure and no jobs.
+#>
+
+BeforeAll {
+    $script:RepoRoot = Split-Path -Parent $PSScriptRoot
+
+    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Write-ScoutCacheFile.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutProcessing.ps1')
+
+    # ── Fixture collector tree ───────────────────────────────────────────────────────────
+    # Mirrors the real InventoryModules layout: one directory per category, each holding
+    # collectors that take the ten positional parameters and switch on $Task.
+    $script:FixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-pipeline-" + [guid]::NewGuid().ToString('N'))
+
+    function New-FixtureCollector {
+        Param($Category, $Name, $Body, $DeclaredCategory)
+
+        $Dir = Join-Path $script:FixtureRoot $Category
+        if (-not (Test-Path -LiteralPath $Dir)) { $null = New-Item -Path $Dir -ItemType Directory -Force }
+
+        # Built by concatenation, not -replace: the collector bodies contain $_ and $1-style
+        # sequences that the .NET replacement-string parser would eat.
+        $Lines = @()
+        if ($DeclaredCategory) {
+            # Same-line form, exactly as the 176 shipped collectors write it.
+            $Lines += '<#'
+            $Lines += ".CATEGORY $DeclaredCategory"
+            $Lines += '#>'
+        }
+        $Lines += 'param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)'
+        $Lines += "If (`$Task -eq 'Processing') {"
+        $Lines += $Body
+        $Lines += '}'
+
+        Set-Content -LiteralPath (Join-Path $Dir "$Name.ps1") -Value ($Lines -join "`n") -Encoding UTF8
+    }
+
+    # Compute: two healthy collectors.
+    New-FixtureCollector -Category 'Compute' -Name 'VirtualMachines' -Body @'
+    $Resources | Where-Object { $_.TYPE -eq 'vm' } | ForEach-Object {
+        [PSCustomObject]@{ Name = $_.NAME; Kind = 'vm' }
+    }
+'@
+    New-FixtureCollector -Category 'Compute' -Name 'Disks' -Body @'
+    $Resources | Where-Object { $_.TYPE -eq 'disk' } | ForEach-Object {
+        [PSCustomObject]@{ Name = $_.NAME; Kind = 'disk' }
+    }
+'@
+
+    # Storage: one healthy collector, plus one that throws — the containment case.
+    New-FixtureCollector -Category 'Storage' -Name 'Accounts' -Body @'
+    $Resources | Where-Object { $_.TYPE -eq 'storage' } | ForEach-Object {
+        [PSCustomObject]@{ Name = $_.NAME; Kind = 'storage' }
+    }
+'@
+    New-FixtureCollector -Category 'Storage' -Name 'Exploding' -Body @'
+    throw 'this collector is broken'
+'@
+
+    # Networking: a collector filed under Networking but declaring itself as Security via
+    # the .CATEGORY header — the per-file filtering case.
+    New-FixtureCollector -Category 'Networking' -Name 'Firewalls' -DeclaredCategory 'Security' -Body @'
+    [PSCustomObject]@{ Name = 'fw1'; Kind = 'firewall' }
+'@
+
+    # Empty: a category that legitimately yields nothing. Must NOT produce a cache file.
+    New-FixtureCollector -Category 'Empty' -Name 'Nothing' -Body @'
+    @()
+'@
+
+    $script:SampleResources = @(
+        [PSCustomObject]@{ NAME = 'vm-a';   TYPE = 'vm' }
+        [PSCustomObject]@{ NAME = 'vm-b';   TYPE = 'vm' }
+        [PSCustomObject]@{ NAME = 'disk-a'; TYPE = 'disk' }
+        [PSCustomObject]@{ NAME = 'sa-a';   TYPE = 'storage' }
+    )
+}
+
+AfterAll {
+    if ($script:FixtureRoot -and (Test-Path -LiteralPath $script:FixtureRoot)) {
+        Remove-Item -LiteralPath $script:FixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Describe 'Get-ScoutCollector — discovery' {
+
+    It 'finds every collector in the tree' {
+        $Found = @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot)
+        $Found.Count | Should -Be 6
+    }
+
+    It 'returns collectors in a deterministic order' {
+        # Ordering was previously whatever Get-Job returned, which varied run to run.
+        $First  = @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot | ForEach-Object { "$($_.FolderCategory)/$($_.Name)" })
+        $Second = @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot | ForEach-Object { "$($_.FolderCategory)/$($_.Name)" })
+
+        $First | Should -Be $Second
+        $First[0] | Should -Be 'Compute/Disks'   # sorted by category, then name
+    }
+
+    It 'filters at folder level' {
+        $Found = @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot -Category 'Compute')
+        $Found.Count | Should -Be 2
+        @($Found | ForEach-Object { $_.FolderCategory }) | Should -Not -Contain 'Storage'
+    }
+
+    It 'honours a .CATEGORY header that differs from the folder' {
+        $Firewalls = @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot | Where-Object { $_.Name -eq 'Firewalls' })
+        $Firewalls.Count | Should -Be 1
+        $Firewalls[0].FolderCategory | Should -Be 'Networking'
+        $Firewalls[0].Categories     | Should -Contain 'Security'
+    }
+
+    It 'treats All, $null and empty as no filter' {
+        @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot -Category 'All').Count | Should -Be 6
+        @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot -Category $null).Count | Should -Be 6
+        @(Get-ScoutCollector -InventoryRoot $script:FixtureRoot -Category @()).Count   | Should -Be 6
+    }
+
+    It 'warns rather than throwing when the root does not exist' {
+        $Found = @(Get-ScoutCollector -InventoryRoot (Join-Path $script:FixtureRoot 'no-such-dir') -WarningAction SilentlyContinue)
+        $Found.Count | Should -Be 0
+    }
+}
+
+Describe 'Invoke-ScoutCollector — per-collector failure containment' {
+
+    BeforeAll {
+        $script:Context = @{
+            ScriptRoot    = $script:FixtureRoot
+            Subscriptions = @()
+            InTag         = $null
+            Resources     = $script:SampleResources
+            Retirements   = @()
+            Task          = 'Processing'
+            File          = $null
+            SmaResources  = $null
+            TableStyle    = $null
+            Unsupported   = @()
+        }
+    }
+
+    It 'runs a collector and returns its rows' {
+        $Collector = Get-ScoutCollector -InventoryRoot $script:FixtureRoot | Where-Object { $_.Name -eq 'VirtualMachines' }
+        $Result = Invoke-ScoutCollector -Collector $Collector -Context $script:Context
+
+        $Result.Success | Should -BeTrue
+        @($Result.Rows).Count | Should -Be 2
+        @($Result.Rows | ForEach-Object { $_.Name }) | Should -Be @('vm-a', 'vm-b')
+    }
+
+    It 'contains a throwing collector instead of letting it abort the run' {
+        # The whole point of AB#5649: under the old pipeline this either emptied the category
+        # silently or took down the batch.
+        $Collector = Get-ScoutCollector -InventoryRoot $script:FixtureRoot | Where-Object { $_.Name -eq 'Exploding' }
+
+        { Invoke-ScoutCollector -Collector $Collector -Context $script:Context -WarningAction SilentlyContinue } |
+            Should -Not -Throw
+
+        $Result = Invoke-ScoutCollector -Collector $Collector -Context $script:Context -WarningAction SilentlyContinue
+        $Result.Success | Should -BeFalse
+        $Result.Error.Exception.Message | Should -BeLike '*this collector is broken*'
+        @($Result.Rows).Count | Should -Be 0
+    }
+
+    It 'records how long the collector took' {
+        $Collector = Get-ScoutCollector -InventoryRoot $script:FixtureRoot | Where-Object { $_.Name -eq 'Disks' }
+        $Result = Invoke-ScoutCollector -Collector $Collector -Context $script:Context
+        $Result.Duration | Should -BeOfType [timespan]
+    }
+}
+
+Describe 'Write-ScoutCacheFile' {
+
+    BeforeEach {
+        $script:CacheDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-cache-" + [guid]::NewGuid().ToString('N'))
+    }
+
+    AfterEach {
+        if (Test-Path -LiteralPath $script:CacheDir) {
+            Remove-Item -LiteralPath $script:CacheDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    # NB: no angle brackets in the test name — Pester reads <Word> as a -ForEach placeholder
+    # and fails the test looking for a variable of that name.
+    It 'writes the category JSON file when there are rows' {
+        $Result = Write-ScoutCacheFile -Category 'Compute' -CachePath $script:CacheDir -Data @{
+            VirtualMachines = @([PSCustomObject]@{ Name = 'vm-a' })
+        }
+
+        $Result.Written  | Should -BeTrue
+        $Result.RowCount | Should -Be 1
+        Test-Path -LiteralPath (Join-Path $script:CacheDir 'Compute.json') | Should -BeTrue
+    }
+
+    It 'writes no file at all for an empty category' {
+        # The reporting phase reads a missing cache file as "nothing of this kind in the
+        # estate". A file full of nulls instead yields empty worksheets.
+        $Result = Write-ScoutCacheFile -Category 'Empty' -CachePath $script:CacheDir -Data @{ Nothing = @() }
+
+        $Result.Written | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path $script:CacheDir 'Empty.json') | Should -BeFalse
+    }
+
+    It 'round-trips the collector rows' {
+        $null = Write-ScoutCacheFile -Category 'Compute' -CachePath $script:CacheDir -Data @{
+            VirtualMachines = @([PSCustomObject]@{ Name = 'vm-a'; Kind = 'vm' })
+        }
+
+        $Read = Get-Content -LiteralPath (Join-Path $script:CacheDir 'Compute.json') -Raw | ConvertFrom-Json
+        $Read.VirtualMachines[0].Name | Should -Be 'vm-a'
+    }
+}
+
+Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
+
+    BeforeEach {
+        $script:RunPath = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-run-" + [guid]::NewGuid().ToString('N'))
+        $null = New-Item -Path (Join-Path $script:RunPath 'ReportCache') -ItemType Directory -Force
+    }
+
+    AfterEach {
+        if (Test-Path -LiteralPath $script:RunPath) {
+            Remove-Item -LiteralPath $script:RunPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'runs every collector and caches each non-empty category' {
+        $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+
+        $Summary.CollectorCount | Should -Be 6
+
+        $Cache = Join-Path $script:RunPath 'ReportCache'
+        Test-Path -LiteralPath (Join-Path $Cache 'Compute.json')    | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $Cache 'Storage.json')    | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $Cache 'Networking.json') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path $Cache 'Empty.json')      | Should -BeFalse
+    }
+
+    It 'completes the run despite a broken collector, and reports it' {
+        $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+
+        $Summary.FailureCount | Should -Be 1
+        $Summary.Failures[0].Collector | Should -Be 'Exploding'
+
+        # …and its healthy sibling in the SAME category still made it to the cache. Under the
+        # old pipeline the throw took the whole category with it.
+        $Storage = Get-Content -LiteralPath (Join-Path $script:RunPath 'ReportCache/Storage.json') -Raw | ConvertFrom-Json
+        $Storage.Accounts[0].Name | Should -Be 'sa-a'
+    }
+
+    It 'produces byte-identical cache files across two runs of the same input' {
+        # This is the property the old pipeline could not offer: Compute.json came back 5,158
+        # bytes on one run and 470 on the next against the same tenant (AB#5629).
+        $RunA = Join-Path $script:RunPath 'a'
+        $RunB = Join-Path $script:RunPath 'b'
+        $null = New-Item -Path (Join-Path $RunA 'ReportCache') -ItemType Directory -Force
+        $null = New-Item -Path (Join-Path $RunB 'ReportCache') -ItemType Directory -Force
+
+        $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunA `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+        $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunB `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+
+        $FilesA = @(Get-ChildItem -LiteralPath (Join-Path $RunA 'ReportCache') | Sort-Object Name)
+        $FilesB = @(Get-ChildItem -LiteralPath (Join-Path $RunB 'ReportCache') | Sort-Object Name)
+
+        @($FilesA | ForEach-Object { $_.Name }) | Should -Be @($FilesB | ForEach-Object { $_.Name })
+
+        foreach ($File in $FilesA) {
+            $Hash = (Get-FileHash -LiteralPath $File.FullName).Hash
+            $Other = (Get-FileHash -LiteralPath (Join-Path $RunB 'ReportCache' $File.Name)).Hash
+            $Hash | Should -Be $Other -Because "$($File.Name) must be identical across runs"
+        }
+    }
+
+    It 'honours the category filter' {
+        $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -Category 'Compute' -WarningAction SilentlyContinue
+
+        $Summary.CollectorCount | Should -Be 2
+        Test-Path -LiteralPath (Join-Path $script:RunPath 'ReportCache/Storage.json') | Should -BeFalse
+    }
+
+    It 'starts no background jobs' {
+        # The regression this whole feature exists to prevent. If a job appears here, the
+        # runspace machinery has crept back in.
+        $Before = @(Get-Job).Count
+
+        $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+
+        @(Get-Job).Count | Should -Be $Before
+    }
+
+    It 'returns an empty summary rather than throwing when nothing matches' {
+        $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
+
+        $Summary.CollectorCount | Should -Be 0
+        $Summary.FailureCount   | Should -Be 0
+    }
+
+    It 'returns the same property set whether or not any collector matched' {
+        # A summary whose shape depends on which branch produced it throws under StrictMode the
+        # first time a caller reads the missing property — the exact trap behind the v2.5.3
+        # crash wave.
+        $Full = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+        $Empty = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
+
+        $FullProps  = @($Full.PSObject.Properties.Name  | Sort-Object)
+        $EmptyProps = @($Empty.PSObject.Properties.Name | Sort-Object)
+
+        $EmptyProps | Should -Be $FullProps
+    }
+}
+
+Describe 'Start-AZSCExtraJobs — security, policy, advisory and subscriptions, in-process' {
+
+    BeforeAll {
+        . (Join-Path $script:RepoRoot 'Modules/Private/Processing/Start-AZTIExtraJobs.ps1')
+
+        # Stand-ins for the four real processing functions and the diagram wrapper. Each
+        # records what it was handed so the argument-passing can be asserted.
+        $script:Seen = @{}
+
+        function Start-AZSCSecCenterJob    { Param($Subscriptions, $Security)
+                                             $script:Seen['SecArg'] = $Security; 'sec-rows' }
+        function Start-AZSCPolicyJob       { Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
+                                             'pol-rows' }
+        function Start-AZSCAdvisoryJob     { Param($Advisories) 'adv-rows' }
+        function Start-AZSCSubscriptionJob { Param($Subscriptions, $Resources, $CostData) 'sub-rows' }
+        function Invoke-AZSCDrawIOJob      { Param($Subscriptions, $Resources, $Advisories, $DDFile,
+                                                   $DiagramCache, $FullEnv, $ResourceContainers,
+                                                   $Automation, $AZSCModule) }
+    }
+
+    It 'returns all four results as data instead of leaving them in jobs' {
+        $Result = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $false -SkipPolicy $false `
+            -SecurityCenter 'on' -Security @('a') -Subscriptions @('s') -Resources @('r') `
+            -Advisories @('adv') -PolicyAssign 'pa' -PolicyDef 'pd' -PolicySetDef 'psd' `
+            -CostData $null -Automation $false
+
+        $Result.Security      | Should -Be 'sec-rows'
+        $Result.Policy        | Should -Be 'pol-rows'
+        $Result.Advisory      | Should -Be 'adv-rows'
+        $Result.Subscriptions | Should -Be 'sub-rows'
+    }
+
+    It 'hands Start-AZSCSecCenterJob the security ROWS, not the on/off switch' {
+        # The shipped bug: it was called as -SecurityCenter $SecurityCenter against a parameter
+        # block with no such parameter, so PowerShell routed it to $args, $null crossed the job
+        # boundary as -Security, and the Security Center sheet was empty in every release.
+        $script:Seen = @{}
+
+        $null = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $true -SkipPolicy $true `
+            -SecurityCenter 'on' -Security @('row1', 'row2') -Subscriptions @('s') `
+            -Resources @('r') -Automation $false
+
+        $script:Seen['SecArg'] | Should -Be @('row1', 'row2')
+        $script:Seen['SecArg'] | Should -Not -Be 'on'
+    }
+
+    It 'starts no background jobs' {
+        $Before = @(Get-Job).Count
+
+        $null = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $false -SkipPolicy $false `
+            -SecurityCenter 'on' -Security @('a') -Subscriptions @('s') -Resources @('r') `
+            -Advisories @('adv') -PolicyAssign 'pa' -PolicyDef 'pd' -PolicySetDef 'psd' `
+            -Automation $false
+
+        @(Get-Job).Count | Should -Be $Before
+    }
+
+    It 'completes the remaining steps when one of them throws' {
+        function Start-AZSCPolicyJob { Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
+                                       throw 'policy processing exploded' }
+
+        $Result = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $false -SkipPolicy $false `
+            -SecurityCenter 'on' -Security @('a') -Subscriptions @('s') -Resources @('r') `
+            -Advisories @('adv') -PolicyAssign 'pa' -PolicyDef 'pd' -PolicySetDef 'psd' `
+            -Automation $false -WarningAction SilentlyContinue
+
+        $Result.Policy        | Should -BeNullOrEmpty
+        $Result.Advisory      | Should -Be 'adv-rows'
+        $Result.Subscriptions | Should -Be 'sub-rows'
+    }
+
+    It 'skips security processing entirely when SecurityCenter is not requested' {
+        $script:Seen = @{}
+
+        $Result = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $true -SkipPolicy $true `
+            -SecurityCenter '' -Security @('a') -Subscriptions @('s') -Resources @('r') `
+            -Automation $false
+
+        $Result.Security | Should -BeNullOrEmpty
+        $script:Seen.ContainsKey('SecArg') | Should -BeFalse
+    }
+}
+
+Describe 'The processing path no longer depends on background jobs' {
+
+    It 'Start-AZSCProcessOrchestration calls the deterministic pipeline' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1') -Raw
+        $Source | Should -Match 'Invoke-ScoutProcessing'
+    }
+
+    It 'Start-AZSCProcessOrchestration no longer creates, waits on or harvests jobs' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1') -Raw
+
+        # Comments explaining the history are allowed; executable calls are not.
+        $Code = ($Source -split "`r?`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+
+        $Code | Should -Not -Match 'Start-AZSCProcessJob'
+        $Code | Should -Not -Match 'Start-AZSCAutProcessJob'
+        $Code | Should -Not -Match 'Wait-AZSCJob'
+        $Code | Should -Not -Match 'Build-AZSCCacheFiles'
+        $Code | Should -Not -Match 'Get-Job'
+    }
+}

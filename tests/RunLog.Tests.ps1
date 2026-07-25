@@ -76,6 +76,23 @@ Describe 'Write-AZSCLog' {
         $Text | Should -Match '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\] \[INFO \] hello there'
     }
 
+    # AB#5649 — seven inventory collectors (Monitor/SubscriptionDiagnosticSettings and the four
+    # Security/Defender* ones, plus two in Identity) already call this function with -Color and
+    # with -Level Verbose. Neither was accepted, so every one of them threw
+    # "A parameter cannot be found that matches parameter name 'Color'" the moment it ran. The
+    # old pipeline executed collectors inside a runspace whose errors surfaced detached at
+    # EndInvoke time, so those collectors were dead in shipped releases with nothing to say so.
+    # These two tests keep the signature honest.
+    It 'accepts -Level Verbose, which the collector call sites use' {
+        { Write-AZSCLog -Message 'verbose line' -Level Verbose } | Should -Not -Throw
+        (Get-Content -Raw $script:LogFile) | Should -Match '\[VERBO\w*\s*\] verbose line'
+    }
+
+    It 'accepts -Color, which the collector call sites use' {
+        { Write-AZSCLog -Message 'coloured line' -Color 'Cyan' } | Should -Not -Throw
+        (Get-Content -Raw $script:LogFile) | Should -Match 'coloured line'
+    }
+
     It 'records phases with their elapsed time and detail rows' {
         Write-AZSCLogPhase -Name 'Extraction finished' -Elapsed '00:00:04:12:001' -Detail @{ Resources = 227 }
         $Text = Get-Content -Raw $script:LogFile

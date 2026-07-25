@@ -1,9 +1,11 @@
 <#
 .Synopsis
-Module responsible for starting additional processing jobs for Azure Resources.
+Run the non-collector processing work (security, policy, advisory, subscriptions, diagram).
 
 .DESCRIPTION
-This module handles the execution of extra jobs such as Draw.IO diagrams, Security Center processing, Policy evaluations, and Advisory processing for Azure Resources.
+Runs the security-centre, policy, advisory and subscription processing in-process and returns
+their results, then starts the draw.io diagram work. Formerly this started one background job
+per item; see the AB#5649 notes on the function for why that changed.
 
 .Link
 https://github.com/thisismydemo/azure-scout/Modules/Private/2.ProcessingFunctions/Start-AZSCExtraJobs.ps1
@@ -36,31 +38,61 @@ function Start-AZSCExtraJobs {
             $Automation,
             $IncludeCosts,
             $CostData)
-    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
-    # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
-    # StrictMode and carries ~800 property reads that are only valid without it -- chained
-    # reads over API payloads whose shape varies by tenant, and member enumeration over
-    # collections that are legitimately empty.
-    #
-    # The v2 assessment platform under src/ sets `Set-StrictMode -Version Latest` at FILE
-    # scope, and AzureScout.psm1 dot-sources those files, so StrictMode was silently applied
-    # to the whole module -- this engine included. Nothing here was ever tested under it.
-    # The result was a run that aborted on a perfectly normal Azure response, in a different
-    # place on every tenant, because the faults are data-dependent: an empty API result set,
-    # an estate with no VMs, a subscription with no quota rows.
-    #
-    # StrictMode is dynamically scoped, so turning it off here covers this call tree only.
-    # The assessment platform is invoked from Invoke-AzureScout's own scope and keeps
-    # StrictMode in full force -- it was written for it and its tests depend on it.
-    #
-    # This restores the behaviour v1 shipped with for years. It is not a licence to write
-    # sloppy code here: the genuine defects found alongside this (a job wait that never
-    # waited, an unreachable error fallback, a rethrow that destroyed optional data) were
-    # fixed properly rather than papered over.
+    # ── StrictMode boundary ──────────────────────────────────────────────────────────
+    # This is the v1 inventory engine, forked from microsoft/ARI, written without StrictMode
+    # and carrying property reads over API payloads whose shape varies by tenant. StrictMode is
+    # dynamically scoped, so turning it off here covers this call tree only; the assessment
+    # platform under src/ keeps it in full force. Turning it on here is AB#5667's job, together
+    # with the recorded live-payload fixtures needed to do it safely.
     Set-StrictMode -Off
 
+    <#
+        AB#5649 — these four ran as background jobs and now run in-process.
 
-    # Resolve the full module path so background jobs can import it even when not in PSModulePath
+        Each was a wrapper whose entire body was "Start-Job { import-module <this module>;
+        Start-AZSC<X>Job ... }". That bought no parallelism worth having and cost three things:
+
+        1. THE SAME NotStarted RACE AS AB#5629, still live in v2.5.3. The harvest side in
+           Start-AZSCExtraReports waited with
+               while (get-job -Name 'Policy' | Where-Object { $_.State -eq 'Running' })
+           which does not match a job that has not started yet. Start-Job is asynchronous, so
+           that wait could fall straight through, Receive-Job would return nothing and
+           Remove-Job would destroy the job — the Policy, Advisory, Security and Subscriptions
+           sheets could each silently come back empty. The resource pipeline's copy of this bug
+           was fixed; these four copies were missed.
+
+        2. THE STRICTMODE LEAK. `import-module` inside the job re-imported this module, so
+           module-scope StrictMode applied again inside the job even when the caller had opted
+           out. That is why the v2.5.3 opt-out had to be repeated at 17 entry points rather
+           than 5 — every one of these job bodies was one of them.
+
+        3. SILENTLY WRONG ARGUMENTS. Invoke-AZSCSecurityCenterJob was called with
+           `-SecurityCenter $SecurityCenter`, but its parameter block declared no such
+           parameter. PowerShell does not reject an unknown named argument to a simple
+           function — it collects it into $args and carries on — so $SecurityCenter was
+           undefined inside the wrapper, $null crossed the job boundary as the -Security
+           argument, and Start-AZSCSecCenterJob's `foreach ($1 in $Security)` iterated nothing.
+           The Security Center sheet has been empty in every release that had one. Calling the
+           function directly is what surfaced it, and it is fixed below by passing $Security.
+
+        The four wrapper files (Invoke-AZTI{Advisory,Policy,SecurityCenter,Sub}Job.ps1) are
+        deleted; there is nothing left for them to wrap. The draw.io diagram work still runs as
+        a job and keeps its wrapper — that subsystem starts nested jobs of its own and is a
+        separate piece of work.
+
+        Returns a hashtable the reporting phase consumes instead of calling Receive-Job.
+    #>
+
+    $Results = @{
+        Security      = $null
+        Policy        = $null
+        Advisory      = $null
+        Subscriptions = $null
+    }
+
+    <######################################################### DRAW IO DIAGRAM JOB ######################################################################>
+
+    # Resolve the full module path so the diagram job can import it even when not in PSModulePath
     $LoadedModule = Get-Module -Name AzureScout
     if ($LoadedModule) {
         $AZSCModule = $LoadedModule.Path
@@ -68,79 +100,69 @@ function Start-AZSCExtraJobs {
         $AZSCModule = 'AzureScout'
     }
 
-    <######################################################### DRAW IO DIAGRAM JOB ######################################################################>
-
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Draw.io Diagram Job Should be Run.')
     if (![bool]$SkipDiagram) {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Draw.io Diagram Processing Job.')
         Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
     }
 
-    <######################################################### VISIO DIAGRAM JOB ######################################################################>
-    <#
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Visio Diagram Job Should be Run.')
-    if ($Diagram.IsPresent) {
-        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Visio Diagram Processing Job.')
-        Start-job -Name 'VisioDiagram' -ScriptBlock {
+    <######################################################### SECURITY CENTER ######################################################################>
 
-            If ($($args[5]) -eq $true) {
-                $ModuSeq = (New-Object System.Net.WebClient).DownloadString($($args[7]) + '/Extras/VisioDiagram.ps1')
-            }
-            Else {
-                $ModuSeq0 = New-Object System.IO.StreamReader($($args[0]) + '\Extras\VisioDiagram.ps1')
-                $ModuSeq = $ModuSeq0.ReadToEnd()
-                $ModuSeq0.Dispose()
-            }
-
-            $ScriptBlock = [Scriptblock]::Create($ModuSeq)
-
-            $VisioRun = ([PowerShell]::Create()).AddScript($ScriptBlock).AddArgument($($args[1])).AddArgument($($args[2])).AddArgument($($args[3])).AddArgument($($args[4]))
-
-            $VisioJob = $VisioRun.BeginInvoke()
-
-            while ($VisioJob.IsCompleted -contains $false) {}
-
-            $VisioRun.EndInvoke($VisioJob)
-
-            $VisioRun.Dispose()
-
-        } -ArgumentList $PSScriptRoot, $Subscriptions, $Resources, $Advisories, $DFile, $RunOnline, $Repo, $RawRepo   | Out-Null
-    }
-    #>
-
-    <######################################################### SECURITY CENTER JOB ######################################################################>
-
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Run Security Center Job.')
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Process Security Center.')
     if (![string]::IsNullOrEmpty($SecurityCenter))
         {
-            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Security Processing Job.')
-            Invoke-AZSCSecurityCenterJob -Subscriptions $Subscriptions -Automation $Automation -Resources $Resources -SecurityCenter $SecurityCenter -AZSCModule $AZSCModule
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Security Center.')
+            try {
+                # $Security, NOT $SecurityCenter -- see note 3 above. $SecurityCenter is the
+                # switch that says whether to do this at all; $Security carries the rows.
+                $Results.Security = Start-AZSCSecCenterJob -Subscriptions $Subscriptions -Security $Security
+            }
+            catch {
+                Write-Warning "[AzureScout] Security Center processing failed and was skipped: $($_.Exception.Message)"
+            }
         }
 
-    <######################################################### POLICY JOB ######################################################################>
+    <######################################################### POLICY ######################################################################>
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Run Policy Job.')
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Process Policy.')
     if (![bool]$SkipPolicy) {
         if (![string]::IsNullOrEmpty($PolicyAssign) -and ![string]::IsNullOrEmpty($PolicyDef))
             {
-                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Policy Processing Job.')
-                Invoke-AZSCPolicyJob -Subscriptions $Subscriptions -PolicySetDef $PolicySetDef -PolicyAssign $PolicyAssign -PolicyDef $PolicyDef -AZSCModule $AZSCModule -Automation $Automation
+                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Policy.')
+                try {
+                    $Results.Policy = Start-AZSCPolicyJob -Subscriptions $Subscriptions -PolicySetDef $PolicySetDef -PolicyAssign $PolicyAssign -PolicyDef $PolicyDef
+                }
+                catch {
+                    Write-Warning "[AzureScout] Policy processing failed and was skipped: $($_.Exception.Message)"
+                }
             }
     }
 
-    <######################################################### ADVISORY JOB ######################################################################>
+    <######################################################### ADVISORY ######################################################################>
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Run Advisory Job.')
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Process Advisory.')
     if (![bool]$SkipAdvisory) {
         if (![string]::IsNullOrEmpty($Advisories))
             {
-                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Advisory Processing Job.')
-                Invoke-AZSCAdvisoryJob -Advisories $Advisories -AZSCModule $AZSCModule -Automation $Automation
+                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Advisory.')
+                try {
+                    $Results.Advisory = Start-AZSCAdvisoryJob -Advisories $Advisories
+                }
+                catch {
+                    Write-Warning "[AzureScout] Advisory processing failed and was skipped: $($_.Exception.Message)"
+                }
             }
     }
 
-    <######################################################### SUBSCRIPTIONS JOB ######################################################################>
+    <######################################################### SUBSCRIPTIONS ######################################################################>
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Subscriptions Processing job.')
-    Invoke-AZSCSubJob -Subscriptions $Subscriptions -Automation $Automation -Resources $Resources -CostData $CostData -AZSCModule $AZSCModule
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Subscriptions.')
+    try {
+        $Results.Subscriptions = Start-AZSCSubscriptionJob -Subscriptions $Subscriptions -Resources $Resources -CostData $CostData
+    }
+    catch {
+        Write-Warning "[AzureScout] Subscription processing failed and was skipped: $($_.Exception.Message)"
+    }
+
+    $Results
 }

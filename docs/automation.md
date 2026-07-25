@@ -14,17 +14,22 @@ This is the recommended way to produce inventory on a schedule. For CI-triggered
 
 ## How automation mode differs
 
-`-Automation` changes three things about a run:
+`-Automation` changes two things about a run:
 
 - **No interactive login.** The runbook is expected to have already connected with
   `Connect-AzAccount -Identity`.
-- **ThreadJob instead of background Job.** Automation sandboxes do not support the
-  process-isolated background jobs the interactive path uses.
 - **Progress goes to the job stream.** Output uses `Write-Output` rather than
   `Write-Progress`, so it lands in the runbook's Output stream where you can read it.
 
-Diagram generation is skipped in automation mode. The Excel workbook, JSON, and any other
-selected output formats are produced normally.
+It used to change a third: automation mode substituted `Start-ThreadJob` for the
+process-isolated `Start-Job` the interactive path used, because Automation sandboxes do not
+support the latter. **Neither is used any more.** The processing phase runs every collector
+in-process, in a fixed order, so automation and interactive runs now execute identical code —
+and there is no longer a job type that the sandbox might not support. See the AB#5649 entry in
+the [changelog](changelog.md).
+
+Diagram generation still uses background jobs, and is skipped in automation mode regardless.
+The Excel workbook, JSON, and any other selected output formats are produced normally.
 
 ## Prerequisites
 

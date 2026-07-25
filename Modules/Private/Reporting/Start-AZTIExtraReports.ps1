@@ -18,7 +18,12 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCExtraReports {
-    Param($File, $Quotas, $SecurityCenter, $SkipPolicy, $SkipAdvisory, $IncludeCosts, $TableStyle, $ReportCache)
+    # $ExtraData is the hashtable returned by Start-AZSCExtraJobs — Security, Policy, Advisory
+    # and Subscriptions. It replaces the Receive-Job harvest that used to sit in this function
+    # (AB#5649); see the note at each use site.
+    Param($File, $Quotas, $SecurityCenter, $SkipPolicy, $SkipAdvisory, $IncludeCosts, $TableStyle, $ReportCache, $ExtraData)
+
+    if ($null -eq $ExtraData) { $ExtraData = @{} }
 
     Write-Progress -activity 'Azure Inventory' -Status "70% Complete." -PercentComplete 70 -CurrentOperation "Reporting Extra Resources.."
 
@@ -36,19 +41,20 @@ function Start-AZSCExtraReports {
 
     <################################################ SECURITY CENTER #######################################################>
 
+    # AB#5649 — the four harvests below used to be
+    #     while (get-job -Name 'X' | Where-Object { $_.State -eq 'Running' }) { ... }
+    #     $Data = Receive-Job -Name 'X'; Remove-Job -Name 'X'
+    # which is the AB#5629 defect in four more places: 'Running' does not match a job that is
+    # still 'NotStarted', so the wait could fall straight through, Receive-Job returned nothing
+    # and Remove-Job destroyed the job — the sheet silently came back empty. The data is now
+    # computed in-process during the processing phase and handed over directly.
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Security Center Sheet.')
     if ([bool]$SecurityCenter) {
-        if(get-job | Where-Object {$_.Name -eq 'Security'})
+        $Sec = $ExtraData['Security']
+        if ($null -ne $Sec)
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Security Center Sheet.')
-
-                while (get-job -Name 'Security' | Where-Object { $_.State -eq 'Running' }) {
-                    Write-Progress -Id 1 -activity 'Processing Security Center Advisories' -Status "50% Complete." -PercentComplete 50
-                    Start-Sleep -Seconds 2
-                }
-
-                $Sec = Receive-Job -Name 'Security'
-                Remove-Job -Name 'Security' | Out-Null
+                Write-Progress -Id 1 -activity 'Processing Security Center Advisories' -Status "50% Complete." -PercentComplete 50
 
                 Build-AZSCSecCenterReport -File $File -Sec $Sec -TableStyle $TableStyle
 
@@ -61,23 +67,15 @@ function Start-AZSCExtraReports {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Policy Sheet.')
     if (![bool]$SkipPolicy) {
-        if(get-job | Where-Object {$_.Name -eq 'Policy'})
+        $Pol = $ExtraData['Policy']
+        if ($null -ne $Pol)
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Policy Sheet.')
-
-                while (get-job -Name 'Policy' | Where-Object { $_.State -eq 'Running' }) {
-                    Write-Progress -Id 1 -activity 'Processing Policies' -Status "50% Complete." -PercentComplete 50
-                    Start-Sleep -Seconds 2
-                }
-
-                $Pol = Receive-Job -Name 'Policy'
-                Remove-Job -Name 'Policy' | Out-Null
+                Write-Progress -Id 1 -activity 'Processing Policies' -Status "50% Complete." -PercentComplete 50
 
                 Build-AZSCPolicyReport -File $File -Pol $Pol -TableStyle $TableStyle
 
                 Write-Progress -Id 1 -activity 'Processing Policies'  -Status "100% Complete." -Completed
-
-                Start-Sleep -Milliseconds 200
             }
     }
 
@@ -85,23 +83,15 @@ function Start-AZSCExtraReports {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Advisory Sheet.')
     if (![bool]$SkipAdvisory) {
-        if (get-job | Where-Object {$_.Name -eq 'Advisory'})
+        $Adv = $ExtraData['Advisory']
+        if ($null -ne $Adv)
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Advisor Sheet.')
-
-                while (get-job -Name 'Advisory' | Where-Object { $_.State -eq 'Running' }) {
-                    Write-Progress -Id 1 -activity 'Processing Advisories' -Status "50% Complete." -PercentComplete 50
-                    Start-Sleep -Seconds 2
-                }
-
-                $Adv = Receive-Job -Name 'Advisory'
-                Remove-Job -Name 'Advisory' | Out-Null
+                Write-Progress -Id 1 -activity 'Processing Advisories' -Status "50% Complete." -PercentComplete 50
 
                 Build-AZSCAdvisoryReport -File $File -Adv $Adv -TableStyle $TableStyle
 
                 Write-Progress -Id 1 -activity 'Processing Advisories'  -Status "100% Complete." -Completed
-
-                Start-Sleep -Milliseconds 200
             }
     }
 
@@ -111,13 +101,7 @@ function Start-AZSCExtraReports {
 
     Write-Progress -activity 'Azure Resource Inventory Subscriptions' -Status "50% Complete." -PercentComplete 50 -CurrentOperation "Building Subscriptions Sheet"
 
-    while (get-job -Name 'Subscriptions' | Where-Object { $_.State -eq 'Running' }) {
-        Write-Progress -Id 1 -activity 'Processing Subscriptions' -Status "50% Complete." -PercentComplete 50
-        Start-Sleep -Seconds 2
-    }
-
-    $AzSubs = Receive-Job -Name 'Subscriptions'
-    Remove-Job -Name 'Subscriptions' | Out-Null
+    $AzSubs = $ExtraData['Subscriptions']
 
     Build-AZSCSubsReport -File $File -Sub $AzSubs -IncludeCosts $IncludeCosts -TableStyle $TableStyle
 

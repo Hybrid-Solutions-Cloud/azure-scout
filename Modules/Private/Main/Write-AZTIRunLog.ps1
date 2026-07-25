@@ -95,21 +95,49 @@ function Start-AZSCRunLog {
 }
 
 function Write-AZSCLog {
+    <#
+        AB#5649 — VERBOSE and -Color exist because seven inventory collectors already call
+        this function that way:
+
+            Write-AZSCLog -Message "  >> Processing Defender Alerts for: $x" -Color 'Cyan'
+            Write-AZSCLog -Message "No identity providers data available"     -Level Verbose
+
+        Those call sites are in Monitor/SubscriptionDiagnosticSettings and the four
+        Security/Defender* collectors. Neither 'Verbose' nor -Color was accepted, so every one
+        of them threw "A parameter cannot be found that matches parameter name 'Color'" the
+        moment it was reached — and the old pipeline ran collectors inside a runspace whose
+        errors surfaced detached at EndInvoke time, so those five collectors have been dead in
+        shipped releases with nothing in the report or the console to say so. Running them
+        in-process is what made it visible.
+
+        Widening the signature here fixes all five at once and keeps one meaning for the name,
+        which is why it is preferred over editing five collectors to drop the arguments.
+    #>
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory, Position = 0)]
         [AllowEmptyString()]
         [string]$Message,
 
-        [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG')]
-        [string]$Level = 'INFO'
+        [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG', 'VERBOSE')]
+        [string]$Level = 'INFO',
+
+        # Console colour hint. When supplied the message is also written to the host, which is
+        # what the collector call sites are asking for. Omitted, this stays a file-only log.
+        [ValidateNotNullOrEmpty()]
+        [string]$Color
     )
+
+    if ($PSBoundParameters.ContainsKey('Color')) {
+        try { Write-Host $Message -ForegroundColor $Color }
+        catch { Write-Host $Message }
+    }
 
     if (-not $script:AZSCRunLogPath) { return }
 
     try {
         $Stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff')
-        $Line = '[{0}] [{1,-5}] {2}' -f $Stamp, $Level, $Message
+        $Line = '[{0}] [{1,-5}] {2}' -f $Stamp, $Level.ToUpperInvariant(), $Message
         Add-Content -Path $script:AZSCRunLogPath -Value $Line -Encoding UTF8 -ErrorAction Stop
     }
     catch {

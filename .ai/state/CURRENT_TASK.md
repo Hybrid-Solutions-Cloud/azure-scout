@@ -26,6 +26,25 @@ Five phases, each shipping as a working release, ending in the deletion of `Modu
 
 **Start with AB#5649 (the pipeline)** — it eliminates the entire crash class on its own.
 
+### AB#5649 — mostly delivered 2026-07-25
+
+The resource-processing phase now runs every collector **in-process, in a fixed order, with no
+background jobs and no nested runspaces**. Four new functions under `src/pipeline/`; seven engine
+files deleted. Decision record: `docs/design/decisions/deterministic-pipeline.md`.
+
+Resolved: **AB#5650, 5651, 5652, 5654, 5655**.
+
+**Still open — AB#5653, and therefore the AB#5649 Feature itself.** `Wait-AZSCJob` survives
+because the **draw.io diagram subsystem still uses background jobs** and starts nested jobs of
+its own. Converting it is the next piece of this Feature.
+
+Three shipped defects the change surfaced and fixed: the Security Center sheet was empty in every
+release (an undeclared parameter silently became `$null` across the job boundary), five
+collectors threw on their first `Write-AZSCLog -Color` call, and per-file `.CATEGORY` filtering
+had never matched a single file.
+
+**Not yet verified against a live tenant** — do that before this phase ships to PSGallery.
+
 ## v2.5.3 — SHIPPED 2026-07-25
 
 Commit `97e6031`, tag `v2.5.3`, GitHub release, **PSGallery 2.5.3 published 21:47**, and installed

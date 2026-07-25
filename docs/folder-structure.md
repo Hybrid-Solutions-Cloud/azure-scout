@@ -54,11 +54,11 @@ azure-scout/
 │   ├── ari-differences.md              #   Differences from ARI
 │   └── changelog.md                    #   Changelog
 ├── Modules/
-│   ├── Private/                        # Internal (non-exported) functions — 55 scripts
-│   │   ├── Main/                       #   13 — Core orchestration, auth, permission audit
-│   │   ├── Extraction/                 #   9 — ARM/Entra data extraction
+│   ├── Private/                        # Internal (non-exported) functions — 54 scripts
+│   │   ├── Main/                       #   18 — Core orchestration, auth, permission audit, run log
+│   │   ├── Extraction/                 #   10 — ARM/Entra data extraction
 │   │   │   └── ResourceDetails/
-│   │   ├── Processing/                 #   9 — Cache, advisory, policy jobs
+│   │   ├── Processing/                 #   2 — draw.io job wrapper, extra processing
 │   │   └── Reporting/                  #   24 — Excel, JSON, Markdown, AsciiDoc, Power BI export
 │   │       └── StyleFunctions/
 │   └── Public/                         # Exported functions & runtime modules
@@ -83,6 +83,11 @@ azure-scout/
 │           └── Jobs/                   #     Background job orchestration (advisory, policy, sec center)
 ├── src/                                # CAF/WAF assessment platform (v2.0.0, Epic AB#5023/AB#5056)
 │   ├── collect/                        #   Read-only Azure Resource Graph collection -> collect.json
+│   ├── pipeline/                       #   Deterministic inventory processing — no background jobs (AB#5649)
+│   │   ├── Get-ScoutCollector.ps1      #     Discover collectors in a fixed, testable order
+│   │   ├── Invoke-ScoutCollector.ps1   #     Run ONE collector in-process, failure contained
+│   │   ├── Invoke-ScoutProcessing.ps1  #     Run them all, write the report cache
+│   │   └── Write-ScoutCacheFile.ps1    #     Cache writing, decoupled from job harvesting
 │   ├── ingest/                         #   Import-Governance (native, default) / opt-in AzGovViz / ARG query pack / Advisor ingest into collect.json
 │   ├── assess/                         #   Rule engine (JSONPath + assert types) -> findings.json
 │   │   ├── benchmarks/                 #     ALZ reference benchmark data

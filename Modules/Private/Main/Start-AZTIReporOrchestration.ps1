@@ -26,7 +26,10 @@ Function Start-AZSCReporOrchestration {
     $SkipAdvisory,
     $Automation,
     $TableStyle,
-    $IncludeCosts)
+    $IncludeCosts,
+    # Security / Policy / Advisory / Subscriptions results from the processing phase. These
+    # used to be harvested from background jobs inside Start-AZSCExtraReports (AB#5649).
+    $ExtraData)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
     # StrictMode and carries ~800 property reads that are only valid without it -- chained
@@ -67,6 +70,6 @@ Function Start-AZSCReporOrchestration {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Default Data Reporting.')
 
-    Start-AZSCExtraReports -File $File -Quotas $Quotas -SecurityCenter $SecurityCenter -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -TableStyle $TableStyle -ReportCache $ReportCache
+    Start-AZSCExtraReports -File $File -Quotas $Quotas -SecurityCenter $SecurityCenter -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -TableStyle $TableStyle -ReportCache $ReportCache -ExtraData $ExtraData
 
 }

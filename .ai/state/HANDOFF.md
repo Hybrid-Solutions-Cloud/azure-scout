@@ -6,7 +6,92 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.5.3 SHIPPED, and the engine rewrite is approved
+## Last session (2026-07-25, Claude Code) — AB#5649: the processing phase has no background jobs left
+
+**First phase of Epic AB#5638 delivered. The inventory processing phase no longer uses
+background jobs or nested runspaces, and three real defects it had been hiding are fixed.**
+
+### What replaced what
+
+`Start-AZSCProcessJob` (or `Start-AZSCAutProcessJob` under `-Automation`) created one
+`Start-Job` per category; each of those created one `[PowerShell]::Create()` runspace per
+collector; `Wait-AZSCJob` waited; `Build-AZSCCacheFiles` harvested and destroyed. That is now
+four functions under **`src/pipeline/`**:
+
+| Function | Responsibility |
+|---|---|
+| `Get-ScoutCollector` | Discovery — pure function of the filesystem + category filter |
+| `Invoke-ScoutCollector` | Run ONE collector in-process, contain its failure, time it |
+| `Invoke-ScoutProcessing` | Run all 176 in a fixed order, group by category, write the cache |
+| `Write-ScoutCacheFile` | Write one category — takes **data**, not job names |
+
+**Deleted:** `Start-AZTIProcessJob.ps1`, `Start-AZTIAutProcessJob.ps1`, `Build-AZTICacheFiles.ps1`,
+`Invoke-AZTIAdvisoryJob.ps1`, `Invoke-AZTIPolicyJob.ps1`, `Invoke-AZTISecurityCenterJob.ps1`,
+`Invoke-AZTISubJob.ps1`. `Modules/Private/Processing/` is down to **2** files.
+
+Rationale, alternatives and consequences: **`docs/design/decisions/deterministic-pipeline.md`**.
+
+### Three real defects, all pre-existing, all surfaced by running collectors in-process
+
+1. **The Security Center sheet has been empty in every release that had one.**
+   `Invoke-AZSCSecurityCenterJob` was called with `-SecurityCenter $SecurityCenter` against a
+   param block that declared no such parameter. **PowerShell does not reject an unknown named
+   argument to a simple function** — it collects it into `$args` and carries on. So
+   `$SecurityCenter` was undefined in the wrapper, `$null` crossed the job boundary as
+   `-Security`, and `foreach ($1 in $Security)` iterated nothing. Now passes `$Security`.
+2. **Five collectors threw on their first log call.**
+   `Monitor/SubscriptionDiagnosticSettings` + the four `Security/Defender*` call
+   `Write-AZSCLog -Color 'Cyan'` and `-Level Verbose`; the function accepted neither.
+   Signature widened.
+3. **Per-file `.CATEGORY` filtering never worked.** The regex required a line break between the
+   keyword and its value; all 176 collectors write `.CATEGORY Compute` on one line, so it never
+   matched and every collector fell back to its folder name. Both forms accepted now — no
+   present behaviour change, since nothing declares a category different from its folder.
+
+Plus **four more copies of the AB#5629 `NotStarted` race** in the security/policy/advisory/
+subscription harvest (`State -eq 'Running'` never matches a not-yet-started job). Gone with the
+jobs.
+
+### Known limitation, now reported instead of silent
+
+`Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` are written against
+`Register-AZSCInventoryModule` / `Get-AZSCProcessedData` / `$Context.EntraData` — an API that
+exists **only as a mock in `tests/Identity.Module.Tests.ps1`** and was never implemented. They
+have never produced a row. Discovery now tags them `Contract = 'Unsupported'` and the pipeline
+reports them as skipped rather than executing them, so a genuine failure is not buried under two
+guaranteed ones. Porting them is **AB#5656**.
+
+### Verification
+
+- Pester **1782 / 0 / 3** across 65 files (26 new in `tests/DeterministicPipeline.Tests.ps1`).
+- PSScriptAnalyzer **0 Error-severity** on all changed files.
+- **All 176 real collectors smoke-run in-process** against a synthetic estate: 176 discovered,
+  2 skipped by contract, 0 pipeline failures. The 10 remaining collector errors are the
+  synthetic fixture lacking type-specific nested fields — adding date fields alone took the
+  count 16 → 10, which is what identifies them as fixture shape, not defects.
+- Determinism pinned by a test that **hashes the cache files across two runs** of the same input.
+- A test asserts the pipeline **starts no background jobs**.
+
+### ⚠ Not done, deliberately — AB#5653 stays open
+
+**`Wait-AZSCJob` still exists and is still called** by `Invoke-AzureScout` for the draw.io
+diagram wait. That subsystem starts nested jobs of its own (`Start-AZTIDiagramJob`,
+`Start-AZTIDrawIODiagram`, `Start-AZTIDiagramNetwork`); folding it in would have made this change
+untestable in one step. **AB#5649 (Feature) therefore also stays open** — it closes when AB#5653
+does. AB#5650/5651/5652/5654/5655 are Resolved with per-item evidence.
+
+**StrictMode is still off for collectors** — that is AB#5667's job, with the recorded
+live-payload fixtures needed to do it safely.
+
+### ⚠ No live-tenant run yet
+
+This phase is verified by tests and an in-process smoke run over the real collector set, **not**
+by a run against a real tenant. Given the v2.5.1 lesson (a green suite is not evidence the
+product works), **a live run is the highest-value next check** before this ships to PSGallery.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.5.3 SHIPPED, and the engine rewrite is approved
 
 **The operator's run crashed with `The property 'ReservationRecomen' cannot be found on this
 object`. It turned out to be six crashes stacked behind each other, one root cause, and it ended
