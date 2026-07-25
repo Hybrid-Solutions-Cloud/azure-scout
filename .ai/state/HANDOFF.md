@@ -6,7 +6,71 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — post-v2.4.0 conformance sweep: board back to zero failures
+## Last session (2026-07-25, Claude Code) — v2.5.0 SHIPPED: one collection pass (AB#5543)
+
+**The backlog outside web and multi-tenant is now empty.** Board: 196 items — **180 Closed / 14
+New / 2 Removed**, and all 14 open items are Epic AB#5093 (web app, 11 children) and Epic
+AB#5410/AB#323 (multi-tenant) — the two areas the owner excluded. Conformance: **0 ADO failures,
+0 GitHub reconcile failures.**
+
+### What shipped
+
+A combined inventory + assessment run queried Azure **twice** over the same resource types.
+`Start-AZSCGraphExtraction` (note: **AZTI** prefix on disk —
+`Modules/Private/Extraction/Start-AZTIGraphExtraction.ps1`) already projects the full `properties`
+bag from `resources`, `networkresources` and `resourcecontainers`, a superset of what the
+assessment's typed queries re-fetched.
+
+| File | What |
+|---|---|
+| `src/collect/ConvertFrom-ScoutInventory.ps1` (new) | Shapes every assessment scalar from inventory rows, mirroring the KQL field for field |
+| `src/collect/Invoke-Collect.ps1` | New `-FromInventory`; queries satisfied from inventory skip ARG entirely |
+| `src/Invoke-ScoutAssessment.ps1` | New `-FromInventory`, threaded to `Invoke-Collect` |
+| `Modules/Public/PublicFunctions/Invoke-AzureScout.ps1` | The wizard "both" path now **defers** the assessment until after the inventory pass, so the rows exist to hand over |
+| `tests/CollectorCollapse.Tests.ps1` (new) | 17 tests |
+
+**Measured result:** with `-FromInventory` the collector reaches Resource Graph **once**; without
+it, **30+** times. The one remaining query is `sqlDefenderPricing` — it reads the
+`SecurityResources` table (`Microsoft.Security/pricings`), which inventory only touches under
+`-SecurityCenter` and then filters to `microsoft.security/assessments`, so those rows are
+genuinely never present. That is a real limit, not an oversight.
+
+### Why this was safe to do now
+
+The KQL stays the reference implementation — an assessment-only run is completely unchanged and
+still issues the full pack. A shaping failure **falls back** to Resource Graph rather than costing
+the caller their assessment. The tests pin the four semantics a naive PowerShell rewrite silently
+breaks:
+
+- `array_length(null)` is **null**, not `0` — a VNet with no peerings array must report
+  `peeringCount` null or rules filtering `> 0` change behaviour.
+- `tobool(null)` is **null**, not `$false` — returning false would flip rules testing for explicit false.
+- subnet capacity is `2^(32-prefix) - 5`.
+- `allPoolsZoned` only when **every** AKS pool has zones.
+
+### Bug found while shaping, not in any work item
+
+Rows appear in **both** the `resources` and `networkresources` tables. Without de-duplication by
+resource id, a VNet present in both is counted twice and inflates every existence-count rule.
+De-duped in `ConvertFrom-ScoutInventory`, with a regression test.
+
+### Release
+
+Tag `v2.5.0`, GitHub release created, **PSGallery `Find-Module AzureScout` → 2.5.0**. Commits
+`a138d2e` (feature) and the release-metadata commit after it. Pester **1688 pass / 0 fail /
+3 skip** (up from 1671). Analyzer **0 Error-severity**. Docs site builds clean.
+
+Two stale statements the release surfaced and corrected: the manifest `ReleaseNotes` still
+asserted the now-false "inventory and assessment still collect their Azure data independently",
+and the `RELEASES.md` 2.4.0 row was still marked 🟡 in-progress after that release had shipped.
+
+⚠ **Publish trap:** `Publish-Module` needs the folder name to match the module name. The repo
+folder is `azure-scout`, the module is `AzureScout` — publishing the repo root fails with "no
+valid module was found with that path". Stage into a folder literally named `AzureScout` first.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — post-v2.4.0 conformance sweep: board back to zero failures
 
 **Question asked: is the solution done?** Code: yes. Board: it was not, and every failure was created
 by the previous session.
