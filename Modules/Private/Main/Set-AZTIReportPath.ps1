@@ -1,11 +1,26 @@
 <#
 .Synopsis
-Set the report path for Azure Scout
+Resolves the report, diagram cache, and report cache paths for an Azure Scout run.
 
 .DESCRIPTION
-This module sets the default paths for report generation in Azure Scout (AZSC).
-Windows default: C:\AzureScout
-Linux/Mac default: $HOME/AzureScout
+Builds the folder layout for a single run. By default every invocation gets its own
+run folder underneath the base path, so a second scan never overwrites the cache or
+report of a previous one. Pass -Force to write directly into the base path, which is
+the pre-2.3.0 behaviour.
+
+.PARAMETER ReportDir
+Base directory for output. Defaults to C:\AzureScout on Windows, $HOME/AzureScout elsewhere.
+
+.PARAMETER RunName
+Friendly name for this run's folder instead of the generated timestamp. Invalid path
+characters are replaced with '-'.
+
+.PARAMETER ScopeId
+Optional scope identifier (normally a tenant ID) appended to the generated timestamp so
+runs against different tenants are distinguishable at a glance.
+
+.PARAMETER Force
+Write into the base path directly, overwriting any previous run in place.
 
 .Link
 https://github.com/thisismydemo/azure-scout/Modules/Private/Main/Set-AZSCReportPath.ps1
@@ -14,38 +29,83 @@ https://github.com/thisismydemo/azure-scout/Modules/Private/Main/Set-AZSCReportP
 This PowerShell Module is part of Azure Scout (AZSC)
 
 .NOTES
-Version: 1.5.0
+Version: 3.6.0
 First Release Date: 15th Oct, 2024
-Authors: Claudio Merola (original), thisismydemo (fork)
+Authors: Claudio Merola
 
 #>
+
 function Set-AZSCReportPath {
-    Param($ReportDir)
+    Param(
+        $ReportDir,
+        [string]$RunName,
+        [string]$ScopeId,
+        [switch]$Force
+    )
 
     if ($ReportDir)
         {
-            $DefaultPath = $ReportDir
-            $DiagramCache = Join-Path $ReportDir "DiagramCache"
-            $ReportCache = Join-Path $ReportDir 'ReportCache'
+            $BasePath = $ReportDir
         }
     elseif (Resolve-Path -Path 'C:\' -ErrorAction SilentlyContinue)
         {
-            $DefaultPath = Join-Path "C:\" "AzureScout"
-            $DiagramCache = Join-Path "C:\" "AzureScout" "DiagramCache"
-            $ReportCache = Join-Path "C:\" "AzureScout"'ReportCache'
+            $BasePath = Join-Path 'C:\' 'AzureScout'
         }
     else
         {
-            $DefaultPath = Join-Path "$HOME" "AzureScout"
-            $DiagramCache = Join-Path "$HOME" "AzureScout" "DiagramCache"
-            $ReportCache = Join-Path "$HOME" "AzureScout" 'ReportCache'
+            $BasePath = Join-Path "$HOME" 'AzureScout'
         }
 
+    # -Force keeps the historical behaviour: everything lands in the base path and a
+    # rerun overwrites whatever was there. Without it, each run is isolated.
+    if ($Force.IsPresent)
+        {
+            $RunFolder   = $null
+            $DefaultPath = $BasePath
+        }
+    else
+        {
+            if ($RunName)
+                {
+                    $RunFolder = ConvertTo-AZSCSafeRunName -Name $RunName
+                }
+            else
+                {
+                    $RunFolder = Get-Date -Format 'yyyy-MM-dd_HHmmss'
+                    if ($ScopeId)
+                        {
+                            $ScopeToken = ConvertTo-AZSCSafeRunName -Name ([string]$ScopeId)
+                            if ($ScopeToken.Length -gt 8) { $ScopeToken = $ScopeToken.Substring(0, 8) }
+                            $RunFolder = $RunFolder + '_' + $ScopeToken
+                        }
+                }
+            $DefaultPath = Join-Path $BasePath $RunFolder
+        }
+
+    $DiagramCache = Join-Path $DefaultPath 'DiagramCache'
+    $ReportCache  = Join-Path $DefaultPath 'ReportCache'
+
     $ReportPath = @{
-        'DefaultPath' = $DefaultPath;
+        'DefaultPath'  = $DefaultPath;
         'DiagramCache' = $DiagramCache;
-        'ReportCache' = $ReportCache
+        'ReportCache'  = $ReportCache;
+        'BasePath'     = $BasePath;
+        'RunFolder'    = $RunFolder
     }
 
     return $ReportPath
+}
+
+function ConvertTo-AZSCSafeRunName {
+    Param([string]$Name)
+
+    $invalid = [System.IO.Path]::GetInvalidFileNameChars()
+    $builder = [System.Text.StringBuilder]::new()
+    foreach ($char in $Name.ToCharArray())
+        {
+            if ($invalid -contains $char) { [void]$builder.Append('-') } else { [void]$builder.Append($char) }
+        }
+    $safe = $builder.ToString().Trim().Trim('.')
+    if ([string]::IsNullOrWhiteSpace($safe)) { $safe = Get-Date -Format 'yyyy-MM-dd_HHmmss' }
+    return $safe
 }

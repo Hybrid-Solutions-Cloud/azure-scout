@@ -88,8 +88,40 @@
     Limits inventory collection to one or more resource categories (folder names under InventoryModules).
     Default is 'All', which processes every category. When one or more specific categories are provided,
     only modules in those folders are executed — speeding up targeted runs.
+
     Valid values: All, AI, Analytics, Compute, Containers, Databases, Hybrid, Identity, Integration,
     IoT, Management, Monitor, Networking, Security, Storage, Web.
+
+    Microsoft's official long category names are accepted as aliases and normalised to the short
+    value before filtering:
+
+      Alias (accepted input)          Resolves to    Report section heading
+      ------------------------------  -------------  ------------------------------
+      AI + machine learning           AI             AI + machine learning
+      AI+machine learning             AI             AI + machine learning
+      Machine Learning                AI             AI + machine learning
+      Internet of Things              IoT            Internet of Things
+      Monitoring                      Monitor        Monitor
+      Management and governance       Management     Management and governance
+      Management & governance         Management     Management and governance
+      DevOps                          Management     Management and governance
+      Migration                       Management     Management and governance
+      Web & Mobile                    Web            Web and mobile
+      Hybrid + multicloud             Hybrid         Hybrid + multicloud
+      Hybrid+multicloud               Hybrid         Hybrid + multicloud
+
+    Note that 'Monitor' is the canonical value, not 'Monitoring'. The full reference — every
+    heading, its collector folder, and its module count — is on the docs site under
+    "Category reference".
+
+.PARAMETER RunName
+    Friendly name for this run's output folder instead of the generated timestamp, for example
+    -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'.
+
+.PARAMETER Force
+    Write output directly into the base report directory, overwriting any previous run in place.
+    Without it, every run gets its own timestamped folder underneath the base directory so a
+    rerun — or a scan of a second tenant — cannot destroy the previous run's cache or report.
 
 .PARAMETER OutputFormat
     Controls which report formats are generated. Valid values:
@@ -254,7 +286,9 @@ Function Invoke-AzureScout {
         [ValidateSet('All', 'Excel', 'Json', 'Markdown', 'AsciiDoc', 'MD', 'Adoc', 'PowerBI')]
         [string]$OutputFormat = 'All',
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
-        [string[]]$Category = @('All')
+        [string[]]$Category = @('All'),
+        [string]$RunName,
+        [switch]$Force
         )
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
@@ -459,6 +493,18 @@ Function Invoke-AzureScout {
             Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthUpn -ForegroundColor Cyan
             Write-Host '  Subscription : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthSub -ForegroundColor Cyan
             Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $TenantID -ForegroundColor Cyan
+
+            # Management group access probe (AB#351). Runs here, not at collection time,
+            # so a missing tenant-root role is reported while the operator is still
+            # watching the login rather than as a silently empty worksheet an hour later.
+            $MgProbe = Test-AZSCManagementGroupAccess
+            Write-Host '  Mgmt groups  : ' -NoNewline -ForegroundColor DarkGray
+            if ($MgProbe.HasAccess) {
+                Write-Host $MgProbe.Count -ForegroundColor Cyan
+            } else {
+                Write-Host 'none visible' -ForegroundColor Yellow
+            }
+
             Write-Host ''
         }
     }
@@ -488,8 +534,10 @@ Function Invoke-AzureScout {
             'Microsoft.Search',
             'Microsoft.BotService'
         )
-        foreach ($sub in $Subscriptions) {
-            $ctx = Set-AzContext -SubscriptionId $sub.Id -ErrorAction SilentlyContinue
+        # AB#368 - the caller's subscription context is restored after the sweep, including
+        # when a provider lookup throws part way through.
+        Invoke-AZSCInSubscriptionContext -Subscription $Subscriptions -Process {
+            param($sub)
             foreach ($provider in $criticalProviders) {
                 $reg = Get-AzResourceProvider -ProviderNamespace $provider -ErrorAction SilentlyContinue
                 if ($reg -and $reg.RegistrationState -ne 'Registered') {
@@ -515,11 +563,20 @@ Function Invoke-AzureScout {
         Write-Host ''
     }
 
-    $ReportingPath = Set-AZSCReportPath -ReportDir $ReportDir
+    # Run isolation (AB#331): each invocation gets its own timestamped folder so a rerun -
+    # or a scan of a second tenant - cannot destroy the previous run's cache or report.
+    # -Force restores the pre-2.3.0 overwrite-in-place behaviour.
+    $ReportingPath = Set-AZSCReportPath -ReportDir $ReportDir -RunName $RunName -ScopeId $TenantID -Force:$Force
 
     $DefaultPath = $ReportingPath.DefaultPath
     $DiagramCache = $ReportingPath.DiagramCache
     $ReportCache = $ReportingPath.ReportCache
+
+    if (-not $Force.IsPresent)
+        {
+            Write-Host '  Run folder   : ' -NoNewline -ForegroundColor DarkGray
+            Write-Host $DefaultPath -ForegroundColor Cyan
+        }
 
     if ($Automation.IsPresent)
         {
@@ -690,26 +747,38 @@ Function Invoke-AzureScout {
 
     if ($StorageAccount)
         {
+            # -Force on every upload (AB#343): a scheduled runbook uploads to the same blob
+            # names on every run, and without it the second run fails with
+            # "blob already exists" and the report never lands.
             if ($OutputFormat -in ('All', 'Excel'))
             {
                 Write-Output "Sending Excel file to Storage Account:"
                 Write-Output $File
-                Set-AzStorageBlobContent -File $File -Container $StorageContainer -Context $StorageContext | Out-Null
+                Set-AzStorageBlobContent -File $File -Container $StorageContainer -Context $StorageContext -Force | Out-Null
             }
             if ($OutputFormat -in ('All', 'Json') -and $JsonFile)
             {
                 Write-Output "Sending JSON file to Storage Account:"
                 Write-Output $JsonFile
-                Set-AzStorageBlobContent -File $JsonFile -Container $StorageContainer -Context $StorageContext | Out-Null
+                Set-AzStorageBlobContent -File $JsonFile -Container $StorageContainer -Context $StorageContext -Force | Out-Null
             }
-            if(!$SkipDiagram.IsPresent)
+            if(!$SkipDiagram.IsPresent -and $DDFile -and (Test-Path -Path $DDFile))
                 {
                     Write-Output "Sending Diagram file to Storage Account:"
                     Write-Output $DDFile
-                    Set-AzStorageBlobContent -File $DDFile -Container $StorageContainer -Context $StorageContext | Out-Null
-                    if($Debug.IsPresent)
+                    Set-AzStorageBlobContent -File $DDFile -Container $StorageContainer -Context $StorageContext -Force | Out-Null
+                }
+
+            # $Debug is not a declared parameter — -Debug is a common parameter, so the old
+            # `$Debug.IsPresent` test was always $null/false and the diagnostic log never
+            # uploaded from a runbook. $DebugPreference is what -Debug actually sets.
+            if ($DebugPreference -ne 'SilentlyContinue')
+                {
+                    $LogFilePath = Join-Path $DefaultPath 'DiagramLogFile.log'
+                    if (Test-Path -Path $LogFilePath)
                         {
-                            $LogFilePath = Join-Path $DefaultPath 'DiagramLogFile.log'
+                            Write-Output "Sending diagnostic log to Storage Account:"
+                            Write-Output $LogFilePath
                             Set-AzStorageBlobContent -File $LogFilePath -Container $StorageContainer -Context $StorageContext -Force | Out-Null
                         }
                 }

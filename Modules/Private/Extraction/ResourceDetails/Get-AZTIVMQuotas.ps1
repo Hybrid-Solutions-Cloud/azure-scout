@@ -18,6 +18,13 @@ Authors: Claudio Merola
 #>
 function Get-AZSCVMQuotas {
     Param ($Subscriptions, $Resources)
+
+    # AB#368 - quota lookups are per-location and force a context switch per subscription.
+    # Capture up front and restore in the finally below so the caller is not left parked
+    # in the last subscription of the loop, or in whichever one an error surfaced from.
+    $OriginalContext = Get-AzContext -ErrorAction SilentlyContinue
+
+    try {
     $Quotas = Foreach($Sub in $Subscriptions)
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting VM Quota Details: '+$Sub.name)
@@ -59,6 +66,21 @@ function Get-AZSCVMQuotas {
                         }
                 }
         }
+    }
+    finally {
+        # Inline rather than via the shared helper — extraction functions are invoked from
+        # thread-job script blocks where sibling private functions are not dot-sourced.
+        # PSObject.Properties guards keep this safe under Set-StrictMode.
+        $RestoreId = $null
+        if ($OriginalContext -and $OriginalContext.PSObject.Properties.Name -contains 'Subscription' -and $OriginalContext.Subscription) {
+            if ($OriginalContext.Subscription.PSObject.Properties.Name -contains 'Id') {
+                $RestoreId = $OriginalContext.Subscription.Id
+            }
+        }
+        if ($RestoreId) {
+            Set-AzContext -SubscriptionId $RestoreId -ErrorAction SilentlyContinue | Out-Null
+        }
+    }
 
     $VMQuotas = [PSCustomObject]@{
         'type'          = 'AZSC/VM/Quotas'

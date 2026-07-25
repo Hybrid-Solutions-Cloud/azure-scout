@@ -200,53 +200,76 @@ function Invoke-AZSCPermissionAudit {
             'Cost Management Reader'   = 'Cost Management / Advisor cost recommendations'
         }
 
-        foreach ($sub in $subs) {
-            try {
-                Set-AzContext -SubscriptionId $sub.Id -ErrorAction SilentlyContinue | Out-Null
-                $assignments = @(Get-AzRoleAssignment -Scope "/subscriptions/$($sub.Id)" -ErrorAction Stop)
+        # AB#368 — try/finally, not a scriptblock, so the loop body keeps writing to the
+        # enclosing scope's $armAccess/$armDetails/$recommendations while the caller's
+        # subscription context is still restored on both the normal and the error path.
+        $armLoopContext = Get-AzContext -ErrorAction SilentlyContinue
+        try {
+            foreach ($sub in $subs) {
+                try {
+                    Set-AzContext -SubscriptionId $sub.Id -ErrorAction SilentlyContinue | Out-Null
+                    $assignments = @(Get-AzRoleAssignment -Scope "/subscriptions/$($sub.Id)" -ErrorAction Stop)
 
-                $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
-                $missingCritical = $requiredRoles.Keys | Where-Object { $_ -eq 'Reader' -and $_ -notin $foundRoles }
-                $missingOptional = $requiredRoles.Keys | Where-Object { $_ -ne 'Reader'  -and $_ -notin $foundRoles }
+                    $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
+                    $missingCritical = $requiredRoles.Keys | Where-Object { $_ -eq 'Reader' -and $_ -notin $foundRoles }
+                    $missingOptional = $requiredRoles.Keys | Where-Object { $_ -ne 'Reader'  -and $_ -notin $foundRoles }
 
-                $status = if ($missingCritical) { 'Fail' } elseif ($missingOptional) { 'Warn' } else { 'Pass' }
+                    $status = if ($missingCritical) { 'Fail' } elseif ($missingOptional) { 'Warn' } else { 'Pass' }
 
-                $rolesDisplay = ($requiredRoles.Keys | ForEach-Object {
-                    $emoji = if ($_ -in $foundRoles) { '✅' } else { if ($_ -eq 'Reader') { '❌' } else { '⚠️' } }
-                    "$emoji $_"
-                }) -join '  '
+                    $rolesDisplay = ($requiredRoles.Keys | ForEach-Object {
+                        $emoji = if ($_ -in $foundRoles) { '✅' } else { if ($_ -eq 'Reader') { '❌' } else { '⚠️' } }
+                        "$emoji $_"
+                    }) -join '  '
 
-                $subMsg = "[$($sub.Name)] $rolesDisplay"
-                Write-AuditLine -Status $status -Text $subMsg
+                    $subMsg = "[$($sub.Name)] $rolesDisplay"
+                    Write-AuditLine -Status $status -Text $subMsg
 
-                $subResult = [PSCustomObject]@{
-                    SubscriptionId   = $sub.Id
-                    SubscriptionName = $sub.Name
-                    State            = $sub.State
-                    AssignedRoles    = $foundRoles
-                    HasReader        = 'Reader' -in $foundRoles
-                    HasSecurityReader     = 'Security Reader' -in $foundRoles
-                    HasMonitoringReader   = 'Monitoring Reader' -in $foundRoles
-                    HasCostMgmtReader     = 'Cost Management Reader' -in $foundRoles
-                    Status           = $status
+                    $subResult = [PSCustomObject]@{
+                        SubscriptionId   = $sub.Id
+                        SubscriptionName = $sub.Name
+                        State            = $sub.State
+                        AssignedRoles    = $foundRoles
+                        HasReader        = 'Reader' -in $foundRoles
+                        HasSecurityReader     = 'Security Reader' -in $foundRoles
+                        HasMonitoringReader   = 'Monitoring Reader' -in $foundRoles
+                        HasCostMgmtReader     = 'Cost Management Reader' -in $foundRoles
+                        Status           = $status
+                    }
+                    $armDetails.Add([PSCustomObject]@{
+                        Check       = "ARM: Subscription [$($sub.Name)]"
+                        Status      = $status
+                        Message     = $subMsg
+                        Remediation = if ($missingCritical) { "Add Reader role on subscription $($sub.Id)" } else { $null }
+                    })
+
+                    if ($missingCritical) {
+                        $armAccess = $false
+                        $recommendations.Add("Add Reader role on '$($sub.Name)': New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/subscriptions/$($sub.Id)'")
+                    }
+                    if ('Security Reader' -notin $foundRoles) {
+                        $recommendations.Add("Add Security Reader on '$($sub.Name)' for Defender data: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Security Reader' -Scope '/subscriptions/$($sub.Id)'")
+                    }
                 }
-                $armDetails.Add([PSCustomObject]@{
-                    Check       = "ARM: Subscription [$($sub.Name)]"
-                    Status      = $status
-                    Message     = $subMsg
-                    Remediation = if ($missingCritical) { "Add Reader role on subscription $($sub.Id)" } else { $null }
-                })
-
-                if ($missingCritical) {
-                    $armAccess = $false
-                    $recommendations.Add("Add Reader role on '$($sub.Name)': New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/subscriptions/$($sub.Id)'")
-                }
-                if ('Security Reader' -notin $foundRoles) {
-                    $recommendations.Add("Add Security Reader on '$($sub.Name)' for Defender data: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Security Reader' -Scope '/subscriptions/$($sub.Id)'")
+                catch {
+                    Write-AuditLine -Status Warn -Text "[$($sub.Name)] Cannot read role assignments: $($_.Exception.Message)"
                 }
             }
-            catch {
-                Write-AuditLine -Status Warn -Text "[$($sub.Name)] Cannot read role assignments: $($_.Exception.Message)"
+        }
+        finally {
+            # Written inline rather than calling the shared Restore-AZSCContext helper:
+            # the audit is dot-sourced standalone (by tests, and by callers that do not
+            # import the whole module) and must not depend on a sibling file being loaded.
+            # Property presence is tested via PSObject.Properties because a bare
+            # $ctx.Subscription THROWS under Set-StrictMode when the property is absent,
+            # and callers with strict mode in their profile do reach this path.
+            $restoreId = $null
+            if ($armLoopContext -and $armLoopContext.PSObject.Properties.Name -contains 'Subscription' -and $armLoopContext.Subscription) {
+                if ($armLoopContext.Subscription.PSObject.Properties.Name -contains 'Id') {
+                    $restoreId = $armLoopContext.Subscription.Id
+                }
+            }
+            if ($restoreId) {
+                Set-AzContext -SubscriptionId $restoreId -ErrorAction SilentlyContinue | Out-Null
             }
         }
     }
@@ -284,41 +307,58 @@ function Invoke-AZSCPermissionAudit {
 
     if ($targetSubs.Count -gt 0) {
         $checkSub = $targetSubs[0]
-        Set-AzContext -SubscriptionId $checkSub.Id -ErrorAction SilentlyContinue | Out-Null
-        Write-Host "  Checking against subscription: $($checkSub.Name)" -ForegroundColor Gray
-        Write-Host "  NOTE: Not all providers need to be registered. Unregistered providers are" -ForegroundColor DarkGray
-        Write-Host "        expected — they simply mean that service is not deployed here." -ForegroundColor DarkGray
-        Write-Host "        The scan will complete successfully; those modules will be skipped." -ForegroundColor DarkGray
-        Write-Host ''
 
-        foreach ($kvp in $criticalProviders.GetEnumerator()) {
-            $provider = $kvp.Key
-            $purpose  = $kvp.Value
-            try {
-                $reg = Get-AzResourceProvider -ProviderNamespace $provider -ErrorAction Stop
-                $state = ($reg | Select-Object -ExpandProperty RegistrationState -First 1)
-                $status = if ($state -eq 'Registered') { 'Pass' } elseif ($state -in 'Registering','Unregistering') { 'Warn' } else { 'Info' }
-                $skipText = if ($status -eq 'Info') { " (modules for this service will be skipped)" } else { '' }
-                Write-AuditLine -Status $status -Text "$provider  [$state]  — $purpose$skipText"
+        # AB#368 — the provider probe borrows a subscription context; the audit must not
+        # leave the caller parked in it once the section is done.
+        $providerLoopContext = Get-AzContext -ErrorAction SilentlyContinue
+        try {
+            Set-AzContext -SubscriptionId $checkSub.Id -ErrorAction SilentlyContinue | Out-Null
+            Write-Host "  Checking against subscription: $($checkSub.Name)" -ForegroundColor Gray
+            Write-Host "  NOTE: Not all providers need to be registered. Unregistered providers are" -ForegroundColor DarkGray
+            Write-Host "        expected — they simply mean that service is not deployed here." -ForegroundColor DarkGray
+            Write-Host "        The scan will complete successfully; those modules will be skipped." -ForegroundColor DarkGray
+            Write-Host ''
 
-                if ($status -ne 'Pass') {
-                    $recommendations.Add("Register provider: Register-AzResourceProvider -ProviderNamespace '$provider'")
+            foreach ($kvp in $criticalProviders.GetEnumerator()) {
+                $provider = $kvp.Key
+                $purpose  = $kvp.Value
+                try {
+                    $reg = Get-AzResourceProvider -ProviderNamespace $provider -ErrorAction Stop
+                    $state = ($reg | Select-Object -ExpandProperty RegistrationState -First 1)
+                    $status = if ($state -eq 'Registered') { 'Pass' } elseif ($state -in 'Registering','Unregistering') { 'Warn' } else { 'Info' }
+                    $skipText = if ($status -eq 'Info') { " (modules for this service will be skipped)" } else { '' }
+                    Write-AuditLine -Status $status -Text "$provider  [$state]  — $purpose$skipText"
+
+                    if ($status -ne 'Pass') {
+                        $recommendations.Add("Register provider: Register-AzResourceProvider -ProviderNamespace '$provider'")
+                    }
+                }
+                catch {
+                    $state = 'Unknown'
+                    $status = 'Warn'
+                    Write-AuditLine -Status Warn -Text "$provider  [Unknown — cannot read]  — $purpose"
+                }
+
+                $providerResults.Add([PSCustomObject]@{
+                    SubscriptionId   = $checkSub.Id
+                    SubscriptionName = $checkSub.Name
+                    Provider         = $provider
+                    Purpose          = $purpose
+                    RegistrationState = $state
+                    Status           = $status
+                })
+            }
+        }
+        finally {
+            $restoreId = $null
+            if ($providerLoopContext -and $providerLoopContext.PSObject.Properties.Name -contains 'Subscription' -and $providerLoopContext.Subscription) {
+                if ($providerLoopContext.Subscription.PSObject.Properties.Name -contains 'Id') {
+                    $restoreId = $providerLoopContext.Subscription.Id
                 }
             }
-            catch {
-                $state = 'Unknown'
-                $status = 'Warn'
-                Write-AuditLine -Status Warn -Text "$provider  [Unknown — cannot read]  — $purpose"
+            if ($restoreId) {
+                Set-AzContext -SubscriptionId $restoreId -ErrorAction SilentlyContinue | Out-Null
             }
-
-            $providerResults.Add([PSCustomObject]@{
-                SubscriptionId   = $checkSub.Id
-                SubscriptionName = $checkSub.Name
-                Provider         = $provider
-                Purpose          = $purpose
-                RegistrationState = $state
-                Status           = $status
-            })
         }
     }
     else {

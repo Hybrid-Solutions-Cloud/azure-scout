@@ -32,6 +32,12 @@ If ($Task -eq 'Processing')
         # Get all policy assignments and their compliance states
         $tmp = @()
 
+        # AB#368 - restore the caller's subscription context after the sweep. Inventory
+        # modules execute inside thread jobs where the private helper functions are not
+        # dot-sourced, so the capture/restore is written out inline here.
+        $OriginalContext = Get-AzContext -ErrorAction SilentlyContinue
+
+        try {
         foreach ($subscription in $Sub) {
             try {
                 Set-AzContext -SubscriptionId $subscription.Id -ErrorAction SilentlyContinue | Out-Null
@@ -73,6 +79,20 @@ If ($Task -eq 'Processing')
             }
             catch {
                 Write-Warning "Failed to get policy states for subscription: $($subscription.Name)"
+            }
+        }
+        }
+        finally {
+            # PSObject.Properties guards, not a bare $ctx.Subscription — the latter throws
+            # under Set-StrictMode when the property is absent.
+            $RestoreId = $null
+            if ($OriginalContext -and $OriginalContext.PSObject.Properties.Name -contains 'Subscription' -and $OriginalContext.Subscription) {
+                if ($OriginalContext.Subscription.PSObject.Properties.Name -contains 'Id') {
+                    $RestoreId = $OriginalContext.Subscription.Id
+                }
+            }
+            if ($RestoreId) {
+                Set-AzContext -SubscriptionId $RestoreId -ErrorAction SilentlyContinue | Out-Null
             }
         }
 
