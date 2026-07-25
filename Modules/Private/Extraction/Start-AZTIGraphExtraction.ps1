@@ -64,6 +64,12 @@ Function Start-AZSCGraphExtraction {
             $RGQueryExtension = ''
             $TagQueryExtension = ''
             $MGQueryExtension = ''
+            # Only assigned in the -ManagementGroup branch below, but consumed unconditionally by
+            # the resourcecontainers query further down. Without this initialiser a run WITHOUT
+            # -ManagementGroup throws "The variable '$MGContainerExtension' cannot be retrieved
+            # because it has not been set" under Set-StrictMode, which the HCS scripting standard
+            # requires of every calling script. Same defect class as AB#335-AB#340.
+            $MGContainerExtension = ''
             if(![string]::IsNullOrEmpty($ResourceGroup) -and ![string]::IsNullOrEmpty($SubscriptionID))
                 {
                     $RGQueryExtension = "| where resourceGroup in~ ('$([String]::Join("','",$ResourceGroup))')"
