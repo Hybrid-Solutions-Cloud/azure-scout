@@ -6,6 +6,95 @@
   (possibly a different tool) starts by reading it.
 -->
 
+## Last session (2026-07-25, Claude Code) — ADO/GitHub conformance drive COMPLETE (W2 + W3b + W4)
+
+**Result: the board and the GitHub issue set now reconcile exactly, with zero standards violations.**
+Verification script: `scratchpad/conformance.ps1` — **185 ADO items, 0 conformance failures; 130 GitHub
+issues, 130 linked, 0 reconcile failures.**
+
+**W2 — tag vocabulary (was the last open item from the 2026-07-21 audit).**
+- Created **AB#5385** in *Platform Engineering* (User Story, Standards and Governance, P3).
+- Platform Engineering **PR 10** (`standards/scout-product-tags`, commit `3ca991c`, merge `4f87398`)
+  added a **Product-surface tags** group to `docs/standards/work-items.md`: `powershell`, `cli`,
+  `web-portal`, `cross-surface`, `module-enhancement`, `reporting`, `resilience`, `delivery`,
+  `config`, `future-roadmap`. Merged; Platform Docs Deploy run 299 succeeded. AB#5385 → Closed.
+- The group note states explicitly that a surface tag says *where work lands*, never a per-surface
+  feature set — parity work is `cross-surface`.
+- Consolidated rather than blessed: `web-interface`→`web-portal`, `far-future`→`future-roadmap`,
+  `feature-parity`→`cross-surface`, `pdf-export`→`reporting`, `progress-ux`→`cli`. Remapped on
+  9 Scout items (323, 328, 332, 379, 394, 395, 405, 5093, 5094). **0 non-vocabulary tags remain.**
+- ⚠️ GOTCHA: an ADO PATCH of `System.Tags` with `op=add` **appends**; you must use `op=replace`.
+
+**Split source-of-truth violation fixed — Bugs are GitHub-master.**
+18 ADO-native Bugs (AB#5076–5092 audit findings + AB#5247 v2.2.1 crash-hardening) had no GitHub
+record. Filed **GH#164–181** (native type Bug, labels `ado-tracked`+`resolved`), closed as completed,
+and hyperlinked back to their ADO items. **0 ADO Bugs now lack a GitHub master record.**
+
+**W4 — GitHub ↔ ADO reconcile (work-item-sync Flow 1).**
+- Created the missing reserved workflow labels: `needs-triage`, `in-progress`, `resolved`,
+  `wont-fix`, `roadmap`, `ado-managed`, `cross-repo`.
+- 91 previously-linked issues: filled native issue type on 58 untyped, applied the Flow 1 status
+  label + a status comment on 69, closed GH#9 as not-planned (AB#321 Removed).
+- 21 closed GitHub issues had **no ADO record** (closed before the mirror ran). Backfilled
+  **AB#5392–5407** (1 Feature, 1 Bug, 14 User Stories, all Resolved, parented under AB#5246/5251),
+  and linked the two duplicate docs-migration issues (GH#34/35) to the existing AB#5248.
+- ⚠️ I ran the reconcile script twice against a stale plan and double-posted the status comment on
+  69 issues; `scratchpad/gh-dedupe-comments.ps1` deleted the 69 duplicates. Rebuild the plan file
+  before re-running any apply script.
+- ⚠️ GOTCHA: `System.AreaPath` must be read back from the classification-node API and sent verbatim —
+  the project name's em-dash gets mangled by console round-tripping (TF401347).
+- ⚠️ GOTCHA: `gh issue list --json` uses the **GraphQL** quota; when it is exhausted, fall back to
+  `gh api repos/<repo>/issues` (REST), filtering out entries that carry a `pull_request` key.
+
+**Board now: 185 items — 158 Resolved / 23 New / 3 Closed / 1 Removed.**
+GitHub: 130 issues — 90 open / 40 closed.
+
+**⏳ Open decisions for the owner (nothing else is blocking):**
+1. **Mass Resolved → Closed.** 158 items sit in Resolved. The `work-items.md` closing criteria are
+   now all satisfiable (AC verified in prior sessions, code shipped in v2.2.1, GitHub issues carry a
+   status comment, successors exist). Closing them would also close ~108 GitHub issues. I did not do
+   this unilaterally because criterion 1 says the closer verifies the AC personally.
+2. **W5 — `docs/design/task-list.md` fate.** The precondition ("board is provably exact") is now met.
+   Delete it, or regenerate it from ADO/GitHub (AB#345). Nothing has been deleted.
+3. The 4 issues GH#1/3/30/31 are typed `Task` in GitHub but Feature/User Story in ADO. GitHub is
+   master for Flow 1 types, so I left both sides alone; harmless, flagged for completeness.
+
+**Branch:** main. **No code changes, no commits** beyond this handoff — all writes were to ADO,
+GitHub, and the Platform Engineering repo.
+**Scripts:** `scratchpad/{board,tag-remap,close-5385,link-map,gh-labels,gh-bug-backfill,gh-reconcile-plan,gh-reconcile-apply,gh-dedupe-comments,ado-backfill-gh,conformance}.ps1`.
+
+## Prior session (2026-07-24, Claude Code) — ADO standards conformance drive (IN PROGRESS)
+
+**Directive (user, emphatic):** make ADO/GitHub 100% accurate and able to track the project exactly;
+**create items for ALL work done**; **fully follow the ADO standards in the HCS Governance MCP**;
+**delete NOTHING** (esp. `docs/design/task-list.md`) until the board is provably exact. Decisions the
+user considers already-made: tags → follow standard = add via PR (keep them); backlog backfill → all.
+Do NOT re-ask (they were angry that I did).
+
+**Standards pulled from MCP** `get_standard(work-items / work-item-sync / github-issues)`. Board scanned:
+163 items. Conformance is GOOD — Description/Priority/Parent/Area(≤2)/Iteration all clean. Gaps found:
+(1) 43 items carry non-vocabulary tags [web-portal, cross-surface, module-enhancement, future-roadmap,
+reporting, resilience, etc.]; (2) 2 epics missing AC; (3) 2 non-verb titles; (4) 2 roll-up epics unclosed.
+Git↔board: AB#15/4941/4942 are Platform-project cross-refs (fine); **40 commits on main have no AB#** =
+untracked work to backfill.
+
+**✅ Done + verified this session (ADO REST PATCH via platform PAT):**
+- AB#5093 retitled verb-first + 3 AC (stays New, far-future). AB#5094 retitled + 3 AC (stays Resolved).
+- AB#5023 → **Closed**; AB#5056 → **Closed** (roll-ups; all children delivered in v2.x). Verified by GET.
+- Gaps 2/3/4 cleared. No files deleted. No commits this session (ADO-only writes).
+
+**⏳ Remaining (next session — recipes in memory `directive-ado-100pct-accurate-2026-07-24`):**
+- **W2** tag vocabulary: PR to `platform` work-items standard adding the in-use Scout product tags
+  (consolidate web-interface→web-portal, far-future→future-roadmap, feature-parity→cross-surface).
+- **W3** backfill: create standards-compliant ADO items for the 40 untracked commit streams (crash-
+  hardening / docs migration / scaffold / Phase 0-21) — reconcile against existing resolved epics first
+  to avoid duplicates.
+- **W4** reconcile GitHub issues 1:1 with ADO state/labels (work-item-sync Flow 1).
+- **W5** ONLY after the board is exact: decide task-list.md fate (delete or make generated). Not before.
+- Open: mass Resolved→Closed for the 137 shipped items (decide in W4).
+
+**Branch:** main (clean, no code changes). **Scripts:** scratchpad/ado-{reconcile,fullboard,conformance,wave1,verify}.ps1.
+
 ## Last session (2026-07-23, Claude Code) — backlog drive: ~72 items resolved
 
 **Big picture:** Cleared essentially the entire *tractable* backlog in one session — every bug,
