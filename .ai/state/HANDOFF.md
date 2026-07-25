@@ -6,7 +6,64 @@
   (possibly a different tool) starts by reading it.
 -->
 
-## Last session (2026-07-25, Claude Code) — v2.3.0 SHIPPED: backlog closed except web + multi-tenant
+## Last session (2026-07-25, Claude Code) — ONE COMMAND: inventory + assessment unified, wizard added
+
+**Trigger:** the operator challenged the published
+[Overview: Inventory vs Assessment](https://thisismydemo.cloud/azure-scout/overview.html) page —
+"azure scout is fucking azure scout … who told you to split this?"
+
+They were right, and it was our error. Feature **AB#5024** ("Build the module registry and
+`Invoke-AzureScout` entry point", Closed) specified **one** entry point. The v2 CAF/WAF scaffold
+(commit `6dcd0ae`, 2026-07-20) shipped a second public cmdlet `Invoke-ScoutAssessment` anyway,
+and ~13 docs pages were then written around the split. The overview page justified it partly on a
+differing PowerShell floor that never existed — the manifest has always been
+`PowerShellVersion = '7.0'` + `CompatiblePSEditions = @('Core')`.
+
+### Delivered — commit `d5f3b45` on `main` (pushed)
+
+| Item | What |
+|---|---|
+| **AB#5540** (Bug, Resolved) | Inventory + assessment collapsed onto `Invoke-AzureScout`. `-Assessment`, `-CollectOnly`, `-FromCollect` added. Assessment mode now honours the inventory sign-in params (it previously required a pre-existing `Connect-AzAccount` silently). `-OutputFormat` widened `[string]`→`[string[]]`, ValidateSet 8→15, cross-mode misuse throws an actionable error. `Invoke-ScoutAssessment` retained, **deprecated, remove in v3.0.0**. |
+| **AB#5541** (User Story, Resolved) | Guided wizard on a bare `Invoke-AzureScout`: sign-in → tenant pick → rights check → checklists (run type / categories / assessments / formats / report dir, all pre-selected) → prints the equivalent one-line command. Gated on `Test-AZSCInteractiveHost`; **never** fires in CI or with redirected stdin. `-NoWizard` forces the old path. `Start-AZSCWizard` exported. |
+
+New file `Modules/Public/PublicFunctions/Start-AZSCWizard.ps1`; new test file
+`tests/UnifiedEntryPoint.Tests.ps1` (25 tests).
+
+**Verification:** Pester **1671 passed / 0 failed / 3 skipped**. VitePress build clean.
+PSScriptAnalyzer clean apart from the repo-wide pre-existing `PSAvoidUsingWriteHost`.
+
+### ⚠ Open — the real architectural problem, NOT yet fixed
+
+The operator's follow-up landed harder than the naming issue: *"how can you do an assessment
+without understanding the inventory?"* Confirmed in code — **the two modes collect Azure data
+twice**:
+
+- inventory → ~176 per-resource-type modules under `Modules/Public/InventoryModules/` (15 categories)
+- assessment → its own **26-query** ARG pack in `src/collect/Invoke-Collect.ps1`
+
+…over the same resource types (`microsoft.storage/storageaccounts`, `microsoft.sql/servers`,
+`microsoft.network/*` …). Running both queries Azure twice. The assessment manifest even has an
+`Estate` entry described as *"Full digital estate inventory (no scoring)"* — the assessment layer
+reimplementing inventory.
+
+Documented as a Known Limitation in `CHANGELOG.md` and a warning box in `docs/overview.md`.
+**No ADO item exists for this yet — create one and collapse the two collection passes.**
+
+### Also still open
+
+Docs sweep is partial. `docs/overview.md`, `docs/prerequisites.md`, `docs/assessment.md`, and the
+VitePress nav are corrected. Still presenting `Invoke-ScoutAssessment` as the primary entry point:
+`index.md`, `usage.md`, `parameters.md`, `authentication.md`, `permissions.md`,
+`folder-structure.md`, `roadmap.md`, `assessment-prerequisites.md`, `assessment-permissions.md`,
+plus `README.md` and `src/README.md`.
+
+⚠ **Trap for next session:** `AB#5418` is **not** a Scout item — it belongs to `project-42.dev` in
+a different ADO project. It was used by mistake mid-session and has been purged from the repo.
+Verify every work-item ID against the live board before writing it into code.
+
+---
+
+## Previous session (2026-07-25, Claude Code) — v2.3.0 SHIPPED: backlog closed except web + multi-tenant
 
 **Every open work item other than the two deliberately-excluded areas is built, tested, released,
 PSGallery-published, and Closed on the board.**
