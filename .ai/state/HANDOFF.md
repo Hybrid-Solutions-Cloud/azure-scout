@@ -77,8 +77,27 @@ getting labelled "polish" and skipped. Fixed by creating the two epics that were
 - **AB#350** (Save-AzContext for the background collection runspace) and **AB#352** (browser-side
   AbortController on the collection fetch) moved to **AB#5093** — both are web-app plumbing, not
   module work.
-`conformance.ps1` now has a **closed-parent check** so this class cannot recur silently.
-**Board: 187 items — 162 Closed / 24 New / 1 Removed. 3 open epics: 5093 (11), 5410 (5), 5411 (5).**
+**Type-hierarchy violations — 12 found and fixed.** The owner pushed back that these are standards
+rules, not judgement calls. Correct. `work-items.md` dictates **Epic → Feature → User Story → Task,
+with Bug a peer of User Story** (so a Bug's parent is a *Feature*). I had only ever checked that a
+parent *existed*, never that it was the right *type*. 12 items were Bugs or User Stories parented
+straight to an Epic:
+- AB#335–340, 347 (v1 inventory defects) → reparented to the existing Feature **AB#5251** (v1
+  foundation), which is also their correct theme — they were under the CAF/WAF epic.
+- Created the four missing intermediate Features: **AB#5414** StrictMode crash-class hardening
+  (→5247), **AB#5415** agent/session-protocol scaffold (→5250), **AB#5416** work-tracking and
+  roadmap generation (→341, 345), **AB#5417** report documentation gaps (→318, open under 5411).
+
+**Duplicate resolved by the standard, not by preference.** AB#332 was the same capability as AB#323
+filed twice. The board precedent set by AB#321 is the rule: redundant item → **Removed**, and Flow 1
+mirrors that down as `wont-fix` + a not-planned close on the GitHub master (GH#21). AB#323/GH#11
+(filed first) survives as the single multi-tenant record.
+
+**`scripts/Test-BoardConformance.ps1` is now committed** — it enforces every rule above, including
+the parent-**type** check and the closed-parent check, and exits non-zero so it can gate a pipeline.
+Analyzer clean. **Run it before claiming the board conforms.**
+
+**Board: 191 items — 165 Closed / 24 New / 2 Removed. 3 open epics: 5093 (11), 5410 (4), 5411 (5+1).**
 
 **Note (not a defect):** GH#1/3/30/31 are typed `Task` in GitHub but Feature/User Story in ADO.
 GitHub is master for Flow 1 types, so both sides were left alone.

@@ -9,19 +9,19 @@ Do not edit this page by hand. Azure DevOps and GitHub are the source of truth; 
 a rendering of them. Regenerate it with `./scripts/Build-TaskList.ps1`.
 :::
 
-Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
+Generated **2026-07-25 05:00 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de87dd21aa56` and `thisismydemo/azure-scout`.
 
 ## Summary
 
 | Measure | Count |
 |---|---|
-| Work items | 187 |
-| State: Closed | 162 |
+| Work items | 191 |
+| State: Closed | 165 |
 | State: New | 24 |
-| State: Removed | 1 |
+| State: Removed | 2 |
 | Type: Bug | 26 |
 | Type: Epic | 7 |
-| Type: Feature | 110 |
+| Type: Feature | 114 |
 | Type: User Story | 44 |
 | Linked GitHub issues | 130 |
 
@@ -51,7 +51,6 @@ Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#323 | Feature | 3 | Platform | Build multi-tenant support with Azure Lighthouse cross-tenant scanning | [#11](https://github.com/thisismydemo/azure-scout/issues/11) (open) |
 | AB#327 | Feature | 3 | Platform | Build Azure DevOps integration for Azure Scout inventory | [#15](https://github.com/thisismydemo/azure-scout/issues/15) (open) |
 | AB#328 | Feature | 3 | Platform | Build GitHub Actions module to run Azure Scout as a GitHub Action | [#16](https://github.com/thisismydemo/azure-scout/issues/16) (open) |
-| AB#332 | Feature | 3 | Platform | Add multi-tenant scanning support for Azure Scout | [#21](https://github.com/thisismydemo/azure-scout/issues/21) (open) |
 | AB#343 | Feature | 3 | Platform | Add Azure Automation Account support with first-class unattended execution | [#32](https://github.com/thisismydemo/azure-scout/issues/32) (open) |
 | AB#5410 | Epic | 3 | Platform | Integrate Azure Scout with external platforms and multi-tenant estates | — |
 
@@ -65,6 +64,7 @@ Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#351 | Feature | 3 | Platform | Add post-login management group access probe | [#42](https://github.com/thisismydemo/azure-scout/issues/42) (open) |
 | AB#368 | Feature | 3 | Platform | Build cross-subscription context switching with restore | [#124](https://github.com/thisismydemo/azure-scout/issues/124) (open) |
 | AB#5411 | Epic | 2 | Platform | Harden the Azure Scout collection run and close the remaining documentation gaps | — |
+| AB#5417 | Feature | 4 | Report | Close the Azure Scout report documentation gaps | — |
 
 ## Delivered
 
@@ -84,17 +84,8 @@ Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#330 | Feature | 3 | Collect | Add IoT deep coverage (Device Registry, DPS, Digital Twins, and Edge) | [#18](https://github.com/thisismydemo/azure-scout/issues/18) (open) |
 | AB#333 | Feature | 3 | Report | Add Word Document (.docx) report export | [#22](https://github.com/thisismydemo/azure-scout/issues/22) (open) |
 | AB#334 | Feature | 3 | Report | Add PDF report export | [#23](https://github.com/thisismydemo/azure-scout/issues/23) (open) |
-| AB#335 | Bug | 1 | Platform | Fix automation mode cache write to null path in Start-AZSCAutProcessJob | [#24](https://github.com/thisismydemo/azure-scout/issues/24) (open) |
-| AB#336 | Bug | 1 | Report | Fix progress bar always showing 0% — $ReportCounter undeclared in Build-AZSCCacheFiles | [#25](https://github.com/thisismydemo/azure-scout/issues/25) (open) |
-| AB#337 | Bug | 1 | Platform | Fix $JobNames undefined reference in automation branch of Start-AZSCProcessOrchestration | [#26](https://github.com/thisismydemo/azure-scout/issues/26) (open) |
-| AB#338 | Bug | 1 | Platform | Fix $StorageContext null reference — only created inside automation block | [#27](https://github.com/thisismydemo/azure-scout/issues/27) (open) |
-| AB#339 | Bug | 2 | Report | Fix $VMQuotas undefined when -SkipVMDetails is passed | [#28](https://github.com/thisismydemo/azure-scout/issues/28) (open) |
-| AB#340 | Bug | 2 | Platform | Fix non-functional GitHub Actions azure-inventory.yml workflow (pure simulation) | [#29](https://github.com/thisismydemo/azure-scout/issues/29) (open) |
-| AB#341 | User Story | 3 | Assess | Track tech debt, inconsistencies, gaps, improvements, and unknowns in azure-scout | [#30](https://github.com/thisismydemo/azure-scout/issues/30) (open) |
 | AB#342 | Feature | 3 | Report | Improve draw.io diagram quality and consistency for Azure Scout | [#31](https://github.com/thisismydemo/azure-scout/issues/31) (open) |
 | AB#344 | Feature | 3 | Report | Replace Excel charts with standalone HTML dashboard using Apache ECharts | [#33](https://github.com/thisismydemo/azure-scout/issues/33) (open) |
-| AB#345 | User Story | 4 | Collect | Auto-generate roadmap from GitHub Issues as single source of truth | [#36](https://github.com/thisismydemo/azure-scout/issues/36) |
-| AB#347 | Bug | 1 | Platform | Fix Entra ID modules failing with Global Admin permissions | [#38](https://github.com/thisismydemo/azure-scout/issues/38) (open) |
 | AB#348 | Feature | 3 | Platform | Implement auto device-code login with no browser pop-up on headless servers | [#39](https://github.com/thisismydemo/azure-scout/issues/39) (open) |
 | AB#349 | Feature | 3 | Platform | Add auth status banner showing UPN and subscription name on login success | [#40](https://github.com/thisismydemo/azure-scout/issues/40) (open) |
 | AB#353 | Feature | 2 | Collect | Build Management Group hierarchy collection | [#109](https://github.com/thisismydemo/azure-scout/issues/109) (open) |
@@ -227,6 +218,15 @@ Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 
 | Item | Type | P | Area | Title | GitHub |
 |---|---|---|---|---|---|
+| AB#335 | Bug | 1 | Platform | Fix automation mode cache write to null path in Start-AZSCAutProcessJob | [#24](https://github.com/thisismydemo/azure-scout/issues/24) (open) |
+| AB#336 | Bug | 1 | Report | Fix progress bar always showing 0% — $ReportCounter undeclared in Build-AZSCCacheFiles | [#25](https://github.com/thisismydemo/azure-scout/issues/25) (open) |
+| AB#337 | Bug | 1 | Platform | Fix $JobNames undefined reference in automation branch of Start-AZSCProcessOrchestration | [#26](https://github.com/thisismydemo/azure-scout/issues/26) (open) |
+| AB#338 | Bug | 1 | Platform | Fix $StorageContext null reference — only created inside automation block | [#27](https://github.com/thisismydemo/azure-scout/issues/27) (open) |
+| AB#339 | Bug | 2 | Report | Fix $VMQuotas undefined when -SkipVMDetails is passed | [#28](https://github.com/thisismydemo/azure-scout/issues/28) (open) |
+| AB#340 | Bug | 2 | Platform | Fix non-functional GitHub Actions azure-inventory.yml workflow (pure simulation) | [#29](https://github.com/thisismydemo/azure-scout/issues/29) (open) |
+| AB#341 | User Story | 3 | Assess | Track tech debt, inconsistencies, gaps, improvements, and unknowns in azure-scout | [#30](https://github.com/thisismydemo/azure-scout/issues/30) (open) |
+| AB#345 | User Story | 4 | Collect | Auto-generate roadmap from GitHub Issues as single source of truth | [#36](https://github.com/thisismydemo/azure-scout/issues/36) |
+| AB#347 | Bug | 1 | Platform | Fix Entra ID modules failing with Global Admin permissions | [#38](https://github.com/thisismydemo/azure-scout/issues/38) (open) |
 | AB#5246 | Epic | 2 | Platform | Establish the Azure Scout engineering foundation, docs, and tooling | — |
 | AB#5247 | Bug | 2 | Platform | Fix repo-wide .Count-on-null crash class and enforce PowerShell 7 | [#181](https://github.com/thisismydemo/azure-scout/issues/181) |
 | AB#5248 | Feature | 3 | Platform | Migrate the Azure Scout documentation site to VitePress | [#34](https://github.com/thisismydemo/azure-scout/issues/34), [#35](https://github.com/thisismydemo/azure-scout/issues/35) |
@@ -249,10 +249,14 @@ Generated **2026-07-25 04:50 UTC** from ADO project `85b6e47e-a666-4a38-8c43-de8
 | AB#5405 | User Story | 3 | Collect | Collect private endpoints with NIC lookup for private IPs | [#55](https://github.com/thisismydemo/azure-scout/issues/55) |
 | AB#5406 | User Story | 3 | Collect | Collect Cost Management budgets per subscription | [#56](https://github.com/thisismydemo/azure-scout/issues/56) |
 | AB#5407 | User Story | 3 | Collect | Report named collection stages with step and total-step progress percentage | [#108](https://github.com/thisismydemo/azure-scout/issues/108) |
+| AB#5414 | Feature | 2 | Platform | Harden the Azure Scout module estate against the StrictMode null-reference crash class | — |
+| AB#5415 | Feature | 3 | Platform | Build the Azure Scout AI agent and session-protocol scaffold | — |
+| AB#5416 | Feature | 3 | Platform | Build the Azure Scout work-tracking and roadmap generation surface | — |
 
 ## Dropped
 
 | Item | Type | P | Area | Title | GitHub |
 |---|---|---|---|---|---|
 | AB#321 | Feature | 3 | Platform | Implement Invoke-AzureScout -WhatIf support | [#9](https://github.com/thisismydemo/azure-scout/issues/9) |
+| AB#332 | Feature | 3 | Platform | Add multi-tenant scanning support for Azure Scout | [#21](https://github.com/thisismydemo/azure-scout/issues/21) |
 
