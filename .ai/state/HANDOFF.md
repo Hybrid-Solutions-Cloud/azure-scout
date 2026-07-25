@@ -65,6 +65,21 @@ and the `gh` CLI — no PAT stored. Regenerate with `./scripts/Build-TaskList.ps
 **Final state: 185 ADO items — 162 Closed / 22 New / 1 Removed. 130 GitHub issues, all linked.
 `conformance.ps1`: 0 ADO failures, 0 GitHub reconcile failures.**
 
+**Defect the owner caught after the drive — closed epic owning open work.** 12 open items were still
+parented to **AB#5023**, an Epic that had been *Closed* as a roll-up. A closed epic cannot own open
+work: the roll-up reports done, and the items vanish from epic-level planning, which is why they kept
+getting labelled "polish" and skipped. Fixed by creating the two epics that were missing:
+- **AB#5410** *Integrate Azure Scout with external platforms and multi-tenant estates* (P3) —
+  AB#323, 327, 328, 332, 343. Build-or-close decision, nothing started. AB#323 and AB#332 are the
+  same capability filed twice; linked as Related with a comment, to be collapsed on decision.
+- **AB#5411** *Harden the Azure Scout collection run and close the remaining documentation gaps*
+  (P2) — AB#315, 318, 331, 351, 368. The only open work needing no product decision.
+- **AB#350** (Save-AzContext for the background collection runspace) and **AB#352** (browser-side
+  AbortController on the collection fetch) moved to **AB#5093** — both are web-app plumbing, not
+  module work.
+`conformance.ps1` now has a **closed-parent check** so this class cannot recur silently.
+**Board: 187 items — 162 Closed / 24 New / 1 Removed. 3 open epics: 5093 (11), 5410 (5), 5411 (5).**
+
 **Note (not a defect):** GH#1/3/30/31 are typed `Task` in GitHub but Feature/User Story in ADO.
 GitHub is master for Flow 1 types, so both sides were left alone.
 
