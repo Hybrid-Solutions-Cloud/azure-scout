@@ -52,7 +52,7 @@ function Start-AZSCDrawIODiagram {
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Jobs') | Out-File -FilePath $LogFile -Append 
 
-    if ($Automation.IsPresent) {
+    if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Thread Job') | Out-File -FilePath $LogFile -Append 
         Start-ThreadJob -Name 'Diagram_Subscriptions' -ScriptBlock {
             try
@@ -83,7 +83,7 @@ function Start-AZSCDrawIODiagram {
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Jobs') | Out-File -FilePath $LogFile -Append 
 
-    if ($Automation.IsPresent) {
+    if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Thread Job') | Out-File -FilePath $LogFile -Append 
         Start-ThreadJob -Name 'Diagram_Organization' -ScriptBlock {
             try
@@ -122,7 +122,7 @@ function Start-AZSCDrawIODiagram {
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Jobs') | Out-File -FilePath $LogFile -Append 
 
-    if ($Automation.IsPresent) {
+    if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append 
         Start-ThreadJob -Name 'Diagram_NetworkTopology' -ScriptBlock {
             try

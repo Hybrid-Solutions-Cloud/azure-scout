@@ -31,7 +31,7 @@ function Start-AZSCProcessOrchestration {
 
         <######################################################### RESOURCE GROUP JOB ######################################################################>
 
-        if ($Automation.IsPresent)
+        if ([bool]$Automation)
             {
                 Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources in Automation Mode')
 
@@ -48,7 +48,7 @@ function Start-AZSCProcessOrchestration {
 
         <############################################################## RESOURCES PROCESSING #############################################################>
 
-        if ($Automation.IsPresent)
+        if ([bool]$Automation)
             {
                 Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Waiting for Resource Jobs to Complete in Automation Mode')
                 Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | Wait-Job
@@ -60,7 +60,7 @@ function Start-AZSCProcessOrchestration {
                 Wait-AZSCJob -JobNames $JobNames -JobType 'Resource' -LoopTime 5
             }
 
-        if ($Automation.IsPresent)
+        if ([bool]$Automation)
             {
                 Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources in Automation Mode')
             }

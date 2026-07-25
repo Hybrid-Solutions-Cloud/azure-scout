@@ -21,16 +21,34 @@ function Build-AZSCExcelChart {
 
     $WS = $Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Overview' }
 
+    # Resolve a worksheet by name WITHOUT dereferencing $excel.'<Name>' directly. That property
+    # access throws "The property '<Name>' cannot be found on this object" whenever the estate
+    # produced no such worksheet (no public IPs, no disks, no VMs...), which killed the entire
+    # report after every worksheet had already been written. Returning $null instead lets the
+    # existing `if ($PTParams.SourceWorkSheet)` guards do their job. (AB#5567)
+    $GetSheet = { param([string] $SheetName) $Excel.Workbook.Worksheets | Where-Object { $_.Name -eq $SheetName } }
+
+    # Each $P<n>Name below is assigned only inside a worksheet-exists branch, but is read
+    # unconditionally afterwards by the matching $DrawP<n>.RichText.Add($P<n>Name) call. On an
+    # estate where none of a group's branches match -- P7 ('Virtual Machines') and P9 have a
+    # SINGLE conditional assignment, so this is easy to hit -- the read threw "The variable
+    # '$P7Name' cannot be retrieved because it has not been set" and killed the whole report
+    # after extraction, processing and every worksheet had already succeeded. Initialising them
+    # up front means a pivot that could not be built simply gets no title instead. Same defect
+    # class as AB#5547. (AB#5567)
+    $P0Name = ''; $P1Name = ''; $P2Name = ''; $P3Name = ''; $P4Name = ''
+    $P5Name = ''; $P6Name = ''; $P7Name = ''; $P8Name = ''; $P9Name = ''
+
     $DrawP00 = $WS.Drawings | Where-Object { $_.Name -eq 'TP00' }
     $P00Name = 'Reported Resources'
     $DrawP00.RichText.Add($P00Name).Size = 16
 
-    if($IncludeCosts.IsPresent)
+    if([bool]$IncludeCosts)
         {
             $PTParams = @{
                 PivotTableName          = "P00"
                 Address                 = $excel.Overview.cells["BA5"] # top-left corner of the table
-                SourceWorkSheet         = $excel.'Subscriptions'
+                SourceWorkSheet         = (& $GetSheet 'Subscriptions')
                 PivotRows               = @("Subscription")
                 PivotData               = @{"Cost" = "Sum" }
                 PivotColumns            = @("Month")
@@ -60,7 +78,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P00"
             Address                 = $excel.Overview.cells["BA5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Reservation Advisor'
+            SourceWorkSheet         = (& $GetSheet 'Reservation Advisor')
             PivotRows               = @("Subscription")
             PivotData               = @{"Net Savings" = "Sum" }
             PivotTableStyle         = $TableStyle
@@ -88,13 +106,13 @@ function Build-AZSCExcelChart {
             Add-ExcelChart -Worksheet $excel.Overview -ChartType Area3D -XRange "AzureTabs[Name]" -YRange "AzureTabs[Size]" -SeriesHeader 'Resources', 'Count' -Column 9 -Row 1 -Height 400 -Width 950 -RowOffSetPixels 0 -ColumnOffSetPixels 5 -NoLegend
         }
 
-    if($IncludeCosts.IsPresent)
+    if([bool]$IncludeCosts)
         {
             $P0Name = 'CostPerRegion'
             $PTParams = @{
                 PivotTableName          = "P0"
                 Address                 = $excel.Overview.cells["BG5"] # top-left corner of the table
-                SourceWorkSheet         = $excel.'Subscriptions'
+                SourceWorkSheet         = (& $GetSheet 'Subscriptions')
                 PivotRows               = @("Location")
                 PivotData               = @{"Cost" = "Sum" }
                 PivotColumns            = @("Month")
@@ -120,7 +138,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P0"
             Address                 = $excel.Overview.cells["BG5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Outages'
+            SourceWorkSheet         = (& $GetSheet 'Outages')
             PivotRows               = @("Impacted Services")
             PivotData               = @{"Impacted Services" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -144,7 +162,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P0"
             Address                 = $excel.Overview.cells["BG5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Advisor
+            SourceWorkSheet         = (& $GetSheet 'Advisor')
             PivotRows               = @("Category")
             PivotData               = @{"Category" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -165,10 +183,18 @@ function Build-AZSCExcelChart {
     }
     else {
         $P0Name = 'Public IPs'
+        # Resolve the worksheet through the Worksheets collection rather than dereferencing
+        # $excel.'Public IPs' directly. On an estate with no public IPs that worksheet does not
+        # exist and the direct property access THROWS "The property 'Public IPs' cannot be found
+        # on this object" while the hashtable is being built -- before the
+        # `if ($PTParams.SourceWorkSheet)` guard below ever runs. This mirrors the
+        # Worksheets | Where-Object lookup the Advisor/Security branches above already use.
+        # (AB#5567)
+        $PublicIpSheet = $Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Public IPs' }
         $PTParams = @{
             PivotTableName          = "P0"
             Address                 = $excel.Overview.cells["BG5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Public IPs'
+            SourceWorkSheet         = $PublicIpSheet
             PivotRows               = @("Use")
             PivotData               = @{"Use" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -193,13 +219,13 @@ function Build-AZSCExcelChart {
     $DrawP0 = $WS.Drawings | Where-Object { $_.Name -eq 'TP0' }
     $DrawP0.RichText.Add($P0Name) | Out-Null
 
-    if($IncludeCosts.IsPresent)
+    if([bool]$IncludeCosts)
         {
             $P1Name = 'TotalCostsPerSubscription'
             $PTParams = @{
                 PivotTableName          = "P1"
                 Address                 = $excel.Overview.cells["DK6"] # top-left corner of the table
-                SourceWorkSheet         = $excel.'Subscriptions'
+                SourceWorkSheet         = (& $GetSheet 'Subscriptions')
                 PivotRows               = @('Month')
                 PivotColumns            = @("Resource Type")
                 PivotData               = @{"Cost" = "Sum" }
@@ -226,7 +252,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P1"
             Address                 = $excel.Overview.cells["DK6"] # top-left corner of the table
-            SourceWorkSheet         = $excel.AdvisorScore
+            SourceWorkSheet         = (& $GetSheet 'AdvisorScore')
             PivotRows               = @("Category")
             PivotData               = @{"Latest Score (%)" = "average" }
             PivotTableStyle         = $tableStyle
@@ -253,7 +279,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P1"
             Address                 = $excel.Overview.cells["DK6"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Subscriptions
+            SourceWorkSheet         = (& $GetSheet 'Subscriptions')
             PivotRows               = @("Subscription")
             PivotData               = @{"Resources Count" = "sum" }
             PivotTableStyle         = $tableStyle
@@ -278,7 +304,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P1"
             Address                 = $excel.Overview.cells["DK6"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Quota Usage'
+            SourceWorkSheet         = (& $GetSheet 'Quota Usage')
             PivotRows               = @("Region")
             PivotData               = @{"vCPUs Available" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -303,7 +329,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P1"
             Address                 = $excel.Overview.cells["DK6"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Networks'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Networks')
             PivotRows               = @("Name")
             PivotData               = @{"Available IPs" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -333,7 +359,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P2"
             Address                 = $excel.Overview.cells["BT5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Policy
+            SourceWorkSheet         = (& $GetSheet 'Policy')
             PivotRows               = @("Policy Category")
             PivotData               = @{"Policy" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -357,7 +383,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P2"
             Address                 = $excel.Overview.cells["BT5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Advisor
+            SourceWorkSheet         = (& $GetSheet 'Advisor')
             PivotRows               = @("Savings Currency")
             PivotData               = @{"Annual Savings" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -382,7 +408,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P2"
             Address                 = $excel.Overview.cells["BT5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Networks'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Networks')
             PivotRows               = @("Location")
             PivotData               = @{"Location" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -412,7 +438,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P3"
             Address                 = $excel.Overview.cells["BZ5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Support Tickets'
+            SourceWorkSheet         = (& $GetSheet 'Support Tickets')
             PivotRows               = @("Status")
             PivotData               = @{"Status" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -436,7 +462,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P3"
             Address                 = $excel.Overview.cells["BZ5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.AKS
+            SourceWorkSheet         = (& $GetSheet 'AKS')
             PivotRows               = @("Kubernetes Version")
             PivotData               = @{"Clusters" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -460,7 +486,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P3"
             Address                 = $excel.Overview.cells["BZ5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Storage Accounts'
+            SourceWorkSheet         = (& $GetSheet 'Storage Accounts')
             PivotRows               = @("Tier")
             PivotData               = @{"Tier" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -489,7 +515,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P4"
             Address                 = $excel.Overview.cells["CF5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Outages'
+            SourceWorkSheet         = (& $GetSheet 'Outages')
             PivotRows               = @("Subscription")
             PivotData               = @{"Outage ID" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -513,7 +539,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P4"
             Address                 = $excel.Overview.cells["CF5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Quota Usage'
+            SourceWorkSheet         = (& $GetSheet 'Quota Usage')
             PivotRows               = @("Region")
             PivotData               = @{"vCPUs Available" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -537,7 +563,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P4"
             Address                 = $excel.Overview.cells["CF5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Disks
+            SourceWorkSheet         = (& $GetSheet 'Disks')
             PivotRows               = @("Disk State")
             PivotData               = @{"Disk State" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -567,7 +593,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P5"
             Address                 = $excel.Overview.cells["CL7"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Machines'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Machines')
             PivotRows               = @("VM Size")
             PivotData               = @{"Resource U" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -591,7 +617,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P5"
             Address                 = $excel.Overview.cells["CL7"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Networks'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Networks')
             PivotRows               = @("Name")
             PivotData               = @{"Available IPs" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -617,13 +643,13 @@ function Build-AZSCExcelChart {
     $DrawP5 = $WS.Drawings | Where-Object { $_.Name -eq 'TP5' }
     $DrawP5.RichText.Add($P5Name) | Out-Null
 
-    if($IncludeCosts.IsPresent)
+    if([bool]$IncludeCosts)
         {
             $P6Name = 'Cost per Month'
             $PTParams = @{
                 PivotTableName          = "P6"
                 Address                 = $excel.Overview.cells["CR5"] # top-left corner of the table
-                SourceWorkSheet         = $excel.Subscriptions
+                SourceWorkSheet         = (& $GetSheet 'Subscriptions')
                 PivotRows               = @("Month")
                 PivotData               = @{"Cost" = "sum" }
                 PivotTableStyle         = $tableStyle
@@ -650,7 +676,7 @@ function Build-AZSCExcelChart {
     $PTParams = @{
         PivotTableName          = "P6"
         Address                 = $excel.Overview.cells["CR5"] # top-left corner of the table
-        SourceWorkSheet         = $excel.Subscriptions
+        SourceWorkSheet         = (& $GetSheet 'Subscriptions')
         PivotRows               = @("Location")
         PivotData               = @{"Resources Count" = "sum" }
         PivotTableStyle         = $tableStyle
@@ -679,7 +705,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P7"
             Address                 = $excel.Overview.cells["CY5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Machines'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Machines')
             PivotRows               = @("OS Type")
             PivotData               = @{"Resource U" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -708,7 +734,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P8"
             Address                 = $excel.Overview.cells["DE5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.Advisor
+            SourceWorkSheet         = (& $GetSheet 'Advisor')
             PivotRows               = @("Impact")
             PivotData               = @{"Impact" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -732,7 +758,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P8"
             Address                 = $excel.Overview.cells["DE5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Load Balancers'
+            SourceWorkSheet         = (& $GetSheet 'Load Balancers')
             PivotRows               = @("Usage")
             PivotData               = @{"Usage" = "Count" }
             PivotTableStyle         = $tableStyle
@@ -756,7 +782,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P8"
             Address                 = $excel.Overview.cells["DE5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Machines'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Machines')
             PivotRows               = @("Location")
             PivotData               = @{"Resource U" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -780,7 +806,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P8"
             Address                 = $excel.Overview.cells["DE5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Subscriptions'
+            SourceWorkSheet         = (& $GetSheet 'Subscriptions')
             PivotRows               = @("Location")
             PivotData               = @{"Resources Count" = "Sum" }
             PivotTableStyle         = $tableStyle
@@ -808,7 +834,7 @@ function Build-AZSCExcelChart {
         $PTParams = @{
             PivotTableName          = "P9"
             Address                 = $excel.Overview.cells["BM5"] # top-left corner of the table
-            SourceWorkSheet         = $excel.'Virtual Machines'
+            SourceWorkSheet         = (& $GetSheet 'Virtual Machines')
             PivotRows               = @("Boot Diagnostics")
             PivotData               = @{"Resource U" = "Sum" }
             PivotTableStyle         = $tableStyle

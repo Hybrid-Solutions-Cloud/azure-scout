@@ -21,7 +21,7 @@ Authors: Claudio Merola
 Function Start-AZSCDiagramJob {
     Param($Resources,$Automation)
 
-    if ($Automation.IsPresent) {
+    if ([bool]$Automation) {
         Start-ThreadJob -Name 'DiagramVariables' -ScriptBlock {
 
             $AZVGWs = $($args[0]) | Where-Object {$_.Type -eq 'microsoft.network/virtualnetworkgateways'}

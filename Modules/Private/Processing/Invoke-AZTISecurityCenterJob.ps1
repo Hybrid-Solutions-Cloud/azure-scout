@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Invoke-AZSCSecurityCenterJob {
     Param($Subscriptions, $Automation, $Resources, $AZSCModule)
 
-    if ($Automation.IsPresent)
+    if ([bool]$Automation)
         {
             Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting SecurityCenter Job')
             Start-ThreadJob  -Name 'Security' -ScriptBlock {

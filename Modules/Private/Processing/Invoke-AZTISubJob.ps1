@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Invoke-AZSCSubJob {
     Param($Subscriptions, $Automation, $Resources, $CostData, $AZSCModule)
 
-    if ($Automation.IsPresent)
+    if ([bool]$Automation)
         {
             Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Subscription Job')
             Start-ThreadJob -Name 'Subscriptions' -ScriptBlock {

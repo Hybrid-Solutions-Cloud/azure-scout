@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Invoke-AZSCPolicyJob {
     Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef, $AZSCModule, $Automation)
 
-    if ($Automation.IsPresent)
+    if ([bool]$Automation)
         {
             Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Policy Job')
             Start-ThreadJob -Name 'Policy' -ScriptBlock {

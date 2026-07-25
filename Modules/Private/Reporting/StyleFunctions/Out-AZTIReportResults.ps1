@@ -40,7 +40,7 @@ function Out-AZSCReportResults {
     Write-Host $ResourcesCount -ForegroundColor Cyan
     Write-Host ('Total Resources on Excel: ') -NoNewline
     Write-Host $TotalRes -ForegroundColor Cyan
-    if (!$SkipAdvisory.IsPresent)
+    if (![bool]$SkipAdvisory)
         {
             if(![string]::IsNullOrEmpty($AdvisoryData))
             {
@@ -48,7 +48,7 @@ function Out-AZSCReportResults {
                 write-host $AdvisoryData -ForegroundColor Cyan
             }
         }
-    if (!$SkipPolicy.IsPresent -and !$SkipAPIs.IsPresent)
+    if (![bool]$SkipPolicy -and ![bool]$SkipAPIs)
         {
             if(![string]::IsNullOrEmpty($PolicyData))
                 {
@@ -56,7 +56,7 @@ function Out-AZSCReportResults {
                     write-host $PolicyData -ForegroundColor Cyan
                 }
         }
-    if ($SecurityCenter.IsPresent)
+    if ([bool]$SecurityCenter)
         {
             if(![string]::IsNullOrEmpty($SecurityCenterData))
                 {
@@ -69,7 +69,7 @@ function Out-AZSCReportResults {
     write-host $File -ForegroundColor Cyan
     Write-Host ''
 
-    if(!$SkipDiagram.IsPresent)
+    if(![bool]$SkipDiagram)
         {
             Write-Host ('Draw.io Diagram file saved at: ') -NoNewline
             write-host $DDFile -ForegroundColor Cyan

@@ -51,7 +51,7 @@ function Start-AZSCExtractionOrchestration {
 
         Remove-Variable -Name GraphData -ErrorAction SilentlyContinue
 
-        if(!$SkipAPIs.IsPresent)
+        if(![bool]$SkipAPIs)
             {
                 Write-Progress -activity 'Azure Inventory' -Status "12% Complete." -PercentComplete 12 -CurrentOperation "Starting API Extraction.."
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting API Resources.')
@@ -67,11 +67,11 @@ function Start-AZSCExtractionOrchestration {
                 Remove-Variable APIResults -ErrorAction SilentlyContinue
             }
 
-        if ($IncludeCosts.IsPresent) {
+        if ([bool]$IncludeCosts) {
             $Costs = Get-AZSCCostInventory -Subscriptions $Subscriptions -Days 60 -Granularity 'Monthly'
         }
 
-        if (!$SkipVMDetails.IsPresent)
+        if (![bool]$SkipVMDetails)
             {
                 Write-Host 'Gathering VM Extra Details: ' -NoNewline
                 Write-Host 'Quotas' -ForegroundColor Cyan

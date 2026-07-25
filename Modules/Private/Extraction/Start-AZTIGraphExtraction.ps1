@@ -26,7 +26,7 @@ Function Start-AZSCGraphExtraction {
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Powershell Version: ' + ([string]$psversiontable.psVersion))
 
     #Field for tags
-    if ($IncludeTags.IsPresent) {
+    if ([bool]$IncludeTags) {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Tags will be included")
         $GraphQueryTags = ",tags "
     } else {
@@ -145,7 +145,7 @@ Function Start-AZSCGraphExtraction {
             $ContainerCount = @($ResourceContainers).count
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Resource Containers: '+ $ContainerCount)
 
-            if (!($SkipAdvisory.IsPresent))
+            if (!([bool]$SkipAdvisory))
                 {
                     $GraphQuery = "advisorresources $RGQueryExtension $MGQueryExtension | where properties.impact in~ ('Medium','High') | order by id asc"
 
@@ -155,7 +155,7 @@ Function Start-AZSCGraphExtraction {
                     $AdvisorCount = @($Advisories).count
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Advisors: '+ $AdvisorCount)
                 }
-            if ($SecurityCenter.IsPresent)
+            if ([bool]$SecurityCenter)
                 {
                     $GraphQuery = "securityresources $RGQueryExtension | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $MGQueryExtension | order by id asc"
 

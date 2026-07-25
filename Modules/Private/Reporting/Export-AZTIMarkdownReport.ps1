@@ -139,7 +139,11 @@ function Export-AZSCMarkdownReport {
     }
 
     $tocLines.Add('')
-    $lines.Add("_Total resources: $totalResources_")
+    # ${...} is required here: the trailing underscore closes the markdown italic run, but an
+    # underscore is a legal identifier character, so "$totalResources_" parses as a variable
+    # named $totalResources_ -- which does not exist, and the Markdown export died on it.
+    # (AB#5567)
+    $lines.Add("_Total resources: ${totalResources}_")
     $lines.Add('')
     foreach ($l in $tocLines)    { $lines.Add($l) }
     foreach ($l in $sectionLines) { $lines.Add($l) }

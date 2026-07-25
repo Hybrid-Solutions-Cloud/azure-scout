@@ -120,7 +120,7 @@ function Get-AZSCAPIResources {
             }
             Start-Sleep -Milliseconds 200
 
-            if (!$SkipPolicy.isPresent)
+            if (![bool]$SkipPolicy)
                 {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting Policies')
                     #Policies

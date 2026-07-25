@@ -32,12 +32,18 @@ function Build-AZSCCostManagementReport {
             foreach ($vm in $VMs) {
                 if ($vm.'Est. Monthly Cost (USD)' -and $vm.'Est. Monthly Cost (USD)' -ne 'N/A') {
                     $CostRows.Add([pscustomobject]@{
-                        'Resource Name'         = $vm.Name
+                        # The Compute collector emits 'VM Name' and 'VM Size', NOT 'Name'/'Size'
+                        # (see Modules/Public/InventoryModules/Compute/VirtualMachine.ps1). Reading
+                        # the wrong names threw "The property 'Name' cannot be found on this object"
+                        # under StrictMode, and silently produced blank columns without it, so this
+                        # worksheet has never carried VM rows. Verified against live cached data.
+                        # (AB#5567)
+                        'Resource Name'         = $vm.'VM Name'
                         'Resource Type'         = 'Virtual Machine'
                         'Subscription'          = $vm.Subscription
                         'Resource Group'        = $vm.'Resource Group'
                         'Location'              = $vm.Location
-                        'SKU / Size'            = $vm.Size
+                        'SKU / Size'            = $vm.'VM Size'
                         'Est. Monthly Cost (USD)' = $vm.'Est. Monthly Cost (USD)'
                     })
                 }

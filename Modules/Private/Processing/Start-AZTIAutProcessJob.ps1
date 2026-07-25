@@ -37,7 +37,7 @@ function Start-AZSCAutProcessJob {
     $JobLoop = 1
     Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Starting AZSC Automation Processing Jobs...")
 
-    if ($Heavy.IsPresent -or $InTag.IsPresent)
+    if ([bool]$Heavy -or [bool]$InTag)
         {
             Write-Output ('Heavy Mode Detected. Jobs will be run in small batches to avoid CPU and Memory Overload.')
             $EnvSizeLooper = 2

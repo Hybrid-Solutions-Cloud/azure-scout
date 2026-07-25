@@ -1272,7 +1272,7 @@ Function Start-AZSCDiagramNetwork {
 
             try
                 {
-                    if($Automation.IsPresent)
+                    if([bool]$Automation)
                     {
                         Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Creating Subnet in Automation')
 
@@ -1483,7 +1483,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.Flush()
                     $Script:XmlWriter.Close()
 
-                    if (!$Automation.IsPresent)
+                    if (![bool]$Automation)
                         {
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting Job2 to complete')
 

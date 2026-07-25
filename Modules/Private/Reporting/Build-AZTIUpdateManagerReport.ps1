@@ -49,10 +49,14 @@ function Build-AZSCUpdateManagerReport {
         if ($VMs) {
             foreach ($vm in $VMs) {
                 $Rows.Add([pscustomobject]@{
-                    'Resource Name'             = $vm.Name
+                    # The Compute collector emits 'VM Name' and 'OS Version'; there is no 'Name'
+                    # or 'OS SKU' on a cached VM row, so both reads returned nothing and the
+                    # Resource Name column came out blank (and threw outright on some estates).
+                    # Verified against live cached data. (AB#5567)
+                    'Resource Name'             = $vm.'VM Name'
                     'Platform'                  = 'Azure VM'
                     'OS Type'                   = $vm.'OS Type'
-                    'OS Version / SKU'          = if ($vm.'OS SKU') { $vm.'OS SKU' } else { 'N/A' }
+                    'OS Version / SKU'          = if ($vm.'OS Version') { $vm.'OS Version' } else { 'N/A' }
                     'Subscription'              = $vm.Subscription
                     'Resource Group'            = $vm.'Resource Group'
                     'Location'                  = $vm.Location

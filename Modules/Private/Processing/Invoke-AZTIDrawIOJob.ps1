@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Invoke-AZSCDrawIOJob {
     Param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnv, $ResourceContainers, $Automation, $AZSCModule)
 
-    if ($Automation.IsPresent)
+    if ([bool]$Automation)
         {
             Write-Output "Invoking Draw.Io main function."
             try

@@ -48,7 +48,7 @@ function Start-AZSCExtraJobs {
     <######################################################### DRAW IO DIAGRAM JOB ######################################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Draw.io Diagram Job Should be Run.')
-    if (!$SkipDiagram.IsPresent) {
+    if (![bool]$SkipDiagram) {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Draw.io Diagram Processing Job.')
         Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
     }
@@ -97,7 +97,7 @@ function Start-AZSCExtraJobs {
     <######################################################### POLICY JOB ######################################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Run Policy Job.')
-    if (!$SkipPolicy.IsPresent) {
+    if (![bool]$SkipPolicy) {
         if (![string]::IsNullOrEmpty($PolicyAssign) -and ![string]::IsNullOrEmpty($PolicyDef))
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Policy Processing Job.')
@@ -108,7 +108,7 @@ function Start-AZSCExtraJobs {
     <######################################################### ADVISORY JOB ######################################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking If Should Run Advisory Job.')
-    if (!$SkipAdvisory.IsPresent) {
+    if (![bool]$SkipAdvisory) {
         if (![string]::IsNullOrEmpty($Advisories))
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Advisory Processing Job.')

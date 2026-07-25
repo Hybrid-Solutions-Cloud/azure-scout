@@ -37,7 +37,7 @@ function Start-AZSCExtraReports {
     <################################################ SECURITY CENTER #######################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Security Center Sheet.')
-    if ($SecurityCenter.IsPresent) {
+    if ([bool]$SecurityCenter) {
         if(get-job | Where-Object {$_.Name -eq 'Security'})
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Security Center Sheet.')
@@ -60,7 +60,7 @@ function Start-AZSCExtraReports {
     <################################################ POLICY #######################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Policy Sheet.')
-    if (!$SkipPolicy.IsPresent) {
+    if (![bool]$SkipPolicy) {
         if(get-job | Where-Object {$_.Name -eq 'Policy'})
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Policy Sheet.')
@@ -84,7 +84,7 @@ function Start-AZSCExtraReports {
     <################################################ ADVISOR #######################################################>
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Should Generate Advisory Sheet.')
-    if (!$SkipAdvisory.IsPresent) {
+    if (![bool]$SkipAdvisory) {
         if (get-job | Where-Object {$_.Name -eq 'Advisory'})
             {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Generating Advisor Sheet.')
