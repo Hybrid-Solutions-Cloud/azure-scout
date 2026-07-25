@@ -7,6 +7,119 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.3] - 2026-07-25
+
+### Fixed
+
+- **A normal Azure response aborted the entire inventory run** (AB#5633) — a run against a real
+  tenant died immediately after the API inventory phase with:
+
+  ```
+  Invoke-AzureScout: The property 'ReservationRecomen' cannot be found on this object.
+  ```
+
+  This was **not** a null-reference fault. Every `src/*.ps1` calls
+  `Set-StrictMode -Version Latest` at file scope and `AzureScout.psm1` dot-sources them, so the
+  whole module — the v1 inventory path included — runs under StrictMode. Under StrictMode,
+  member enumeration over a collection (`$APIResults.ReservationRecomen`) reports the property as
+  missing when the enumeration yields **nothing at all**, and that is exactly what an **empty
+  collection on every element** produces: the empties flatten away and nothing is left. A `$null`
+  value is safe; an empty one is not.
+
+  The Consumption `reservationRecommendations` API returns `{ "value": [] }` for a subscription
+  with no reservation recommendations, so a perfectly healthy tenant crashed the run. All seven
+  reads at that site — `ResourceHealth`, `ManagedIdentities`, `AdvisorScore`,
+  `ReservationRecomen`, `PolicyAssign`, `PolicyDef`, `PolicySetDef` — carried the same defect and
+  now read element-wise through `Get-AZSCCollectedValue`.
+
+  Because the fault is data-dependent, 1697 passing tests and three earlier live runs did not
+  catch it.
+
+- **The same crash class, swept** (AB#5633) — `$Resources` is a mixed array: Resource Graph rows
+  carry `subscriptionId`/`Type`, the REST API rows appended beside them do not. Two collectors
+  that run in module scope (where StrictMode applies) filtered it with bare property reads and
+  aborted the whole pipeline on the first foreign row:
+  - `Get-AZSCVMQuotas` — `$_.subscriptionId`, which meant **no quota was collected for any
+    subscription**, not merely the offending one.
+  - `Get-AZSCVMSkuDetails` — `$_.TYPE`, and a `-ExpandProperty location` over rows without one.
+
+  The ~176 inventory modules use the same filter shape safely, because they execute inside fresh
+  runspaces where StrictMode is not set. They are unchanged.
+
+- **Diagram jobs never actually waited** (AB#5633) — `Start-AZSCDiagramJob` looped on
+  `$Job.Runspace.IsCompleted -contains $false`. Those handles are `PowerShellAsyncResult` and have
+  **no `Runspace` property**, so the expression was empty, `-contains $false` was always false, and
+  the loop exited immediately — the `EndInvoke` calls below it raced the work they were meant to
+  collect. v2.5.2 fixed this identical line in `Start-AZSCProcessJob` and left this copy behind.
+  Both now test the handle's own `IsCompleted`, filter rather than member-enumerate (so an empty
+  job set is safe under StrictMode), and sleep between polls instead of spinning a core.
+
+- **An unavailable Cost Management API destroyed the whole run** (AB#5636) —
+  `Get-AZSCCostInventory` ended its catch block with `throw $_.Exception.Message`, and the
+  `$Costs = @()` fallback on the very next line was **unreachable dead code**, so the graceful
+  degradation the author intended never ran. Any Cost Management failure on any single
+  subscription cost the caller their entire report; on a machine without `Az.CostManagement`
+  installed, `-IncludeCosts` failed outright with `The term 'Invoke-AzCostManagementQuery' is not
+  recognized`. Cost data is optional enrichment: a failure now warns — naming the install command
+  when the module is simply absent — records the reason in the run log, and the run continues with
+  empty cost data for that subscription only.
+
+  `Az.CostManagement` is deliberately **not** added to the module's auto-install list. Doing so
+  drags in a newer `Az.Accounts` as a dependency, and on a machine that already has one that
+  leaves two versions side by side — after which every `Import-Module` dies with a stack overflow
+  inside Az.Accounts' own assembly-load-context resolver. An opt-in feature must not force a
+  dependency upgrade on everyone. It is documented as an optional prerequisite instead.
+
+### Changed
+
+- **The v1 inventory engine no longer runs under StrictMode** (AB#5633) — this is the root cause
+  behind every crash above, and fixing the symptoms one at a time was never going to end.
+
+  The inventory engine under `Modules/` is forked from `microsoft/ARI` and was written without
+  StrictMode. The v2 assessment platform under `src/` sets `Set-StrictMode -Version Latest` at
+  **file** scope, and `AzureScout.psm1` dot-sources those files — so StrictMode was silently
+  applied to the entire module, engine included. Nothing in that engine had ever been tested under
+  it. An AST sweep found **~800 property reads in module scope that are only valid without it**:
+  chained reads over API payloads whose shape varies by tenant, and member enumeration over
+  collections that are legitimately empty.
+
+  The consequence was a run that aborted on a perfectly normal Azure response, **in a different
+  place on every tenant**, because every one of these faults is data-dependent — an empty API
+  result set, an estate with no VMs, a subscription with no quota rows. Five separate crashes were
+  hit in sequence on a single tenant while fixing this release, each one only reachable once the
+  previous had been cleared.
+
+  StrictMode is dynamically scoped, so each of the five engine entry points
+  (`Start-AZSCExtractionOrchestration`, `Start-AZSCProcessOrchestration`,
+  `Start-AZSCReporOrchestration`, `Start-AZSCExtraJobs`, `Start-AZSCExcelCustomization`) now opts
+  out for its own call tree. **The assessment platform is unaffected** — it is invoked from
+  `Invoke-AzureScout`'s own scope and keeps StrictMode in full force, as it was written to. Tests
+  pin both halves of that boundary.
+
+  This restores the behaviour v1 shipped with for years. It is not a licence to write sloppy code
+  in the engine: the genuine defects found alongside it — a job wait that never waited, an
+  unreachable error fallback, a rethrow that destroyed optional data, a job list that failed
+  validation when empty — were fixed properly rather than papered over, and the element-wise
+  reads introduced above are kept because they are simply more robust.
+
+### Added
+
+- **Every run now writes a detailed log into its own run folder** (AB#5634, AB#5635) — no extra
+  parameter required. Previously a failed run left nothing behind but one red line on the console,
+  and diagnosing it meant re-running the whole tool with `-Debug` and watching the screen.
+
+  | File | Contents |
+  |---|---|
+  | `scout-run.log` | Metadata header (module and PowerShell version, OS, account, tenant, subscriptions in scope, resolved switches), every phase boundary with elapsed time and counts, warnings, and — on failure — the full error record: message, exception type, failing script, line number, statement, and script stack trace |
+  | `scout-console.log` | Console transcript including warnings. Skipped silently on hosts without transcription support |
+
+  A failed run prints the log path before exiting. Logging is best-effort throughout: if the log
+  cannot be written the run still proceeds, warning once. A lost log is a lost diagnostic, never a
+  lost report.
+
+  This paid for itself immediately — the Cost Management defect above and both mixed-array
+  collector crashes were found by reading `scout-run.log`, not by re-running with `-Debug`.
+
 ## [2.5.2] - 2026-07-25
 
 ### Fixed

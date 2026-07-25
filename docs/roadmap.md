@@ -13,7 +13,36 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.5.2 — Determinism
+## Current Release — v2.5.3 — Empty Is Not Null, and Runs That Explain Themselves
+
+Released 25 July 2026, published to the PowerShell Gallery.
+
+A full inventory run against a real tenant aborted with `The property 'ReservationRecomen' cannot
+be found on this object`. It was not a null-reference fault. The module runs under
+`Set-StrictMode -Version Latest` — every `src/*.ps1` sets it at file scope and the `.psm1`
+dot-sources them — and under StrictMode, member enumeration over a collection reports a property
+as missing when the enumeration yields **nothing at all**. A `$null` value on every element is
+fine. An **empty collection** on every element is not: the empties flatten away and nothing
+remains. Azure returns `{ "value": [] }` for a subscription with no reservation recommendations,
+so a perfectly healthy tenant crashed the run.
+
+Because the fault is data-dependent, 1697 passing tests and three earlier live runs never saw it.
+
+The same class was swept out of the two collectors that filter the mixed `$Resources` array in
+module scope — in `Get-AZSCVMQuotas` a bare `$_.subscriptionId` aborted the pipeline, so **no**
+subscription got quota data rather than merely the offending one. A diagram job wait that had
+never actually waited was fixed (the `.Runspace` no-op v2.5.2 corrected in only one of its two
+copies), and an unavailable Cost Management API no longer destroys the whole report.
+
+**Every run now writes a diagnostic log into its own run folder**, with no extra parameter:
+`scout-run.log` carries the run metadata, each phase with elapsed time and counts, warnings, and —
+on failure — the full error record including the failing script, line number and script stack
+trace. `scout-console.log` carries the transcript. It paid for itself during this release: two of
+the four defects above were found by reading the log rather than by re-running with `-Debug`.
+
+Full detail: [CHANGELOG.md § 2.5.3](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
+
+## Previous Release — v2.5.2 — Determinism
 
 Released 25 July 2026, published to the PowerShell Gallery.
 
@@ -32,7 +61,7 @@ warnings, 0 raw COM errors.
 
 Full detail: [CHANGELOG.md § 2.5.2](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
 
-## Previous Release — v2.5.1 — Live-Run Hardening
+## Earlier Release — v2.5.1 — Live-Run Hardening
 
 Released 25 July 2026, published to the PowerShell Gallery.
 

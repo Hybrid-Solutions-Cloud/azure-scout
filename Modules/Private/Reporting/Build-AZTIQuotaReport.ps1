@@ -20,12 +20,26 @@ Authors: Claudio Merola
 function Build-AZSCQuotaReport {
     param($File, $AzQuota, $TableStyle)
 
-    # Guarded: $AzQuota / $AzQuota.properties can be $null (e.g. no VM quota data collected),
-    # and a plain property chain on $null throws under StrictMode.
-    $Total = if ($AzQuota -and $AzQuota.properties) { @($AzQuota.properties.Data).count } else { 0 }
-    $tmp = foreach($Quota in $AzQuota.properties)
+    # Guarded twice over. $AzQuota / $AzQuota.properties can be $null (no VM quota data
+    # collected), and a plain property chain on $null throws under StrictMode. Separately,
+    # $AzQuota.properties.Data is MEMBER ENUMERATION over a collection: under StrictMode that
+    # reports 'Data' as missing whenever the enumeration yields nothing at all -- which is what
+    # an empty or absent Data on every element produces. An estate with no VM quota rows is a
+    # normal outcome, not an error. Accumulate element-wise instead. (AB#5633)
+    $QuotaProperties = @()
+    if ($AzQuota -and $AzQuota.PSObject.Properties.Name -contains 'properties') {
+        $QuotaProperties = @($AzQuota.properties | Where-Object { $null -ne $_ })
+    }
+
+    $Total = 0
+    foreach ($Quota in $QuotaProperties) {
+        if ($Quota.PSObject.Properties.Name -contains 'Data') { $Total += @($Quota.Data).Count }
+    }
+
+    $tmp = foreach($Quota in $QuotaProperties)
     {
-        foreach($Data in $Quota.Data)
+        if ($Quota.PSObject.Properties.Name -notcontains 'Data') { continue }
+        foreach($Data in @($Quota.Data))
             {
                 $FreevCPU = ''
                 if($Data.Name.LocalizedValue -like '*vCPUs'){$FreevCPU = $Data.limit - $Data.CurrentValue}

@@ -26,6 +26,29 @@ function Start-AZSCExtractionOrchestration {
         [string[]]$DevOpsOrganization,
         [string]$DevOpsPat
     )
+    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
+    # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
+    # StrictMode and carries ~800 property reads that are only valid without it -- chained
+    # reads over API payloads whose shape varies by tenant, and member enumeration over
+    # collections that are legitimately empty.
+    #
+    # The v2 assessment platform under src/ sets `Set-StrictMode -Version Latest` at FILE
+    # scope, and AzureScout.psm1 dot-sources those files, so StrictMode was silently applied
+    # to the whole module -- this engine included. Nothing here was ever tested under it.
+    # The result was a run that aborted on a perfectly normal Azure response, in a different
+    # place on every tenant, because the faults are data-dependent: an empty API result set,
+    # an estate with no VMs, a subscription with no quota rows.
+    #
+    # StrictMode is dynamically scoped, so turning it off here covers this call tree only.
+    # The assessment platform is invoked from Invoke-AzureScout's own scope and keeps
+    # StrictMode in full force -- it was written for it and its tests depend on it.
+    #
+    # This restores the behaviour v1 shipped with for years. It is not a licence to write
+    # sloppy code here: the genuine defects found alongside this (a job wait that never
+    # waited, an unreachable error fallback, a rethrow that destroyed optional data) were
+    # fixed properly rather than papered over.
+    Set-StrictMode -Off
+
 
     $Resources = @()
     $ResourceContainers = @()
@@ -56,13 +79,22 @@ function Start-AZSCExtractionOrchestration {
                 Write-Progress -activity 'Azure Inventory' -Status "12% Complete." -PercentComplete 12 -CurrentOperation "Starting API Extraction.."
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting API Resources.')
                 $APIResults = Get-AZSCAPIResources -Subscriptions $Subscriptions -AzureEnvironment $AzureEnvironment -SkipPolicy $SkipPolicy
-                $Resources += $APIResults.ResourceHealth
-                $Resources += $APIResults.ManagedIdentities
-                $Resources += $APIResults.AdvisorScore
-                $Resources += $APIResults.ReservationRecomen
-                $PolicyAssign = $APIResults.PolicyAssign
-                $PolicyDef = $APIResults.PolicyDef
-                $PolicySetDef = $APIResults.PolicySetDef
+                # Read element-wise, NOT via member enumeration ($APIResults.ReservationRecomen).
+                # The module runs under Set-StrictMode -Version Latest (every src/*.ps1 sets it at
+                # file scope and the .psm1 dot-sources them), and member enumeration throws
+                # "The property 'X' cannot be found on this object" when the enumeration yields
+                # nothing at all -- which is exactly what an EMPTY collection on every element
+                # produces. An empty collection is a normal Azure response: a subscription with no
+                # reservation recommendations returns { "value": [] }, so a healthy tenant was
+                # aborting the whole run here. $null values were never the problem; empty ones
+                # were. (AB#5633)
+                $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ResourceHealth'
+                $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ManagedIdentities'
+                $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'AdvisorScore'
+                $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ReservationRecomen'
+                $PolicyAssign = Get-AZSCCollectedValue -InputObject $APIResults -Name 'PolicyAssign'
+                $PolicyDef = Get-AZSCCollectedValue -InputObject $APIResults -Name 'PolicyDef'
+                $PolicySetDef = Get-AZSCCollectedValue -InputObject $APIResults -Name 'PolicySetDef'
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'API Resource Inventory Finished.')
                 Remove-Variable APIResults -ErrorAction SilentlyContinue
             }

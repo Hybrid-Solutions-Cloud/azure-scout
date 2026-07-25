@@ -49,6 +49,7 @@ AzureScout auto-installs missing modules at first load. If auto-install fails (e
 | `Az.Resources` | Role assignments and policy data | **Yes** |
 | `ImportExcel` | Excel report generation (.xlsx) | **Yes** (for Excel output) |
 | `Az.Storage` | Upload report to Azure Storage account | Optional (only with `-StorageAccount`) |
+| `Az.CostManagement` | Cost data extraction | Optional (only with `-IncludeCosts`) |
 
 **NOT required:** Any `Microsoft.Graph.*` module. AzureScout uses `Get-AzAccessToken -ResourceTypeName MSGraph` with REST calls instead.
 
@@ -60,6 +61,10 @@ Install-Module -Name Az.ResourceGraph -Scope CurrentUser -Force
 Install-Module -Name Az.Compute -Scope CurrentUser -Force
 Install-Module -Name Az.Resources -Scope CurrentUser -Force
 Install-Module -Name ImportExcel -Scope CurrentUser -Force
+
+# Only needed for -IncludeCosts. Without it the run still completes; cost data is skipped
+# with a warning rather than failing the report (v2.5.3+).
+Install-Module -Name Az.CostManagement -Scope CurrentUser -Force
 ```
 
 ## Required Azure Resource Providers

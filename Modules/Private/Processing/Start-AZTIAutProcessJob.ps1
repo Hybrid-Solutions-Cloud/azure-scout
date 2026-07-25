@@ -89,7 +89,7 @@ function Start-AZSCAutProcessJob {
 
                     Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | Wait-Job
 
-                    $JobNames = (Get-Job | Where-Object {$_.name -like 'ResourceJob_*'}).Name
+                    $JobNames = @(Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | ForEach-Object { $_.Name })
 
                     Start-Sleep -Seconds 5
 

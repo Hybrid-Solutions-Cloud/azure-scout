@@ -28,7 +28,24 @@ function Get-AZSCVMQuotas {
     $Quotas = Foreach($Sub in $Subscriptions)
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting VM Quota Details: '+$Sub.name)
-            $Locs = ($Resources | Where-Object {$_.subscriptionId -eq $Sub.id -and $_.Type -in 'microsoft.compute/virtualmachines','microsoft.compute/virtualmachinescalesets'} | Group-Object -Property Location).name
+            # $Resources is a MIXED array: Resource Graph rows carry subscriptionId/Type, but the
+            # REST API rows appended alongside them (resource health events, managed identities,
+            # advisor scores, reservation recommendations) do not. Under Set-StrictMode -Version
+            # Latest a bare $_.subscriptionId on one of those rows aborts the whole run with
+            # "The property 'subscriptionId' cannot be found on this object" -- and it aborts the
+            # pipeline, so no quota is collected for any subscription. Test for the property
+            # before reading it. (AB#5633)
+            $VMTypes = @('microsoft.compute/virtualmachines', 'microsoft.compute/virtualmachinescalesets')
+            $Locs = @($Resources |
+                Where-Object {
+                    $null -ne $_ -and
+                    $_.PSObject.Properties.Name -contains 'subscriptionId' -and
+                    $_.PSObject.Properties.Name -contains 'Type' -and
+                    $_.subscriptionId -eq $Sub.id -and
+                    $_.Type -in $VMTypes
+                } |
+                Group-Object -Property Location |
+                ForEach-Object { $_.Name })
             if (![string]::IsNullOrEmpty($Locs))
                 {
                     Foreach($Loc in $Locs)

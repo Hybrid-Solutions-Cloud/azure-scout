@@ -1,0 +1,245 @@
+<#
+    AB#5633 — a full inventory run aborted with
+
+        The property 'ReservationRecomen' cannot be found on this object.
+
+    Every src/*.ps1 calls Set-StrictMode -Version Latest at file scope and AzureScout.psm1
+    dot-sources them, so the whole module — including the v1 inventory path — runs strict.
+    Under StrictMode, member enumeration over a collection throws when the enumeration
+    yields NOTHING AT ALL, which is what an empty collection on every element produces.
+
+    That distinction is the entire bug and is not obvious, so it is pinned here: a $null
+    value is safe, an empty collection is not. Anyone "simplifying" Get-AZSCCollectedValue
+    back to $APIResults.<Name> reintroduces a crash that only fires against real tenants.
+#>
+
+BeforeAll {
+    $script:RepoRoot = Split-Path -Parent $PSScriptRoot
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZTICollectedValue.ps1')
+}
+
+Describe 'StrictMode member enumeration — the behaviour that caused AB#5633' {
+
+    It 'does NOT throw when every element carries a $null value' {
+        # Two elements, key present, value $null on both: enumeration still yields two
+        # nulls, so PowerShell finds the property. This case always worked.
+        $Collection = @(@{ Key = $null }, @{ Key = $null })
+        { Set-StrictMode -Version Latest; $null = $Collection.Key } | Should -Not -Throw
+    }
+
+    It 'DOES throw when every element carries an empty collection' {
+        # The real shape: the Consumption reservationRecommendations API returns
+        # { "value": [] } for a subscription with no recommendations. Empty collections
+        # flatten away, the enumeration yields nothing, and StrictMode calls the property
+        # missing even though every element carries the key.
+        $Collection = @(@{ Key = @() }, @{ Key = @() })
+        { Set-StrictMode -Version Latest; $null = $Collection.Key } |
+            Should -Throw -ExpectedMessage "*cannot be found on this object*"
+    }
+
+    It 'DOES throw on an empty collection even with a single element' {
+        $Collection = @(@{ Key = @() })
+        { Set-StrictMode -Version Latest; $null = $Collection.Key } |
+            Should -Throw -ExpectedMessage "*cannot be found on this object*"
+    }
+
+    It 'does NOT throw when at least one element carries a value' {
+        $Collection = @(@{ Key = @() }, @{ Key = 'something' })
+        { Set-StrictMode -Version Latest; $null = $Collection.Key } | Should -Not -Throw
+    }
+}
+
+Describe 'Get-AZSCCollectedValue' {
+
+    It 'returns nothing instead of throwing when every element is an empty collection' {
+        Set-StrictMode -Version Latest
+        $Collection = @(@{ ReservationRecomen = @() }, @{ ReservationRecomen = @() })
+        $Result = Get-AZSCCollectedValue -InputObject $Collection -Name 'ReservationRecomen'
+        @($Result).Count | Should -Be 0
+    }
+
+    It 'accumulates onto an existing array without adding anything' {
+        Set-StrictMode -Version Latest
+        $Resources = @('existing')
+        $Collection = @(@{ Key = @() }, @{ Key = @() })
+        $Resources += Get-AZSCCollectedValue -InputObject $Collection -Name 'Key'
+        @($Resources).Count | Should -Be 1
+    }
+
+    It 'returns every value when the elements do carry data' {
+        Set-StrictMode -Version Latest
+        $Collection = @(@{ Key = 'a' }, @{ Key = 'b' })
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result | Should -Be @('a', 'b')
+    }
+
+    It 'flattens collection values the same way member enumeration did' {
+        Set-StrictMode -Version Latest
+        $Collection = @(@{ Key = @(1, 2) }, @{ Key = @(3) })
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result | Should -Be @(1, 2, 3)
+    }
+
+    It 'preserves $null values so per-element alignment is unchanged' {
+        Set-StrictMode -Version Latest
+        $Collection = @(@{ Key = $null }, @{ Key = 'b' })
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result.Count | Should -Be 2
+    }
+
+    It 'tolerates a $null input object' {
+        Set-StrictMode -Version Latest
+        { Get-AZSCCollectedValue -InputObject $null -Name 'Key' } | Should -Not -Throw
+        @(Get-AZSCCollectedValue -InputObject $null -Name 'Key').Count | Should -Be 0
+    }
+
+    It 'tolerates an empty input collection' {
+        Set-StrictMode -Version Latest
+        @(Get-AZSCCollectedValue -InputObject @() -Name 'Key').Count | Should -Be 0
+    }
+
+    It 'tolerates $null elements inside the collection' {
+        Set-StrictMode -Version Latest
+        $Collection = @($null, @{ Key = 'a' }, $null)
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result | Should -Be @('a')
+    }
+
+    It 'skips elements that do not carry the key at all' {
+        Set-StrictMode -Version Latest
+        $Collection = @(@{ Other = 1 }, @{ Key = 'a' })
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result | Should -Be @('a')
+    }
+
+    It 'reads PSCustomObject elements as well as dictionaries' {
+        Set-StrictMode -Version Latest
+        $Collection = @([pscustomobject]@{ Key = 'a' }, [pscustomobject]@{ Other = 2 })
+        $Result = @(Get-AZSCCollectedValue -InputObject $Collection -Name 'Key')
+        $Result | Should -Be @('a')
+    }
+
+    It 'accepts a single dictionary that was unwrapped from a one-element array' {
+        Set-StrictMode -Version Latest
+        $Result = @(Get-AZSCCollectedValue -InputObject @{ Key = 'a' } -Name 'Key')
+        $Result | Should -Be @('a')
+    }
+}
+
+Describe 'Start-AZSCExtractionOrchestration reads API results safely' {
+
+    BeforeAll {
+        # Comment lines stripped: the fix carries an explanation that necessarily quotes the
+        # broken expression, and matching that would defeat the check.
+        $Raw = Get-Content -Path (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIExtractionOrchestration.ps1')
+        $script:Orchestration = (($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n")
+    }
+
+    It 'no longer member-enumerates $APIResults for any of the seven API fields' {
+        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecomen',
+                           'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+            $script:Orchestration | Should -Not -Match ([regex]::Escape('$APIResults.' + $Field))
+        }
+    }
+
+    It 'routes all seven API fields through Get-AZSCCollectedValue' {
+        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecomen',
+                           'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+            $script:Orchestration | Should -Match ([regex]::Escape("-Name '$Field'"))
+        }
+    }
+}
+
+Describe 'The v1 inventory engine runs outside StrictMode' {
+
+    # The forked ARI engine was written without StrictMode and carries ~800 property reads
+    # that are only valid without it. The v2 assessment platform under src/ sets
+    # `Set-StrictMode -Version Latest` at FILE scope, and the .psm1 dot-sources those files,
+    # so StrictMode leaked into the whole module and made the engine abort on normal Azure
+    # responses — in a different place on every tenant, because the faults are data-dependent.
+    # StrictMode is dynamically scoped, so each engine entry point opts out for its own call
+    # tree. Removing these turns a working run back into a tenant-specific crash. (AB#5633)
+
+    $EntryPoints = @(
+        'Modules/Private/Main/Start-AZTIExtractionOrchestration.ps1'
+        'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1'
+        'Modules/Private/Main/Start-AZTIReporOrchestration.ps1'
+        'Modules/Private/Processing/Start-AZTIExtraJobs.ps1'
+        'Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1'
+    )
+
+    It '<_> opts out of StrictMode' -ForEach $EntryPoints {
+        $Text = Get-Content -Raw -Path (Join-Path (Split-Path -Parent $PSScriptRoot) $_)
+        $Text | Should -Match 'Set-StrictMode -Off'
+    }
+
+    It 'the assessment platform still runs UNDER StrictMode' {
+        # The opt-out must stay scoped to the v1 engine. src/ was written for StrictMode and
+        # its tests depend on it.
+        $Root = Split-Path -Parent $PSScriptRoot
+        $Assessment = Get-Content -Raw -Path (Join-Path $Root 'src/Invoke-ScoutAssessment.ps1')
+        $Assessment | Should -Match 'Set-StrictMode -Version Latest'
+        $Assessment | Should -Not -Match 'Set-StrictMode -Off'
+    }
+
+    It 'does not disable StrictMode module-wide' {
+        # A blanket opt-out in the .psm1 would silently strip StrictMode from the assessment
+        # platform too.
+        $Root = Split-Path -Parent $PSScriptRoot
+        $Psm1 = Get-Content -Path (Join-Path $Root 'AzureScout.psm1') | Where-Object { $_ -notmatch '^\s*#' }
+        ($Psm1 -join "`n") | Should -Not -Match 'Set-StrictMode -Off'
+    }
+}
+
+Describe 'An empty job set is a valid state, not a failure' {
+
+    BeforeAll {
+        . (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Jobs/Wait-AZTIJob.ps1')
+    }
+
+    It 'returns quietly when there are no jobs to wait for' {
+        # Get-Job -Name rejects an empty collection with "Cannot validate argument on parameter
+        # 'Name'", so a run whose jobs had all completed and been harvested died here instead of
+        # going on to build the report.
+        Set-StrictMode -Version Latest
+        { Wait-AZSCJob -JobNames @() -JobType 'Resource' -LoopTime 1 } | Should -Not -Throw
+    }
+
+    It 'returns quietly for a null job list' {
+        Set-StrictMode -Version Latest
+        { Wait-AZSCJob -JobNames $null -JobType 'Resource' -LoopTime 1 } | Should -Not -Throw
+    }
+
+    It 'ignores null and blank entries mixed into the job list' {
+        Set-StrictMode -Version Latest
+        { Wait-AZSCJob -JobNames @($null, '', '   ') -JobType 'Diagram' -LoopTime 1 } | Should -Not -Throw
+    }
+
+    It 'callers build the job list without member-enumerating an empty result' {
+        foreach ($File in 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1',
+                          'Modules/Private/Processing/Start-AZTIProcessJob.ps1',
+                          'Modules/Private/Processing/Start-AZTIAutProcessJob.ps1',
+                          'Modules/Public/PublicFunctions/Invoke-AzureScout.ps1') {
+            $Raw = Get-Content -Path (Join-Path $script:RepoRoot $File)
+            $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+            $Active | Should -Not -Match '\(Get-Job \| Where-Object.*\)\.Name'
+        }
+    }
+}
+
+Describe 'Job waits never member-enumerate a possibly-empty handle collection' {
+
+    It 'Start-AZTIProcessJob waits on the handle itself, not $Job.IsCompleted' {
+        $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Private/Processing/Start-AZTIProcessJob.ps1')
+        $Text | Should -Not -Match ([regex]::Escape('$Job.IsCompleted -contains'))
+        $Text | Should -Match ([regex]::Escape('$_.IsCompleted'))
+    }
+
+    It 'Start-AZTIDiagramJob no longer reads the non-existent .Runspace property' {
+        # PowerShellAsyncResult has no .Runspace, so the old condition was always false and
+        # the wait was a no-op. v2.5.2 fixed the identical line in Start-AZTIProcessJob only.
+        $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
+        $Active = ($Text -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }
+        ($Active -join "`n") | Should -Not -Match ([regex]::Escape('$Job.Runspace.IsCompleted'))
+    }
+}

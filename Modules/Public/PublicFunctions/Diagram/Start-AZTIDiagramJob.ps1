@@ -20,6 +20,15 @@ Authors: Claudio Merola
 
 Function Start-AZSCDiagramJob {
     Param($Resources,$Automation)
+    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
+    # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
+    # functions run inside Start-Job script blocks that RE-IMPORT the module, so module-scope
+    # StrictMode -- leaked in by src/*.ps1 setting it at file scope -- applies again inside the
+    # job even though the calling orchestrator opted out. The opt-out has to be on the function
+    # itself. Without it, a Defender assessment or Advisor recommendation whose payload simply
+    # omits an optional field aborts the whole run.
+    Set-StrictMode -Off
+
 
     if ([bool]$Automation) {
         Start-ThreadJob -Name 'DiagramVariables' -ScriptBlock {
@@ -176,7 +185,15 @@ Function Start-AZSCDiagramJob {
             $job += $jobAZCont
             $job += $jobAZANF
 
-            while ($Job.Runspace.IsCompleted -contains $false) {}
+            # $Job holds the IAsyncResult handles from BeginInvoke(). Those are
+            # System.Management.Automation.PowerShellAsyncResult and have NO .Runspace property,
+            # so $Job.Runspace evaluated to an empty collection and "-contains $false" was ALWAYS
+            # false -- this loop never waited for anything, and the EndInvoke calls below raced the
+            # work they were meant to collect. v2.5.2 fixed the identical line in
+            # Start-AZTIProcessJob but left this copy behind. The completion flag lives directly on
+            # the handle. Filtering rather than enumerating members also keeps the wait safe under
+            # Set-StrictMode when $Job is empty. (AB#5633)
+            while (@($Job).Where({ $null -ne $_ -and -not $_.IsCompleted }).Count -gt 0) { Start-Sleep -Milliseconds 200 }
 
             $AZVGWsS = $AZVGWs.EndInvoke($jobAZVGWs)
             $AZLGWsS = $AZLGWs.EndInvoke($jobAZLGWs)

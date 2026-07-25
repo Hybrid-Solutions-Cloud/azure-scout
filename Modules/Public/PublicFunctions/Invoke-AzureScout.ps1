@@ -719,6 +719,57 @@ Function Invoke-AzureScout {
 
     Set-AZSCFolder -DefaultPath $DefaultPath -DiagramCache $DiagramCache -ReportCache $ReportCache
 
+    # Run log (AB#5635). Started as soon as the run folder exists so that everything from here
+    # on -- including a failure -- leaves a durable record next to the report instead of a
+    # single red line on a console nobody kept.
+    $LogContext = Get-AzContext -ErrorAction SilentlyContinue
+    Start-AZSCRunLog -DefaultPath $DefaultPath -NoTranscript:$Automation -Metadata @{
+        'Module'        = (Get-Module -Name 'AzureScout' | Select-Object -First 1).Version
+        'PowerShell'    = ('{0} ({1})' -f $PSVersionTable.PSVersion, $PSVersionTable.PSEdition)
+        'OS'            = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
+        'Account'       = if ($LogContext) { $LogContext.Account.Id } else { '<unknown>' }
+        'Tenant'        = $TenantID
+        'Subscriptions' = @($Subscriptions).Count
+        'Scope'         = $Scope
+        'Category'      = $Category
+        'Environment'   = $AzureEnvironment
+        'RunFolder'     = $DefaultPath
+        'Switches'      = @(
+            if ($SkipAPIs) { 'SkipAPIs' }
+            if ($SkipPolicy) { 'SkipPolicy' }
+            if ($SkipAdvisory) { 'SkipAdvisory' }
+            if ($SkipVMDetails) { 'SkipVMDetails' }
+            if ($SkipDiagram) { 'SkipDiagram' }
+            if ($SecurityCenter) { 'SecurityCenter' }
+            if ($IncludeCosts) { 'IncludeCosts' }
+            if ($IncludeTags) { 'IncludeTags' }
+            if ($IncludeDevOps) { 'IncludeDevOps' }
+            if ($Automation) { 'Automation' }
+        ) -join ' '
+    }
+
+    foreach ($LogSub in @($Subscriptions)) {
+        Write-AZSCLog -Message ('  subscription in scope : {0} ({1})' -f $LogSub.Name, $LogSub.Id)
+    }
+
+    # A trap rather than a try/catch around 200 lines: it covers the whole function scope
+    # wherever the failure lands, and rethrows so the caller's behaviour is unchanged. Without
+    # it the operator sees the message but never the script, line or stack trace (AB#5635).
+    trap {
+        Write-AZSCLogError -ErrorRecord $_
+        $FailedLog = Stop-AZSCRunLog -Status 'FAILED' -Quiet
+        if ($FailedLog) {
+            Write-Host ''
+            Write-Host '  The run failed. Full detail written to: ' -NoNewline -ForegroundColor Yellow
+            Write-Host $FailedLog -ForegroundColor Cyan
+        }
+        # `break`, NOT `throw`. A bare `throw` inside a trap does not rethrow -- it raises a
+        # brand new "ScriptHalted" error and destroys the original message, script, line and
+        # stack trace, which is exactly the diagnostic this trap exists to preserve. `break`
+        # propagates the original ErrorRecord to the caller untouched.
+        break
+    }
+
     Clear-AZSCCacheFolder -ReportCache $ReportCache
 
     Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | Remove-Job -Force | Out-Null
@@ -756,6 +807,20 @@ Function Invoke-AzureScout {
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
+    Write-AZSCLogPhase -Name 'Extraction finished' -Elapsed $ExtractionTotalTime -Detail @{
+        'Resources'          = @($Resources).Count
+        'ResourceContainers' = @($ResourceContainers).Count
+        'Advisories'         = @($Advisories).Count
+        'Security findings'  = @($Security).Count
+        'Retirements'        = @($Retirements).Count
+        'Entra objects'      = @($EntraResources).Count
+        'Quotas'             = @($Quotas).Count
+        'Policy assignments' = @($PolicyAssign).Count
+        'Policy definitions' = @($PolicyDef).Count
+        'Policy set defs'    = @($PolicySetDef).Count
+        'Cost rows'          = @($CostData).Count
+    }
+
     if ($Automation.IsPresent)
         {
             Write-Output "Extraction Phase Finished"
@@ -787,6 +852,11 @@ Function Invoke-AzureScout {
     $ProcessingRunTime.Stop()
 
     $ProcessingTotalTime = $ProcessingRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
+
+    Write-AZSCLogPhase -Name 'Processing finished' -Elapsed $ProcessingTotalTime -Detail @{
+        'Cache files'  = @(Get-ChildItem -Path $ReportCache -Filter '*.json' -ErrorAction SilentlyContinue).Count
+        'Excel target' = $File
+    }
 
     if ($Automation.IsPresent)
         {
@@ -852,6 +922,11 @@ Function Invoke-AzureScout {
 
     $ReportingTotalTime = $ReportingRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
+    Write-AZSCLogPhase -Name 'Reporting finished' -Elapsed $ReportingTotalTime -Detail @{
+        'Excel rows written' = $TotalRes
+        'Report file'        = $File
+    }
+
     if ($Automation.IsPresent)
         {
             Write-Output "Report Building Finished"
@@ -876,7 +951,7 @@ Function Invoke-AzureScout {
     {
         Write-Progress -activity 'Diagrams' -Status "Completing Diagram" -PercentComplete 70 -CurrentOperation "Consolidating Diagram"
 
-        $JobNames = (Get-Job | Where-Object {$_.name -eq 'DrawDiagram'}).Name
+        $JobNames = @(Get-Job | Where-Object {$_.name -eq 'DrawDiagram'} | ForEach-Object { $_.Name })
 
         Wait-AZSCJob -JobNames $JobNames -JobType 'Diagram' -LoopTime 5
 
@@ -931,6 +1006,16 @@ Function Invoke-AzureScout {
 
 Write-Progress -activity 'Azure Inventory' -Status "100% Complete." -Completed
 
+Write-AZSCLogPhase -Name 'Run complete' -Elapsed $Measure -Detail @{
+    'Resources on Azure' = $ResourcesCount
+    'Rows on Excel'      = $TotalRes
+    'Report file'        = $File
+}
+
 Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRes $TotalRes -SkipAdvisory $SkipAdvisory -AdvisoryData $AdvisoryCount -SkipPolicy $SkipPolicy -SkipAPIs $SkipAPIs -PolicyData $PolicyCount -SecurityCenter $SecurityCenter -SecurityCenterData $SecCenterCount -File $File -SkipDiagram $SkipDiagram -DDFile $DDFile
+
+# Closed last so the transcript captures the run summary above, and so the operator is told
+# where the log is on a successful run as well as a failed one (AB#5635).
+$null = Stop-AZSCRunLog -Status 'COMPLETED'
 
 }

@@ -82,6 +82,8 @@ isolation has no lasting effect there — blob storage is the durable copy. See
 | `AzureScout_Report_<timestamp>.adoc` | AsciiDoc | AsciiDoc document for Antora/Confluence rendering |
 | `PowerBI/` | CSV bundle | Flat normalized CSVs optimized for Power BI / Microsoft Fabric import (see [Power BI Export](#power-bi-export)) |
 | `AzureScout_Diagram_<timestamp>.drawio` | Draw.io | Network topology diagram (skip with `-SkipDiagram`) |
+| `scout-run.log` | Log | Structured run log — phases, elapsed times, counts, warnings, and full error detail on failure. Written for every run, including failed ones. See [Troubleshooting](troubleshooting.md#run-logs) |
+| `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
 
 ## JSON Structure
 

@@ -38,6 +38,7 @@ function Get-AZSCCostInventory {
             $SubId = $Subscription.id
             $SubName = $Subscription.name
             $Scope = ('/subscriptions/'+$SubId+'/')
+            $Costs = @()
             try
                 {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Extracting Cost Data for: ' + $SubName)
@@ -45,9 +46,25 @@ function Get-AZSCCostInventory {
                 }
             catch
                 {
+                    # Cost data is optional enrichment -- it must never cost the caller their
+                    # inventory. The previous `throw $_.Exception.Message` aborted the entire run
+                    # whenever Cost Management was unavailable, and the `$Costs = @()` that
+                    # followed it was unreachable, so the intended fallback never ran. A machine
+                    # without Az.CostManagement installed lost the whole report to this. (AB#5636)
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Error Extracting Cost Data for Subscription: ' + $SubName)
-                    throw $_.Exception.Message
                     $Costs = @()
+
+                    if ($_.Exception.Message -like '*Invoke-AzCostManagementQuery*not recognized*')
+                        {
+                            Write-Warning ("[AzureScout] Cost data skipped: the Az.CostManagement module is not installed. " +
+                                           "Install it with 'Install-Module Az.CostManagement -Scope CurrentUser' and rerun with -IncludeCosts.")
+                        }
+                    else
+                        {
+                            Write-Warning ("[AzureScout] Cost data skipped for subscription '" + $SubName + "': " + $_.Exception.Message)
+                        }
+
+                    Write-AZSCLog -Message ("Cost extraction failed for '" + $SubName + "': " + $_.Exception.Message) -Level 'WARN'
                 }
 
             $obj = @{

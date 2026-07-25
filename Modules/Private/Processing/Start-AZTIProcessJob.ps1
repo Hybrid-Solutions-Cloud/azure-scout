@@ -158,7 +158,10 @@ function Start-AZSCProcessJob {
                 # property, so $Job.Runspace evaluated to an empty collection and
                 # "-contains $false" was ALWAYS false -- this loop never waited for anything.
                 # The completion flag lives directly on the handle. (AB#5629)
-                While ($Job.IsCompleted -contains $false) { Start-Sleep -Milliseconds 500 }
+                # Filtered rather than member-enumerated: under Set-StrictMode -Version Latest
+                # $Job.IsCompleted throws "property cannot be found" when $Job is empty, because the
+                # enumeration yields nothing at all. Zero modules to run is a valid state. (AB#5633)
+                While (@($Job).Where({ $null -ne $_ -and -not $_.IsCompleted }).Count -gt 0) { Start-Sleep -Milliseconds 500 }
 
                 Foreach ($Module in $ModuleFiles)
                     {
@@ -199,11 +202,11 @@ function Start-AZSCProcessJob {
                 # created moments earlier may not have transitioned to Running yet; excluding it
                 # here meant it was never waited on, and the Build-AZSCCacheFiles call below then
                 # harvested and removed it while it was still empty. (AB#5629)
-                $InterJobNames = (Get-Job | Where-Object {$_.name -like 'ResourceJob_*' -and $_.State -in 'NotStarted','Running','Stopping','Suspending','Suspended'}).Name
+                $InterJobNames = @(Get-Job | Where-Object {$_.name -like 'ResourceJob_*' -and $_.State -in 'NotStarted','Running','Stopping','Suspending','Suspended'} | ForEach-Object { $_.Name })
 
                 Wait-AZSCJob -JobNames $InterJobNames -JobType 'Resource Batch' -LoopTime 5
 
-                $JobNames = (Get-Job | Where-Object {$_.name -like 'ResourceJob_*'}).Name
+                $JobNames = @(Get-Job | Where-Object {$_.name -like 'ResourceJob_*'} | ForEach-Object { $_.Name })
 
                 Build-AZSCCacheFiles -DefaultPath $DefaultPath -JobNames $JobNames
 

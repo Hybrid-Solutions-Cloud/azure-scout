@@ -27,6 +27,29 @@ Function Start-AZSCReporOrchestration {
     $Automation,
     $TableStyle,
     $IncludeCosts)
+    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
+    # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
+    # StrictMode and carries ~800 property reads that are only valid without it -- chained
+    # reads over API payloads whose shape varies by tenant, and member enumeration over
+    # collections that are legitimately empty.
+    #
+    # The v2 assessment platform under src/ sets `Set-StrictMode -Version Latest` at FILE
+    # scope, and AzureScout.psm1 dot-sources those files, so StrictMode was silently applied
+    # to the whole module -- this engine included. Nothing here was ever tested under it.
+    # The result was a run that aborted on a perfectly normal Azure response, in a different
+    # place on every tenant, because the faults are data-dependent: an empty API result set,
+    # an estate with no VMs, a subscription with no quota rows.
+    #
+    # StrictMode is dynamically scoped, so turning it off here covers this call tree only.
+    # The assessment platform is invoked from Invoke-AzureScout's own scope and keeps
+    # StrictMode in full force -- it was written for it and its tests depend on it.
+    #
+    # This restores the behaviour v1 shipped with for years. It is not a licence to write
+    # sloppy code here: the genuine defects found alongside this (a job wait that never
+    # waited, an unreachable error fallback, a rethrow that destroyed optional data) were
+    # fixed properly rather than papered over.
+    Set-StrictMode -Off
+
 
     Write-Progress -activity 'Azure Inventory' -Status "65% Complete." -PercentComplete 65 -CurrentOperation "Starting the Report Phase.."
 

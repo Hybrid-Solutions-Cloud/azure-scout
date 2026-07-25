@@ -19,6 +19,15 @@ Authors: Claudio Merola
 #>
 Function Start-AZSCDiagramNetwork {
     Param($Subscriptions,$Job,$Advisories,$DiagramCache,$FullEnvironment,$DDFile,$XMLFiles,$LogFile,$Automation,$AZSCModule)
+    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
+    # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
+    # functions run inside Start-Job script blocks that RE-IMPORT the module, so module-scope
+    # StrictMode -- leaked in by src/*.ps1 setting it at file scope -- applies again inside the
+    # job even though the calling orchestrator opted out. The opt-out has to be on the function
+    # itself. Without it, a Defender assessment or Advisor recommendation whose payload simply
+    # omits an optional field aborts the whole run.
+    Set-StrictMode -Off
+
 
     Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Diagram Job...')
 
