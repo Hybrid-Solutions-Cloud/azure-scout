@@ -1,73 +1,112 @@
 ---
-description: Which AzureScout tool do you need — the v1 inventory cmdlet or the v2 CAF/WAF assessment platform? A decision guide with two mini quickstarts.
+description: One command, two modes. Invoke-AzureScout runs the inventory, the CAF/WAF assessment, or both — with a guided wizard if you run it with no parameters.
 ---
 
-# Overview: Inventory vs Assessment
+# Overview
 
-AzureScout ships **two** entry points from the same module. They answer different questions,
-have different defaults, and — for the assessment platform — a different PowerShell version
-requirement. Read this page first if you're new to AzureScout.
+AzureScout is **one command**: `Invoke-AzureScout`.
 
-| Compare | `Invoke-AzureScout` (v1) | `Invoke-ScoutAssessment` (v2) |
+It has two modes. Inventory tells you *what's in your tenant*. Assessment scores that
+estate against Microsoft's Cloud Adoption Framework and Well-Architected Framework.
+You pick a mode with a switch — not with a different tool.
+
+```powershell
+Install-Module -Name AzureScout
+Connect-AzAccount
+
+Invoke-AzureScout                              # guided wizard — pick everything from a menu
+Invoke-AzureScout -NoWizard                    # inventory, default settings
+Invoke-AzureScout -Assessment LandingZone      # CAF/WAF assessment
+```
+
+## Just run it
+
+Run `Invoke-AzureScout` with no parameters and you get a wizard. It signs you in, checks the
+account actually holds the rights the scan needs, then hands you a checklist of everything
+Scout can do — all of it pre-selected, so you uncheck what you don't want:
+
+```
+  Step 3/5 — What to run
+  ────────────────────────────────────────────────────────
+
+  Resource categories to inventory
+    [x]  1. AI
+    [x]  2. Analytics
+    [x]  3. Compute
+    ...
+
+   Toggle with numbers (e.g. "3" or "3,5,9"), a = all, n = none,
+   Enter = accept, q = quit
+```
+
+The last step prints the equivalent one-line command, so the wizard also teaches you the
+parameters for when you want to script it later.
+
+The wizard **only** opens in an interactive session. CI, scheduled tasks, containers, and
+anything with redirected input fall straight through to the default inventory run — a bare
+`Invoke-AzureScout` in a pipeline can never block on a prompt. Use `-NoWizard` to force that
+same behaviour at a terminal.
+
+## The two modes
+
+| | Inventory (default) | Assessment (`-Assessment`) |
 |:--|:--|:--|
-| Purpose | Inventory — list everything in the tenant | Assessment — score the tenant against CAF/WAF |
-| Answers | "What's in my tenant?" | "How well does my tenant conform to CAF/WAF?" |
-| Output | Excel workbook, JSON, Markdown, AsciiDoc, Power BI CSVs — raw inventory | Scored `findings.json`, Power BI, HTML, PowerPoint, Excel evidence |
-| `-Scope` default | `ArmOnly` | `All` |
-| PowerShell | 5.1+ (Desktop or Core) | **7.0+ only** (`#Requires -Version 7.0`) |
-| Read the full guide | [Usage Guide](usage.md) | [Assessment Platform](assessment.md) |
+| Answers | "What's in my tenant?" | "How well does it conform to CAF/WAF?" |
+| Output | Excel, JSON, Markdown, AsciiDoc, Power BI CSVs | Scored `findings.json`, HTML, Power BI, PowerPoint, React, Excel evidence |
+| `-OutputFormat` | `All`, `Excel`, `Json`, `Markdown`, `AsciiDoc`, `PowerBI` | `Html`, `Pptx`, `React`, `Pdf`, `Word`, `EChartsDashboard`, `JsonEvidence`, plus `Excel`/`Json`/`PowerBI` |
+| Full guide | [Usage Guide](usage.md) | [Assessment mode](assessment.md) |
 
-## Which one do I need?
+Both modes are the same module, the same sign-in, and the same `-TenantID`, `-Scope`,
+`-Category`, and `-ReportDir` parameters. Mixing a format across modes fails with a message
+telling you which switch you actually wanted, rather than quietly producing nothing.
 
-- **I want a spreadsheet/JSON of every resource in my tenant** → use `Invoke-AzureScout` (inventory).
-- **I want a scored gap analysis against Microsoft's Cloud Adoption Framework / Well-Architected Framework, with a prioritized remediation list** → use `Invoke-ScoutAssessment` (assessment).
-- **I want both** → run the inventory first for a full raw dataset, then run an assessment for the scored analysis. They are independent — you don't need to run one before the other.
+## Running both
 
-## Quickstart: Inventory (`Invoke-AzureScout`)
+An assessment scores your estate, so it needs to know what's in it. To get the raw inventory
+*and* the scored analysis from a single run, pick **Both** in the wizard — or run the two
+modes back to back:
 
 ```powershell
-# 1. Install from the PowerShell Gallery
-Install-Module -Name AzureScout
-
-# 2. Sign in (or reuse an existing Connect-AzAccount session)
-Connect-AzAccount
-
-# 3. Run a full ARM inventory (default scope — ARM only, no Entra ID)
-Invoke-AzureScout
-
-# ARM + Entra ID in one run
-Invoke-AzureScout -Scope All
+Invoke-AzureScout -ReportDir ./scout                          # inventory
+Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment
 ```
 
-Runs on PowerShell 5.1+ or 7+. See [Prerequisites](prerequisites.md), [Usage Guide](usage.md),
-and [Category Filtering](category-filtering.md) for targeted scans.
+::: warning Known limitation
+The two modes currently collect their Azure data separately — the inventory runs its own
+per-resource-type modules, and the assessment runs its own Resource Graph query pack. Running
+both therefore queries Azure twice. Collapsing them onto a single collection pass is tracked
+work; until it lands, a "Both" run costs roughly two scans' worth of API calls.
+:::
 
-## Quickstart: Assessment (`Invoke-ScoutAssessment`)
+## Requirements
+
+**PowerShell 7.0 or later, on PowerShell Core.** That applies to the whole module, both modes
+— `AzureScout.psd1` declares `PowerShellVersion = '7.0'` and `CompatiblePSEditions = @('Core')`,
+so `Import-Module` rejects Windows PowerShell 5.1 outright.
+
+See [Prerequisites & Required Modules](prerequisites.md) for the module list, and
+[Assessment Prerequisites](assessment-prerequisites.md) for the extra dependencies the
+PowerPoint and PDF report tiers need.
+
+## Migrating from `Invoke-ScoutAssessment`
+
+`Invoke-ScoutAssessment` was a second entry point in v2.3.0 and earlier. It still works, but
+it is **deprecated** and will be removed in v3.0.0. Move to the switch:
 
 ```powershell
-# 1. Install from the PowerShell Gallery (same module as inventory)
-Install-Module -Name AzureScout
-
-# 2. Sign in — same authentication as the inventory cmdlet, no separate login
-Connect-AzAccount
-
-# 3. Run a full CAF/WAF landing-zone assessment
+# Before
 Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Html
+
+# After
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
 ```
 
-**Requires PowerShell 7.0+** — the assessment platform will not load under Windows PowerShell 5.1.
-See [Assessment Prerequisites](assessment-prerequisites.md) (additional modules and a `.NET SDK`
-requirement for the PowerPoint tier) and [Assessment Permissions](assessment-permissions.md)
-before your first run.
-
-## Both tools, one module
-
-Both cmdlets ship in the same `AzureScout` module and share the same sign-in flow
-(`Connect-AZSCLoginSession` under the hood) — see [Authentication](authentication.md). What
-differs between them is *scope defaults*, *output shape*, and — for the assessment
-platform — the PowerShell version floor.
+Every parameter maps across unchanged, except `-OutputPath`, which is `-ReportDir` on
+`Invoke-AzureScout`.
 
 ::: tip Next steps
-- New to the inventory tool? Start at [Prerequisites & Required Modules](prerequisites.md).
-- New to the assessment platform? Start at [Assessment Prerequisites](assessment-prerequisites.md).
+- [Prerequisites & Required Modules](prerequisites.md) — what to install first.
+- [Usage Guide](usage.md) — inventory mode in depth.
+- [Assessment mode](assessment.md) — the CAF/WAF rules, scoring, and report tiers.
+- [Parameters Reference](parameters.md) — every switch on the one command.
 :::

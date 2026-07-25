@@ -81,8 +81,11 @@ Describe 'OutputFormat Parameter — Metadata' {
         $script:Cmd.Parameters.ContainsKey('OutputFormat') | Should -BeTrue
     }
 
-    It 'OutputFormat parameter is [string] type' {
-        $script:Cmd.Parameters['OutputFormat'].ParameterType | Should -Be ([string])
+    # AB#5024: widened from [string] to [string[]] when inventory and assessment
+    # collapsed onto the single Invoke-AzureScout entry point — assessment mode
+    # renders several formats in one run (-OutputFormat Html,Pptx).
+    It 'OutputFormat parameter is [string[]] type' {
+        $script:Cmd.Parameters['OutputFormat'].ParameterType | Should -Be ([string[]])
     }
 
     It 'OutputFormat ValidateSet contains "All"' {
@@ -125,9 +128,16 @@ Describe 'OutputFormat Parameter — Metadata' {
         $vs.ValidValues | Should -Contain 'PowerBI'
     }
 
-    It 'OutputFormat ValidateSet has exactly 8 values' {
+    It 'OutputFormat ValidateSet covers the 8 inventory formats plus the 7 assessment-only formats' {
         $vs = $script:Cmd.Parameters['OutputFormat'].Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
-        $vs.ValidValues.Count | Should -Be 8
+        $vs.ValidValues.Count | Should -Be 15
+    }
+
+    It 'OutputFormat ValidateSet contains the assessment-mode formats' {
+        $vs = $script:Cmd.Parameters['OutputFormat'].Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
+        foreach ($format in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard')) {
+            $vs.ValidValues | Should -Contain $format
+        }
     }
 
     It 'OutputFormat default value is "All"' {

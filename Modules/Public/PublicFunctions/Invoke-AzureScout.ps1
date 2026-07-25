@@ -306,8 +306,23 @@ Function Invoke-AzureScout {
         [switch]$PermissionAudit,
         [Alias('EntraAudit','CheckEntraPermissions')]
         [switch]$IncludeEntraPermissions,
-        [ValidateSet('All', 'Excel', 'Json', 'Markdown', 'AsciiDoc', 'MD', 'Adoc', 'PowerBI')]
-        [string]$OutputFormat = 'All',
+        [ValidateSet(
+            # Inventory-mode formats
+            'All', 'Excel', 'Json', 'Markdown', 'AsciiDoc', 'MD', 'Adoc', 'PowerBI',
+            # Assessment-mode formats (-Assessment)
+            'Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard')]
+        [string[]]$OutputFormat = @('All'),
+        # ── Assessment mode (AB#5540, per AB#5024) ───────────────────────────
+        # Supplying -Assessment switches this command from inventory to the
+        # CAF/WAF assessment platform. Same command, same sign-in, same module.
+        [Alias('Assess')]
+        [string[]]$Assessment,
+        [switch]$CollectOnly,
+        [string]$FromCollect,
+        # Suppress the guided wizard that a bare, interactive `Invoke-AzureScout`
+        # opens, and run the default full ARM inventory instead.
+        [Alias('NonInteractive')]
+        [switch]$NoWizard,
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
         [string]$RunName,
@@ -458,6 +473,82 @@ Function Invoke-AzureScout {
 
     $PlatOS = Test-AZSCPS
 
+    # ── Wizard mode (AB#5541) ────────────────────────────────────────────────
+    # A bare `Invoke-AzureScout` in an interactive session opens the guided
+    # wizard: it signs in, verifies the account actually holds the rights the
+    # run needs, then presents a checklist of everything Scout can do (both
+    # inventory and assessment) with sensible defaults pre-selected.
+    #
+    # Non-interactive callers are untouched. Automation, CI, and any host that
+    # can't prompt fall straight through to the pre-wizard behaviour (full ARM
+    # inventory), so a scheduled `Invoke-AzureScout` in a pipeline can never
+    # block on a prompt. -NoWizard forces that same path interactively.
+    $wizardRunBoth = $false
+    if ($PSBoundParameters.Count -eq 0 -and -not $NoWizard.IsPresent -and (Test-AZSCInteractiveHost)) {
+        $wizard = Start-AZSCWizard -AzureEnvironment $AzureEnvironment -PlatOS $PlatOS
+        if (-not $wizard) { return }   # operator cancelled
+
+        # The wizard hands back a parameter set; rebind and continue as though
+        # the operator had typed those switches. $PSBoundParameters is updated
+        # too because the branches below test it to distinguish "explicitly
+        # asked for" from "left at the default".
+        foreach ($key in $wizard.Answers.Keys) {
+            Set-Variable -Name $key -Value $wizard.Answers[$key] -Scope Local
+            $PSBoundParameters[$key] = $wizard.Answers[$key]
+        }
+        $wizardRunBoth = $wizard.RunBoth
+    }
+
+    # ── Assessment mode (AB#5540, per AB#5024) ───────────────────────────────
+    # One command, two modes. -Assessment routes this run to the CAF/WAF
+    # assessment platform instead of the inventory collector. Everything else —
+    # sign-in, tenant selection, report directory, category filtering — is the
+    # same surface the inventory mode uses.
+    if ($Assessment -or $CollectOnly.IsPresent -or $FromCollect) {
+        $inventoryOnlyFormats = @($OutputFormat) | Where-Object { $_ -in @('Markdown', 'MD', 'AsciiDoc', 'Adoc') }
+        if ($inventoryOnlyFormats) {
+            throw "-OutputFormat $($inventoryOnlyFormats -join ', ') is inventory-only and cannot be used with -Assessment. Assessment formats: Html, Pptx, PowerBI, Excel, Json, JsonEvidence, React, Pdf, Word, EChartsDashboard, All."
+        }
+
+        # -FromCollect re-assesses an existing collect.json offline, so it must
+        # not force a sign-in the run doesn't need.
+        if (-not $FromCollect -and $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
+            $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
+        }
+
+        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('Estate') } }
+        if ($PSBoundParameters.ContainsKey('Scope'))        { $assessArgs.Scope = $Scope }
+        if ($PSBoundParameters.ContainsKey('OutputFormat')) { $assessArgs.OutputFormat = @($OutputFormat) }
+        if ($ReportDir)                                     { $assessArgs.OutputPath = $ReportDir }
+        # 'All' is the inventory default sentinel, not a real assessment category —
+        # passing it through would filter the collect down to nothing.
+        if ($Category -and $Category -notcontains 'All')    { $assessArgs.Category = $Category }
+        if ($ManagementGroup)                               { $assessArgs.ManagementGroupId = $ManagementGroup[0] }
+        if ($PermissionAudit.IsPresent)                     { $assessArgs.PermissionAudit = $true }
+        if ($CollectOnly.IsPresent)                         { $assessArgs.CollectOnly = $true }
+        if ($FromCollect)                                   { $assessArgs.FromCollect = $FromCollect }
+
+        # "Both" from the wizard: emit the assessment result now and keep going
+        # into the inventory pass rather than returning early.
+        if ($wizardRunBoth) { Write-Output (Invoke-ScoutAssessment @assessArgs) }
+        else { return Invoke-ScoutAssessment @assessArgs }
+    }
+
+    # ── Inventory mode ───────────────────────────────────────────────────────
+    # -OutputFormat is [string[]] so assessment mode can request several
+    # renderers in one run. The inventory report writers below were written
+    # against a scalar, so resolve the requested formats to flags once here.
+    $requestedFormats = @($OutputFormat)
+    $assessmentOnlyFormats = $requestedFormats | Where-Object { $_ -in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') }
+    if ($assessmentOnlyFormats) {
+        throw "-OutputFormat $($assessmentOnlyFormats -join ', ') is an assessment format. Add -Assessment to run the CAF/WAF assessment, or choose an inventory format: All, Excel, Json, Markdown, AsciiDoc, PowerBI."
+    }
+    $WantExcel    = [bool](@('All', 'Excel')              | Where-Object { $_ -in $requestedFormats })
+    $WantJson     = [bool](@('All', 'Json')               | Where-Object { $_ -in $requestedFormats })
+    $WantMarkdown = [bool](@('All', 'Markdown', 'MD')     | Where-Object { $_ -in $requestedFormats })
+    $WantAsciiDoc = [bool](@('All', 'AsciiDoc', 'Adoc')   | Where-Object { $_ -in $requestedFormats })
+    $WantPowerBI  = [bool](@('All', 'PowerBI')            | Where-Object { $_ -in $requestedFormats })
+
     # ── Permission Audit mode (early exit — no inventory collected) ──────────
     if ($PermissionAudit.IsPresent)
         {
@@ -468,7 +559,10 @@ Function Invoke-AzureScout {
                     $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
                 }
 
-            $auditOutputFormat = switch ($OutputFormat) {
+            # The audit writer takes a single format. -OutputFormat is a list, so
+            # pick the first requested value rather than letting `switch` iterate
+            # the array and silently keep whichever element happened to be last.
+            $auditOutputFormat = switch (@($OutputFormat)[0]) {
                 'Json'      { 'Json' }
                 'Markdown'  { 'Markdown' }
                 'MD'        { 'Markdown' }
@@ -697,7 +791,7 @@ Function Invoke-AzureScout {
     $ReportingRunTime = [System.Diagnostics.Stopwatch]::StartNew()
 
     # ── Excel Report ─────────────────────────────────────────────────────
-    if ($OutputFormat -in ('All', 'Excel'))
+    if ($WantExcel)
     {
         Start-AZSCReporOrchestration -ReportCache $ReportCache -SecurityCenter $SecurityCenter -File $File -Quotas $Quotas -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -Automation $Automation -TableStyle $TableStyle
 
@@ -713,28 +807,28 @@ Function Invoke-AzureScout {
     }
 
     # ── JSON Report ──────────────────────────────────────────────────────
-    if ($OutputFormat -in ('All', 'Json'))
+    if ($WantJson)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting JSON report export.')
         $JsonFile = Export-AZSCJsonReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope -Quotas $Quotas -SecurityCenter:$SecurityCenter -SkipAdvisory:$SkipAdvisory -SkipPolicy:$SkipPolicy -IncludeCosts:$IncludeCosts
     }
 
     # ── Markdown Report ──────────────────────────────────────────────────
-    if ($OutputFormat -in ('All', 'Markdown', 'MD'))
+    if ($WantMarkdown)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Markdown report export.')
         $MarkdownFile = Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
     }
 
     # ── AsciiDoc Report ──────────────────────────────────────────────────
-    if ($OutputFormat -in ('All', 'AsciiDoc', 'Adoc'))
+    if ($WantAsciiDoc)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting AsciiDoc report export.')
         $AsciiDocFile = Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
     }
 
     # ── Power BI CSV Report ───────────────────────────────────────────────
-    if ($OutputFormat -in ('All', 'PowerBI'))
+    if ($WantPowerBI)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Power BI CSV export.')
         $PowerBIDir = Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
@@ -783,13 +877,13 @@ Function Invoke-AzureScout {
             # -Force on every upload (AB#343): a scheduled runbook uploads to the same blob
             # names on every run, and without it the second run fails with
             # "blob already exists" and the report never lands.
-            if ($OutputFormat -in ('All', 'Excel'))
+            if ($WantExcel)
             {
                 Write-Output "Sending Excel file to Storage Account:"
                 Write-Output $File
                 Set-AzStorageBlobContent -File $File -Container $StorageContainer -Context $StorageContext -Force | Out-Null
             }
-            if ($OutputFormat -in ('All', 'Json') -and $JsonFile)
+            if ($WantJson -and $JsonFile)
             {
                 Write-Output "Sending JSON file to Storage Account:"
                 Write-Output $JsonFile

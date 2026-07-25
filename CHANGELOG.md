@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Guided setup wizard** (AB#5541) — running `Invoke-AzureScout` with no parameters in an
+  interactive session now opens a wizard instead of immediately starting a full scan. It
+  confirms or establishes the Azure sign-in, lets you pick the tenant when the account can
+  see more than one, verifies the account holds the rights the run needs (and lets you bail
+  out before a long scan fails halfway), then presents checklists for the run type, the
+  resource categories or assessments, the report formats, and the report directory.
+  Everything is pre-selected, so you uncheck what you don't want. The final step prints the
+  equivalent one-line command so the wizard doubles as a way to learn the parameters.
+
+  The wizard is gated on `Test-AZSCInteractiveHost` and **never** fires in a non-interactive
+  host — CI runners, scheduled tasks, containers, and any session with redirected stdin fall
+  straight through to the previous default (full ARM inventory), so an existing bare
+  `Invoke-AzureScout` in a pipeline cannot block on a prompt. `-NoWizard` (alias
+  `-NonInteractive`) forces that same path at a terminal. `Start-AZSCWizard` is exported so
+  it can be re-run on demand.
+
+### Changed
+
+- **One entry point** (AB#5540) — inventory and assessment are now modes of a single
+  command rather than two cmdlets. `Invoke-AzureScout -Assessment LandingZone` runs the
+  CAF/WAF assessment; without `-Assessment` the command behaves exactly as before.
+  `-CollectOnly` and `-FromCollect` moved onto `Invoke-AzureScout` as well. Assessment mode
+  now also honours the inventory sign-in parameters (`-TenantID`, `-DeviceLogin`, `-AppId`,
+  `-Secret`, certificate auth), which the standalone cmdlet never did — it silently required
+  a pre-existing `Connect-AzAccount` context.
+
+  This is the layout ADO Feature AB#5024 originally specified; the v2 scaffold shipped a
+  second entry point instead, and the docs were written around that split.
+
+- **`-OutputFormat` widened** from `[string]` to `[string[]]`, so a single run can request
+  several renderers (`-OutputFormat Html,Pptx`). The ValidateSet grew from 8 to 15 values to
+  cover both modes. Requesting a format from the wrong mode now throws an error naming the
+  switch you actually wanted, instead of silently producing no output.
+
+### Deprecated
+
+- **`Invoke-ScoutAssessment`** — superseded by `Invoke-AzureScout -Assessment`. It still
+  works and is still exported, and will be removed in **v3.0.0**. Every parameter maps
+  across unchanged except `-OutputPath`, which is `-ReportDir` on `Invoke-AzureScout`.
+
+### Fixed
+
+- **Documentation stated a PowerShell floor the module does not have** — `docs/overview.md`,
+  `docs/prerequisites.md`, and `docs/assessment.md` each claimed the inventory cmdlet ran on
+  "PowerShell 5.1+ (Desktop or Core)" and that only the assessment platform needed 7.0. The
+  manifest has always declared `PowerShellVersion = '7.0'` and `CompatiblePSEditions =
+  @('Core')`, and `Invoke-AzureScout` throws on Desktop, so 5.1 could never import the
+  module in either mode. The differing PowerShell requirement was also the main justification
+  the overview page gave for presenting inventory and assessment as two separate products.
+
+### Known limitations
+
+- Inventory mode and assessment mode still collect their Azure data independently — the
+  inventory runs its per-resource-type modules while the assessment runs its own ~26-query
+  Resource Graph pack over the same resource types. Running both queries Azure twice.
+  Collapsing them onto one collection pass is outstanding work.
+
 ## [2.3.0] - 2026-07-25
 
 Closes the collection-hardening epic (AB#5411) and the external-platform integrations

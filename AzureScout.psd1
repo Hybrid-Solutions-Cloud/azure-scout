@@ -94,6 +94,9 @@ FunctionsToExport = @(
             'Invoke-AzureScout',
             'Test-AZSCPermissions',
 
+            #Guided setup wizard (AB#5541) -- what a bare Invoke-AzureScout opens
+            'Start-AZSCWizard',
+
             #Assessment platform entry points (Epics AB#5023 / AB#5056, AB#5024)
             'Invoke-ScoutAssessment',
             'Test-ScoutPermission',

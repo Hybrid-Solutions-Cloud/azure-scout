@@ -90,12 +90,16 @@ Register-AzResourceProvider -ProviderNamespace Microsoft.Security
 
 Run `Test-AZSCPermissions` to check provider registration status before a full run.
 
-## Running the CAF/WAF assessment platform?
+## Running an assessment?
 
-Everything above covers the v1 inventory cmdlet (`Invoke-AzureScout`), which
-still supports PowerShell 5.1. The v2 **assessment platform**
-(`Invoke-ScoutAssessment`) has its own, stricter prerequisites — **PowerShell
-7 is a hard requirement**, plus modules (`powershell-yaml`, `Az.Advisor`) that
-this page's auto-install list does **not** cover, and a `.NET SDK`
-requirement for the PowerPoint report tier (no Python). See
-[Assessment Prerequisites](assessment-prerequisites.md) for the full list.
+Everything above covers `Invoke-AzureScout` in its default inventory mode.
+**PowerShell 7 on PowerShell Core is a hard requirement for the whole module**
+— `AzureScout.psd1` declares `PowerShellVersion = '7.0'` and
+`CompatiblePSEditions = @('Core')`, so Windows PowerShell 5.1 cannot import it
+in either mode.
+
+Assessment mode (`Invoke-AzureScout -Assessment ...`) needs extra modules on
+top of the list above — `powershell-yaml` and `Az.Advisor`, which this page's
+auto-install does **not** cover — plus a `.NET SDK` for the PowerPoint report
+tier (no Python). See [Assessment Prerequisites](assessment-prerequisites.md)
+for the full list.

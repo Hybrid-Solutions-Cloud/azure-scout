@@ -21,7 +21,7 @@ export default defineConfig({
       {
         text: 'Getting Started',
         items: [
-          { text: 'Overview: Inventory vs Assessment', link: '/overview' },
+          { text: 'Overview', link: '/overview' },
           { text: 'Prerequisites & Required Modules', link: '/prerequisites' },
           { text: 'Authentication', link: '/authentication' },
           { text: 'Usage Guide', link: '/usage' },

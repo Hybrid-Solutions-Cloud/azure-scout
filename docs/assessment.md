@@ -12,11 +12,19 @@ read-only Graph app permissions for a subset of scans — see
 [Auth & permissions per scan type](assessment-permissions.md)).
 
 ::: tip PowerShell 7 required
-The assessment platform requires **PowerShell 7** (every script starts with
-`#Requires -Version 7.0`). The v1 inventory features (`Invoke-AzureScout`)
-still run on Windows PowerShell 5.1. Full details, including a module
-bootstrap gap you need to work around manually:
-[Assessment Prerequisites](assessment-prerequisites.md).
+**PowerShell 7 on PowerShell Core** — for the whole module, not just this mode.
+`AzureScout.psd1` declares `PowerShellVersion = '7.0'` and
+`CompatiblePSEditions = @('Core')`, so `Import-Module` rejects Windows
+PowerShell 5.1 outright. Assessment mode additionally needs modules the
+inventory auto-install list does not cover, plus a `.NET SDK` for the
+PowerPoint tier — see [Assessment Prerequisites](assessment-prerequisites.md).
+:::
+
+::: info One command
+Assessment is a mode of `Invoke-AzureScout`, not a separate tool:
+`Invoke-AzureScout -Assessment LandingZone`. The older
+`Invoke-ScoutAssessment` name still works but is deprecated and will be
+removed in v3.0.0 — see [Overview](overview.md).
 :::
 
 ## Architecture — three layers, JSON on disk
