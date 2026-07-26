@@ -26,7 +26,7 @@ Describe 'Invoke-Collect -Categories query filtering' {
     }
 
     It 'a specific category (Security) runs the queries it and its cross-domain rules need, and skips unrelated-domain queries' {
-        Invoke-Collect -Categories @('Security') | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') | Out-Null
 
         # In-scope for Security: its own domain (keyVaults) plus the networking/
         # databases queries caf.security / waf.security filter by (nsgPublicInbound,
@@ -49,31 +49,31 @@ Describe 'Invoke-Collect -Categories query filtering' {
     It 'the Security run collects meaningfully fewer resource types than the full/default run' {
         $script:callCount = 0
         Mock Search-AzGraph { $script:callCount++; return @() }
-        Invoke-Collect -Categories @('Security') | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') | Out-Null
         $securityCalls = $script:callCount
 
         $script:callCount = 0
         Mock Search-AzGraph { $script:callCount++; return @() }
-        Invoke-Collect | Out-Null
+        Invoke-Collect -Source TypedQueries | Out-Null
         $fullCalls = $script:callCount
 
         $securityCalls | Should -BeLessThan $fullCalls
     }
 
     It '''*'' (the default) runs the full query set, including domain-only queries Security skips' {
-        Invoke-Collect | Out-Null
+        Invoke-Collect -Source TypedQueries | Out-Null
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.web/sites' } -Times 1
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.containerservice/managedclusters' } -Times 1
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.keyvault/vaults' } -Times 1
     }
 
     It 'an empty -Categories list runs the full query set (same as ''*'')' {
-        Invoke-Collect -Categories @() | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @() | Out-Null
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.web/sites' } -Times 1
     }
 
     It 'always runs the base subscriptions query regardless of category' {
-        Invoke-Collect -Categories @('Security') | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') | Out-Null
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.resources/subscriptions' } -Times 1
     }
 }
@@ -95,7 +95,7 @@ Describe 'Invoke-Collect tag aggregation (AB#367)' {
     }
 
     It 'produces one entry per distinct tag key with deduplicated, sorted values across all subscriptions' {
-        $result = Invoke-Collect -Categories @('*')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('*')
 
         # Exactly one entry per distinct KEY (Environment, CostCenter) -- not one
         # per subscription, and not a raw concatenation of per-subscription bags.
@@ -115,7 +115,7 @@ Describe 'Invoke-Collect tag aggregation (AB#367)' {
     }
 
     It 'does not error on subscriptions with empty ({}) or null tag bags' {
-        { Invoke-Collect -Categories @('*') } | Should -Not -Throw
+        { Invoke-Collect -Source TypedQueries -Categories @('*') } | Should -Not -Throw
     }
 }
 
@@ -125,7 +125,7 @@ Describe 'Invoke-Collect -ManagementGroupId scoping' {
     }
 
     It 'passes -ManagementGroup to every Search-AzGraph call when an id is supplied' {
-        Invoke-Collect -Categories @('Security') -ManagementGroupId 'contoso-root-mg' | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') -ManagementGroupId 'contoso-root-mg' | Out-Null
         # Every call this run made should carry the management group -- none should
         # be missing it.
         Should -Invoke Search-AzGraph -ParameterFilter { $null -eq $ManagementGroup } -Times 0 -Exactly
@@ -133,7 +133,7 @@ Describe 'Invoke-Collect -ManagementGroupId scoping' {
     }
 
     It 'omits -ManagementGroup entirely when no id is supplied (preserves tenant-wide scope)' {
-        Invoke-Collect -Categories @('Security') | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') | Out-Null
         Should -Invoke Search-AzGraph -ParameterFilter { $null -ne $ManagementGroup } -Times 0 -Exactly
     }
 }

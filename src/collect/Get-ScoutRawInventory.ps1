@@ -25,14 +25,12 @@ $ErrorActionPreference = 'Stop'
     pass (AB#5648) can point the legacy inventory engine at this function instead of its own
     query-building code, once the pieces this task ships are proven live.
 
-    Deliberately NOT done here (out of this function's scope, tracked separately):
-      - Retirements (`Retirement.kql`) -- a distinct, already-isolated query with no
-        consumer in `ConvertFrom-ScoutInventory` or the assessment scalars.
-      - Rewiring `Start-AZTIGraphExtraction` itself to call this function (AB#5648 -- "retire
-        the legacy extraction modules only once everything above is proven"). Two other
-        engineers are actively changing the collector-discovery/execution path this same
-        session (`Get-ScoutCollector`/`Invoke-ScoutCollector`, AB#5649/5667); swapping the
-        data source under them in the same pass would be needless coupling risk.
+    AB#5648 update: both deferrals below are now done. `Start-AZTIGraphExtraction` is a
+    parameter-translation shim over THIS function -- it builds no queries and issues no
+    Resource Graph call of its own -- and `Invoke-AZTIInventoryLoop.ps1` (the legacy
+    paging/batching engine) is deleted. `Retirements` moved here too (see
+    `-IncludeRetirements`), so every ARG round-trip the inventory path makes is issued from
+    this one function.
 
 .PARAMETER ManagementGroupId
     Scopes every query to a management group via `Search-AzGraph -ManagementGroup`, exactly
@@ -73,14 +71,45 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER IncludeTags
     Project the `tags` column on every row (omitted by default, matching the legacy default).
 
+.PARAMETER IncludeRetirements
+    Also run the service-retirement KQL (`src/report/renderers/inventory/style/Retirement.kql`)
+    and return its rows as `Retirements`. AB#5648: this used to be issued directly by
+    `Start-AZTIGraphExtraction`; it lives here now so every inventory ARG round-trip goes
+    through one function. It is NOT derivable from the raw row set -- it queries
+    `resources`/`servicehealthresources` with its own joins -- so it is one of the two
+    documented exceptions to "one pass" (the other is `Invoke-Collect`'s `sqlDefenderPricing`).
+
+.PARAMETER RetirementQueryPath
+    Overrides where the retirement KQL is read from. Defaults to
+    `src/report/renderers/inventory/style/Retirement.kql` resolved from this file's location.
+
+.PARAMETER ResourceGroups
+    Restrict every resource-bearing table to these resource-group names, rendering the same
+    `| where resourceGroup in~ (...)` clause `Start-AZTIGraphExtraction` built. Mutually
+    exclusive with -TagKey/-TagValue and -ManagementGroupName, matching the legacy if/elseif
+    precedence exactly (resource group wins, then tags, then management group).
+
+.PARAMETER TagKey
+.PARAMETER TagValue
+    Restrict to resources carrying a tag key and/or value, rendering the same
+    `mvexpand tags | extend tagKey ... | where tagKey =~ ...` clause the legacy extractor built.
+
+.PARAMETER ManagementGroupName
+    Renders the legacy `join kind=inner (resourcecontainers | ... managementGroupAncestorsChain
+    ...)` filter (and its narrower `mv-expand`-only variant for the `resourcecontainers` table)
+    so a management-group-scoped inventory run produces byte-identical query text to the one
+    the legacy extractor produced. This is DIFFERENT from `-ManagementGroupId`, which scopes the
+    `Search-AzGraph` CALL rather than filtering rows -- the inventory path has always used the
+    row filter, the assessment path has always used the call scope, and both remain available.
+
 .PARAMETER AzureEnvironment
     Passed through only to decide whether `SupportResources` is queryable at all (that table
     is unavailable in Azure US Government, exactly as in `Start-AZTIGraphExtraction`).
 
 .OUTPUTS
-    [pscustomobject] with `Resources`, `ResourceContainers`, `Advisories`, `Security` --
-    the same shape `Start-AZTIGraphExtraction` returns (minus `Retirements`, out of scope
-    here), and the same shape `Invoke-Collect -FromInventory` already accepts.
+    [pscustomobject] with `Resources`, `ResourceContainers`, `Advisories`, `Security` and
+    `Retirements` -- the same shape `Start-AZTIGraphExtraction` returns, and the same shape
+    `Invoke-Collect -FromInventory` already accepts.
 
 .NOTES
     Tracks ADO AB#5639 (Task AB#5642, Epic AB#5638).
@@ -171,6 +200,12 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeAdvisories,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
+        [switch]   $IncludeRetirements,
+        [string]   $RetirementQueryPath,
+        [string[]] $ResourceGroups,
+        [string]   $TagKey,
+        [string]   $TagValue,
+        [string]   $ManagementGroupName,
         [string]   $AzureEnvironment = 'AzureCloud'
     )
 
@@ -183,6 +218,34 @@ function Get-ScoutRawInventory {
     # are UI/authoring artifacts (Logic Apps designer workflow defs, portal dashboards,
     # template-spec versions), not inventory-worthy resources.
     $excludedTypesClause = "| where type !in ('microsoft.logic/workflows','microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
+
+    # ---- legacy row-filter clauses (AB#5648) ----
+    # Rendered here, byte for byte, from Start-AZTIGraphExtraction's $RGQueryExtension /
+    # $TagQueryExtension / $MGQueryExtension / $MGContainerExtension. The precedence is the
+    # legacy if/elseif chain, NOT independent flags: resource group wins outright, then tags,
+    # then management group. Reproducing the chain rather than allowing arbitrary combinations
+    # keeps the query text identical to what shipped -- a combination the legacy never emitted
+    # would be untested KQL.
+    # `@($ResourceGroups).Count` alone is NOT a safe emptiness test: an unbound [string[]]
+    # parameter is $null and @($null).Count is 1, not 0 (the defect class that emptied the
+    # v2.6.0 Excel loop and broke v2.7.0 subscription batching). Filter the nulls out first.
+    $resolvedResourceGroups = @($ResourceGroups | Where-Object { $_ })
+    $rgClause = ''
+    $tagClause = ''
+    $mgJoinClause = ''
+    $mgContainerClause = ''
+    if ($resolvedResourceGroups.Count -gt 0) {
+        $rgClause = "| where resourceGroup in~ ('$([String]::Join("','", $resolvedResourceGroups))')"
+    }
+    elseif (-not [string]::IsNullOrEmpty($TagKey) -or -not [string]::IsNullOrEmpty($TagValue)) {
+        $tagClause = '| where isnotempty(tags) | mvexpand tags | extend tagKey = tostring(bag_keys(tags)[0]) | extend tagValue = tostring(tags[tagKey]) '
+        if (-not [string]::IsNullOrEmpty($TagKey))   { $tagClause += "| where tagKey =~ '$TagKey'" }
+        if (-not [string]::IsNullOrEmpty($TagValue)) { $tagClause += " and tagValue =~ '$TagValue'" }
+    }
+    elseif (-not [string]::IsNullOrEmpty($ManagementGroupName)) {
+        $mgJoinClause = "| join kind=inner (resourcecontainers | where type == 'microsoft.resources/subscriptions' | mv-expand managementGroupParent = properties.managementGroupAncestorsChain | where managementGroupParent.name =~ '$ManagementGroupName' | project subscriptionId, managanagementGroup = managementGroupParent.name) on subscriptionId"
+        $mgContainerClause = "| mv-expand managementGroupParent = properties.managementGroupAncestorsChain | where managementGroupParent.name =~ '$ManagementGroupName'"
+    }
 
     function Test-ScoutArgThrottled {
         param([string] $Message)
@@ -288,7 +351,11 @@ function Get-ScoutRawInventory {
     # no per-batch isolation at all. Filtering out the null element restores the documented
     # behavior for both paths.
     $resolvedSubscriptionIds = @($SubscriptionIds | Where-Object { $_ })
-    $containerQuery = "resourcecontainers $excludedTypesClause | project $columns | order by id asc"
+    # No $excludedTypesClause here: the legacy extractor applied its type exclusion to the
+    # `resources` table ONLY, and none of the four excluded types is a container type anyway.
+    # Applying it to resourcecontainers was a (harmless) divergence introduced in v2.7.0; it is
+    # removed so the query text matches the shipped one exactly (AB#5648).
+    $containerQuery = "resourcecontainers $rgClause $tagClause $mgContainerClause | project $columns | order by id asc"
     $resourceContainers = Invoke-ScoutRawTable -Query $containerQuery -LoopName 'Subscriptions and Resource Groups' -Subscriptions $resolvedSubscriptionIds
     if ($resolvedSubscriptionIds.Count -eq 0) {
         $resolvedSubscriptionIds = @(
@@ -300,32 +367,53 @@ function Get-ScoutRawInventory {
     }
 
     $resources = [System.Collections.Generic.List[object]]::new()
-    foreach ($row in (Invoke-ScoutRawTable -Query "resources $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
-    foreach ($row in (Invoke-ScoutRawTable -Query "networkresources | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    foreach ($row in (Invoke-ScoutRawTable -Query "networkresources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
 
     if ($IncludeSupportResources -and $AzureEnvironment -ne 'AzureUSGovernment') {
-        foreach ($row in (Invoke-ScoutRawTable -Query "SupportResources | project $columns | order by id asc" -LoopName 'SupportTickets' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query "SupportResources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'SupportTickets' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
     if ($IncludeBackupResources) {
-        $backupQuery = "recoveryservicesresources | where type =~ 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' or type =~ 'microsoft.recoveryservices/vaults/backuppolicies' | project $columns | order by id asc"
+        # The management-group join goes AFTER the type filter here, exactly as the legacy
+        # extractor rendered it -- the tag clause goes before. Not symmetric, but faithful.
+        $backupQuery = "recoveryservicesresources $rgClause $tagClause | where type =~ 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' or type =~ 'microsoft.recoveryservices/vaults/backuppolicies' $mgJoinClause | project $columns | order by id asc"
         foreach ($row in (Invoke-ScoutRawTable -Query $backupQuery -LoopName 'Backup Items' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
     if ($IncludeDesktopVirtualization) {
-        foreach ($row in (Invoke-ScoutRawTable -Query "desktopvirtualizationresources | project $columns | order by id asc" -LoopName 'Virtual Desktop' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        # No tag clause: the legacy extractor never applied one to this table.
+        foreach ($row in (Invoke-ScoutRawTable -Query "desktopvirtualizationresources $rgClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Virtual Desktop' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
     $advisories = @()
     if ($IncludeAdvisories) {
-        $advisorQuery = "advisorresources | where properties.impact in~ ('Medium','High') | order by id asc"
+        $advisorQuery = "advisorresources $rgClause $mgJoinClause | where properties.impact in~ ('Medium','High') | order by id asc"
         $advisories = Invoke-ScoutRawTable -Query $advisorQuery -LoopName 'Advisories' -Subscriptions $resolvedSubscriptionIds
     }
 
     $security = @()
     if ($IncludeSecurityCenter) {
-        $securityQuery = "securityresources | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' | order by id asc"
+        $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | order by id asc"
         $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds
+    }
+
+    # ---- retirements (AB#5648) ----
+    # A file-backed KQL query with its own joins; not derivable from the raw row set, so it is
+    # a documented, deliberate extra round-trip rather than a gap. Reading the file is guarded:
+    # a missing/unreadable .kql must degrade this one dataset, not sink the whole inventory run.
+    $retirements = @()
+    if ($IncludeRetirements) {
+        $resolvedRetirementPath = if ($RetirementQueryPath) { $RetirementQueryPath }
+        else { Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'src' 'report' 'renderers' 'inventory' 'style' 'Retirement.kql' }
+        try {
+            $retirementQuery = (Get-Content -Path $resolvedRetirementPath -ErrorAction Stop | Out-String)
+            $retirements = Invoke-ScoutRawTable -Query $retirementQuery -LoopName 'Retirements' -Subscriptions $resolvedSubscriptionIds
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: the retirement query at '$resolvedRetirementPath' could not be read -- Retirements will be empty and the rest of the inventory is unaffected: $($_.Exception.Message)"
+            $retirements = @()
+        }
     }
 
     if (@($resources).Count -eq 0 -and @($resourceContainers).Count -eq 0) {
@@ -338,5 +426,6 @@ function Get-ScoutRawInventory {
         ResourceContainers = @($resourceContainers)
         Advisories         = @($advisories)
         Security           = @($security)
+        Retirements        = @($retirements)
     }
 }

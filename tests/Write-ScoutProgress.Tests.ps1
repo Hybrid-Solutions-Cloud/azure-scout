@@ -69,6 +69,9 @@ Describe 'Write-ScoutProgress -- guarded optional integration with Invoke-Collec
 
     It 'Invoke-Collect calls through to Write-ScoutProgress without error when it is loaded in the session' {
         Mock Search-AzGraph { return @() }
-        { Invoke-Collect -Categories @('Security') -WarningAction SilentlyContinue } | Should -Not -Throw
+        # -Source TypedQueries: the per-query progress calls this test exercises live in the
+        # typed-query loop. The default (single-pass) source shapes those keys locally and so
+        # only reports progress for the one query that still goes to ARG (AB#5648).
+        { Invoke-Collect -Source TypedQueries -Categories @('Security') -WarningAction SilentlyContinue } | Should -Not -Throw
     }
 }

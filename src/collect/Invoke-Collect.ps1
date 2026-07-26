@@ -161,21 +161,42 @@ $ErrorActionPreference = 'Stop'
         is guarded by `Get-Command` so Collect has zero hard dependency on that
         helper — a session that never loaded it behaves exactly as before.
 
-    AB#5639 follow-up (single-source-of-truth inversion, Epic AB#5638): this file's own
-    typed-query pack above is unchanged (and stays the reference implementation the
-    `-Categories` filtering tests pin) — but `src/collect` now also owns
-    `Get-ScoutRawInventory.ps1`, a from-scratch Resource Graph raw pass (SkipToken paging,
-    1000-subscription batching, throttling backoff) that reproduces
-    `Start-AZTIGraphExtraction`'s table set independently of the legacy inventory engine.
-    Its output is `-FromInventory`-compatible with THIS file today. `Get-ScoutApiResources.ps1`
-    / `Get-ScoutVmQuotas.ps1` / `Get-ScoutVmSkuDetails.ps1` / `Get-ScoutCostInventory.ps1`
-    likewise port the legacy engine's non-ARG data sources (ARM REST, VM quota/SKU lookups,
-    Cost Management) into `src/collect`. `scripts/Get-CollectorResourceTypeMap.ps1` derives,
-    from the real AST of the 176 `Modules/Public/InventoryModules` collectors, exactly which
-    ARM types (and which non-ARG synthetic types, e.g. `AZSC/VM/Quotas`) they depend on — the
-    authoritative cross-check for how much of that surface `src/collect` now covers.
-    Rewiring `Start-AZTIGraphExtraction` itself to consume these functions instead of running
-    its own queries is AB#5648, deliberately deferred until they are proven live.
+    AB#5639 (Epic AB#5638) added `Get-ScoutRawInventory.ps1` — `src/collect`'s own Resource
+    Graph raw pass (SkipToken paging, 1000-subscription batching, throttling backoff) — plus
+    `Get-ScoutApiResources.ps1` / `Get-ScoutVmQuotas.ps1` / `Get-ScoutVmSkuDetails.ps1` /
+    `Get-ScoutCostInventory.ps1` for the non-ARG sources, but nothing called any of them:
+    v2.7.0 shipped them as capability only.
+
+    AB#5648 (this pass) inverts the dependency and makes them the real source:
+
+      - `-Source Inventory` is now the DEFAULT. With no `-FromInventory` handed in,
+        Invoke-Collect calls `Get-ScoutRawInventory` itself — three Resource Graph
+        round-trips (`resourcecontainers`, `resources`, `networkresources`) — and shapes all
+        34 derivable queries from those rows via `ConvertFrom-ScoutInventory`. Only
+        `sqlDefenderPricing` still issues a typed query, because it reads the
+        `SecurityResources` table (`microsoft.security/pricings`) which no inventory pass
+        collects. A default assessment-only collect therefore costs 4 ARG round-trips
+        instead of 35.
+      - `-Source TypedQueries` runs the KQL pack below exactly as v2.7.0 did. It is kept as
+        the reference implementation (the per-field source of truth
+        `ConvertFrom-ScoutInventory` is verified against) and as an escape hatch, not as a
+        path the product takes by default.
+      - `-FromInventory` is unchanged and still wins over both: a combined inventory +
+        assessment run reuses the rows the inventory pass already fetched.
+
+      TRADE-OFF, stated plainly: the round-trip COUNT drops from 35 to 4, but the raw pass
+      transfers the full `properties` bag for every resource in scope, where the typed
+      queries transferred narrow projections. On a large estate the number of 1000-row PAGES
+      can therefore go up even though the number of queries goes down, and `-Categories` no
+      longer reduces what is fetched (it still filters what is shaped and returned). This is
+      the same shape of trade the combined-run `-FromInventory` path has made since v2.5.0.
+      `-Source TypedQueries` remains available for a narrow, single-category collect where
+      projection size matters more than call count.
+
+    `scripts/Get-CollectorResourceTypeMap.ps1` derives, from the real AST of the 176
+    `Modules/Public/InventoryModules` collectors, which ARM types (and which non-ARG synthetic
+    types, e.g. `AZSC/VM/Quotas`) they depend on — the cross-check for how much of that
+    surface `src/collect` covers.
 #>
 function Invoke-Collect {
     [CmdletBinding()]
@@ -188,9 +209,17 @@ function Invoke-Collect {
         # AB#5543 — the result of Start-AZSCGraphExtraction from an inventory pass that already
         # ran in this invocation. When supplied, every query below that can be satisfied from
         # those already-fetched rows is shaped locally instead of re-querying Azure, so a
-        # combined inventory + assessment run collects once rather than twice. Omitted (the
-        # assessment-only path) behaves exactly as before: every query goes to Resource Graph.
-        [object]   $FromInventory
+        # combined inventory + assessment run collects once rather than twice. Omitted, the
+        # source is decided by -Source below.
+        [object]   $FromInventory,
+
+        # AB#5648 — where the 34 derivable queries get their rows from when no -FromInventory
+        # was handed in.
+        #   Inventory     (default) run ONE raw pass here (Get-ScoutRawInventory) and shape it.
+        #   TypedQueries            run the KQL pack below, one query per result set (v2.7.0
+        #                           behaviour, kept as the reference implementation).
+        [ValidateSet('Inventory', 'TypedQueries')]
+        [string]   $Source = 'Inventory'
     )
     Import-Module Az.ResourceGraph -ErrorAction Stop
 
@@ -654,21 +683,55 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
     # `sqlDefenderPricing` is deliberately NOT satisfiable this way: it reads the
     # SecurityResources table (Microsoft.Security/pricings), which inventory only touches under
     # -SecurityCenter and then filters to microsoft.security/assessments. It still goes to ARG.
+    #
+    # AB#5648 inverted the default: when NO rows were handed in and -Source is 'Inventory'
+    # (the default), this function now makes that single raw pass ITSELF rather than falling
+    # through to 35 typed queries. `-Source TypedQueries` opts back into the typed pack.
+    $rawInventory = $FromInventory
+    if (-not $rawInventory -and $Source -eq 'Inventory') {
+        if (-not (Get-Command Get-ScoutRawInventory -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Get-ScoutRawInventory.ps1')
+        }
+        try {
+            # Only the three tables ConvertFrom-ScoutInventory actually shapes from. The
+            # -Include* tables (support tickets, backup, AVD, advisor, security assessments)
+            # feed inventory REPORT collectors, not assessment scalars, so collecting them here
+            # would be round-trips for rows nothing downstream of this function reads.
+            #
+            # -IncludeTags is REQUIRED here, not optional. The canonical contract's top-level
+            # `tags` key is aggregated from `subscriptions[*].tags` (AB#367), and
+            # ConvertFrom-ScoutInventory reads that straight off the raw container row. The raw
+            # pass omits the `tags` COLUMN unless asked, so without this switch the inverted
+            # path would return `tags = @()` for every estate while the typed path returned the
+            # real aggregation -- a silently empty report section, not an error. Found by the
+            # path-equivalence test below, not by a live run.
+            $rawArgs = @{ IncludeTags = $true }
+            if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
+            $rawInventory = Get-ScoutRawInventory @rawArgs
+        }
+        catch {
+            # A failed raw pass must not cost the caller their assessment: fall through to the
+            # typed pack, which is the reference implementation.
+            Write-Warning "Invoke-Collect: the single-pass raw collection failed, falling back to the typed Resource Graph queries (AB#5648): $($_.Exception.Message)"
+            $rawInventory = $null
+        }
+    }
+
     $inventoryShaped = @{}
-    if ($FromInventory) {
+    if ($rawInventory) {
         if (-not (Get-Command ConvertFrom-ScoutInventory -ErrorAction SilentlyContinue)) {
             . (Join-Path $PSScriptRoot 'ConvertFrom-ScoutInventory.ps1')
         }
         try {
-            $invResources = if ($FromInventory.PSObject.Properties['Resources']) { $FromInventory.Resources } else { @() }
-            $invContainers = if ($FromInventory.PSObject.Properties['ResourceContainers']) { $FromInventory.ResourceContainers } else { @() }
+            $invResources = if ($rawInventory.PSObject.Properties['Resources']) { $rawInventory.Resources } else { @() }
+            $invContainers = if ($rawInventory.PSObject.Properties['ResourceContainers']) { $rawInventory.ResourceContainers } else { @() }
             $inventoryShaped = ConvertFrom-ScoutInventory -Resources $invResources -ResourceContainers $invContainers
-            Write-Verbose "Invoke-Collect: reusing the inventory collection pass for $($inventoryShaped.Keys.Count) queries (AB#5543); only 'sqlDefenderPricing' still goes to Resource Graph."
+            Write-Verbose "Invoke-Collect: shaping $($inventoryShaped.Keys.Count) queries from one collection pass (AB#5543/AB#5648); only 'sqlDefenderPricing' still goes to Resource Graph."
         }
         catch {
             # Never let a shaping bug cost the caller their assessment — fall back to the ARG
             # path, which is the reference implementation.
-            Write-Warning "Invoke-Collect: could not reuse the inventory collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
+            Write-Warning "Invoke-Collect: could not shape the collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
             $inventoryShaped = @{}
         }
     }

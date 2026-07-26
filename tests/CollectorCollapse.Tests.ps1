@@ -248,7 +248,7 @@ Describe 'Invoke-Collect -FromInventory — collects once, not twice' {
         $collect.subscriptions[0].id | Should -Be 'sub1'
     }
 
-    It 'still queries Resource Graph for every query when no inventory is supplied' {
+    It 'still queries Resource Graph for every query under -Source TypedQueries' {
         $script:argQueries = @()
         function Search-AzGraph {
             param(
@@ -260,8 +260,11 @@ Describe 'Invoke-Collect -FromInventory — collects once, not twice' {
             return @()
         }
 
-        Invoke-Collect | Out-Null
-        # The assessment-only path is unchanged: every typed query still runs.
+        # This was the DEFAULT behaviour up to and including v2.7.0, and is the "before"
+        # number the AB#5648 inversion is measured against. It is still reachable on demand
+        # (the typed pack is the reference implementation ConvertFrom-ScoutInventory is
+        # verified field-for-field against), so it stays pinned here.
+        Invoke-Collect -Source TypedQueries | Out-Null
         $script:argQueries.Count | Should -BeGreaterThan 30
     }
 }
