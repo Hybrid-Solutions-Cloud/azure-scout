@@ -393,8 +393,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/actiongroups/actiongroups-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -826,8 +826,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/activitylogalerts/activitylogalertrules-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -1014,11 +1014,11 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1a",
           "LOCATION": "res-value",
@@ -1037,12 +1037,12 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1b",
           "LOCATION": "res-value",
@@ -1061,9 +1061,9 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1c",
           "LOCATION": "res-value",
@@ -1082,11 +1082,11 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1d",
           "LOCATION": "res-value",
@@ -1105,11 +1105,11 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1e",
           "LOCATION": "res-value",
@@ -1128,11 +1128,11 @@
             "publicNetworkAccessForIngestion": "res-value",
             "publicNetworkAccessForQuery": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsights-t1f",
           "LOCATION": "res-value",
@@ -1156,10 +1156,10 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1a",
@@ -1181,11 +1181,11 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1b-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1b",
@@ -1207,8 +1207,8 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1c-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1c",
@@ -1230,10 +1230,10 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1d",
@@ -1255,10 +1255,10 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1e",
@@ -1280,10 +1280,10 @@
             "SyntheticMonitorId": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightsavailabilitytests-t1f",
@@ -1315,10 +1315,10 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1a",
@@ -1346,11 +1346,11 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1b-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1b",
@@ -1378,8 +1378,8 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1c-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1c",
@@ -1407,10 +1407,10 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1d",
@@ -1438,10 +1438,10 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1e",
@@ -1469,10 +1469,10 @@
             "Timeout": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "appinsightswebtests-t1f",
@@ -1524,8 +1524,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/autoscalesettings/autoscalesettings-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -1685,8 +1685,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/datacollectionendpoints/datacollectionendpoints-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -2014,8 +2014,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/datacollectionrules/datacollectionrules-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -2456,8 +2456,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "PLAN": {
             "name": "res-value",
@@ -2642,8 +2642,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/metricalerts/metricalertrules-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -2867,10 +2867,10 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1a",
@@ -2895,11 +2895,11 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1b-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1b",
@@ -2924,8 +2924,8 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1c-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1c",
@@ -2950,10 +2950,10 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1d",
@@ -2978,10 +2978,10 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1e",
@@ -3006,10 +3006,10 @@
             "publicNetworkAccessForQuery": "res-value",
             "provisioningState": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/monitormetricsingestion-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "monitormetricsingestion-t1f",
@@ -3064,8 +3064,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/privatelinkscopes/monitorprivatelinkscopes-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3208,8 +3208,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/workbooks/monitorworkbooks-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3388,8 +3388,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3687,8 +3687,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/scheduledqueryrules/scheduledqueryrules-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3911,10 +3911,10 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1a",
@@ -3942,11 +3942,11 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1b-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1b",
@@ -3974,8 +3974,8 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1c-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1c",
@@ -4003,10 +4003,10 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1d",
@@ -4034,10 +4034,10 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1e",
@@ -4065,10 +4065,10 @@
             "frequency": "res-value",
             "throttlingDuration": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "smartdetectoralertrules-t1f",
@@ -4118,8 +4118,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/workspaces-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "workspaces-t1b",

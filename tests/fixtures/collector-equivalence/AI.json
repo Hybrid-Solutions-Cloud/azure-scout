@@ -289,8 +289,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.machinelearningservices/workspaces/aifoundryhubs-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -441,8 +441,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.machinelearningservices/workspaces/aifoundryprojects-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -585,8 +585,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/appliedaiservices-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -724,11 +724,11 @@
               ]
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1a",
           "sku": {
@@ -758,12 +758,12 @@
               ]
             }
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1b",
           "sku": {
@@ -793,9 +793,9 @@
               ]
             }
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1c",
           "sku": {
@@ -825,11 +825,11 @@
               ]
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1d",
           "sku": {
@@ -859,11 +859,11 @@
               ]
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1e",
           "sku": {
@@ -893,11 +893,11 @@
               ]
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/azureai-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "azureai-t1f",
           "sku": {
@@ -950,8 +950,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.botservice/botservices/botservices-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -1121,8 +1121,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/computervision-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "computervision-t1b",
@@ -1328,8 +1328,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/contentmoderator-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "contentmoderator-t1b",
@@ -1535,8 +1535,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/contentsafety-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "contentsafety-t1b",
@@ -1715,7 +1715,7 @@
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         },
@@ -1742,15 +1742,15 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/customvision-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "customvision-t1b",
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         },
@@ -1782,7 +1782,7 @@
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         },
@@ -1816,7 +1816,7 @@
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         },
@@ -1850,7 +1850,7 @@
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         },
@@ -1884,7 +1884,7 @@
           "sku": {
             "name": "res-value"
           },
-          "Kind": "CustomVision.*",
+          "kind": "CustomVision.*",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
         }
@@ -1949,8 +1949,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/faceapi-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "faceapi-t1b",
@@ -2156,8 +2156,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/formrecognizer-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "formrecognizer-t1b",
@@ -2369,8 +2369,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/healthinsights-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "healthinsights-t1b",
@@ -2588,8 +2588,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/immersivereader-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "immersivereader-t1b",
@@ -2789,8 +2789,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.machinelearningservices/workspaces/machinelearning-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "machinelearning-t1b",
@@ -2961,8 +2961,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/openaiaccounts-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3144,8 +3144,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.search/searchservices/searchservices-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "searchservices-t1b",
@@ -3338,8 +3338,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/speechservice-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "speechservice-t1b",
@@ -3557,8 +3557,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/textanalytics-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "textanalytics-t1b",
@@ -3788,8 +3788,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/translator-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "translator-t1b",

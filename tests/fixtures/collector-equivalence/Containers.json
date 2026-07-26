@@ -8,6 +8,18 @@
   ],
   "retirements": [
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.redhatopenshift/openshiftclusters/aro-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -29,6 +41,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -69,6 +93,835 @@
     }
   ],
   "collectors": {
+    "AKS": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1a",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1a-1/SKU/aks-t1a-join1",
+          "NAME": "aks-t1a-join1",
+          "TYPE": "AZSC/VM/SKU",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1a-1/Quotas/aks-t1a-join1",
+          "NAME": "aks-t1a-join1",
+          "TYPE": "AZSC/VM/Quotas",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1b",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1b-1/SKU/aks-t1b-join1",
+          "NAME": "aks-t1b-join1",
+          "TYPE": "AZSC/VM/SKU",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1b-1/Quotas/aks-t1b-join1",
+          "NAME": "aks-t1b-join1",
+          "TYPE": "AZSC/VM/Quotas",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1c-1",
+          "tags": {},
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1c",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1d",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1d-1/SKU/aks-t1d-join1",
+          "NAME": "aks-t1d-join1",
+          "TYPE": "AZSC/VM/SKU",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1d-1/Quotas/aks-t1d-join1",
+          "NAME": "aks-t1d-join1",
+          "TYPE": "AZSC/VM/Quotas",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1e",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1e-1/SKU/aks-t1e-join1",
+          "NAME": "aks-t1e-join1",
+          "TYPE": "AZSC/VM/SKU",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1e-1/Quotas/aks-t1e-join1",
+          "NAME": "aks-t1e-join1",
+          "TYPE": "AZSC/VM/Quotas",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "addonProfiles": {
+              "omsagent": {
+                "config": {
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                }
+              },
+              "ingressApplicationGateway": {
+                "config": {
+                  "applicationGatewayName": "res-value"
+                }
+              }
+            },
+            "agentPoolProfiles": [
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              },
+              {
+                "enableAutoScaling": "res-value",
+                "availabilityZones": "res-value",
+                "nodetaints": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "nodelabels": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "vmSize": "res-value",
+                "name": "res-value",
+                "powerstate": {
+                  "code": "res-value"
+                },
+                "orchestratorVersion": "res-value",
+                "mode": "res-value",
+                "osType": "res-value",
+                "ossku": "res-value",
+                "nodeimageversion": "res-value",
+                "osDiskSizeGB": "res-value",
+                "minCount": "res-value",
+                "maxCount": "res-value",
+                "maxPods": "res-value",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "enableNodePublicIP": "res-value"
+              }
+            ],
+            "networkprofile": {
+              "networkplugin": "res-value",
+              "networkPolicy": "res-value",
+              "networkpluginmode": "res-value",
+              "podCidr": "res-value",
+              "outboundType": "res-value"
+            },
+            "disablelocalaccounts": "res-value",
+            "aadprofile": {
+              "admingroupobjectids": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "autoupgradeprofile": {
+              "nodeosupgradechannel": "res-value",
+              "upgradeChannel": "res-value"
+            },
+            "publicNetworkAccess": "res-value",
+            "identityprofile": {
+              "kubeletidentity": {
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              }
+            },
+            "apiServerAccessProfile": {
+              "enablePrivateCluster": "res-value"
+            },
+            "kubernetesVersion": "res-value",
+            "powerstate": {
+              "code": "res-value"
+            },
+            "enableRBAC": "res-value",
+            "noderesourcegroup": "res-value",
+            "privatefqdn": "res-value",
+            "fqdn": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "location": "res-value",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aks-t1f",
+          "sku": {
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.containerservice/managedclusters"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1f-1/SKU/aks-t1f-join1",
+          "NAME": "aks-t1f-join1",
+          "TYPE": "AZSC/VM/SKU",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/managedclusters/aks-t1f-1/Quotas/aks-t1f-join1",
+          "NAME": "aks-t1f-join1",
+          "TYPE": "AZSC/VM/Quotas",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
     "ARO": {
       "resources": [
         {
@@ -202,8 +1055,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.redhatopenshift/openshiftclusters/aro-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "aro-t1b",
@@ -490,6 +1343,19 @@
       "resources": [
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -537,27 +1403,14 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1a",
           "LOCATION": "res-value",
@@ -565,6 +1418,19 @@
         },
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -612,28 +1478,15 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1b",
           "LOCATION": "res-value",
@@ -641,6 +1494,19 @@
         },
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -688,25 +1554,12 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1c",
           "LOCATION": "res-value",
@@ -714,6 +1567,19 @@
         },
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -761,27 +1627,14 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1d",
           "LOCATION": "res-value",
@@ -789,6 +1642,19 @@
         },
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -836,27 +1702,14 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1e",
           "LOCATION": "res-value",
@@ -864,6 +1717,19 @@
         },
         {
           "PROPERTIES": {
+            "configuration": {
+              "ingress": {
+                "targetPort": "res-value",
+                "external": "res-value",
+                "allowInsecure": "res-value",
+                "transport": "res-value"
+              },
+              "dapr": "res-value",
+              "secrets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
             "template": [
               {
@@ -911,31 +1777,297 @@
                 ]
               }
             ],
-            "configuration": {
-              "ingress": {
-                "targetPort": "res-value",
-                "external": "res-value",
-                "allowInsecure": "res-value",
-                "transport": "res-value"
-              },
-              "dapr": "res-value",
-              "secrets": [
-                "res-item-0",
-                "res-item-1"
-              ]
-            },
             "runningStatus": "res-value",
             "workloadProfileName": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerapp-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.app/containerapps"
+        }
+      ]
+    },
+    "ContainerAppEnv": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "properties": {
+            "environmentId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1a-1/containerapps/containerappenv-t1a-join1",
+          "NAME": "containerappenv-t1a-join1",
+          "TYPE": "microsoft.app/containerapps",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "properties": {
+            "environmentId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1b-1/containerapps/containerappenv-t1b-join1",
+          "NAME": "containerappenv-t1b-join1",
+          "TYPE": "microsoft.app/containerapps",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {
+            "env": "dev"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "properties": {
+            "environmentId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1d-1/containerapps/containerappenv-t1d-join1",
+          "NAME": "containerappenv-t1d-join1",
+          "TYPE": "microsoft.app/containerapps",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "properties": {
+            "environmentId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1e-1/containerapps/containerappenv-t1e-join1",
+          "NAME": "containerappenv-t1e-join1",
+          "TYPE": "microsoft.app/containerapps",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "workloadProfiles": [
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              },
+              {
+                "name": "res-value",
+                "workloadProfileType": "res-value",
+                "minimumCount": "res-value",
+                "maximumCount": "res-value"
+              }
+            ],
+            "publicNetworkAccess": "res-value",
+            "zoneRedundant": "res-value",
+            "staticIp": "res-value",
+            "kedaconfiguration": {
+              "Version": "res-value"
+            },
+            "daprconfiguration": {
+              "Version": "res-value"
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappenv-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments"
+        },
+        {
+          "properties": {
+            "environmentId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappenv-t1f-1/containerapps/containerappenv-t1f-join1",
+          "NAME": "containerappenv-t1f-join1",
+          "TYPE": "microsoft.app/containerapps",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         }
       ]
     },
@@ -1068,8 +2200,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerinstance/containergroups/containergroups-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "containergroups-t1b",
@@ -1365,11 +2497,11 @@
               }
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1a",
           "LOCATION": "res-value",
@@ -1397,12 +2529,12 @@
               }
             }
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1b",
           "LOCATION": "res-value",
@@ -1430,9 +2562,9 @@
               }
             }
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1c",
           "LOCATION": "res-value",
@@ -1460,11 +2592,11 @@
               }
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1d",
           "LOCATION": "res-value",
@@ -1492,11 +2624,11 @@
               }
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1e",
           "LOCATION": "res-value",
@@ -1524,11 +2656,11 @@
               }
             }
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "containerregistries-t1f",
           "LOCATION": "res-value",

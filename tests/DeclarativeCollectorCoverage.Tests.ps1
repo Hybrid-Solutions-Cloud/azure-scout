@@ -18,6 +18,12 @@
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
+    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZSCIdSegment.ps1')
+
     # Only the fixture loader is needed here, not the whole equivalence harness.
     $script:GeneratedFixtures = @{}
     function Get-GeneratedFixture {
@@ -50,6 +56,55 @@ Describe 'Declarative collector coverage — the converted set is exactly the au
                Reason = 'It has TWO $obj hashtable literals in opposite branches of an if/else -- the row SHAPE is conditional, which the schema deliberately cannot express (a Fields list is one shape).' }
             @{ Category = 'Monitor';    Name = 'Outages'
                Reason = 'AUDIT MISCLASSIFICATION: it builds its columns with New-Object -Com HTMLFile and reads $Html.body.innerText, so it is not pure shaping at all -- it depends on a COM component the audit never looked for (it only searched for Get-Az*/Invoke-*).' }
+        )
+
+        # The six collectors whose ONLY audit obstacle is a CrossResourceJoin and which are STILL not
+        # converted (AB#5659). The other 14 are. Held here for the same reason as the list above:
+        # "convert the joins" must not quietly become "convert the easy joins".
+        $script:UnconvertedJoins = @(
+            @{ Category = 'Compute'; Name = 'AVDAzureLocal'
+               Reason = 'Its row loop iterates $combined -- a set SYNTHESISED from three filtered sets with Add-Member, not a resource-type filter over $Resources. The interpreter drives its row loop from ResourceTypes, so there is no resource type to declare. (The converter refuses it by name rather than emitting something wrong.)' }
+            @{ Category = 'Management'; Name = 'AutomationAccounts'
+               Reason = 'TWO $obj literals in opposite branches of `if ($null -ne $rbs)`, and the branches differ in LOOP DEPTH: the match branch adds `foreach ($1 in $rbs)`, the else branch does not. Row COUNT is conditional, which a single Fields list plus a fixed loop nest cannot express -- the same obstacle as Networking/PublicIP.' }
+            @{ Category = 'Networking'; Name = 'VirtualWAN'
+               Reason = 'Same shape: `if($vpn)` nests THREE loops (vhub, vpn, tag) and the else nests TWO. Conditional loop depth, so conditional row count.' }
+            @{ Category = 'Compute'; Name = 'VirtualMachine'
+               Reason = 'Carries a LiveCmdletCall as well as the join -- six Invoke-AzRestMethod calls for CPU/memory/ASR/vault/cost inside the row loop.' }
+            @{ Category = 'Compute'; Name = 'VMOperationalData'
+               Reason = 'Carries a LiveCmdletCall as well as the join -- Invoke-AzRestMethod for the patch-assessment POST.' }
+            @{ Category = 'Hybrid'; Name = 'ArcServerOperationalData'
+               Reason = 'Carries a LiveCmdletCall as well as the join -- Invoke-AzRestMethod for the patch-assessment POST.' }
+        )
+
+        # Converted join collectors whose join the GENERATED estate does not yet exercise: the
+        # partner resources are present and the row values agree with the imperative path, but the
+        # collector's own predicate does not match any of them, so both paths take the not-found
+        # branch and the joined columns are proven only in their empty state.
+        #
+        # This is a FIXTURE limitation, not a conversion defect -- and it is pinned rather than
+        # left implicit precisely because "the equivalence test passes" reads as stronger evidence
+        # than it is for these nine. Removing an entry (by teaching
+        # scripts/New-ScoutCollectorFixture.ps1 to satisfy the predicate) is the improvement; the
+        # test below fails if an entry becomes stale, so the list can only get shorter.
+        $script:JoinNotExercised = @(
+            @{ Category = 'Analytics';  Name = 'Streamanalytics'
+               Reason = 'Joins the REVERSE way -- `$_.id -eq $data.cluster.id` -- so the PARTNER id must equal a value inside the PRIMARY payload. The generator correlates the other direction (it writes the primary id into a partner property).' }
+            @{ Category = 'Containers'; Name = 'AKS'
+               Reason = 'Correlates on `$VMExtraDetails.properties | Where-Object { $_.Location -eq $1.location }` -- $_ is the PROPERTIES object reached by member enumeration, not the resource, so the correlated path sits one level below where the generator writes it. The types are also the synthetic AZSC/VM/SKU and AZSC/VM/Quotas, which no real ARG query returns.' }
+            @{ Category = 'Containers'; Name = 'ContainerAppEnv'
+               Reason = 'The predicate is an ACCESSOR CALL -- `(Get-AZSCSafeProperty -InputObject $_ -Path ''properties.environmentId'') -eq $1.id` -- so the correlated property is named in a string rather than as a member of $_, and the generator''s `$_.<path>` scan does not see it.' }
+            @{ Category = 'Networking'; Name = 'ApplicationGateways'
+               Reason = 'Correlates with `-in` against a member-enumerated collection: `$1.id -in $APPGTWPOL.properties.applicationGateways.id`. The partner property is an ARRAY of ids, and the generator writes scalars.' }
+            @{ Category = 'Networking'; Name = 'AzureFirewall'
+               Reason = 'Reverse direction, as Streamanalytics -- `$_.id -eq $data.firewallpolicy.id`.' }
+            @{ Category = 'Networking'; Name = 'NetworkInterface'
+               Reason = 'Reverse direction AND through an accessor -- `$_.id -eq (Get-AZSCSafeProperty -InputObject $2 -Path ''properties.publicipaddress.id'' -Enumerate)` -- where $2 is an ipConfigurations element, so the value lives inside an array item of the primary.' }
+            @{ Category = 'Networking'; Name = 'NetworkSecurityGroup'
+               Reason = 'Its NIC join reads `$_.id -eq $NICID`, where $NICID is derived inside a nested loop over the NSG''s own networkInterfaces, so the id to correlate on is not a property of the primary resource at all.' }
+            @{ Category = 'Networking'; Name = 'PrivateEndpoint'
+               Reason = 'Reverse direction through an accessor -- `$_.id -eq (Get-AZSCSafeProperty -InputObject $data -Path ''networkInterfaces.id'' -Enumerate)`.' }
+            @{ Category = 'Web';        Name = 'APPServicePlan'
+               Reason = 'The correlation IS written (Properties.targetResourceUri), but the secondary set''s OWN filter also demands `$_.Properties.enabled -eq ''true''`, and the generator does not satisfy a secondary set''s filter the way Resolve-FixtureFilter satisfies the primary''s -- so the partner is dropped before the join runs.' }
         )
 
         $script:AllDefinitions = @(
@@ -89,6 +144,82 @@ Describe 'Declarative collector coverage — the converted set is exactly the au
             $Fixture.collectors.PSObject.Properties.Name | Should -Contain $Entry.Name
             @($Fixture.collectors.($Entry.Name).resources).Count | Should -BeGreaterThan 0
         }
+    }
+
+    It 'every join-only collector either has a definition or is on the unconverted-joins list' {
+        # The AB#5659 half of the coverage claim. A CrossResourceJoin over a set derived from
+        # $Resources is expressible (SetupPreamble/SetupVariables), so a collector whose ONLY
+        # audit obstacle is such a join must be converted -- or be listed with a reason.
+        $Missing = [System.Collections.Generic.List[string]]::new()
+        $JoinOnly = @($script:Audit | Where-Object {
+            $_.Classification -ne 'PureShaping' -and
+            @($_.EscapeHatchReasons).Count -gt 0 -and
+            @($_.EscapeHatchReasons | Where-Object { $_ -notlike 'CrossResourceJoin*' }).Count -eq 0
+        })
+        @($JoinOnly).Count | Should -BeGreaterThan 0
+
+        foreach ($Entry in $JoinOnly) {
+            if (Test-Path -LiteralPath (Join-Path $script:RepoRoot "manifests/collectors/$($Entry.Category)/$($Entry.Name).psd1")) { continue }
+            $Listed = @($script:UnconvertedJoins | Where-Object { $_.Category -eq $Entry.Category -and $_.Name -eq $Entry.Name })
+            if (@($Listed).Count -eq 0) { $Missing.Add("$($Entry.Category)/$($Entry.Name)") }
+        }
+        $Missing -join ', ' | Should -BeNullOrEmpty
+    }
+
+    It 'nothing on the unconverted-joins list has a definition after all' {
+        foreach ($Entry in $script:UnconvertedJoins) {
+            (Join-Path $script:RepoRoot "manifests/collectors/$($Entry.Category)/$($Entry.Name).psd1") |
+                Should -Not -Exist -Because "$($Entry.Category)/$($Entry.Name) is listed as unconverted: $($Entry.Reason)"
+        }
+    }
+
+    It 'a converted join collector''s join either changes the rows the fixture produces, or is listed as unexercised' {
+        # The equivalence proof compares two paths on ONE estate, so it is satisfied when both paths
+        # take the join's not-found branch -- which proves nothing about the join. This asks the
+        # sharper question directly: remove the join partners from the estate and see whether the
+        # output changes. If it does not, the fixture is not testing the join and that has to be
+        # said out loud rather than inferred from a green tick.
+        $Unexercised = [System.Collections.Generic.List[string]]::new()
+        $Exercised   = [System.Collections.Generic.HashSet[string]]::new()
+
+        foreach ($Entry in $script:AllDefinitions) {
+            $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$($Entry.Category)/$($Entry.Name).psd1")
+            $Fixture    = Get-GeneratedFixture -Category $Entry.Category
+            $All        = @($Fixture.collectors.($Entry.Name).resources)
+            $Declared   = @($Definition.ResourceTypes)
+
+            $Primary = @($All | Where-Object { $Type = $_.TYPE; @($Declared | Where-Object { $_ -ieq $Type }).Count -gt 0 })
+            if (@($Primary).Count -eq @($All).Count) { continue }   # no join partners: not a join collector
+
+            function New-JoinContext { param($Resources)
+                @{ ScriptRoot = $script:RepoRoot; Subscriptions = $Fixture.subscriptions; InTag = $false
+                   Resources = $Resources; Retirements = $Fixture.retirements; Task = 'Processing'
+                   File = $null; SmaResources = $null; TableStyle = 'Light20'; Unsupported = $Fixture.unsupported }
+            }
+            function ConvertTo-JoinText { param($Rows)
+                (@($Rows) | ForEach-Object {
+                    $Row = $_
+                    if ($Row -isnot [System.Collections.IDictionary]) { return '<non-row>' }
+                    (@($Row.Keys | Sort-Object) | ForEach-Object { "$_=$($Row[$_])" }) -join '|'
+                }) -join "`n"
+            }
+
+            $WithPartners    = ConvertTo-JoinText (Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (New-JoinContext -Resources $All))
+            $WithoutPartners = ConvertTo-JoinText (Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (New-JoinContext -Resources $Primary))
+
+            $Key = "$($Entry.Category)/$($Entry.Name)"
+            if ($WithPartners -ne $WithoutPartners) { [void]$Exercised.Add($Key); continue }
+
+            $Listed = @($script:JoinNotExercised | Where-Object { $_.Category -eq $Entry.Category -and $_.Name -eq $Entry.Name })
+            if (@($Listed).Count -eq 0) { $Unexercised.Add($Key) }
+        }
+
+        $Unexercised -join ', ' | Should -BeNullOrEmpty -Because 'a join collector whose partners make no difference to its output is not actually having its join tested; add it to $script:JoinNotExercised with a reason, or fix the fixture generator'
+
+        # Stale entries fail too, so the list can only get shorter.
+        $Stale = @($script:JoinNotExercised | Where-Object { $Exercised.Contains("$($_.Category)/$($_.Name)") })
+        (@($Stale) | ForEach-Object { "$($_.Category)/$($_.Name)" }) -join ', ' |
+            Should -BeNullOrEmpty -Because 'these joins ARE now exercised by the generated estate -- delete their entries from $script:JoinNotExercised'
     }
 
     It 'no generated fixture carries anything that looks like a real tenant identifier' {

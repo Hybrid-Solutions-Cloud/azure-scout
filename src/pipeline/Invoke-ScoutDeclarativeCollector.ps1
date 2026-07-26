@@ -191,6 +191,56 @@ function Invoke-ScoutDeclarativeProcessing {
 
     if (@($Matched).Count -eq 0) { return @() }
 
+    # ONCE-PER-COLLECTOR SETUP (AB#5659). The 15 collectors the audit called 'CrossResourceJoin'
+    # hoist one or more secondary `$X = $Resources | Where-Object { $_.TYPE -eq '<other type>' }`
+    # passes above their row loop and correlate against them per resource. Those statements are
+    # lifted verbatim into SetupPreamble and run HERE -- once -- rather than inside the row script,
+    # so a 5,000-NIC estate does not re-filter all 5,000 public IPs 5,000 times.
+    #
+    # The declared names are recovered by appending a `Get-Variable` per name to the lifted source
+    # and reading the PSVariable objects back out of the invocation's output stream: there is no
+    # other way to see the scope InvokeWithContext created. A name the preamble never assigned
+    # comes back missing and THROWS -- it does not bind $null and carry on, because a join variable
+    # that quietly became $null is a whole column of blanks in a shipped report.
+    $SetupBindings = [System.Collections.Generic.List[psvariable]]::new()
+    if (-not [string]::IsNullOrWhiteSpace($Definition.SetupPreamble)) {
+        # -ErrorAction Ignore, not SilentlyContinue: SilentlyContinue still appends to $Error, and
+        # Invoke-ScoutProcessing's AB#402 error detection reads $Error.
+        $Harvest = (@($Definition.SetupVariables) | ForEach-Object {
+            "Get-Variable -Name '$($_ -replace "'", "''")' -ErrorAction Ignore"
+        }) -join "`n"
+        $SetupScript = [scriptblock]::Create("$($Definition.SetupPreamble)`n$Harvest")
+
+        $SetupContext = [System.Collections.Generic.List[psvariable]]::new()
+        $SetupContext.Add([psvariable]::new('Resources', $Resources))
+        $SetupContext.Add([psvariable]::new('SUB', $Sub))
+        $SetupContext.Add([psvariable]::new('Retirements', $Retirements))
+        $SetupContext.Add([psvariable]::new('Unsupported', $Unsupported))
+
+        $Produced = @($SetupScript.InvokeWithContext($null, $SetupContext))
+        $ByName = @{}
+        foreach ($Item in $Produced) {
+            # The lifted source may legitimately emit its own output (a bare expression statement),
+            # so select the PSVariables out rather than assuming the stream is only the harvest.
+            #
+            # Tested with `-is` and used AS IS -- deliberately NOT unwrapped first. Items returned
+            # through the output stream are PSObject-wrapped, but `.BaseObject` is not reachable by
+            # plain member access on a wrapped object: member lookup resolves against the BASE type,
+            # PSVariable has no BaseObject, and with StrictMode off the read returns $null. Every
+            # harvested variable was silently discarded that way, which is worth spelling out
+            # because the symptom was not a blank column -- the declared-name check below turned it
+            # into a throw naming all 13 collectors at once, which is the only reason it took
+            # minutes to find rather than a release.
+            if ($Item -is [psvariable]) { $ByName[$Item.Name] = $Item }
+        }
+
+        $MissingSetup = @(@($Definition.SetupVariables) | Where-Object { -not $ByName.ContainsKey($_) })
+        if (@($MissingSetup).Count -gt 0) {
+            throw "Collector definition '$($Definition.Path)' declares SetupVariables its SetupPreamble never assigned: $($MissingSetup -join ', ')."
+        }
+        foreach ($Name in @($Definition.SetupVariables)) { $SetupBindings.Add($ByName[$Name]) }
+    }
+
     $RowScriptText = Build-ScoutDeclarativeRowScript -Definition $Definition
     $RowScriptBlock = [scriptblock]::Create($RowScriptText)
 
@@ -200,6 +250,11 @@ function Invoke-ScoutDeclarativeProcessing {
         $Variables.Add([psvariable]::new('SUB', $Sub))
         $Variables.Add([psvariable]::new('Retirements', $Retirements))
         $Variables.Add([psvariable]::new('Unsupported', $Unsupported))
+        # Bound unconditionally, matching the original collectors' own scope: Networking/NetworkWatchers
+        # does its three sub-resource joins INSIDE the row loop rather than hoisting them, and lifting
+        # those statements without $Resources in scope produced three empty columns.
+        $Variables.Add([psvariable]::new('Resources', $Resources))
+        foreach ($Binding in $SetupBindings) { $Variables.Add($Binding) }
 
         try {
             $RowScriptBlock.InvokeWithContext($null, $Variables)

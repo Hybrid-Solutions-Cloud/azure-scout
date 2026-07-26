@@ -153,6 +153,52 @@ function Get-ScoutCollectorDefinition {
         $Errors.Add('FilterPreamble is set but AdditionalFilter is empty, so the preamble would never be used.')
     }
 
+    # --- Setup section (AB#5659) ------------------------------------------------------------------
+    #
+    # The statements the original collector ran ONCE, at the top of its Processing branch, before the
+    # per-resource loop. In every case in this estate that is a second (third, fourth) pass over
+    # `$Resources` for a DIFFERENT resource type, whose result the row loop then correlates against:
+    #
+    #     $PrivateDNS = $Resources | Where-Object { $_.TYPE -eq 'microsoft.network/privatednszones' }
+    #     $VNETLinks  = $Resources | Where-Object { $_.TYPE -eq 'microsoft.network/privatednszones/virtualnetworklinks' }
+    #
+    # The audit (AB#5658) classified all 20 collectors with this shape 'CrossResourceJoin' and
+    # therefore EscapeHatch. They genuinely are joins -- but a join against a set the collector
+    # derived from `$Resources` itself is not a live call and needs no escape hatch, only somewhere
+    # to put the once-per-run statements. Folding them into the row Preamble instead would preserve
+    # behaviour but turn an O(n) filter into an O(n*m) one -- Networking/NetworkInterface would
+    # re-scan every public IP in the estate once per NIC.
+    #
+    # SetupVariables is DECLARED, not harvested from the executed scope. Harvesting would also sweep
+    # up $_, $args, $input and every other automatic the scope carries; worse, a preamble that
+    # stopped assigning a variable would silently stop binding it, which is the same class of quiet
+    # fallback that shipped a silently empty worksheet.
+    if ($Raw.Contains('SetupPreamble') -and $null -ne $Raw.SetupPreamble -and $Raw.SetupPreamble -isnot [string]) {
+        $Errors.Add('SetupPreamble must be a string of statements to run once before the row loop.')
+    }
+
+    $DeclaredSetupVars = @(if ($Raw.Contains('SetupVariables') -and $null -ne $Raw.SetupVariables) { @($Raw.SetupVariables) } else { @() })
+    foreach ($SetupVar in $DeclaredSetupVars) {
+        if ($SetupVar -isnot [string] -or [string]::IsNullOrWhiteSpace($SetupVar)) {
+            $Errors.Add("SetupVariables contains a non-string or empty entry: '$SetupVar'.")
+        } elseif ($SetupVar.StartsWith('$')) {
+            # A leading sigil would make the generated `Get-Variable -Name '$X'` look for a variable
+            # literally called '$X' and find nothing -- a name that never binds, silently.
+            $Errors.Add("SetupVariables entry '$SetupVar' must be a bare variable NAME, without the leading dollar sign.")
+        }
+    }
+
+    $HasSetupPreamble = $Raw.Contains('SetupPreamble') -and -not [string]::IsNullOrWhiteSpace($Raw.SetupPreamble)
+    # Both directions are errors rather than no-ops, for the same reason FilterPreamble-without-filter
+    # is: an unsatisfiable definition must fail at LOAD, where it names the file, not at run time
+    # where it surfaces as a column full of blanks.
+    if ($HasSetupPreamble -and @($DeclaredSetupVars).Count -eq 0) {
+        $Errors.Add('SetupPreamble is set but SetupVariables is empty, so nothing the setup computes would ever reach the row scope.')
+    }
+    if (-not $HasSetupPreamble -and @($DeclaredSetupVars).Count -gt 0) {
+        $Errors.Add('SetupVariables is set but SetupPreamble is empty, so there is nothing to produce those variables.')
+    }
+
     if (@($Errors).Count -gt 0) {
         throw "Collector definition '$Path' failed schema validation:`n - $($Errors -join "`n - ")"
     }
@@ -166,6 +212,8 @@ function Get-ScoutCollectorDefinition {
         AdditionalFilter   = if ($Raw.Contains('AdditionalFilter')) { $Raw.AdditionalFilter } else { $null }
         FilterPreamble     = if ($Raw.Contains('FilterPreamble')) { [string]$Raw.FilterPreamble } else { '' }
         RowLoopVariable    = $Raw.RowLoopVariable
+        SetupPreamble      = if ($Raw.Contains('SetupPreamble') -and $null -ne $Raw.SetupPreamble) { [string]$Raw.SetupPreamble } else { '' }
+        SetupVariables     = $DeclaredSetupVars
         Preamble           = if ($Raw.Contains('Preamble')) { [string]$Raw.Preamble } else { '' }
         # Normalised so the interpreter can read .Preamble unconditionally instead of testing for
         # the key on every loop of every collector.

@@ -102,8 +102,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apimanagement/service/apim-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "apim-t1b",
@@ -259,11 +259,11 @@
             "name": "res-value",
             "capacity": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1a",
           "LOCATION": "res-value",
@@ -280,12 +280,12 @@
             "name": "res-value",
             "capacity": "res-value"
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1b",
           "LOCATION": "res-value",
@@ -302,9 +302,9 @@
             "name": "res-value",
             "capacity": "res-value"
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1c",
           "LOCATION": "res-value",
@@ -321,11 +321,11 @@
             "name": "res-value",
             "capacity": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1d",
           "LOCATION": "res-value",
@@ -342,11 +342,11 @@
             "name": "res-value",
             "capacity": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1e",
           "LOCATION": "res-value",
@@ -363,11 +363,11 @@
             "name": "res-value",
             "capacity": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "servicebus-t1f",
           "LOCATION": "res-value",
