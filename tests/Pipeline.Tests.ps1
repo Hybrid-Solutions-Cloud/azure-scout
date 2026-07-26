@@ -27,6 +27,7 @@ BeforeAll {
     # Dot-source the real orchestrator purely so Mock has a command with a matching
     # parameter set to attach a proxy to -- its body is never actually executed here.
     . "$root/src/Invoke-ScoutAssessment.ps1"
+    . "$root/src/Get-ScoutNewErrorCount.ps1"
     . "$root/src/Invoke-ScoutPipeline.ps1"
 
     function Get-OkPermissionCheck {

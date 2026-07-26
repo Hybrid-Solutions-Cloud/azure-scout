@@ -163,7 +163,7 @@ function Invoke-ScoutPipeline {
         # across this call surfaces problems the audit swallowed internally (e.g. a
         # Graph/ARG cmdlet that logged a non-terminating error but still completed)
         # without changing the audit's own non-fatal-by-design outcome.
-        $errCountBeforeAudit = $Error.Count
+        $errSentinelBeforeAudit = if ($Error.Count) { $Error[0] } else { $null }
         try {
             $auditResult = Invoke-ScoutAssessment -Assessment $Assessment -PermissionAudit
             $permissionAudit.Ran = $true
@@ -185,9 +185,10 @@ function Invoke-ScoutPipeline {
             $permissionAudit.Error = $_.Exception.Message
             Write-Warning "Invoke-ScoutPipeline: permission audit failed (non-fatal): $($_.Exception.Message)"
         }
-        $permissionAudit.HadNonTerminatingErrors = ($Error.Count -gt $errCountBeforeAudit)
+        $auditNewErrors = Get-ScoutNewErrorCount $errSentinelBeforeAudit
+        $permissionAudit.HadNonTerminatingErrors = ($auditNewErrors -gt 0)
         if ($permissionAudit.HadNonTerminatingErrors -and -not $permissionAudit.Error) {
-            Write-Warning "Invoke-ScoutPipeline: the permission audit completed but recorded $($Error.Count - $errCountBeforeAudit) non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
+            Write-Warning "Invoke-ScoutPipeline: the permission audit completed but recorded $auditNewErrors non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
         }
     }
 
@@ -210,7 +211,7 @@ function Invoke-ScoutPipeline {
     # AB#397/399/400 per-query resilience) swallowed internally while still completing,
     # so a run that degraded some datasets without hard-failing is visible as such
     # instead of looking identical to a fully clean run.
-    $errCountBeforeAssess = $Error.Count
+    $errSentinelBeforeAssess = if ($Error.Count) { $Error[0] } else { $null }
     $runFolder       = $null
     $assessmentError = $null
     try {
@@ -224,9 +225,10 @@ function Invoke-ScoutPipeline {
         $assessmentError = $_.Exception.Message
         Write-Warning "Invoke-ScoutPipeline: Invoke-ScoutAssessment failed: $assessmentError"
     }
-    $assessmentHadNonTerminatingErrors = ($Error.Count -gt $errCountBeforeAssess)
+    $assessNewErrors = Get-ScoutNewErrorCount $errSentinelBeforeAssess
+    $assessmentHadNonTerminatingErrors = ($assessNewErrors -gt 0)
     if ($assessmentHadNonTerminatingErrors -and -not $assessmentError) {
-        Write-Warning "Invoke-ScoutPipeline: the collect/assess/report run completed but recorded $($Error.Count - $errCountBeforeAssess) non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
+        Write-Warning "Invoke-ScoutPipeline: the collect/assess/report run completed but recorded $assessNewErrors non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
     }
 
     if (-not $runFolder) {
