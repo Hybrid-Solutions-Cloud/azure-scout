@@ -8,6 +8,18 @@
   ],
   "retirements": [
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -141,6 +153,294 @@
     }
   ],
   "collectors": {
+    "Backup": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1a-1/backuppolicies/backup-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "properties": {
+            "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "backupmanagementtype": "res-value",
+            "friendlyname": "res-value",
+            "configuredmaximumretention": "res-value",
+            "configuredrpgenerationfrequency": "res-value",
+            "healthstatus": "res-value",
+            "protectionstatus": "res-value",
+            "isarchiveenabled": "res-value",
+            "lastbackupstatus": "res-value",
+            "protectionstate": "res-value",
+            "protectionstateinsecondaryregion": "res-value",
+            "softdeleteretentionperiod": "res-value",
+            "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1a-1/backuppolicies/backup-t1a-2"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1a-1/backuppolicies/backup-t1a-2/protecteditems/backup-t1a-join1",
+          "NAME": "backup-t1a-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1b-1/backuppolicies/backup-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "properties": {
+            "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "backupmanagementtype": "res-value",
+            "friendlyname": "res-value",
+            "configuredmaximumretention": "res-value",
+            "configuredrpgenerationfrequency": "res-value",
+            "healthstatus": "res-value",
+            "protectionstatus": "res-value",
+            "isarchiveenabled": "res-value",
+            "lastbackupstatus": "res-value",
+            "protectionstate": "res-value",
+            "protectionstateinsecondaryregion": "res-value",
+            "softdeleteretentionperiod": "res-value",
+            "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1b-1/backuppolicies/backup-t1b-2"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1b-1/backuppolicies/backup-t1b-2/protecteditems/backup-t1b-join1",
+          "NAME": "backup-t1b-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1c-1/backuppolicies/backup-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1d-1/backuppolicies/backup-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "properties": {
+            "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "backupmanagementtype": "res-value",
+            "friendlyname": "res-value",
+            "configuredmaximumretention": "res-value",
+            "configuredrpgenerationfrequency": "res-value",
+            "healthstatus": "res-value",
+            "protectionstatus": "res-value",
+            "isarchiveenabled": "res-value",
+            "lastbackupstatus": "res-value",
+            "protectionstate": "res-value",
+            "protectionstateinsecondaryregion": "res-value",
+            "softdeleteretentionperiod": "res-value",
+            "policyid": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1d-1/backuppolicies/backup-t1d-2"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1d-1/backuppolicies/backup-t1d-2/protecteditems/backup-t1d-join1",
+          "NAME": "backup-t1d-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "properties": {
+            "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "backupmanagementtype": "res-value",
+            "friendlyname": "res-value",
+            "configuredmaximumretention": "res-value",
+            "configuredrpgenerationfrequency": "res-value",
+            "healthstatus": "res-value",
+            "protectionstatus": "res-value",
+            "isarchiveenabled": "res-value",
+            "lastbackupstatus": "res-value",
+            "protectionstate": "res-value",
+            "protectionstateinsecondaryregion": "res-value",
+            "softdeleteretentionperiod": "res-value",
+            "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2/protecteditems/backup-t1e-join1",
+          "NAME": "backup-t1e-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "settings": {
+              "iscompression": "res-value",
+              "issqlcompression": "res-value"
+            },
+            "subprotectionpolicy": {
+              "policytype": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "workloadtype": "res-value",
+            "protecteditemscount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backup-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.recoveryservices/vaults/backuppolicies"
+        },
+        {
+          "properties": {
+            "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "backupmanagementtype": "res-value",
+            "friendlyname": "res-value",
+            "configuredmaximumretention": "res-value",
+            "configuredrpgenerationfrequency": "res-value",
+            "healthstatus": "res-value",
+            "protectionstatus": "res-value",
+            "isarchiveenabled": "res-value",
+            "lastbackupstatus": "res-value",
+            "protectionstate": "res-value",
+            "protectionstateinsecondaryregion": "res-value",
+            "softdeleteretentionperiod": "res-value",
+            "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2/protecteditems/backup-t1f-join1",
+          "NAME": "backup-t1f-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        }
+      ]
+    },
     "DevOpsAgentPools": {
       "resources": [
         {
@@ -188,8 +488,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -333,8 +633,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -468,8 +768,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -589,8 +889,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -718,8 +1018,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -888,8 +1188,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedServices/registrationDefinitions/lighthousedelegations-t1b-1",
           "NAME": "lighthousedelegations-t1b",
@@ -1173,8 +1473,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/maintenanceconfigurations/maintenanceconfigurations-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -1487,8 +1787,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/recoveryvault-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "recoveryvault-t1b",
@@ -1624,8 +1924,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {
@@ -1797,8 +2097,8 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           }
         },
         {

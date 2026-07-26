@@ -293,6 +293,30 @@ function Resolve-ShapePath {
             -Subject $Node.PipelineElements[0] -Aliases $Aliases
         if ($Accessor.Handled) { return $Accessor.Node }
     }
+    if ($Node -is [System.Management.Automation.Language.PipelineAst] -and $Node.PipelineElements.Count -gt 1) {
+        # A pipeline of SHAPE-PRESERVING stages resolves to the shape of its source. `Where-Object`
+        # and `Sort-Object` select and reorder items; they do not change what an item looks like.
+        #
+        # This is what makes a join's PARTNER get a shape at all. Every one of these collectors
+        # writes `$Matches = $Partners | Where-Object { ... }` and then reads `$Match.properties.x`
+        # off the result; without the pass-through the result aliased to nothing, the partner was
+        # synthesised with only the properties its own predicate mentions, and every joined column
+        # read $null -- on BOTH paths, so the equivalence test passed and proved nothing about the
+        # join. Deliberately NOT extended to `Select-Object`, which with a property list or a
+        # calculated property produces a different shape.
+        $ShapePreserving = @('where-object', 'sort-object')
+        $Tail = @($Node.PipelineElements | Select-Object -Skip 1)
+        $AllPreserving = $true
+        foreach ($Stage in $Tail) {
+            if ($Stage -isnot [System.Management.Automation.Language.CommandAst]) { $AllPreserving = $false; break }
+            $StageName = $Stage.GetCommandName()
+            if (-not $StageName -or $ShapePreserving -notcontains $StageName.ToLowerInvariant()) { $AllPreserving = $false; break }
+        }
+        if ($AllPreserving) {
+            $Source = Resolve-ShapePath -Node $Node.PipelineElements[0] -Aliases $Aliases
+            if ($Source) { return $Source }
+        }
+    }
     if ($Node -is [System.Management.Automation.Language.CommandExpressionAst]) {
         return Resolve-ShapePath -Node $Node.Expression -Aliases $Aliases
     }
@@ -479,13 +503,125 @@ function Add-ShapeUsageFromPipelines {
     }
 }
 
+function Get-DefinitionSecondarySets {
+    <#
+        The resource sets a definition's SetupPreamble derives from `$Resources` for a type OTHER
+        than the one it iterates -- the join half of the 13 collectors converted under AB#5659.
+
+        Without a fixture entry for those types the join matches nothing, every joined column falls
+        to its not-found sentinel ('none', $false, $null) on BOTH paths, and the equivalence test
+        passes while proving nothing about the half of the collector that the conversion actually
+        had to extend the schema for. That is precisely the vacuous pass this generator exists to
+        prevent, so the secondary types are read back out of the setup source here.
+    #>
+    param([PSCustomObject]$Definition)
+
+    $Sets  = [System.Collections.Generic.List[object]]::new()
+    $Seen  = [System.Collections.Generic.HashSet[string]]::new()
+
+    # BOTH places a join can live. The 13 collectors converted with a SetupPreamble hoist theirs
+    # above the row loop; Networking/NetworkWatchers derives its three (flowLogs, connMonitors,
+    # packetCaptures) INSIDE the row loop, so they are in the row Preamble instead and the setup
+    # section is empty. Scanning only the setup left all three of its sub-resource columns reading
+    # their empty-collection value on every fixture row.
+    $Sources = @($Definition.SetupPreamble, (Build-ScoutDeclarativeRowScript -Definition $Definition))
+
+    foreach ($Source in $Sources) {
+        if ([string]::IsNullOrWhiteSpace($Source)) { continue }
+        $Ast = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$null, [ref]$null)
+
+        foreach ($Assign in $Ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+            if ($Assign.Left -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
+            $Text = $Assign.Right.Extent.Text
+            if ($Text -notmatch '(?i)\$Resources') { continue }
+
+            # Quoted EITHER way. Web/APPServicePlan writes its join type in double quotes
+            # ("microsoft.insights/autoscalesettings") where every other collector uses single;
+            # a single-quote-only pattern silently gave it no join partner, so 'Autoscale Enabled'
+            # read $false on all six variants and the column was never actually tested.
+            $Types = @([regex]::Matches($Text, "['""]([a-zA-Z0-9.]+/[a-zA-Z0-9./]+)['""]") |
+                ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique)
+            # The collector's OWN types are excluded: the primary filter is carried in the setup
+            # range verbatim (it is contiguous source), and re-emitting resources for it would
+            # double the row count of every sheet.
+            $Types = @($Types | Where-Object { $Type = $_; -not (@($Definition.ResourceTypes) | Where-Object { $_ -ieq $Type }) })
+            if (@($Types).Count -eq 0) { continue }
+
+            $Variable = $Assign.Left.VariablePath.UserPath
+            if (-not $Seen.Add($Variable)) { continue }
+            $Sets.Add([PSCustomObject]@{ Variable = $Variable; ResourceTypes = $Types })
+        }
+    }
+    return @($Sets)
+}
+
+function Get-JoinCorrelationPaths {
+    <#
+        The property of a secondary resource that has to carry the PRIMARY resource's id for the
+        collector's own join predicate to match, e.g. Web/APPServicePlan's
+
+            $AutoScale = ($APPAutoScale | Where-Object { $_.Properties.targetResourceUri -eq $1.id })
+
+        A generated resource whose targetResourceUri is the generic placeholder never matches, so
+        'Autoscale Enabled' would read $false on all six variants of every fixture ever generated.
+
+        `$_.id` itself is excluded: the id is already synthesised as a CHILD path of the primary id,
+        which satisfies both the `-eq` and the `-like ($1.id + '*')` spellings while still looking
+        like a real ARM sub-resource id to the `.split('/')` reads further down.
+    #>
+    param([string]$ScriptText, [string]$RowLoopVariable, [string]$SetVariable)
+
+    $Pairs = [System.Collections.Generic.List[object]]::new()
+    $Seen  = [System.Collections.Generic.HashSet[string]]::new()
+
+    # ONLY the `Where-Object` bodies fed by THIS secondary set. Scanning the whole row script also
+    # matched `$SUB | Where-Object { $_.id -eq $1.subscriptionId }` and the identical retirement
+    # fold, and the resulting 'id => subscriptionId' pair overwrote the partner's carefully built
+    # child-of-primary id with a subscription GUID -- which broke the joins that WERE working
+    # rather than fixing the ones that were not.
+    $Anchor = [regex]::Escape('$' + $SetVariable)
+    foreach ($Start in [regex]::Matches($ScriptText, $Anchor + '\s*\|\s*Where-Object\s*\{')) {
+        # Balanced-brace scan: a join predicate can itself contain a `{ }` (a Select-Object
+        # calculated property), so the first `}` is not reliably the end of the block.
+        $Open  = $ScriptText.IndexOf('{', $Start.Index + $Start.Length - 1)
+        if ($Open -lt 0) { continue }
+        $Depth = 0
+        $End   = -1
+        for ($i = $Open; $i -lt $ScriptText.Length; $i++) {
+            if ($ScriptText[$i] -eq '{') { $Depth++ }
+            elseif ($ScriptText[$i] -eq '}') { $Depth--; if ($Depth -eq 0) { $End = $i; break } }
+        }
+        if ($End -lt 0) { continue }
+        $Body = $ScriptText.Substring($Open + 1, $End - $Open - 1)
+
+        $Row = [regex]::Escape('$' + $RowLoopVariable)
+        # The row-variable member is captured too, not assumed to be `id`: Containers/AKS correlates
+        # on `$_.Location -eq $1.location` and `$_.SubId -eq $1.subscriptionId`.
+        foreach ($Spelling in @(
+                @{ Pattern = '\$_\.((?:\w+\.)*\w+)\s*-\w+\s+' + $Row + '\.(\w+)\b'; PartnerGroup = 1; RowGroup = 2 }
+                @{ Pattern = $Row + '\.(\w+)\s*-\w+\s+\$_\.((?:\w+\.)*\w+)';        PartnerGroup = 2; RowGroup = 1 })) {
+            foreach ($Match in [regex]::Matches($Body, $Spelling.Pattern)) {
+                $PartnerPath = $Match.Groups[$Spelling.PartnerGroup].Value
+                $RowMember   = $Match.Groups[$Spelling.RowGroup].Value
+                # The partner id is already synthesised as a CHILD of the primary id, which satisfies
+                # both `-eq` and `-like ($1.id + '*')`; rewriting it to the bare primary id would
+                # break the `.split('/')` reads further down.
+                if ($PartnerPath -ieq 'id' -and $RowMember -ieq 'id') { continue }
+                if (-not $Seen.Add("$PartnerPath=>$RowMember")) { continue }
+                $Pairs.Add([PSCustomObject]@{ PartnerPath = $PartnerPath; RowMember = $RowMember })
+            }
+        }
+    }
+    return @($Pairs)
+}
+
 function Build-CollectorShape {
     <#
         Walk one definition's per-resource script and return the shape of the resource it reads.
         Repeated passes, not one: an alias assigned from another alias only resolves once its
         source has been registered, and AST enumeration order is not assignment order.
     #>
-    param([PSCustomObject]$Definition)
+    param([PSCustomObject]$Definition, [object[]]$SecondarySets = @())
 
     $ScriptText = Build-ScoutDeclarativeRowScript -Definition $Definition
     if ($Definition.AdditionalFilter) {
@@ -500,6 +636,17 @@ function Build-CollectorShape {
 
     $Root    = New-ShapeNode -Name 'resource'
     $Aliases = @{ $Definition.RowLoopVariable = $Root }
+
+    # A setup variable is seeded as its own ROOT, marked a collection, so that the existing
+    # pipeline machinery binds `$_` inside `$VNETLinks | Where-Object { ... }` to its element and
+    # accumulates the joined resource's shape there instead of discarding it as an unknown name.
+    $SecondaryRoots = [ordered]@{}
+    foreach ($Set in @($SecondarySets)) {
+        $Node = New-ShapeNode -Name $Set.Variable
+        $null = Get-ShapeElement -Node $Node
+        $SecondaryRoots[$Set.Variable] = $Node
+        $Aliases[$Set.Variable] = $Node
+    }
 
     for ($Pass = 0; $Pass -lt 6; $Pass++) {
         foreach ($Assign in $Ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
@@ -528,7 +675,7 @@ function Build-CollectorShape {
         Add-ShapeUsageFromPipelines -Ast $Ast -Aliases $Aliases
     }
 
-    return $Root
+    return [PSCustomObject]@{ Root = $Root; Secondary = $SecondaryRoots }
 }
 
 # --- Value synthesis --------------------------------------------------------------------------
@@ -603,7 +750,7 @@ function New-FixtureResource {
         [string]$ResourceType,
         [string]$Id,
         [string]$Name,
-        [hashtable]$Tags,
+        [System.Collections.IDictionary]$Tags,
         [string]$SubscriptionId
     )
 
@@ -683,6 +830,20 @@ function Resolve-FixtureFilter {
     return $Body
 }
 
+function Resolve-FixtureKey {
+    <#
+        The existing key that matches $Name case-insensitively, or $Name itself.
+
+        ARM payloads and this generator disagree on case -- a resource carries 'PROPERTIES' but a
+        join predicate is written `$_.Properties.targetResourceUri`. Adding a second key that
+        differs only in case produces JSON that ConvertFrom-Json rejects as a duplicate property,
+        so the write has to land on the key that is already there.
+    #>
+    param($Body, [string]$Name)
+    foreach ($Key in @($Body.Keys)) { if ($Key -ieq $Name) { return $Key } }
+    return $Name
+}
+
 function Set-FixtureValue {
     <# Assign a dotted path, creating intermediate objects. `$_.properties.description` is two deep. #>
     param($Body, [string]$Path, $Value)
@@ -690,13 +851,60 @@ function Set-FixtureValue {
     $Segments = @($Path -split '\.')
     $Cursor   = $Body
     for ($i = 0; $i -lt $Segments.Count - 1; $i++) {
-        $Segment = $Segments[$i]
+        $Segment = Resolve-FixtureKey -Body $Cursor -Name $Segments[$i]
         if (-not $Cursor.Contains($Segment) -or $Cursor[$Segment] -isnot [System.Collections.IDictionary]) {
             $Cursor[$Segment] = [ordered]@{}
         }
         $Cursor = $Cursor[$Segment]
     }
-    $Cursor[$Segments[-1]] = $Value
+    $Cursor[(Resolve-FixtureKey -Body $Cursor -Name $Segments[-1])] = $Value
+}
+
+function New-FixtureJoinedResource {
+    <#
+        One resource of a SECONDARY type, built to be found by the collector's own join predicate
+        for exactly one primary resource.
+
+        Its id is a CHILD path of the primary's, which is what both spellings in the estate need --
+        `-like ($1.id + '*')` (Networking/PrivateDNS) and `-like "$($1.id)/*"`
+        (Networking/NetworkWatchers) -- while still being a real ARM id with enough segments for the
+        fixed `.split('/')[8]` indexes downstream to resolve.
+    #>
+    param(
+        [PSCustomObject]$ShapeNode,
+        [string]$ResourceType,
+        [string]$PrimaryId,
+        [string]$Slug,
+        [string]$SubscriptionId,
+        [object[]]$Correlations,
+        $PrimaryBody
+    )
+
+    # The shape accumulated on the ELEMENT of the setup variable is the shape of one joined
+    # resource; the node itself is the collection.
+    $ItemNode = if ($null -ne $ShapeNode.Element) { $ShapeNode.Element } else { $ShapeNode }
+    $Body = ConvertTo-ShapeValue -Node $ItemNode
+    if ($Body -isnot [System.Collections.IDictionary]) { $Body = [ordered]@{} }
+
+    $Leaf = @($ResourceType -split '/')[-1]
+    $Body[(Resolve-FixtureKey -Body $Body -Name 'id')]             = "$PrimaryId/$Leaf/$Slug"
+    $Body[(Resolve-FixtureKey -Body $Body -Name 'NAME')]           = $Slug
+    $Body[(Resolve-FixtureKey -Body $Body -Name 'TYPE')]           = $ResourceType
+    $Body[(Resolve-FixtureKey -Body $Body -Name 'subscriptionId')] = $SubscriptionId
+    if (-not $Body.Contains((Resolve-FixtureKey -Body $Body -Name 'RESOURCEGROUP'))) { $Body['RESOURCEGROUP'] = 'rg-fixture-01' }
+    if (-not $Body.Contains((Resolve-FixtureKey -Body $Body -Name 'LOCATION')))      { $Body['LOCATION']      = 'eastus' }
+    if (-not $Body.Contains((Resolve-FixtureKey -Body $Body -Name 'PROPERTIES')))    { $Body['PROPERTIES']    = [ordered]@{} }
+    $Body[(Resolve-FixtureKey -Body $Body -Name 'tags')] = [ordered]@{}
+
+    foreach ($Pair in @($Correlations)) {
+        # The value comes from the PRIMARY resource that this partner is being built for, so the
+        # collector's own predicate is satisfied by construction rather than by luck.
+        $Key = Resolve-FixtureKey -Body $PrimaryBody -Name $Pair.RowMember
+        if (-not $PrimaryBody.Contains($Key)) { continue }
+        Set-FixtureValue -Body $Body -Path $Pair.PartnerPath -Value $PrimaryBody[$Key]
+    }
+
+    return $Body
 }
 
 $DefinitionDir = Join-Path $RepoRoot 'manifests' 'collectors' $Category
@@ -714,18 +922,32 @@ $Unsupported  = [System.Collections.Generic.List[object]]::new()
 $Unsupported.Add([ordered]@{ Id = 'svc-1'; RetiringFeature = 'Fixture Feature One'; RetirementDate = '2027-03-31' })
 $Unsupported.Add([ordered]@{ Id = 'svc-2'; RetiringFeature = 'Fixture Feature Two'; RetirementDate = '2028-06-30' })
 
+# [ordered], not @{}: a plain hashtable's enumeration order is not stable BETWEEN PROCESSES, so the
+# two-tag variant serialised its tags in a different order on most regenerations. Every category
+# fixture then showed a spurious diff, and -- worse -- the ORDER of the two tag rows a two-tag
+# resource expands into was not reproducible, which is the one thing a "the fixtures are current"
+# CI check cannot tolerate. Both paths read the same file, so this was never an equivalence
+# failure; it was an undetectable one.
 $Variants = @(
-    @{ Suffix = 'a'; Tags = @{ env = 'prod' };                    Sub = $script:SubscriptionId; Retire = 0 }
-    @{ Suffix = 'b'; Tags = @{ env = 'prod'; owner = 'platform' }; Sub = $script:SubscriptionId; Retire = 0 }
-    @{ Suffix = 'c'; Tags = @{};                                   Sub = $script:SubscriptionId; Retire = 0 }
-    @{ Suffix = 'd'; Tags = @{ env = 'dev' };                      Sub = '00000000-0000-0000-0000-0000000000ff'; Retire = 0 }
-    @{ Suffix = 'e'; Tags = @{ env = 'prod' };                     Sub = $script:SubscriptionId; Retire = 1 }
-    @{ Suffix = 'f'; Tags = @{ env = 'prod' };                     Sub = $script:SubscriptionId; Retire = 2 }
+    @{ Suffix = 'a'; Tags = [ordered]@{ env = 'prod' };                    Sub = $script:SubscriptionId; Retire = 0 }
+    @{ Suffix = 'b'; Tags = [ordered]@{ env = 'prod'; owner = 'platform' }; Sub = $script:SubscriptionId; Retire = 0 }
+    @{ Suffix = 'c'; Tags = [ordered]@{};                                   Sub = $script:SubscriptionId; Retire = 0 }
+    @{ Suffix = 'd'; Tags = [ordered]@{ env = 'dev' };                      Sub = '00000000-0000-0000-0000-0000000000ff'; Retire = 0 }
+    @{ Suffix = 'e'; Tags = [ordered]@{ env = 'prod' };                     Sub = $script:SubscriptionId; Retire = 1 }
+    @{ Suffix = 'f'; Tags = [ordered]@{ env = 'prod' };                     Sub = $script:SubscriptionId; Retire = 2 }
 )
 
 foreach ($File in (Get-ChildItem -LiteralPath $DefinitionDir -Filter '*.psd1' | Sort-Object Name)) {
-    $Definition = Get-ScoutCollectorDefinition -Path $File.FullName
-    $Shape      = Build-CollectorShape -Definition $Definition
+    $Definition     = Get-ScoutCollectorDefinition -Path $File.FullName
+    $SecondarySets  = @(Get-DefinitionSecondarySets -Definition $Definition)
+    $ShapeResult    = Build-CollectorShape -Definition $Definition -SecondarySets $SecondarySets
+    $Shape          = $ShapeResult.Root
+    $RowScriptText  = Build-ScoutDeclarativeRowScript -Definition $Definition
+    $Correlations   = @{}
+    foreach ($Set in $SecondarySets) {
+        $Correlations[$Set.Variable] = @(Get-JoinCorrelationPaths -ScriptText $RowScriptText `
+            -RowLoopVariable $Definition.RowLoopVariable -SetVariable $Set.Variable)
+    }
 
     $Resources = [System.Collections.Generic.List[object]]::new()
 
@@ -748,6 +970,26 @@ foreach ($File in (Get-ChildItem -LiteralPath $DefinitionDir -Filter '*.psd1' | 
                 -Id $Id -Name $Slug -Tags $Variant.Tags -SubscriptionId $Variant.Sub
 
             $Resources.Add($Resource)
+
+            # One joined resource per secondary type PER PRIMARY, not one per collector: the join
+            # predicate correlates on the primary's own id, so a single shared partner would match
+            # exactly one of the six variants and leave the other five reading the not-found
+            # sentinel. Variant 'c' is deliberately left WITHOUT a partner so the unmatched branch
+            # ('none', $false, $null) stays covered too -- that branch is what every one of these
+            # collectors did on every fixture before this existed, and it must not silently stop
+            # being tested.
+            if ($Variant.Suffix -ne 'c') {
+                foreach ($Set in $SecondarySets) {
+                    $SecondaryShape = $ShapeResult.Secondary[$Set.Variable]
+                    $JoinIndex = 0
+                    foreach ($JoinType in @($Set.ResourceTypes)) {
+                        $JoinIndex++
+                        $Resources.Add((New-FixtureJoinedResource -ShapeNode $SecondaryShape -ResourceType $JoinType `
+                            -PrimaryId $Id -Slug "$Slug-join$JoinIndex" -SubscriptionId $Variant.Sub `
+                            -Correlations $Correlations[$Set.Variable] -PrimaryBody $Resource))
+                    }
+                }
+            }
 
             if ($Variant.Retire -ge 1) { $Retirements.Add([ordered]@{ id = $Id; ServiceID = 'svc-1' }) }
             if ($Variant.Retire -ge 2) { $Retirements.Add([ordered]@{ id = $Id; ServiceID = 'svc-2' }) }

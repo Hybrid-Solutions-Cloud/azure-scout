@@ -91,8 +91,8 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.NetApp/netAppAccounts/netapp-t1b-1/capacityPools/netapp-t1b-2/volumes/netapp-t1b-3",
           "NAME": "netapp-t1b",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",

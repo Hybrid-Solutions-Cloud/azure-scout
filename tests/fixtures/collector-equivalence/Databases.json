@@ -294,8 +294,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.documentdb/databaseaccounts/cosmosdb-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "cosmosdb-t1b",
@@ -593,8 +593,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dbformariadb/servers/mariadb-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "mariadb-t1b",
@@ -824,8 +824,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dbformysql/servers/mysql-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "mysql-t1b",
@@ -1065,8 +1065,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforMySQL/flexibleServers/mysqlflexible-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "mysqlflexible-t1b",
@@ -1316,8 +1316,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dbforpostgresql/servers/postgre-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "postgre-t1b",
@@ -1514,11 +1514,11 @@
             "tier": "res-value",
             "name": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1a",
           "LOCATION": "res-value",
@@ -1560,12 +1560,12 @@
             "tier": "res-value",
             "name": "res-value"
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1b",
           "LOCATION": "res-value",
@@ -1607,9 +1607,9 @@
             "tier": "res-value",
             "name": "res-value"
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1c",
           "LOCATION": "res-value",
@@ -1651,11 +1651,11 @@
             "tier": "res-value",
             "name": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1d",
           "LOCATION": "res-value",
@@ -1697,11 +1697,11 @@
             "tier": "res-value",
             "name": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1e",
           "LOCATION": "res-value",
@@ -1743,11 +1743,11 @@
             "tier": "res-value",
             "name": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/postgreflexible-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "postgreflexible-t1f",
           "LOCATION": "res-value",
@@ -1867,8 +1867,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cache/redis/rediscache-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "rediscache-t1b",
@@ -1907,8 +1907,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cache/redisenterprise/rediscache-t2b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "rediscache-t2b",
@@ -2276,8 +2276,8 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sql/servers/sqldb-t1b-1/databases/sqldb-t1b-2",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "sqldb-t1b",
@@ -2448,8 +2448,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sql/managedInstances/sqlmi-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "privateEndpointConnections": [
             {
@@ -2653,8 +2653,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sql/managedinstances/sqlmidb-t1b-1/databases/sqlmidb-t1b-2",
           "NAME": "sqlmidb-t1b",
@@ -2804,8 +2804,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sql/servers/sqlpool-t1b-1/elasticPools/sqlpool-t1b-2",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "sqlpool-t1b",
@@ -2971,8 +2971,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sql/servers/sqlserver-t1b-1",
           "RESOURCEGROUP": "res-value",
@@ -3128,8 +3128,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "sqlvm-t1b",

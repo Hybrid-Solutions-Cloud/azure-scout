@@ -8,6 +8,30 @@
   ],
   "retirements": [
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/bastionhosts/bastionhosts-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -77,6 +101,66 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/natgateways/natgateway-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -165,6 +249,1286 @@
     }
   ],
   "collectors": {
+    "ApplicationGateways": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1a-1/ApplicationGatewayWebApplicationFirewallPolicies/applicationgateways-t1a-join1",
+          "NAME": "applicationgateways-t1a-join1",
+          "TYPE": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1b-1/ApplicationGatewayWebApplicationFirewallPolicies/applicationgateways-t1b-join1",
+          "NAME": "applicationgateways-t1b-join1",
+          "TYPE": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1d-1/ApplicationGatewayWebApplicationFirewallPolicies/applicationgateways-t1d-join1",
+          "NAME": "applicationgateways-t1d-join1",
+          "TYPE": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1e-1/ApplicationGatewayWebApplicationFirewallPolicies/applicationgateways-t1e-join1",
+          "NAME": "applicationgateways-t1e-join1",
+          "TYPE": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "autoscaleConfiguration": {
+              "maxCapacity": "res-value",
+              "minCapacity": "res-value"
+            },
+            "sslPolicy": {
+              "minProtocolVersion": "res-value"
+            },
+            "webApplicationFirewallConfiguration": {
+              "enabled": "res-value"
+            },
+            "backendAddressPools": {
+              "properties": {
+                "backendAddresses": "res-value"
+              },
+              "name": "res-value"
+            },
+            "OperationalState": "res-value",
+            "sku": {
+              "tier": "res-value",
+              "capacity": "res-value"
+            },
+            "frontendIPConfigurations": {
+              "name": "res-value"
+            },
+            "frontendports": {
+              "properties": {
+                "port": "res-value"
+              }
+            },
+            "gatewayIPConfigurations": {
+              "name": "res-value"
+            },
+            "httpListeners": {
+              "name": "res-value"
+            },
+            "RequestRoutingRules": {
+              "Name": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationgateways-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgateways"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgateways/applicationgateways-t1f-1/ApplicationGatewayWebApplicationFirewallPolicies/applicationgateways-t1f-join1",
+          "NAME": "applicationgateways-t1f-join1",
+          "TYPE": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
+    "AzureFirewall": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1a-1/firewallpolicies/azurefirewall-t1a-join1",
+          "NAME": "azurefirewall-t1a-join1",
+          "TYPE": "microsoft.network/firewallpolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "rulecollections": [
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              },
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              }
+            ],
+            "priority": "res-value"
+          },
+          "name": "azurefirewall-t1a-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1a-1/rulecollectiongroups/azurefirewall-t1a-join1",
+          "TYPE": "microsoft.network/firewallpolicies/rulecollectiongroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1a-1/ipgroups/azurefirewall-t1a-join1",
+          "NAME": "azurefirewall-t1a-join1",
+          "TYPE": "microsoft.network/ipgroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1b-1/firewallpolicies/azurefirewall-t1b-join1",
+          "NAME": "azurefirewall-t1b-join1",
+          "TYPE": "microsoft.network/firewallpolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "rulecollections": [
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              },
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              }
+            ],
+            "priority": "res-value"
+          },
+          "name": "azurefirewall-t1b-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1b-1/rulecollectiongroups/azurefirewall-t1b-join1",
+          "TYPE": "microsoft.network/firewallpolicies/rulecollectiongroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1b-1/ipgroups/azurefirewall-t1b-join1",
+          "NAME": "azurefirewall-t1b-join1",
+          "TYPE": "microsoft.network/ipgroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1d-1/firewallpolicies/azurefirewall-t1d-join1",
+          "NAME": "azurefirewall-t1d-join1",
+          "TYPE": "microsoft.network/firewallpolicies",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "rulecollections": [
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              },
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              }
+            ],
+            "priority": "res-value"
+          },
+          "name": "azurefirewall-t1d-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1d-1/rulecollectiongroups/azurefirewall-t1d-join1",
+          "TYPE": "microsoft.network/firewallpolicies/rulecollectiongroups",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1d-1/ipgroups/azurefirewall-t1d-join1",
+          "NAME": "azurefirewall-t1d-join1",
+          "TYPE": "microsoft.network/ipgroups",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1e-1/firewallpolicies/azurefirewall-t1e-join1",
+          "NAME": "azurefirewall-t1e-join1",
+          "TYPE": "microsoft.network/firewallpolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "rulecollections": [
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              },
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              }
+            ],
+            "priority": "res-value"
+          },
+          "name": "azurefirewall-t1e-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1e-1/rulecollectiongroups/azurefirewall-t1e-join1",
+          "TYPE": "microsoft.network/firewallpolicies/rulecollectiongroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1e-1/ipgroups/azurefirewall-t1e-join1",
+          "NAME": "azurefirewall-t1e-join1",
+          "TYPE": "microsoft.network/ipgroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "ipConfigurations": [
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              },
+              {
+                "name": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "privateIPAddress": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            ],
+            "threatintelmode": "res-value",
+            "firewallpolicy": {
+              "id": "res-value"
+            },
+            "sku": {
+              "tier": "res-value"
+            }
+          },
+          "zones": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurefirewall-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/azurefirewalls"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1/firewallpolicies/azurefirewall-t1f-join1",
+          "NAME": "azurefirewall-t1f-join1",
+          "TYPE": "microsoft.network/firewallpolicies",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "rulecollections": [
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              },
+              {
+                "rules": [
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  },
+                  {
+                    "ipprotocols": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "destinationports": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "sourceipgroups": "res-value",
+                    "sourceaddresses": "res-value",
+                    "destinationipgroups": "res-value",
+                    "destinationfqdns": "res-value",
+                    "destinationaddresses": "res-value",
+                    "ruletype": "res-value",
+                    "name": "res-value"
+                  }
+                ],
+                "name": "res-value",
+                "action": {
+                  "type": "res-value"
+                },
+                "priority": "res-value"
+              }
+            ],
+            "priority": "res-value"
+          },
+          "name": "azurefirewall-t1f-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1/rulecollectiongroups/azurefirewall-t1f-join1",
+          "TYPE": "microsoft.network/firewallpolicies/rulecollectiongroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/azurefirewalls/azurefirewall-t1f-1/ipgroups/azurefirewall-t1f-join1",
+          "NAME": "azurefirewall-t1f-join1",
+          "TYPE": "microsoft.network/ipgroups",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
     "BastionHosts": {
       "resources": [
         {
@@ -213,8 +1577,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/bastionhosts/bastionhosts-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "bastionhosts-t1b",
@@ -429,8 +1793,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/connections/connections-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "connections-t1b",
@@ -680,8 +2044,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/expressroutecircuits/expressroute-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "expressroute-t1b",
@@ -859,8 +2223,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoors/frontdoor-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "frontdoor-t1b",
@@ -1119,8 +2483,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/loadbalancers/loadbalancer-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "loadbalancer-t1b",
@@ -1416,8 +2780,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/natgateways/natgateway-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "natgateway-t1b",
@@ -1551,6 +2915,2144 @@
         }
       ]
     },
+    "NetworkInterface": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1a-1/publicipaddresses/networkinterface-t1a-join1",
+          "NAME": "networkinterface-t1a-join1",
+          "TYPE": "microsoft.network/publicipaddresses",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1b-1/publicipaddresses/networkinterface-t1b-join1",
+          "NAME": "networkinterface-t1b-join1",
+          "TYPE": "microsoft.network/publicipaddresses",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {
+            "env": "dev"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1d-1/publicipaddresses/networkinterface-t1d-join1",
+          "NAME": "networkinterface-t1d-join1",
+          "TYPE": "microsoft.network/publicipaddresses",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1e-1/publicipaddresses/networkinterface-t1e-join1",
+          "NAME": "networkinterface-t1e-join1",
+          "TYPE": "microsoft.network/publicipaddresses",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualmachine": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "privateendpoint": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "ipconfigurations": [
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "subnet": {
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  },
+                  "publicipaddress": {
+                    "id": "res-value"
+                  },
+                  "primary": "res-value",
+                  "privateipaddressversion": "res-value",
+                  "privateipaddress": "res-value",
+                  "privateipallocationmethod": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networksecuritygroup": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "dnssettings": {
+              "dnsservers": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "internaldomainnamesuffix": "res-value"
+            },
+            "enableacceleratednetworking": "res-value",
+            "enableipforwarding": "res-value",
+            "macaddress": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkinterface-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkinterfaces"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkinterfaces/networkinterface-t1f-1/publicipaddresses/networkinterface-t1f-join1",
+          "NAME": "networkinterface-t1f-join1",
+          "TYPE": "microsoft.network/publicipaddresses",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
+    "NetworkSecurityGroup": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1a-1/networkinterfaces/networksecuritygroup-t1a-join1",
+          "NAME": "networksecuritygroup-t1a-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "virtualmachineprofile": {
+              "networkprofile": {
+                "networkinterfaceconfigurations": {
+                  "properties": {
+                    "ipconfigurations": {
+                      "properties": {
+                        "subnet": {
+                          "id": "res-value"
+                        }
+                      }
+                    },
+                    "networksecuritygroup": {
+                      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1a-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1a-1/virtualmachinescalesets/networksecuritygroup-t1a-join1",
+          "NAME": "networksecuritygroup-t1a-join1",
+          "TYPE": "microsoft.compute/virtualmachinescalesets",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "targetResourceId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1a-1/flowlogs/networksecuritygroup-t1a-join1",
+          "NAME": "networksecuritygroup-t1a-join1",
+          "TYPE": "microsoft.network/networkwatchers/flowlogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1b-1/networkinterfaces/networksecuritygroup-t1b-join1",
+          "NAME": "networksecuritygroup-t1b-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "virtualmachineprofile": {
+              "networkprofile": {
+                "networkinterfaceconfigurations": {
+                  "properties": {
+                    "ipconfigurations": {
+                      "properties": {
+                        "subnet": {
+                          "id": "res-value"
+                        }
+                      }
+                    },
+                    "networksecuritygroup": {
+                      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1b-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1b-1/virtualmachinescalesets/networksecuritygroup-t1b-join1",
+          "NAME": "networksecuritygroup-t1b-join1",
+          "TYPE": "microsoft.compute/virtualmachinescalesets",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "targetResourceId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1b-1/flowlogs/networksecuritygroup-t1b-join1",
+          "NAME": "networksecuritygroup-t1b-join1",
+          "TYPE": "microsoft.network/networkwatchers/flowlogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1d-1/networkinterfaces/networksecuritygroup-t1d-join1",
+          "NAME": "networksecuritygroup-t1d-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "virtualmachineprofile": {
+              "networkprofile": {
+                "networkinterfaceconfigurations": {
+                  "properties": {
+                    "ipconfigurations": {
+                      "properties": {
+                        "subnet": {
+                          "id": "res-value"
+                        }
+                      }
+                    },
+                    "networksecuritygroup": {
+                      "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1d-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1d-1/virtualmachinescalesets/networksecuritygroup-t1d-join1",
+          "NAME": "networksecuritygroup-t1d-join1",
+          "TYPE": "microsoft.compute/virtualmachinescalesets",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "targetResourceId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1d-1/flowlogs/networksecuritygroup-t1d-join1",
+          "NAME": "networksecuritygroup-t1d-join1",
+          "TYPE": "microsoft.network/networkwatchers/flowlogs",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1/networkinterfaces/networksecuritygroup-t1e-join1",
+          "NAME": "networksecuritygroup-t1e-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "virtualmachineprofile": {
+              "networkprofile": {
+                "networkinterfaceconfigurations": {
+                  "properties": {
+                    "ipconfigurations": {
+                      "properties": {
+                        "subnet": {
+                          "id": "res-value"
+                        }
+                      }
+                    },
+                    "networksecuritygroup": {
+                      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1/virtualmachinescalesets/networksecuritygroup-t1e-join1",
+          "NAME": "networksecuritygroup-t1e-join1",
+          "TYPE": "microsoft.compute/virtualmachinescalesets",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "targetResourceId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1e-1/flowlogs/networksecuritygroup-t1e-join1",
+          "NAME": "networksecuritygroup-t1e-join1",
+          "TYPE": "microsoft.network/networkwatchers/flowlogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "securityRules": [
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              },
+              {
+                "properties": {
+                  "sourceAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourceAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "sourcePortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefixes": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationAddressPrefix": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRanges": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "destinationPortRange": [
+                    "res-item-0",
+                    "res-item-1"
+                  ],
+                  "direction": "res-value",
+                  "Access": "res-value",
+                  "priority": "res-value",
+                  "protocol": "res-value"
+                },
+                "name": "res-value"
+              }
+            ],
+            "networkInterfaces": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "id": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networksecuritygroup-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networksecuritygroups"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1/networkinterfaces/networksecuritygroup-t1f-join1",
+          "NAME": "networksecuritygroup-t1f-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "properties": {
+            "virtualmachineprofile": {
+              "networkprofile": {
+                "networkinterfaceconfigurations": {
+                  "properties": {
+                    "ipconfigurations": {
+                      "properties": {
+                        "subnet": {
+                          "id": "res-value"
+                        }
+                      }
+                    },
+                    "networksecuritygroup": {
+                      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1/virtualmachinescalesets/networksecuritygroup-t1f-join1",
+          "NAME": "networksecuritygroup-t1f-join1",
+          "TYPE": "microsoft.compute/virtualmachinescalesets",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "targetResourceId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecuritygroups/networksecuritygroup-t1f-1/flowlogs/networksecuritygroup-t1f-join1",
+          "NAME": "networksecuritygroup-t1f-join1",
+          "TYPE": "microsoft.network/networkwatchers/flowlogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        }
+      ]
+    },
+    "NetworkWatchers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "NAME": "networkwatchers-t1a-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1a-1/flowLogs/networkwatchers-t1a-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/flowLogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "NAME": "networkwatchers-t1a-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1a-1/connectionMonitors/networkwatchers-t1a-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/connectionMonitors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1a-1/packetCaptures/networkwatchers-t1a-join1",
+          "NAME": "networkwatchers-t1a-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/packetCaptures",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "NAME": "networkwatchers-t1b-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1b-1/flowLogs/networkwatchers-t1b-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/flowLogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "NAME": "networkwatchers-t1b-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1b-1/connectionMonitors/networkwatchers-t1b-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/connectionMonitors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1b-1/packetCaptures/networkwatchers-t1b-join1",
+          "NAME": "networkwatchers-t1b-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/packetCaptures",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {
+            "env": "dev"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "NAME": "networkwatchers-t1d-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1d-1/flowLogs/networkwatchers-t1d-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/flowLogs",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "NAME": "networkwatchers-t1d-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1d-1/connectionMonitors/networkwatchers-t1d-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/connectionMonitors",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1d-1/packetCaptures/networkwatchers-t1d-join1",
+          "NAME": "networkwatchers-t1d-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/packetCaptures",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "NAME": "networkwatchers-t1e-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1e-1/flowLogs/networkwatchers-t1e-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/flowLogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "NAME": "networkwatchers-t1e-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1e-1/connectionMonitors/networkwatchers-t1e-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/connectionMonitors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1e-1/packetCaptures/networkwatchers-t1e-join1",
+          "NAME": "networkwatchers-t1e-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/packetCaptures",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "networkwatchers-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/networkwatchers"
+        },
+        {
+          "NAME": "networkwatchers-t1f-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1/flowLogs/networkwatchers-t1f-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/flowLogs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "NAME": "networkwatchers-t1f-join1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1/connectionMonitors/networkwatchers-t1f-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/connectionMonitors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networkwatchers/networkwatchers-t1f-1/packetCaptures/networkwatchers-t1f-join1",
+          "NAME": "networkwatchers-t1f-join1",
+          "TYPE": "Microsoft.Network/networkWatchers/packetCaptures",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
+    "PrivateDNS": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1a-1/virtualnetworklinks/privatedns-t1a-join1",
+          "properties": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            }
+          },
+          "NAME": "privatedns-t1a-join1",
+          "TYPE": "microsoft.network/privatednszones/virtualnetworklinks",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1b-1/virtualnetworklinks/privatedns-t1b-join1",
+          "properties": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            }
+          },
+          "NAME": "privatedns-t1b-join1",
+          "TYPE": "microsoft.network/privatednszones/virtualnetworklinks",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1d-1/virtualnetworklinks/privatedns-t1d-join1",
+          "properties": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            }
+          },
+          "NAME": "privatedns-t1d-join1",
+          "TYPE": "microsoft.network/privatednszones/virtualnetworklinks",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1e-1/virtualnetworklinks/privatedns-t1e-join1",
+          "properties": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            }
+          },
+          "NAME": "privatedns-t1e-join1",
+          "TYPE": "microsoft.network/privatednszones/virtualnetworklinks",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "numberOfRecordSets": "res-value",
+            "numberOfVirtualNetworkLinks": "res-value",
+            "numberOfVirtualNetworkLinksWithRegistration": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privatedns-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privatednszones"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1f-1/virtualnetworklinks/privatedns-t1f-join1",
+          "properties": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            }
+          },
+          "NAME": "privatedns-t1f-join1",
+          "TYPE": "microsoft.network/privatednszones/virtualnetworklinks",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        }
+      ]
+    },
+    "PrivateEndpoint": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1a-1/networkinterfaces/privateendpoint-t1a-join1",
+          "NAME": "privateendpoint-t1a-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1b-1/networkinterfaces/privateendpoint-t1b-join1",
+          "NAME": "privateendpoint-t1b-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {
+            "env": "dev"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1d-1/networkinterfaces/privateendpoint-t1d-join1",
+          "NAME": "privateendpoint-t1d-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1e-1/networkinterfaces/privateendpoint-t1e-join1",
+          "NAME": "privateendpoint-t1e-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "subnet": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+            },
+            "customDnsConfigs": {
+              "ipAddresses": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "fqdn": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "networkInterfaces": {
+              "id": "res-value"
+            },
+            "privateLinkServiceConnections": {
+              "name": "res-value",
+              "properties": {
+                "privateLinkServiceConnectionState": {
+                  "status": "res-value"
+                },
+                "groupids": "res-value",
+                "privatelinkserviceid": "res-value"
+              }
+            }
+          },
+          "tags": {
+            "env": "prod"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "privateendpoint-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/privateendpoints"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privateendpoints/privateendpoint-t1f-1/networkinterfaces/privateendpoint-t1f-join1",
+          "NAME": "privateendpoint-t1f-join1",
+          "TYPE": "microsoft.network/networkinterfaces",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
     "PublicDNS": {
       "resources": [
         {
@@ -1580,8 +5082,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/dnszones/publicdns-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "publicdns-t1b",
@@ -1725,8 +5227,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routetables/routetables-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "routetables-t1b",
@@ -1924,8 +5426,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/trafficmanagerprofiles/trafficmanager-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "trafficmanager-t1b",
@@ -2108,11 +5610,11 @@
             },
             "enableDdosProtection": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1a-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1a-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1a",
           "LOCATION": "res-value",
@@ -2196,12 +5698,12 @@
             },
             "enableDdosProtection": "res-value"
           },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1b-1",
-          "tags": {
-            "owner": "platform",
-            "env": "prod"
-          },
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1b",
           "LOCATION": "res-value",
@@ -2285,9 +5787,9 @@
             },
             "enableDdosProtection": "res-value"
           },
+          "tags": {},
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1c-1",
-          "tags": {},
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1c",
           "LOCATION": "res-value",
@@ -2371,11 +5873,11 @@
             },
             "enableDdosProtection": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1d-1",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1d-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1d",
           "LOCATION": "res-value",
@@ -2459,11 +5961,11 @@
             },
             "enableDdosProtection": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1e-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1e-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1e",
           "LOCATION": "res-value",
@@ -2547,11 +6049,11 @@
             },
             "enableDdosProtection": "res-value"
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1f-1",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/virtualnetwork-t1f-1",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetwork-t1f",
           "LOCATION": "res-value",
@@ -2710,8 +6212,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworkgateways/virtualnetworkgateways-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualnetworkgateways-t1b",
@@ -3147,8 +6649,8 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/vnetpeering-t1b-1",
           "RESOURCEGROUP": "res-value",

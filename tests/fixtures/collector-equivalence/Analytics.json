@@ -56,6 +56,18 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.synapse/workspaces/synapse-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -166,8 +178,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.databricks/workspaces/databricks-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "databricks-t1b",
@@ -421,8 +433,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kusto/clusters/dataexplorercluster-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "dataexplorercluster-t1b",
@@ -620,8 +632,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/namespaces/evthub-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "evthub-t1b",
@@ -795,8 +807,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.purview/accounts/purview-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "purview-t1b",
@@ -939,6 +951,269 @@
         }
       ]
     },
+    "Streamanalytics": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1a-1/clusters/streamanalytics-t1a-join1",
+          "NAME": "streamanalytics-t1a-join1",
+          "TYPE": "microsoft.streamanalytics/clusters",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1b-1/clusters/streamanalytics-t1b-join1",
+          "NAME": "streamanalytics-t1b-join1",
+          "TYPE": "microsoft.streamanalytics/clusters",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1d-1/clusters/streamanalytics-t1d-join1",
+          "NAME": "streamanalytics-t1d-join1",
+          "TYPE": "microsoft.streamanalytics/clusters",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1e-1/clusters/streamanalytics-t1e-join1",
+          "NAME": "streamanalytics-t1e-join1",
+          "TYPE": "microsoft.streamanalytics/clusters",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "cluster": {
+              "id": "res-value"
+            },
+            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
+            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "sku": {
+              "name": "res-value"
+            },
+            "compatibilityLevel": "res-value",
+            "jobstorageaccount": {
+              "accountname": "res-value",
+              "authenticationmode": "res-value"
+            },
+            "contentStoragePolicy": "res-value",
+            "dataLocale": "res-value",
+            "eventsLateArrivalMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderMaxDelayInSeconds": "res-value",
+            "eventsOutOfOrderPolicy": "res-value",
+            "jobState": "res-value",
+            "jobType": "res-value",
+            "outputErrorPolicy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "streamanalytics-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.streamanalytics/streamingjobs"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.streamanalytics/streamingjobs/streamanalytics-t1f-1/clusters/streamanalytics-t1f-join1",
+          "NAME": "streamanalytics-t1f-join1",
+          "TYPE": "microsoft.streamanalytics/clusters",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
     "Synapse": {
       "resources": [
         {
@@ -998,8 +1273,8 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.synapse/workspaces/synapse-t1b-1",
           "tags": {
-            "owner": "platform",
-            "env": "prod"
+            "env": "prod",
+            "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
           "NAME": "synapse-t1b",

@@ -181,6 +181,69 @@ graduates from escape hatch to declarative the same way every PureShaping one di
 join/live-call logic factored so a human can confirm the schema's primitives now cover it, which
 is future work, not a gap in this decision.
 
+### 2.4.1 `SetupPreamble` / `SetupVariables` — a cross-resource join is not a reason for the escape hatch (AB#5659)
+
+§2.4 above says the escape hatch is for collectors "doing real work (cross-resource joins, live
+`Get-Az*`/`Invoke-AzRestMethod` calls)". That grouped two very different things, and the
+conversion work under AB#5659 separated them.
+
+A **live call** reaches outside the data the pipeline holds. Nothing the schema can express will
+bring `Invoke-AzRestMethod` back, and a definition that dropped it would silently ship a report
+with fewer columns of truth. Same for a collector with **no `$Resources` filter at all** (its row
+set comes from `$Sub`, or from a second graph query), and for the two **unimplemented-contract**
+Identity collectors. Those three reasons still disqualify a collector, and
+`tests/DeclarativeCollectorEquivalence.Tests.ps1` asserts per reason that none of them acquires a
+definition.
+
+A **cross-resource join**, in this estate, is something else entirely:
+
+```powershell
+$PrivateDNS = $Resources | Where-Object { $_.TYPE -eq 'microsoft.network/privatednszones' }
+$VNETLinks  = $Resources | Where-Object { $_.TYPE -eq '...privatednszones/virtualnetworklinks' }
+foreach ($1 in $PrivateDNS) { $vnlks = $VNETLinks | Where-Object { $_.id -like ($1.id + '*') } ... }
+```
+
+Both sides come out of `$Resources`. That is data-shaping over data the pipeline already has —
+the *only* thing it needed that the schema lacked was somewhere to put statements that run
+**once**, before the row loop. Hence two keys:
+
+- **`SetupPreamble`** — the contiguous, verbatim source of the Processing branch's top-level
+  statements above the row loop.
+- **`SetupVariables`** — the names that setup exports into the row scope.
+
+The names are **declared, not harvested** from the executed scope. Harvesting would also sweep up
+`$_`, `$args`, `$input` and every other automatic; and, worse, a preamble that stopped assigning a
+variable would silently stop binding it — the same class of quiet fallback that shipped a blank
+column and a silently empty worksheet. Instead the interpreter appends a `Get-Variable` per
+declared name to the lifted source, reads the `PSVariable` objects back out of the invocation's
+output stream, and **throws** if any declared name is missing. `Get-ScoutCollectorDefinition`
+additionally rejects each key without the other at load time, because a `SetupPreamble` whose
+output reaches nothing is dead code that reads as if it were doing something.
+
+Running the setup once rather than folding it into the row `Preamble` is not only tidiness: the
+row preamble runs per resource, so `Networking/NetworkInterface` would re-scan every public IP in
+the estate once per NIC.
+
+`$Resources` is also bound into the **row** scope, unconditionally. `Networking/NetworkWatchers`
+derives its three sub-resource sets *inside* the row loop rather than hoisting them, and lifting
+those statements without `$Resources` in scope produced three empty columns — the join has to be
+reproduced where the original put it, including its cost.
+
+**14 of the 20 join collectors are converted and proven row-for-row.** The six that are not are
+listed with reasons in `tests/DeclarativeCollectorCoverage.Tests.ps1`: three carry an
+`Invoke-AzRestMethod` as well as the join; `Compute/AVDAzureLocal` iterates a set *synthesised*
+with `Add-Member` rather than a resource-type filter; and `Management/AutomationAccounts` and
+`Networking/VirtualWAN` have conditional loop **depth**, so their row *count* is conditional —
+the same obstacle as `Networking/PublicIP` (§2.4), and one a single `Fields` list plus a fixed
+loop nest genuinely cannot express.
+
+**Honest limit.** Equivalence is proven on the generated estate for all 14, but the estate only
+*exercises* the join itself for five of them: for the other nine the join partners are present and
+both paths agree, yet the collector's own predicate matches none of them, so the joined columns
+are proven only in their not-found state. That is a fixture limitation, not a conversion defect,
+and it is pinned per collector with the specific predicate that defeats the generator — a test
+fails if an entry becomes stale, so the list can only get shorter.
+
 ### 2.5 `Export.TagColumnsBefore` and `ResourceTypes` ordering — two things the equivalence proof forced into the schema
 
 Both were found by `tests/DeclarativeCollectorEquivalence.Tests.ps1` (§4), not by review, and
@@ -389,6 +452,11 @@ subscription absent from `$Sub`; one retirement; two retirements (the many-branc
 fold every collector copy-pastes). Types are emitted round-robin, not grouped, so the fixture can
 *disprove* rather than accommodate a wrong `ResourceTypeMatching` (§2.5).
 
+**Result (AB#5659, second wave):** 138 of the 176 collectors have a definition — the 124
+pure-shaping ones plus the 14 join collectors §2.4.1 describes. Of the 38 that remain, 32 reach
+outside `$Resources` (live call, no resource filter, or unimplemented contract) and six are listed
+in `tests/DeclarativeCollectorCoverage.Tests.ps1` with a specific reason.
+
 **Result:** 124 of the 176 collectors have a definition and every one of them is pinned, both
 `Processing` (row by row, key by key) and `Reporting` (cell by cell, under both `-IncludeTags` states).
 Four PureShaping collectors are deliberately left imperative, listed with their reasons in
@@ -405,6 +473,37 @@ is a visible edit rather than a silent omission):
 The same limits as §4 apply, plus one specific to generation: the values are semantically meaningless
 (`res-value` where a real estate has `Standard_LRS`), so this proves the two implementations agree on
 the paths the collector reads — not that either is correct about a real tenant.
+
+### 4.2 The cheap structural gate (AB#5661)
+
+The equivalence proof executes both paths for every definition and writes real `.xlsx` files. It is
+the strongest check and the slowest one, and it does not catch everything: a definition that has
+**drifted** from its collector still passes whenever the drift happens to be behaviour-preserving
+on the fixture. `manifests/collectors/Compute/AvailabilitySets.psd1` sat in exactly that state for
+a release — the collector had been hardened for StrictMode (AB#5671) and the definition had not,
+and because the interpreter runs with StrictMode off the stale expression and the new one agreed
+on every fixture row.
+
+`scripts/Test-ScoutCollectorDefinition.ps1` is the structural gate that runs first, as its own CI
+step so a violation is annotated on the offending `.psd1` in the PR diff. Seven checks:
+
+| # | Check | The failure it prevents |
+|---|---|---|
+| 1 | Loads and satisfies the schema | Anything `Get-ScoutCollectorDefinition` rejects — unknown `ResourceTypeMatching`, duplicate `Field` names, a `TagColumnsBefore` naming no column, a `Setup`/`Filter` preamble with nothing to feed |
+| 2 | The **generated row script** parses | A field whose source is an `if`/`else` **statement** made the whole script unparseable, leaving every field of ten collectors silently unreachable |
+| 3 | Every preamble parses on its own | A truncated lift |
+| 4 | Every `Export` column resolves to a `Field` | `Select-Object` does not require the property to exist, so a mismatch ships as a permanently blank column. **Five are pre-existing shipped bugs** and are allow-listed by name with a reason; a sixth fails the build, and a fixed one also fails, so the list only shortens |
+| 5 | Every `SetupVariable` is assigned by the `SetupPreamble` | Checked statically, so the failure names the file rather than throwing inside a collector |
+| 6 | `SourceCollector` exists | Nothing records what the definition was lifted from |
+| 7 | Regenerating from `SourceCollector` reproduces the file byte for byte | **Drift** — the collector edited, the definition not, the two paths quietly running different source |
+
+`tests/CollectorDefinitionSchema.Tests.ps1` proves each check actually fires by running the real
+script against a throwaway tree containing one deliberately broken definition per failure mode. A
+gate nobody has watched fail is not a gate.
+
+Check 7 is why the definitions are treated as **generated artefacts, regenerated rather than
+hand-patched**: the tool `scripts/ConvertTo-ScoutCollectorDefinition.ps1` reproduces all 138 of
+them exactly, which is the property that makes drift detectable at all.
 
 ## 5. Alternatives rejected
 

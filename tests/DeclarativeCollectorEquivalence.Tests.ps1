@@ -341,20 +341,66 @@ Describe 'Declarative collector definitions — coverage' {
         }
     }
 
-    It 'reports HasDeclarativeDefinition = $false for the escape-hatch collectors, which is not a defect' {
-        # The ADR's position (§2.4) is that NOT having a .psd1 IS the escape hatch. So this asserts the
-        # inverse of the coverage check below: no collector the audit classified as needing an escape
-        # hatch may acquire a definition, because that definition would necessarily have dropped its
-        # join or its live call.
+    It 'reports HasDeclarativeDefinition = $false for every collector that leaves the data (<Reason>)' -ForEach @(
+        @{ Reason = 'LiveCmdletCall' }
+        @{ Reason = 'NoResourcesFilter' }
+        @{ Reason = 'UnimplementedContract' }
+    ) {
+        # The ADR's position (§2.4) is that NOT having a .psd1 IS the escape hatch, and this asserts
+        # the inverse of the coverage check below: a collector that cannot be expressed must not
+        # acquire a definition, because that definition would necessarily have dropped something.
+        #
+        # WHICH reasons disqualify a collector NARROWED in AB#5659, and the distinction is the whole
+        # point of the schema's setup section. The audit records four reasons; three of them mean the
+        # collector reaches OUTSIDE `$Resources` -- a live Az cmdlet, a row set built from something
+        # other than a resource-type filter, or an API that was never implemented -- and no amount of
+        # declarative schema can express that. The fourth, CrossResourceJoin, means only that the
+        # collector filters `$Resources` a second time for a DIFFERENT type and correlates against
+        # the result. That is data-shaping over data the pipeline already has; it needed somewhere to
+        # put the once-per-run statements, which is `SetupPreamble`/`SetupVariables`, and 14 of the
+        # 20 such collectors are now converted and proven row-for-row.
+        #
+        # So the assertion is per REASON rather than per Classification. A collector carrying a
+        # disqualifying reason still may not have a definition; one carrying only CrossResourceJoin
+        # may. Asserted with -ForEach so a regression names the reason that was violated.
         $Audit = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'tests/fixtures/collector-audit.json') -Raw | ConvertFrom-Json
-        $Escape = @($Audit | Where-Object { $_.Classification -ne 'PureShaping' })
-        @($Escape).Count | Should -BeGreaterThan 0
+        $Blocked = @($Audit | Where-Object {
+            $_.Classification -ne 'PureShaping' -and
+            @($_.EscapeHatchReasons | Where-Object { $_ -like "$Reason*" }).Count -gt 0
+        })
+        @($Blocked).Count | Should -BeGreaterThan 0 -Because "the audit must still record at least one $Reason collector"
 
         $Found = @(Get-ScoutCollector -InventoryRoot (Join-Path $script:RepoRoot 'Modules/Public/InventoryModules'))
-        foreach ($Entry in $Escape) {
+        foreach ($Entry in $Blocked) {
             $Descriptor = @($Found | Where-Object { $_.Name -eq $Entry.Name -and $_.FolderCategory -eq $Entry.Category })
             @($Descriptor).Count | Should -Be 1 -Because "the audit and discovery must agree that $($Entry.Category)/$($Entry.Name) exists"
-            $Descriptor[0].HasDeclarativeDefinition | Should -BeFalse -Because "$($Entry.Category)/$($Entry.Name) is $($Entry.EscapeHatchReasons -join '/') and cannot be expressed declaratively"
+            $Descriptor[0].HasDeclarativeDefinition | Should -BeFalse -Because "$($Entry.Category)/$($Entry.Name) is $($Entry.EscapeHatchReasons -join '/') -- it reads data the definition schema cannot reach, so a .psd1 for it would have silently dropped that read"
+        }
+    }
+
+    It 'converts a CrossResourceJoin collector only when the join is its ONLY obstacle' {
+        # The other half of the narrowing above, so "CrossResourceJoin is convertible" cannot quietly
+        # become "CrossResourceJoin is ignorable": Compute/VirtualMachine, Compute/VMOperationalData
+        # and Hybrid/ArcServerOperationalData all carry a join AND an Invoke-AzRestMethod, and all
+        # three must stay imperative.
+        $Audit = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'tests/fixtures/collector-audit.json') -Raw | ConvertFrom-Json
+        $JoinOnly = @($Audit | Where-Object {
+            $_.Classification -ne 'PureShaping' -and
+            @($_.EscapeHatchReasons).Count -gt 0 -and
+            @($_.EscapeHatchReasons | Where-Object { $_ -notlike 'CrossResourceJoin*' }).Count -eq 0
+        })
+        @($JoinOnly).Count | Should -BeGreaterThan 0
+
+        $Converted = @($JoinOnly | Where-Object {
+            Test-Path -LiteralPath (Join-Path $script:RepoRoot "manifests/collectors/$($_.Category)/$($_.Name).psd1")
+        })
+        # Every converted one must declare the setup section that carries the join, or it converted
+        # by dropping it.
+        foreach ($Entry in $Converted) {
+            $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$($Entry.Category)/$($Entry.Name).psd1")
+            $HasJoin = (-not [string]::IsNullOrWhiteSpace($Definition.SetupPreamble)) -or
+                       ($Definition.Preamble -match '(?i)\$Resources')
+            $HasJoin | Should -BeTrue -Because "$($Entry.Category)/$($Entry.Name) is a join collector, so its definition must either hoist the joined set into SetupPreamble or read `$Resources in its row Preamble -- a definition with neither has dropped the join"
         }
     }
 }

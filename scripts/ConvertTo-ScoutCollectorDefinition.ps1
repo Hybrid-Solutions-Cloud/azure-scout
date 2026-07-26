@@ -137,15 +137,60 @@ $Category = Split-Path -Leaf (Split-Path -Parent $FullPath)
 $Blocks = Get-ProcessingAndReportingBlocks -Ast $Ast
 if (-not $Blocks.Processing) { throw "Could not find the '`$Task -eq ''Processing''' branch in $FullPath -- is this a Standard-contract collector?" }
 
+# --- The per-row loop, found FIRST ----------------------------------------------------------------
+#
+# `$tmp = foreach ($1 in <var>) { ... $obj = @{...} ... }`. Its own iteration variable is what field
+# expressions are written against, whatever it is actually called ($1, $0, ...) -- captured so the
+# interpreter knows which name to bind.
+#
+# It is located BEFORE the resource-type extraction, not after, because WHICH variable it iterates is
+# what identifies the collector's PRIMARY resource set. 20 collectors filter `$Resources` more than
+# once at the top of their Processing branch -- a primary set to iterate plus one or more secondary
+# sets to correlate against:
+#
+#     $PrivateDNS = $Resources | Where-Object { $_.TYPE -eq 'microsoft.network/privatednszones' }
+#     $VNETLinks  = $Resources | Where-Object { $_.TYPE -eq '...privatednszones/virtualnetworklinks' }
+#     foreach ($1 in $PrivateDNS) { ... }
+#
+# Treating every filtered assignment as a row source (which this tool used to) would declare
+# virtualnetworklinks as a second ResourceType and emit a row for each one -- a sheet with twice the
+# rows it should have. Worse, for Web/APPServicePlan the SECONDARY filter carries the compound
+# `-and $_.Properties.enabled -eq 'true'`, which would have been lifted as the row set's
+# AdditionalFilter and silently dropped every app service plan in the estate.
+$ForEachLoops = @($Blocks.Processing.FindAll({ param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst] }, $true))
+$RowLoop = $ForEachLoops | Where-Object {
+    @($_.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true)).Count -gt 0
+} | Select-Object -First 1
+if (-not $RowLoop) { throw "$FullPath -- no per-row `foreach` loop building `$obj` was found." }
+$RowLoopVarName = $RowLoop.Variable.VariablePath.UserPath
+
+$RowSourceNode = Get-InnerExpr -Node $RowLoop.Condition
+$RowSourceVar = if ($RowSourceNode -is [System.Management.Automation.Language.VariableExpressionAst]) {
+    $RowSourceNode.VariablePath.UserPath
+} else {
+    throw "$FullPath -- the row loop iterates '$($RowLoop.Condition.Extent.Text)' rather than a variable holding a filtered `$Resources` set; this collector's shape is not recognised."
+}
+
+# The top-level statement that CONTAINS the row loop -- almost always `if ($X) { $tmp = foreach ... }`.
+# Everything before it is the collector's once-per-run setup; everything from it onwards is per-row.
+# The boundary is needed this early because "is this filtered assignment a hoisted secondary set?"
+# is exactly the question "does it sit before this statement?" -- Networking/NetworkWatchers derives
+# three filtered sets INSIDE its row loop, and counting those as hoisted produced a SetupPreamble
+# holding nothing but the primary filter: dead code, which the loader is right to reject.
+$RowLoopOwner = @($Blocks.Processing.Statements | Where-Object {
+    $_.Extent.StartOffset -le $RowLoop.Extent.StartOffset -and $_.Extent.EndOffset -ge $RowLoop.Extent.EndOffset
+})[0]
+if (-not $RowLoopOwner) { throw "$FullPath -- the row loop is not contained in any top-level statement of the Processing branch; this collector's shape is not recognised." }
+
 # --- Resource type filter -----------------------------------------------------------------------
 
 $Assignments = $Blocks.Processing.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)
 $FilterVarNames = [System.Collections.Generic.List[string]]::new()
 $ResourceTypes  = [System.Collections.Generic.List[string]]::new()
 $AdditionalFilterText = $null
-$RowLoopVarName = $null
 $FilterAssignmentCount = 0
 $FirstFilterAssignment = $null
+$SecondaryFilterVars = [System.Collections.Generic.List[string]]::new()
 
 foreach ($Assign in $Assignments) {
     if ($Assign.Left -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
@@ -169,6 +214,17 @@ foreach ($Assign in $Assignments) {
         $n.Member.Value -ieq 'TYPE'
     }, $true))
     if ($TypeReads.Count -eq 0) { continue }
+
+    # A filtered set that is NOT what the row loop iterates is a SECONDARY set: it goes into the
+    # setup section verbatim and contributes neither a ResourceType nor an AdditionalFilter.
+    if ($VarName -ine $RowSourceVar) {
+        # ...but only if it is HOISTED. A filtered set derived inside the row loop stays in the row
+        # Preamble, where the interpreter's bound $Resources serves it.
+        if ($Assign.Extent.StartOffset -lt $RowLoopOwner.Extent.StartOffset -and $SecondaryFilterVars -notcontains $VarName) {
+            [void]$SecondaryFilterVars.Add($VarName)
+        }
+        continue
+    }
 
     $Strings = @($ScriptBlockParam.FindAll({ param($n) $n -is [System.Management.Automation.Language.StringConstantExpressionAst] }, $true))
     $Types = @($Strings | Where-Object { $_.Value -match '^[a-zA-Z0-9.]+/[a-zA-Z0-9./]+$' } | ForEach-Object { $_.Value })
@@ -208,21 +264,58 @@ if ($AdditionalFilterText -and $FirstFilterAssignment) {
     }
 }
 
-if ($ResourceTypes.Count -eq 0) { throw "$FullPath -- no `$Resources | Where-Object { `$_.TYPE -eq ... } filter found. This looks like an escape-hatch collector (live cmdlet call or no resource filter); it is not a candidate for automatic conversion." }
+if ($ResourceTypes.Count -eq 0) { throw "$FullPath -- no `$Resources | Where-Object { `$_.TYPE -eq ... } filter found for the row loop's source `$$RowSourceVar. This looks like an escape-hatch collector (live cmdlet call or no resource filter); it is not a candidate for automatic conversion." }
 
-# The per-row loop: `$tmp = foreach ($1 in <var>) { ... $obj = @{...} ... }`. Its own iteration
-# variable is what field expressions are written against, whatever it is actually called ($1,
-# $0, etc.) -- captured so the interpreter knows which name to bind.
-$ForEachLoops = @($Blocks.Processing.FindAll({ param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst] }, $true))
-$RowLoop = $ForEachLoops | Where-Object {
-    @($_.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true)).Count -gt 0
-} | Select-Object -First 1
-if (-not $RowLoop) { throw "$FullPath -- no per-row `foreach` loop building `$obj` was found." }
-$RowLoopVarName = $RowLoop.Variable.VariablePath.UserPath
+# --- Setup section: the once-per-run statements above the row loop --------------------------------
+#
+# Lifted ONLY when the collector derives a secondary resource set -- the shape the audit calls
+# 'CrossResourceJoin'. Without that, the only statement above the row loop is the primary filter the
+# interpreter already performs itself, and carrying it would be dead code the loader rejects. This
+# is why the 124 definitions converted before this key existed regenerate byte-identically.
+#
+# The range is CONTIGUOUS and verbatim, from the first top-level statement to the last one before the
+# statement that contains the row loop, rather than a hand-picked subset: the secondary filters are
+# interleaved with the primary one in source order (Management/AutomationAccounts declares its
+# runbooks set FIRST), and several collectors compute an intermediate the secondary sets depend on.
+$SetupPreamble  = ''
+$SetupVariables = [System.Collections.Generic.List[string]]::new()
+if (@($SecondaryFilterVars).Count -gt 0) {
+    $SetupStatements = @($Blocks.Processing.Statements | Where-Object { $_.Extent.StartOffset -lt $RowLoopOwner.Extent.StartOffset })
+    if (@($SetupStatements).Count -gt 0) {
+        $SetupPreamble = $Ast.Extent.Text.Substring(
+            $SetupStatements[0].Extent.StartOffset,
+            $SetupStatements[-1].Extent.EndOffset - $SetupStatements[0].Extent.StartOffset)
 
-# Join detection itself lives in Invoke-CollectorAudit.ps1 (AB#5658) -- this tool is only ever
-# meant to run against collectors the audit already classified PureShaping, so a genuine
-# cross-resource join should never reach here. It is not re-detected a second time.
+        # Every name assigned anywhere in that range, including inside an `if` block --
+        # Compute/AVDAzureLocal builds its combined set across four of them. `if` does not open a
+        # scope in PowerShell, so those assignments are locals of the setup script just the same.
+        foreach ($Statement in $SetupStatements) {
+            foreach ($Assign in $Statement.FindAll({
+                param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+                          $n.Left -is [System.Management.Automation.Language.VariableExpressionAst]
+            }, $true)) {
+                # An assignment inside a `Where-Object {...}` or `ForEach-Object {...}` body is a
+                # local of THAT scriptblock, not of the setup scope, and declaring it would make the
+                # interpreter's "SetupPreamble never assigned this" check throw on a healthy
+                # definition.
+                $InScriptBlock = $false
+                $Parent = $Assign.Parent
+                while ($null -ne $Parent -and $Parent -ne $Statement) {
+                    if ($Parent -is [System.Management.Automation.Language.ScriptBlockExpressionAst]) { $InScriptBlock = $true; break }
+                    $Parent = $Parent.Parent
+                }
+                if ($InScriptBlock) { continue }
+
+                $AssignedName = $Assign.Left.VariablePath.UserPath
+                if ($SetupVariables -notcontains $AssignedName) { [void]$SetupVariables.Add($AssignedName) }
+            }
+        }
+    }
+}
+
+# Join detection itself lives in Invoke-CollectorAudit.ps1 (AB#5658). A CrossResourceJoin against a
+# set derived from $Resources is expressible (it becomes the setup section above); a join against a
+# LIVE call is not, and the audit's LiveCmdletCall reason is what still disqualifies a collector.
 
 # --- Row expansion: the nest of foreach loops from the resource down to the tag loop -------------
 #
@@ -449,6 +542,8 @@ $Definition = [ordered]@{
     AdditionalFilter    = $AdditionalFilterText
     FilterPreamble      = $FilterPreamble
     RowLoopVariable     = $RowLoopVarName
+    SetupPreamble       = $SetupPreamble
+    SetupVariables      = @($SetupVariables)
     Preamble            = $Preamble
     AdditionalRowLoops  = @($AdditionalRowLoops | ForEach-Object { [ordered]@{ Variable = $_.Variable; Source = $_.Source; Preamble = $_.Preamble } })
     TagLoop             = if ($TagLoop) { [ordered]@{ Variable = $TagLoop.Variable; Source = $TagLoop.Source; Preamble = $TagLoop.Preamble } } else { $null }
@@ -468,6 +563,15 @@ $Definition = [ordered]@{
 $Psd1Text = "@{`n" + (($Definition.GetEnumerator() | ForEach-Object {
     if ($_.Key -eq 'FilterPreamble' -and -not [string]::IsNullOrWhiteSpace($_.Value)) {
         "    FilterPreamble = @'`n$($_.Value)`n'@"
+    } elseif ($_.Key -eq 'SetupPreamble' -and -not [string]::IsNullOrWhiteSpace($_.Value)) {
+        "    SetupPreamble = @'`n$($_.Value)`n'@"
+    } elseif ($_.Key -eq 'SetupPreamble') {
+        # Omitted entirely rather than written as '': the loader treats an empty SetupPreamble with
+        # a non-empty SetupVariables as an error, and a pair of always-empty keys on 124 files is
+        # noise that hides the 15 where the section is load-bearing.
+        $null
+    } elseif ($_.Key -eq 'SetupVariables' -and @($_.Value).Count -eq 0) {
+        $null
     } elseif ($_.Key -eq 'Preamble') {
         # A here-string, not ConvertTo-Psd1Literal's normal single-quoted escaping -- preamble
         # source commonly contains its own single AND double quotes, and a here-string needs no
@@ -476,7 +580,7 @@ $Psd1Text = "@{`n" + (($Definition.GetEnumerator() | ForEach-Object {
     } else {
         "    $($_.Key) = $(ConvertTo-Psd1Literal -Value $_.Value -Indent 1)"
     }
-}) -join "`n`n") + "`n}`n"
+} | Where-Object { $null -ne $_ }) -join "`n`n") + "`n}`n"
 
 $Header = @"
 #

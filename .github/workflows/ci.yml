@@ -40,6 +40,19 @@ jobs:
           Write-Host 'Installing ImportExcel (Excel report tests exercise this dependency)...'
           Install-Module ImportExcel -Force -Scope CurrentUser
 
+      - name: Validate declarative collector definitions
+        shell: pwsh
+        run: |
+          # AB#5661. Fails the build if any .psd1 under manifests/collectors is malformed, names an
+          # Export column no Field produces, declares a SetupVariable its SetupPreamble never
+          # assigns, or has DRIFTED from the collector it was generated from.
+          #
+          # BEFORE the Pester step, deliberately: these are structural faults that make the
+          # equivalence suite either fail confusingly or -- worse -- pass while the report ships a
+          # blank column. Failing here names the .psd1 and the reason on the file in the PR diff.
+          # tests/CollectorDefinitionSchema.Tests.ps1 runs the same script so the gate fires locally.
+          ./scripts/Test-ScoutCollectorDefinition.ps1
+
       - name: Run Pester test suite
         shell: pwsh
         run: |
