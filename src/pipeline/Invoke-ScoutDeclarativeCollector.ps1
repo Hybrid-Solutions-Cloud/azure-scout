@@ -19,8 +19,9 @@ $ErrorActionPreference = 'Stop'
 
         <Preamble, verbatim>
         foreach ($<AdditionalRowLoop.Variable> in <AdditionalRowLoop.Source>) {   # 0 or more, nested
-            foreach ($Tag in $Tags) {
-                @{ '<Field.Name>' = (<Field.Expression>); ... }
+            <AdditionalRowLoop.Preamble, verbatim>
+            foreach ($<TagLoop.Variable> in <TagLoop.Source>) {                   # omitted when TagLoop is $null
+                @{ '<Field.Name>' = <Field.Expression>; ... }
                 if ($ResUCount -eq 1) { $ResUCount = 0 }
             }
         }
@@ -72,15 +73,52 @@ function Build-ScoutDeclarativeRowScript {
     <# Compose the per-resource script text described in the function help above. #>
     param([PSCustomObject]$Definition)
 
+    # Expressions are emitted UNWRAPPED, exactly as the original collector's own `$obj = @{ ... }`
+    # hashtable literal wrote them. Two separate reasons, each of which broke a real collector when
+    # the first draft wrapped them in `( ... )`:
+    #
+    #   * A field's source text is not always an EXPRESSION. `Containers/ARO.ps1` and
+    #     `Containers/ContainerRegistries.ps1` (among others) write a field as a multi-line
+    #     `if (...) { ... } else { ... }` STATEMENT. A hashtable literal accepts a statement as a
+    #     value; `( ... )` accepts only a pipeline, so `('Name' = (if (...) ...))` is a PARSE error
+    #     -- "The term 'if' is not recognized as a name of a cmdlet". Every field of every such
+    #     collector was unreachable.
+    #   * `$( ... )` is not a safe substitute either: a subexpression collects the output STREAM,
+    #     so `$(@(1))` is the scalar 1 and `$(@())` is `$null`, where the original produced a
+    #     one-element array and an empty array respectively. Silently changing the shape of an
+    #     array-valued field ('Zone' and friends) is exactly the class of difference the
+    #     equivalence proof exists to catch.
+    #
+    # Not wrapping at all is therefore both the compatible AND the faithful choice: the interpreter
+    # reproduces the original hashtable literal, character for character, per field.
     $FieldLines = (@($Definition.Fields) | ForEach-Object {
         $QuotedName = $_.Name -replace "'", "''"
-        "        '$QuotedName' = ($($_.Expression))"
+        "        '$QuotedName' = $($_.Expression)"
     }) -join "`n"
+
+    # Each extra loop may carry its OWN preamble -- the statements the original collector runs once
+    # per item of the fanned-out collection, before it starts emitting rows for that item. Without
+    # this, `Security/Vault.ps1` (which derives its three permission strings per access policy) and
+    # `Networking/NATGateway.ps1` and `Networking/VirtualNetwork.ps1` (per subnet) silently produced
+    # $null for every field computed inside the loop, where the original produced ''. The row-level
+    # Preamble cannot cover it: those statements depend on the loop variable, which does not exist
+    # yet when the row preamble runs.
+    # The tag loop is the LAST entry of the loop nest, not a fixed frame around the row -- 25
+    # collectors have no tag loop at all and RouteTables calls its variable $TagKey, so both the
+    # existence and the naming come from the definition.
+    $Nest = [System.Collections.Generic.List[object]]::new()
+    foreach ($Loop in @($Definition.AdditionalRowLoops)) { $Nest.Add($Loop) }
+    if ($Definition.TagLoop) { $Nest.Add($Definition.TagLoop) }
 
     $OpenLoops  = ''
     $CloseLoops = ''
-    foreach ($Loop in @($Definition.AdditionalRowLoops)) {
+    foreach ($Loop in $Nest) {
         $OpenLoops  += "foreach (`$$($Loop.Variable) in $($Loop.Source)) {`n"
+        # Get-ScoutCollectorDefinition normalises every entry to Variable/Source/Preamble, so the
+        # key is always present here even when the original loop body had no setup statements.
+        if (-not [string]::IsNullOrWhiteSpace($Loop.Preamble)) {
+            $OpenLoops += "$($Loop.Preamble)`n"
+        }
         $CloseLoops  = "}`n" + $CloseLoops
     }
 
@@ -88,12 +126,10 @@ function Build-ScoutDeclarativeRowScript {
 $($Definition.Preamble)
 
 $OpenLoops
-foreach (`$Tag in `$Tags) {
     @{
 $FieldLines
     }
     if (`$ResUCount -eq 1) { `$ResUCount = 0 }
-}
 $CloseLoops
 "@
 }
@@ -113,24 +149,40 @@ function Invoke-ScoutDeclarativeProcessing {
     $Retirements  = $Context['Retirements']
     $Unsupported  = $Context['Unsupported']
 
-    # Matched resources are grouped BY DECLARED TYPE, in the order ResourceTypes lists them, and
-    # keep their original relative order within each type. That is not cosmetic: a multi-type
-    # collector builds its set by appending one filtered pass per type --
+    # ROW ORDER IS THE SHEET'S ORDER, and how a multi-type collector builds its resource set decides
+    # it. There are two shapes in the estate and they are NOT interchangeable:
     #
-    #     $RedisCache  = $Resources | Where-Object { $_.TYPE -eq 'microsoft.cache/redis' }
-    #     $RedisCache += $Resources | Where-Object { $_.TYPE -eq 'microsoft.cache/redisenterprise' }
+    #   'Grouped'    -- one filtered pass per type, appended:
+    #                     $RedisCache  = $Resources | Where-Object { $_.TYPE -eq 'microsoft.cache/redis' }
+    #                     $RedisCache += $Resources | Where-Object { $_.TYPE -eq 'microsoft.cache/redisenterprise' }
+    #                   Every redis row precedes every redisenterprise row however the two interleave
+    #                   in $Resources.
+    #   'SinglePass'  -- ONE pass whose condition admits several types:
+    #                     $arcSites = $Resources | Where-Object { $_.TYPE -in @('microsoft.azurestackhci/sites', ...) }
+    #                   Rows come out in $Resources order, types interleaved.
     #
-    # -- so every redis row precedes every redisenterprise row regardless of how the two are
-    # interleaved in $Resources. A single `-contains` pass over $Resources instead preserves the
-    # arrival order, which silently reorders the rows (and therefore the worksheet) whenever the
-    # estate interleaves the types. Single-type collectors -- 12 of the 13 Databases ones -- are
-    # unaffected either way, since one group in $Resources order IS $Resources order.
-    $Matched = @(foreach ($Type in @($Definition.ResourceTypes)) {
-        $Resources | Where-Object { $_.TYPE -eq $Type }
-    })
+    # `Hybrid/ArcSites.ps1` is the second shape, and interpreting it as the first reordered its
+    # worksheet -- caught by the equivalence proof, which is why the mode is declared per collector
+    # instead of assumed. For a single-type collector the two are identical.
+    $Matched = if ($Definition.ResourceTypeMatching -eq 'SinglePass') {
+        @($Resources | Where-Object { @($Definition.ResourceTypes) -contains $_.TYPE })
+    } else {
+        @(foreach ($Type in @($Definition.ResourceTypes)) {
+            $Resources | Where-Object { $_.TYPE -eq $Type }
+        })
+    }
 
     if ($Definition.AdditionalFilter) {
-        $ExtraFilter = [scriptblock]::Create($Definition.AdditionalFilter)
+        # The filter may need locals the Processing branch set up before it -- `AI/AppliedAIServices.ps1`
+        # tests `$appliedAIKinds -contains $_.KIND` against an array literal defined two lines earlier.
+        # FilterPreamble carries those statements verbatim, prepended INSIDE the Where-Object block:
+        # assignments emit nothing, so the block's only output is still the condition itself.
+        $FilterText = if ([string]::IsNullOrWhiteSpace($Definition.FilterPreamble)) {
+            $Definition.AdditionalFilter
+        } else {
+            "$($Definition.FilterPreamble)`n$($Definition.AdditionalFilter)"
+        }
+        $ExtraFilter = [scriptblock]::Create($FilterText)
         $Matched = @($Matched | Where-Object $ExtraFilter)
     }
 

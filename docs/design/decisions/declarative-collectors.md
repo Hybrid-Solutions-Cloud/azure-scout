@@ -21,7 +21,9 @@ A definition has five sections:
 ```powershell
 @{
     ResourceTypes      = @('microsoft.sql/servers/databases')   # $_.TYPE values to keep
+    ResourceTypeMatching = 'Grouped'                             # 'Grouped' | 'SinglePass' (§2.5)
     AdditionalFilter   = '$_.name -ne ''master'''                # optional compound condition, ANDed in
+    FilterPreamble     = ''                                      # statements the filter needs (§2.6)
     RowLoopVariable    = '1'                                     # the name the original file's row loop used ($1, $0, ...)
     Preamble           = @'
 $ResUCount = 1
@@ -32,7 +34,9 @@ $PoolId = if (![string]::IsNullOrEmpty($data.elasticPoolId)) { $data.elasticPool
 ... every per-resource setup statement, VERBATIM, in original order ...
 $Tags = if (![string]::IsNullOrEmpty($1.tags.psobject.properties)) { $1.tags.psobject.properties } else { '0' }
 '@
-    AdditionalRowLoops = @()          # rare: extra per-resource fan-out BEFORE the tag loop (see §2.3)
+    AdditionalRowLoops = @()          # extra per-resource fan-out BEFORE the tag loop, each with its
+                                      # own Preamble (see §2.3)
+    TagLoop = @{ Variable = 'Tag'; Source = '$Tags'; Preamble = '' }   # $null = no tag expansion (§2.7)
     Fields = @(
         @{ Name = 'ID';               Expression = '$1.id' }
         @{ Name = 'Subscription';     Expression = '$sub1.Name' }
@@ -119,7 +123,7 @@ can lift a field's expression **verbatim** from the AST of the original file —
 same expression runs against a byte-for-byte equivalent scope, which is what makes the equivalence
 proof in AB#5659 meaningful rather than coincidental.
 
-### 2.3 `AdditionalRowLoops` — the one further primitive the audit's shape needed
+### 2.3 `AdditionalRowLoops` — the row-expansion nest, one level at a time
 
 `Databases/SQLMIDB.ps1` and `Databases/SQLSERVER.ps1` each fan a resource out over its
 private-endpoint connections (or a single `NONE` sentinel row when it has none) **before** the
@@ -129,9 +133,31 @@ Rather than special-case it, the schema generalises: `AdditionalRowLoops` is an 
 variable name the `Preamble` already computed (`$pvteps`, in both cases) — the collection-building
 logic itself stays in the preamble, verbatim, like everything else; `AdditionalRowLoops` only
 declares the extra loop structure the interpreter needs to run. The other 11 Databases collectors
-declare it as `@()`. This
-is the only genuinely new primitive the schema needed beyond what every collector already does —
-everything else in the 128 PureShaping collectors reduces to filter + preamble + fields + export.
+declare it as `@()`.
+
+**Each loop level carries its OWN `Preamble`** — added during the category-by-category conversion
+(AB#5659), and not an optional nicety. A collector's row loop is a chain, and *every* level of it has
+setup statements:
+
+```powershell
+foreach ($1 in $VirtualNetwork) {          # row loop
+    $data = $1.PROPERTIES ...             #   -> Preamble
+    foreach ($2 in $data.subnets) {       #   -> AdditionalRowLoops[0]
+        $ConsumedIPs = ...; $Prefix = ... #        -> AdditionalRowLoops[0].Preamble
+        foreach ($Tag in $Tags) { $obj = @{ ... } }
+    }
+}
+```
+
+Capturing only the row level's preamble — the first implementation — silently produced `$null` for
+every local a fan-out loop computed: `Security/Vault.ps1` lost all three of its permission columns,
+`Networking/NATGateway.ps1` lost its public-IP columns, and `Networking/VirtualNetwork.ps1` lost the
+whole subnet prefix/available-IP calculation. The row-level preamble cannot cover them, because they
+read the loop variable, which does not exist yet when the row preamble runs.
+
+The loop chain plus the tag loop (§2.7) is the only genuinely new structural primitive the schema
+needed — everything else in the PureShaping collectors reduces to filter + per-level preamble +
+fields + export.
 
 ### 2.4 The escape hatch: stay a hand-written `.ps1`, unconverted
 
@@ -182,10 +208,78 @@ $RedisCache += $Resources | Where-Object { $_.TYPE -eq 'microsoft.cache/redisent
 so every `redis` row precedes every `redisenterprise` row no matter how the two interleave in
 `$Resources`. Interpreting `ResourceTypes` as a single `-contains` membership test over
 `$Resources` instead preserves *arrival* order, reordering the rows — and therefore the
-worksheet — for any estate that interleaves them. The interpreter matches per declared type, in
-declared order, keeping the original relative order within each. For the 12 single-type Databases
+worksheet — for any estate that interleaves them. For the 12 single-type Databases
 collectors the two are identical, which is exactly why this went unnoticed until the fixture was
 built to interleave them deliberately.
+
+**…and BOTH shapes exist in the estate, so the mode is declared, not inferred.** The wider conversion
+(AB#5659) found the opposite pattern in `Hybrid/ArcSites.ps1`:
+
+```powershell
+$arcSites = $Resources | Where-Object {
+    $_.TYPE -in @('microsoft.azurestackhci/sites', 'microsoft.edgeconfig/sites', 'microsoft.hybridcompute/sites')
+}
+```
+
+One pass, so rows come out in `$Resources` order with the three types interleaved. Applying the
+grouped interpretation to it reordered its worksheet — the same bug as the original, in the other
+direction. `ResourceTypeMatching` therefore records which shape the collector has (`'Grouped'` for
+the `+=` form, `'SinglePass'` for this one; the converter derives it from whether the resource set was
+built by one filtered assignment or several), and `Get-ScoutCollectorDefinition` **rejects** any other
+value rather than falling back to a default. For a single-type collector the two modes are identical.
+
+### 2.6 `FilterPreamble` — a compound filter's own local variables
+
+`AdditionalFilter` is lifted verbatim, and verbatim text can reference a local the Processing branch
+set up before the filter ran. `AI/AppliedAIServices.ps1`:
+
+```powershell
+$appliedAIKinds = @('FormRecognizer', 'ComputerVision', ...)
+$appliedAI = $Resources | Where-Object {
+    $_.TYPE -eq 'microsoft.cognitiveservices/accounts' -and $appliedAIKinds -contains $_.KIND
+}
+```
+
+Without those statements the filter's `$appliedAIKinds` is `$null`, `-contains` is false for every
+resource, and the collector matches **nothing** — a definition that loads, validates, runs, and
+silently produces an empty worksheet. `FilterPreamble` carries the statements verbatim and the
+interpreter prepends them inside the `Where-Object` block (assignments emit nothing, so the block's
+only output is still the condition). A `FilterPreamble` with no `AdditionalFilter` is a load-time
+error: it can only mean the filter was lost.
+
+### 2.7 `TagLoop` — the tag expansion is declared, because it is neither universal nor consistently named
+
+The audit called per-tag row expansion "effectively universal". Converting the other 14 categories
+showed it is not:
+
+- **25 collectors have no tag loop at all** — all 15 convertible `Identity` ones, most of `Management`,
+  and `Monitor/Outages`. They emit exactly one row per resource and their `$obj` has no Tag columns.
+- **`Networking/RouteTables.ps1` calls its tag variable `$TagKey`**, not `$Tag`.
+
+An interpreter that always wraps the row in `foreach ($Tag in $Tags)` gets the second one silently
+wrong (every Tag column resolves to `$null`, because `$TagKey` is what the fields read) and cannot
+express the first at all. `TagLoop` is therefore an explicit `{ Variable; Source; Preamble }` — or
+`$null` for "no tag expansion". Omitting the key entirely keeps the historic
+`foreach ($Tag in $Tags)` default, so the pilot definitions' behaviour is unchanged by the key
+existing.
+
+The same discovery applies to the export side: **10 Monitor collectors process `Tag Name` and
+`Tag Value` but never export them** — their Reporting branch has no `if ($InTag)` block whatsoever. The
+converter's original "default to the two standard names when none are found" therefore added two
+columns to those sheets under `-IncludeTags` that no shipped release has ever contained. `TagColumns`
+is now emitted as `@()` when the original adds none.
+
+### 2.8 A field expression is not always an expression
+
+The first interpreter wrapped each field as `'Name' = (<Expression>)`. That is a **parse error** for
+any collector whose field is a multi-line `if (...) { ... } else { ... }` — `Containers/ARO.ps1` and
+`Containers/ContainerRegistries.ps1` among others — because `( ... )` accepts a pipeline, not a
+statement: *"The term 'if' is not recognized as a name of a cmdlet"*, and every field of that
+collector was unreachable. `$( ... )` is not a safe substitute either: a subexpression collects the
+output *stream*, so `$(@(1))` is the scalar `1` and `$(@())` is `$null` where the original produced a
+one-element and an empty array. The interpreter now emits the expression **unwrapped**, exactly as the
+original `$obj = @{ ... }` hashtable literal wrote it — which a hashtable value accepts, statement or
+not, and which is also the faithful choice.
 
 ## 3. Consequences
 
@@ -246,6 +340,55 @@ mock carries (an unexpected null, a differently-cased type string, a tag collect
 unforeseen shape) is out of its reach. Recorded live fixtures are AB#5667's job; when they land,
 this test should be re-run against them before the live pipeline is cut over to the declarative
 interpreter.
+
+### 4.1 Scaling the proof to the other 14 categories (AB#5659)
+
+The pilot fixture is hand-authored. Hand-authoring one for **111 further collectors** — ~19 fields each,
+often three levels deep inside `properties` — is not realistic, and the per-category mock estates in
+`tests/*.Module.Tests.ps1` populate only the handful of properties those tests assert on, which makes
+them worse than useless here: a collector whose properties are absent emits a row of nulls on *both*
+paths and compares equal. **A vacuous pass is the failure mode this proof has to avoid.**
+
+So the estate for the remaining categories is **generated from the definitions themselves**
+(`scripts/New-ScoutCollectorFixture.ps1`, output `tests/fixtures/collector-equivalence/<Category>.json`).
+It walks the AST of the same per-resource script the interpreter builds — preamble, per-loop preambles,
+filter and every field expression — resolves every property path reached from the collector's own row
+variable (through assignment chains, `foreach` variables, array indexing, member enumeration, and `$_`
+inside a piped script block), and synthesises a resource with exactly those paths populated. That
+inverts the usual risk: a hand-written fixture tends to under-populate, whereas one derived from the
+expressions cannot, because every path the collector reads is present by construction.
+
+Leaf *values* are inferred from how each path is used (`.split('/')` → a 16-segment slash-delimited
+string, `[int]`/arithmetic → a number, `[datetime]`/`get-date` → an ISO timestamp, `@(...)`/`.count`/
+`foreach` → an array). That is not cosmetic tidiness: **if a field expression throws, the two paths do
+not fail the same way.** The interpreter's row is a single `@{ ... }` statement, so a throw emits
+nothing; the original assigns `$obj` and then writes it, so a throw leaves the *previous* iteration's
+`$obj` in scope and the collector emits a duplicate row. A fixture that provokes a throw reports a real
+difference that is a property of the legacy code rather than of the conversion — which is also why each
+collector is fed only its **own** generated resources rather than one estate shared across a category.
+
+Six variants per declared resource type exercise the cases equivalence turns on: one tag; two tags
+(row expansion and the `$ResUCount` 1→0 transition); no tags (the `$Tags = '0'` fallback); a
+subscription absent from `$Sub`; one retirement; two retirements (the many-branch of the retirement
+fold every collector copy-pastes). Types are emitted round-robin, not grouped, so the fixture can
+*disprove* rather than accommodate a wrong `ResourceTypeMatching` (§2.5).
+
+**Result:** 124 of the 176 collectors have a definition and every one of them is pinned, both
+`Processing` (row by row, key by key) and `Reporting` (cell by cell, under both `-IncludeTags` states).
+Four PureShaping collectors are deliberately left imperative, listed with their reasons in
+`tests/DeclarativeCollectorEquivalence.Tests.ps1` (held as test data, so shortening the converted set
+is a visible edit rather than a silent omission):
+
+| Collector | Why it stays imperative |
+|---|---|
+| `Management/AllSubscriptions` | Its row loop iterates `$Sub`, not a filtered `$Resources` set — there is no resource-type filter for the interpreter to drive. |
+| `Management/AdvisorScore` | Its `$obj` is built inside a nested `if`/`else`, so there is no single row-emitting level to lift. |
+| `Networking/PublicIP` | **Two** `$obj` literals in opposite branches of an `if`/`else`: the row *shape* is conditional, and a `Fields` list is one shape. |
+| `Monitor/Outages` | **Audit misclassification.** It builds columns via `New-Object -Com HTMLFile` and reads `$Html.body.innerText` — not pure shaping at all. The audit only searched for `Get-Az*`/`Invoke-*`, so a COM dependency was invisible to it. |
+
+The same limits as §4 apply, plus one specific to generation: the values are semantically meaningless
+(`res-value` where a real estate has `Standard_LRS`), so this proves the two implementations agree on
+the paths the collector reads — not that either is correct about a real tenant.
 
 ## 5. Alternatives rejected
 
