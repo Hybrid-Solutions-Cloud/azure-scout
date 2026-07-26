@@ -32,6 +32,14 @@
                           wrapped expressions the entire generated script failed to parse -- every
                           field of ten collectors silently unreachable, with no error anywhere.
       3. PREAMBLES     -- SetupPreamble, FilterPreamble and every loop Preamble parse on their own.
+      4b. WORKSHEET    -- Export.WorksheetName is unique across ALL definitions (case-insensitively,
+                          as Excel compares them), is within Excel's 31-character limit, and holds
+                          none of Excel's illegal characters. Uniqueness is the one property that
+                          cannot be judged from a single definition. A collision is not cosmetic:
+                          the second Export-Excel call writes into the first collector's sheet, so
+                          the report ships one worksheet holding two collectors' rows under one
+                          collector's headers. An over-long name fails at RENDER time, after a full
+                          collection run has already been paid for.
       4. COLUMNS       -- every Export.Columns and Export.TagColumns entry is a declared Field name.
                           A mismatch is a permanently blank column, because `Select-Object` does not
                           require the property to exist. FIVE such columns are pre-existing shipped
@@ -151,6 +159,17 @@ $Files = @(Get-ChildItem -LiteralPath $DefinitionRoot -Filter '*.psd1' -Recurse 
 $SeenBlank = [System.Collections.Generic.HashSet[string]]::new()
 $Checked   = 0
 
+# Worksheet names are collected ACROSS files and judged after the loop -- uniqueness is the one
+# property of a definition that cannot be decided by looking at that definition alone.
+$WorksheetOwners = @{}
+
+# Excel's own limits, not ours. A name longer than 31 characters or containing any of these
+# characters is rejected by the workbook format itself, so Export-Excel either throws deep inside
+# EPPlus or silently truncates -- at RENDER time, after a full collection run has already been paid
+# for. AB#5661 requires the build to fail instead.
+$script:ExcelSheetNameLimit    = 31
+$script:ExcelSheetNameIllegal  = [char[]]@('\', '/', '?', '*', '[', ']', ':')
+
 foreach ($File in $Files) {
     $Checked++
     $Category = Split-Path -Leaf (Split-Path -Parent $File.FullName)
@@ -209,6 +228,27 @@ foreach ($File in $Files) {
         Add-Violation -Path $Relative -Message "Export references the column '$Column', which no Field produces. Select-Object does not require the property to exist, so this would ship as a permanently BLANK column rather than as an error. Rename the Field or the column; if it is a pre-existing bug being carried deliberately, add it to the allow-list in scripts/Test-ScoutCollectorDefinition.ps1 WITH a reason."
     }
 
+    # --- 4b. WORKSHEET NAME ------------------------------------------------------------------
+    $Worksheet = [string]$Definition.Export.WorksheetName
+    if ($Worksheet.Length -gt $script:ExcelSheetNameLimit) {
+        Add-Violation -Path $Relative -Message "Export.WorksheetName '$Worksheet' is $($Worksheet.Length) characters; Excel's hard limit is $($script:ExcelSheetNameLimit). Export-Excel fails or truncates at RENDER time, after a full collection run has already been paid for."
+    }
+    foreach ($Char in $script:ExcelSheetNameIllegal) {
+        if ($Worksheet.Contains($Char)) {
+            Add-Violation -Path $Relative -Message "Export.WorksheetName '$Worksheet' contains '$Char', which Excel does not allow in a sheet name."
+            break
+        }
+    }
+    # Case-INSENSITIVE, because that is how Excel compares sheet names: a workbook cannot hold both
+    # 'Public IP' and 'Public IP'. Two definitions claiming one sheet is not a warning -- the second
+    # Export-Excel call appends to, or overwrites, the first collector's worksheet, and the report
+    # silently ships one sheet holding two collectors' rows under one collector's column headers.
+    $WorksheetKey = $Worksheet.ToLowerInvariant()
+    if (-not $WorksheetOwners.ContainsKey($WorksheetKey)) {
+        $WorksheetOwners[$WorksheetKey] = [System.Collections.Generic.List[string]]::new()
+    }
+    $WorksheetOwners[$WorksheetKey].Add("$Category/$Name")
+
     # --- 5. SETUP VARS -----------------------------------------------------------------------
     if (@($Definition.SetupVariables).Count -gt 0) {
         $SetupAst = [System.Management.Automation.Language.Parser]::ParseInput($Definition.SetupPreamble, [ref]$null, [ref]$null)
@@ -251,6 +291,12 @@ foreach ($File in $Files) {
     }
 }
 
+# Uniqueness, decided once every definition has been seen.
+foreach ($Entry in $WorksheetOwners.GetEnumerator()) {
+    if ($Entry.Value.Count -le 1) { continue }
+    Add-Violation -Path '' -Message "$($Entry.Value.Count) definitions claim the same Excel worksheet name -- $($Entry.Value -join ', '). Excel compares sheet names case-insensitively and a workbook cannot hold two, so the second Export-Excel writes into the first collector's sheet and the report ships one worksheet holding two collectors' rows under one collector's headers."
+}
+
 # The other half of check 4: an allow-listed blank column that is no longer blank. Without this the
 # list rots into a description of bugs that were fixed two releases ago, and the next person reads
 # it as five live defects.
@@ -262,7 +308,13 @@ if (-not $SkipAllowListStaleCheck) {
 Write-Host "[AzureScout] Collector definition validation (AB#5661): checked $Checked definition(s) under $DefinitionRoot; $($script:KnownBlankColumns.Count) allow-listed blank column(s), $($SeenBlank.Count) still present."
 
 foreach ($Violation in $Violations) {
-    Write-Host "::error file=$($Violation.Path)::$($Violation.Message)"
+    # A cross-file violation (a worksheet-name collision) belongs to no single file, and
+    # `::error file=::` with an empty path is a malformed annotation GitHub silently drops.
+    if ([string]::IsNullOrWhiteSpace($Violation.Path)) {
+        Write-Host "::error::$($Violation.Message)"
+    } else {
+        Write-Host "::error file=$($Violation.Path)::$($Violation.Message)"
+    }
 }
 foreach ($Entry in $Stale) {
     Write-Host "::error::scripts/Test-ScoutCollectorDefinition.ps1 allow-lists a blank '$($Entry.Column)' column on $($Entry.Category)/$($Entry.Name), but that column now resolves to a Field. Delete the entry -- the list is only allowed to get shorter (AB#5661)."

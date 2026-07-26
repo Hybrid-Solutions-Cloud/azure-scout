@@ -182,6 +182,38 @@ RowLoopVariable = '1'
         $Result.Output   | Should -Match 'dollar sign'
     }
 
+    It 'fails a worksheet name longer than Excel''s 31-character limit' {
+        # AB#5661 acceptance criterion: over-length worksheet names must FAIL THE BUILD rather than
+        # warn at render time. Export-Excel hits this inside EPPlus, after a full collection run.
+        $Result = New-BrokenDefinitionTree -Body ($script:ValidBody -replace "WorksheetName = 'Probe'", "WorksheetName = 'A Worksheet Name That Is Far Too Long For Excel'")
+        $Result.ExitCode | Should -Be 1
+        $Result.Output   | Should -Match '31'
+    }
+
+    It 'fails a worksheet name containing a character Excel does not allow' {
+        $Result = New-BrokenDefinitionTree -Body ($script:ValidBody -replace "WorksheetName = 'Probe'", "WorksheetName = 'Probe/Sheet'")
+        $Result.ExitCode | Should -Be 1
+        $Result.Output   | Should -Match 'does not allow'
+    }
+
+    It 'fails two definitions that claim the same worksheet name' {
+        # The other AB#5661 criterion, and the only check that cannot be decided from one file.
+        # Case differs deliberately: Excel compares sheet names case-insensitively, so 'Probe' and
+        # 'PROBE' collide and a naive ordinal comparison would miss it.
+        $Root = Join-Path $script:Sandbox ([guid]::NewGuid().ToString('N'))
+        $null = New-Item -ItemType Directory -Path (Join-Path $Root 'Probe') -Force
+        Set-Content -LiteralPath (Join-Path $Root 'Probe/One.psd1') -Value $script:ValidBody -Encoding utf8
+        Set-Content -LiteralPath (Join-Path $Root 'Probe/Two.psd1') -Encoding utf8 `
+            -Value ($script:ValidBody -replace "WorksheetName = 'Probe'", "WorksheetName = 'PROBE'")
+
+        $Output = & pwsh -NoProfile -File $script:Validator -DefinitionRoot $Root `
+            -SkipDriftCheck -SkipAllowListStaleCheck 2>&1 | Out-String
+        $LASTEXITCODE | Should -Be 1
+        $Output | Should -Match 'same Excel worksheet name'
+        $Output | Should -Match 'One'
+        $Output | Should -Match 'Two'
+    }
+
     It 'fails a definition whose SourceCollector does not exist' {
         $Result = New-BrokenDefinitionTree -Body ($script:ValidBody -replace 'Databases/SQLSERVER.ps1', 'Databases/NoSuchCollector.ps1')
         $Result.ExitCode | Should -Be 1
