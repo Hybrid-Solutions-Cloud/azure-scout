@@ -77,6 +77,30 @@ Invoke-AzureScout -TenantID '00000000-...' -Debug
 
 This produces timestamped log entries for each extraction step, module execution, and API call.
 
+## A worksheet looks wrong after upgrading — force the previous collector engine
+
+Most inventory collectors are defined declaratively (`manifests/collectors/<Category>/<Name>.psd1`)
+and executed by a shared interpreter rather than by their own script. Each definition is proven to
+produce the same rows as the script it replaced, and a full processing pass produces a
+byte-identical report cache either way — but if a worksheet ever looks wrong and you need to rule
+the interpreter out, set this before the run:
+
+```powershell
+$env:AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS = '1'
+Invoke-AzureScout -TenantID '00000000-...'
+```
+
+Every collector then runs as its original script, exactly as releases up to v2.9.0 did. Accepted
+values are `1`, `true`, `yes` and `on` (case-insensitive); anything else — including `0` and
+`false` — leaves the normal path in place. Clear it with
+`Remove-Item Env:\AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS`.
+
+If that changes the output, the difference is a genuine defect worth reporting: attach the
+worksheet and the collector name.
+
+The run log records which engine ran each collector — look for `Collectors declarative` and
+`Collectors imperative` in the processing phase summary.
+
 ## Pre-flight Permission Check
 
 Run the permission checker standalone to validate access before a full inventory:

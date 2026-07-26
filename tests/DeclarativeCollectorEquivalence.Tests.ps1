@@ -123,6 +123,15 @@ BeforeAll {
         }
     }
 
+    # -Imperative on EVERY legacy call in this file, without exception (AB#5656).
+    #
+    # Before the cutover, Invoke-ScoutCollector only ever executed the `.ps1`, so the reference
+    # side of this comparison was imperative by construction. It is not any more: it routes on
+    # the descriptor's HasDeclarativeDefinition. The descriptors below are hand-built and carry
+    # no such property, so they would still take the imperative path — but "still correct because
+    # of a property we forgot to set" is not a proof. The switch makes the reference side
+    # imperative EXPLICITLY, so this suite cannot degrade into comparing the interpreter with
+    # itself and passing vacuously.
     function Get-LegacyRows {
         param([string]$Name)
         $Descriptor = [PSCustomObject]@{
@@ -130,8 +139,9 @@ BeforeAll {
             FolderCategory = 'Databases'
             Path           = (Join-Path $script:CollectorDir "$Name.ps1")
         }
-        $Result = Invoke-ScoutCollector -Collector $Descriptor -Context (New-EquivalenceContext)
+        $Result = Invoke-ScoutCollector -Collector $Descriptor -Context (New-EquivalenceContext) -Imperative
         if (-not $Result.Success) { throw "Legacy collector '$Name' failed: $($Result.Error)" }
+        if ($Result.Mode -ne 'Imperative') { throw "Reference rows for '$Name' were produced by the $($Result.Mode) path — this comparison would be vacuous." }
         @($Result.Rows)
     }
 
@@ -225,8 +235,9 @@ BeforeAll {
             FolderCategory = $Category
             Path           = (Join-Path $script:RepoRoot "Modules/Public/InventoryModules/$Category/$Name.ps1")
         }
-        $Result = Invoke-ScoutCollector -Collector $Descriptor -Context (New-GeneratedContext -Category $Category -Name $Name)
+        $Result = Invoke-ScoutCollector -Collector $Descriptor -Context (New-GeneratedContext -Category $Category -Name $Name) -Imperative
         if (-not $Result.Success) { throw "Legacy collector '$Category/$Name' failed on the generated estate: $($Result.Error)" }
+        if ($Result.Mode -ne 'Imperative') { throw "Reference rows for '$Category/$Name' were produced by the $($Result.Mode) path — this comparison would be vacuous." }
         @($Result.Rows)
     }
 
@@ -250,7 +261,7 @@ BeforeAll {
             Name = $Name; FolderCategory = $Category
             Path = (Join-Path $script:RepoRoot "Modules/Public/InventoryModules/$Category/$Name.ps1")
         }
-        $LegacyResult = Invoke-ScoutCollector -Collector $Descriptor -Context (
+        $LegacyResult = Invoke-ScoutCollector -Imperative -Collector $Descriptor -Context (
             New-GeneratedContext -Category $Category -Name $Name -Task 'Reporting' -File $LegacyFile -SmaResources $Rows -InTag $InTag)
         if (-not $LegacyResult.Success) { throw "Legacy reporting for '$Category/$Name' failed: $($LegacyResult.Error)" }
 
@@ -280,7 +291,7 @@ BeforeAll {
             Name = $Name; FolderCategory = 'Databases'
             Path = (Join-Path $script:CollectorDir "$Name.ps1")
         }
-        $LegacyResult = Invoke-ScoutCollector -Collector $Descriptor -Context (
+        $LegacyResult = Invoke-ScoutCollector -Imperative -Collector $Descriptor -Context (
             New-EquivalenceContext -Task 'Reporting' -File $LegacyFile -SmaResources $Rows -InTag $InTag)
         if (-not $LegacyResult.Success) { throw "Legacy reporting for '$Name' failed: $($LegacyResult.Error)" }
 
