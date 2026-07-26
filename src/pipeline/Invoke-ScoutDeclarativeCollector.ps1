@@ -48,10 +48,13 @@ $ErrorActionPreference = 'Stop'
     Processing: an array of row hashtables. Reporting: nothing (writes to Context.File).
 
 .NOTES
-    Tracks ADO AB#5657/AB#5659 (Feature AB#5656, Epic AB#5638). Deliberately NOT wired into
-    `Invoke-ScoutProcessing` yet -- this is the schema's proof of equivalence
-    (`tests/DeclarativeCollectorEquivalence.Tests.ps1`), not a live-pipeline cutover. See the
-    ADR §3 for why that is staged separately.
+    Tracks ADO AB#5657/AB#5659/AB#5656 (Feature AB#5656, Epic AB#5638).
+
+    THIS IS NOW THE LIVE PATH. Up to and including v2.9.0 this function ran only under
+    `tests/DeclarativeCollectorEquivalence.Tests.ps1` -- 124 definitions existed and nothing
+    executed them. `Invoke-ScoutCollector` routes to it for every collector that has a `.psd1`,
+    so a defect here is a defect in a customer's report. The kill switch
+    (`AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS`) puts every collector back on its `.ps1`.
 #>
 function Invoke-ScoutDeclarativeCollector {
     [CmdletBinding()]
@@ -198,7 +201,35 @@ function Invoke-ScoutDeclarativeProcessing {
         $Variables.Add([psvariable]::new('Retirements', $Retirements))
         $Variables.Add([psvariable]::new('Unsupported', $Unsupported))
 
-        $RowScriptBlock.InvokeWithContext($null, $Variables)
+        try {
+            $RowScriptBlock.InvokeWithContext($null, $Variables)
+        }
+        catch [System.Management.Automation.MethodInvocationException] {
+            # InvokeWithContext is a .NET method call, so SOME of what the row script throws comes
+            # back with an extra layer: `Exception calling "InvokeWithContext" with "2"
+            # argument(s): "<the real message>"`. The imperative collector -- same failure, same
+            # data -- reports the inner message on its own, and that text is what reaches the
+            # customer's run log through Invoke-ScoutCollector's warning. Leaving the layer on
+            # would change the wording of every contained-collector failure on the release that
+            # switches paths, for no reason connected to what actually failed.
+            #
+            # Unwrap ONE layer, and only when the inner exception is a PowerShell RuntimeException
+            # -- measured, that is exactly the case where the layer was added. The two shapes:
+            #
+            #   [datetime]$null  ->  MethodInvocationException("...InvokeWithContext...")
+            #                          -> RuntimeException("Cannot convert null...")   <- relayed
+            #   'x'.Substring(9) ->  MethodInvocationException("Exception calling "Substring"...")
+            #                          -> ArgumentOutOfRangeException(...)             <- NOT relayed
+            #
+            # In the second, InvokeWithContext adds nothing: the MethodInvocationException IS the
+            # script's own error and the imperative path reports it verbatim, so unwrapping there
+            # would strip a layer the imperative path keeps -- swapping one message difference for
+            # another. Typed rather than matched on the word "InvokeWithContext", which is a
+            # localisable string.
+            $Inner = $_.Exception.InnerException
+            if ($Inner -is [System.Management.Automation.RuntimeException]) { throw $Inner }
+            throw
+        }
     }
 
     @($Rows)

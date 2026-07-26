@@ -293,11 +293,11 @@ not, and which is also the faithful choice.
 - **A collector with no `.psd1` is not a defect.** `HasDeclarativeDefinition = $false` is the
   expected, common state for every escape-hatch collector until a later phase of this epic
   addresses it.
-- **The live pipeline does not change yet.** `Invoke-ScoutProcessing` still calls
-  `Invoke-ScoutCollector` against the original `.ps1` for every collector, converted or not — this
-  decision and its proof (AB#5659) are deliberately staged before the cutover that would make
-  `Invoke-ScoutDeclarativeCollector` the thing that actually runs in a release, matching this
-  epic's "no big bang" phasing (`docs/design/decisions/deterministic-pipeline.md` §7).
+- **The live pipeline is cut over — see §5.** Through v2.9.0 it was not: `Invoke-ScoutProcessing`
+  called `Invoke-ScoutCollector` against the original `.ps1` for every collector, converted or
+  not, and the 124 definitions were exercised only by their own test suite. That staging was
+  deliberate (the equivalence proof is only trustworthy while the live path is held constant),
+  and it ended with AB#5656's cutover.
 - **`Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` are recommended for
   deletion**, not conversion — see the audit §4. There is no existing behaviour for a definition
   to reproduce.
@@ -406,7 +406,121 @@ The same limits as §4 apply, plus one specific to generation: the values are se
 (`res-value` where a real estate has `Standard_LRS`), so this proves the two implementations agree on
 the paths the collector reads — not that either is correct about a real tenant.
 
-## 5. Alternatives rejected
+## 5. The cutover (AB#5656)
+
+Converting is not the same as using. v2.9.0 shipped 124 definitions, each proven equivalent to
+its `.ps1`, and **the live pipeline executed none of them** — every collector in every run was
+still the hand-written script. Until the run routes to the interpreter, the entire feature is a
+directory of files nobody executes.
+
+### 5.1 Where the routing lives
+
+In `Invoke-ScoutCollector`, keyed on the `HasDeclarativeDefinition` / `DefinitionPath` properties
+`Get-ScoutCollector` already reports (§2.4). Not in `Invoke-ScoutProcessing`, and not behind a
+second walk of `manifests/collectors`:
+
+- **One dispatch site.** `Invoke-ScoutProcessing` is unchanged in structure — a collector is still
+  discovered once, run once and contained once. Only the implementation that executes changes.
+- **The containment already there covers both.** The declarative call sits inside the same
+  `try/catch` as the imperative one, so a bad definition costs a worksheet, never the run.
+- **No second discovery.** Two walkers over the same estate is how the v1 engine's two copies of
+  collector discovery drifted apart, and it is how `Start-AZSCExcelJob` still differs from the
+  processing pipeline today.
+
+A descriptor with no `HasDeclarativeDefinition` property at all routes imperative — hand-built
+descriptors are real (the equivalence harness, `Invoke-CollectorAudit`), and the safe reading of
+"I do not know whether a definition exists" is the path every release has shipped.
+
+`Invoke-ScoutCollector` now returns a `Mode` of `Declarative`, `Imperative` or
+`ImperativeFallback`, and `Invoke-ScoutProcessing` counts them into its summary and phase log.
+That property is not decoration: the two paths produce identical rows by construction, so a
+routing regression that quietly sent everything back to its `.ps1` **cannot be detected by
+comparing output**. `Mode` is the only observable that distinguishes them, and
+`tests/DeclarativeCollectorCutover.Tests.ps1` asserts on it.
+
+### 5.2 The kill switch
+
+`AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS=1` (also `true`/`yes`/`on`) forces every collector down
+the `.ps1` path, restoring the v2.9.0 execution path exactly. `Invoke-ScoutProcessing` also takes
+`-ForceImperativeCollectors` for programmatic use.
+
+An environment variable, because the failure it exists for is a customer discovering mid-run that
+one definition has emptied a worksheet: an env var needs no argument threaded through
+`Invoke-AzureScout` → `Start-AZSCProcessOrchestration` → `Invoke-ScoutProcessing`, so it works on
+the build they already have installed. Only affirmative spellings enable it — a truthiness test on
+the raw string would make `= '0'` mean "forced imperative", the opposite of what anyone typing it
+intends.
+
+One fallback is automatic: a definition that fails **schema validation** is skipped in favour of
+its `.ps1`, with a warning. That is the only case, and it should never fire in a release (CI loads
+every definition through the validator). An **execution** failure does not fall back — the two
+paths are proven equivalent, so data the interpreter chokes on is data the script would very
+likely choke on too, and a silent retry is how a real defect stays invisible.
+
+### 5.3 What the cutover measurably changed
+
+A full processing pass over a merged 845-resource estate (every generated equivalence fixture
+plus the 83 captured resources), run with the kill switch on and then off:
+
+| | Pre-cutover | Post-cutover |
+|---|---|---|
+| Collectors run | 174 (+2 unsupported, skipped) | 174 (+2 skipped) |
+| Executed declaratively | 0 | 124 |
+| Total rows cached | 1654 | 1654 |
+| Report-cache files differing | — | 0 (byte-identical) |
+| Collectors failing | 8 | the same 8, same messages |
+
+**Zero.** Not "no significant difference" — the ReportCache JSON is byte-for-byte identical.
+
+One difference had to be removed to get there, and getting it right took two attempts. Because
+`InvokeWithContext` is a .NET method call, *some* row-script errors came back as `Exception
+calling "InvokeWithContext" with "2" argument(s): "<the real message>"`, and that string reaches
+a customer's run log through `Invoke-ScoutCollector`'s warning. The interpreter now unwraps that
+layer — but only when the inner exception is a PowerShell `RuntimeException`, which is precisely
+when the layer was added:
+
+| Field expression | What escapes | Unwrap? |
+|---|---|---|
+| `[datetime]$1.missing` | `MethodInvocationException("…InvokeWithContext…")` → `RuntimeException` | yes — the inner one is what the `.ps1` reports |
+| `$1.NAME.Substring(9)` | `MethodInvocationException("Exception calling "Substring"…")` → `ArgumentOutOfRangeException` | no — this IS the script's own error, reported verbatim by both paths |
+
+Unwrapping unconditionally (the first attempt) fixed the first row and broke the second, trading
+one message difference for another. Both shapes are pinned in
+`tests/DeclarativeCollectorCutover.Tests.ps1`.
+
+### 5.4 What is NOT cut over
+
+**Reporting.** `Start-AZSCExcelJob` still executes each collector's `.ps1` Reporting branch: it
+walks `InventoryModules` itself rather than using `Get-ScoutCollector`, so routing it means first
+collapsing that duplicate discovery — a separate change with its own blast radius. Mixing is safe
+and proven, not merely assumed: §4 compares the two Reporting implementations cell by cell under
+both `-IncludeTags` states, and the rows the sheet is built from are now byte-identical either
+way. The `Export` section of every definition is therefore still only exercised by tests.
+
+**The four unconverted PureShaping collectors and the 46 escape-hatch ones** (§2.4, §4.1) — they
+have no definition, so they route imperative by the same rule, which is the escape hatch working
+as designed rather than a gap.
+
+### 5.5 The one asymmetry, and why it does not bite
+
+§4.1 records that the two paths handle a **throwing field expression** differently: the
+interpreter's row is one `@{ }` statement so a throw emits nothing, while the original assigns
+`$obj` and then writes it, so a throw re-emits the previous row. That is the one behavioural
+difference that could have surfaced at cutover, when a real estate hands a collector a shape no
+fixture had.
+
+Measured, it does not — and the reason is worth recording. The commonest real form of this (a
+`.Substring` past the end) is a **statement-terminating** error, which is caught by any enclosing
+`try/catch`. `Invoke-ScoutCollector` wraps both paths in one, so neither reaches its next
+iteration: the collector fails, is contained, and emits nothing, identically. The duplicate-row
+behaviour was the *v1* behaviour, because v1 ran collectors in a bare runspace with nothing
+catching — AB#5649's containment ended it, for both paths at once, a release before the
+interpreter existed.
+
+`tests/DeclarativeCollectorCutover.Tests.ps1` pins all three facts, including the raw
+duplicate-row behaviour in a catch-free runspace, so the claim is checkable rather than folklore.
+
+## 6. Alternatives rejected
 
 | Alternative | Why not |
 |---|---|
