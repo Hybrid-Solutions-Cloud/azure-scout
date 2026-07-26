@@ -37,45 +37,58 @@ If ($Task -eq 'Processing')
             $tmp = foreach ($policySet in $policySetDefs) {
                 $ResUCount = 1
 
-                $props = $policySet.Properties
+                # AB#5671, and the same two-part story as PolicyDefinitions.ps1: the StrictMode fault
+                # is that `Properties` is an ABSENT member (an absent member throws, a $null one does
+                # not), and the reason it is absent is that Az.Resources 7+ returns a FLATTENED
+                # policy set definition -- no `Properties` sub-object, `Parameter` not `Parameters`,
+                # and `Id` in place of `PolicySetDefinitionId`. That second part is a real,
+                # pre-existing defect (this collector already emitted mostly-empty rows on any modern
+                # Az, silently) and is deliberately NOT fixed here: re-pointing the reads at the
+                # flattened shape would change every emitted value. Safe reads only.
+                $props = Get-AZSCSafeProperty -InputObject $policySet -Path 'Properties'
 
                 # Parse parameters
-                $params = if ($props.Parameters) {
-                    ($props.Parameters.PSObject.Properties | ForEach-Object { "$($_.Name) ($($_.Value.type))" }) -join '; '
+                $paramsBlock = Get-AZSCSafeProperty -InputObject $props -Path 'Parameters'
+                $params = if ($paramsBlock) {
+                    ($paramsBlock.PSObject.Properties | ForEach-Object { "$($_.Name) ($(Get-AZSCSafeProperty -InputObject $_.Value -Path 'type'))" }) -join '; '
                 } else { 'None' }
 
                 # Parse metadata
-                $category = if ($props.Metadata.category) { $props.Metadata.category } else { 'Uncategorized' }
-                $version = if ($props.Metadata.version) { $props.Metadata.version } else { 'N/A' }
+                $category = Get-AZSCSafeProperty -InputObject $props -Path 'Metadata.category'
+                $version  = Get-AZSCSafeProperty -InputObject $props -Path 'Metadata.version'
+                if (-not $category) { $category = 'Uncategorized' }
+                if (-not $version)  { $version  = 'N/A' }
 
                 # Count policy definitions in the initiative
-                $policyCount = if ($props.PolicyDefinitions) { @($props.PolicyDefinitions).Count } else { 0 }
+                $policyDefinitionRefs = Get-AZSCSafeProperty -InputObject $props -Path 'PolicyDefinitions'
+                $policyCount = if ($policyDefinitionRefs) { @($policyDefinitionRefs).Count } else { 0 }
 
                 # Get list of policy definition references
-                $policyRefs = if ($props.PolicyDefinitions) {
-                    ($props.PolicyDefinitions | ForEach-Object {
-                        $refId = $_.policyDefinitionId -split '/' | Select-Object -Last 1
+                $policyRefs = if ($policyDefinitionRefs) {
+                    (@($policyDefinitionRefs) | ForEach-Object {
+                        $refId = (Get-AZSCSafeProperty -InputObject $_ -Path 'policyDefinitionId') -split '/' | Select-Object -Last 1
                         $refId
                     }) -join '; '
                 } else { 'None' }
 
                 # Parse policy groups
-                $groupCount = if ($props.PolicyDefinitionGroups) { @($props.PolicyDefinitionGroups).Count } else { 0 }
+                $policyGroups = Get-AZSCSafeProperty -InputObject $props -Path 'PolicyDefinitionGroups'
+                $groupCount = if ($policyGroups) { @($policyGroups).Count } else { 0 }
 
                 $obj = @{
-                    'ID'                        = $policySet.PolicySetDefinitionId;
+                    'ID'                        = (Get-AZSCSafeProperty -InputObject $policySet -Path 'PolicySetDefinitionId');
                     'Name'                      = $policySet.Name;
-                    'Display Name'              = $props.DisplayName;
-                    'Description'               = $props.Description;
-                    'Policy Type'               = $props.PolicyType;
+                    'Display Name'              = (Get-AZSCSafeProperty -InputObject $props -Path 'DisplayName');
+                    'Description'               = (Get-AZSCSafeProperty -InputObject $props -Path 'Description');
+                    'Policy Type'               = (Get-AZSCSafeProperty -InputObject $props -Path 'PolicyType');
                     'Category'                  = $category;
                     'Version'                   = $version;
                     'Policy Count'              = $policyCount;
                     'Policy Definition Groups'  = $groupCount;
                     'Policy References'         = $policyRefs;
                     'Parameters'                = $params;
-                    'Management Group'          = $policySet.ManagementGroupName;
-                    'Subscription'              = $policySet.SubscriptionId;
+                    'Management Group'          = (Get-AZSCSafeProperty -InputObject $policySet -Path 'ManagementGroupName');
+                    'Subscription'              = (Get-AZSCSafeProperty -InputObject $policySet -Path 'SubscriptionId');
                     'Resource U'                = $ResUCount;
                 }
                 $obj

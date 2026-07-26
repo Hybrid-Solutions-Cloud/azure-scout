@@ -37,7 +37,10 @@ If ($Task -eq 'Processing')
         {
             $tmp = foreach ($1 in $CONTAINERENV) {
                 $ResUCount = 1
+                # An EMPTY $sub1 -- subscription outside the requested scope -- is not $null, and
+                # `.Name` on it throws under StrictMode (AB#5671).
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -64,28 +67,39 @@ If ($Task -eq 'Processing')
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $Apps = @($CONTAINER | Where-Object {$_.properties.environmentId -eq $1.id}).count
+                # An untagged resource's Resource Graph row OMITS `tags`; the historic '0' sentinel
+                # existed only to run the loop once for that case, and `'0'.Name` throws under
+                # StrictMode. An empty tag object does the same job and emits the identical row.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
+                $Apps = @($CONTAINER | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'properties.environmentId') -eq $1.id }).count
 
-                foreach ($2 in $data.workloadProfiles) {
+                # `workloadProfiles` is absent entirely on a Consumption-only environment, and each
+                # profile omits minimumCount/maximumCount unless the profile is a dedicated one.
+                # NOT wrapped in @(). @($null) has ONE element, so wrapping would run this loop body
+                # once for a Consumption-only environment (no workloadProfiles at all) and emit a row
+                # with empty profile columns where the original emitted NO row -- `foreach` over a
+                # bare $null iterates zero times, which is the behaviour being preserved.
+                foreach ($2 in (Get-AZSCSafeProperty -InputObject $data -Path 'workloadProfiles')) {
                         foreach ($Tag in $Tags) {
                             $obj = @{
                                 'ID'                        = $1.id;
-                                'Subscription'              = $sub1.Name;
+                                'Subscription'              = $SubscriptionName;
                                 'Resource Group'            = $1.RESOURCEGROUP;
                                 'Name'                      = $1.NAME;
                                 'Location'                  = $1.LOCATION;
                                 'Retiring Feature'          = $RetiringFeature;
                                 'Retiring Date'             = $RetiringDate;
-                                'Public Access'             = $data.publicNetworkAccess;
-                                'Zone Redundant'            = $data.zoneRedundant;
-                                'Static IP'                 = $data.staticIp;
-                                'KEDA version'              = $data.kedaconfiguration.Version;
-                                'Dapr version'              = $data.daprconfiguration.Version;
-                                'Workload Profile'          = $2.name;
-                                'Workload Profile Type'     = $2.workloadProfileType;
-                                'Workload Profile Min'      = $2.minimumCount;
-                                'Workload Profile Max'      = $2.maximumCount;
+                                'Public Access'             = (Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccess');
+                                'Zone Redundant'            = (Get-AZSCSafeProperty -InputObject $data -Path 'zoneRedundant');
+                                'Static IP'                 = (Get-AZSCSafeProperty -InputObject $data -Path 'staticIp');
+                                'KEDA version'              = (Get-AZSCSafeProperty -InputObject $data -Path 'kedaconfiguration.Version');
+                                'Dapr version'              = (Get-AZSCSafeProperty -InputObject $data -Path 'daprconfiguration.Version');
+                                'Workload Profile'          = (Get-AZSCSafeProperty -InputObject $2 -Path 'name');
+                                'Workload Profile Type'     = (Get-AZSCSafeProperty -InputObject $2 -Path 'workloadProfileType');
+                                'Workload Profile Min'      = (Get-AZSCSafeProperty -InputObject $2 -Path 'minimumCount');
+                                'Workload Profile Max'      = (Get-AZSCSafeProperty -InputObject $2 -Path 'maximumCount');
                                 'Resource U'            = $ResUCount;
                                 'Tag Name'                  = [string]$Tag.Name;
                                 'Tag Value'                 = [string]$Tag.Value

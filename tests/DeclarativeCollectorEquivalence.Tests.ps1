@@ -66,6 +66,19 @@ BeforeAll {
     . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
 
+    # This file never IMPORTS the module -- it dot-sources the pipeline functions and runs the
+    # collector .ps1 files directly -- so any private helper a collector calls has to be dot-sourced
+    # here too, or the reference implementation dies with "is not recognized" and every equivalence
+    # assertion below fails for a reason that has nothing to do with equivalence.
+    #
+    # POSTGREFlexible.ps1 gained these three in AB#5671 (StrictMode-safe reads: an absent property,
+    # a member enumeration over a possibly-empty collection, and a fixed .split('/')[8] index that
+    # throws when the id is shorter than nine segments). Every collector converted after it will
+    # depend on the same three.
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZSCIdSegment.ps1')
+
     $script:CollectorDir  = Join-Path $script:RepoRoot 'Modules/Public/InventoryModules/Databases'
     $script:DefinitionDir = Join-Path $script:RepoRoot 'manifests/collectors/Databases'
 

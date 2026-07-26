@@ -61,6 +61,10 @@ BeforeAll {
     # Get-AZSCCollectedValue (AB#5633) is the member-ENUMERATION counterpart -- it walks a chain
     # that passes THROUGH an array, which Get-AZSCSafeProperty's single-object walk does not.
     . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZTICollectedValue.ps1')
+    # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
+    # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
+    # without it the same expression quietly returned $null.
+    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
 
     function New-MockVM {
         param([string]$Id, [string]$Name, [string]$Location = 'eastus',

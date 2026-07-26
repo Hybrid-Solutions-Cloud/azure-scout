@@ -90,8 +90,11 @@ If ($Task -eq 'Processing')
             $quotaId         = try { $1.SubscriptionPolicies.QuotaId }       catch { 'N/A' }
             $authSource      = try { $1.AuthorizationSource }                catch { 'N/A' }
 
-            $tagsDisplay = if ($1.Tags -and $1.Tags.Count -gt 0) {
-                ($1.Tags.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '; '
+            # A subscription object carries `Tags` only when the subscription actually has tags --
+            # it is ABSENT, not empty, otherwise -- so this read threw under StrictMode (AB#5671).
+            $subTags = Get-AZSCSafeProperty -InputObject $1 -Path 'Tags'
+            $tagsDisplay = if ($subTags -and $subTags.Count -gt 0) {
+                ($subTags.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '; '
             } else { '' }
 
             $obj = @{

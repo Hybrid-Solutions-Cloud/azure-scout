@@ -38,11 +38,14 @@ If ($Task -eq 'Processing')
         {
             $tmp = foreach ($1 in $disk) {
                 $ResUCount = 1
+                # AB#5671: an EMPTY $sub1 (subscription outside the requested scope) is not $null,
+                # so `.Name` on it throws; and `timeCreated` is absent on older disk API versions,
+                # where [datetime]$null then produced a bogus 0001-01-01 anyway.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
-                $timecreated = $data.timeCreated
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'timeCreated'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
                 $Retired = Foreach ($Retirement in $Retirements)
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
@@ -71,34 +74,47 @@ If ($Task -eq 'Processing')
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $SKU = $1.SKU
-                $Hibernation = if (![string]::IsNullOrEmpty($data.supportsHibernation)) { $data.supportsHibernation }else { $false }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $SKU = Get-AZSCSafeProperty -InputObject $1 -Path 'SKU'
+                # Every `properties` field below is OPTIONAL in the disk API response: an unattached
+                # standard disk omits maxShares, tier, dataAccessAuthMode, networkAccessPolicy and
+                # osType outright, and `MANAGEDBY` is absent on any disk not currently attached --
+                # where the historic `.split('/')[8]` also indexed past the end of a short id.
+                $Hibernation = $data | Get-AZSCSafeProperty -Path 'supportsHibernation'
+                $Hibernation = if (![string]::IsNullOrEmpty($Hibernation)) { $Hibernation }else { $false }
+                $ManagedBySegments = @()
+                $ManagedBy = Get-AZSCSafeProperty -InputObject $1 -Path 'MANAGEDBY'
+                if (![string]::IsNullOrEmpty($ManagedBy)) { $ManagedBySegments = @(([string]$ManagedBy).split('/')) }
+                $AssociatedResource = if ($ManagedBySegments.Count -gt 8) { $ManagedBySegments[8] } else { $null }
+                $RowTags = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                # '0' was a sentinel to run the loop once for an untagged resource; `'0'.Name`
+                # throws under StrictMode, and an empty tag object emits the identical row.
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
                     foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                     = $1.id;
-                            'Subscription'           = $sub1.Name;
+                            'Subscription'           = $SubscriptionName;
                             'Resource Group'         = $1.RESOURCEGROUP;
                             'Disk Name'              = $1.NAME;
                             'Retiring Feature'       = $RetiringFeature;
                             'Retiring Date'          = $RetiringDate;
-                            'Disk State'             = $data.diskState;
-                            'Associated Resource'    = $1.MANAGEDBY.split('/')[8];
+                            'Disk State'             = (Get-AZSCSafeProperty -InputObject $data -Path 'diskState');
+                            'Associated Resource'    = $AssociatedResource;
                             'Location'               = $1.LOCATION;
-                            'Zone'                   = [string]$1.ZONES;
-                            'SKU'                    = $SKU.Name;
-                            'Disk Size'              = $data.diskSizeGB;
-                            'Performance Tier'       = $data.tier;
-                            'Disk IOPS Read / Write' = $data.diskIOPSReadWrite;
-                            'Disk MBps Read / Write' = $data.diskMBpsReadWrite;
-                            'Public Network Access'  = $data.publicNetworkAccess;
-                            'Connection Type'        = $data.networkAccessPolicy;
+                            'Zone'                   = [string](Get-AZSCSafeProperty -InputObject $1 -Path 'ZONES');
+                            'SKU'                    = (Get-AZSCSafeProperty -InputObject $SKU -Path 'Name');
+                            'Disk Size'              = (Get-AZSCSafeProperty -InputObject $data -Path 'diskSizeGB');
+                            'Performance Tier'       = (Get-AZSCSafeProperty -InputObject $data -Path 'tier');
+                            'Disk IOPS Read / Write' = (Get-AZSCSafeProperty -InputObject $data -Path 'diskIOPSReadWrite');
+                            'Disk MBps Read / Write' = (Get-AZSCSafeProperty -InputObject $data -Path 'diskMBpsReadWrite');
+                            'Public Network Access'  = (Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccess');
+                            'Connection Type'        = (Get-AZSCSafeProperty -InputObject $data -Path 'networkAccessPolicy');
                             'Hibernation Supported'  = $Hibernation;
-                            'Encryption'             = $data.encryption.type;
-                            'OS Type'                = $data.osType;
-                            'Max Shares'             = $data.maxShares;
-                            'Data Access Auth Mode'  = $data.dataAccessAuthMode;   
-                            'HyperV Generation'      = $data.hyperVGeneration;
+                            'Encryption'             = (Get-AZSCSafeProperty -InputObject $data -Path 'encryption.type');
+                            'OS Type'                = (Get-AZSCSafeProperty -InputObject $data -Path 'osType');
+                            'Max Shares'             = (Get-AZSCSafeProperty -InputObject $data -Path 'maxShares');
+                            'Data Access Auth Mode'  = (Get-AZSCSafeProperty -InputObject $data -Path 'dataAccessAuthMode');
+                            'HyperV Generation'      = (Get-AZSCSafeProperty -InputObject $data -Path 'hyperVGeneration');
                             'Created Time'           = $timecreated;   
                             'Resource U'             = $ResUCount;
                             'Tag Name'               = [string]$Tag.Name;

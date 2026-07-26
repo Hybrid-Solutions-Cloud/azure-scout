@@ -16,6 +16,10 @@
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
     . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZTICollectedValue.ps1')
+    # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
+    # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
+    # without it the same expression quietly returned $null.
+    . (Join-Path $script:RepoRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
 }
 
 Describe 'StrictMode member enumeration — the behaviour that caused AB#5633' {

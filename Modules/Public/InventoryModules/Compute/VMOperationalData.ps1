@@ -41,36 +41,56 @@ If ($Task -eq 'Processing')
 
         $tmp = foreach ($1 in $vms) {
             $ResUCount = 1
+            # AB#5671: empty $sub1 (subscription out of scope) is not $null, so `.Name` throws;
+            # and an untagged VM's Resource Graph row OMITS `tags`, so both `$1.tags` and
+            # `$null.psobject.properties` throw. The '0' sentinel only ever existed to make the
+            # tag loop run once for an untagged resource -- but `'0'.Name` throws too, so an empty
+            # tag object replaces it, emitting the identical [string]-cast empty Tag Name/Value.
             $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+            $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
             $data = $1.PROPERTIES
-            $Tags = if (![string]::IsNullOrEmpty($1.tags.psobject.properties)) { $1.tags.psobject.properties } else { '0' }
+            $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+            $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+            $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 
             # ---- Extensions summary ----
+            # An extension id shorter than nine segments makes the fixed [8] index return $null
+            # rather than throw once it is guarded on segment count.
             $vmExts = $Resources | Where-Object {
                 $_.TYPE -eq 'microsoft.compute/virtualmachines/extensions' -and
-                ($_.id -split '/')[8] -eq $1.NAME
+                (Get-AZSCIdSegment -Id $_.id -Index 8) -eq $1.NAME
             }
             $extCount    = if ($vmExts)  { @($vmExts).Count }                                                       else { 0 }
-            $extNames    = if ($vmExts)  { ($vmExts | ForEach-Object { $_.PROPERTIES.type }) -join ', ' }           else { 'None' }
-            $hasAMA      = if ($vmExts -and ($vmExts.PROPERTIES.publisher -contains 'Microsoft.Azure.Monitor'))    { 'Yes' } else { 'No' }
-            $hasDefender = if ($vmExts -and ($vmExts.PROPERTIES.type -like '*MDE*' -or $vmExts.PROPERTIES.Publisher -like '*MicrosoftDefender*')) { 'Yes' } else { 'No' }
+            $extNames    = if ($vmExts)  { (@($vmExts) | ForEach-Object { Get-AZSCSafeProperty -InputObject $_ -Path 'PROPERTIES.type' }) -join ', ' } else { 'None' }
+            # `$vmExts.PROPERTIES.publisher` is member enumeration through a collection whose
+            # elements may omit `publisher` entirely -- an absent key on EVERY element makes the
+            # enumeration yield nothing, which is what StrictMode reports as the missing property.
+            $extPublishers = @(Get-AZSCSafeProperty -InputObject $vmExts -Path 'PROPERTIES.publisher' -Enumerate)
+            $extTypes      = @(Get-AZSCSafeProperty -InputObject $vmExts -Path 'PROPERTIES.type' -Enumerate)
+            $hasAMA      = if ($vmExts -and ($extPublishers -contains 'Microsoft.Azure.Monitor'))    { 'Yes' } else { 'No' }
+            $hasDefender = if ($vmExts -and ($extTypes -like '*MDE*' -or $extPublishers -like '*MicrosoftDefender*')) { 'Yes' } else { 'No' }
 
             # ---- Boot diagnostics ----
-            $bootDiag    = if ($data.diagnosticsProfile.bootDiagnostics.enabled -eq $true) { 'Enabled' } else { 'Disabled' }
-            $bootDiagSA  = if ($data.diagnosticsProfile.bootDiagnostics.storageUri) { $data.diagnosticsProfile.bootDiagnostics.storageUri } else { 'Managed' }
+            # `diagnosticsProfile` is ABSENT (not null) on any VM created without boot diagnostics,
+            # which is the default -- so this was the very first line to throw here (AB#5671).
+            $bootDiagEnabled = Get-AZSCSafeProperty -InputObject $data -Path 'diagnosticsProfile.bootDiagnostics.enabled'
+            $bootDiagUri     = Get-AZSCSafeProperty -InputObject $data -Path 'diagnosticsProfile.bootDiagnostics.storageUri'
+            $PowerState  = Get-AZSCSafeProperty -InputObject $data -Path 'extended.instanceView.powerState.displayStatus'
+            $bootDiag    = if ($bootDiagEnabled -eq $true) { 'Enabled' } else { 'Disabled' }
+            $bootDiagSA  = if ($bootDiagUri) { $bootDiagUri } else { 'Managed' }
 
             # ---- Backup status (cross-ref from pre-loaded backup items) ----
-            $backupItem     = $backupItems | Where-Object { $_.PROPERTIES.sourceResourceId -eq $1.id }
+            $backupItem     = $backupItems | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'PROPERTIES.sourceResourceId') -eq $1.id }
             $backupEnabled  = if ($backupItem)  { 'Yes' }                                   else { 'No' }
-            $lastBackupTime = if ($backupItem)  { $backupItem.PROPERTIES.lastBackupTime }   else { 'N/A' }
-            $backupVault    = if ($backupItem)  { ($backupItem.id -split '/')[8] }          else { 'N/A' }
-            $backupPolicy   = if ($backupItem)  { $backupItem.PROPERTIES.policyName }       else { 'N/A' }
+            $lastBackupTime = if ($backupItem)  { Get-AZSCSafeProperty -InputObject $backupItem -Path 'PROPERTIES.lastBackupTime' -Enumerate }   else { 'N/A' }
+            $backupVault    = if ($backupItem)  { Get-AZSCIdSegment -Id (Get-AZSCCollectedValue -InputObject $backupItem -Name 'id') -Index 8 } else { 'N/A' }
+            $backupPolicy   = if ($backupItem)  { Get-AZSCSafeProperty -InputObject $backupItem -Path 'PROPERTIES.policyName' -Enumerate }       else { 'N/A' }
 
             # ---- Advisor recommendations (cross-ref) ----
-            $vmAdvisor     = $advisorRecs | Where-Object { $_.PROPERTIES.resourceMetadata.resourceId -eq $1.id }
+            $vmAdvisor     = $advisorRecs | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'PROPERTIES.resourceMetadata.resourceId') -eq $1.id }
             $advisorCount  = if ($vmAdvisor)  { @($vmAdvisor).Count }                                          else { 0 }
-            $costAdvisor   = if ($vmAdvisor)  { @($vmAdvisor | Where-Object { $_.PROPERTIES.category -eq 'Cost' }).Count }        else { 0 }
-            $secAdvisor    = if ($vmAdvisor)  { @($vmAdvisor | Where-Object { $_.PROPERTIES.category -eq 'Security' }).Count }    else { 0 }
+            $costAdvisor   = if ($vmAdvisor)  { @($vmAdvisor | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'PROPERTIES.category') -eq 'Cost' }).Count }        else { 0 }
+            $secAdvisor    = if ($vmAdvisor)  { @($vmAdvisor | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'PROPERTIES.category') -eq 'Security' }).Count }    else { 0 }
 
             # ---- Update compliance via REST (optional, try/catch) ----
             $pendingCritical  = 'N/A'
@@ -88,19 +108,31 @@ If ($Task -eq 'Processing')
             } catch {}
 
             # ---- Lifecycle tags ----
-            $tagEnv      = if ($1.tags.Environment)  { $1.tags.Environment }  elseif ($1.tags.environment)  { $1.tags.environment }  else { 'N/A' }
-            $tagOwner    = if ($1.tags.Owner)         { $1.tags.Owner }         elseif ($1.tags.owner)        { $1.tags.owner }        else { 'N/A' }
-            $tagCostCenter = if ($1.tags.CostCenter) { $1.tags.CostCenter }   elseif ($1.tags.costcenter)   { $1.tags.costcenter }   else { 'N/A' }
-            $tagExpiry   = if ($1.tags.ExpirationDate){ $1.tags.ExpirationDate } elseif ($1.tags.Expiration){ $1.tags.Expiration }    else { 'N/A' }
+            # Reading a specific tag off a resource that has no `tags` block at all, or has tags but
+            # not this one, throws under StrictMode. Get-AZSCSafeProperty's lookup is already
+            # case-insensitive, so the original Environment/environment pairs collapse to one read
+            # each -- the same value, since the fall-back arm could only ever match what the first
+            # arm already would have.
+            $tagEnv        = Get-AZSCSafeProperty -InputObject $RowTags -Path 'Environment'
+            $tagOwner      = Get-AZSCSafeProperty -InputObject $RowTags -Path 'Owner'
+            $tagCostCenter = Get-AZSCSafeProperty -InputObject $RowTags -Path 'CostCenter'
+            $tagExpiry     = Get-AZSCSafeProperty -InputObject $RowTags -Path 'ExpirationDate'
+            if (-not $tagExpiry) { $tagExpiry = Get-AZSCSafeProperty -InputObject $RowTags -Path 'Expiration' }
+            if (-not $tagEnv)        { $tagEnv        = 'N/A' }
+            if (-not $tagOwner)      { $tagOwner      = 'N/A' }
+            if (-not $tagCostCenter) { $tagCostCenter = 'N/A' }
+            if (-not $tagExpiry)     { $tagExpiry     = 'N/A' }
 
             foreach ($Tag in $Tags) {
                 $obj = @{
                     'ID'                        = $1.id;
-                    'Subscription'              = $sub1.Name;
+                    'Subscription'              = $SubscriptionName;
                     'Resource Group'            = $1.RESOURCEGROUP;
                     'VM Name'                   = $1.NAME;
                     'Location'                  = $1.LOCATION;
-                    'Power State'               = if ($data.extended.instanceView.powerState.displayStatus) { $data.extended.instanceView.powerState.displayStatus } else { 'N/A' };
+                    # `extended` comes from the instance-view expansion and is absent on a plain
+                    # Resource Graph row, so this whole chain throws without the expansion.
+                    'Power State'               = if ($PowerState) { $PowerState } else { 'N/A' };
                     'Extensions Count'          = $extCount;
                     'Extensions Installed'      = $extNames;
                     'Azure Monitor Agent'       = $hasAMA;

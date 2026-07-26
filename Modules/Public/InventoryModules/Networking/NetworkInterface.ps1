@@ -32,7 +32,11 @@ If ($Task -eq 'Processing') {
             $tmp = foreach ($1 in $nic) 
                 {
                     $ResUCount = 1
+                    # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                    # is outside the requested scope -- and reading .Name off an empty collection throws
+                    # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                     $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                    $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                     $data = $1.PROPERTIES
                     $Retired = Foreach ($Retirement in $Retirements)
                         {
@@ -63,15 +67,15 @@ If ($Task -eq 'Processing') {
                             $RetiringDate = $null
                         }
 
-                    if(![string]::IsNullOrEmpty($data.virtualmachine.id))
+                    if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'virtualmachine.id' -Enumerate)))
                         {
                             $ResourceType = 'Virtual Machine'
-                            $Resource = $data.virtualmachine.id.split('/')[8]
+                            $Resource = (Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'virtualmachine.id' -Enumerate) -Index 8)
                         }
-                    elseif(![string]::IsNullOrEmpty($data.privateendpoint.id))
+                    elseif(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'privateendpoint.id' -Enumerate)))
                         {
                             $ResourceType = 'Private Endpoint'
-                            $Resource = $data.privateendpoint.id.split('/')[8]
+                            $Resource = (Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'privateendpoint.id' -Enumerate) -Index 8)
                         }
                     else
                         {
@@ -79,27 +83,34 @@ If ($Task -eq 'Processing') {
                             $Resource = 'None'
                         }
                     
-                    $NSG = if(![string]::IsNullOrEmpty($data.networksecuritygroup.id)){$data.networksecuritygroup.id.split('/')[8]}else{$null}
+                    $NSG = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'networksecuritygroup.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'networksecuritygroup.id' -Enumerate) -Index 8)}else{$null}
 
-                    $DNS = if (@($data.dnssettings.dnsservers).count -gt 1) { $data.dnssettings.dnsservers | ForEach-Object { $_ + ' ,' } }else { $data.dnssettings.dnsservers }
+                    $DNS = if (@((Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate) }
                     $DNS = [string]$DNS
                     $DNS = if ($DNS -like '* ,*') { $DNS -replace ".$" }else { $DNS }
 
-                    $AcceleratedNetworking = if($data.enableacceleratednetworking -eq $true){'On'}else{'Off'}
+                    $AcceleratedNetworking = if((Get-AZSCSafeProperty -InputObject $data -Path 'enableacceleratednetworking' -Enumerate) -eq $true){'On'}else{'Off'}
 
-                    $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                    foreach ($2 in $data.ipconfigurations)
+                    # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                    # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                    # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                    # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                    # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                    $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                    $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                    $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
+                    foreach ($2 in (Get-AZSCSafeProperty -InputObject $data -Path 'ipconfigurations' -Enumerate))
                         {
-                            $VNET = if(![string]::IsNullOrEmpty($2.properties.subnet.id)){$2.properties.subnet.id.split('/')[8]}else{$null}
-                            $Subnet = if(![string]::IsNullOrEmpty($2.properties.subnet.id)){$2.properties.subnet.id.split('/')[10]}else{$null}
-                            $PIP = $PublicIP | Where-Object {$_.id -eq $2.properties.publicipaddress.id}
-                            $PIPName = $PIP.Name
-                            $PIPAddress = if(![string]::IsNullOrEmpty($PIP.properties.ipaddress)){$PIP.properties.ipaddress}else{'Unassigned'}
+                            $VNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate) -Index 8)}else{$null}
+                            $Subnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate) -Index 10)}else{$null}
+                            $PIP = $PublicIP | Where-Object {$_.id -eq (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.publicipaddress.id' -Enumerate)}
+                            $PIPName = (Get-AZSCSafeProperty -InputObject $PIP -Path 'Name' -Enumerate)
+                            $PIPAddress = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $PIP -Path 'properties.ipaddress' -Enumerate))){(Get-AZSCSafeProperty -InputObject $PIP -Path 'properties.ipaddress' -Enumerate)}else{'Unassigned'}
                             foreach ($Tag in $Tags) 
                                 {
                                     $obj = @{
                                         'ID'                    = $1.id;
-                                        'Subscription'          = $sub1.Name;
+                                        'Subscription'          = $SubscriptionName;
                                         'Resource Group'        = $1.RESOURCEGROUP;
                                         'Name'                  = $1.NAME;
                                         'Location'              = $1.LOCATION;
@@ -109,17 +120,17 @@ If ($Task -eq 'Processing') {
                                         'Attached Resource'     = $Resource;
                                         'Network Security Group'= $NSG;
                                         'DNS Servers'           = $DNS;
-                                        'Internal Domain Suffix'= $data.dnssettings.internaldomainnamesuffix;
+                                        'Internal Domain Suffix'= (Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.internaldomainnamesuffix' -Enumerate);
                                         'Accelerated Networking'= $AcceleratedNetworking;
-                                        'IP Forwarding'         = $data.enableipforwarding;
-                                        'MAC Address'           = $data.macaddress;
-                                        'IP Configurations'     = $2.name;
+                                        'IP Forwarding'         = (Get-AZSCSafeProperty -InputObject $data -Path 'enableipforwarding' -Enumerate);
+                                        'MAC Address'           = (Get-AZSCSafeProperty -InputObject $data -Path 'macaddress' -Enumerate);
+                                        'IP Configurations'     = (Get-AZSCSafeProperty -InputObject $2 -Path 'name' -Enumerate);
                                         'Virtual Network'       = $VNET;
                                         'Subnet'                = $Subnet;
-                                        'Primary'               = $2.properties.primary;
-                                        'Private IP Version'    = $2.properties.privateipaddressversion;
-                                        'Private IP'            = $2.properties.privateipaddress;
-                                        'Private IP Method'     = $2.properties.privateipallocationmethod;
+                                        'Primary'               = (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.primary' -Enumerate);
+                                        'Private IP Version'    = (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.privateipaddressversion' -Enumerate);
+                                        'Private IP'            = (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.privateipaddress' -Enumerate);
+                                        'Private IP Method'     = (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.privateipallocationmethod' -Enumerate);
                                         'Public IP Name'        = $PIPName;
                                         'Public IP'             = $PIPAddress;
                                         'Resource U'            = $ResUCount;

@@ -36,7 +36,10 @@ If ($Task -eq 'Processing')
         {
             $tmp = foreach ($1 in $CONTAINER) {
                 $ResUCount = 1
+                # An EMPTY $sub1 -- a resource whose subscription is outside the requested scope --
+                # is not $null, and `.Name` on it throws under StrictMode.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -63,37 +66,51 @@ If ($Task -eq 'Processing')
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $ingress = if(![string]::IsNullOrEmpty($data.configuration.ingress)){$true}else{$false}
-                $dapr = if(![string]::IsNullOrEmpty($data.configuration.dapr)){$true}else{$false}
-                $secrets = if(![string]::IsNullOrEmpty($data.configuration.secrets)){@($data.configuration.secrets).count}else{0}
-                $Env = $data.environmentId.split('/')[8]
-                foreach ($2 in $data.template) {
-                    foreach ($3 in $2.containers) {
+                # AB#5671. `ingress` is ABSENT on an internal-only container app (which is the
+                # whole point of an internal app), `dapr` and `secrets` are absent unless
+                # configured, and every read hanging off `ingress` -- targetPort, external,
+                # allowInsecure, transport -- therefore threw on the first such app.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                # The historic '0' sentinel only made this loop run once for an untagged resource;
+                # `'0'.Name` throws under StrictMode, an empty tag object emits the identical row.
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
+                $IngressConfig = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.ingress'
+                $DaprConfig    = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.dapr'
+                $SecretsConfig = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.secrets'
+                $ingress = if(![string]::IsNullOrEmpty($IngressConfig)){$true}else{$false}
+                $dapr = if(![string]::IsNullOrEmpty($DaprConfig)){$true}else{$false}
+                $secrets = if(![string]::IsNullOrEmpty($SecretsConfig)){@($SecretsConfig).count}else{0}
+                $Env = Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'environmentId') -Index 8
+                # Deliberately NOT wrapped in @(): @($null) has ONE element, so wrapping would run the
+                # loop body once for an app with no template/containers and emit a row where the
+                # original emitted none (`foreach` over a bare $null iterates zero times).
+                foreach ($2 in (Get-AZSCSafeProperty -InputObject $data -Path 'template')) {
+                    foreach ($3 in (Get-AZSCSafeProperty -InputObject $2 -Path 'containers')) {
                         foreach ($Tag in $Tags) {
                             $obj = @{
                                 'ID'                        = $1.id;
-                                'Subscription'              = $sub1.Name;
+                                'Subscription'              = $SubscriptionName;
                                 'Resource Group'            = $1.RESOURCEGROUP;
                                 'Name'                      = $1.NAME;
                                 'Location'                  = $1.LOCATION;
                                 'Retiring Feature'          = $RetiringFeature;
                                 'Retiring Date'             = $RetiringDate;
-                                'Running Status'            = $data.runningStatus;
+                                'Running Status'            = (Get-AZSCSafeProperty -InputObject $data -Path 'runningStatus');
                                 'Container App Environment' = $Env;
-                                'Workload Profile'          = $data.workloadProfileName;  
+                                'Workload Profile'          = (Get-AZSCSafeProperty -InputObject $data -Path 'workloadProfileName');
                                 'Ingress'                   = $ingress;
-                                'Ingress Port'              = $data.configuration.ingress.targetPort; 
-                                'External Ingress'          = $data.configuration.ingress.external;
-                                'Insecure Connections'      = $data.configuration.ingress.allowInsecure;
-                                'Ingress Transport'         = $data.configuration.ingress.transport;
+                                'Ingress Port'              = (Get-AZSCSafeProperty -InputObject $IngressConfig -Path 'targetPort');
+                                'External Ingress'          = (Get-AZSCSafeProperty -InputObject $IngressConfig -Path 'external');
+                                'Insecure Connections'      = (Get-AZSCSafeProperty -InputObject $IngressConfig -Path 'allowInsecure');
+                                'Ingress Transport'         = (Get-AZSCSafeProperty -InputObject $IngressConfig -Path 'transport');
                                 'Dapr'                      = $dapr;
                                 'Secrets'                   = [string]$secrets;
-                                'Container'                 = $3.name;
-                                'CPU Cores'                 = $3.resources.cpu;
-                                'Memory Size (Gi)'          = $3.resources.memory;
-                                'Ephemeral Storage (Gi)'    = $3.resources.ephemeralStorage;
-                                'Container Image'           = $3.image;
+                                'Container'                 = (Get-AZSCSafeProperty -InputObject $3 -Path 'name');
+                                'CPU Cores'                 = (Get-AZSCSafeProperty -InputObject $3 -Path 'resources.cpu');
+                                'Memory Size (Gi)'          = (Get-AZSCSafeProperty -InputObject $3 -Path 'resources.memory');
+                                'Ephemeral Storage (Gi)'    = (Get-AZSCSafeProperty -InputObject $3 -Path 'resources.ephemeralStorage');
+                                'Container Image'           = (Get-AZSCSafeProperty -InputObject $3 -Path 'image');
                                 'Resource U'                = $ResUCount;
                                 'Tag Name'                  = [string]$Tag.Name;
                                 'Tag Value'                 = [string]$Tag.Value
