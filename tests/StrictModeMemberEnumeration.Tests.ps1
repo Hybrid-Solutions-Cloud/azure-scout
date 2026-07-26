@@ -238,10 +238,17 @@ Describe 'Job waits never member-enumerate a possibly-empty handle collection' {
     # The diagram subsystem still uses jobs, so its assertion stays.
 
     It 'Start-AZTIDiagramJob no longer reads the non-existent .Runspace property' {
-        # PowerShellAsyncResult has no .Runspace, so the old condition was always false and
-        # the wait was a no-op. v2.5.2 fixed the identical line in the resource pipeline only.
+        # PowerShellAsyncResult has no .Runspace, so the old condition was always false and the
+        # wait was a no-op. AB#5649 removed the whole runspace fan-out this guarded, so the file
+        # now only MENTIONS the expression in the note explaining what went. Strip comments with
+        # the tokenizer, not a line regex — that note is a <# … #> block whose inner lines do
+        # not start with '#', so a regex strip matches the prose instead of the code.
         $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
-        $Active = ($Text -split "`r?`n") | Where-Object { $_ -notmatch '^\s*#' }
-        ($Active -join "`n") | Should -Not -Match ([regex]::Escape('$Job.Runspace.IsCompleted'))
+        $Tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseInput($Text, [ref]$Tokens, [ref]$null)
+        $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
+
+        $Code | Should -Not -Match ([regex]::Escape('$Job.Runspace.IsCompleted'))
+        $Code | Should -Not -Match 'BeginInvoke'
     }
 }

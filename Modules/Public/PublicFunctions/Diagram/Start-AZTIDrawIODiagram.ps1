@@ -41,7 +41,12 @@ function Start-AZSCDrawIODiagram {
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Start-AZSCDiagramJob Function') | Out-File -FilePath $LogFile -Append
 
-    Start-AZSCDiagramJob -Resources $Resources -Automation $Automation
+    # AB#5649 — this used to start a 'DiagramVariables' background job whose result was harvested
+    # further down with Wait-Job / Receive-Job / Remove-Job. It only ever filtered $Resources by
+    # 27 resource types, so it now returns the lookup directly. Capturing it here also removes an
+    # ordering hazard: the harvest sat AFTER the organisation job was started, so the two were
+    # only accidentally sequenced.
+    $Job = Start-AZSCDiagramJob -Resources $Resources -Automation $Automation
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting Draw.IO Diagram File') | Out-File -FilePath $LogFile -Append 
 
@@ -121,15 +126,11 @@ function Start-AZSCDrawIODiagram {
         } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile, $AZSCModule
     }
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting Variables Job to Continue') | Out-File -FilePath $LogFile -Append 
+    # The Wait-Job / Receive-Job / Remove-Job harvest for 'DiagramVariables' stood here. The
+    # lookup is now computed in-process above, so there is nothing to wait for. (AB#5649)
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram variables ready: '+@($Job.Keys).Count+' resource groups') | Out-File -FilePath $LogFile -Append
 
-    Get-Job -Name 'DiagramVariables' | Wait-Job
-
-    $Job = Receive-Job -Name 'DiagramVariables'
-
-    Get-Job -Name 'DiagramVariables' | Remove-Job
-
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Jobs') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Jobs') | Out-File -FilePath $LogFile -Append
 
     if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append 

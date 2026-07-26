@@ -500,6 +500,95 @@ Describe 'Every report exporter tolerates a cache with no entry for a collector'
     }
 }
 
+Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
+
+    # AB#5649 — this was 290 lines: two copies of the same 27-type filter behind an if/else on
+    # $Automation, the non-automation copy using 27 separate [PowerShell]::Create() runspaces
+    # to perform 27 array filters, plus its own instance of the $Job.Runspace.IsCompleted
+    # no-op wait. It is now one bucket-sorting pass over $Resources.
+
+    BeforeAll {
+        . (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
+
+        $script:DiagramResources = @(
+            [PSCustomObject]@{ Type = 'microsoft.network/virtualnetworks'; name = 'vnet1' }
+            [PSCustomObject]@{ Type = 'Microsoft.Network/VirtualNetworks'; name = 'vnet2' }
+            [PSCustomObject]@{ Type = 'microsoft.compute/virtualmachines'; name = 'vm1' }
+            [PSCustomObject]@{ Type = 'Microsoft.Compute/virtualMachineScaleSets'; name = 'vmss1' }
+            [PSCustomObject]@{ Type = 'microsoft.storage/storageaccounts'; name = 'not-a-diagram-type' }
+        )
+    }
+
+    It 'returns all 27 keys the diagram builders index by' {
+        $V = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $false
+        @($V.Keys).Count | Should -Be 27
+        $V.Keys | Should -Contain 'AZVNETs'
+        $V.Keys | Should -Contain 'AppGtw'
+        $V.Keys | Should -Contain 'ANF'
+    }
+
+    It 'matches resource types case-insensitively, as -eq did' {
+        $V = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $false
+        @($V['AZVNETs']).Count | Should -Be 2
+        $V['VMSS'].name | Should -Be 'vmss1'
+    }
+
+    It 'returns $null for a type with no resources, NOT an empty collection' {
+        # Load-bearing. Under StrictMode, member enumeration over an EMPTY collection throws
+        # "property cannot be found", while the same read over $null is safe — the AB#5633
+        # crash class. Handing the diagram builders empty lists would walk straight back into it.
+        $V = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $false
+        $V['ANF'] | Should -BeNullOrEmpty
+        $null -eq $V['ANF'] | Should -BeTrue
+    }
+
+    It 'starts no background jobs and creates no runspaces' {
+        $Before = @(Get-Job).Count
+        $null = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $false
+        $null = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $true
+        @(Get-Job).Count | Should -Be $Before
+    }
+
+    It 'gives automation and non-automation runs identical output' {
+        # They were two hand-maintained copies of the same mapping; that is exactly how the
+        # two collector-discovery implementations drifted apart.
+        $A = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $false
+        $B = Start-AZSCDiagramJob -Resources $script:DiagramResources -Automation $true
+
+        ($A.Keys | Sort-Object) | Should -Be ($B.Keys | Sort-Object)
+        foreach ($K in $A.Keys) {
+            @($A[$K]).Count | Should -Be @($B[$K]).Count -Because "key $K must match across modes"
+        }
+    }
+
+    It 'tolerates an empty and a null resource set' {
+        { Start-AZSCDiagramJob -Resources @() -Automation $false }   | Should -Not -Throw
+        { Start-AZSCDiagramJob -Resources $null -Automation $false } | Should -Not -Throw
+    }
+
+    It 'no longer contains the runspace fan-out or the no-op wait' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1') -Raw
+        $Tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
+        $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
+
+        $Code | Should -Not -Match 'Start-Job'
+        $Code | Should -Not -Match 'Start-ThreadJob'
+        $Code | Should -Not -Match 'BeginInvoke'
+        $Code | Should -Not -Match 'Runspace'
+    }
+
+    It 'Start-AZSCDrawIODiagram takes the lookup as a value instead of harvesting a job' {
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDrawIODiagram.ps1') -Raw
+        $Tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
+        $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
+
+        $Code | Should -Match '\$Job = Start-AZSCDiagramJob'
+        $Code | Should -Not -Match "DiagramVariables"
+    }
+}
+
 Describe 'The processing path no longer depends on background jobs' {
 
     It 'Start-AZSCProcessOrchestration calls the deterministic pipeline' {
