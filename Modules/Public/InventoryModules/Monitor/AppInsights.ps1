@@ -35,7 +35,11 @@ If ($Task -eq 'Processing') {
         {
             $tmp = foreach ($1 in $AppInsights) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -62,31 +66,49 @@ If ($Task -eq 'Processing') {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $timecreated = $data.CreationDate
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
-                $Sampling = if([string]::IsNullOrEmpty($data.SamplingPercentage)){'Disabled'}else{$data.SamplingPercentage}
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # The CreationDate field is absent (not present-and-null) on older API versions and some
+                # resource kinds, so the raw read throws under StrictMode -- and [datetime] of a null
+                # produced a bogus 0001-01-01 before that (AB#5671).
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'CreationDate'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
+                $Sampling = if([string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'SamplingPercentage' -Enumerate))){'Disabled'}else{(Get-AZSCSafeProperty -InputObject $data -Path 'SamplingPercentage' -Enumerate)}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
                     foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                                = $1.id;
-                            'Subscription'                      = $sub1.Name;
+                            'Subscription'                      = $SubscriptionName;
                             'Resource Group'                    = $1.RESOURCEGROUP;
                             'Name'                              = $1.NAME;
                             'Location'                          = $1.LOCATION;
                             'Retiring Feature'                  = $RetiringFeature;
                             'Retiring Date'                     = $RetiringDate;
-                            'Application Type'                  = $data.Application_Type;
-                            'Retirement Date'                   = [string]$RetDate;
-                            'Retirement Feature'                = $RetFeature;
-                            'Flow Type'                         = $data.Flow_Type;
-                            'Version'                           = $data.Ver;
-                            'Request Source'                    = $data.Request_Source;
+                            'Application Type'                  = (Get-AZSCSafeProperty -InputObject $data -Path 'Application_Type' -Enumerate);
+                            # $RetDate and $RetFeature are never assigned anywhere in this file, so
+                            # under StrictMode the READ is the error ("cannot be retrieved because it
+                            # has not been set"). They are written as explicit nulls rather than
+                            # deleted: both columns are part of this collector's emitted shape, and
+                            # [string]$null is '' -- exactly what the unset variables contributed
+                            # before. Note the separately-computed 'Retiring Date' / 'Retiring
+                            # Feature' columns two lines up, which is what these two look like a
+                            # half-finished duplicate of; wiring them up would change emitted values
+                            # and so belongs in its own work item, not in a StrictMode fix (AB#5671).
+                            'Retirement Date'                   = [string]$null;
+                            'Retirement Feature'                = $null;
+                            'Flow Type'                         = (Get-AZSCSafeProperty -InputObject $data -Path 'Flow_Type' -Enumerate);
+                            'Version'                           = (Get-AZSCSafeProperty -InputObject $data -Path 'Ver' -Enumerate);
+                            'Request Source'                    = (Get-AZSCSafeProperty -InputObject $data -Path 'Request_Source' -Enumerate);
                             'Data Sampling %'                   = [string]$Sampling;
-                            'Retention In Days'                 = $data.RetentionInDays;
-                            'Ingestion Mode'                    = $data.IngestionMode;
-                            'Public Access For Ingestion'       = $data.publicNetworkAccessForIngestion;
-                            'Public Access For Query'           = $data.publicNetworkAccessForQuery;    
+                            'Retention In Days'                 = (Get-AZSCSafeProperty -InputObject $data -Path 'RetentionInDays' -Enumerate);
+                            'Ingestion Mode'                    = (Get-AZSCSafeProperty -InputObject $data -Path 'IngestionMode' -Enumerate);
+                            'Public Access For Ingestion'       = (Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccessForIngestion' -Enumerate);
+                            'Public Access For Query'           = (Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccessForQuery' -Enumerate);
                             'Created Time'                      = $timecreated;     
                             'Resource U'                       = $ResUCount;                       
                             'Tag Name'                          = [string]$Tag.Name;

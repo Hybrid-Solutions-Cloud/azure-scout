@@ -31,7 +31,11 @@ If ($Task -eq 'Processing') {
         {
             $tmp = foreach ($1 in $POSTGRE) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
@@ -59,35 +63,42 @@ If ($Task -eq 'Processing') {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $DelegatedVNET = if(![string]::IsNullOrEmpty($data.network.delegatedsubnetresourceid)){$data.network.delegatedsubnetresourceid.split('/')[8]}else{$null}
-                $DelegatedSubnet = if(![string]::IsNullOrEmpty($data.network.delegatedsubnetresourceid)){$data.network.delegatedsubnetresourceid.split('/')[10]}else{$null}
-                $PrivateDNSZone = if(![string]::IsNullOrEmpty($data.network.privatednszonearmresourceid)){$data.network.privatednszonearmresourceid.split('/')[8]}else{$null}
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $DelegatedVNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate) -Index 8)}else{$null}
+                $DelegatedSubnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate) -Index 10)}else{$null}
+                $PrivateDNSZone = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.privatednszonearmresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.privatednszonearmresourceid' -Enumerate) -Index 8)}else{$null}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
                     foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                        = $1.id;
-                            'Subscription'              = $sub1.Name;
+                            'Subscription'              = $SubscriptionName;
                             'Resource Group'            = $1.RESOURCEGROUP;
                             'Name'                      = $1.NAME;
                             'Location'                  = $1.LOCATION;
                             'Retiring Feature'          = $RetiringFeature;
                             'Retiring Date'             = $RetiringDate;
-                            'FQDN'                      = $data.fullyqualifieddomainname;
-                            'ADMIN Login'               = $data.administratorLogin;
-                            'Version'                   = [string]($data.version+'.'+$data.minorversion);
-                            'AD Authentication'         = $data.authconfig.activedirectoryauth;
-                            'Password Authentication'   = $data.authconfig.passwordauth;
-                            'Computer Tier'             = $sku.tier;
-                            'Computer Size'             = $sku.name;
-                            'Storage Size (GB)'         = $data.storage.storagesizegb;
-                            'Availability Zone'         = $data.availabilityzone;
-                            'High Availability'         = $data.highavailability.state;
-                            'Data Encryption'           = $data.dataencryption.type;
-                            'Backup Retention (Days)'   = $data.backup.backupretentiondays;
-                            'Geo-Redundant Backup'      = $data.backup.geoRedundantBackup;
-                            'Replication Role'          = $data.replicationRole;
-                            'Replication Capacity'      = $data.replicaCapacity;
-                            'Public Network Access'     = $data.network.publicnetworkaccess;
+                            'FQDN'                      = (Get-AZSCSafeProperty -InputObject $data -Path 'fullyqualifieddomainname' -Enumerate);
+                            'ADMIN Login'               = (Get-AZSCSafeProperty -InputObject $data -Path 'administratorLogin' -Enumerate);
+                            'Version'                   = [string]((Get-AZSCSafeProperty -InputObject $data -Path 'version' -Enumerate)+'.'+(Get-AZSCSafeProperty -InputObject $data -Path 'minorversion' -Enumerate));
+                            'AD Authentication'         = (Get-AZSCSafeProperty -InputObject $data -Path 'authconfig.activedirectoryauth' -Enumerate);
+                            'Password Authentication'   = (Get-AZSCSafeProperty -InputObject $data -Path 'authconfig.passwordauth' -Enumerate);
+                            'Computer Tier'             = (Get-AZSCSafeProperty -InputObject $sku -Path 'tier' -Enumerate);
+                            'Computer Size'             = (Get-AZSCSafeProperty -InputObject $sku -Path 'name' -Enumerate);
+                            'Storage Size (GB)'         = (Get-AZSCSafeProperty -InputObject $data -Path 'storage.storagesizegb' -Enumerate);
+                            'Availability Zone'         = (Get-AZSCSafeProperty -InputObject $data -Path 'availabilityzone' -Enumerate);
+                            'High Availability'         = (Get-AZSCSafeProperty -InputObject $data -Path 'highavailability.state' -Enumerate);
+                            'Data Encryption'           = (Get-AZSCSafeProperty -InputObject $data -Path 'dataencryption.type' -Enumerate);
+                            'Backup Retention (Days)'   = (Get-AZSCSafeProperty -InputObject $data -Path 'backup.backupretentiondays' -Enumerate);
+                            'Geo-Redundant Backup'      = (Get-AZSCSafeProperty -InputObject $data -Path 'backup.geoRedundantBackup' -Enumerate);
+                            'Replication Role'          = (Get-AZSCSafeProperty -InputObject $data -Path 'replicationRole' -Enumerate);
+                            'Replication Capacity'      = (Get-AZSCSafeProperty -InputObject $data -Path 'replicaCapacity' -Enumerate);
+                            'Public Network Access'     = (Get-AZSCSafeProperty -InputObject $data -Path 'network.publicnetworkaccess' -Enumerate);
                             'Delegated VNET'            = $DelegatedVNET;
                             'Delegated Subnet'          = $DelegatedSubnet;
                             'Private DNS Zone'          = $PrivateDNSZone;

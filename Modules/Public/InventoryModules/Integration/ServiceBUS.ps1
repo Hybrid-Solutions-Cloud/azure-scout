@@ -35,12 +35,18 @@ If ($Task -eq 'Processing')
         {
             $tmp = foreach ($1 in $svchub) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
-                $timecreated = $data.createdAt
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                # The createdAt field is absent (not present-and-null) on older API versions and some
+                # resource kinds, so the raw read throws under StrictMode -- and [datetime] of a null
+                # produced a bogus 0001-01-01 before that (AB#5671).
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'createdAt'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {
@@ -66,21 +72,28 @@ If ($Task -eq 'Processing')
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
                     foreach ($Tag in $Tags) { 
                         $obj = @{
                             'ID'                   = $1.id;
-                            'Subscription'         = $sub1.Name;
+                            'Subscription'         = $SubscriptionName;
                             'Resource Group'       = $1.RESOURCEGROUP;
                             'Name'                 = $1.NAME;
                             'Location'             = $1.LOCATION;
-                            'SKU'                  = $sku.name;
+                            'SKU'                  = (Get-AZSCSafeProperty -InputObject $sku -Path 'name' -Enumerate);
                             'Retiring Feature'     = $RetiringFeature;
                             'Retiring Date'        = $RetiringDate;
-                            'Status'               = $data.status;
-                            'Geo-Replication'      = $data.zoneRedundant;
-                            'Throughput Units'     = $1.sku.capacity;
-                            'Endpoint'             = $data.serviceBusEndpoint;
+                            'Status'               = (Get-AZSCSafeProperty -InputObject $data -Path 'status' -Enumerate);
+                            'Geo-Replication'      = (Get-AZSCSafeProperty -InputObject $data -Path 'zoneRedundant' -Enumerate);
+                            'Throughput Units'     = (Get-AZSCSafeProperty -InputObject $1 -Path 'sku.capacity' -Enumerate);
+                            'Endpoint'             = (Get-AZSCSafeProperty -InputObject $data -Path 'serviceBusEndpoint' -Enumerate);
                             'Created Time'         = $timecreated;      
                             'Resource U'           = $ResUCount;
                             'Tag Name'             = [string]$Tag.Name;

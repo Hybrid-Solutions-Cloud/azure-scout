@@ -39,7 +39,13 @@ If ($Task -eq 'Processing')
                 $ResUCount = 1
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                 $data = $1.PROPERTIES
-                $Orphaned = if([string]::IsNullOrEmpty($data.virtualMachines.id)){$true}else{$false}
+                # `virtualMachines` is an ARRAY, and it is absent (not empty) on an availability
+                # set that has never had a VM placed in it -- both shapes make the raw
+                # `$data.virtualMachines.id` chain throw under StrictMode (AB#5671). -Enumerate
+                # reproduces the member enumeration the original relied on, so a set WITH members
+                # still yields exactly the same id (or array of ids) as before.
+                $AvSetVMIds = Get-AZSCSafeProperty -InputObject $data -Path 'virtualMachines.id' -Enumerate
+                $Orphaned = if([string]::IsNullOrEmpty($AvSetVMIds)){$true}else{$false}
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {
@@ -65,8 +71,18 @@ If ($Task -eq 'Processing')
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                Foreach ($vmid in $data.virtualMachines.id) {
+                # A Resource Graph row for an untagged resource OMITS `tags` rather than carrying
+                # an empty object, so the raw `$1.tags` read throws under StrictMode (AB#5671).
+                # `$null.psobject.properties` throws too, so the psobject read is guarded on the
+                # value as well as on the key. The '0' fall-back is retained exactly: an untagged
+                # resource still emits ONE row with empty Tag Name/Value, rather than none.
+                $RowTags = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                # The historic '0' sentinel existed only to make the tag loop run once for an
+                # untagged resource; `'0'.Name` throws under StrictMode, and an empty tag object
+                # runs the loop once AND emits the identical [string]-cast empty Tag Name/Value.
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
+                Foreach ($vmid in $AvSetVMIds) {
                     $vmIds = $vmid.split('/')[8]
                         foreach ($Tag in $Tags) {
                             $obj = @{

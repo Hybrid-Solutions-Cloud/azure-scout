@@ -45,18 +45,27 @@
     baseline failing is a NEW regression and does. Removing an entry from the baseline (because
     someone fixed that collector) tightens the gate for everyone after them.
 
-    THE BASELINE IS A MEASUREMENT, NOT A WISH. It currently holds 23 of the 174 'Standard'
-    collectors, each with the exact exception that collector throws. It must only ever be
-    written from an actual run -- an earlier revision of this file shipped an EMPTY baseline
-    while 24 collectors were in fact failing, which made the gate assert nothing at all and
-    hid the finding it exists to surface. To refresh it after fixing a collector, run this file
-    and take the reported failures; never hand-edit an entry in to make a red run go green.
+    THE BASELINE IS A MEASUREMENT, NOT A WISH. It is now EMPTY, because as of AB#5671 all 174
+    'Standard' collectors survive these fixtures -- verified by running them, not by wishing. An
+    empty baseline is only ever legitimate when a real run reports zero failures; an earlier
+    revision of this file shipped an empty baseline while 24 collectors were in fact failing,
+    which made the gate assert nothing at all and hid the finding it exists to surface. To
+    refresh it, run this file and take the reported failures; never hand-edit an entry in to
+    make a red run go green, and never empty it to make one go green either.
 
     WHAT A PASS HERE DOES AND DOES NOT MEAN. It means "this collector did not throw against
-    these fixtures". The captured fixtures cover 29 distinct resource types, so a collector
+    these fixtures". The captured fixtures cover 32 distinct resource types, so a collector
     whose type is not among them filters to zero rows and passes without executing any of its
     body. A green result for such a collector is real but weak; only the collectors whose types
     the fixtures do contain are meaningfully exercised. Widening the capture widens the gate.
+
+    THAT WEAKNESS IS NOW ITS OWN GATE. The 'consumed a captured row' Describe block at the
+    bottom of this file pins the exact number of rows each meaningfully-exercised collector
+    emits. That is what makes a green run here mean something: if the fixtures are ever broken
+    again in a way that stops collectors seeing data (the double-wrapping below did exactly
+    that), those counts collapse to zero and that block goes red, even though every collector
+    would still "not throw". Do not delete an entry from it to make a run green -- a count that
+    has moved means either the fixtures or the collector changed, and both need explaining.
 
     That distinction is not theoretical. The first version of these fixtures was written
     double-wrapped (`[[ {...} ]]` instead of `[ {...} ]`), so `@($raw | ConvertFrom-Json)`
@@ -150,6 +159,10 @@ Describe 'Inventory collectors run under StrictMode (AB#5667)' {
         # to walk a chain that passes THROUGH an array (member enumeration), which
         # Get-AZSCSafeProperty alone does not attempt to reproduce.
         . (Join-Path $script:RepoRoot 'Modules' 'Private' 'Main' 'Get-AZTICollectedValue.ps1')
+        # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
+        # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
+        # without it the same expression quietly returned $null.
+        . (Join-Path $script:RepoRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
 
         # The shared, "hostile-but-plausible" resource set every collector below runs against:
         # real captured shapes plus every hand-authored edge case EXCEPT the missing-TYPE row
@@ -220,6 +233,17 @@ Describe 'Inventory collectors run under StrictMode (AB#5667)' {
             $script:CollectorResults["$($c.Category)/$($c.Name)"] = Invoke-ScoutCollectorUnderStrictMode -Collector $c
         }
 
+        # Hand the per-collector ROW COUNTS to the 'consumed a captured row' Describe block at the
+        # bottom of this file. A separate Describe gets a fresh script scope and cannot see
+        # $script:CollectorResults, and re-running 174 collectors there purely to count rows would
+        # double the cost of this file for no extra signal -- so the counts go through a temp file.
+        $script:ResultsPath = Join-Path ([System.IO.Path]::GetTempPath()) 'AZSC_StrictModeCollectorRows.json'
+        @(
+            foreach ($key in $script:CollectorResults.Keys) {
+                [PSCustomObject]@{ Key = $key; Rows = @($script:CollectorResults[$key].Rows).Count }
+            }
+        ) | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $script:ResultsPath -Encoding utf8
+
         # Running 174 collectors against deliberately hostile fixtures generates hundreds of
         # non-terminating errors, and $Error is GLOBAL and capped at $MaximumErrorCount (256 by
         # default). Left saturated, it silently breaks any later test in the same session that
@@ -262,6 +286,70 @@ Describe 'Inventory collectors run under StrictMode (AB#5667)' {
         # The gate: nothing may fail that the baseline does not already account for. Collectors
         # fixed since the baseline was captured only ever move this number down.
         $failing | Should -BeLessOrEqual $script:BaselineSet.Count
+    }
+}
+
+Describe 'Meaningfully-exercised collectors consumed a captured row (AB#5671)' {
+
+    # THE ANTI-VACUOUS-PASS GATE.
+    #
+    # "Did not throw" is a worthless result on its own. The fixtures cover 32 resource types out of
+    # the ~176 the collectors look for, so a collector whose type is absent filters to zero rows and
+    # passes without executing one line of its body. Worse, a MISTAKE in the fixtures can silently
+    # put every collector in that category: the first revision of these files was double-wrapped
+    # (`[[ {...} ]]` rather than `[ {...} ]`), so every collector's opening
+    # `Where-Object { $_.TYPE -eq ... }` matched nothing and 150 of 174 "passed" having touched no
+    # data at all. Nothing failed. Nothing was tested.
+    #
+    # So the counts below are the load-bearing assertion. Each of these collectors DOES have rows of
+    # its type in the captured fixtures, and each number is the row count actually observed under
+    # StrictMode -- proof the collector reached its emit path with real payload shapes, not proof it
+    # merely declined to throw. Break the fixtures and these collapse to zero; regress a collector
+    # into emitting nothing and they collapse too.
+    #
+    # Counts differ from row counts in the fixtures because most collectors emit one row per TAG per
+    # resource (and ContainerApp one per container per app).
+
+    BeforeAll {
+        $script:RepoRoot    = Split-Path -Parent $PSScriptRoot
+        $script:ResultsPath = Join-Path ([System.IO.Path]::GetTempPath()) 'AZSC_StrictModeCollectorRows.json'
+    }
+
+    It '<Collector> emits <ExpectedRows> row(s) from the captured fixtures' -ForEach @(
+        @{ Collector = 'AI/AzureAI';                        ExpectedRows = 3   }
+        @{ Collector = 'Compute/VirtualMachine';             ExpectedRows = 10  }
+        @{ Collector = 'Compute/VirtualMachineScaleSet';     ExpectedRows = 1   }
+        @{ Collector = 'Compute/VMDisk';                     ExpectedRows = 9   }
+        @{ Collector = 'Compute/VMOperationalData';          ExpectedRows = 10  }
+        @{ Collector = 'Containers/ContainerApp';            ExpectedRows = 78  }
+        @{ Collector = 'Containers/ContainerAppEnv';         ExpectedRows = 15  }
+        @{ Collector = 'Containers/ContainerRegistries';     ExpectedRows = 15  }
+        @{ Collector = 'Databases/POSTGREFlexible';          ExpectedRows = 9   }
+        @{ Collector = 'Identity/ManagedIds';                ExpectedRows = 146 }
+        @{ Collector = 'Integration/ServiceBUS';             ExpectedRows = 9   }
+        @{ Collector = 'Monitor/ActionGroups';               ExpectedRows = 9   }
+        @{ Collector = 'Monitor/AppInsights';                ExpectedRows = 9   }
+        @{ Collector = 'Monitor/MetricAlertRules';           ExpectedRows = 18  }
+        @{ Collector = 'Monitor/MonitorMetricsIngestion';    ExpectedRows = 21  }
+        @{ Collector = 'Monitor/SmartDetectorAlertRules';    ExpectedRows = 9   }
+        @{ Collector = 'Monitor/Workspaces';                 ExpectedRows = 21  }
+        @{ Collector = 'Networking/LoadBalancer';            ExpectedRows = 10  }
+        @{ Collector = 'Networking/NetworkInterface';        ExpectedRows = 34  }
+        @{ Collector = 'Networking/NetworkWatchers';         ExpectedRows = 3   }
+        @{ Collector = 'Networking/PrivateDNS';              ExpectedRows = 27  }
+        @{ Collector = 'Networking/PrivateEndpoint';         ExpectedRows = 18  }
+        @{ Collector = 'Networking/VirtualNetwork';          ExpectedRows = 38  }
+        @{ Collector = 'Security/Vault';                     ExpectedRows = 14  }
+        @{ Collector = 'Storage/StorageAccounts';            ExpectedRows = 3   }
+    ) {
+        # The row counts were recorded by the Describe block above, which already ran every
+        # collector once; re-running 174 collectors to count them again would double this file's
+        # cost for no extra signal.
+        $recorded = @(Get-Content -LiteralPath $script:ResultsPath -Raw | ConvertFrom-Json)
+        $entry    = $recorded | Where-Object { $_.Key -eq $Collector }
+
+        $entry | Should -Not -BeNullOrEmpty -Because 'the StrictMode harness above should have recorded a result for every Standard collector'
+        $entry.Rows | Should -Be $ExpectedRows -Because 'a collector whose row count has moved either stopped seeing the fixtures or changed what it emits -- both need explaining, neither is fixed by editing this number'
     }
 }
 

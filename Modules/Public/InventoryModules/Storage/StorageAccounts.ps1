@@ -34,7 +34,11 @@ If ($Task -eq 'Processing') {
         {
             $tmp = foreach ($1 in $storageacc) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $Retired = Foreach ($Retirement in $Retirements)
                     {
@@ -64,28 +68,37 @@ If ($Task -eq 'Processing') {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $timecreated = $data.creationTime
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
-                $TLSv = if ($data.minimumTlsVersion -eq 'TLS1_2') { "TLS 1.2" }elseif ($data.minimumTlsVersion -eq 'TLS1_1') { "TLS 1.1" }else { "TLS 1.0" }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $VNETRules = if(![string]::IsNullOrEmpty($data.networkacls.virtualnetworkrules)){$data.networkacls.virtualnetworkrules}else{' '}
-                $BlobAccess = if ($data.allowBlobPublicAccess -eq $false){$false}else{$true}
-                $KeyAccess = if($data.allowsharedkeyaccess -eq $true){$true}else{$false}
-                $SFTPEnabled = if($data.isSftpEnabled -eq $true){$true}else{$false}
-                $HNSEnabled = if($data.ishnsenabled -eq $true){$true}else{$false}
-                $NFSv3 = if($data.isnfsv3enabled -eq $true){$true}else{$false}
-                $LargeFileShare = if($data.largeFileSharesState -eq $true){$true}else{$false}
-                $CrossTNT = if($data.allowCrossTenantReplication -eq $true){$true}else{$false}
-                $InfrastructureEncryption = if($data.encryption.requireInfrastructureEncryption -eq "True"){$true}else{$false}
+                # The creationTime field is absent (not present-and-null) on older API versions and some
+                # resource kinds, so the raw read throws under StrictMode -- and [datetime] of a null
+                # produced a bogus 0001-01-01 before that (AB#5671).
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'creationTime'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
+                $TLSv = if ((Get-AZSCSafeProperty -InputObject $data -Path 'minimumTlsVersion' -Enumerate) -eq 'TLS1_2') { "TLS 1.2" }elseif ((Get-AZSCSafeProperty -InputObject $data -Path 'minimumTlsVersion' -Enumerate) -eq 'TLS1_1') { "TLS 1.1" }else { "TLS 1.0" }
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
+                $VNETRules = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.virtualnetworkrules' -Enumerate))){(Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.virtualnetworkrules' -Enumerate)}else{' '}
+                $BlobAccess = if ((Get-AZSCSafeProperty -InputObject $data -Path 'allowBlobPublicAccess' -Enumerate) -eq $false){$false}else{$true}
+                $KeyAccess = if((Get-AZSCSafeProperty -InputObject $data -Path 'allowsharedkeyaccess' -Enumerate) -eq $true){$true}else{$false}
+                $SFTPEnabled = if((Get-AZSCSafeProperty -InputObject $data -Path 'isSftpEnabled' -Enumerate) -eq $true){$true}else{$false}
+                $HNSEnabled = if((Get-AZSCSafeProperty -InputObject $data -Path 'ishnsenabled' -Enumerate) -eq $true){$true}else{$false}
+                $NFSv3 = if((Get-AZSCSafeProperty -InputObject $data -Path 'isnfsv3enabled' -Enumerate) -eq $true){$true}else{$false}
+                $LargeFileShare = if((Get-AZSCSafeProperty -InputObject $data -Path 'largeFileSharesState' -Enumerate) -eq $true){$true}else{$false}
+                $CrossTNT = if((Get-AZSCSafeProperty -InputObject $data -Path 'allowCrossTenantReplication' -Enumerate) -eq $true){$true}else{$false}
+                $InfrastructureEncryption = if((Get-AZSCSafeProperty -InputObject $data -Path 'encryption.requireInfrastructureEncryption' -Enumerate) -eq "True"){$true}else{$false}
 
                 
 
-                if ($data.azureFilesIdentityBasedAuthentication.directoryServiceOptions -eq 'None')
+                if ((Get-AZSCSafeProperty -InputObject $data -Path 'azureFilesIdentityBasedAuthentication.directoryServiceOptions' -Enumerate) -eq 'None')
                     {
                         $EntraID = $false
                     }
-                elseif ([string]::IsNullOrEmpty($data.azureFilesIdentityBasedAuthentication.directoryServiceOptions))
+                elseif ([string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'azureFilesIdentityBasedAuthentication.directoryServiceOptions' -Enumerate)))
                     {
                         $EntraID = $false
                     }
@@ -94,28 +107,36 @@ If ($Task -eq 'Processing') {
                         $EntraID = $true
                     }
 
-                if ($data.networkacls.defaultaction -eq 'allow')
+                # This if/elseif chain has NO else, so an account that matches none of the three cases
+                # (no networkAcls block and no publicNetworkAccess field -- both are optional) left
+                # $PubNetAccess unset. Under StrictMode the later read is then an error; without
+                # StrictMode it was worse but silent, because the variable survives from one loop
+                # iteration to the next, so such an account reported the PREVIOUS account's value.
+                # Resetting per account is the same fix VirtualMachine.ps1 already applies to its
+                # capability variables (AB#5671).
+                $PubNetAccess = $null
+                if ((Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.defaultaction' -Enumerate) -eq 'allow')
                     {
                         $PubNetAccess = 'Enabled from all networks'
                     }
-                elseif ($data.networkacls.defaultaction -eq 'Deny' -and $data.publicNetworkAccess -eq 'Enabled')
+                elseif ((Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.defaultaction' -Enumerate) -eq 'Deny' -and (Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccess' -Enumerate) -eq 'Enabled')
                     {
                         $PubNetAccess = 'Enabled from selected virtual networks and IP addresses'
                     }
-                elseif ($data.publicNetworkAccess -eq 'Disabled')
+                elseif ((Get-AZSCSafeProperty -InputObject $data -Path 'publicNetworkAccess' -Enumerate) -eq 'Disabled')
                     {
                         $PubNetAccess = 'Disabled'
                     }
 
                 $PVTEndpoints = @()
-                foreach ($pvt in $data.privateEndpointConnections.properties.privateendpoint)
+                foreach ($pvt in (Get-AZSCSafeProperty -InputObject $data -Path 'privateEndpointConnections.properties.privateendpoint' -Enumerate))
                     {
-                        $PVTEndpoints += if(![string]::IsNullOrEmpty($pvt.id)){$pvt.id.split('/')[8]}else{$null}
+                        $PVTEndpoints += if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $pvt -Path 'id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $pvt -Path 'id' -Enumerate) -Index 8)}else{$null}
                     }
                 $DirectResources = @()
-                foreach ($DiRes in $data.networkacls.resourceaccessrules)
+                foreach ($DiRes in (Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.resourceaccessrules' -Enumerate))
                     {
-                        $DirectResources += if(![string]::IsNullOrEmpty($DiRes.resourceid)){$DiRes.resourceid.split('/')[8]}else{$null}
+                        $DirectResources += if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $DiRes -Path 'resourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $DiRes -Path 'resourceid' -Enumerate) -Index 8)}else{$null}
                     }
 
                 $FinalDirectResources = if ($DirectResources.count -gt 1) { $DirectResources | ForEach-Object { $_ + ' ,' } }else { $DirectResources }
@@ -126,7 +147,7 @@ If ($Task -eq 'Processing') {
                 $FinalPVTEndpoint = [string]$FinalPVTEndpoint
                 $FinalPVTEndpoint = if ($FinalPVTEndpoint -like '* ,*') { $FinalPVTEndpoint -replace ".$" }else { $FinalPVTEndpoint }
 
-                $FinalACLIPs = if (@($data.networkacls.iprules.value).count -gt 1) { $data.networkacls.iprules.value | ForEach-Object { $_ + ' ,' } }else { $data.networkacls.iprules.value }
+                $FinalACLIPs = if (@((Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.iprules.value' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.iprules.value' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.iprules.value' -Enumerate) }
                 $FinalACLIPs = [string]$FinalACLIPs
                 $FinalACLIPs = if ($FinalACLIPs -like '* ,*') { $FinalACLIPs -replace ".$" }else { $FinalACLIPs }
 
@@ -135,34 +156,41 @@ If ($Task -eq 'Processing') {
 
                 foreach ($2 in $VNETRules)
                     {
-                        $VNET = if(![string]::IsNullOrEmpty($2.id)){$2.id.split('/')[8]}else{''}
-                        $Subnet = if(![string]::IsNullOrEmpty($2.id)){$2.id.split('/')[10]}else{''}
+                        $VNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate) -Index 8)}else{''}
+                        $Subnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate) -Index 10)}else{''}
                         foreach ($Tag in $Tags) {
                             $obj = @{
                                 'ID'                                    = $1.id;
-                                'Subscription'                          = $sub1.Name;
+                                'Subscription'                          = $SubscriptionName;
                                 'Resource Group'                        = $1.RESOURCEGROUP;
                                 'Name'                                  = $1.NAME;
                                 'Location'                              = $1.LOCATION;
                                 'Retiring Feature'                      = $RetiringFeature;
                                 'Retiring Date'                         = $RetiringDate;
                                 'Zone'                                  = $1.ZONES;
-                                'SKU'                                   = $1.sku.name;
-                                'Tier'                                  = $1.sku.tier;
+                                'SKU'                                   = (Get-AZSCSafeProperty -InputObject $1 -Path 'sku.name' -Enumerate);
+                                'Tier'                                  = (Get-AZSCSafeProperty -InputObject $1 -Path 'sku.tier' -Enumerate);
                                 'Storage Account Kind'                  = $1.kind;
-                                'Secure Transfer Required'              = $data.supportsHttpsTrafficOnly;
+                                'Secure Transfer Required'              = (Get-AZSCSafeProperty -InputObject $data -Path 'supportsHttpsTrafficOnly' -Enumerate);
                                 'Allow Blob Anonymous Access'           = $BlobAccess;
                                 'Minimum TLS Version'                   = $TLSv;
                                 'Microsoft Entra Authorization'         = $EntraID;
                                 'Allow Storage Account Key Access'      = $KeyAccess;
                                 'SFTP Enabled'                          = $SFTPEnabled;
-                                'Blob Soft Delete Days'                 = if ($blobProperties.DeleteRetentionPolicy.Enabled) { $blobProperties.DeleteRetentionPolicy.Days } else { 'N/A' };
-                                'Container Soft Delete Days'            = if ($blobProperties.containerDeleteRetentionPolicy.Enabled) { $blobProperties.containerDeleteRetentionPolicy.Days } else { 'N/A' };
-                                'File Share Soft Delete Days'           = if ($fileProperties.ShareDeleteRetentionPolicy.Enabled) { $fileProperties.ShareDeleteRetentionPolicy.Days } else { 'N/A' };
+                                # Get-AzStorageBlobServiceProperty / ...FileServiceProperty are called
+                                # WITHOUT -ErrorAction above, so on any account the caller cannot read
+                                # (RBAC, a deleted account, a data-plane firewall) they emit a
+                                # non-terminating error and leave these variables $null -- and a
+                                # property read on $null throws under StrictMode just as an absent
+                                # member does (AB#5671). The 'N/A' fall-back already covers that case;
+                                # it just never got the chance to run.
+                                'Blob Soft Delete Days'                 = if (Get-AZSCSafeProperty -InputObject $blobProperties -Path 'DeleteRetentionPolicy.Enabled') { Get-AZSCSafeProperty -InputObject $blobProperties -Path 'DeleteRetentionPolicy.Days' } else { 'N/A' };
+                                'Container Soft Delete Days'            = if (Get-AZSCSafeProperty -InputObject $blobProperties -Path 'containerDeleteRetentionPolicy.Enabled') { Get-AZSCSafeProperty -InputObject $blobProperties -Path 'containerDeleteRetentionPolicy.Days' } else { 'N/A' };
+                                'File Share Soft Delete Days'           = if (Get-AZSCSafeProperty -InputObject $fileProperties -Path 'ShareDeleteRetentionPolicy.Enabled') { Get-AZSCSafeProperty -InputObject $fileProperties -Path 'ShareDeleteRetentionPolicy.Days' } else { 'N/A' };
                                 'Hierarchical Namespace'                = $HNSEnabled;
                                 'NFSv3 Enabled'                         = $NFSv3;
                                 'Large File Shares'                     = $LargeFileShare;
-                                'Access Tier'                           = $data.accessTier;
+                                'Access Tier'                           = (Get-AZSCSafeProperty -InputObject $data -Path 'accessTier' -Enumerate);
                                 'Allow Cross Tenant Replication'        = $CrossTNT;
                                 'Infrastructure Encryption Enabled'     = $InfrastructureEncryption;
                                 'Public Network Access'                 = $PubNetAccess;
@@ -171,11 +199,11 @@ If ($Task -eq 'Processing') {
                                 'Virtual Networks'                      = $VNET;
                                 'Subnet'                                = $Subnet;
                                 'Direct Access IPs'                     = $FinalACLIPs;
-                                'Firewall Exceptions'                   = [string]$data.networkacls.bypass;
-                                'Primary Location'                      = $data.primaryLocation;
-                                'Status Of Primary Location'            = $data.statusOfPrimary;
-                                'Secondary Location'                    = $data.secondaryLocation;
-                                'Status Of Secondary Location'          = $data.statusofsecondary;
+                                'Firewall Exceptions'                   = [string](Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.bypass' -Enumerate);
+                                'Primary Location'                      = (Get-AZSCSafeProperty -InputObject $data -Path 'primaryLocation' -Enumerate);
+                                'Status Of Primary Location'            = (Get-AZSCSafeProperty -InputObject $data -Path 'statusOfPrimary' -Enumerate);
+                                'Secondary Location'                    = (Get-AZSCSafeProperty -InputObject $data -Path 'secondaryLocation' -Enumerate);
+                                'Status Of Secondary Location'          = (Get-AZSCSafeProperty -InputObject $data -Path 'statusofsecondary' -Enumerate);
                                 'Created Time'                          = $timecreated;
                                 'Resource U'                            = $ResUCount;
                                 'Tag Name'                              = [string]$Tag.Name;

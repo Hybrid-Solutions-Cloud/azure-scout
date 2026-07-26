@@ -36,12 +36,23 @@ If ($Task -eq 'Processing')
         {
             $tmp = foreach ($1 in $networkWatchers) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 
                 # Get provisioning state
-                $provisioningState = if ($data.provisioningState) { $data.provisioningState } else { 'Unknown' }
+                $provisioningState = if ((Get-AZSCSafeProperty -InputObject $data -Path 'provisioningState' -Enumerate)) { (Get-AZSCSafeProperty -InputObject $data -Path 'provisioningState' -Enumerate) } else { 'Unknown' }
 
                 # Get associated flow logs
                 $flowLogs = $Resources | Where-Object {
@@ -81,7 +92,7 @@ If ($Task -eq 'Processing')
                 foreach ($Tag in $Tags) {
                     $obj = @{
                         'ID'                        = $1.id;
-                        'Subscription'              = $sub1.Name;
+                        'Subscription'              = $SubscriptionName;
                         'Resource Group'            = $1.RESOURCEGROUP;
                         'Network Watcher Name'      = $1.NAME;
                         'Location'                  = $1.LOCATION;

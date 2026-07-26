@@ -38,9 +38,21 @@ If ($Task -eq 'Processing')
         }
     } catch {}
 
-    # Fallback: enumerate all top-level MGs if root lookup fails
+    # Fallback: enumerate all top-level MGs if root lookup fails.
+    #
+    # `-Expand -Recurse` without `-GroupId` selects a parameter set that REQUIRES GroupName, so this
+    # call fails parameter binding before it ever reaches Azure -- and a parameter-binding failure is
+    # a terminating error that `-ErrorAction SilentlyContinue` does not suppress, so it took the
+    # whole collector down with "Cannot process command because of one or more missing mandatory
+    # parameters: GroupName". Nothing to do with StrictMode: it fails identically with StrictMode
+    # off, which is how it was mis-attributed to StrictMode in CollectorStrictMode.baseline.json.
+    # The try/catch delivers what the -ErrorAction was written to deliver: no hierarchy, no crash.
     if (-not $tenantRootMG) {
-        $tenantRootMG = Get-AzManagementGroup -Expand -Recurse -ErrorAction SilentlyContinue
+        try {
+            $tenantRootMG = Get-AzManagementGroup -Expand -Recurse -ErrorAction SilentlyContinue
+        } catch {
+            $tenantRootMG = $null
+        }
     }
 
     <######### Insert the resource Process here ########>

@@ -74,6 +74,20 @@ jobs:
           path: test-results/pester-results.xml
           if-no-files-found: warn
 
+      - name: Guard against reintroduced StrictMode weakening
+        shell: pwsh
+        run: |
+          # AB#5672. Fails the build if any Set-StrictMode call in Modules/, src/ or scripts/ is
+          # something other than -Version Latest and is not on the annotated allow-list inside the
+          # script. The allow-list holds the twenty sites that already existed, each with a reason,
+          # and the guard also fails when an entry goes stale -- so the number can only go down.
+          #
+          # Its own step rather than relying on tests/StrictModeGuard.Tests.ps1 alone, so a violation
+          # is annotated on the offending file and line in the PR diff instead of being buried in a
+          # Pester summary. Both call the same scanner; the Pester copy is what makes the check fire
+          # locally as well.
+          ./scripts/Test-StrictModeGuard.ps1
+
       - name: Run PSScriptAnalyzer
         shell: pwsh
         run: |

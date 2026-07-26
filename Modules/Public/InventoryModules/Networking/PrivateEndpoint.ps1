@@ -31,7 +31,11 @@ If ($Task -eq 'Processing') {
         {
             $tmp = foreach ($1 in $PrivateEdp) {
                 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -59,14 +63,21 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = $null
                     }
 
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 
-                $VNET = if(![string]::IsNullOrEmpty($data.subnet.id)){$data.subnet.id.split('/')[8]}else{''}
-                $Subnet = if(![string]::IsNullOrEmpty($data.subnet.id)){$data.subnet.id.split('/')[10]}else{''}
+                $VNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'subnet.id' -Enumerate) -Index 8)}else{''}
+                $Subnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'subnet.id' -Enumerate) -Index 10)}else{''}
 
-                if([string]::IsNullOrEmpty($data.customDnsConfigs.ipAddresses))
+                if([string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.ipAddresses' -Enumerate)))
                     {
-                        $NIC = $NICs | Where-Object {$_.id -eq $data.networkInterfaces.id}
+                        $NIC = $NICs | Where-Object {$_.id -eq (Get-AZSCSafeProperty -InputObject $data -Path 'networkInterfaces.id' -Enumerate)}
                         $IPAddress = if (@($NIC.properties.ipconfigurations.properties.privateipaddress).count -gt 1) { $NIC.properties.ipconfigurations.properties.privateipaddress | ForEach-Object { $_ + ' ,' } }else { $NIC.properties.ipconfigurations.properties.privateipaddress }
                         $IPAddress = [string]$IPAddress
                         $IPAddress = if ($IPAddress -like '* ,*') { $IPAddress -replace ".$" }else { $IPAddress }
@@ -77,11 +88,11 @@ If ($Task -eq 'Processing') {
                     }
                 else
                     {
-                        $IPAddress = if (@($data.customDnsConfigs.ipAddresses).count -gt 1) { $data.customDnsConfigs.ipAddresses | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.ipAddresses }
+                        $IPAddress = if (@((Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.ipAddresses' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.ipAddresses' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.ipAddresses' -Enumerate) }
                         $IPAddress = [string]$IPAddress
                         $IPAddress = if ($IPAddress -like '* ,*') { $IPAddress -replace ".$" }else { $IPAddress }
 
-                        $FQDN = if (@($data.customDnsConfigs.fqdn).count -gt 1) { $data.customDnsConfigs.fqdn | ForEach-Object { $_ + ' ,' } }else { $data.customDnsConfigs.fqdn }
+                        $FQDN = if (@((Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.fqdn' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.fqdn' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $data -Path 'customDnsConfigs.fqdn' -Enumerate) }
                         $FQDN = [string]$FQDN
                         $FQDN = if ($FQDN -like '* ,*') { $FQDN -replace ".$" }else { $FQDN }
                     }
@@ -89,7 +100,7 @@ If ($Task -eq 'Processing') {
                 foreach ($Tag in $Tags) {     
                     $obj = @{
                         'ID'                              = $1.id;
-                        'Subscription'                    = $sub1.Name;
+                        'Subscription'                    = $SubscriptionName;
                         'Resource Group'                  = $1.RESOURCEGROUP;
                         'Name'                            = $1.NAME;
                         'Location'                        = $1.LOCATION;
@@ -97,10 +108,10 @@ If ($Task -eq 'Processing') {
                         'Retiring Date'                   = $RetiringDate;
                         'VNET'                            = $VNET;
                         'Subnet'                          = $Subnet;
-                        'Private Link Name'               = $data.privateLinkServiceConnections.name;
-                        'Private Link Status'             = $data.privatelinkserviceconnections.properties.privateLinkServiceConnectionState.status;
-                        'Private Link Resource Type'      = [string]$data.privatelinkserviceconnections.properties.groupids;
-                        'Private Link Target Resource'    = [string]$data.privatelinkserviceconnections.properties.privatelinkserviceid;
+                        'Private Link Name'               = (Get-AZSCSafeProperty -InputObject $data -Path 'privateLinkServiceConnections.name' -Enumerate);
+                        'Private Link Status'             = (Get-AZSCSafeProperty -InputObject $data -Path 'privatelinkserviceconnections.properties.privateLinkServiceConnectionState.status' -Enumerate);
+                        'Private Link Resource Type'      = [string](Get-AZSCSafeProperty -InputObject $data -Path 'privatelinkserviceconnections.properties.groupids' -Enumerate);
+                        'Private Link Target Resource'    = [string](Get-AZSCSafeProperty -InputObject $data -Path 'privatelinkserviceconnections.properties.privatelinkserviceid' -Enumerate);
                         'IP Address'                      = $IPAddress;
                         'FQDN'                            = $FQDN;
                         'Resource U'                        = $ResUCount;
