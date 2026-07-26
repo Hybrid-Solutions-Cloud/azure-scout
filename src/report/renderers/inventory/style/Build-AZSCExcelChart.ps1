@@ -672,6 +672,22 @@ function Build-AZSCExcelChart {
         }
     else
         {
+    # KNOWN DEFECT (found during AB#5662's full-scale verification against the real
+    # 176-collector fixture, 2026-07-25; not fixed here -- kept out of scope for a pure
+    # move + COM removal, and root cause is NOT yet diagnosed, so nothing below is a fix).
+    # Symptom observed: at full scale, this "P6" Add-PivotTable call emits
+    #   WARNING: Failed adding PivotTable 'P6': Index operation failed; the array index
+    #   evaluated to null.
+    #   WARNING: Failed adding chart for pivotable 'P6': Cannot bind argument to parameter
+    #   'PivotTable' because it is null.
+    # -- Write-Warning, not a fatal error, so the report still completes, but the P6/
+    # ChartP6 pivot+chart never gets built. A minimal isolated repro (3-row synthetic
+    # 'Subscriptions' sheet, same PivotRows/PivotData shape) did NOT reproduce it, so
+    # "the 'Subscriptions' worksheet is missing" (the theory that would match every other
+    # unguarded-vs-guarded branch in this file) is not confirmed as the actual cause here --
+    # do not assume it without re-diagnosing at full scale. See the skipped placeholder
+    # 'Build-AZSCExcelChart P6 pivot (KNOWN DEFECT, needs a work item)' in
+    # tests/Private.Reporting.Tests.ps1.
     $P6Name = 'Resources by Location'
     $PTParams = @{
         PivotTableName          = "P6"

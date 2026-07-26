@@ -201,7 +201,7 @@ Invoke-Pester -Path ./tests/ -CodeCoverage ./Modules/ -Output Detailed
 
 ### Adding a New Output Format
 
-1. **Create the export function** in `Modules/Private/Reporting/Export-AZTI{FormatName}Report.ps1`
+1. **Create the export function** in `src/report/renderers/inventory/Export-AZSC{FormatName}Report.ps1` (AB#5662 -- moved from `Modules/Private/Reporting/`)
 2. **Wire it into `Invoke-AzureScout.ps1`** — add the format to `OutputFormat` ValidateSet and add a routing block
 3. **Create a test harness** `tests/Test-{FormatName}FromDataDump.ps1` following the Excel/PowerBI pattern
 4. **Add Pester tests** to `OutputFormat.Tests.ps1` for the new ValidateSet value and function existence

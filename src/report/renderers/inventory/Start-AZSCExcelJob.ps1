@@ -20,8 +20,11 @@ Authors: Claudio Merola
 function Start-AZSCExcelJob {
     Param($ReportCache, $File, $TableStyle)
 
-    $ParentPath = (get-item $PSScriptRoot).parent.parent
-    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
+    # AB#5662: this file moved from Modules/Private/Reporting to src/report/renderers/inventory,
+    # four levels below the repo root (inventory -> renderers -> report -> src -> root), so the
+    # walk-up depth to reach Modules/Public/InventoryModules changed from 2 to 4.
+    $RepoRoot = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
+    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
     $ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
 
     Write-Progress -activity 'Azure Inventory' -Status "68% Complete." -PercentComplete 68 -CurrentOperation "Starting the Report Loop.."

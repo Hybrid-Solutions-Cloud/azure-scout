@@ -168,9 +168,11 @@ Function Start-AZSCGraphExtraction {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Retirements')
 
-    $RootPath = (get-item $PSScriptRoot).parent
+    # AB#5662: Retirement.kql moved from Modules/Private/Reporting/StyleFunctions to
+    # src/report/renderers/inventory/style as part of the reporting-layer consolidation.
+    $RepoRoot = (Get-Item $PSScriptRoot).Parent.Parent.Parent
 
-    $RetirementPath = Join-Path $RootPath 'Reporting' 'StyleFunctions' 'Retirement.kql'
+    $RetirementPath = Join-Path $RepoRoot 'src' 'report' 'renderers' 'inventory' 'style' 'Retirement.kql'
 
     $RetirementQuery = Get-Content -Path $RetirementPath | Out-String
 

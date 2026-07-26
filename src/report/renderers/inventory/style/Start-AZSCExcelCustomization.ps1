@@ -61,7 +61,10 @@ function Start-AZSCExcelCustomization {
                 $ScriptVersion = [string]$AZSCMod.Version
             }
             catch {
-                $ManifestPath = Join-Path $PSScriptRoot '..\..\..\..\AzureScout.psd1'
+                # AB#5662: moved from Modules/Private/Reporting/StyleFunctions to
+                # src/report/renderers/inventory/style -- one level deeper below the repo
+                # root (5 ups instead of 4).
+                $ManifestPath = Join-Path $PSScriptRoot '..\..\..\..\..\AzureScout.psd1'
                 if (Test-Path $ManifestPath) {
                     $Manifest = Import-PowerShellDataFile $ManifestPath
                     $ScriptVersion = [string]$Manifest.ModuleVersion
@@ -125,7 +128,12 @@ function Start-AZSCExcelCustomization {
 
     if(!$RunLite)
         {
-            Build-AZSCExcelComObject -File $File
+            # AB#5662/AB#5665: EPPlus-native chart/shape finishing -- no Excel COM, so this no
+            # longer needs a local Excel install. Left gated on -RunLite unchanged (same
+            # behaviour as the retired Build-AZSCExcelComObject) rather than folding it into the
+            # always-on path; whether -Lite's default should now change now that COM is gone is
+            # a separate product decision, not part of this move.
+            Build-AZSCExcelChartStyle -File $File
         }
 
     return $TotalRes

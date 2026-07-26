@@ -5,9 +5,11 @@ name: CI
 # Azure login, no secrets — live tenant runs are handled by
 # azure-inventory.yml (workflow_dispatch, service-principal auth).
 #
-# The module is Windows-targeted (Excel report customization uses a COM
-# object via Modules/Private/Reporting/StyleFunctions/Build-AZTIExcelComObject.ps1),
-# so this job runs on windows-latest using PowerShell 7 (pwsh).
+# Runs on windows-latest for parity with the machines this module actually ships to; the
+# Excel report customization step no longer depends on a COM object (AB#5662/AB#5665
+# retired src/report/renderers/inventory/style/Build-AZSCExcelChartStyle.ps1's COM
+# predecessor in favour of EPPlus-native chart/shape styling), so this job could run
+# cross-platform if that ever becomes worth doing.
 
 on:
   push:

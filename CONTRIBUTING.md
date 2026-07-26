@@ -280,6 +280,15 @@ This modules will be loaded and the functions will be available for the script a
 
 #### 3.ReportingFunctions
 
+AB#5662: this tier moved from `Modules/Private/Reporting/` to `src/report/renderers/inventory/`
+as part of consolidating inventory report rendering onto the shared `src/report/` renderer
+layer. The table below is the current, non-exhaustive file set (it also gained
+`Build-AZSCCostManagementReport.ps1`, `Build-AZSCMonitorReport.ps1`,
+`Build-AZSCSecurityOverviewReport.ps1`, `Build-AZSCUpdateManagerReport.ps1`,
+`Export-AZSCJsonReport.ps1`, `Export-AZSCMarkdownReport.ps1`, `Export-AZSCAsciiDocReport.ps1`,
+`Export-AZSCPowerBIReport.ps1`, `New-AZSCPowerBITemplate.ps1` and `Start-AZSCExcelExtraData.ps1`
+since this table was last written).
+
 | Script File                          | Description                                                                 |
 |--------------------------------------|-----------------------------------------------------------------------------|
 | `Build-AZSCAdvisoryReport.ps1`        | Generates advisory reports based on processed data.                         |
@@ -292,10 +301,12 @@ This modules will be loaded and the functions will be available for the script a
 
 #### 3.ReportingFunctions/StyleFunctions
 
+Now `src/report/renderers/inventory/style/`.
+
 | Script File                          | Description                                                                 |
 |--------------------------------------|-----------------------------------------------------------------------------|
 | `Build-AZSCExcelChart.ps1`            | Creates Excel charts for visualizing report data.                           |
-| `Build-AZSCExcelComObject.ps1`        | Manages Excel COM objects for report generation.                            |
+| `Build-AZSCExcelChartStyle.ps1`       | EPPlus-native chart/shape/tab-color finishing (AB#5665 -- no Excel COM; replaces the retired `Build-AZSCExcelComObject.ps1`). |
 | `Build-AZSCExcelinitialBlock.ps1`     | Sets up the initial block for Excel report customization.                   |
 | `Out-AZSCReportResults.ps1`           | Outputs the final report results to Excel or other formats.                 |
 | `Retirement.kql`                     | Contains KQL queries for data retirement analysis.                          |

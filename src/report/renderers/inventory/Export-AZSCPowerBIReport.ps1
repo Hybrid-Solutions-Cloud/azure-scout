@@ -206,8 +206,10 @@ function Export-AZSCPowerBIReport {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Subscriptions CSV written.')
 
     # ── 3. Discover inventory module folders ─────────────────────────────
-    $ParentPath          = (Get-Item $PSScriptRoot).Parent.Parent
-    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
+    # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory
+    # (4 levels below repo root, was 2) -- the walk-up depth changed accordingly.
+    $RepoRoot             = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
+    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
     $ModuleFolders       = Get-ChildItem -Path $InventoryModulesPath -Directory -ErrorAction SilentlyContinue
 
     $EntraFolders = @('Identity')
