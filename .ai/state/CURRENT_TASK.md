@@ -26,7 +26,25 @@ Five phases, each shipping as a working release, ending in the deletion of `Modu
 
 **Start with AB#5649 (the pipeline)** — it eliminates the entire crash class on its own.
 
-### AB#5649 — mostly delivered 2026-07-25
+### AB#5649 — CLOSED, released as v2.6.0 on 2026-07-25
+
+**The engine now starts zero background jobs.** `Wait-AZSCJob` is deleted; so are
+`Start-AZTIProcessJob`, `Start-AZTIAutProcessJob`, `Build-AZTICacheFiles` and the four
+`Invoke-AZTI*Job` wrappers. Published to the PowerShell Gallery, GitHub release created, and
+**installed on the operator's machine** — a clean session loads 2.6.0 and completes a live run
+in 5:41 with 0 leftover jobs.
+
+Still job-based, and deliberately not claimed as done: the draw.io builder's own internals
+(`Diagram_Organization`, `Diagram_NetworkTopology`, the nested fan-out in
+`Start-AZSCDiagramNetwork`). Coarse-grained long-running XML work — a design question, not a
+mechanical collapse. **No work item exists for it yet.**
+
+Remaining on Epic AB#5638: **AB#5639** (one collector), **AB#5656** (declarative collectors),
+**AB#5662** (unified reporting), **AB#5667** (StrictMode + live-payload fixtures).
+
+---
+
+#### Original phase notes
 
 The resource-processing phase now runs every collector **in-process, in a fixed order, with no
 background jobs and no nested runspaces**. Four new functions under `src/pipeline/`; seven engine
