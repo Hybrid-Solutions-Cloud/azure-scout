@@ -51,6 +51,17 @@ BeforeAll {
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
 
+    # Collectors are executed here as bare scriptblocks, NOT through the imported module, so any
+    # private helper they call has to be dot-sourced in explicitly. Get-AZSCSafeProperty
+    # (Modules/Private/Main) is the StrictMode-safe dotted-path read collectors use instead of a
+    # raw `$data.a.b.c` chain that throws when an intermediate segment is genuinely absent
+    # (AB#5667); VirtualMachine.ps1 is the first collector to depend on it, and every collector
+    # converted after it will too.
+    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCSafeProperty.ps1')
+    # Get-AZSCCollectedValue (AB#5633) is the member-ENUMERATION counterpart -- it walks a chain
+    # that passes THROUGH an array, which Get-AZSCSafeProperty's single-object walk does not.
+    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZTICollectedValue.ps1')
+
     function New-MockVM {
         param([string]$Id, [string]$Name, [string]$Location = 'eastus',
               [string]$SubscriptionId = 'sub-00000001', [string]$RG = 'rg-test', [object]$Props)

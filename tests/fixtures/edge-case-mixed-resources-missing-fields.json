@@ -1,0 +1,45 @@
+[
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/virtualMachines/vm-good",
+    "name": "vm-good",
+    "type": "microsoft.compute/virtualmachines",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "tags": {},
+    "properties": {
+      "provisioningState": "Succeeded",
+      "hardwareProfile": { "vmSize": "Standard_B2s" },
+      "storageProfile": { "osDisk": { "osType": "Windows" }, "dataDisks": [] },
+      "osProfile": { "computerName": "vm-good" },
+      "networkProfile": { "networkInterfaces": [] }
+    },
+    "_comment": "A normal Resource Graph row -- every field a collector's first filter line reads (TYPE, subscriptionId) is present. Kept alongside the two malformed rows below to show the difference: this row alone would run every collector's filter cleanly."
+  },
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/virtualMachines/vm-no-subscriptionid",
+    "name": "vm-no-subscriptionid",
+    "type": "microsoft.compute/virtualmachines",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "tags": {},
+    "properties": {
+      "provisioningState": "Succeeded",
+      "hardwareProfile": { "vmSize": "Standard_B2s" },
+      "storageProfile": { "osDisk": { "osType": "Windows" }, "dataDisks": [] },
+      "osProfile": { "computerName": "vm-no-subscriptionid" },
+      "networkProfile": { "networkInterfaces": [] }
+    },
+    "_comment": "AB#5667 edge case: 'subscriptionId' is ABSENT (not null, not empty string -- the NoteProperty does not exist), simulating a row appended to $Resources from a raw REST call rather than a Resource Graph 'resources' projection (which always includes it). This single object's $_.subscriptionId throws under StrictMode wherever a collector reads it unconditionally (e.g. Compute/VirtualMachine.ps1's $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }, evaluated once per matched VM) -- a $null-safe generic-object property read is fine, but this property genuinely does not exist on this element."
+  },
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Storage/storageAccounts/sa-no-type",
+    "name": "sa-no-type",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "tags": {},
+    "properties": { "provisioningState": "Succeeded" },
+    "_comment": "AB#5667 edge case: 'type'/'TYPE' is ABSENT entirely. IMPORTANT -- this row is deliberately NOT merged into the shared fixture set every collector runs against: because $_.TYPE is read via simple member access (not member-ENUMERATION -- see StrictModeMemberEnumeration.Tests.ps1 for that distinct case), a SINGLE element missing the property makes `$Resources | Where-Object { $_.TYPE -eq '<anything>' }` throw for every collector's very first line the moment Where-Object evaluates this element, regardless of what type is being searched for. One malformed row this way currently fails ALL 176 collectors at once and would swamp every other finding in the shared baseline; tests/CollectorStrictMode.Tests.ps1 exercises it in an isolated Describe block against a small representative sample instead, and the finding is called out in the harness's own documentation as the single highest-leverage fix once StrictMode is turned on for real."
+  }
+]

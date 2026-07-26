@@ -1,0 +1,357 @@
+[
+  {
+    "id": "/subscriptions/f65ecc18-2266-0e9f-560b-afa5715ebd2a",
+    "name": "res231ef6de",
+    "type": "microsoft.resources/subscriptions",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "",
+    "resourceGroup": "",
+    "subscriptionId": "f65ecc18-2266-0e9f-560b-afa5715ebd2a",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "managementGroupAncestorsChain": {
+        "displayName": "resb4aa7eee",
+        "name": "resfe62813c"
+      },
+      "subscriptionPolicies": {
+        "locationPlacementId": "res41cee7de",
+        "spendingLimit": "res82e90215",
+        "quotaId": "res2593d5ab"
+      },
+      "managedByTenants": null,
+      "state": "res883a24e0",
+      "promotions": {
+        "endDateTime": "2027-08-06T00:59:06.107Z",
+        "category": "resdd23de4b"
+      }
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": null
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e",
+    "name": "resf3984b6f",
+    "type": "microsoft.resources/subscriptions",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "",
+    "resourceGroup": "",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "managementGroupAncestorsChain": {
+        "displayName": "resb4aa7eee",
+        "name": "resfe62813c"
+      },
+      "subscriptionPolicies": {
+        "locationPlacementId": "res41cee7de",
+        "spendingLimit": "resb0bd8fe8",
+        "quotaId": "res18c1624b"
+      },
+      "managedByTenants": null,
+      "state": "res883a24e0"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": null
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res800de9c1",
+    "name": "res800de9c1",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "southcentralus",
+    "resourceGroup": "resc8474bd9",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {}
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/resbc06b48d",
+    "name": "resbc06b48d",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "res2983ea5c",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": null
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res6bce8326",
+    "name": "res6bce8326",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "centralus",
+    "resourceGroup": "res9df0bf71",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": null
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res992c2559",
+    "name": "res992c2559",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus2",
+    "resourceGroup": "res992c2559",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key6e00e8d6": "res7aca7e08",
+      "key5f4a2659": "res29d20d61",
+      "keya322daa5": "resa70c440b",
+      "keyf96631a5": "res0203542e",
+      "key52b8b38e": "resb0d346fd",
+      "key251a6c9d": "res850c21e5"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res52787ea1",
+    "name": "res52787ea1",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "res52787ea1",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": null
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res1f118ae3",
+    "name": "res1f118ae3",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "res1f118ae3",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key6e00e8d6": "res5e0bb790",
+      "key5f4a2659": "res29d20d61",
+      "keya322daa5": "resa70c440b",
+      "keyf96631a5": "resa0528ad3",
+      "key52b8b38e": "resb0d346fd",
+      "keye930b7ab": "reseb89c57c"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res653a564e",
+    "name": "res653a564e",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "res653a564e",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "keyc9295656": "res5e0bb790",
+      "keyb5a05501": "res386d2f4f",
+      "keyd6513f2b": "resbf1a7511"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/resd21dd241",
+    "name": "resd21dd241",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "centralus",
+    "resourceGroup": "resd21dd241",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourcegroups/resdba8ae25/providers/microsoft.app/managedenvironments/resefefa331",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key6e00e8d6": "resd532f6f5",
+      "key5f4a2659": "res3bd5e3f3",
+      "key24aac423": "res7b19c09b",
+      "keya322daa5": "res84776f7b",
+      "keyf96631a5": "res8638ddac",
+      "key52b8b38e": "resb0d346fd",
+      "key38abc8e8": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/resdba8ae25/providers/Microsoft.App/managedEnvironments/resefefa331",
+      "key92e361f5": "res728b3d63",
+      "key251a6c9d": "res386d2f4f",
+      "keydd4dfe55": "res5d27b8f8"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/resdba8ae25",
+    "name": "resdba8ae25",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "centralus",
+    "resourceGroup": "resdba8ae25",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key6e00e8d6": "resd532f6f5",
+      "key5f4a2659": "res3bd5e3f3",
+      "key24aac423": "res7b19c09b",
+      "keya322daa5": "res84776f7b",
+      "keyf96631a5": "res8638ddac",
+      "key52b8b38e": "resb0d346fd",
+      "key92e361f5": "res728b3d63",
+      "key251a6c9d": "res386d2f4f",
+      "keydd4dfe55": "res5d27b8f8"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/rese48e49e1",
+    "name": "rese48e49e1",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "centralus",
+    "resourceGroup": "rese48e49e1",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key6e00e8d6": "res96ec976d",
+      "key5f4a2659": "res3bd5e3f3",
+      "keya322daa5": "res84776f7b",
+      "keyf96631a5": "res8638ddac",
+      "key52b8b38e": "resb0d346fd",
+      "key92e361f5": "res5926f172",
+      "keydd4dfe55": "res5d27b8f8"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/res47aef960",
+    "name": "res47aef960",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "res47aef960",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {
+      "key4e88caf0": "res7643d316",
+      "keyc9295656": "res7aca7e08",
+      "keyc2264fba": "res67c4961c"
+    }
+  },
+  {
+    "id": "/subscriptions/66067840-a5c8-273c-4339-42f65faa338e/resourceGroups/resc97bbfb6",
+    "name": "resc97bbfb6",
+    "type": "microsoft.resources/subscriptions/resourcegroups",
+    "tenantId": "20510f00-ab01-acef-3909-da1e46dcf593",
+    "kind": "",
+    "location": "southcentralus",
+    "resourceGroup": "resc97bbfb6",
+    "subscriptionId": "66067840-a5c8-273c-4339-42f65faa338e",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "properties": {
+      "provisioningState": "res10f99723"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {}
+  }
+]

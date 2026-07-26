@@ -1,0 +1,52 @@
+[
+  {
+    "id": "/subscriptions/33333333-3333-3333-3333-333333333333/providers/Microsoft.Security/assessments/44444444-4444-4444-4444-444444444444",
+    "name": "44444444-4444-4444-4444-444444444444",
+    "type": "microsoft.security/assessments",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "kind": "",
+    "location": "",
+    "resourceGroup": "",
+    "subscriptionId": "33333333-3333-3333-3333-333333333333",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {},
+    "properties": {
+      "displayName": "Subscription-scoped assessment (no ResourceDetails.Id)",
+      "status": { "code": "Unhealthy", "severity": "Medium" },
+      "resourceDetails": { "source": "Azure" }
+    },
+    "_comment": "AB#5667 edge case: a Defender/Security assessment scoped to the SUBSCRIPTION rather than a resource. Its id is 7 segments -- '', 'subscriptions', '{sub}', 'providers', 'Microsoft.Security', 'assessments', '{assessmentId}' -- not the 9-segment '.../providers/{Namespace}/{type}/{name}' shape a resource-scoped assessment or any normal ARM resource has. Any collector that unconditionally does .split('/')[7] or [8] on an id/managedBy/*Id field assumes the 9-segment shape; under Set-StrictMode -Version Latest an out-of-range array index THROWS ('Index was outside the bounds of the array'), it does not silently return $null the way it does without StrictMode. That pattern (Compute/VMDisk.ps1's $1.MANAGEDBY.split('/')[8], Networking/PublicIP.ps1's [7]/[8] pair, Networking/NetworkInterface.ps1, Networking/PrivateEndpoint.ps1, Analytics/Purview.ps1, Containers/AKS.ps1, and roughly 30 more collectors all share it) is exercised below via a short MANAGEDBY value on an otherwise-normal disk."
+  },
+  {
+    "id": "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-edge/providers/Microsoft.Compute/disks/disk-short-managedby",
+    "name": "disk-short-managedby",
+    "type": "microsoft.compute/disks",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "33333333-3333-3333-3333-333333333333",
+    "managedBy": "/subscriptions/33333333-3333-3333-3333-333333333333",
+    "sku": { "name": "Premium_LRS" },
+    "plan": null,
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {},
+    "properties": {
+      "provisioningState": "Succeeded",
+      "diskSizeGB": 128,
+      "osType": "Windows",
+      "diskState": "Attached",
+      "hyperVGeneration": "V2",
+      "creationData": { "createOption": "Empty" },
+      "encryption": { "type": "EncryptionAtRestWithPlatformKey" },
+      "_comment": "MANAGEDBY above is a bare subscription id (2 segments after the leading slash), not the usual '/subscriptions/{s}/resourceGroups/{rg}/providers/Microsoft.Compute/virtualMachines/{vm}' shape -- .split('/')[8] on it is out of range."
+    }
+  }
+]
