@@ -13,7 +13,55 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.7.0 — Reporting Leaves `Modules/`, and Collectors Become Data
+## Current Release — v2.8.0 — Collection Actually Happens Once
+
+Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638**, work item **AB#5648**.
+
+**A default assessment collect now issues 4 Azure Resource Graph queries instead of 35.**
+
+v2.7.0 shipped the single-pass collection functions, but nothing called them — outside tests the
+only reference to any of them was a comment — so the round-trip count was unchanged. They are now
+the real path. Both numbers were re-derived by counting invocations against a stub in place of
+`Search-AzGraph`, and both are pinned by hard count assertions in a test, because a query count
+with no test regresses silently within a release.
+
+| Entry point | before | after |
+|---|---|---|
+| Assessment-only collect (default) | 35 | **4** |
+| Assessment collect, `-Source TypedQueries` | 35 | 35 |
+| Inventory extraction (default switches) | 8 | 8 |
+| Combined inventory + assessment, end to end | 9 | 9 |
+
+It is **4 rather than 1** for stated reasons: three raw tables plus `sqlDefenderPricing`, which
+reads `SecurityResources` and genuinely cannot be served from inventory. Inventory extraction stays
+at **8** because those are eight *distinct* ARG tables, not filters over one — merging them would
+drop datasets. What changed there is ownership rather than count: one paging implementation instead
+of two.
+
+The legacy paging, batching and retry engine (`Invoke-AZTIInventoryLoop.ps1`) is **deleted**, and
+`Start-AZTIGraphExtraction` is reduced to a shim that builds no query text and issues no ARG call.
+Both facts are enforced by AST-based tests rather than text searches.
+
+**A defect that would have shipped as a blank report section**, invisible to all 2144 passing
+tests: the raw pass omits the `tags` column unless asked, while the collect contract aggregates its
+top-level `tags` key from `subscriptions[*].tags` — so the inverted path returned an empty `tags`
+array for every estate. Fixed, with a regression test.
+
+**Trade-offs, stated and not yet measured:** the raw pass carries the full `properties` bag where
+the typed queries carried narrow projections, so on a large estate the number of 1000-row pages can
+*rise* even as the query count falls; and `-Categories` no longer reduces what is fetched, only what
+is shaped. `-Source TypedQueries` remains fully supported as the escape hatch for a narrow
+single-category collect.
+
+**Not claimed as done:** the non-ARG half. `Get-ScoutApiResources`, `Get-ScoutVmQuotas`,
+`Get-ScoutVmSkuDetails` and `Get-ScoutCostInventory` remain dead code, and a live run still uses the
+v1 implementations for ARM REST, VM quota/SKU and Cost Management.
+
+Live-verified: 5:11, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
+
+Full detail: [CHANGELOG.md § 2.8.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#280---2026-07-26).
+
+## Previous Release — v2.7.0 — Reporting Leaves `Modules/`, and Collectors Become Data
 
 Released 26 July 2026, published to the PowerShell Gallery. Second phase of the engine rebuild
 (Epic **AB#5638**).

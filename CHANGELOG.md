@@ -7,6 +7,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-07-26
+
+### Changed
+
+- **A default assessment collect now issues 4 Azure Resource Graph queries instead of 35**
+  (AB#5648, Epic AB#5638).
+
+  v2.7.0 shipped the single-pass collection functions, but **nothing called them** — outside tests
+  the only reference to any of them was a comment — so the round-trip count was unchanged. They are
+  now the real path.
+
+  Both numbers were re-derived by counting invocations against a stub in place of `Search-AzGraph`,
+  and both are pinned by hard count assertions in `tests/Collect.SinglePassInversion.Tests.ps1`.
+  A query count with no test regresses silently within a release.
+
+  | Entry point | before | after |
+  |---|---|---|
+  | Assessment-only collect (default) | 35 | **4** |
+  | Assessment collect, `-Source TypedQueries` | 35 | 35 |
+  | Collect `-FromInventory` (combined run) | 1 | 1 |
+  | Inventory extraction (default switches) | 8 | 8 |
+  | Combined inventory + assessment, end to end | 9 | 9 |
+
+  It is **4 rather than 1** for stated reasons: three raw tables (`resourcecontainers`,
+  `resources`, `networkresources`) plus `sqlDefenderPricing`, which reads `SecurityResources` and
+  genuinely cannot be served from inventory.
+
+  Inventory extraction stays at **8** because those are eight *distinct* ARG tables —
+  `resourcecontainers`, `resources`, `networkresources`, `SupportResources`,
+  `recoveryservicesresources`, `desktopvirtualizationresources`, `advisorresources` and
+  retirements — not filters over one table. Merging them would drop datasets. What changed there is
+  **ownership, not count**: one paging implementation instead of two.
+
+### Removed
+
+- **`Modules/Private/Extraction/Invoke-AZTIInventoryLoop.ps1`** — the legacy paging, batching and
+  retry engine. A test asserts both that the file is absent and that **no AST command node**
+  anywhere in `Modules/` or `src/` still calls it.
+
+- `Start-AZTIGraphExtraction` is reduced to a shim that builds no query text and issues no ARG
+  call. Its resource-group, tag and management-group filter clauses moved into
+  `Get-ScoutRawInventory`, reproducing the legacy `if`/`elseif` precedence exactly, each with its
+  own test.
+
+### Fixed
+
+- **The inverted path returned an empty `tags` array for every estate** — a blank report section,
+  no error, invisible to all 2144 passing tests. The raw pass omits the `tags` column unless asked,
+  while the collect contract aggregates its top-level `tags` key from `subscriptions[*].tags`
+  (AB#367). The internal raw call now requests tags, with a regression test.
+
+### Trade-offs, stated and not yet measured
+
+- The raw pass carries the full `properties` bag where the typed queries carried narrow
+  projections, so on a large estate the number of 1000-row pages can **rise** even as the query
+  count falls.
+- **`-Categories` no longer reduces what is fetched**, only what is shaped.
+- `-Source TypedQueries` is the escape hatch for a narrow single-category collect. That path is
+  unchanged at 35 queries and remains fully supported.
+
+### Not done — deliberately not claimed
+
+The **non-ARG half** of AB#5648. `Get-ScoutApiResources`, `Get-ScoutVmQuotas`,
+`Get-ScoutVmSkuDetails` and `Get-ScoutCostInventory` remain dead code; a live run still uses the v1
+implementations for ARM REST resources, VM quota and SKU lookups, and Cost Management. The
+round-trip numbers above say nothing about those.
+
+Still standing in `Modules/Private/Extraction/`: `Get-AZTIManagementGroups.ps1` (issues its own
+query for management-group to subscription expansion), `Get-AZTIAPIResources.ps1`,
+`Get-AZTICostInventory.ps1`, `ResourceDetails/Get-AZTIVMQuotas.ps1`,
+`ResourceDetails/Get-AZTIVMSkuDetails.ps1`, `Start-AZTIEntraExtraction.ps1`,
+`Start-AZTIDevOpsExtraction.ps1`, `Get-AZTISubscriptions.ps1`.
+
+### Verification
+
+Live-verified against a real tenant: **5:11** runtime, 124 resources, 438 Excel rows,
+42 worksheets, 452 security advisories, **zero leftover background jobs**, one collector failing
+(`Management/ManagementGroups` — environment and permissions, not a code defect). Suite:
+**2160 passed / 0 failed / 4 skipped**.
+
 ## [2.7.0] - 2026-07-26
 
 Second phase of the engine rebuild (Epic **AB#5638**).
