@@ -1,0 +1,87 @@
+[
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/virtualMachines/vm-no-timecreated",
+    "name": "vm-no-timecreated",
+    "type": "microsoft.compute/virtualmachines",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "managedBy": "",
+    "sku": null,
+    "plan": null,
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {},
+    "properties": {
+      "_comment": "No 'timeCreated' key at all -- an older Compute API version, or a VM created before the field existed. $data.timeCreated on a PSCustomObject that genuinely lacks the NoteProperty throws under StrictMode; without StrictMode it silently returns $null. Compute/VirtualMachine.ps1 reads this unconditionally. Every OTHER field below is filled in realistically (matching a normal Compute API response) so this fixture tests only the missing-timestamp case, not unrelated gaps.",
+      "provisioningState": "Succeeded",
+      "licenseType": "Windows_Server",
+      "availabilitySet": null,
+      "hardwareProfile": { "vmSize": "Standard_B2s" },
+      "storageProfile": {
+        "osDisk": { "osType": "Windows", "diskSizeGB": 127, "managedDisk": { "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/disks/vm-no-timecreated_OsDisk" } },
+        "dataDisks": [],
+        "imageReference": { "publisher": "MicrosoftWindowsServer", "offer": "WindowsServer", "sku": "2019-datacenter", "version": "latest" }
+      },
+      "osProfile": {
+        "computerName": "vm-no-timecreated",
+        "adminUsername": "azureuser",
+        "windowsConfiguration": { "enableAutomaticUpdates": true, "patchSettings": { "patchMode": "AutomaticByOS" } }
+      },
+      "networkProfile": { "networkInterfaces": [] },
+      "diagnosticsProfile": { "bootDiagnostics": { "enabled": true } },
+      "extended": { "instanceView": { "osName": "Windows Server 2019", "osVersion": "10.0.17763", "powerState": { "displayStatus": "VM running" }, "hyperVGeneration": "V2" } }
+    }
+  },
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/disks/disk-no-timecreated",
+    "name": "disk-no-timecreated",
+    "type": "microsoft.compute/disks",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "managedBy": "",
+    "sku": { "name": "Standard_LRS" },
+    "plan": null,
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {},
+    "properties": {
+      "_comment": "No 'timeCreated' AND no 'createdTime' -- Compute/VMDisk.ps1 checks both field names for different disk API generations.",
+      "provisioningState": "Succeeded",
+      "diskSizeGB": 32,
+      "osType": "Linux",
+      "diskState": "Unattached",
+      "creationData": { "createOption": "Empty" }
+    }
+  },
+  {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg-edge/providers/Microsoft.Compute/virtualMachineScaleSets/vmss-no-timecreated",
+    "name": "vmss-no-timecreated",
+    "type": "microsoft.compute/virtualmachinescalesets",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "kind": "",
+    "location": "eastus",
+    "resourceGroup": "rg-edge",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "managedBy": "",
+    "sku": { "name": "Standard_D2s_v3", "capacity": 2, "tier": "Standard" },
+    "plan": null,
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "tags": {},
+    "properties": {
+      "provisioningState": "Succeeded",
+      "upgradePolicy": { "mode": "Manual" },
+      "singlePlacementGroup": true,
+      "orchestrationMode": "Uniform"
+    }
+  }
+]

@@ -1,0 +1,117 @@
+[
+  {
+    "Category": "AI",
+    "Name": "AzureAI",
+    "Reason": "Index was outside the bounds of the array."
+  },
+  {
+    "Category": "Compute",
+    "Name": "AvailabilitySets",
+    "Reason": "The property 'id' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Compute",
+    "Name": "VirtualMachineScaleSet",
+    "Reason": "The property 'virtualMachineProfile' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Compute",
+    "Name": "VMDisk",
+    "Reason": "The property 'maxShares' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Compute",
+    "Name": "VMOperationalData",
+    "Reason": "The property 'diagnosticsProfile' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Containers",
+    "Name": "ContainerApp",
+    "Reason": "The property 'targetPort' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Containers",
+    "Name": "ContainerAppEnv",
+    "Reason": "The property 'minimumCount' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Containers",
+    "Name": "ContainerRegistries",
+    "Reason": "The variable '$Total' cannot be retrieved because it has not been set."
+  },
+  {
+    "Category": "Databases",
+    "Name": "POSTGREFlexible",
+    "Reason": "The property 'administratorLogin' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Integration",
+    "Name": "ServiceBUS",
+    "Reason": "The property 'capacity' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Management",
+    "Name": "AllSubscriptions",
+    "Reason": "The property 'Tags' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Management",
+    "Name": "ManagementGroups",
+    "Reason": "Cannot process command because of one or more missing mandatory parameters: GroupName."
+  },
+  {
+    "Category": "Management",
+    "Name": "PolicyDefinitions",
+    "Reason": "The property 'Properties' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Management",
+    "Name": "PolicySetDefinitions",
+    "Reason": "The property 'Properties' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Monitor",
+    "Name": "AppInsights",
+    "Reason": "The variable '$RetDate' cannot be retrieved because it has not been set."
+  },
+  {
+    "Category": "Monitor",
+    "Name": "MonitorMetricsIngestion",
+    "Reason": "The property 'capacityReservationLevel' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Monitor",
+    "Name": "SmartDetectorAlertRules",
+    "Reason": "The property 'throttlingDuration' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Networking",
+    "Name": "NetworkInterface",
+    "Reason": "The property 'networksecuritygroup' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Networking",
+    "Name": "NetworkWatchers",
+    "Reason": "The property 'properties' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Networking",
+    "Name": "PrivateEndpoint",
+    "Reason": "The property 'ipAddresses' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Networking",
+    "Name": "VirtualNetwork",
+    "Reason": "The property 'dhcpOptions' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Security",
+    "Name": "Vault",
+    "Reason": "The property 'permissions' cannot be found on this object. Verify that the property exists."
+  },
+  {
+    "Category": "Storage",
+    "Name": "StorageAccounts",
+    "Reason": "The property 'isSftpEnabled' cannot be found on this object. Verify that the property exists."
+  }
+]
