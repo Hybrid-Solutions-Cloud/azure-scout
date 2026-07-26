@@ -13,7 +13,49 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.8.0 — Collection Actually Happens Once
+## Current Release — v2.9.0 — The Collectors Become Data, and the Module Runs Strict
+
+Released 26 July 2026, published to the PowerShell Gallery. Second wave of the engine rebuild
+(Epic **AB#5638**).
+
+**124 of 176 collectors are now `.psd1` definitions rather than PowerShell**, up from 13. Every one
+is pinned by an equivalence test that runs the original imperative collector and the declarative
+definition over the same input, then compares processed rows key-by-key *and* the written `.xlsx`
+cell-by-cell, under both `-IncludeTags` states. Writing those tests found **six interpreter defects**
+that would otherwise have shipped — including a field whose source is an `if`/`else` *statement*
+being silently unreachable, and a dropped filter preamble that made one collector produce a
+**silently empty sheet**.
+
+**All 174 collectors now pass under `Set-StrictMode -Version Latest`**, with a baseline that is
+empty because a run says so rather than aspirationally. Each conversion was proved real by running
+the collector twice with StrictMode off, before and after, and diffing emitted rows — 20 of 23 are
+byte-identical. A CI guard, AST-parsed rather than grepped, now fails the build if StrictMode is
+weakened anywhere in the module.
+
+**A blind spot in error reporting closed.** AB#402 detection compared `$Error.Count` before and
+after a phase, but `$Error` is a fixed-size ring buffer — once it saturates the count stops rising,
+the delta is permanently zero, and non-terminating errors stop being reported at all. Silently, and
+precisely in the long runs where degraded datasets matter most.
+
+**`ChartP6` root-caused:** a worksheet that exists but holds no cells has a `$null` dimension, so
+ImportExcel's pivot source-range lookup threw, `Add-PivotTable` downgraded it to a warning, and the
+chart vanished with it. The guard tested existence, not emptiness.
+
+**`Management/ManagementGroups` was never a StrictMode fault** — it fails parameter binding on
+`Get-AzManagementGroup -Expand -Recurse` with no `-GroupId`. That is the long-standing *"missing
+mandatory parameters: GroupName"* failure on every live run, finally explained.
+
+**Known limits, stated rather than buried:** the equivalence fixtures are *generated* by walking
+each definition's AST, not recorded from a tenant — they prove the two implementations agree on the
+same input, not that either is right about a real estate. The live pipeline still executes the
+imperative `.ps1` for every collector; converting is not the same as using. And of the 174
+StrictMode passes, 146 emit zero rows because the capture covers only 32 resource types.
+
+Live-verified: 4:52, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
+
+Full detail: [CHANGELOG.md § 2.9.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#290---2026-07-26).
+
+## Previous Release — v2.8.0 — Collection Actually Happens Once
 
 Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638**, work item **AB#5648**.
 

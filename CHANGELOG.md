@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-07-26
+
+Second wave of the engine rebuild (Epic **AB#5638**).
+
+### Changed
+
+- **124 of 176 collectors are now `.psd1` data rather than PowerShell** (AB#5659), up from 13 —
+  AI 19, Monitor 17, Identity 16, Hybrid 14, Databases 13, Networking 12, Management 10,
+  Compute 8, Analytics 5, Containers 4, and the rest.
+
+  Every one is pinned by an equivalence test that runs the original imperative collector and the
+  declarative definition over the same input, then compares the processed rows **key-by-key in
+  order** *and* the written `.xlsx` **cell-by-cell**, under both `-IncludeTags` states.
+
+  Four collectors stay imperative for stated reasons (`Management/AllSubscriptions`,
+  `Management/AdvisorScore`, `Networking/PublicIP`, `Monitor/Outages`) and are pinned as test data,
+  so shortening that set is a visible edit.
+
+- **All 174 collectors pass under `Set-StrictMode -Version Latest`** (AB#5671), and the recorded
+  baseline is empty *because a run says so* rather than aspirationally. Each conversion was proved
+  real by running the collector twice with StrictMode off, before and after, and diffing emitted
+  rows — 20 of 23 are byte-identical, which is only possible by executing the row-emitting path.
+
+- **A CI guard against weakening StrictMode** (AB#5672), AST-parsed rather than grepped.
+
+### Fixed
+
+- **AB#402 non-terminating-error detection had gone blind.** It compared `$Error.Count` before and
+  after a phase, but `$Error` is a fixed-size ring buffer (`$MaximumErrorCount`, 256 by default) —
+  so once it saturates the count stops rising, the delta is permanently zero, and non-terminating
+  errors stop being reported **entirely**. Silently, and precisely in the long runs where degraded
+  datasets matter most. Demonstrated: with the buffer saturated and one new error raised, the old
+  technique reports `False`. It now remembers the record at the front of `$Error` and counts by
+  reference identity.
+
+- **`ChartP6` root-caused and fixed** (AB#5666). ImportExcel builds a pivot source range from the
+  worksheet dimension, and a worksheet that **exists but holds no cells** has a `$null` dimension —
+  so the range lookup threw, `Add-PivotTable` downgraded it to a warning, and the chart vanished
+  with it. The existing guard tested existence, not emptiness. All 30 call sites now check the
+  dimension.
+
+- **An out-of-scope subscription name had changed from `$null` to `''`** during the StrictMode
+  conversion, making a single estate render two different blanks depending on which sheet you
+  looked at. The declarative equivalence proof caught it on 11 collectors; it would have been
+  invisible on the rest.
+
+- **Six interpreter defects**, all caught by the equivalence gate: a field whose source is an
+  `if`/`else` **statement** rather than an expression was silently unreachable (`( )` takes a
+  pipeline, and `$( )` unrolls a single-element array to a scalar — expressions are now emitted
+  unwrapped); per-loop preambles were dropped, so `Security/Vault` lost all three permission
+  columns and `Networking/VirtualNetwork` its entire subnet calculation; the tag loop was assumed
+  universal and always named `Tag`, when 25 collectors have none and `RouteTables` uses another
+  name; resource-type matching was treated as a grouping where `Hybrid/ArcSites` needs arrival
+  order; a filter preamble was dropped, so `AI/AppliedAIServices` matched nothing and produced a
+  **silently empty sheet**; and tag columns defaulted on, adding columns to 10 Monitor sheets that
+  no release has ever contained.
+
+- **`Management/ManagementGroups` was never a StrictMode fault.** It fails parameter binding on
+  `Get-AzManagementGroup -Expand -Recurse` with no `-GroupId` — the long-standing *"missing
+  mandatory parameters: GroupName"* failure seen on every live run, finally explained.
+
+- **Documentation that was actively misleading:** `docs/github-actions.md`,
+  `docs/troubleshooting.md` and `docs/validation-matrix.md` all still said chart customization
+  drives Excel over COM and that `lite: true` is mandatory on hosted runners. v2.7.0 made that
+  false — those pages were pushing users to disable a working feature.
+
+### Known limits — stated, not buried
+
+- The equivalence fixtures are **generated** by walking each definition's AST, **not recorded from
+  a tenant**. They prove the two implementations agree on the same input; they do **not** prove
+  either is right about a real estate.
+- **The live pipeline still executes the imperative `.ps1` for every collector.** Converting is not
+  the same as using; the cutover is staged separately.
+- Of the 174 StrictMode passes, **146 emit zero rows** because the recorded capture covers only 32
+  resource types. Those passes are real but weak; exact row counts are now pinned for the 25
+  meaningfully exercised collectors.
+- `Modules/` cannot yet be retired: 101 functions remain across 31 private and 14 public scripts,
+  and 52 are still called from other files inside `Modules/`.
+
+### Verification
+
+Live-verified: **4:52**, 124 resources, 438 Excel rows, 42 worksheets, 464 security advisories,
+**zero leftover background jobs**. Suite: **2763 / 0 / 3** plus the StrictMode harness at 174/174.
+
 ## [2.8.0] - 2026-07-26
 
 ### Changed
