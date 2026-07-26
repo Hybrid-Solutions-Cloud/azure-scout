@@ -53,6 +53,16 @@ function Get-ScoutCollectorDefinition {
         }
     }
 
+    # 'Grouped' (one filtered pass per declared type, appended -- the `+=` shape) or 'SinglePass'
+    # (one pass admitting several types -- the `-in @(...)` shape). An unrecognised value is an
+    # ERROR, not a fallback to the default: the two produce different ROW ORDER for a multi-type
+    # collector, and quietly guessing is how `Hybrid/ArcSites.ps1` came out with its worksheet
+    # reordered (see the interpreter, and declarative-collectors.md §2.5).
+    $ValidMatching = @('Grouped', 'SinglePass')
+    if ($Raw.Contains('ResourceTypeMatching') -and $ValidMatching -notcontains $Raw.ResourceTypeMatching) {
+        $Errors.Add("ResourceTypeMatching is '$($Raw.ResourceTypeMatching)'; it must be one of: $($ValidMatching -join ', ').")
+    }
+
     if (-not $Raw.ContainsKey('RowLoopVariable') -or [string]::IsNullOrWhiteSpace($Raw.RowLoopVariable)) {
         $Errors.Add('RowLoopVariable must name the variable field expressions use for the current resource (e.g. "1").')
     }
@@ -110,8 +120,37 @@ function Get-ScoutCollectorDefinition {
         foreach ($Loop in @($Raw.AdditionalRowLoops)) {
             if ($Loop -isnot [System.Collections.IDictionary] -or -not $Loop.Contains('Variable') -or -not $Loop.Contains('Source')) {
                 $Errors.Add('Every AdditionalRowLoops entry must be a hashtable with Variable and Source.')
+                continue
+            }
+            # Optional per-loop setup, run once per item of the fanned-out collection. Rejected as a
+            # non-string rather than coerced: a hashtable slipped in here would stringify to
+            # 'System.Collections.Hashtable' and be injected into the generated script as garbage.
+            if ($Loop.Contains('Preamble') -and $null -ne $Loop.Preamble -and $Loop.Preamble -isnot [string]) {
+                $Errors.Add("AdditionalRowLoops entry '$($Loop.Variable)' has a Preamble that is not a string.")
             }
         }
+    }
+
+    # The per-tag row expansion is DECLARED, not assumed. It is neither universal (25 collectors --
+    # every convertible Identity one, most Management ones, Monitor/Outages -- emit exactly one row
+    # per resource and have no tag loop at all) nor consistently named (Networking/RouteTables calls
+    # its tag variable $TagKey). `TagLoop = $null` means "no tag expansion"; omitting the key
+    # entirely keeps the historic default of `foreach ($Tag in $Tags)`.
+    if ($Raw.Contains('TagLoop') -and $null -ne $Raw.TagLoop) {
+        if ($Raw.TagLoop -isnot [System.Collections.IDictionary] -or
+            -not $Raw.TagLoop.Contains('Variable') -or -not $Raw.TagLoop.Contains('Source')) {
+            $Errors.Add('TagLoop must be $null or a hashtable with Variable and Source.')
+        }
+    }
+
+    if ($Raw.Contains('FilterPreamble') -and $null -ne $Raw.FilterPreamble -and $Raw.FilterPreamble -isnot [string]) {
+        $Errors.Add('FilterPreamble must be a string of statements to run before AdditionalFilter is evaluated.')
+    }
+    if ($Raw.Contains('FilterPreamble') -and -not [string]::IsNullOrWhiteSpace($Raw.FilterPreamble) -and
+        [string]::IsNullOrWhiteSpace($Raw.AdditionalFilter)) {
+        # A FilterPreamble with nothing to filter is dead code that reads as if it were doing
+        # something. Loud, because a lost AdditionalFilter is a silently over-broad collector.
+        $Errors.Add('FilterPreamble is set but AdditionalFilter is empty, so the preamble would never be used.')
     }
 
     if (@($Errors).Count -gt 0) {
@@ -121,10 +160,35 @@ function Get-ScoutCollectorDefinition {
     [PSCustomObject]@{
         Path               = $Path
         ResourceTypes      = @($Raw.ResourceTypes)
+        # Absent means 'Grouped' -- the shape the 13 already-proven Databases definitions were
+        # written against, so their behaviour is unchanged by this key existing.
+        ResourceTypeMatching = if ($Raw.Contains('ResourceTypeMatching') -and -not [string]::IsNullOrWhiteSpace($Raw.ResourceTypeMatching)) { [string]$Raw.ResourceTypeMatching } else { 'Grouped' }
         AdditionalFilter   = if ($Raw.Contains('AdditionalFilter')) { $Raw.AdditionalFilter } else { $null }
+        FilterPreamble     = if ($Raw.Contains('FilterPreamble')) { [string]$Raw.FilterPreamble } else { '' }
         RowLoopVariable    = $Raw.RowLoopVariable
         Preamble           = if ($Raw.Contains('Preamble')) { [string]$Raw.Preamble } else { '' }
-        AdditionalRowLoops = @(if ($Raw.Contains('AdditionalRowLoops')) { @($Raw.AdditionalRowLoops) } else { @() })
+        # Normalised so the interpreter can read .Preamble unconditionally instead of testing for
+        # the key on every loop of every collector.
+        AdditionalRowLoops = @(if ($Raw.Contains('AdditionalRowLoops')) {
+            foreach ($Loop in @($Raw.AdditionalRowLoops)) {
+                @{
+                    Variable = $Loop.Variable
+                    Source   = $Loop.Source
+                    Preamble = if ($Loop.Contains('Preamble') -and $null -ne $Loop.Preamble) { [string]$Loop.Preamble } else { '' }
+                }
+            }
+        } else { @() })
+        TagLoop            = if (-not $Raw.Contains('TagLoop')) {
+                                 @{ Variable = 'Tag'; Source = '$Tags'; Preamble = '' }
+                             } elseif ($null -eq $Raw.TagLoop) {
+                                 $null
+                             } else {
+                                 @{
+                                     Variable = $Raw.TagLoop.Variable
+                                     Source   = $Raw.TagLoop.Source
+                                     Preamble = if ($Raw.TagLoop.Contains('Preamble') -and $null -ne $Raw.TagLoop.Preamble) { [string]$Raw.TagLoop.Preamble } else { '' }
+                                 }
+                             }
         Fields             = @($Raw.Fields)
         Export             = [PSCustomObject]@{
             WorksheetName   = $Raw.Export.WorksheetName

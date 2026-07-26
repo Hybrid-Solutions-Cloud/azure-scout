@@ -100,7 +100,15 @@ function ConvertTo-Psd1Literal {
     if ($null -eq $Value) { return '$null' }
     if ($Value -is [bool]) { if ($Value) { return '$true' } else { return '$false' } }
     if ($Value -is [int] -or $Value -is [double]) { return "$Value" }
-    if ($Value -is [string]) { return "'" + ($Value -replace "'", "''") + "'" }
+    if ($Value -is [string]) {
+        # Lifted source spanning several lines (an AdditionalRowLoops.Preamble) is written as a
+        # here-string: a single-quoted literal would still be CORRECT, but every apostrophe in the
+        # original code gets doubled and the result is unreadable next to the file it came from --
+        # which matters, because reviewing a generated definition against its source is the only
+        # check on the AST extraction.
+        if ($Value.Contains("`n")) { return "@'`n$Value`n'@" }
+        return "'" + ($Value -replace "'", "''") + "'"
+    }
     if ($Value -is [System.Collections.IDictionary]) {
         $Lines = foreach ($Key in $Value.Keys) {
             "$Pad    $Key = $(ConvertTo-Psd1Literal -Value $Value[$Key] -Indent ($Indent + 1))"
@@ -136,6 +144,8 @@ $FilterVarNames = [System.Collections.Generic.List[string]]::new()
 $ResourceTypes  = [System.Collections.Generic.List[string]]::new()
 $AdditionalFilterText = $null
 $RowLoopVarName = $null
+$FilterAssignmentCount = 0
+$FirstFilterAssignment = $null
 
 foreach ($Assign in $Assignments) {
     if ($Assign.Left -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
@@ -164,13 +174,37 @@ foreach ($Assign in $Assignments) {
     $Types = @($Strings | Where-Object { $_.Value -match '^[a-zA-Z0-9.]+/[a-zA-Z0-9./]+$' } | ForEach-Object { $_.Value })
     foreach ($T in $Types) { if ($ResourceTypes -notcontains $T) { [void]$ResourceTypes.Add($T) } }
     if ($FilterVarNames -notcontains $VarName) { [void]$FilterVarNames.Add($VarName) }
+    $FilterAssignmentCount++
+    if (-not $FirstFilterAssignment) { $FirstFilterAssignment = $Assign }
 
     # A compound condition ($_.TYPE -eq '...' -AND something-else) -- lift the "something else"
     # verbatim as the additional filter. SQLDB is the one Databases collector that needs this
     # ($_.name -ne 'master').
+    #
+    # (?s) so the tail of a filter written across several lines is captured whole:
+    # AI/AppliedAIServices.ps1 puts `$appliedAIKinds -contains $_.KIND` on its own line.
     $FullFilterText = $ScriptBlockParam.Extent.Text.Trim('{', '}').Trim()
-    if ($FullFilterText -match '-and\s+(.+)$') {
+    if ($FullFilterText -match '(?s)-and\s+(.+)$') {
         $AdditionalFilterText = $Matches[1].Trim()
+    }
+}
+
+# WHICH SHAPE built the resource set decides ROW ORDER for a multi-type collector, so it is recorded
+# rather than assumed. Several filtered assignments (`$X = ...` then `$X += ...`) means one pass per
+# type, appended: 'Grouped'. One assignment that admits several types (`$_.TYPE -in @(...)`) means a
+# single pass in $Resources order: 'SinglePass'. Getting this wrong reorders the worksheet, which is
+# how Hybrid/ArcSites.ps1 first failed the equivalence proof.
+$ResourceTypeMatching = if ($FilterAssignmentCount -le 1 -and $ResourceTypes.Count -gt 1) { 'SinglePass' } else { 'Grouped' }
+
+# Statements the Processing branch runs BEFORE the filter, which a compound filter may depend on --
+# AI/AppliedAIServices.ps1 tests against an `$appliedAIKinds = @(...)` array literal defined above it.
+# Lifted only when there IS a compound filter; with no AdditionalFilter there is nothing for them to
+# feed and carrying them would be dead code the loader rejects.
+$FilterPreamble = ''
+if ($AdditionalFilterText -and $FirstFilterAssignment) {
+    $Before = @($Blocks.Processing.Statements | Where-Object { $_.Extent.StartOffset -lt $FirstFilterAssignment.Extent.StartOffset })
+    if (@($Before).Count -gt 0) {
+        $FilterPreamble = $Ast.Extent.Text.Substring($Before[0].Extent.StartOffset, $Before[-1].Extent.EndOffset - $Before[0].Extent.StartOffset)
     }
 }
 
@@ -190,52 +224,117 @@ $RowLoopVarName = $RowLoop.Variable.VariablePath.UserPath
 # meant to run against collectors the audit already classified PureShaping, so a genuine
 # cross-resource join should never reach here. It is not re-detected a second time.
 
-# --- AdditionalRowLoops (rare: SQLMIDB-style per-resource fan-out before the tag loop) -----------
+# --- Row expansion: the nest of foreach loops from the resource down to the tag loop -------------
+#
+# A collector's row loop is a chain: setup statements, then (0..n) fan-out loops, then the tag loop.
+# Each LEVEL of that chain has its own setup statements, and every level's must be preserved:
+#
+#     foreach ($1 in $VirtualNetwork) {         <- row loop
+#         $data = $1.PROPERTIES ...             <- Preamble
+#         foreach ($2 in $data.subnets) {       <- AdditionalRowLoops[0]
+#             $ConsumedIPs = ... ; $Prefix = ...    <- AdditionalRowLoops[0].Preamble
+#             foreach ($Tag in $Tags) { $obj = @{...} }
+#         }
+#     }
+#
+# The first version of this extraction walked the loops with FindAll and captured only the ROW
+# level's preamble, so every local computed inside a fan-out loop was silently dropped:
+# Security/Vault.ps1 lost all three of its permission strings, Networking/NATGateway.ps1 lost its
+# public IP columns, and Networking/VirtualNetwork.ps1 lost the subnet prefix arithmetic entirely.
+# The descent is therefore structural and per level, not a flat search.
+$FileText = $Ast.Extent.Text
 
-$AdditionalRowLoops = [System.Collections.Generic.List[hashtable]]::new()
-$NestedLoops = @($RowLoop.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst] }, $true))
-foreach ($Nested in $NestedLoops) {
-    $LoopVar = $Nested.Variable.VariablePath.UserPath
-    if ($LoopVar -ieq 'Tag') { continue }               # the standard tag-expansion primitive
-    if ($LoopVar -ieq 'Retire' -or $LoopVar -ieq 'Retirement') { continue }  # part of the retirement primitive
-    # Only loops that are themselves ancestors of the Tag loop (i.e. wrap it) are a row fan-out;
-    # a sibling loop used only to build a scalar (like the retirement fold) is not.
-    $WrapsTagLoop = @($Nested.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst] -and $n.Variable.VariablePath.UserPath -ieq 'Tag' }, $true)).Count -gt 0
-    if (-not $WrapsTagLoop) { continue }
+function Get-StatementRangeText {
+    param([System.Management.Automation.Language.Ast[]]$Statements, [string]$Text)
+    if (@($Statements).Count -eq 0) { return '' }
+    $Start = $Statements[0].Extent.StartOffset
+    $End   = $Statements[-1].Extent.EndOffset
+    return $Text.Substring($Start, $End - $Start)
+}
 
-    # The collection itself (e.g. $pvteps) is computed IN THE PREAMBLE below, verbatim, like
-    # everything else a collector's row loop sets up. AdditionalRowLoops only records which
-    # already-preamble-computed variable the extra loop iterates -- not a second copy of how
-    # it is computed.
-    $SourceExprNode = Get-InnerExpr -Node $Nested.Condition
+function Test-ContainsObjAssignment {
+    param([System.Management.Automation.Language.Ast]$Node)
+    return @($Node.FindAll({
+        param($n)
+        $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+        $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+        $n.Left.VariablePath.UserPath -ieq 'obj'
+    }, $true)).Count -gt 0
+}
+
+function Get-RowExpansion {
+    <#
+        Split one loop body into its own setup statements plus, if it fans out further, the nested
+        loop chain below it. The descent terminates where `$obj = @{ ... }` is a statement of THIS
+        body -- i.e. at the level that actually emits rows -- rather than at a loop variable named
+        'Tag'. Two reasons that distinction matters:
+
+          * `Networking/RouteTables.ps1` calls its tag variable `$TagKey`, so a name test mistook
+            the tag loop for another fan-out level and then failed to find a loop below it.
+          * 25 collectors (all 15 convertible Identity ones, 9 Management ones, Monitor/Outages)
+            have NO tag loop whatsoever -- one row per resource. A descent that requires a tag loop
+            rejects every one of them, which is why they were the single largest block of
+            "shape is not recognised" failures.
+
+        Candidate loops are additionally required to CONTAIN the `$obj` assignment, which excludes
+        the retirement fold's `foreach ($Retire in $Retired)` structurally instead of by name.
+    #>
+    param(
+        [System.Management.Automation.Language.StatementBlockAst]$Body,
+        [string]$Text,
+        [string]$Where
+    )
+
+    $ObjHere = @($Body.Statements | Where-Object {
+        $_ -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+        $_.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+        $_.Left.VariablePath.UserPath -ieq 'obj'
+    })
+    if (@($ObjHere).Count -gt 0) {
+        $Preamble = Get-StatementRangeText -Statements @($Body.Statements | Where-Object { $_.Extent.StartOffset -lt $ObjHere[0].Extent.StartOffset }) -Text $Text
+        return [PSCustomObject]@{ Preamble = $Preamble; Loops = @() }
+    }
+
+    $Candidates = @($Body.Statements |
+        Where-Object { $_ -is [System.Management.Automation.Language.ForEachStatementAst] } |
+        Where-Object { Test-ContainsObjAssignment -Node $_ })
+    if (@($Candidates).Count -eq 0) {
+        throw "$Where -- no row-emitting ``foreach`` or ```$obj`` assignment at this level; this collector's shape is not recognised."
+    }
+    $BoundaryLoop = $Candidates[-1]
+    $Preamble = Get-StatementRangeText -Statements @($Body.Statements | Where-Object { $_.Extent.StartOffset -lt $BoundaryLoop.Extent.StartOffset }) -Text $Text
+
+    $SourceExprNode = Get-InnerExpr -Node $BoundaryLoop.Condition
     $SourceRef = if ($SourceExprNode -is [System.Management.Automation.Language.VariableExpressionAst]) {
         '$' + $SourceExprNode.VariablePath.UserPath
     } else {
-        $Nested.Condition.Extent.Text
+        $BoundaryLoop.Condition.Extent.Text
     }
-    [void]$AdditionalRowLoops.Add(@{ Variable = $LoopVar; Source = $SourceRef })
+
+    $Inner = Get-RowExpansion -Body $BoundaryLoop.Body -Text $Text -Where $Where
+    $Loop = [ordered]@{
+        Variable = $BoundaryLoop.Variable.VariablePath.UserPath
+        Source   = $SourceRef
+        Preamble = $Inner.Preamble
+    }
+    return [PSCustomObject]@{ Preamble = $Preamble; Loops = @(@($Loop) + @($Inner.Loops)) }
 }
 
-# --- Preamble: every per-resource setup statement, verbatim, before the row-expansion loop(s) ---
-#
-# Everything the row loop computes for ONE resource before it starts emitting rows -- the
-# subscription lookup, the retirement fold, tag detection, and whatever collector-specific
-# locals a particular file happens to need ($DBServer, $PoolId, $sku, ...) -- copied as exact
-# source text, not reconstructed. The boundary is the row loop's OWN top-level foreach (the tag
-# loop, or whatever wraps it via AdditionalRowLoops): everything before it is preamble, the loop
-# itself and beyond is handled by the interpreter's row-expansion logic instead.
-$FileText = $Ast.Extent.Text
-$TopLevelForEach = @($RowLoop.Body.Statements | Where-Object { $_ -is [System.Management.Automation.Language.ForEachStatementAst] })
-if (@($TopLevelForEach).Count -eq 0) { throw "$FullPath -- the row loop has no top-level tag/row-expansion `foreach`; this collector's shape is not recognised." }
-$BoundaryLoop = $TopLevelForEach[-1]
+$Expansion = Get-RowExpansion -Body $RowLoop.Body -Text $FileText -Where $FullPath
+$Preamble  = $Expansion.Preamble
+$AllLoops  = @($Expansion.Loops)
 
-$PreambleStatements = @($RowLoop.Body.Statements | Where-Object { $_.Extent.StartOffset -lt $BoundaryLoop.Extent.StartOffset })
-$Preamble = ''
-if (@($PreambleStatements).Count -gt 0) {
-    $Start = $PreambleStatements[0].Extent.StartOffset
-    $End   = $PreambleStatements[-1].Extent.EndOffset
-    $Preamble = $FileText.Substring($Start, $End - $Start)
+# The INNERMOST loop is the tag loop when it iterates $Tags -- recorded as its own key rather than
+# left implicit, because it is not universal (25 collectors have none) and not always called 'Tag'
+# (RouteTables uses $TagKey). Every loop above it is a genuine per-resource fan-out.
+$TagLoop = $null
+if (@($AllLoops).Count -gt 0 -and $AllLoops[-1].Source -match '^\$Tags$') {
+    $TagLoop  = $AllLoops[-1]
+    $AllLoops = @($AllLoops | Select-Object -SkipLast 1)
 }
+
+$AdditionalRowLoops = [System.Collections.Generic.List[object]]::new()
+foreach ($Loop in @($AllLoops)) { [void]$AdditionalRowLoops.Add($Loop) }
 
 # --- Fields (verbatim expression text from the $obj = @{...} hashtable) -------------------------
 
@@ -280,8 +379,12 @@ if ($Blocks.Reporting) {
     # The two Tag columns are always conditionally added inside `if ($InTag) {...}` -- split
     # them out of the plain column order into TagColumns, added only when $InTag is set.
     $Report.Columns    = @($AllColumns | Where-Object { $_ -notin @('Tag Name', 'Tag Value') })
+    # NOT defaulted to the two standard names when the original adds neither. 10 of the Monitor
+    # collectors (ActivityLogAlertRules, AutoscaleSettings, MonitorWorkbooks, ...) PROCESS Tag Name /
+    # Tag Value but never export them -- their Reporting branch has no `if ($InTag)` block at all.
+    # Assuming the default added two columns to those sheets under -IncludeTags that no shipped
+    # release has ever contained.
     $Report.TagColumns = @($AllColumns | Where-Object { $_ -in @('Tag Name', 'Tag Value') })
-    if (@($Report.TagColumns).Count -eq 0) { $Report.TagColumns = @('Tag Name', 'Tag Value') }
 
     # WHERE the tag columns sit is part of the sheet's contract, not a detail. All 13 Databases
     # collectors call $Exc.Add('Resource U') AFTER the `if ($InTag)` block, so the shipped column
@@ -341,11 +444,14 @@ if ($Blocks.Reporting) {
 # --- Assemble the definition ---------------------------------------------------------------------
 
 $Definition = [ordered]@{
-    ResourceTypes       = @($ResourceTypes)
+    ResourceTypes        = @($ResourceTypes)
+    ResourceTypeMatching = $ResourceTypeMatching
     AdditionalFilter    = $AdditionalFilterText
+    FilterPreamble      = $FilterPreamble
     RowLoopVariable     = $RowLoopVarName
     Preamble            = $Preamble
-    AdditionalRowLoops  = @($AdditionalRowLoops | ForEach-Object { [ordered]@{ Variable = $_.Variable; Source = $_.Source } })
+    AdditionalRowLoops  = @($AdditionalRowLoops | ForEach-Object { [ordered]@{ Variable = $_.Variable; Source = $_.Source; Preamble = $_.Preamble } })
+    TagLoop             = if ($TagLoop) { [ordered]@{ Variable = $TagLoop.Variable; Source = $TagLoop.Source; Preamble = $TagLoop.Preamble } } else { $null }
     Fields              = @($Fields | ForEach-Object { [ordered]@{ Name = $_.Name; Expression = $_.Expression } })
     Export              = [ordered]@{
         WorksheetName    = $Report.WorksheetName
@@ -360,7 +466,9 @@ $Definition = [ordered]@{
 }
 
 $Psd1Text = "@{`n" + (($Definition.GetEnumerator() | ForEach-Object {
-    if ($_.Key -eq 'Preamble') {
+    if ($_.Key -eq 'FilterPreamble' -and -not [string]::IsNullOrWhiteSpace($_.Value)) {
+        "    FilterPreamble = @'`n$($_.Value)`n'@"
+    } elseif ($_.Key -eq 'Preamble') {
         # A here-string, not ConvertTo-Psd1Literal's normal single-quoted escaping -- preamble
         # source commonly contains its own single AND double quotes, and a here-string needs no
         # escaping of either.

@@ -55,6 +55,15 @@ schema must support directly**, not as evidence a collector needs an escape hatc
 A collector is classified an **escape hatch** only when it does something a per-field
 expression language over a single filtered resource set cannot express.
 
+> **Known limitation, found during the conversion (AB#5659).** The external-call detection above
+> searches for `Get-Az*`, `Invoke-Az*`, `Invoke-RestMethod`, `Invoke-WebRequest`, `Get-Msol*`,
+> `Get-Mg*` and `Invoke-Mg*` — a list of *cmdlet names*. It therefore does not see a dependency
+> expressed any other way, and `Monitor/Outages.ps1` has one: it builds several of its columns with
+> `New-Object -Com 'HTMLFile'` and reads `$Html.body.innerText`. That collector is classified `Pure`
+> here and is **not** pure shaping; it is left imperative. Counted correctly the split is 127 pure /
+> 49 escape-hatch. The table below is left as the audit produced it rather than silently corrected,
+> so the classification and its one known error stay traceable.
+
 ## 2. Headline numbers
 
 | | Count |

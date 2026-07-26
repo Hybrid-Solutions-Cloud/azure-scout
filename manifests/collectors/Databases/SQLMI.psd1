@@ -9,7 +9,11 @@
         'microsoft.sql/managedInstances'
     )
 
+    ResourceTypeMatching = 'Grouped'
+
     AdditionalFilter = $null
+
+    FilterPreamble = ''
 
     RowLoopVariable = '1'
 
@@ -51,8 +55,15 @@ $ResUCount = 1
         @{
             Variable = 'pvtep'
             Source = '$pvteps'
+            Preamble = ''
         }
     )
+
+    TagLoop = @{
+        Variable = 'Tag'
+        Source = '$Tags'
+        Preamble = ''
+    }
 
     Fields = @(
         @{

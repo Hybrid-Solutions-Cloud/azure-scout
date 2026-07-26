@@ -36,9 +36,12 @@
     ORDER in the one multi-type collector), and a storage account no Databases collector may
     ever match.
 
-    Scope: the Databases category (13 collectors) is the pilot conversion — 100% pure-shaping per
-    the audit (docs/design/collector-audit.md). The other 163 collectors have no definition yet
-    and are deliberately not covered here.
+    Scope: the Databases category (13 collectors) was the pilot conversion — 100% pure-shaping per
+    the audit (docs/design/collector-audit.md) — and keeps its own hand-authored fixture below.
+    AB#5659 extends the same proof to every other converted collector, driven by the per-category
+    generated estates under tests/fixtures/collector-equivalence/ (see
+    scripts/New-ScoutCollectorFixture.ps1 for why those are generated from the definitions rather
+    than written by hand, and for what that does and does not prove).
 #>
 
 # Discovery-time list: one Describe per converted collector, so a failure names the collector.
@@ -56,6 +59,19 @@ $DeclarativeCollectors = @(
     @{ Name = 'SQLPOOL' }
     @{ Name = 'SQLSERVER' }
     @{ Name = 'SQLVM' }
+)
+
+# Every converted collector, discovered from the definition tree rather than listed, so a conversion
+# that is added or reverted cannot silently escape the proof.
+$script:DefinitionRootForDiscovery = Join-Path (Split-Path -Parent $PSScriptRoot) 'manifests/collectors'
+$ConvertedCollectors = @(
+    if (Test-Path -LiteralPath $script:DefinitionRootForDiscovery) {
+        foreach ($Folder in (Get-ChildItem -LiteralPath $script:DefinitionRootForDiscovery -Directory | Sort-Object Name)) {
+            foreach ($File in (Get-ChildItem -LiteralPath $Folder.FullName -Filter '*.psd1' -File | Sort-Object Name)) {
+                @{ Category = $Folder.Name; Name = $File.BaseName }
+            }
+        }
+    }
 )
 
 BeforeAll {
@@ -142,11 +158,111 @@ BeforeAll {
 
     function ConvertTo-ComparableRow {
         param($Row)
+        # A collector's output stream is not guaranteed to be all hashtables. Networking/VirtualNetwork
+        # has a `switch` whose `Default { $null }` branch writes $null straight into the row stream, so
+        # its result array is interleaved with $nulls -- in EVERY shipped release. Both paths reproduce
+        # that identically (it is in the lifted preamble), but a comparison that assumed a hashtable
+        # crashed on `$null.Keys` instead of reporting a match.
+        if ($null -eq $Row) { return '<null-row>' }
+        if ($Row -isnot [System.Collections.IDictionary]) {
+            return "<non-row:$($Row.GetType().Name)>$(ConvertTo-ComparableValue -Value $Row)"
+        }
         # Row keys come from a hashtable literal, so their enumeration order is not meaningful --
         # sort them. Column ORDER is a property of the Export section and is tested separately,
         # against the real worksheet.
         $Keys = @($Row.Keys | Sort-Object)
         ($Keys | ForEach-Object { "$_=$(ConvertTo-ComparableValue -Value $Row[$_])" }) -join '|'
+    }
+
+    # --- The generated per-category estates (AB#5659) -----------------------------------------
+    #
+    # One fixture per category, loaded once and cached: the Databases estate above is hand-authored
+    # for the pilot conversion, these are generated from the definitions themselves by
+    # scripts/New-ScoutCollectorFixture.ps1 so that every property a collector reads is populated.
+    $script:GeneratedFixtures = @{}
+
+    function Get-GeneratedFixture {
+        param([string]$Category)
+        if (-not $script:GeneratedFixtures.ContainsKey($Category)) {
+            $Path = Join-Path $script:RepoRoot "tests/fixtures/collector-equivalence/$Category.json"
+            if (-not (Test-Path -LiteralPath $Path)) { throw "No generated equivalence fixture for category '$Category' at $Path" }
+            $script:GeneratedFixtures[$Category] = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+        }
+        return $script:GeneratedFixtures[$Category]
+    }
+
+    function New-GeneratedContext {
+        param(
+            [string]$Category, [string]$Name, [string]$Task = 'Processing',
+            $File, $SmaResources, [bool]$InTag = $false
+        )
+        $Fixture = Get-GeneratedFixture -Category $Category
+        # Each collector gets ONLY its own resources. Deliberately not one shared estate per category:
+        # sibling collectors on the same resource type read different property sets, so a shared estate
+        # would hand collector B a resource shaped for collector A, where a property B calls .split() on
+        # is $null. The two paths do NOT fail identically in that case -- the interpreter's row is a
+        # single `@{ ... }` statement so a throw emits nothing, while the original assigns `$obj` and
+        # then writes it, so a throw re-emits the PREVIOUS row. That difference is a property of the
+        # legacy code, not of the conversion, and it would make this suite report noise.
+        @{
+            ScriptRoot    = $script:RepoRoot
+            Subscriptions = $Fixture.subscriptions
+            InTag         = $InTag
+            Resources     = $Fixture.collectors.$Name.resources
+            Retirements   = $Fixture.retirements
+            Task          = $Task
+            File          = $File
+            SmaResources  = $SmaResources
+            TableStyle    = 'Light20'
+            Unsupported   = $Fixture.unsupported
+        }
+    }
+
+    function Get-GeneratedLegacyRows {
+        param([string]$Category, [string]$Name)
+        $Descriptor = [PSCustomObject]@{
+            Name           = $Name
+            FolderCategory = $Category
+            Path           = (Join-Path $script:RepoRoot "Modules/Public/InventoryModules/$Category/$Name.ps1")
+        }
+        $Result = Invoke-ScoutCollector -Collector $Descriptor -Context (New-GeneratedContext -Category $Category -Name $Name)
+        if (-not $Result.Success) { throw "Legacy collector '$Category/$Name' failed on the generated estate: $($Result.Error)" }
+        @($Result.Rows)
+    }
+
+    function Get-GeneratedDeclarativeRows {
+        param([string]$Category, [string]$Name)
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1")
+        @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (New-GeneratedContext -Category $Category -Name $Name))
+    }
+
+    function Get-GeneratedReportingComparison {
+        param([string]$Category, [string]$Name, [bool]$InTag)
+
+        $Rows = @(Get-GeneratedLegacyRows -Category $Category -Name $Name)
+        if ($Rows.Count -eq 0) { return $null }
+
+        $Suffix     = if ($InTag) { 'tag' } else { 'notag' }
+        $LegacyFile = Join-Path $script:TempDir "$Category-$Name-legacy-$Suffix.xlsx"
+        $DeclFile   = Join-Path $script:TempDir "$Category-$Name-decl-$Suffix.xlsx"
+
+        $Descriptor = [PSCustomObject]@{
+            Name = $Name; FolderCategory = $Category
+            Path = (Join-Path $script:RepoRoot "Modules/Public/InventoryModules/$Category/$Name.ps1")
+        }
+        $LegacyResult = Invoke-ScoutCollector -Collector $Descriptor -Context (
+            New-GeneratedContext -Category $Category -Name $Name -Task 'Reporting' -File $LegacyFile -SmaResources $Rows -InTag $InTag)
+        if (-not $LegacyResult.Success) { throw "Legacy reporting for '$Category/$Name' failed: $($LegacyResult.Error)" }
+
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1")
+        Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (
+            New-GeneratedContext -Category $Category -Name $Name -Task 'Reporting' -File $DeclFile -SmaResources $Rows -InTag $InTag)
+
+        [PSCustomObject]@{
+            LegacyFile = $LegacyFile
+            DeclFile   = $DeclFile
+            Worksheet  = $Definition.Export.WorksheetName
+        }
     }
 
     # Run one collector's Reporting branch both ways and read the two sheets back.
@@ -207,9 +323,11 @@ Describe 'Declarative collector definitions — coverage' {
         ($Definitions -join ',') | Should -Be ($Collectors -join ',')
     }
 
-    It 'loads every definition through the schema validator without error' {
-        foreach ($File in (Get-ChildItem -LiteralPath $script:DefinitionDir -Filter '*.psd1')) {
-            { Get-ScoutCollectorDefinition -Path $File.FullName } | Should -Not -Throw
+    It 'loads every definition in the whole tree through the schema validator without error' {
+        $All = @(Get-ChildItem -LiteralPath (Join-Path $script:RepoRoot 'manifests/collectors') -Filter '*.psd1' -Recurse -File)
+        @($All).Count | Should -BeGreaterThan 13
+        foreach ($File in $All) {
+            { Get-ScoutCollectorDefinition -Path $File.FullName } | Should -Not -Throw -Because "$($File.Name) must satisfy the schema"
         }
     }
 
@@ -223,11 +341,72 @@ Describe 'Declarative collector definitions — coverage' {
         }
     }
 
-    It 'reports HasDeclarativeDefinition = $false for an unconverted category, which is not a defect' {
-        $Security = @(Get-ScoutCollector -InventoryRoot (Join-Path $script:RepoRoot 'Modules/Public/InventoryModules') -Category 'Security')
-        @($Security).Count | Should -BeGreaterThan 0
-        @($Security | Where-Object { $_.HasDeclarativeDefinition }) | Should -BeNullOrEmpty
-        @($Security | Where-Object { $null -ne $_.DefinitionPath }) | Should -BeNullOrEmpty
+    It 'reports HasDeclarativeDefinition = $false for the escape-hatch collectors, which is not a defect' {
+        # The ADR's position (§2.4) is that NOT having a .psd1 IS the escape hatch. So this asserts the
+        # inverse of the coverage check below: no collector the audit classified as needing an escape
+        # hatch may acquire a definition, because that definition would necessarily have dropped its
+        # join or its live call.
+        $Audit = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'tests/fixtures/collector-audit.json') -Raw | ConvertFrom-Json
+        $Escape = @($Audit | Where-Object { $_.Classification -ne 'PureShaping' })
+        @($Escape).Count | Should -BeGreaterThan 0
+
+        $Found = @(Get-ScoutCollector -InventoryRoot (Join-Path $script:RepoRoot 'Modules/Public/InventoryModules'))
+        foreach ($Entry in $Escape) {
+            $Descriptor = @($Found | Where-Object { $_.Name -eq $Entry.Name -and $_.FolderCategory -eq $Entry.Category })
+            @($Descriptor).Count | Should -Be 1 -Because "the audit and discovery must agree that $($Entry.Category)/$($Entry.Name) exists"
+            $Descriptor[0].HasDeclarativeDefinition | Should -BeFalse -Because "$($Entry.Category)/$($Entry.Name) is $($Entry.EscapeHatchReasons -join '/') and cannot be expressed declaratively"
+        }
+    }
+}
+
+Describe 'Processing equivalence on the generated estate — <Category>/<Name>' -ForEach $ConvertedCollectors {
+    BeforeAll {
+        $script:GenLegacy = @(Get-GeneratedLegacyRows      -Category $Category -Name $Name)
+        $script:GenDecl   = @(Get-GeneratedDeclarativeRows -Category $Category -Name $Name)
+    }
+
+    It 'the generated estate actually exercises this collector' {
+        @($script:GenLegacy).Count | Should -BeGreaterThan 0
+    }
+
+    It 'emits the same number of rows' {
+        @($script:GenDecl).Count | Should -Be @($script:GenLegacy).Count
+    }
+
+    It 'emits the same values, in the same row order' {
+        for ($i = 0; $i -lt @($script:GenLegacy).Count; $i++) {
+            $L = ConvertTo-ComparableRow -Row $script:GenLegacy[$i]
+            $D = ConvertTo-ComparableRow -Row $script:GenDecl[$i]
+            $D | Should -Be $L -Because "row $i of $Category/$Name must be identical to the imperative collector's"
+        }
+    }
+
+    It 'never emits a row for a resource type it did not declare' {
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1")
+        $Fixture    = Get-GeneratedFixture -Category $Category
+        $TypeById   = @{}
+        foreach ($Resource in @($Fixture.collectors.$Name.resources)) { $TypeById[$Resource.id] = $Resource.TYPE }
+
+        foreach ($Row in $script:GenDecl) {
+            if ($Row -isnot [System.Collections.IDictionary] -or -not $Row.ContainsKey('ID')) { continue }
+            if (-not $TypeById.ContainsKey($Row['ID'])) { continue }   # an id derived from a sub-resource path
+            @($Definition.ResourceTypes) | Should -Contain $TypeById[$Row['ID']]
+        }
+    }
+}
+
+Describe 'Reporting equivalence on the generated estate — <Category>/<Name>' -ForEach $ConvertedCollectors {
+    It 'writes an identical worksheet with InTag <InTag>' -ForEach @(@{ InTag = $false }, @{ InTag = $true }) {
+        # Both states, always. The tag case is where the two schema defects the pilot conversion found
+        # lived (where the Tag columns are inserted, and whether they are exported at all -- 10 Monitor
+        # collectors process Tag Name/Tag Value but export neither).
+        $Comparison = Get-GeneratedReportingComparison -Category $Category -Name $Name -InTag $InTag
+        $Comparison | Should -Not -BeNullOrEmpty
+        $LegacyText = ConvertTo-SheetText -Path $Comparison.LegacyFile -Worksheet $Comparison.Worksheet
+        $DeclText   = ConvertTo-SheetText -Path $Comparison.DeclFile   -Worksheet $Comparison.Worksheet
+
+        ($DeclText -split "`n")[0] | Should -Be ($LegacyText -split "`n")[0] -Because 'the column order is the sheet contract'
+        $DeclText | Should -Be $LegacyText
     }
 }
 
