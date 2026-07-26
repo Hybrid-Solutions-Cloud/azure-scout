@@ -10,6 +10,11 @@
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
     . (Join-Path $script:RepoRoot 'Modules/Private/Main/Write-AZTIRunLog.ps1')
+    # AB#5648: Get-AZSCCostInventory is now a shim over src/collect's Get-ScoutCostInventory,
+    # so the implementation has to be loaded for these assertions to exercise anything. The
+    # assertions themselves are unchanged -- they are the AB#5636 contract, and running them
+    # against the NEW path is the point: the guarantee has to survive the inversion.
+    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutCostInventory.ps1')
     . (Join-Path $script:RepoRoot 'Modules/Private/Extraction/Get-AZTICostInventory.ps1')
 
     # Pester cannot mock a command that does not exist, and the whole point of AB#5636 is
@@ -105,8 +110,27 @@ Describe 'Cost dependency stays opt-in' {
 Describe 'The dead-code fallback is gone' {
 
     It 'no longer rethrows out of the cost collector' {
-        $Raw = Get-Content -Path (Join-Path $script:RepoRoot 'Modules/Private/Extraction/Get-AZTICostInventory.ps1')
-        $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
-        $Active | Should -Not -Match 'throw \$_\.Exception\.Message'
+        # Both files, since AB#5648: the legacy one is a shim and the implementation moved to
+        # src/collect. Checking only the shim would pass forever while the rethrow lived on in
+        # the file that actually runs.
+        foreach ($Relative in 'Modules/Private/Extraction/Get-AZTICostInventory.ps1',
+                              'src/collect/Get-ScoutCostInventory.ps1') {
+            $Raw = Get-Content -Path (Join-Path $script:RepoRoot $Relative)
+            $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
+            $Active | Should -Not -Match 'throw \$_\.Exception\.Message' -Because "$Relative must not rethrow"
+        }
+    }
+
+    It 'the catch block ends in an assignment, not a throw, in the implementation (AB#5648)' {
+        # AST rather than text: the guarantee is that no catch statement anywhere in the cost
+        # collector rethrows. A regex over source misses `throw $_` and `throw`.
+        $Path = Join-Path $script:RepoRoot 'src/collect/Get-ScoutCostInventory.ps1'
+        $Ast = [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$null, [ref]$null)
+        $Catches = @($Ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CatchClauseAst] }, $true))
+        $Catches.Count | Should -BeGreaterThan 0 -Because 'the Cost Management call must be wrapped'
+        foreach ($Catch in $Catches) {
+            @($Catch.FindAll({ $args[0] -is [System.Management.Automation.Language.ThrowStatementAst] }, $true)).Count |
+                Should -Be 0 -Because 'a rethrow here destroys the caller''s entire inventory'
+        }
     }
 }

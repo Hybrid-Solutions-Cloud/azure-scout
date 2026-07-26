@@ -1,81 +1,60 @@
+<#
+.Synopsis
+Parameter-translation shim: maps the v1 cost-extraction contract onto src/collect.
+
+.DESCRIPTION
+This function used to BE the inventory engine's Cost Management layer. It is now a shim over
+Get-ScoutCostInventory (src/collect/Get-ScoutCostInventory.ps1), which is the single
+implementation of the Cost Management call. AB#5648 retired the duplicate.
+
+The v1 contract is preserved exactly at this boundary:
+  - one result element per subscription, in subscription order;
+  - each element is a HASHTABLE with the keys SubscriptionId, SubscriptionName, CostData --
+    src/collect emits [pscustomobject], and this shim converts, because Start-AZSCExtraJobs
+    and Start-AZSCSubscriptionJob read `$Cost.CostData.Row` off whatever comes back and the
+    hashtable shape is what has shipped;
+  - CostData is `@()`, never `$null`, when cost data could not be retrieved;
+  - the failure path warns and continues. It must NEVER throw. Cost data is optional
+    enrichment: the historical defect (AB#5636) was a rethrow of the caught exception message,
+    which made the empty-collection fallback on the very next line unreachable, so a machine
+    without Az.CostManagement lost the entire report to -IncludeCosts.
+
+Az.CostManagement is deliberately NOT auto-installed (see AzureScout.psm1): it drags in a
+newer Az.Accounts, and two Az.Accounts versions side by side make every subsequent
+Import-Module die inside Az.Accounts' own assembly-load-context resolver.
+
+.Link
+https://github.com/thisismydemo/azure-scout/Modules/Private/Extraction/Get-AZTICostInventory.ps1
+
+.COMPONENT
+This PowerShell Module is part of Azure Scout (AZSC).
+
+.NOTES
+Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola.
+#>
 function Get-AZSCCostInventory {
     Param($Subscriptions, $Days, $Granularity)
 
-    #$Days = 60
-    #$Granularity = 'Monthly'
-    $Today = Get-Date
-    $EndDate = Get-Date -Year $Today.Year -Month $Today.Month -Day $Today.Day -Hour 23 -Minute 59 -Second 59 -Millisecond 0
+    Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Starting Cost Inventory Extraction (src/collect, AB#5648)')
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Starting Cost Inventory Extraction')
+    # v1 iterated $Subscriptions with foreach, so a $null or empty list produced no rows and no
+    # error. Get-ScoutCostInventory declares -Subscriptions mandatory, which would prompt.
+    if (-not $Subscriptions) { return }
 
-    $Grouping = @()
-    $GTemp = @{Name='ResourceType';Type='Dimension'}
-    $Grouping += $GTemp
-    $GTemp = @{Name='ResourceGroup';Type='Dimension'}
-    $Grouping += $GTemp
-    $GTemp = @{Name='ResourceLocation';Type='Dimension'}
-    $Grouping += $GTemp
-    $GTemp = @{Name='ServiceName';Type='Dimension'}
-    $Grouping += $GTemp
+    $CollectArgs = @{ Subscriptions = @($Subscriptions) }
+    if ($PSBoundParameters.ContainsKey('Days') -and $null -ne $Days) { $CollectArgs.Days = [int]$Days }
+    if (![string]::IsNullOrEmpty($Granularity)) { $CollectArgs.Granularity = $Granularity }
 
+    $Collected = Get-ScoutCostInventory @CollectArgs
 
-    $Hash = @{name="PreTaxCost";function="Sum"}
-    $MHash = @{totalCost=$Hash}
-
-    if ($Days -ge 365)
-        {
-            $StartDate = Get-date -Year $EndDate.AddYears(-1).Year -Month 1 -Day 1 -Hour 0 -Minute 0 -Second 0 -Millisecond 1
-            $EndDate = Get-Date -Year $StartDate.Year -Month 12 -Day 31 -Hour 23 -Minute 59 -Second 59 -Millisecond 0
+    # Back to the v1 hashtable shape, key for key.
+    $Result = foreach ($Entry in @($Collected)) {
+        @{
+            SubscriptionId   = $Entry.SubscriptionId
+            SubscriptionName = $Entry.SubscriptionName
+            CostData         = $Entry.CostData
         }
-    else
-        {
-            #$StartDate = ($EndDate).AddDays(-$Days)
-            $StartDate = (Get-Date -Day 1).AddMonths(-2)
-        }  
-
-    $Result = Foreach ($Subscription in $Subscriptions)
-        {
-            $SubId = $Subscription.id
-            $SubName = $Subscription.name
-            $Scope = ('/subscriptions/'+$SubId+'/')
-            $Costs = @()
-            try
-                {
-                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Extracting Cost Data for: ' + $SubName)
-                    $Costs = Invoke-AzCostManagementQuery -Type ActualCost -Scope $Scope -Timeframe Custom -DatasetGranularity $Granularity -DatasetGrouping $Grouping -DatasetAggregation $MHash -TimePeriodFrom $StartDate -TimePeriodTo $EndDate -Debug:$false
-                }
-            catch
-                {
-                    # Cost data is optional enrichment -- it must never cost the caller their
-                    # inventory. The previous `throw $_.Exception.Message` aborted the entire run
-                    # whenever Cost Management was unavailable, and the `$Costs = @()` that
-                    # followed it was unreachable, so the intended fallback never ran. A machine
-                    # without Az.CostManagement installed lost the whole report to this. (AB#5636)
-                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Error Extracting Cost Data for Subscription: ' + $SubName)
-                    $Costs = @()
-
-                    if ($_.Exception.Message -like '*Invoke-AzCostManagementQuery*not recognized*')
-                        {
-                            Write-Warning ("[AzureScout] Cost data skipped: the Az.CostManagement module is not installed. " +
-                                           "Install it with 'Install-Module Az.CostManagement -Scope CurrentUser' and rerun with -IncludeCosts.")
-                        }
-                    else
-                        {
-                            Write-Warning ("[AzureScout] Cost data skipped for subscription '" + $SubName + "': " + $_.Exception.Message)
-                        }
-
-                    Write-AZSCLog -Message ("Cost extraction failed for '" + $SubName + "': " + $_.Exception.Message) -Level 'WARN'
-                }
-
-            $obj = @{
-                SubscriptionId = $SubId
-                SubscriptionName = $SubName
-                CostData = $Costs
-            }
-            Start-Sleep -Milliseconds 100
-            $obj
-        }
+    }
 
     return $Result
-
 }

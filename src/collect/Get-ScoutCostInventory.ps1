@@ -40,8 +40,10 @@ $ErrorActionPreference = 'Stop'
     Management failure, degrades that ONE subscription's `CostData` to `@()` with a
     `Write-Warning` naming the cause -- it never throws uncaught, and it never aborts
     collection for any OTHER subscription. The historical defect this guards against was a
-    bare `throw $_.Exception.Message` followed by an unreachable `$Costs = @()` fallback
-    that could never run; every `catch` block here ends in an assignment, not a `throw`.
+    bare rethrow of the caught exception message, followed by an empty-collection fallback on
+    the next line that could therefore never run. Every catch block here ends in an
+    assignment, and an AST test in tests/CostInventoryResilience.Tests.ps1 fails the build if
+    a throw statement reappears inside any catch in this file.
 #>
 function Get-ScoutCostInventory {
     [CmdletBinding()]
@@ -83,18 +85,48 @@ function Get-ScoutCostInventory {
 
         if ($costManagementAvailable) {
             try {
-                $costs = @(Invoke-AzCostManagementQuery -Type ActualCost -Scope $scope -Timeframe Custom `
-                        -DatasetGranularity $Granularity -DatasetGrouping $grouping -DatasetAggregation $aggregation `
-                        -TimePeriodFrom $startDate -TimePeriodTo $endDate -ErrorAction Stop)
+                # NOT wrapped in @(): Invoke-AzCostManagementQuery returns ONE query-result
+                # object carrying a .Row collection, and the legacy function assigned it
+                # unwrapped. Get-ScoutCostAnomaly reads the raw shape with
+                # `$item.CostData.PSObject.Properties['Row']`, which is $null on an ARRAY --
+                # so wrapping it silently produced zero anomaly records rather than an error.
+                # v1's shape is the contract here. (AB#5648)
+                $costs = Invoke-AzCostManagementQuery -Type ActualCost -Scope $scope -Timeframe Custom `
+                    -DatasetGranularity $Granularity -DatasetGrouping $grouping -DatasetAggregation $aggregation `
+                    -TimePeriodFrom $startDate -TimePeriodTo $endDate -ErrorAction Stop
+                if ($null -eq $costs) { $costs = @() }
             }
             catch {
                 # Cost data is optional enrichment -- it must never cost the caller their
                 # inventory (AB#5636's defect class: a bare `throw` here previously aborted
                 # the whole run and made the `$costs = @()` fallback unreachable).
                 $costs = @()
-                Write-Warning "Get-ScoutCostInventory: cost data skipped for subscription '$subName': $($_.Exception.Message)"
+
+                # Two ways the dependency can be missing, and the operator needs the same
+                # actionable hint for both (carried over from the legacy function, AB#5648):
+                # the up-front Get-Command probe above catches an absent module, but a command
+                # that RESOLVES and then throws CommandNotFound at invocation time -- a broken
+                # or partially-loaded Az.CostManagement -- only surfaces here.
+                if ($_.Exception.Message -like '*Invoke-AzCostManagementQuery*not recognized*') {
+                    Write-Warning ("Get-ScoutCostInventory: cost data skipped -- the Az.CostManagement module is not available. " +
+                        "Install it with 'Install-Module Az.CostManagement -Scope CurrentUser' and rerun with -IncludeCosts.")
+                }
+                else {
+                    Write-Warning "Get-ScoutCostInventory: cost data skipped for subscription '$subName': $($_.Exception.Message)"
+                }
+
+                # The legacy function also recorded the failure in the run log, which is what an
+                # operator reads after the fact. Guarded by Get-Command because this file is
+                # dot-sourced standalone by its own tests, where the logging function is absent.
+                if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                    Write-AZSCLog -Message ("Cost extraction failed for '" + $subName + "': " + $_.Exception.Message) -Level 'WARN'
+                }
             }
         }
+
+        # Carried over from the legacy function: Cost Management is aggressively rate-limited,
+        # and a tenant with many subscriptions issues one query per subscription back to back.
+        Start-Sleep -Milliseconds 100
 
         [pscustomobject]@{
             SubscriptionId   = $subId

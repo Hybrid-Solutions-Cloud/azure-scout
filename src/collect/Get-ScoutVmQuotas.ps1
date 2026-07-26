@@ -73,7 +73,13 @@ function Get-ScoutVmQuotas {
             Set-AzContext -Subscription $sub.id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
             foreach ($loc in $locations) {
                 try {
-                    $usage = @(Get-AzVMUsage -Location $loc -ErrorAction Stop | Where-Object { $_.CurrentValue -ge 1 })
+                    # NOT wrapped in @(): the legacy function assigned the filtered pipeline
+                    # unwrapped, so a single matching quota row arrives as a scalar and a
+                    # region with none arrives as $null. Every consumer reads it as
+                    # `$Quota.Data | Where-Object ...`, which is shape-agnostic, but the
+                    # emitted object is kept byte-identical to v1's rather than "improved"
+                    # into a shape no consumer asked for. (AB#5648)
+                    $usage = Get-AzVMUsage -Location $loc -ErrorAction Stop | Where-Object { $_.CurrentValue -ge 1 }
                 }
                 catch {
                     Write-Warning "Get-ScoutVmQuotas: quota lookup failed for subscription '$($sub.id)' / location '$loc' -- skipping: $($_.Exception.Message)"
