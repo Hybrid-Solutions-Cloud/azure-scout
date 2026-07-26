@@ -106,12 +106,12 @@ context established by an earlier step, such as an OIDC login via `azure/login`.
   run: exit 1
 ```
 
-::: warning Keep `lite: true` on hosted runners
-Excel chart customization drives Excel through COM automation, and no GitHub-hosted
-runner — Windows included — has Excel installed. Setting `lite: false` on a hosted runner
-fails at the chart step. The workbook, every worksheet, and all other output formats are
-produced normally under `lite: true`; only the COM-rendered charts are skipped. Use
-`lite: false` only on a self-hosted Windows runner with Excel present.
+::: tip `lite: false` is safe on hosted runners since v2.7.0
+Excel chart customization used to drive Excel itself through COM automation, so it failed on
+any runner without a local Excel install — which is every GitHub-hosted runner, Windows
+included. AB#5665 deleted that COM path: chart, shape and tab styling now runs on
+EPPlus/ImportExcel (`Build-AZSCExcelChartStyle`) against the already-open workbook, with no
+Excel host at all. `lite: false` no longer fails at the chart step on a hosted runner.
 :::
 
 ## Narrowing a scan by category

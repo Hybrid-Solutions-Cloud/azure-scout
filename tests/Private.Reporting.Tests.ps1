@@ -39,14 +39,16 @@ BeforeAll {
     $script:ModuleRoot       = Split-Path -Parent $PSScriptRoot
     $script:InventoryPath    = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
     $script:StylePath        = Join-Path $script:InventoryPath 'style'
-    $script:TempDir          = Join-Path $env:TEMP 'AZSC_InventoryReportingTests'
-
-    if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
+    # Unique per run -- a fixed folder that BeforeAll deletes lets two concurrent runs of this
+    # suite on one machine destroy each other's workbooks mid-assertion (AB#5666).
+    $script:TempDir          = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_InventoryReportingTests_" + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
 }
 
 AfterAll {
-    if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
+    if ($script:TempDir -and (Test-Path $script:TempDir)) {
+        Remove-Item $script:TempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
 # =====================================================================
@@ -525,31 +527,131 @@ Describe 'Build-AZSCExcelChartStyle (EPPlus-native, no COM)' -Skip:(-not $script
 }
 
 # =====================================================================
-# KNOWN DEFECT — pre-existing, NOT introduced or fixed by AB#5662/AB#5665.
-# Placeholder so it can't get lost pending a work item; see the matching
-# comment at the P6 branch in style/Build-AZSCExcelChart.ps1.
+# REGRESSION — the P6 pivot/chart defect, root-caused and fixed (AB#5666)
+#
+# Was: an unguarded Add-PivotTable in Build-AZSCExcelChart's P6 branch. When the
+# 'Subscriptions' worksheet existed but held no rows, ImportExcel's
+# `$SourceWorksheet.Cells[$SourceWorksheet.Dimension.Address]` became `Cells[$null]`
+# and Add-PivotTable swallowed "Index operation failed; the array index evaluated to
+# null" into a warning, so P6 and its ChartP6 chart were silently missing from the
+# Overview sheet while the report still reported success.
+#
+# The empty sheet is a real state, not a harness artefact: Build-AZSCSubsReport always
+# writes 'Subscriptions', even for a run that collected zero subscription rows.
+#
+# These two tests pin both halves: the empty source must be skipped cleanly (no
+# warning, no crash), and a populated source must actually produce P6 + ChartP6.
 # =====================================================================
-Describe 'Build-AZSCExcelChart P6 pivot (KNOWN DEFECT, needs a work item)' {
-    It 'fails to build the P6 pivot/chart at full scale (176-collector fixture) -- root cause not yet diagnosed' -Skip {
-        # Observed 2026-07-25 running tests/Test-ExcelFromDataDump.ps1 against the full
-        # tests/datadump/sample-report.json fixture, through Start-AZSCReporOrchestration ->
-        # Start-AZSCExcelCustomization -> Build-AZSCExcelChart:
-        #   WARNING: Failed adding PivotTable 'P6': Index operation failed; the array index
-        #   evaluated to null.
-        #   WARNING: Failed adding chart for pivotable 'P6': Cannot bind argument to
-        #   parameter 'PivotTable' because it is null.
+Describe 'Build-AZSCExcelChart P6 pivot (AB#5666)' -Skip:(-not $script:HasImportExcel) {
+
+    BeforeAll {
+        Import-Module ImportExcel
+        . (Join-Path $script:StylePath 'Build-AZSCExcelChart.ps1')
+
+        # Builds a workbook shaped like the real one at the point Build-AZSCExcelChart runs:
+        # an 'Overview' sheet carrying the TP00/TP0..TP9 title shapes
+        # Build-AZSCExcelInitialBlock draws and the 'AzureTabs' summary table
+        # Start-AZSCExcelCustomization writes, plus a 'Subscriptions' sheet with the columns
+        # Build-AZSCSubsReport writes in non-cost mode. -Rows @() reproduces the
+        # empty-but-present sheet that caused the defect.
+        function script:New-P6Workbook {
+            param([string] $Path, [object[]] $Rows)
+
+            if (Test-Path $Path) { Remove-Item $Path -Force }
+
+            $Shaped = @(
+                $Rows | Select-Object 'Subscription', 'Resource Group', 'Location',
+                                      'Resource Type', 'Resources Count'
+            )
+            $ExcelArgs = @{ Path = $Path; WorksheetName = 'Subscriptions' }
+            if ($Shaped.Count -gt 0) { $ExcelArgs.TableName = 'SubsTable_1'; $ExcelArgs.TableStyle = 'Light19' }
+            $Shaped | Export-Excel @ExcelArgs
+
+            '' | Export-Excel -Path $Path -WorksheetName 'Overview' -MoveToStart
+
+            # The P00 fallback branch draws an Add-ExcelChart over the AzureTabs table by name,
+            # so it has to exist or Build-AZSCExcelChart throws before it reaches P6.
+            @(
+                [pscustomobject]@{ Name = 'Subscriptions'; Size = 1 }
+                [pscustomobject]@{ Name = 'IOTHubs';       Size = 2 }
+            ) | Export-Excel -Path $Path -WorksheetName 'Overview' -TableName 'AzureTabs' `
+                             -StartRow 6 -StartColumn 1
+
+            $pkg = Open-ExcelPackage -Path $Path
+            $ws  = $pkg.Workbook.Worksheets['Overview']
+            foreach ($name in @('TP00') + (0..9 | ForEach-Object { "TP$_" })) {
+                $shape = $ws.Drawings.AddShape($name, 'RoundRect')
+                $shape.SetSize(100, 20)
+                $shape.SetPosition($ws.Drawings.Count * 2, 0, 60, 0)
+            }
+            Close-ExcelPackage $pkg
+
+            return $Path
+        }
+
+        # Build-AZSCExcelChart is not an advanced function (bare Param, no [CmdletBinding()]),
+        # so -WarningVariable is not available -- capture stream 3 instead.
         #
-        # Not fatal (Write-Warning, not a throw) -- the report still completes and every
-        # other pivot/chart (P0-P5, P7-P9) builds correctly, but the "Resources by Location"
-        # P6 pivot+chart is silently missing from Overview.
-        #
-        # A minimal isolated repro (3-row synthetic 'Subscriptions' sheet with the same
-        # PivotRows='Location'/PivotData=sum('Resources Count') shape Build-AZSCExcelChart
-        # uses) did NOT reproduce the failure -- Add-PivotTable succeeded fine in isolation.
-        # So whatever triggers this needs the full orchestration context (real 176-collector
-        # ReportCache) to reproduce; it has not been root-caused. Left -Skip'd rather than
-        # deleted so this doesn't quietly disappear -- unskip and fill in a real repro once
-        # someone picks up the work item for this.
-        $true | Should -Be $false
+        # $tableStyle is deliberately a local here, not an argument: Build-AZSCExcelChart has no
+        # TableStyle parameter and reads $TableStyle/$tableStyle out of its caller's scope, which
+        # in production is Start-AZSCExcelCustomization's -TableStyle parameter. Without it every
+        # PivotTableStyle in the hashtables is $null and Add-PivotTable's [TableStyles] parameter
+        # cast fails, so the caller's scope has to be reproduced for the pivots to build at all.
+        function script:Invoke-P6ChartBuild {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'tableStyle',
+                Justification = 'Read by Build-AZSCExcelChart through dynamic scoping, not by this function - see comment above.')]
+            param($Package)
+            $tableStyle = 'Light19'
+            $captured = Build-AZSCExcelChart -Excel $Package -Overview $null `
+                            -IncludeCosts ([switch]::new($false)) 3>&1
+            return @($captured | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+        }
+
+        $script:P6Rows = @(
+            [pscustomobject]@{ Subscription = 'scout-prod-001'; 'Resource Group' = 'rg-a'; Location = 'eastus';  'Resource Type' = 'microsoft.compute/virtualmachines'; 'Resources Count' = 4 }
+            [pscustomobject]@{ Subscription = 'scout-dev-001';  'Resource Group' = 'rg-b'; Location = 'westus2'; 'Resource Type' = 'microsoft.storage/storageaccounts'; 'Resources Count' = 2 }
+            [pscustomobject]@{ Subscription = 'scout-dev-001';  'Resource Group' = 'rg-c'; Location = 'eastus';  'Resource Type' = 'microsoft.network/virtualnetworks'; 'Resources Count' = 1 }
+        )
+    }
+
+    It 'Skips P6 cleanly when the Subscriptions worksheet exists but is empty (no pivot warning)' {
+        $xlsx = script:New-P6Workbook -Path (Join-Path $script:TempDir 'p6-empty.xlsx') -Rows @()
+
+        $pkg = Open-ExcelPackage -Path $xlsx
+        try {
+            # Prove the precondition this regression needs: present, but no dimension.
+            $pkg.Workbook.Worksheets['Subscriptions'] | Should -Not -BeNullOrEmpty
+            $pkg.Workbook.Worksheets['Subscriptions'].Dimension | Should -BeNullOrEmpty
+
+            $warnings = script:Invoke-P6ChartBuild -Package $pkg
+
+            ($warnings | Where-Object { $_.Message -match 'P6' }) | Should -BeNullOrEmpty
+            $pkg.Workbook.Worksheets['Overview'].Drawings['ChartP6'] | Should -BeNullOrEmpty
+        }
+        finally {
+            Close-ExcelPackage $pkg -NoSave
+        }
+    }
+
+    It 'Builds the P6 pivot and its ChartP6 chart when the Subscriptions worksheet has rows' {
+        $xlsx = script:New-P6Workbook -Path (Join-Path $script:TempDir 'p6-populated.xlsx') -Rows $script:P6Rows
+
+        $pkg = Open-ExcelPackage -Path $xlsx
+        try {
+            $warnings = script:Invoke-P6ChartBuild -Package $pkg
+
+            ($warnings | Where-Object { $_.Message -match 'P6' }) | Should -BeNullOrEmpty
+
+            $ov    = $pkg.Workbook.Worksheets['Overview']
+            $pivot = $ov.PivotTables | Where-Object { $_.Name -eq 'P6' }
+            $pivot | Should -Not -BeNullOrEmpty
+            @($pivot.RowFields  | ForEach-Object { $_.Name }) | Should -Contain 'Location'
+            @($pivot.PageFields | ForEach-Object { $_.Name }) | Should -Contain 'Resource Type'
+            @($pivot.DataFields).Count | Should -Be 1
+            $ov.Drawings['ChartP6'] | Should -Not -BeNullOrEmpty
+        }
+        finally {
+            Close-ExcelPackage $pkg -NoSave
+        }
     }
 }

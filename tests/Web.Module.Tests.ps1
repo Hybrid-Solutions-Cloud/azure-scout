@@ -16,8 +16,12 @@ $WebModules = @(
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
     $script:WebPath    = Join-Path $script:ModuleRoot 'Modules' 'Public' 'InventoryModules' 'Web'
-    $script:TempDir    = Join-Path $env:TEMP 'AZSC_WebTests'
-    if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
+    # Unique per run. A fixed 'AZSC_WebTests' folder that BeforeAll deletes means two
+    # concurrent runs of this suite on one machine -- two agents, two CI jobs on the same
+    # runner -- delete each other's .xlsx mid-assertion, which surfaces as phantom
+    # "Excel file is created" failures that nothing in the product explains. A unique
+    # directory per run removes the interference; AfterAll removes the directory.
+    $script:TempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_WebTests_" + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
 
     $script:MockResources = @()
@@ -102,7 +106,10 @@ BeforeAll {
 }
 
 AfterAll {
-    if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
+    # Clean up this run's own directory only -- never a shared one.
+    if ($script:TempDir -and (Test-Path $script:TempDir)) {
+        Remove-Item $script:TempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
 Describe 'Web Module Files Exist' {

@@ -70,7 +70,8 @@ a service principal and uploads the reports as artifacts for inspection.
 | Security Overview tab renders | **Automated** — `Report.Excel.Tests.ps1` |
 | Azure Update Manager tab renders | **Automated** — `Report.Excel.Tests.ps1` |
 | Azure Monitor tab renders | **Automated** — `Report.Excel.Tests.ps1` |
-| Chart customization via Excel COM | **Live tenant** — requires Excel installed; not available on any hosted runner, so `-Lite` is mandatory in CI |
+| Chart/shape/tab styling (EPPlus-native, no Excel COM) | **Automated** — `Private.Reporting.Tests.ps1` (`Build-AZSCExcelChartStyle` unit tests, plus an end-to-end assertion that no `EXCEL` process was ever started). Needs no Excel install, so it runs on a hosted runner. |
+| Overview pivots P0–P9 and their charts build from a real ReportCache | **Automated** — `Private.Reporting.Tests.ps1`; the P6 pivot is pinned in both directions (skipped cleanly on an empty source worksheet, built when the source has rows) |
 
 ## Phase 11 — Subscription and management group logging
 

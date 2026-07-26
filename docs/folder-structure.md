@@ -54,13 +54,13 @@ azure-scout/
 │   ├── ari-differences.md              #   Differences from ARI
 │   └── changelog.md                    #   Changelog
 ├── Modules/
-│   ├── Private/                        # Internal (non-exported) functions — 54 scripts
-│   │   ├── Main/                       #   18 — Core orchestration, auth, permission audit, run log
+│   ├── Private/                        # Internal (non-exported) functions — 31 scripts
+│   │   ├── Main/                       #   19 — Core orchestration, auth, permission audit, run log
 │   │   ├── Extraction/                 #   10 — ARM/Entra data extraction
-│   │   │   └── ResourceDetails/
-│   │   ├── Processing/                 #   2 — draw.io job wrapper, extra processing
-│   │   └── Reporting/                  #   24 — Excel, JSON, Markdown, AsciiDoc, Power BI export
-│   │       └── StyleFunctions/
+│   │   │   └── ResourceDetails/        #     2 — VM quota / SKU detail lookups
+│   │   └── Processing/                 #   2 — draw.io job wrapper, extra processing
+│   │                                   #   Reporting/ is GONE — the inventory report renderers
+│   │                                   #   moved to src/report/renderers/inventory/ (AB#5662)
 │   └── Public/                         # Exported functions & runtime modules
 │       ├── InventoryModules/           #   176 modules across 15 categories (159 ARM + 17 Entra)
 │       │   ├── AI/                     #   27 modules
@@ -99,7 +99,14 @@ azure-scout/
 │   │   ├── Get-ScoutCostAnomaly.ps1    #     Cost outlier detection: spike/z-score/IQR (AB#324)
 │   │   └── Get-ScoutIacGap.ps1         #     Bicep/ARM-JSON coverage gap detection (AB#325)
 │   ├── report/                         #   Tiered report rendering (Power BI, HTML, PPTX, Excel, JSON, JsonEvidence, React, Word, EChartsDashboard, Pdf)
-│   │   ├── renderers/                  #     incl. Export-React.ps1 (v2.1.0), Export-Word.ps1/Export-EChartsDashboard.ps1/Export-Pdf.ps1/Export-JsonEvidence.ps1 (v2.2.0)
+│   │   ├── renderers/                  #     9 — incl. Export-React.ps1 (v2.1.0), Export-Word.ps1/Export-EChartsDashboard.ps1/Export-Pdf.ps1/Export-JsonEvidence.ps1 (v2.2.0)
+│   │   │   └── inventory/              #       17 — inventory Excel/JSON/Markdown/AsciiDoc/Power BI
+│   │   │       │                       #       renderers, moved out of Modules/Private/Reporting/ and
+│   │   │       │                       #       renamed so each file matches its function (AB#5662)
+│   │   │       └── style/              #         6 — Overview sheet, pivots/charts, tab ordering and
+│   │   │                               #         EPPlus-native chart styling (Build-AZSCExcelChartStyle).
+│   │   │                               #         Excel COM is deleted (AB#5665). Also holds the
+│   │   │                               #         Support.json and Retirement.kql data assets.
 │   │   ├── Get-ScoutDrift.ps1          #     Cross-run FINDINGS drift (v2.1.0, AB#5053)
 │   │   ├── Get-ScoutInventoryDrift.ps1 #     Cross-run RESOURCE/inventory drift (v2.2.0, AB#326)
 │   │   └── templates/

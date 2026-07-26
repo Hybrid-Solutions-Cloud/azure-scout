@@ -60,7 +60,17 @@ function Build-AZSCQuotaReport {
 
     # Guarded: indexing [0] into a $null/empty $ExcelVar (no quota data at all) throws
     # "Cannot index into a null array" under StrictMode.
-    $TableName = if (@($ExcelVar).Count -gt 0) { 'QuotaTable_' + $ExcelVar[0].Total } else { 'QuotaTable_0' }
+    #
+    # The guard has to filter, not just wrap: `@($null).Count` is 1, NOT 0, so the original
+    # `if (@($ExcelVar).Count -gt 0)` was true even when the foreach above produced nothing and
+    # $ExcelVar was $null -- it then read $null[0].Total and only escaped a crash because
+    # Start-AZSCReporOrchestration runs this call tree with `Set-StrictMode -Off`, silently
+    # yielding the table name 'QuotaTable_' instead of 'QuotaTable_0'. Same defect class as the
+    # v2.6.0 empty-Excel-loop and the v2.7.0 Invoke-Collect subscription-resolution defects.
+    # $ExcelVar itself is deliberately left alone -- the rest of this function consumes it.
+    # (AB#5666)
+    $QuotaRows = @($ExcelVar | Where-Object { $null -ne $_ })
+    $TableName = if ($QuotaRows.Count -gt 0) { 'QuotaTable_' + $QuotaRows[0].Total } else { 'QuotaTable_0' }
     # [PSCustomObject]$null throws ("cannot call a method on a null-valued expression") under
     # StrictMode — guard so an environment with zero VM quota data doesn't crash the report.
     $(if ($ExcelVar) { [PSCustomObject]$ExcelVar } else { @() }) |
