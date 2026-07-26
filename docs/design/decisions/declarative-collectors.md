@@ -311,6 +311,22 @@ not, and which is also the faithful choice.
   declarative path produce a *different* report from the imperative one, which is precisely what
   this change must not do. They are worth fixing — as their own change, with their own work item.
 
+  The wider conversion (AB#5659) found three more of exactly the same class, bringing the total to
+  five columns that have been blank in every shipped release. All five are reported as
+  `SchemaWarnings` and reproduced faithfully:
+
+  | Collector | Column exported | Field actually processed |
+  |---|---|---|
+  | `Databases/RedisCache` | `Resource Group` | `ResourceGroup` |
+  | `Databases/SQLMI` | `ActiveDirectoryOnlyAuthentication` | `AzureADOnlyAuthentication` |
+  | `Analytics/EvtHub` | `Geo-Rep` | *(no such field)* |
+  | `Integration/ServiceBUS` | `Geo-Rep` | *(no such field)* |
+  | `Networking/vNETPeering` | `Peering Allow Virtual NetworkAccess` | `Peering Allow Virtual Network Access` |
+
+  Finding these is a side effect worth noting: the schema validator sees a mismatch that
+  `Select-Object $Exc` never could, so simply *representing* a collector declaratively surfaces
+  export bugs the imperative form hid.
+
 ## 4. The equivalence proof
 
 `tests/DeclarativeCollectorEquivalence.Tests.ps1` (AB#5659) is the test this decision stands or
