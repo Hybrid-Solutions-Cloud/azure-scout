@@ -160,6 +160,22 @@ $ErrorActionPreference = 'Stop'
         the calling session, each query reports phase progress through it. The call
         is guarded by `Get-Command` so Collect has zero hard dependency on that
         helper — a session that never loaded it behaves exactly as before.
+
+    AB#5639 follow-up (single-source-of-truth inversion, Epic AB#5638): this file's own
+    typed-query pack above is unchanged (and stays the reference implementation the
+    `-Categories` filtering tests pin) — but `src/collect` now also owns
+    `Get-ScoutRawInventory.ps1`, a from-scratch Resource Graph raw pass (SkipToken paging,
+    1000-subscription batching, throttling backoff) that reproduces
+    `Start-AZTIGraphExtraction`'s table set independently of the legacy inventory engine.
+    Its output is `-FromInventory`-compatible with THIS file today. `Get-ScoutApiResources.ps1`
+    / `Get-ScoutVmQuotas.ps1` / `Get-ScoutVmSkuDetails.ps1` / `Get-ScoutCostInventory.ps1`
+    likewise port the legacy engine's non-ARG data sources (ARM REST, VM quota/SKU lookups,
+    Cost Management) into `src/collect`. `scripts/Get-CollectorResourceTypeMap.ps1` derives,
+    from the real AST of the 176 `Modules/Public/InventoryModules` collectors, exactly which
+    ARM types (and which non-ARG synthetic types, e.g. `AZSC/VM/Quotas`) they depend on — the
+    authoritative cross-check for how much of that surface `src/collect` now covers.
+    Rewiring `Start-AZTIGraphExtraction` itself to consume these functions instead of running
+    its own queries is AB#5648, deliberately deferred until they are proven live.
 #>
 function Invoke-Collect {
     [CmdletBinding()]
