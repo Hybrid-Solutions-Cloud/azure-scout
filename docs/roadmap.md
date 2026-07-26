@@ -13,10 +13,53 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
+## The engine rebuild is in progress, not complete
+
+**Epic AB#5638 — the engine rebuild — is open.** It was closed after v2.11.0 and announced as
+complete; that was wrong, and it has been reopened. The releases below all shipped and are on the
+PowerShell Gallery, but none of them finished the epic, whose stated end state is the **deletion of
+the forked `microsoft/ARI` engine under `Modules/`**.
+
+Measured on `main` as of 26 July 2026:
+
+| Acceptance criterion | Target | Actual |
+|---|---|---|
+| `Modules/` deleted, nothing depending on it | 0 files | **221 `.ps1`** |
+| `Modules/Public/InventoryModules/` empty (AB#5659) | 0 collectors | **176 collector `.ps1`** |
+| Every collector expressed as a definition (AB#5656) | 176 | **138** (`manifests/collectors/*.psd1`) |
+| `Set-StrictMode -Version Latest` in every module scope | 0 weakening sites | **20** across 19 files — 4 live, 15 dead |
+| Inventory and assessment share one reporting layer | cut over | **not cut over** |
+| Three consecutive runs on an unchanged estate are identical | yes | **yes** (v2.6.0) |
+
+Reporting is the one people ask about most: `Start-AZSCExcelJob` still walks
+`Modules/Public/InventoryModules/` with its own duplicate discovery and executes each collector's
+own `.ps1` reporting branch, so every declarative definition's `Export` section is exercised **only
+by tests**. That is why converting 138 collectors did not shrink `Modules/`.
+
+You can check every number yourself — `scripts/Test-StrictModeGuard.ps1` prints the weakening-site
+count, and the rest are file counts.
+
+### What v3.0.0 requires
+
+**v3.0.0 is not cut and has no changelog entry.** It is the release that can only be tagged once
+the fork is gone. Outstanding:
+
+- **Rewrite the 38 collectors that cannot be expressed declaratively.** 32 make live Azure calls or
+  have no resource-type filter to drive the interpreter; 6 have conditional row shape or loop depth.
+  Until these are rewritten, `Modules/Public/InventoryModules/` cannot be emptied.
+- **Cut reporting over** to the definitions' `Export` sections, retiring `Start-AZSCExcelJob`'s
+  duplicate discovery.
+- **Remove the 20 StrictMode weakening sites**, then complete a full live inventory run with
+  `Set-StrictMode -Version Latest` active in every module scope.
+- **Delete `Modules/`** — beyond the 176 collectors it holds a further **45 `.ps1` files defining 61
+  functions** (extraction, processing, diagram and job helpers), each of which needs a home under
+  `src/` or deletion.
+- **Remove `Invoke-ScoutAssessment`**, deprecated since v2.4.0 and still exported.
+
 ## Current Release — v2.11.0 — 138 Collectors Declarative, and the Definitions Are Gated
 
-Released 26 July 2026, published to the PowerShell Gallery. **Epic AB#5638 — the engine rebuild —
-completes with this release.**
+Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638** — **reopened**; this
+release advanced it but did not complete it (see [above](#the-engine-rebuild-is-in-progress-not-complete)).
 
 **138 of 176 collectors are now declarative**, up from 124. The audit had classified 20
 cross-resource-join collectors as escape-hatch alongside those making live cmdlet calls.

@@ -7,9 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Corrected the claim that the engine rebuild is finished.** Epic AB#5638 was closed as complete
+  and released under that framing in v2.9.0, v2.10.0 and v2.11.0; it has since been **reopened**,
+  because it never met its own acceptance criteria. The release entries below are unchanged — every
+  one of them shipped and is on the PowerShell Gallery — but the "Epic AB#5638 completes" line on
+  v2.11.0 now carries a correction, and `docs/roadmap.md` states the remaining work with measured
+  numbers rather than implying the rebuild is done.
+
 ## [2.11.0] - 2026-07-26
 
 Epic **AB#5638** completes.
+
+> **Correction — 2026-07-26.** *The line above was wrong when it was written, and Epic AB#5638 has
+> been reopened.* Everything described in this entry shipped and is real; what was false was the
+> claim of completion. The epic's own acceptance criteria are not met, measured on `main`:
+>
+> | Acceptance criterion | Measured |
+> |---|---|
+> | `Modules/` is deleted and no code path depends on it | **221 `.ps1` files** still present |
+> | `Modules/Public/InventoryModules/` is empty (AB#5659) | **176 collector `.ps1`** still present |
+> | All 176 collectors expressed as definitions (AB#5656) | **138 of 176** (`manifests/collectors/*.psd1`) |
+> | `Set-StrictMode -Version Latest` in every module scope | **20 weakening sites** across 19 files — 4 live, 15 dead |
+> | Inventory and assessment share one reporting layer | **Not cut over** — `Start-AZSCExcelJob` still walks `Modules/Public/InventoryModules/` and executes each collector's own reporting branch |
+>
+> Verify with `scripts/Test-StrictModeGuard.ps1` and a file count under `Modules/`. See
+> [the roadmap](docs/roadmap.md) for what remains before the fork can be deleted.
 
 ### Changed
 
