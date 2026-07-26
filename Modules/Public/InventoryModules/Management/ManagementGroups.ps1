@@ -38,18 +38,41 @@ If ($Task -eq 'Processing')
         }
     } catch {}
 
-    # Fallback: enumerate all top-level MGs if root lookup fails.
+    # Fallback: enumerate the management groups the caller can see, then expand each one.
     #
-    # `-Expand -Recurse` without `-GroupId` selects a parameter set that REQUIRES GroupName, so this
-    # call fails parameter binding before it ever reaches Azure -- and a parameter-binding failure is
-    # a terminating error that `-ErrorAction SilentlyContinue` does not suppress, so it took the
-    # whole collector down with "Cannot process command because of one or more missing mandatory
-    # parameters: GroupName". Nothing to do with StrictMode: it fails identically with StrictMode
-    # off, which is how it was mis-attributed to StrictMode in CollectorStrictMode.baseline.json.
-    # The try/catch delivers what the -ErrorAction was written to deliver: no hierarchy, no crash.
+    # This used to be a single `Get-AzManagementGroup -Expand -Recurse -ErrorAction
+    # SilentlyContinue`. `-Expand -Recurse` WITHOUT `-GroupId` selects a parameter set that
+    # requires GroupName, so the call failed parameter binding before it ever reached Azure --
+    # and a binding failure is a terminating error that -ErrorAction SilentlyContinue cannot
+    # suppress. A try/catch was added to stop it taking the collector down, which it did, but
+    # the fallback still returned nothing on every single run: "Management Groups" was an empty
+    # sheet for any tenant whose root-MG id is not the tenant id, which is every tenant that
+    # has renamed its root group. Nothing to do with StrictMode -- it fails identically with
+    # StrictMode off, which is how it came to be recorded as a StrictMode fault. (AB#5648)
+    #
+    # Listing and expanding are genuinely different parameter sets: the no-argument form
+    # enumerates every visible group but each entry is a summary with NO Children, so it has to
+    # be followed by a per-group expand to get a hierarchy at all.
     if (-not $tenantRootMG) {
         try {
-            $tenantRootMG = Get-AzManagementGroup -Expand -Recurse -ErrorAction SilentlyContinue
+            $allGroups = @(Get-AzManagementGroup -ErrorAction SilentlyContinue |
+                Where-Object { $null -ne $_ -and $_.PSObject.Properties.Name -contains 'Name' -and $_.Name })
+
+            $expanded = @(
+                foreach ($group in $allGroups) {
+                    try { Get-AzManagementGroup -GroupId $group.Name -Expand -Recurse -ErrorAction SilentlyContinue }
+                    catch { Write-Verbose ("ManagementGroups: could not expand '" + $group.Name + "': " + $_.Exception.Message) }
+                }
+            )
+            $expanded = @($expanded | Where-Object { $null -ne $_ })
+
+            # Keep only the roots: every non-root group is already present as a descendant of
+            # one of them, and emitting both would render the same subtree twice.
+            $roots = @($expanded | Where-Object {
+                    -not ($_.PSObject.Properties.Name -contains 'ParentName') -or [string]::IsNullOrEmpty($_.ParentName)
+                })
+
+            $tenantRootMG = if ($roots.Count -gt 0) { $roots } elseif ($expanded.Count -gt 0) { $expanded } else { $null }
         } catch {
             $tenantRootMG = $null
         }

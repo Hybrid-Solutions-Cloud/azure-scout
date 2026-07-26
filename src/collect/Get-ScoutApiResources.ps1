@@ -94,7 +94,17 @@ function Get-ScoutApiResources {
         param([string] $Uri, [string] $Method = 'GET', [string] $FieldName, [string] $SubscriptionName)
         try {
             $response = Invoke-RestMethod -Uri $Uri -Headers $headers -Method $Method
-            return $response.value
+            if ($null -eq $response) { return $null }
+            # An ARM envelope always carries `value`, but a provider that is not registered can
+            # answer with a bare object. v1 read `.value` with StrictMode off, so an absent
+            # property was $null rather than a crash; keep that.
+            if (-not $response.PSObject.Properties['value']) { return $null }
+            $value = $response.value
+            if ($null -eq $value) { return $null }
+            # Comma operator: `return $value` UNROLLS a single-element array to a scalar, which
+            # silently changes the shape of every endpoint that returned exactly one row. The
+            # caller decides what shape it wants; this returns what the wire returned.
+            return , $value
         }
         catch {
             Write-Verbose "Get-ScoutApiResources: '$FieldName' failed for subscription '$SubscriptionName' -- leaving it `$null and continuing: $($_.Exception.Message)"
@@ -108,6 +118,14 @@ function Get-ScoutApiResources {
         $subId   = $subscription.id
         $subName = if ($subscription.PSObject.Properties['name']) { $subscription.name } else { $subId }
         $base    = "https://$managementHost/subscriptions/$subId/providers"
+
+        # Host output, in a src/ library function, deliberately: this loop issues up to seven
+        # sequential REST calls per subscription with rate-limit sleeps between them, so on a
+        # large tenant it is minutes of apparent silence. The legacy function printed this
+        # exact line per subscription and AB#5648 preserves it rather than making the run look
+        # hung. It is the only Write-Host under src/.
+        Write-Host 'Running API Inventory at: ' -NoNewline
+        Write-Host $subName -ForegroundColor Cyan
 
         $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
             -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
@@ -139,6 +157,10 @@ function Get-ScoutApiResources {
                 -Uri "$base/Microsoft.Authorization/policyDefinitions?api-version=2023-04-01"
         }
 
+        # Matches the legacy per-subscription pacing exactly (200ms between calls, 300ms
+        # between subscriptions) -- ARM throttles these control-plane endpoints per tenant.
+        Start-Sleep -Milliseconds 300
+
         [pscustomobject]@{
             Subscription                = $subId
             ResourceHealth              = $resourceHealth
@@ -149,7 +171,6 @@ function Get-ScoutApiResources {
             PolicyDefinitions           = $policyDefinitions
             PolicySetDefinitions        = $policySetDefinitions
         }
-        Start-Sleep -Milliseconds 100
     }
 
     return @($results)

@@ -1,108 +1,60 @@
 <#
 .Synopsis
-Module responsible for retrieving Azure VM quotas.
+Parameter-translation shim: maps the v1 VM-quota contract onto src/collect.
 
 .DESCRIPTION
-This module retrieves Azure VM quotas for specific subscriptions and locations.
+This function used to BE the inventory engine's quota layer. It is now a shim over
+Get-ScoutVmQuotas (src/collect/Get-ScoutVmQuotas.ps1), which is the single implementation.
+AB#5648 retired the duplicate.
+
+Get-AzVMUsage is a per-region, per-subscription ARM call with no Resource Graph table, so it
+cannot be folded into Get-ScoutRawInventory no matter how the raw row set is shaped. Only the
+(subscription, location) pairs that actually contain a VM or VMSS are queried -- the same
+targeted strategy v1 used.
+
+The v1 contract is preserved exactly at this boundary: a single object with
+`type = 'AZSC/VM/Quotas'` and `properties` holding one `Location`/`SubId`/`Subscription`/`Data`
+entry per pair, `Data` filtered to `CurrentValue -ge 1`. Compute/VirtualMachine,
+Compute/VirtualMachineScaleSet and Containers/AKS all match on that literal type string, so it
+is load-bearing.
+
+$Resources is a MIXED array -- Resource Graph rows carry subscriptionId/type, the ARM REST rows
+appended alongside them do not. A bare `$_.subscriptionId` on one of those aborts the pipeline
+under StrictMode, which meant NO quota was collected for ANY subscription rather than just the
+offending one (AB#5633). Get-ScoutVmQuotas keeps that property-existence guard.
+
+Two behaviour differences from the retired implementation, both deliberate:
+  - a Get-AzVMUsage failure for one (subscription, location) pair now warns and skips that pair
+    instead of terminating the whole quota pass;
+  - a VM row with no location no longer produces an empty-string location lookup.
+
+Both are the AB#5633 defect class: one bad row must not cost the caller every other row.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMQuotas.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Extraction/ResourceDetails/Get-AZTIVMQuotas.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
 
 .NOTES
-Version: 3.6.0
-First Release Date: 15th Oct, 2024
-Authors: Claudio Merola
+Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola, 15th Oct 2024.
+The caller's original Az context is restored by Get-ScoutVmQuotas in a finally block -- the
+quota lookup switches context per subscription, and leaving the caller parked in the last one
+was a real defect fixed once already (AB#368).
 #>
 function Get-AZSCVMQuotas {
     Param ($Subscriptions, $Resources)
 
-    # AB#368 - quota lookups are per-location and force a context switch per subscription.
-    # Capture up front and restore in the finally below so the caller is not left parked
-    # in the last subscription of the loop, or in whichever one an error surfaced from.
-    $OriginalContext = Get-AzContext -ErrorAction SilentlyContinue
+    Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Getting VM Quota Details (src/collect, AB#5648)')
 
-    try {
-    $Quotas = Foreach($Sub in $Subscriptions)
-        {
-            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting VM Quota Details: '+$Sub.name)
-            # $Resources is a MIXED array: Resource Graph rows carry subscriptionId/Type, but the
-            # REST API rows appended alongside them (resource health events, managed identities,
-            # advisor scores, reservation recommendations) do not. Under Set-StrictMode -Version
-            # Latest a bare $_.subscriptionId on one of those rows aborts the whole run with
-            # "The property 'subscriptionId' cannot be found on this object" -- and it aborts the
-            # pipeline, so no quota is collected for any subscription. Test for the property
-            # before reading it. (AB#5633)
-            $VMTypes = @('microsoft.compute/virtualmachines', 'microsoft.compute/virtualmachinescalesets')
-            $Locs = @($Resources |
-                Where-Object {
-                    $null -ne $_ -and
-                    $_.PSObject.Properties.Name -contains 'subscriptionId' -and
-                    $_.PSObject.Properties.Name -contains 'Type' -and
-                    $_.subscriptionId -eq $Sub.id -and
-                    $_.Type -in $VMTypes
-                } |
-                Group-Object -Property Location |
-                ForEach-Object { $_.Name })
-            if (![string]::IsNullOrEmpty($Locs))
-                {
-                    Foreach($Loc in $Locs)
-                        {
-                            # $Loc is a plain string here (one location name); bare strings have
-                            # no native .Count and throw under StrictMode — wrap in @().
-                            if(@($Loc).count -eq 1)
-                                {
-                                    Set-AzContext -Subscription $Sub.Id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -Debug:$false
-                                    $Quota = get-azvmusage -location $Loc -Debug:$false
-                                    $Quota = $Quota | Where-Object {$_.CurrentValue -ge 1}
-                                    $tmp = [PSCustomObject]@{
-                                        Location = $Loc
-                                        SubId = $Sub.id
-                                        Subscription = $Sub.name
-                                        Data = $Quota
-                                    }
-                                    $tmp
-                                }
-                            else {
-                                    Set-AzContext -Subscription $Sub.Id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue -InformationAction SilentlyContinue -Debug:$false
-                                    foreach($Loc1 in $Loc)
-                                        {
-                                            $Quota = get-azvmusage -location $Loc1 -Debug:$false
-                                            $Quota = $Quota | Where-Object {$_.CurrentValue -ge 1}
-                                            $tmp = [PSCustomObject]@{
-                                                Location = $Loc1
-                                                SubId = $Sub.id
-                                                Subscription = $Sub.name
-                                                Data = $Quota
-                                            }
-                                            $tmp
-                                        }
-                            }
-                        }
-                }
-        }
-    }
-    finally {
-        # Inline rather than via the shared helper — extraction functions are invoked from
-        # thread-job script blocks where sibling private functions are not dot-sourced.
-        # PSObject.Properties guards keep this safe under Set-StrictMode.
-        $RestoreId = $null
-        if ($OriginalContext -and $OriginalContext.PSObject.Properties.Name -contains 'Subscription' -and $OriginalContext.Subscription) {
-            if ($OriginalContext.Subscription.PSObject.Properties.Name -contains 'Id') {
-                $RestoreId = $OriginalContext.Subscription.Id
-            }
-        }
-        if ($RestoreId) {
-            Set-AzContext -SubscriptionId $RestoreId -ErrorAction SilentlyContinue | Out-Null
+    # v1 iterated $Subscriptions with foreach, so a $null or empty list produced no rows and no
+    # error -- but it still returned the typed envelope, which the collectors filter for.
+    if (-not $Subscriptions) {
+        return [PSCustomObject]@{
+            'type'       = 'AZSC/VM/Quotas'
+            'properties' = @()
         }
     }
 
-    $VMQuotas = [PSCustomObject]@{
-        'type'          = 'AZSC/VM/Quotas'
-        'properties'    = $Quotas
-    }
-
-    return $VMQuotas
+    return Get-ScoutVmQuotas -Subscriptions @($Subscriptions) -Resources $Resources
 }

@@ -1,56 +1,42 @@
 <#
 .Synopsis
-Module responsible for retrieving Azure VM SKU details.
+Parameter-translation shim: maps the v1 VM-SKU contract onto src/collect.
 
 .DESCRIPTION
-This module retrieves details about Azure VM SKUs available in specific locations.
+This function used to BE the inventory engine's VM SKU layer. It is now a shim over
+Get-ScoutVmSkuDetails (src/collect/Get-ScoutVmSkuDetails.ps1), which is the single
+implementation. AB#5648 retired the duplicate.
+
+Get-AzComputeResourceSku is a region-scoped ARM call with no Resource Graph table -- the same
+class of gap Get-ScoutVmQuotas fills. Only the distinct locations that actually contain a VM or
+VMSS are queried.
+
+The v1 contract is preserved exactly at this boundary: a single object with
+`type = 'AZSC/VM/SKU'` and `properties` holding one `Location`/`SKUs` entry per distinct
+location. Compute/VirtualMachine, Compute/VirtualMachineScaleSet and Containers/AKS match on
+that literal type string, so it is load-bearing.
+
+Same mixed-array exposure as Get-AZSCVMQuotas: a bare `$_.TYPE` on an ARM REST row that has no
+TYPE property aborts the run on the first such row (AB#5633). Get-ScoutVmSkuDetails keeps the
+property-existence guard, and the guard on `location` before `-ExpandProperty location`.
+
+One deliberate behaviour difference from the retired implementation: a Get-AzComputeResourceSku
+failure for one location now warns and skips that location instead of terminating the whole SKU
+pass. One bad region must not cost the caller every other region.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMSkuDetails.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
 
 .NOTES
-Version: 3.6.0
-First Release Date: 15th Oct, 2024
-Authors: Claudio Merola, Olli Uronen (Seppohto)
+Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola, Olli Uronen.
 #>
 function Get-AZSCVMSkuDetails {
     Param ($Resources)
 
-    # Same exposure as Get-AZSCVMQuotas: this runs in module scope, where StrictMode is in
-    # force, over a $Resources array that mixes Resource Graph rows with REST API rows that
-    # carry no TYPE property. A bare $_.TYPE aborts the run on the first such row. The ~176
-    # inventory modules use this same filter shape safely because they execute inside fresh
-    # runspaces where StrictMode is not set. (AB#5633)
-    $VMTypes = @('microsoft.compute/virtualmachines', 'microsoft.compute/virtualmachinescalesets')
-    $vm = @($Resources | Where-Object {
-            $null -ne $_ -and
-            $_.PSObject.Properties.Name -contains 'TYPE' -and
-            $_.TYPE -in $VMTypes
-        })
+    Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Getting VM SKU Details (src/collect, AB#5648)')
 
-    # -ExpandProperty throws under StrictMode on a row without the property; filter to rows
-    # that actually carry a location first.
-    $Locations = @($vm |
-        Where-Object { $_.PSObject.Properties.Name -contains 'location' -and $_.location } |
-        Select-Object -ExpandProperty location -Unique)
-
-    $VMskuData = Foreach($location in $Locations)
-        {
-            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting VM SKU Details: '+$location)
-            $tmp = [PSCustomObject]@{
-                Location    = $location
-                SKUs        = Get-AzComputeResourceSku $location -Debug:$false
-            }
-            $tmp
-        }
-
-    $VMSkuDetails = [PSCustomObject]@{
-        'type'          = 'AZSC/VM/SKU'
-        'properties'    = $VMskuData
-    }
-
-    return $VMSkuDetails
+    return Get-ScoutVmSkuDetails -Resources $Resources
 }

@@ -92,16 +92,75 @@ numbers in this document are query counts from a mocked run, not page counts or 
 
 ## Non-ARG data sources
 
-Not Resource Graph, listed for completeness because they are part of the same "how many times do
-we call Azure" question and are the remaining duplication:
+Not Resource Graph. Every one of these is a control-plane or data-plane call with **no Resource
+Graph table at all** — they are not resources, they are point-in-time computed data — so none of
+them can be folded into `Get-ScoutRawInventory` no matter how the raw row set is shaped.
 
-| Source | v1 implementation (live) | `src/collect` port (v2.7.0, not yet wired) |
-|---|---|---|
-| ARM REST (resource health, managed identities, advisor score, reservation recommendations, policy) | `Modules/Private/Extraction/Get-AZTIAPIResources.ps1` | `src/collect/Get-ScoutApiResources.ps1` |
-| VM quotas | `Modules/Private/Extraction/ResourceDetails/Get-AZTIVMQuotas.ps1` | `src/collect/Get-ScoutVmQuotas.ps1` |
-| VM SKU details | `Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1` | `src/collect/Get-ScoutVmSkuDetails.ps1` |
-| Cost Management | `Modules/Private/Extraction/Get-AZTICostInventory.ps1` | `src/collect/Get-ScoutCostInventory.ps1` |
+As of the second half of AB#5648 all four run from `src/collect`. The `Modules/Private` files
+are parameter-translation shims that issue no Azure call of their own.
 
-AB#5648 inverted the Resource Graph half. The four non-ARG sources above still run the v1
-implementation on a live run; their `src/collect` ports remain uncalled. Retiring those four is
-not covered by the round-trip numbers in this document and is not done.
+| Source | Cmdlet / endpoint | Implementation (live) | Shim |
+|---|---|---|---|
+| ARM REST — resource health, managed identities, advisor score, reservation recommendations, policy | `Invoke-RestMethod` over 7 ARM endpoints | `src/collect/Get-ScoutApiResources.ps1` | `Modules/Private/Extraction/Get-AZTIAPIResources.ps1` |
+| VM quotas | `Get-AzVMUsage` | `src/collect/Get-ScoutVmQuotas.ps1` | `.../ResourceDetails/Get-AZTIVMQuotas.ps1` |
+| VM SKU details | `Get-AzComputeResourceSku` | `src/collect/Get-ScoutVmSkuDetails.ps1` | `.../ResourceDetails/Get-AZTIVMSkuDetails.ps1` |
+| Cost Management | `Invoke-AzCostManagementQuery` | `src/collect/Get-ScoutCostInventory.ps1` | `Modules/Private/Extraction/Get-AZTICostInventory.ps1` |
+
+### Call counts per default inventory run
+
+None of these are Resource Graph round-trips, so they do not appear in the table above. They
+are listed here because they are the rest of the answer to "how many times do we call Azure",
+and on a large tenant they dominate it — the ARM REST pull alone is **7 sequential calls per
+subscription** with 200ms of deliberate pacing between them.
+
+| Source | Calls | Scope | Gated by |
+|---|---|---|---|
+| ARM REST | 7 × subscriptions (4 × when `-SkipPolicy`) | per subscription | `-SkipAPIs` |
+| VM quotas | 1 × (subscription, location) pairs that actually contain a VM or VMSS | per subscription **and** region | `-SkipVMDetails` |
+| VM SKU details | 1 × distinct locations that actually contain a VM or VMSS | per region | `-SkipVMDetails` |
+| Cost Management | 1 × subscriptions | per subscription | `-IncludeCosts` (off by default) |
+
+The quota and SKU calls are targeted rather than exhaustive: only regions the tenant actually
+deploys into are queried, which is the v1 behaviour and is preserved.
+
+`tests/Collect.NonArgInversion.Tests.ps1` pins this two ways — an AST assertion that no file
+under `Modules/` calls any of these five cmdlets any more, and an equivalence comparison against
+the retired v1 implementations (reproduced verbatim in that file) over identical stubbed Azure
+responses, compared key by key.
+
+### Deliberate behaviour changes
+
+Three, all in the direction of "one optional dataset failing must not destroy its neighbours",
+which is the AB#5636 defect class:
+
+1. A failed `policyStates/summarize` call no longer discards the two Policy **definition** lists.
+   v1 wrapped all three in one `try`, so a denial on the first — the one most often denied —
+   threw away two lists that were never attempted.
+2. A `Get-AzVMUsage` failure for one (subscription, region) pair skips that pair instead of
+   terminating the whole quota pass. Likewise `Get-AzComputeResourceSku` per region.
+3. A VM row with no location no longer produces an empty-string region lookup.
+
+Two shapes were deliberately **kept** rather than "improved", because a consumer depends on them:
+
+- `CostData` is not wrapped in `@()`. `Get-ScoutCostAnomaly` reads the raw shape with
+  `$item.CostData.PSObject.Properties['Row']`, which is `$null` on an array — wrapping it
+  produced zero anomaly records with no error.
+- The API-resource result elements stay **hashtables** with the v1 key names
+  (`ReservationRecomen`, `PolicyAssign`, `PolicyDef`, `PolicySetDef`), because
+  `Start-AZSCExtractionOrchestration` reads them by string through `Get-AZSCCollectedValue`'s
+  `IDictionary` branch.
+
+### Still standing, and why
+
+| File | Verdict |
+|---|---|
+| `Get-AZTIManagementGroups.ps1` | **Left standing.** It issues one ARG query, only when `-ManagementGroup` is supplied, to expand a management group into its subscriptions. It runs *before* collection to decide the subscription scope, so it cannot be served from a pass that has not happened yet. Folding it into `Get-ScoutRawInventory` would mean two passes, which is the thing this epic is removing. |
+| `Get-AZTISubscriptions.ps1` | **Left standing.** Wraps `Get-AzSubscription`/`Get-AzContext`; no Resource Graph, no duplication. |
+| `Start-AZTIEntraExtraction.ps1` | **Left standing.** Microsoft Graph, not ARM. Different service, different token audience, nothing in `src/collect` covers it. |
+| `Start-AZTIDevOpsExtraction.ps1` | **Left standing.** `dev.azure.com` REST, not ARM. Same reasoning. |
+
+After this work exactly two files under `Modules/` still call `Invoke-RestMethod`:
+`Start-AZTIDevOpsExtraction.ps1` (Azure DevOps) and `Modules/Private/Main/Invoke-AZTIGraphRequest.ps1`
+(Microsoft Graph, which is what the Entra extraction goes through). Both are named individually
+in the AST test's allow-list rather than excluded by directory, so a third one cannot appear
+unnoticed.
