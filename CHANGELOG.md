@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-07-26
+
+Epic **AB#5638**.
+
+### Changed
+
+- **The declarative collector definitions actually run** (AB#5656). v2.9.0 shipped 124 of 176
+  collectors as `.psd1` definitions, but **nothing called the interpreter** — the live pipeline
+  still executed the imperative `.ps1` for every collector, so the conversion delivered nothing to
+  a user.
+
+  `Invoke-ScoutCollector` now routes on the `HasDeclarativeDefinition` / `DefinitionPath` that
+  `Get-ScoutCollector` already reported: definition present → interpreter, absent → `.ps1`. No
+  second discovery mechanism was added.
+
+  **Verified against a live tenant** — the run log now reports:
+
+  ```
+  Collectors declarative : 124
+  Collectors imperative  : 50
+  ```
+
+  Proving this needed a different technique than the conversion did: **a row comparison can never
+  detect a routing regression**, because both paths agree by construction. The proof is by
+  impossibility instead — a fixture collector has a valid definition and a `.ps1` whose entire
+  processing branch is a `throw`, and the run completes with its row present. With the kill switch
+  on, the same fixture fails with that exact message, so the switch cannot pass on a sentinel
+  string alone.
+
+  A full processing pass over an 845-resource estate produced identical output with the switch on
+  and off: **1654 rows either way, zero collector-level deltas, byte-identical ReportCache JSON**.
+
+- **The non-ARG collection half is inverted** (AB#5648, AB#5639). The four functions shipped in
+  v2.7.0 and left dead in v2.8.0 — `Get-ScoutApiResources`, `Get-ScoutVmQuotas`,
+  `Get-ScoutVmSkuDetails`, `Get-ScoutCostInventory` — are now the real path. The v1 ARM REST, VM
+  quota/SKU and Cost Management implementations are retired to shims, proven by AST tests asserting
+  that no file under `Modules/` calls `Invoke-RestMethod`, `Get-AzAccessToken`, `Get-AzVMUsage`,
+  `Get-AzComputeResourceSku` or `Invoke-AzCostManagementQuery` outside a two-file allow-list.
+
+### Added
+
+- **A kill switch: `AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS`** (`1`/`true`/`yes`/`on`) forces every
+  collector down the imperative path. An environment variable rather than a parameter, so it works
+  on an already-installed build with nothing threaded through `Invoke-AzureScout`.
+  `Invoke-ScoutProcessing -ForceImperativeCollectors` is the programmatic form.
+
+  A definition that fails **schema validation** falls back to its `.ps1` with a warning. An
+  **execution** failure does not fall back — it stays contained and reported, as before.
+
+### Fixed
+
+- **Two shape regressions**, both introduced by an `@()` that looked like hardening, caught by the
+  per-dataset equivalence comparison: `CostData` wrapped in an array meant `Get-ScoutCostAnomaly`,
+  which reads the raw shape through `PSObject.Properties`, would have produced **zero records with
+  no error at all**; and returning a collection member unrolled single-element arrays, so every
+  endpoint answering with exactly one row changed shape.
+
+- **`Management/ManagementGroups` no longer fails the run.** Its earlier `try`/`catch` stopped the
+  crash but left the fallback **returning nothing on every run**, so that worksheet was empty for
+  any tenant whose root management-group id is not the tenant id. It now enumerates without
+  switches, expands each group by id, and keeps only roots so subtrees are not rendered twice. Six
+  tests assert on **the calls made**, because not throwing was already true while it produced no
+  rows.
+
+  Note that a tenant still needs **Management Group Reader at the root** — without
+  `Microsoft.Management/register/action` the collector returns zero rows **by design** rather than
+  failing. This was the only collector failing on every live run, and **this release is the first
+  with zero collector failures**.
+
+### Not done — stated rather than implied
+
+**Reporting is not cut over.** `Start-AZSCExcelJob` still executes each collector's `.ps1`
+reporting branch, because it walks the module directory with its own duplicate discovery — so every
+definition's `Export` section is still exercised only by tests. Mixing the two is safe because the
+equivalence suite compares the written workbook **cell by cell**, not because it is assumed.
+
+### Verification
+
+Live-verified: **6:37**, 136 resources, 481 Excel rows, 43 worksheets, 503 security advisories,
+**zero leftover background jobs, zero collector failures**. Suite: **2834 / 0 / 3** plus the
+StrictMode harness at 174/174.
+
 ## [2.9.0] - 2026-07-26
 
 Second wave of the engine rebuild (Epic **AB#5638**).

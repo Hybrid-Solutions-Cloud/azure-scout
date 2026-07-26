@@ -13,7 +13,44 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.9.0 — The Collectors Become Data, and the Module Runs Strict
+## Current Release — v2.10.0 — The Declarative Collectors Actually Run
+
+Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638**.
+
+**v2.9.0 converted 124 of 176 collectors to `.psd1` definitions — but nothing called the
+interpreter.** The live pipeline still executed the imperative `.ps1` for every collector, so the
+conversion delivered nothing to a user. It now routes on the `HasDeclarativeDefinition` /
+`DefinitionPath` that `Get-ScoutCollector` already reported. Verified against a live tenant, the run
+log reports **124 declarative, 50 imperative**.
+
+Proving this needed a different technique than the conversion did: **a row comparison can never
+detect a routing regression**, because both paths agree by construction. The proof is by
+impossibility — a fixture collector has a valid definition and a `.ps1` whose entire processing
+branch is a `throw`, and the run completes with its row present; with the kill switch on, the same
+fixture fails with that exact message. A full pass over an 845-resource estate produced **1654 rows
+either way, zero deltas, and byte-identical ReportCache JSON**.
+
+**Kill switch:** `AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS=1` forces every collector down the
+imperative path — an environment variable, so it works on an already-installed build.
+
+**The non-ARG collection half is inverted.** `Get-ScoutApiResources`, `Get-ScoutVmQuotas`,
+`Get-ScoutVmSkuDetails` and `Get-ScoutCostInventory` — shipped in v2.7.0 and dead since — are now
+the real path, with the v1 ARM REST, quota/SKU and Cost Management implementations retired to shims
+and pinned by AST tests.
+
+**`Management/ManagementGroups` no longer fails the run** — the only collector that failed on every
+live run. **This is the first release with zero collector failures.** A tenant still needs
+Management Group Reader at the root for that sheet to carry rows.
+
+**Not done, stated rather than implied:** reporting is not cut over. `Start-AZSCExcelJob` still runs
+each collector's `.ps1` reporting branch through its own duplicate discovery, so every definition's
+`Export` section is still exercised only by tests.
+
+Live-verified: 6:37, 136 resources, 481 Excel rows, 43 worksheets, zero leftover background jobs.
+
+Full detail: [CHANGELOG.md § 2.10.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2100---2026-07-26).
+
+## Previous Release — v2.9.0 — The Collectors Become Data, and the Module Runs Strict
 
 Released 26 July 2026, published to the PowerShell Gallery. Second wave of the engine rebuild
 (Epic **AB#5638**).
