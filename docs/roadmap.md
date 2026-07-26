@@ -13,7 +13,46 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.10.0 — The Declarative Collectors Actually Run
+## Current Release — v2.11.0 — 138 Collectors Declarative, and the Definitions Are Gated
+
+Released 26 July 2026, published to the PowerShell Gallery. **Epic AB#5638 — the engine rebuild —
+completes with this release.**
+
+**138 of 176 collectors are now declarative**, up from 124. The audit had classified 20
+cross-resource-join collectors as escape-hatch alongside those making live cmdlet calls.
+Re-examining all 48 showed the audit's *reasons* were right but its *inference* was not: **a
+cross-resource join is not the same thing as a live cmdlet call.** Each of those 20 filters the
+already-collected resource set a second time and correlates — data shaping over data the pipeline
+already holds. The only missing capability was somewhere to put statements that run **once**, before
+the row loop. Verified live: the run log reports **138 declarative, 36 imperative**.
+
+**Definitions are now gated in CI** by a validator that runs before the test suite, so a violation
+annotates the offending `.psd1` in the pull-request diff rather than surfacing as an empty worksheet
+at runtime. It includes a **drift check** — regenerating a definition from its source collector must
+reproduce it byte for byte. That check exists because a definition **had already drifted for a
+release while its equivalence test stayed green**; nothing in the repository could have caught it.
+The gate is proven to fail rather than assumed to: 13 tests each write one deliberately broken
+definition and assert the message names the fault.
+
+**The honest limit, and the weakest part of the release:** all 14 newly converted collectors agree
+with their imperative counterpart row for row, but the generated estate only makes *the join itself*
+change output for **5** of them. For the other 9, partners are present and both paths agree while
+both take the not-found branch. Each of the 9 is pinned by name, and a test asserts output changes
+when partners are removed — failing on a stale entry too, so the list can only shorten.
+
+**Still imperative: 38**, each with a specific reason — live REST or `Get-Az*` calls, conditional
+row shape or loop depth, a synthesised row set, or an unimplemented contract. No second escape hatch
+was invented; not having a definition remains it.
+
+**Not done:** reporting is still not cut over — the Excel job runs each collector's own reporting
+branch through its own duplicate discovery.
+
+Live-verified: 5:37, 136 resources, 481 Excel rows, zero leftover background jobs, zero collector
+failures.
+
+Full detail: [CHANGELOG.md § 2.11.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2110---2026-07-26).
+
+## Previous Release — v2.10.0 — The Declarative Collectors Actually Run
 
 Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638**.
 

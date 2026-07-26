@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-07-26
+
+Epic **AB#5638** completes.
+
+### Changed
+
+- **138 of 176 collectors are now declarative** (AB#5659), up from 124.
+
+  The audit had classified 20 **cross-resource-join** collectors as escape-hatch, alongside those
+  making live cmdlet calls. Re-examining all 48 showed the audit's *reasons* were accurate but its
+  *inference* was not: **a cross-resource join is not the same thing as a live cmdlet call.** Every
+  one of those 20 filters the already-collected resource set a second time for another type and
+  correlates against the result — data shaping over data the pipeline already holds. The only
+  missing capability was somewhere to put statements that run **once**, before the row loop.
+
+  Two schema keys were added: **`SetupPreamble`** (the contiguous verbatim source above the row
+  loop) and **`SetupVariables`** (the names it exports). Names are **declared, not harvested** —
+  harvesting sweeps up automatic variables, and a preamble that stopped assigning a variable would
+  otherwise silently stop binding it. The interpreter throws on any declared name it cannot
+  resolve, and the loader rejects either key without the other.
+
+  Verified live: the run log reports **138 declarative, 36 imperative**.
+
+### Added
+
+- **Collector definitions are gated in CI** (AB#5661). A validator runs as its own step **before**
+  the test suite, so a violation annotates the offending `.psd1` in the pull-request diff rather
+  than surfacing as an empty worksheet at runtime. Seven checks:
+
+  1. The definition parses and satisfies the schema.
+  2. The generated row script parses — the `if`/`else`-statement-as-field class that was silently
+     unreachable before.
+  3. Every preamble parses on its own.
+  4. Every exported column resolves to a declared field. The five known blank columns are
+     allow-listed **by name with a reason**, so a sixth fails the build **and a fixed one also
+     fails** — the list can only shorten.
+  5. Every declared `SetupVariable` is statically assigned by its preamble.
+  6. `SourceCollector` exists.
+  7. **Drift** — regenerating the definition from its source collector must reproduce the file byte
+     for byte.
+
+  Check 7 exists because a definition **had already drifted for a release while its equivalence
+  test stayed green** — with StrictMode off, the stale and current property accessors agreed on the
+  fixture. Nothing in the repository could have caught it.
+
+  The gate is **proven to fail**, not assumed to: 13 tests each write one deliberately broken
+  definition and assert both a non-zero exit **and** that the message names the fault — after first
+  asserting a correct definition passes, so the failure assertions are not vacuous.
+
+### Fixed
+
+- **The conversion tool could never have converted `Web/APPServicePlan` correctly** — it treated
+  *every* filtered assignment as a row source, so that collector's **secondary** filter would have
+  been lifted onto the row set itself, **silently dropping every app service plan**.
+- A definition that had **drifted** since the StrictMode hardening was regenerated.
+- The fixture generator was **not reproducible between processes** — unordered hashtable
+  enumeration made every regeneration produce a spurious difference.
+- The fixture writer emitted **case-variant duplicate JSON keys**.
+- Shape resolution had **no pipeline pass-through**, so a join partner was synthesised carrying
+  only the properties its own predicate mentioned — leaving every joined column `$null` on **both**
+  paths, and therefore passing equivalence.
+
+### Honest limit — the weakest part of this release
+
+All 14 newly converted collectors agree with their imperative counterpart row for row. But the
+generated estate only makes **the join itself** change the output for **5** of them. For the other
+**9**, the join partners are present and both paths agree *while both take the not-found branch*.
+
+That is a fixture limitation, not a conversion defect. Each of the 9 is pinned by name with the
+specific predicate that defeats the fixture generator. A test removes the partners from the estate
+and asserts the output changes, failing both on an unlisted collector **and** on a stale entry — so
+that list can only shorten.
+
+### Still imperative — 38, with specific reasons
+
+Those calling `Invoke-AzRestMethod` inside the row loop; those making live `Get-Az*` calls with no
+resource-type filter to drive the interpreter; three whose row *shape* or *loop depth* is
+conditional; one whose row loop iterates a **synthesised** set with no type to declare; and two
+written against a registration contract that only ever existed as a test mock.
+
+**No second escape hatch was invented — not having a definition remains it.**
+
+### Not done
+
+**Reporting is still not cut over.** `Start-AZSCExcelJob` executes each collector's own reporting
+branch through its own duplicate discovery, so every definition's `Export` section is exercised only
+by tests.
+
+### Verification
+
+Live-verified: **5:37**, 136 resources, 481 Excel rows, 514 security advisories, **zero leftover
+background jobs, zero collector failures**. Suite: **2937 / 0 / 3**.
+
 ## [2.10.0] - 2026-07-26
 
 Epic **AB#5638**.
