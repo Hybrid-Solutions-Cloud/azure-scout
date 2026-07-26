@@ -9,7 +9,11 @@
         'microsoft.dbforpostgresql/servers'
     )
 
+    ResourceTypeMatching = 'Grouped'
+
     AdditionalFilter = $null
+
+    FilterPreamble = ''
 
     RowLoopVariable = '1'
 
@@ -48,6 +52,12 @@ $ResUCount = 1
 '@
 
     AdditionalRowLoops = @()
+
+    TagLoop = @{
+        Variable = 'Tag'
+        Source = '$Tags'
+        Preamble = ''
+    }
 
     Fields = @(
         @{
