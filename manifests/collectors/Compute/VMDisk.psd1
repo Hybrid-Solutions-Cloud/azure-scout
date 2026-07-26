@@ -19,11 +19,18 @@
 
     Preamble = @'
 $ResUCount = 1
+                # AB#5671: an EMPTY $sub1 (subscription outside the requested scope) is not $null,
+                # so `.Name` on it throws; and `timeCreated` is absent on older disk API versions,
+                # where [datetime]$null then produced a bogus 0001-01-01 anyway.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
-                $timecreated = $data.timeCreated
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'timeCreated'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
                 $Retired = Foreach ($Retirement in $Retirements)
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
@@ -52,9 +59,22 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $SKU = $1.SKU
-                $Hibernation = if (![string]::IsNullOrEmpty($data.supportsHibernation)) { $data.supportsHibernation }else { $false }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $SKU = Get-AZSCSafeProperty -InputObject $1 -Path 'SKU'
+                # Every `properties` field below is OPTIONAL in the disk API response: an unattached
+                # standard disk omits maxShares, tier, dataAccessAuthMode, networkAccessPolicy and
+                # osType outright, and `MANAGEDBY` is absent on any disk not currently attached --
+                # where the historic `.split('/')[8]` also indexed past the end of a short id.
+                $Hibernation = $data | Get-AZSCSafeProperty -Path 'supportsHibernation'
+                $Hibernation = if (![string]::IsNullOrEmpty($Hibernation)) { $Hibernation }else { $false }
+                $ManagedBySegments = @()
+                $ManagedBy = Get-AZSCSafeProperty -InputObject $1 -Path 'MANAGEDBY'
+                if (![string]::IsNullOrEmpty($ManagedBy)) { $ManagedBySegments = @(([string]$ManagedBy).split('/')) }
+                $AssociatedResource = if ($ManagedBySegments.Count -gt 8) { $ManagedBySegments[8] } else { $null }
+                $RowTags = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                # '0' was a sentinel to run the loop once for an untagged resource; `'0'.Name`
+                # throws under StrictMode, and an empty tag object emits the identical row.
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
 '@
 
     AdditionalRowLoops = @()
@@ -72,7 +92,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -92,11 +112,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Disk State'
-            Expression = '$data.diskState'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''diskState'')'
         }
         @{
             Name = 'Associated Resource'
-            Expression = '$1.MANAGEDBY.split(''/'')[8]'
+            Expression = '$AssociatedResource'
         }
         @{
             Name = 'Location'
@@ -104,35 +124,35 @@ $ResUCount = 1
         }
         @{
             Name = 'Zone'
-            Expression = '[string]$1.ZONES'
+            Expression = '[string](Get-AZSCSafeProperty -InputObject $1 -Path ''ZONES'')'
         }
         @{
             Name = 'SKU'
-            Expression = '$SKU.Name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $SKU -Path ''Name'')'
         }
         @{
             Name = 'Disk Size'
-            Expression = '$data.diskSizeGB'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''diskSizeGB'')'
         }
         @{
             Name = 'Performance Tier'
-            Expression = '$data.tier'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''tier'')'
         }
         @{
             Name = 'Disk IOPS Read / Write'
-            Expression = '$data.diskIOPSReadWrite'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''diskIOPSReadWrite'')'
         }
         @{
             Name = 'Disk MBps Read / Write'
-            Expression = '$data.diskMBpsReadWrite'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''diskMBpsReadWrite'')'
         }
         @{
             Name = 'Public Network Access'
-            Expression = '$data.publicNetworkAccess'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''publicNetworkAccess'')'
         }
         @{
             Name = 'Connection Type'
-            Expression = '$data.networkAccessPolicy'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''networkAccessPolicy'')'
         }
         @{
             Name = 'Hibernation Supported'
@@ -140,23 +160,23 @@ $ResUCount = 1
         }
         @{
             Name = 'Encryption'
-            Expression = '$data.encryption.type'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''encryption.type'')'
         }
         @{
             Name = 'OS Type'
-            Expression = '$data.osType'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''osType'')'
         }
         @{
             Name = 'Max Shares'
-            Expression = '$data.maxShares'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''maxShares'')'
         }
         @{
             Name = 'Data Access Auth Mode'
-            Expression = '$data.dataAccessAuthMode'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''dataAccessAuthMode'')'
         }
         @{
             Name = 'HyperV Generation'
-            Expression = '$data.hyperVGeneration'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''hyperVGeneration'')'
         }
         @{
             Name = 'Created Time'

@@ -19,7 +19,15 @@
 
     Preamble = @'
 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -46,11 +54,20 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $timecreated = $data.CreationDate
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
-                $Sampling = if([string]::IsNullOrEmpty($data.SamplingPercentage)){'Disabled'}else{$data.SamplingPercentage}
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # The CreationDate field is absent (not present-and-null) on older API versions and some
+                # resource kinds, so the raw read throws under StrictMode -- and [datetime] of a null
+                # produced a bogus 0001-01-01 before that (AB#5671).
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'CreationDate'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
+                $Sampling = if([string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'SamplingPercentage' -Enumerate))){'Disabled'}else{(Get-AZSCSafeProperty -InputObject $data -Path 'SamplingPercentage' -Enumerate)}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 '@
 
     AdditionalRowLoops = @()
@@ -68,7 +85,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -92,27 +109,27 @@ $ResUCount = 1
         }
         @{
             Name = 'Application Type'
-            Expression = '$data.Application_Type'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''Application_Type'' -Enumerate)'
         }
         @{
             Name = 'Retirement Date'
-            Expression = '[string]$RetDate'
+            Expression = '[string]$null'
         }
         @{
             Name = 'Retirement Feature'
-            Expression = '$RetFeature'
+            Expression = '$null'
         }
         @{
             Name = 'Flow Type'
-            Expression = '$data.Flow_Type'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''Flow_Type'' -Enumerate)'
         }
         @{
             Name = 'Version'
-            Expression = '$data.Ver'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''Ver'' -Enumerate)'
         }
         @{
             Name = 'Request Source'
-            Expression = '$data.Request_Source'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''Request_Source'' -Enumerate)'
         }
         @{
             Name = 'Data Sampling %'
@@ -120,19 +137,19 @@ $ResUCount = 1
         }
         @{
             Name = 'Retention In Days'
-            Expression = '$data.RetentionInDays'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''RetentionInDays'' -Enumerate)'
         }
         @{
             Name = 'Ingestion Mode'
-            Expression = '$data.IngestionMode'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''IngestionMode'' -Enumerate)'
         }
         @{
             Name = 'Public Access For Ingestion'
-            Expression = '$data.publicNetworkAccessForIngestion'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''publicNetworkAccessForIngestion'' -Enumerate)'
         }
         @{
             Name = 'Public Access For Query'
-            Expression = '$data.publicNetworkAccessForQuery'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''publicNetworkAccessForQuery'' -Enumerate)'
         }
         @{
             Name = 'Created Time'

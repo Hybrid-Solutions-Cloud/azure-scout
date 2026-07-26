@@ -19,7 +19,15 @@
 
     Preamble = @'
 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
@@ -47,10 +55,17 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $DelegatedVNET = if(![string]::IsNullOrEmpty($data.network.delegatedsubnetresourceid)){$data.network.delegatedsubnetresourceid.split('/')[8]}else{$null}
-                $DelegatedSubnet = if(![string]::IsNullOrEmpty($data.network.delegatedsubnetresourceid)){$data.network.delegatedsubnetresourceid.split('/')[10]}else{$null}
-                $PrivateDNSZone = if(![string]::IsNullOrEmpty($data.network.privatednszonearmresourceid)){$data.network.privatednszonearmresourceid.split('/')[8]}else{$null}
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $DelegatedVNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate) -Index 8)}else{$null}
+                $DelegatedSubnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.delegatedsubnetresourceid' -Enumerate) -Index 10)}else{$null}
+                $PrivateDNSZone = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'network.privatednszonearmresourceid' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'network.privatednszonearmresourceid' -Enumerate) -Index 8)}else{$null}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 '@
 
     AdditionalRowLoops = @()
@@ -68,7 +83,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -92,67 +107,67 @@ $ResUCount = 1
         }
         @{
             Name = 'FQDN'
-            Expression = '$data.fullyqualifieddomainname'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''fullyqualifieddomainname'' -Enumerate)'
         }
         @{
             Name = 'ADMIN Login'
-            Expression = '$data.administratorLogin'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''administratorLogin'' -Enumerate)'
         }
         @{
             Name = 'Version'
-            Expression = '[string]($data.version+''.''+$data.minorversion)'
+            Expression = '[string]((Get-AZSCSafeProperty -InputObject $data -Path ''version'' -Enumerate)+''.''+(Get-AZSCSafeProperty -InputObject $data -Path ''minorversion'' -Enumerate))'
         }
         @{
             Name = 'AD Authentication'
-            Expression = '$data.authconfig.activedirectoryauth'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''authconfig.activedirectoryauth'' -Enumerate)'
         }
         @{
             Name = 'Password Authentication'
-            Expression = '$data.authconfig.passwordauth'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''authconfig.passwordauth'' -Enumerate)'
         }
         @{
             Name = 'Computer Tier'
-            Expression = '$sku.tier'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sku -Path ''tier'' -Enumerate)'
         }
         @{
             Name = 'Computer Size'
-            Expression = '$sku.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sku -Path ''name'' -Enumerate)'
         }
         @{
             Name = 'Storage Size (GB)'
-            Expression = '$data.storage.storagesizegb'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''storage.storagesizegb'' -Enumerate)'
         }
         @{
             Name = 'Availability Zone'
-            Expression = '$data.availabilityzone'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''availabilityzone'' -Enumerate)'
         }
         @{
             Name = 'High Availability'
-            Expression = '$data.highavailability.state'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''highavailability.state'' -Enumerate)'
         }
         @{
             Name = 'Data Encryption'
-            Expression = '$data.dataencryption.type'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''dataencryption.type'' -Enumerate)'
         }
         @{
             Name = 'Backup Retention (Days)'
-            Expression = '$data.backup.backupretentiondays'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''backup.backupretentiondays'' -Enumerate)'
         }
         @{
             Name = 'Geo-Redundant Backup'
-            Expression = '$data.backup.geoRedundantBackup'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''backup.geoRedundantBackup'' -Enumerate)'
         }
         @{
             Name = 'Replication Role'
-            Expression = '$data.replicationRole'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''replicationRole'' -Enumerate)'
         }
         @{
             Name = 'Replication Capacity'
-            Expression = '$data.replicaCapacity'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''replicaCapacity'' -Enumerate)'
         }
         @{
             Name = 'Public Network Access'
-            Expression = '$data.network.publicnetworkaccess'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''network.publicnetworkaccess'' -Enumerate)'
         }
         @{
             Name = 'Delegated VNET'

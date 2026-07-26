@@ -19,12 +19,22 @@
 
     Preamble = @'
 $ResUCount = 1
+                # An EMPTY $sub1 is not $null -- the match is empty for any resource whose subscription
+                # is outside the requested scope -- and reading .Name off an empty collection throws
+                # under StrictMode (AB#5671). Resolved once here, as VirtualMachine.ps1 already does.
                 $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
-                $timecreated = $data.createdAt
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                # The createdAt field is absent (not present-and-null) on older API versions and some
+                # resource kinds, so the raw read throws under StrictMode -- and [datetime] of a null
+                # produced a bogus 0001-01-01 before that (AB#5671).
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'createdAt'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {
@@ -50,7 +60,14 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # AB#5671: an untagged resource's Resource Graph row OMITS the tags property rather
+                # than carrying an empty object, so the raw read throws under StrictMode -- and so
+                # does psobject.properties on a $null. The historic '0' sentinel existed only to make
+                # the tag loop below run ONCE for an untagged resource, but '0'.Name throws too; an
+                # empty tag object runs it once AND emits the identical [string]-cast empty Name/Value.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if (![string]::IsNullOrEmpty($TagProps)) { $TagProps } else { [pscustomobject]@{ Name = $null; Value = $null } }
 '@
 
     AdditionalRowLoops = @()
@@ -68,7 +85,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -84,7 +101,7 @@ $ResUCount = 1
         }
         @{
             Name = 'SKU'
-            Expression = '$sku.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sku -Path ''name'' -Enumerate)'
         }
         @{
             Name = 'Retiring Feature'
@@ -96,19 +113,19 @@ $ResUCount = 1
         }
         @{
             Name = 'Status'
-            Expression = '$data.status'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''status'' -Enumerate)'
         }
         @{
             Name = 'Geo-Replication'
-            Expression = '$data.zoneRedundant'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''zoneRedundant'' -Enumerate)'
         }
         @{
             Name = 'Throughput Units'
-            Expression = '$1.sku.capacity'
+            Expression = '(Get-AZSCSafeProperty -InputObject $1 -Path ''sku.capacity'' -Enumerate)'
         }
         @{
             Name = 'Endpoint'
-            Expression = '$data.serviceBusEndpoint'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''serviceBusEndpoint'' -Enumerate)'
         }
         @{
             Name = 'Created Time'

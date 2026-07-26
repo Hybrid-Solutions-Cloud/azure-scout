@@ -19,7 +19,14 @@
 
     Preamble = @'
 $ResUCount = 1
+                # An EMPTY $sub1 -- a resource whose subscription is outside the requested scope --
+                # is not $null, and `.Name` on it throws under StrictMode.
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
@@ -46,22 +53,33 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $ingress = if(![string]::IsNullOrEmpty($data.configuration.ingress)){$true}else{$false}
-                $dapr = if(![string]::IsNullOrEmpty($data.configuration.dapr)){$true}else{$false}
-                $secrets = if(![string]::IsNullOrEmpty($data.configuration.secrets)){@($data.configuration.secrets).count}else{0}
-                $Env = $data.environmentId.split('/')[8]
+                # AB#5671. `ingress` is ABSENT on an internal-only container app (which is the
+                # whole point of an internal app), `dapr` and `secrets` are absent unless
+                # configured, and every read hanging off `ingress` -- targetPort, external,
+                # allowInsecure, transport -- therefore threw on the first such app.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                # The historic '0' sentinel only made this loop run once for an untagged resource;
+                # `'0'.Name` throws under StrictMode, an empty tag object emits the identical row.
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
+                $IngressConfig = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.ingress'
+                $DaprConfig    = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.dapr'
+                $SecretsConfig = Get-AZSCSafeProperty -InputObject $data -Path 'configuration.secrets'
+                $ingress = if(![string]::IsNullOrEmpty($IngressConfig)){$true}else{$false}
+                $dapr = if(![string]::IsNullOrEmpty($DaprConfig)){$true}else{$false}
+                $secrets = if(![string]::IsNullOrEmpty($SecretsConfig)){@($SecretsConfig).count}else{0}
+                $Env = Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'environmentId') -Index 8
 '@
 
     AdditionalRowLoops = @(
         @{
             Variable = '2'
-            Source = '$data.template'
+            Source = '(Get-AZSCSafeProperty -InputObject $data -Path ''template'')'
             Preamble = ''
         }
         @{
             Variable = '3'
-            Source = '$2.containers'
+            Source = '(Get-AZSCSafeProperty -InputObject $2 -Path ''containers'')'
             Preamble = ''
         }
     )
@@ -79,7 +97,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -103,7 +121,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Running Status'
-            Expression = '$data.runningStatus'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''runningStatus'')'
         }
         @{
             Name = 'Container App Environment'
@@ -111,7 +129,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Workload Profile'
-            Expression = '$data.workloadProfileName'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''workloadProfileName'')'
         }
         @{
             Name = 'Ingress'
@@ -119,19 +137,19 @@ $ResUCount = 1
         }
         @{
             Name = 'Ingress Port'
-            Expression = '$data.configuration.ingress.targetPort'
+            Expression = '(Get-AZSCSafeProperty -InputObject $IngressConfig -Path ''targetPort'')'
         }
         @{
             Name = 'External Ingress'
-            Expression = '$data.configuration.ingress.external'
+            Expression = '(Get-AZSCSafeProperty -InputObject $IngressConfig -Path ''external'')'
         }
         @{
             Name = 'Insecure Connections'
-            Expression = '$data.configuration.ingress.allowInsecure'
+            Expression = '(Get-AZSCSafeProperty -InputObject $IngressConfig -Path ''allowInsecure'')'
         }
         @{
             Name = 'Ingress Transport'
-            Expression = '$data.configuration.ingress.transport'
+            Expression = '(Get-AZSCSafeProperty -InputObject $IngressConfig -Path ''transport'')'
         }
         @{
             Name = 'Dapr'
@@ -143,23 +161,23 @@ $ResUCount = 1
         }
         @{
             Name = 'Container'
-            Expression = '$3.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $3 -Path ''name'')'
         }
         @{
             Name = 'CPU Cores'
-            Expression = '$3.resources.cpu'
+            Expression = '(Get-AZSCSafeProperty -InputObject $3 -Path ''resources.cpu'')'
         }
         @{
             Name = 'Memory Size (Gi)'
-            Expression = '$3.resources.memory'
+            Expression = '(Get-AZSCSafeProperty -InputObject $3 -Path ''resources.memory'')'
         }
         @{
             Name = 'Ephemeral Storage (Gi)'
-            Expression = '$3.resources.ephemeralStorage'
+            Expression = '(Get-AZSCSafeProperty -InputObject $3 -Path ''resources.ephemeralStorage'')'
         }
         @{
             Name = 'Container Image'
-            Expression = '$3.image'
+            Expression = '(Get-AZSCSafeProperty -InputObject $3 -Path ''image'')'
         }
         @{
             Name = 'Resource U'

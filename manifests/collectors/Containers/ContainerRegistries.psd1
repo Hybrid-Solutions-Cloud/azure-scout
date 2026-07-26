@@ -19,11 +19,18 @@
 
     Preamble = @'
 $ResUCount = 1
+                # An EMPTY $sub1 -- subscription outside the requested scope -- is not $null, so
+                # `.Name` on it throws; and `creationDate` is absent on older registry API
+                # versions, where [datetime]$null then yielded a bogus 0001-01-01 (AB#5671).
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
-                $timecreated = $data.creationDate
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                $timecreated = Get-AZSCSafeProperty -InputObject $data -Path 'creationDate'
+                $timecreated = if ($timecreated) { ([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm") } else { '' }
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {
@@ -49,7 +56,12 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # An untagged resource's row OMITS `tags`; the historic '0' sentinel only made this
+                # loop run once for that case, and `'0'.Name` throws under StrictMode. An empty tag
+                # object does the same job and emits the identical row.
+                $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
+                $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
+                $Tags = if(![string]::IsNullOrEmpty($TagProps)){$TagProps}else{[pscustomobject]@{ Name = $null; Value = $null }}
 '@
 
     AdditionalRowLoops = @()
@@ -67,7 +79,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '$SubscriptionName'
         }
         @{
             Name = 'Resource Group'
@@ -83,7 +95,7 @@ $ResUCount = 1
         }
         @{
             Name = 'SKU'
-            Expression = '$1.sku.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $1 -Path ''sku.name'')'
         }
         @{
             Name = 'Retiring Feature'
@@ -95,31 +107,31 @@ $ResUCount = 1
         }
         @{
             Name = 'Anonymous Pull Enabled'
-            Expression = '$data.anonymouspullenabled'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''anonymouspullenabled'')'
         }
         @{
             Name = 'Encryption'
-            Expression = '$data.encryption.status'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''encryption.status'')'
         }
         @{
             Name = 'Public Network Access'
-            Expression = '$data.publicnetworkaccess'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''publicnetworkaccess'')'
         }
         @{
             Name = 'Zone Redundancy'
-            Expression = '$data.zoneredundancy'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''zoneredundancy'')'
         }
         @{
             Name = 'Private Link'
-            Expression = 'if($data.privateendpointconnections){''True''}else{''False''}'
+            Expression = 'if(Get-AZSCSafeProperty -InputObject $data -Path ''privateendpointconnections''){''True''}else{''False''}'
         }
         @{
             Name = 'Soft Delete Policy'
-            Expression = '$data.policies.softdeletepolicy.status'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''policies.softdeletepolicy.status'')'
         }
         @{
             Name = 'Trust Policy'
-            Expression = '$data.policies.trustpolicy.status'
+            Expression = '(Get-AZSCSafeProperty -InputObject $data -Path ''policies.trustpolicy.status'')'
         }
         @{
             Name = 'Created Time'
@@ -131,7 +143,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Total'
-            Expression = '$Total'
+            Expression = '$null'
         }
         @{
             Name = 'Tag Name'

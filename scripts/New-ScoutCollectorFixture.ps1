@@ -145,6 +145,126 @@ $script:CollectionMembers = @('count', 'length')
 # than inventing a `psobject` property.
 $script:ReflectionMembers = @('psobject', 'pstypenames', 'keys', 'values', 'getenumerator', 'gettype')
 
+function Get-CommandArgument {
+    <# The value bound to one named parameter of a CommandAst, or the Nth positional argument. #>
+    param(
+        [System.Management.Automation.Language.CommandAst]$Command,
+        [string]$ParameterName,
+        [int]$Position
+    )
+
+    $Elements  = @($Command.CommandElements)
+    $Positional = [System.Collections.Generic.List[object]]::new()
+
+    for ($i = 1; $i -lt $Elements.Count; $i++) {
+        $Element = $Elements[$i]
+        if ($Element -is [System.Management.Automation.Language.CommandParameterAst]) {
+            if ($Element.ParameterName -ine $ParameterName) {
+                # A switch takes no argument, so the token after it is positional, not its value.
+                # Only -InputObject/-Path/-Id/-Index/-Name carry one here; -Enumerate does not.
+                if ($Element.ParameterName -imatch '^(InputObject|Path|Id|Index|Name)$' -and
+                    $null -eq $Element.Argument -and $i + 1 -lt $Elements.Count) { $i++ }
+                continue
+            }
+            if ($null -ne $Element.Argument) { return $Element.Argument }
+            if ($i + 1 -lt $Elements.Count) { return $Elements[$i + 1] }
+            return $null
+        }
+        [void]$Positional.Add($Element)
+    }
+
+    if ($PSBoundParameters.ContainsKey('Position') -and $Position -lt $Positional.Count) {
+        return $Positional[$Position]
+    }
+    return $null
+}
+
+$script:ShapeAccessorCommands = @('get-azscsafeproperty', 'get-azscidsegment', 'get-azticollectedvalue')
+
+function Test-ShapeAccessorCommand {
+    <# True when this pipeline element is one of the StrictMode-safe property accessors. #>
+    param([System.Management.Automation.Language.Ast]$Node)
+    if ($Node -isnot [System.Management.Automation.Language.CommandAst]) { return $false }
+    $Name = $Node.GetCommandName()
+    if (-not $Name) { return $false }
+    return $script:ShapeAccessorCommands -contains $Name.ToLowerInvariant()
+}
+
+function Resolve-ShapeAccessorPath {
+    <#
+        The StrictMode-safe accessors (AB#5671) hide a property path from the member walk: after
+        the conversion, `$data.networkacls.defaultaction` reads
+
+            Get-AZSCSafeProperty -InputObject $data -Path 'networkacls.defaultaction' -Enumerate
+
+        and every node in that path is a STRING, not a MemberExpressionAst. Without this the walk
+        learns nothing from those expressions, the fixture leaves the properties absent, and the
+        equivalence proof goes vacuous in the worst possible way: BOTH paths read an absent
+        property, BOTH get $null, and the rows match while proving nothing about the field.
+
+        Returns @{ Handled; Node } rather than just a node, so the caller can tell "this was an
+        accessor whose subject did not resolve" from "this was not an accessor at all".
+    #>
+    param(
+        [System.Management.Automation.Language.Ast]$Command,
+        [System.Management.Automation.Language.Ast]$Subject,
+        [hashtable]$Aliases
+    )
+
+    $Miss = @{ Handled = $false; Node = $null }
+
+    if ($Command -is [System.Management.Automation.Language.CommandExpressionAst]) { return $Miss }
+    if ($Command -isnot [System.Management.Automation.Language.CommandAst]) { return $Miss }
+
+    $Name = $Command.GetCommandName()
+    if (-not $Name) { return $Miss }
+
+    switch ($Name.ToLowerInvariant()) {
+        'get-azscsafeproperty' {
+            $Target = if ($Subject) { $Subject } else { Get-CommandArgument -Command $Command -ParameterName 'InputObject' -Position 0 }
+            $PathArg = Get-CommandArgument -Command $Command -ParameterName 'Path' -Position $(if ($Subject) { 0 } else { 1 })
+            if ($PathArg -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) { return @{ Handled = $true; Node = $null } }
+
+            $Node = Resolve-ShapePath -Node $Target -Aliases $Aliases
+            if (-not $Node) { return @{ Handled = $true; Node = $null } }
+
+            foreach ($Segment in ($PathArg.Value -split '\.')) {
+                if ([string]::IsNullOrWhiteSpace($Segment)) { continue }
+                if ($script:ReflectionMembers -contains $Segment.ToLowerInvariant()) { return @{ Handled = $true; Node = $null } }
+                if ($script:CollectionMembers -contains $Segment.ToLowerInvariant()) {
+                    [void]$Node.Usages.Add('array'); $Node.IsArray = $true
+                    return @{ Handled = $true; Node = $null }
+                }
+                $Node = Get-ShapeChild -Node $Node -Name $Segment
+            }
+
+            # -Enumerate is deliberately ignored. It governs how INTERMEDIATE segments behave when
+            # one of them is a collection, and the converter emits it on nearly every call whether
+            # the chain crosses an array or not -- so it says nothing about the shape of the leaf.
+            # Array-ness is still learned the same way it always was, from `@(...)`, `.count`, and
+            # foreach over the path.
+            return @{ Handled = $true; Node = $Node }
+        }
+        'get-azscidsegment' {
+            # Replaces `$x.split('/')[8]`, so the subject must be an ARM path, not an opaque string.
+            $Target = if ($Subject) { $Subject } else { Get-CommandArgument -Command $Command -ParameterName 'Id' -Position 0 }
+            $Node = Resolve-ShapePath -Node $Target -Aliases $Aliases
+            if ($Node) { [void]$Node.Usages.Add('method:split') }
+            return @{ Handled = $true; Node = $null }
+        }
+        'get-azticollectedvalue' {
+            $Target = Get-CommandArgument -Command $Command -ParameterName 'InputObject' -Position 0
+            $NameArg = Get-CommandArgument -Command $Command -ParameterName 'Name' -Position 1
+            if ($NameArg -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) { return @{ Handled = $true; Node = $null } }
+            $Node = Resolve-ShapePath -Node $Target -Aliases $Aliases
+            if (-not $Node) { return @{ Handled = $true; Node = $null } }
+            return @{ Handled = $true; Node = (Get-ShapeChild -Node $Node -Name $NameArg.Value) }
+        }
+    }
+
+    return $Miss
+}
+
 function Resolve-ShapePath {
     <#
         Map one AST expression node onto a shape node, or $null when it is not a property path
@@ -163,6 +283,15 @@ function Resolve-ShapePath {
     }
     if ($Node -is [System.Management.Automation.Language.PipelineAst] -and $Node.PipelineElements.Count -eq 1) {
         return Resolve-ShapePath -Node $Node.PipelineElements[0] -Aliases $Aliases
+    }
+    if ($Node -is [System.Management.Automation.Language.PipelineAst] -and $Node.PipelineElements.Count -eq 2) {
+        # `$data | Get-AZSCSafeProperty -Path 'x'` -- the accessor's subject arrives by pipeline
+        # rather than by -InputObject, so the two-element pipeline IS the property path. Handled
+        # here and not in Add-ShapeUsageFromPipelines, which binds $_ and would learn nothing:
+        # the accessor names its property in a string, not as a member of $_.
+        $Accessor = Resolve-ShapeAccessorPath -Command $Node.PipelineElements[1] `
+            -Subject $Node.PipelineElements[0] -Aliases $Aliases
+        if ($Accessor.Handled) { return $Accessor.Node }
     }
     if ($Node -is [System.Management.Automation.Language.CommandExpressionAst]) {
         return Resolve-ShapePath -Node $Node.Expression -Aliases $Aliases
@@ -219,6 +348,12 @@ function Resolve-ShapePath {
             return $null
         }
         return Get-ShapeChild -Node $Target -Name $MemberName
+    }
+
+    if ($Node -is [System.Management.Automation.Language.CommandAst]) {
+        $Accessor = Resolve-ShapeAccessorPath -Command $Node -Subject $null -Aliases $Aliases
+        if ($Accessor.Handled) { return $Accessor.Node }
+        return $null
     }
 
     if ($Node -is [System.Management.Automation.Language.ConvertExpressionAst]) {
@@ -311,6 +446,12 @@ function Add-ShapeUsageFromPipelines {
     param([System.Management.Automation.Language.Ast]$Ast, [hashtable]$Aliases)
 
     foreach ($Pipeline in $Ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.PipelineAst] -and $n.PipelineElements.Count -gt 1 }, $true)) {
+        # `$data | Get-AZSCSafeProperty -Path 'x'` is a pipeline whose downstream stage reads ONE
+        # property off the subject WHOLE -- it is the accessor spelling of `$data.x`, not an
+        # enumeration of it. Binding $_ here would call Get-ShapeElement on the subject and declare
+        # $data an array, which turned VMDisk's entire PROPERTIES object into a list of objects.
+        if (Test-ShapeAccessorCommand -Node $Pipeline.PipelineElements[-1]) { continue }
+
         $Source = Resolve-ShapePath -Node $Pipeline.PipelineElements[0] -Aliases $Aliases
         if (-not $Source) { continue }
 
@@ -326,7 +467,8 @@ function Add-ShapeUsageFromPipelines {
                         $n -is [System.Management.Automation.Language.MemberExpressionAst] -or
                         $n -is [System.Management.Automation.Language.IndexExpressionAst] -or
                         $n -is [System.Management.Automation.Language.ArrayExpressionAst] -or
-                        $n -is [System.Management.Automation.Language.ConvertExpressionAst]
+                        $n -is [System.Management.Automation.Language.ConvertExpressionAst] -or
+                        $n -is [System.Management.Automation.Language.CommandAst]
                     }, $true)) {
                     $null = Resolve-ShapePath -Node $Node -Aliases $Local
                 }
@@ -376,7 +518,8 @@ function Build-CollectorShape {
                 $n -is [System.Management.Automation.Language.MemberExpressionAst] -or
                 $n -is [System.Management.Automation.Language.IndexExpressionAst] -or
                 $n -is [System.Management.Automation.Language.ArrayExpressionAst] -or
-                $n -is [System.Management.Automation.Language.ConvertExpressionAst]
+                $n -is [System.Management.Automation.Language.ConvertExpressionAst] -or
+                $n -is [System.Management.Automation.Language.CommandAst]
             }, $true)) {
             $null = Resolve-ShapePath -Node $Member -Aliases $Aliases
         }
