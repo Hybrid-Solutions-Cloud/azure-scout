@@ -40,7 +40,11 @@ If ($Task -eq 'Processing')
                 # An EMPTY $sub1 -- subscription outside the requested scope -- is not $null, and
                 # `.Name` on it throws under StrictMode (AB#5671).
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
-                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
+                # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+                # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+                # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+                # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+                $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 

@@ -47,7 +47,11 @@ If ($Task -eq 'Processing')
             # tag loop run once for an untagged resource -- but `'0'.Name` throws too, so an empty
             # tag object replaces it, emitting the identical [string]-cast empty Tag Name/Value.
             $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
-            $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { '' }
+            # The else arm is $null, NOT '': with StrictMode off $sub1.Name on an unmatched ($null)
+            # $sub1 evaluated to $null, and the ~110 collectors that still read $sub1.Name directly
+            # emit $null here. '' was a silent behaviour change -- the declarative equivalence proof
+            # caught it on 11 collectors, and it would have been invisible on the rest (AB#5659).
+            $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
             $data = $1.PROPERTIES
             $RowTags  = Get-AZSCSafeProperty -InputObject $1 -Path 'tags'
             $TagProps = if ($null -ne $RowTags) { $RowTags.psobject.properties } else { $null }
