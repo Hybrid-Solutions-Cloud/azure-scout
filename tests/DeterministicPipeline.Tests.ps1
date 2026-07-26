@@ -438,13 +438,13 @@ Describe 'Excel reporting only invokes collectors that have data' {
     }
 
     It 'Start-AZSCExcelJob filters nulls out of the row count' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Reporting/Start-AZTIExcelJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
         $Source | Should -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.Where'
         $Source | Should -Not -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.count\s*$'
     }
 
     It 'Start-AZSCExcelJob refuses the unimplemented-contract collectors outright' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Reporting/Start-AZTIExcelJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
         $Source | Should -Match 'Register-AZSCInventoryModule'
         $Source | Should -Match '-not \$Unsupported'
     }
@@ -470,10 +470,10 @@ Describe 'Every report exporter tolerates a cache with no entry for a collector'
     # All four exporters carried the identical unguarded line. Found by a live run.
 
     $ExporterFiles = @(
-        'Modules/Private/Reporting/Export-AZTIJsonReport.ps1'
-        'Modules/Private/Reporting/Export-AZTIMarkdownReport.ps1'
-        'Modules/Private/Reporting/Export-AZTIAsciiDocReport.ps1'
-        'Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1'
+        'src/report/renderers/inventory/Export-AZSCJsonReport.ps1'
+        'src/report/renderers/inventory/Export-AZSCMarkdownReport.ps1'
+        'src/report/renderers/inventory/Export-AZSCAsciiDocReport.ps1'
+        'src/report/renderers/inventory/Export-AZSCPowerBIReport.ps1'
     )
 
     It '<_> checks the property exists before reading it' -ForEach $ExporterFiles {

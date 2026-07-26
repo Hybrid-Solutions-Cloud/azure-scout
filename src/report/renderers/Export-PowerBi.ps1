@@ -50,7 +50,9 @@ function Export-PowerBi {
     $pbitMade = $false
     try {
         if (-not (Get-Command -Name New-AZSCPowerBITemplate -ErrorAction SilentlyContinue)) {
-            . "$PSScriptRoot/../../../Modules/Private/Reporting/New-AZSCPowerBITemplate.ps1"
+            # AB#5662: New-AZSCPowerBITemplate.ps1 moved from Modules/Private/Reporting to
+            # src/report/renderers/inventory as part of the reporting-layer consolidation.
+            . "$PSScriptRoot/inventory/New-AZSCPowerBITemplate.ps1"
         }
         New-AZSCPowerBITemplate -PowerBIDir $pbiDir -OutputFile $pbitPath | Out-Null
         $pbitMade = Test-Path $pbitPath

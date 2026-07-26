@@ -149,8 +149,9 @@ Describe 'Resource-processing background jobs stay deleted' {
     }
 
     It 'Start-AZSCExtraReports no longer harvests background jobs' {
-        $ReportingPath = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Reporting'
-        $Code = Get-StrippedCode (Join-Path $ReportingPath 'Start-AZTIExtraReports.ps1')
+        # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory.
+        $ReportingPath = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
+        $Code = Get-StrippedCode (Join-Path $ReportingPath 'Start-AZSCExtraReports.ps1')
 
         $Code | Should -Not -Match 'Receive-Job'
         $Code | Should -Not -Match 'Remove-Job'

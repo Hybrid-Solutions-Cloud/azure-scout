@@ -23,9 +23,13 @@
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
     $script:InvokeScript    = Join-Path $script:ModuleRoot 'Modules' 'Public'   'PublicFunctions' 'Invoke-AzureScout.ps1'
-    $script:MarkdownScript  = Join-Path $script:ModuleRoot 'Modules' 'Private'  'Reporting'       'Export-AZTIMarkdownReport.ps1'
-    $script:AsciiDocScript  = Join-Path $script:ModuleRoot 'Modules' 'Private'  'Reporting'       'Export-AZTIAsciiDocReport.ps1'
-    $script:PowerBIScript   = Join-Path $script:ModuleRoot 'Modules' 'Private'  'Reporting'       'Export-AZSCPowerBIReport.ps1'
+    # AB#5662: the inventory report renderers moved from Modules/Private/Reporting to
+    # src/report/renderers/inventory, and the files took the AZSC name their functions
+    # already used (Export-AZTIMarkdownReport.ps1 -> Export-AZSCMarkdownReport.ps1).
+    $script:RendererRoot    = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
+    $script:MarkdownScript  = Join-Path $script:RendererRoot 'Export-AZSCMarkdownReport.ps1'
+    $script:AsciiDocScript  = Join-Path $script:RendererRoot 'Export-AZSCAsciiDocReport.ps1'
+    $script:PowerBIScript   = Join-Path $script:RendererRoot 'Export-AZSCPowerBIReport.ps1'
     $script:TempDir         = Join-Path $env:TEMP 'AZSC_OutputFormatTests'
 
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
@@ -154,11 +158,11 @@ Describe 'OutputFormat Parameter — Metadata' {
 # Reporting function existence
 # ===================================================================
 Describe 'Report Generation Functions Exist' {
-    It 'Export-AZTIMarkdownReport.ps1 file exists' {
+    It 'Export-AZSCMarkdownReport.ps1 file exists' {
         $script:MarkdownScript | Should -Exist
     }
 
-    It 'Export-AZTIAsciiDocReport.ps1 file exists' {
+    It 'Export-AZSCAsciiDocReport.ps1 file exists' {
         $script:AsciiDocScript | Should -Exist
     }
 
@@ -273,7 +277,7 @@ Describe 'OutputFormat routing logic in Invoke-AzureScout source' {
         $script:FunctionSource | Should -Match "Json"
     }
 
-    It 'Source contains Excel export routing (Export-Excel or Start-AZTIExcelJob)' {
+    It 'Source contains Excel export routing (Export-Excel or Start-AZSCExcelJob)' {
         $script:FunctionSource | Should -Match 'Excel|ExcelJob'
     }
 

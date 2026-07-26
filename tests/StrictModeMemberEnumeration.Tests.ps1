@@ -165,7 +165,7 @@ Describe 'The v1 inventory engine runs outside StrictMode' {
         'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1'
         'Modules/Private/Main/Start-AZTIReporOrchestration.ps1'
         'Modules/Private/Processing/Start-AZTIExtraJobs.ps1'
-        'Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1'
+        'src/report/renderers/inventory/style/Start-AZSCExcelCustomization.ps1'
     )
 
     It '<_> opts out of StrictMode' -ForEach $EntryPoints {
