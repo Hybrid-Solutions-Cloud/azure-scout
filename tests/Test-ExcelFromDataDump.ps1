@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     Reads the JSON report from tests/datadump/, reconstructs the ReportCache files,
-    creates the required background jobs with synthetic data, and runs the full
-    reporting + customization pipeline to produce an Excel workbook.
+    builds the synthetic -ExtraData hashtable the reporting phase expects, and runs the
+    full reporting + customization pipeline to produce an Excel workbook.
 
     This lets you iterate on Excel styling, tab ordering, chart generation, etc.
     without re-running a live Azure scan every time.
@@ -224,13 +224,15 @@ if ($ReportData.security) {
 
 Write-Host "`n  ReportCache: $CacheFilesCreated category files created." -ForegroundColor Cyan
 
-# ── Build Synthetic Background Jobs ──────────────────────────────────────
-Write-Host "`n  Creating synthetic background jobs..." -ForegroundColor Gray
-
-# Clean up any leftover jobs from previous runs
-'Subscriptions', 'Advisory', 'Policy', 'Security' | ForEach-Object {
-    Get-Job -Name $_ -ErrorAction SilentlyContinue | Remove-Job -Force -ErrorAction SilentlyContinue
-}
+# ── Build Synthetic ExtraData ────────────────────────────────────────────
+# AB#5649 deleted the background-job machinery: Start-AZSCReporOrchestration now takes the
+# Security / Policy / Advisory / Subscriptions results as an -ExtraData hashtable instead of
+# harvesting them from `Start-Job -Name 'Subscriptions'`. This harness kept starting that job,
+# so $ExtraData arrived $null, Build-AZSCSubsReport got $Sub = $null and wrote an EMPTY
+# 'Subscriptions' worksheet -- which is what made the P6 pivot fail (see AB#5666 and the
+# comment at the P6 branch in style/Build-AZSCExcelChart.ps1). Feed -ExtraData instead so this
+# harness represents a real run. (AB#5666)
+Write-Host "`n  Building synthetic ExtraData..." -ForegroundColor Gray
 
 # Build a synthetic subscriptions list from metadata
 $SyntheticSubs = @()
@@ -257,9 +259,8 @@ foreach ($sub in $SyntheticSubs) {
     }
 }
 
-# Start the Subscriptions job (always required — not skippable)
-Start-Job -Name 'Subscriptions' -ScriptBlock { $args[0] } -ArgumentList @(,$SubJobData) | Out-Null
-Write-Host "    [+] Subscriptions job (synthetic)" -ForegroundColor Green
+$ExtraData = @{ Subscriptions = $SubJobData }
+Write-Host "    [+] ExtraData.Subscriptions ($($SubJobData.Count) synthetic rows)" -ForegroundColor Green
 
 # ── Set Up Excel File Path ───────────────────────────────────────────────
 $Timestamp = Get-Date -Format 'yyyy-MM-dd_HH_mm'
@@ -293,7 +294,8 @@ Start-AZSCReporOrchestration `
     -SkipAdvisory ([switch]::new($true)) `
     -IncludeCosts ([switch]::new($false)) `
     -Automation   ([switch]::new($false)) `
-    -TableStyle   'Light19'
+    -TableStyle   'Light19' `
+    -ExtraData    $ExtraData
 
 $ReportingTimer.Stop()
 Write-Host "  Report generation: " -NoNewline -ForegroundColor Green
@@ -323,11 +325,6 @@ if (-not $SkipCustomization.IsPresent) {
     Write-Host $CustomTimer.Elapsed.ToString("mm\:ss\.fff") -ForegroundColor Cyan
     Write-Host "  Total resources:   " -NoNewline -ForegroundColor Gray
     Write-Host $TotalRes -ForegroundColor White
-}
-
-# ── Cleanup Jobs ─────────────────────────────────────────────────────────
-'Subscriptions', 'Advisory', 'Policy', 'Security' | ForEach-Object {
-    Get-Job -Name $_ -ErrorAction SilentlyContinue | Remove-Job -Force -ErrorAction SilentlyContinue
 }
 
 # ── Summary ──────────────────────────────────────────────────────────────

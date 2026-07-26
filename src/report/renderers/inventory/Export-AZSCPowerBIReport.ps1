@@ -85,18 +85,6 @@ function Export-AZSCPowerBIReport {
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
-    # Convert a module name to PascalCase display name with spaces
-    function ConvertTo-DisplayName {
-        param([string]$Name)
-        # Insert space before each uppercase letter that follows a lowercase letter
-        $spaced = [regex]::Replace($Name, '(?<=[a-z])(?=[A-Z])', ' ')
-        # Capitalize first letter
-        if ($spaced.Length -gt 0) {
-            $spaced = $spaced.Substring(0,1).ToUpper() + $spaced.Substring(1)
-        }
-        return $spaced
-    }
-
     # Export an array of ordered hashtables / PSObjects to CSV
     function Export-FlatCsv {
         param(

@@ -150,8 +150,17 @@ AzureScout replaces these with descriptive names:
 |----------|-----------------|
 | `Modules/Private/1.ExtractionFunctions/` | `Modules/Private/Extraction/` |
 | `Modules/Private/2.ProcessingFunctions/` | `Modules/Private/Processing/` |
-| `Modules/Private/3.ReportingFunctions/` | `Modules/Private/Reporting/` |
+| `Modules/Private/3.ReportingFunctions/` | `src/report/renderers/inventory/` (+ `.../style/`) |
+| `Modules/Private/3.ReportingFunctions/StyleFunctions/` | `src/report/renderers/inventory/style/` |
 | `Modules/Private/4.RAMPFunctions/` | *(removed)* |
+
+The reporting tier no longer lives under `Modules/` at all. AB#5662 moved all of it to
+`src/report/renderers/inventory/`, onto the same renderer layer the assessment reports use, and
+renamed every file so it matches the function it defines — ARI's `AZTI`-file / `AZSC`-function
+mismatch is gone. AB#5665 deleted `Build-AZTIExcelComObject.ps1` outright: chart and shape
+styling now runs on EPPlus/ImportExcel through `Build-AZSCExcelChartStyle`, so no local Excel
+install is required (ARI's COM path fails with `0x80040154 REGDB_E_CLASSNOTREG` on any machine
+or CI runner without Excel).
 
 ## Removed from ARI
 

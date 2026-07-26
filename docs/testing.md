@@ -70,7 +70,7 @@ These validate internal helper scripts — file existence, syntax (via `Parser::
 | `Private.Main.Tests.ps1` | 13 (orchestration, auth, caching) |
 | `Private.Extraction.Tests.ps1` | 9 (API, Graph, subscriptions) |
 | `Private.Processing.Tests.ps1` | 9 (cache, advisory, policy jobs) |
-| `Private.Reporting.Tests.ps1` | 21 (Excel, JSON, Markdown, AsciiDoc) |
+| `Private.Reporting.Tests.ps1` | 23 (Excel, JSON, Markdown, AsciiDoc) — now covers `src/report/renderers/inventory/`, not `Modules/Private/Reporting/`, which no longer exists (AB#5662). Also builds a real `.xlsx` from a real `ReportCache` and asserts no Excel COM was used (AB#5665). |
 
 ### Public Function & Integration Tests (10 files)
 

@@ -16,6 +16,73 @@ Version: 3.6.0
 First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
+
+<#
+.SYNOPSIS
+Adds one Overview pivot table (and its pivot chart) only when the source worksheet can
+actually back a pivot.
+
+.DESCRIPTION
+Wraps ImportExcel's Add-PivotTable with the pre-condition every call site in
+Build-AZSCExcelChart needs and none of them fully had.
+
+ImportExcel builds the pivot's source range itself, from
+`$SourceWorksheet.Cells[$SourceWorksheet.Dimension.Address]` (Add-PivotTable.ps1 line 92,
+7.8.10). A worksheet that exists but holds no cells has a `$null` Dimension, so that
+expression becomes `Cells[$null]` and throws "Index operation failed; the array index
+evaluated to null" -- which Add-PivotTable catches and downgrades to
+"WARNING: Failed adding PivotTable '<name>'", immediately followed by
+"WARNING: Failed adding chart for pivotable '<name>': Cannot bind argument to parameter
+'PivotTable' because it is null". The run completes and the pivot plus its chart are
+silently absent from Overview.
+
+An empty-but-present worksheet is normal, not exotic: Build-AZSCSubsReport always writes
+the 'Subscriptions' worksheet even when the run collected zero subscription rows, and the
+inventory renderers do the same for their own tabs. So testing `if ($PTParams.SourceWorkSheet)`
+-- which six branches in this file did and the rest did not -- is not enough: the sheet must
+exist AND have a dimension. That gap is what made the "P6"/"ChartP6" pivot vanish from
+full-scale reports while a small synthetic repro passed. (AB#5666)
+
+Guarding rather than warning is deliberate: no pivot is buildable from an empty sheet, so
+there is nothing for an operator to act on. The skip is recorded with Write-Debug, on the
+same channel as the rest of this renderer.
+
+.COMPONENT
+This PowerShell Module is part of Azure Scout (AZSC)
+#>
+function Add-AZSCOverviewPivot {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)] [hashtable] $PivotParams,
+        [switch] $NoLegend
+    )
+
+    $Sheet = $PivotParams['SourceWorkSheet']
+    # A worksheet lookup through `Worksheets | Where-Object` yields $null when nothing
+    # matched and a bare object when one did -- but a multi-match would yield an array, and
+    # indexing/property-reading that would not be the same thing. Normalise first.
+    if ($Sheet -is [array]) { $Sheet = if ($Sheet.Count -gt 0) { $Sheet[0] } else { $null } }
+
+    if (-not $Sheet) {
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Skipping pivot '$($PivotParams['PivotTableName'])': source worksheet is absent.")
+        return
+    }
+    if ($null -eq $Sheet.Dimension) {
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Skipping pivot '$($PivotParams['PivotTableName'])': source worksheet '$($Sheet.Name)' has no data rows.")
+        return
+    }
+
+    # -NoLegend is only forwarded when the caller actually passed it: several $PTParams
+    # hashtables already carry a NoLegend key, and supplying the parameter as well as the
+    # splatted key is a duplicate-parameter error.
+    if ($PSBoundParameters.ContainsKey('NoLegend')) {
+        Add-PivotTable @PivotParams -NoLegend:$NoLegend
+    }
+    else {
+        Add-PivotTable @PivotParams
+    }
+}
+
 function Build-AZSCExcelChart {
     Param($Excel, $Overview, $IncludeCosts)
 
@@ -70,7 +137,7 @@ function Build-AZSCExcelChart {
                 ChartRowOffSetPixels    = 0
                 ChartColumnOffSetPixels = 5
             }
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Reservation Advisor' }) -and -not ($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Cost Management' })) {
         # Only use Reservation Advisor pivot when there is no dedicated Cost Management tab.
@@ -99,7 +166,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 0
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     else
         {
@@ -131,7 +198,7 @@ function Build-AZSCExcelChart {
                 ChartRowOffSetPixels    = 5
                 ChartColumnOffSetPixels = 5
             }
-            Add-PivotTable @PTParams -NoLegend
+            Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Outages' }) -and $Overview -eq 1) {
         $P0Name = 'Outages'
@@ -155,7 +222,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Advisor' }) -and $Overview -eq 2) {
         $P0Name = 'Advisories'
@@ -179,7 +246,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     else {
         $P0Name = 'Public IPs'
@@ -212,7 +279,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams -NoLegend
+            Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
         }
     }
 
@@ -245,7 +312,7 @@ function Build-AZSCExcelChart {
                 ChartRowOffSetPixels    = 5
                 ChartColumnOffSetPixels = 5
             }
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'AdvisorScore' }) -and $Overview -eq 1) {
         $P1Name = 'AdvisorScore'
@@ -272,7 +339,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Subscriptions' }) -and $Overview -eq 2) {
         $P1Name = 'Subscriptions'
@@ -297,7 +364,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Quota Usage' }) -and $Overview -eq 1) {
         $P1Name = 'Quota Usage'
@@ -322,7 +389,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     else {
         $P1Name = 'Virtual Networks'
@@ -348,7 +415,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     }
     $DrawP1 = $WS.Drawings | Where-Object { $_.Name -eq 'TP1' }
@@ -376,7 +443,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Advisor' }) -and $Overview -eq 2) {
         $P2Name = 'Annual Savings'
@@ -401,7 +468,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
             PivotNumberFormat       = '#,##0.00'
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     else {
         $P2Name = 'Virtual Networks'
@@ -426,7 +493,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams -NoLegend
+            Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
         }
     }
 
@@ -455,7 +522,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'AKS' }) -and $Overview -eq 2) {
         $P3Name = 'Azure Kubernetes'
@@ -479,7 +546,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
     else {
         $P3Name = 'Storage Accounts'
@@ -504,7 +571,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     }
     $DrawP3 = $WS.Drawings | Where-Object { $_.Name -eq 'TP3' }
@@ -532,7 +599,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif (($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Quota Usage' }) -and $Overview -eq 2) {
         $P4Name = 'Quota Usage'
@@ -556,7 +623,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     else {
         $P4Name = 'VM Disks'
@@ -581,7 +648,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams -NoLegend
+            Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
         }
     }
 
@@ -611,7 +678,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 5
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     } else {
         $P5Name = 'Virtual Networks'
         $PTParams = @{
@@ -636,7 +703,7 @@ function Build-AZSCExcelChart {
             ChartColumnOffSetPixels = 5
         }
         if ($PTParams.SourceWorkSheet) {
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     }
 
@@ -668,26 +735,25 @@ function Build-AZSCExcelChart {
                 ChartRowOffSetPixels    = 0
                 ChartColumnOffSetPixels = 0
             }
-            Add-PivotTable @PTParams
+            Add-AZSCOverviewPivot -PivotParams $PTParams
         }
     else
         {
-    # KNOWN DEFECT (found during AB#5662's full-scale verification against the real
-    # 176-collector fixture, 2026-07-25; not fixed here -- kept out of scope for a pure
-    # move + COM removal, and root cause is NOT yet diagnosed, so nothing below is a fix).
-    # Symptom observed: at full scale, this "P6" Add-PivotTable call emits
+    # FIXED (AB#5666). This branch used to call Add-PivotTable unguarded and lost the P6 pivot
+    # plus its ChartP6 chart at full scale, with:
     #   WARNING: Failed adding PivotTable 'P6': Index operation failed; the array index
     #   evaluated to null.
     #   WARNING: Failed adding chart for pivotable 'P6': Cannot bind argument to parameter
     #   'PivotTable' because it is null.
-    # -- Write-Warning, not a fatal error, so the report still completes, but the P6/
-    # ChartP6 pivot+chart never gets built. A minimal isolated repro (3-row synthetic
-    # 'Subscriptions' sheet, same PivotRows/PivotData shape) did NOT reproduce it, so
-    # "the 'Subscriptions' worksheet is missing" (the theory that would match every other
-    # unguarded-vs-guarded branch in this file) is not confirmed as the actual cause here --
-    # do not assume it without re-diagnosing at full scale. See the skipped placeholder
-    # 'Build-AZSCExcelChart P6 pivot (KNOWN DEFECT, needs a work item)' in
-    # tests/Private.Reporting.Tests.ps1.
+    # Root cause: the 'Subscriptions' worksheet EXISTED but was EMPTY, so ImportExcel's
+    # `$SourceWorksheet.Cells[$SourceWorksheet.Dimension.Address]` became `Cells[$null]`.
+    # It was empty because the harness that surfaced this (tests/Test-ExcelFromDataDump.ps1)
+    # still fed subscriptions through the pre-AB#5649 background job instead of -ExtraData, so
+    # Build-AZSCSubsReport received $null and wrote a header-less, row-less sheet -- and a real
+    # run against an estate with no subscription rows lands in exactly the same place. The
+    # earlier 3-row synthetic repro could not reproduce it precisely because 3 rows give the
+    # sheet a Dimension. Add-AZSCOverviewPivot (top of this file) now checks the dimension, not
+    # just the sheet's existence, for every pivot in this function.
     $P6Name = 'Resources by Location'
     $PTParams = @{
         PivotTableName          = "P6"
@@ -710,7 +776,7 @@ function Build-AZSCExcelChart {
         ChartRowOffSetPixels    = 0
         ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
 
     $DrawP6 = $WS.Drawings | Where-Object { $_.Name -eq 'TP6' }
@@ -739,7 +805,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
 
     $DrawP7 = $WS.Drawings | Where-Object { $_.Name -eq 'TP7' }
@@ -767,7 +833,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif ($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Load Balancers' }) {
         $P8Name = 'Load Balancers'
@@ -791,7 +857,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     elseif ($Excel.Workbook.Worksheets | Where-Object { $_.Name -eq 'Virtual Machines' }) {
         $P8Name = 'VMs per Region'
@@ -815,7 +881,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
     else{
         $P8Name = 'Resources per Region'
@@ -839,7 +905,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams -NoLegend
+        Add-AZSCOverviewPivot -PivotParams $PTParams -NoLegend
     }
 
     $DrawP8 = $WS.Drawings | Where-Object { $_.Name -eq 'TP8' }
@@ -868,7 +934,7 @@ function Build-AZSCExcelChart {
             ChartRowOffSetPixels    = 5
             ChartColumnOffSetPixels = 0
         }
-        Add-PivotTable @PTParams
+        Add-AZSCOverviewPivot -PivotParams $PTParams
     }
 
     $DrawP9 = $WS.Drawings | Where-Object { $_.Name -eq 'TP9' }
