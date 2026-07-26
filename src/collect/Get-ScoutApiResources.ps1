@@ -1,0 +1,156 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+<#
+.SYNOPSIS
+    Per-subscription ARM REST data that Resource Graph does not index -- ported into
+    src/collect from Modules/Private/Extraction/Get-AZTIAPIResources.ps1 (AB#5639/5645).
+
+.DESCRIPTION
+    Five of the legacy inventory engine's data points have no Resource Graph table at all,
+    because they are not resources -- they are point-in-time computed/derived data ARM
+    exposes only through its own control-plane REST endpoints:
+
+        ResourceHealth        Microsoft.ResourceHealth/events (6-month history)
+        ManagedIdentities     Microsoft.ManagedIdentity/userAssignedIdentities
+        AdvisorScore          Microsoft.Advisor/advisorScore (the percentage score, distinct
+                              from `Get-ScoutRawInventory -IncludeAdvisories`'s per-
+                              recommendation rows, which DO come from Resource Graph)
+        ReservationRecommendations   Microsoft.Consumption/reservationRecommendations
+        Policy (assignments/definitions/set-definitions)   Microsoft.PolicyInsights /
+                              Microsoft.Authorization -- Import-Governance
+                              (src/ingest/Import-Governance.ps1) already covers policy
+                              assignment/definition data for the assessment platform via its
+                              own ARG + ambient-token calls; this is kept here only for
+                              feature parity with the legacy per-subscription REST pull the
+                              176-collector engine already depends on, not as a second source
+                              the assessment platform should ALSO consume.
+
+    Every call is independently non-fatal: a single endpoint failing (missing RBAC,
+    provider not registered, transient error) degrades that one field to $null for that one
+    subscription and the run continues -- exactly the legacy function's existing behavior,
+    carried forward unchanged.
+
+.PARAMETER Subscriptions
+    Subscription objects with `.id` and `.name` (the same shape `Get-ScoutRawInventory`'s
+    `ResourceContainers`-derived subscription list, or the assessment platform's own
+    `subscriptions` collect key, already provides).
+
+.PARAMETER AzureEnvironment
+    One of 'AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud' -- selects the ARM management
+    endpoint host, matching the legacy function.
+
+.PARAMETER SkipPolicy
+    Skip the three Policy REST calls (assignment summary + both definition lists) -- these
+    are the heaviest of the five calls and are already covered for the assessment platform
+    by `Import-Governance`.
+
+.OUTPUTS
+    One `[pscustomobject]` per subscription: `Subscription` (id), `ResourceHealth`,
+    `ManagedIdentities`, `AdvisorScore`, `ReservationRecommendations`, `PolicyAssignments`,
+    `PolicyDefinitions`, `PolicySetDefinitions`. Any field whose REST call failed is `$null`
+    for that subscription -- callers MUST NOT assume any field is populated.
+
+.NOTES
+    Tracks ADO AB#5639 (Task AB#5645, Epic AB#5638).
+
+    Ported (not just wrapped) rather than calling the legacy `Get-AZSCAPIResources`
+    directly: `src/` files are dot-sourced independently of `Modules/Private` load order (see
+    AzureScout.psm1), and the legacy function's un-guarded property accesses on its own
+    `$Token`/response objects predate this codebase's StrictMode-everywhere convention for
+    `src/`. The HTTP call sequence, endpoints, and API versions are otherwise identical to
+    the legacy implementation.
+
+    Uses the caller's ambient Az context token (`Get-AzAccessToken`), same as
+    `Import-Governance` and the legacy function -- no separate authentication path.
+#>
+function Get-ScoutApiResources {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [object[]] $Subscriptions,
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [string] $AzureEnvironment = 'AzureCloud',
+        [switch] $SkipPolicy
+    )
+
+    $managementHost = switch ($AzureEnvironment) {
+        'AzureCloud'         { 'management.azure.com' }
+        'AzureUSGovernment'  { 'management.usgovcloudapi.net' }
+        'AzureChinaCloud'    { 'management.chinacloudapi.cn' }
+    }
+
+    try {
+        $token = Get-AzAccessToken -AsSecureString -InformationAction SilentlyContinue -WarningAction SilentlyContinue
+        $tokenPlainText = $token.Token | ConvertFrom-SecureString -AsPlainText
+        $headers = @{ Authorization = "Bearer $tokenPlainText" }
+    }
+    catch {
+        Write-Warning "Get-ScoutApiResources: could not acquire an access token -- skipping all REST calls: $($_.Exception.Message)"
+        return @()
+    }
+
+    function Invoke-ScoutApiCall {
+        param([string] $Uri, [string] $Method = 'GET', [string] $FieldName, [string] $SubscriptionName)
+        try {
+            $response = Invoke-RestMethod -Uri $Uri -Headers $headers -Method $Method
+            return $response.value
+        }
+        catch {
+            Write-Verbose "Get-ScoutApiResources: '$FieldName' failed for subscription '$SubscriptionName' -- leaving it `$null and continuing: $($_.Exception.Message)"
+            return $null
+        }
+    }
+
+    $resourceHealthSince = (Get-Date).AddMonths(-6)
+
+    $results = foreach ($subscription in $Subscriptions) {
+        $subId   = $subscription.id
+        $subName = if ($subscription.PSObject.Properties['name']) { $subscription.name } else { $subId }
+        $base    = "https://$managementHost/subscriptions/$subId/providers"
+
+        $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
+            -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
+        Start-Sleep -Milliseconds 200
+
+        $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
+            -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
+        Start-Sleep -Milliseconds 200
+
+        $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
+            -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01"
+        Start-Sleep -Milliseconds 200
+
+        $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
+            -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"
+        Start-Sleep -Milliseconds 200
+
+        $policyAssignments   = $null
+        $policyDefinitions   = $null
+        $policySetDefinitions = $null
+        if (-not $SkipPolicy) {
+            $policyAssignments = Invoke-ScoutApiCall -Method 'POST' -FieldName 'PolicyAssignments' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
+            Start-Sleep -Milliseconds 200
+            $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Authorization/policySetDefinitions?api-version=2023-04-01"
+            Start-Sleep -Milliseconds 200
+            $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Authorization/policyDefinitions?api-version=2023-04-01"
+        }
+
+        [pscustomobject]@{
+            Subscription                = $subId
+            ResourceHealth              = $resourceHealth
+            ManagedIdentities           = $managedIdentities
+            AdvisorScore                = $advisorScore
+            ReservationRecommendations  = $reservationRecommendations
+            PolicyAssignments           = $policyAssignments
+            PolicyDefinitions           = $policyDefinitions
+            PolicySetDefinitions        = $policySetDefinitions
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
+    return @($results)
+}
