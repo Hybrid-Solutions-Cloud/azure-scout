@@ -30,7 +30,6 @@ Describe 'Private/Extraction Module Files Exist' {
         'Get-AZTICostInventory.ps1',
         'Get-AZTIManagementGroups.ps1',
         'Get-AZTISubscriptions.ps1',
-        'Invoke-AZTIInventoryLoop.ps1',
         'Start-AZTIEntraExtraction.ps1',
         'Start-AZTIGraphExtraction.ps1'
     )
@@ -57,7 +56,6 @@ Describe 'Private/Extraction Script Syntax Validation' {
         'Get-AZTICostInventory.ps1',
         'Get-AZTIManagementGroups.ps1',
         'Get-AZTISubscriptions.ps1',
-        'Invoke-AZTIInventoryLoop.ps1',
         'Start-AZTIEntraExtraction.ps1',
         'Start-AZTIGraphExtraction.ps1'
     )
@@ -103,9 +101,21 @@ Describe 'Private/Extraction Function Definitions' {
         $content | Should -Match 'function\s+Get-AZSCSubscriptions'
     }
 
-    It 'Invoke-AZTIInventoryLoop.ps1 defines Invoke-AZSCInventoryLoop' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Invoke-AZTIInventoryLoop.ps1') -Raw
-        $content | Should -Match 'function\s+Invoke-AZSCInventoryLoop'
+    It 'Invoke-AZTIInventoryLoop.ps1 is deleted and nothing references Invoke-AZSCInventoryLoop (AB#5648)' {
+        Join-Path $script:ExtractionPath 'Invoke-AZTIInventoryLoop.ps1' | Should -Not -Exist
+        $root = Split-Path $PSScriptRoot -Parent
+        # AST command names, not raw text: the replacement shim's comments name the retired
+        # function to explain what superseded it, and that is not a call site.
+        $callers = @(
+            Get-ChildItem -Path (Join-Path $root 'Modules'), (Join-Path $root 'src') -Recurse -Filter *.ps1 |
+                Where-Object {
+                    $ast = [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$null)
+                    @($ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true) |
+                            ForEach-Object { $_.GetCommandName() }) -contains 'Invoke-AZSCInventoryLoop'
+                } |
+                ForEach-Object { $_.Name }
+        )
+        $callers | Should -BeNullOrEmpty
     }
 
     It 'Start-AZTIEntraExtraction.ps1 defines Start-AZSCEntraExtraction' {
@@ -136,30 +146,43 @@ Describe 'Private/Extraction Function Definitions' {
 # $LocalResults stayed an empty @() (e.g. every Search-AzGraph page came back
 # empty), PowerShell's empty-array-on-return unrolls to $null — and the very
 # next `.Count` access on that $null by a caller throws under
-# `Set-StrictMode -Version Latest`. The fix is `return ,$LocalResults`.
-Describe 'Invoke-AZSCInventoryLoop empty-result StrictMode hardening' {
+# `Set-StrictMode -Version Latest`. The fix was `return ,$LocalResults`.
+#
+# AB#5648 deleted that function; Get-ScoutRawInventory is the single paging engine now, so the
+# same three contracts are enforced against IT instead — the hazard (an empty result set
+# unrolling to $null on return, then a caller doing .Count under StrictMode) is identical.
+Describe 'Get-ScoutRawInventory empty-result StrictMode hardening (was Invoke-AZSCInventoryLoop)' {
     BeforeAll {
-        . (Join-Path $script:ExtractionPath 'Invoke-AZTIInventoryLoop.ps1')
-        Mock Search-AzGraph { return @() }
+        $root = Split-Path $PSScriptRoot -Parent
+        function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        . "$root/src/collect/Get-ScoutRawInventory.ps1"
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            return @()
+        }
     }
 
     It 'never returns $null for an empty result set (would collapse via bare "return $var")' {
         Set-StrictMode -Version Latest
-        $result = Invoke-AZSCInventoryLoop -GraphQuery 'resources' -FSubscri @('11111111-1111-1111-1111-111111111111') -LoopName 'Test'
+        $result = Get-ScoutRawInventory -SubscriptionIds @('11111111-1111-1111-1111-111111111111') -WarningAction SilentlyContinue
         # Intentionally NOT using -BeNullOrEmpty: an empty array is a valid, non-null result
         # here and that distinction is exactly what this regression test protects.
-        ($null -eq $result) | Should -BeFalse -Because 'a real (possibly-empty) array must come back, never $null'
+        ($null -eq $result.Resources) | Should -BeFalse -Because 'a real (possibly-empty) array must come back, never $null'
+        ($null -eq $result.ResourceContainers) | Should -BeFalse
+        ($null -eq $result.Advisories) | Should -BeFalse
+        ($null -eq $result.Security) | Should -BeFalse
+        ($null -eq $result.Retirements) | Should -BeFalse
     }
 
     It 'lets the caller call .Count on the result without throwing under StrictMode' {
         Set-StrictMode -Version Latest
-        $result = Invoke-AZSCInventoryLoop -GraphQuery 'resources' -FSubscri @('11111111-1111-1111-1111-111111111111') -LoopName 'Test'
-        { $result.Count } | Should -Not -Throw
-        $result.Count | Should -Be 0
+        $result = Get-ScoutRawInventory -SubscriptionIds @('11111111-1111-1111-1111-111111111111') -WarningAction SilentlyContinue
+        { $result.Resources.Count } | Should -Not -Throw
+        $result.Resources.Count | Should -Be 0
     }
 
     It 'accepts a single scalar subscription id without throwing on the internal .count checks' {
         Set-StrictMode -Version Latest
-        { Invoke-AZSCInventoryLoop -GraphQuery 'resources' -FSubscri '11111111-1111-1111-1111-111111111111' -LoopName 'Test' } | Should -Not -Throw
+        { Get-ScoutRawInventory -SubscriptionIds '11111111-1111-1111-1111-111111111111' -WarningAction SilentlyContinue } | Should -Not -Throw
     }
 }

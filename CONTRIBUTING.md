@@ -251,8 +251,11 @@ This modules will be loaded and the functions will be available for the script a
 | `Get-AZSCAPIResources.ps1`            | Extracts resources using Azure APIs.                                        |
 | `Get-AZSCManagementGroups.ps1`        | Retrieves Azure Management Group data.                                      |
 | `Get-AZSCSubscriptions.ps1`           | Retrieves subscription details from Azure.                                  |
-| `Invoke-AZSCInventoryLoop.ps1`        | Executes the inventory loop for resource extraction.                        |
-| `Start-AZSCGraphExtraction.ps1`       | Initiates the extraction of Azure Resource Graph data.                      |
+| `Start-AZSCGraphExtraction.ps1`       | Parameter-translation shim onto `src/collect/Get-ScoutRawInventory.ps1`; builds no queries. |
+
+`Invoke-AZSCInventoryLoop.ps1` was deleted in AB#5648. Resource Graph paging, subscription
+batching, throttle retry and per-batch error isolation all live in
+`src/collect/Get-ScoutRawInventory.ps1` now — see [docs/design/arg-round-trips.md](docs/design/arg-round-trips.md).
 
 
 #### 1.ExtractionFunctions/ResourceDetails

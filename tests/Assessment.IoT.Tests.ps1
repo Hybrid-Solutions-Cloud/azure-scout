@@ -45,7 +45,7 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
     }
 
     It 'queries Microsoft.Devices/provisioningServices and shapes it into domains.iot.dpsInstances' {
-        $result = Invoke-Collect -Categories @('IoT')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/provisioningservices' } -Times 1
         $result.domains.iot.dpsInstances.Count | Should -Be 2
         ($result.domains.iot.dpsInstances | Where-Object name -eq 'dps-prod').publicAccess | Should -Be 'Enabled'
@@ -53,7 +53,7 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
     }
 
     It 'queries Microsoft.DigitalTwins/digitalTwinsInstances and shapes it into domains.iot.digitalTwinsInstances' {
-        $result = Invoke-Collect -Categories @('IoT')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.digitaltwins/digitaltwinsinstances' } -Times 1
         $result.domains.iot.digitalTwinsInstances.Count | Should -Be 2
         ($result.domains.iot.digitalTwinsInstances | Where-Object name -eq 'dt-prod').identityType | Should -Be ''
@@ -61,13 +61,13 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
     }
 
     It 'still collects the pre-existing iotHubs query unchanged' {
-        $result = Invoke-Collect -Categories @('IoT')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/iothubs"' } -Times 1
         $result.domains.iot.PSObject.Properties.Name | Should -Contain 'iotHubs'
     }
 
     It 'the new IoT queries are skipped when -Categories excludes IoT' {
-        Invoke-Collect -Categories @('Security') | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Security') | Out-Null
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/provisioningservices' } -Times 0 -Exactly
         Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.digitaltwins/digitaltwinsinstances' } -Times 0 -Exactly
     }

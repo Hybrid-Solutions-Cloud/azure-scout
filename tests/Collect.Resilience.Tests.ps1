@@ -52,11 +52,11 @@ Describe 'Invoke-Collect -- AB#397 per-subscription fallback' {
     }
 
     It 'retries per-subscription after a tenant-wide batch failure, and does not throw' {
-        { Invoke-Collect -Categories @('Networking') } | Should -Not -Throw
+        { Invoke-Collect -Source TypedQueries -Categories @('Networking') } | Should -Not -Throw
     }
 
     It 'collects rows from the subscriptions that succeed on retry, skipping only the one that keeps failing' {
-        $result = Invoke-Collect -Categories @('Networking')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('Networking')
         $names = @($result.networking.virtualNetworks.name)
         $names | Should -Contain 'vnet-sub-1'
         $names | Should -Contain 'vnet-sub-3'
@@ -65,7 +65,7 @@ Describe 'Invoke-Collect -- AB#397 per-subscription fallback' {
     }
 
     It 'warns once for the subscription that still fails on retry, naming it and AB#397' {
-        Invoke-Collect -Categories @('Networking') -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Networking') -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match "failed for subscription 'sub-2'"
         ($warnings -join "`n") | Should -Match 'AB#397'
     }
@@ -80,7 +80,7 @@ Describe 'Invoke-Collect -- AB#398 AuthorizationFailed management-group hint' {
             }
             return @()
         }
-        Invoke-Collect -Categories @('Networking') -ManagementGroupId 'contoso-root-mg' -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        Invoke-Collect -Source TypedQueries -Categories @('Networking') -ManagementGroupId 'contoso-root-mg' -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match 'AuthorizationFailed'
         ($warnings -join "`n") | Should -Match "Reader role at the 'contoso-root-mg' management group scope"
     }
@@ -94,7 +94,7 @@ Describe 'Invoke-Collect -- AB#398 AuthorizationFailed management-group hint' {
             }
             return @()
         }
-        $result = Invoke-Collect -Categories @('Networking') -ManagementGroupId 'contoso-root-mg'
+        $result = Invoke-Collect -Source TypedQueries -Categories @('Networking') -ManagementGroupId 'contoso-root-mg'
         @($result.networking.virtualNetworks).Count | Should -Be 3
     }
 }
@@ -114,13 +114,13 @@ Describe 'Invoke-Collect -- AB#399 known-noise error is swallowed' {
     }
 
     It 'does not warn for the known-noise error and returns an empty (not thrown) result for that query' {
-        $result = Invoke-Collect -Categories @('Security') -WarningVariable warnings -WarningAction SilentlyContinue
+        $result = Invoke-Collect -Source TypedQueries -Categories @('Security') -WarningVariable warnings -WarningAction SilentlyContinue
         @($result.domains.security.keyVaults).Count | Should -Be 0
         ($warnings -join "`n") | Should -Not -Match 'keyVaults'
     }
 
     It 'logs the known-noise condition at Verbose' {
-        $verboseRecords = Invoke-Collect -Categories @('Security') -Verbose 4>&1 |
+        $verboseRecords = Invoke-Collect -Source TypedQueries -Categories @('Security') -Verbose 4>&1 |
             Where-Object { $_ -is [System.Management.Automation.VerboseRecord] }
         ($verboseRecords | ForEach-Object { $_.Message }) -join "`n" | Should -Match 'AB#399'
     }
@@ -151,7 +151,7 @@ Describe 'Invoke-Collect -- AB#400 firewall policy rule-group parse errors conti
     }
 
     It 'parses the well-formed group normally and records a placeholder with parseError for the malformed one' {
-        $result = Invoke-Collect -Categories @('Networking')
+        $result = Invoke-Collect -Source TypedQueries -Categories @('Networking')
         $groups = @($result.networking.firewallPolicyRuleGroups)
         $groups.Count | Should -Be 2
 
@@ -167,7 +167,7 @@ Describe 'Invoke-Collect -- AB#400 firewall policy rule-group parse errors conti
     }
 
     It 'warns about the malformed group by name, referencing AB#400, without losing the well-formed group' {
-        $result = Invoke-Collect -Categories @('Networking') -WarningVariable warnings -WarningAction SilentlyContinue
+        $result = Invoke-Collect -Source TypedQueries -Categories @('Networking') -WarningVariable warnings -WarningAction SilentlyContinue
         ($warnings -join "`n") | Should -Match 'bad-group'
         ($warnings -join "`n") | Should -Match 'AB#400'
         @($result.networking.firewallPolicyRuleGroups | Where-Object { $_.name -eq 'good-group' }) | Should -Not -BeNullOrEmpty
@@ -177,14 +177,14 @@ Describe 'Invoke-Collect -- AB#400 firewall policy rule-group parse errors conti
 Describe 'Invoke-Collect -- AB#401 empty-data guard' {
     It 'warns with a diagnostic hint when literally no resources are returned for any query' {
         Mock Search-AzGraph { return @() }
-        Invoke-Collect -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        Invoke-Collect -Source TypedQueries -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match 'no resources were returned'
         ($warnings -join "`n") | Should -Match 'Reader role'
     }
 
     It 'names the management group in the hint when one was supplied' {
         Mock Search-AzGraph { return @() }
-        Invoke-Collect -ManagementGroupId 'contoso-root-mg' -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        Invoke-Collect -Source TypedQueries -ManagementGroupId 'contoso-root-mg' -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match "management group 'contoso-root-mg'"
     }
 
@@ -193,7 +193,7 @@ Describe 'Invoke-Collect -- AB#401 empty-data guard' {
             if ($Query -match 'microsoft\.resources/subscriptions"') { return Get-MockSubscriptions }
             return @()
         }
-        Invoke-Collect -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+        Invoke-Collect -Source TypedQueries -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Not -Match 'no resources were returned'
     }
 }
