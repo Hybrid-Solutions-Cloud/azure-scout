@@ -34,11 +34,24 @@ $ErrorActionPreference = 'Stop'
 
     A collector with no `.CATEGORY` header inherits its folder's name as its category.
 
+.PARAMETER DefinitionRoot
+    Path to the declarative collector definition tree (`manifests/collectors`, one
+    `<Category>/<Name>.psd1` per converted collector -- see
+    `docs/design/decisions/declarative-collectors.md`). Defaults to the sibling `manifests/
+    collectors` of the module root that contains InventoryRoot.
+
+    This EXTENDS the existing discovery rather than adding a second one: a collector is still
+    found by walking InventoryRoot, and `HasDeclarativeDefinition` is an additive report of
+    whether a definition happens to exist beside it. `Contract` is unchanged and a collector
+    with no definition is not a defect -- it is the expected state for every escape-hatch
+    collector (ADR §2.4, §3).
+
 .OUTPUTS
-    PSCustomObject with Name, FolderCategory, Categories and Path.
+    PSCustomObject with Name, FolderCategory, Categories, Path, Contract,
+    HasDeclarativeDefinition and DefinitionPath.
 
 .NOTES
-    Tracks ADO AB#5649 (Epic AB#5638).
+    Tracks ADO AB#5649 (Epic AB#5638); definition reporting tracks AB#5657 (Feature AB#5656).
 #>
 function Get-ScoutCollector {
     [CmdletBinding()]
@@ -49,12 +62,24 @@ function Get-ScoutCollector {
 
         [Parameter(Position = 1)]
         [AllowNull()]
-        [string[]]$Category = @('All')
+        [string[]]$Category = @('All'),
+
+        [Parameter(Position = 2)]
+        [AllowNull()]
+        [string]$DefinitionRoot
     )
 
     if (-not (Test-Path -LiteralPath $InventoryRoot)) {
         Write-Warning "[AzureScout] Inventory module root not found: $InventoryRoot"
         return
+    }
+
+    # InventoryRoot is <ModuleRoot>/Modules/Public/InventoryModules; the definitions live at
+    # <ModuleRoot>/manifests/collectors. Derived rather than hard-coded off $PSScriptRoot so the
+    # function stays a pure function of its arguments and remains testable against a fixture tree.
+    if ([string]::IsNullOrWhiteSpace($DefinitionRoot)) {
+        $ModuleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $InventoryRoot))
+        $DefinitionRoot = Join-Path $ModuleRoot 'manifests' 'collectors'
     }
 
     # $null and @() both mean "no filter", the same as 'All'. Callers derive this from a
@@ -123,12 +148,17 @@ function Get-ScoutCollector {
                 if ($Wanted.Count -eq 0) { continue }
             }
 
+            $DefinitionPath = Join-Path $DefinitionRoot $Folder.Name "$($File.BaseName).psd1"
+            $HasDefinition  = Test-Path -LiteralPath $DefinitionPath -PathType Leaf
+
             [PSCustomObject]@{
-                Name           = $File.BaseName
-                FolderCategory = $Folder.Name
-                Categories     = $Categories
-                Path           = $File.FullName
-                Contract       = $Contract
+                Name                     = $File.BaseName
+                FolderCategory           = $Folder.Name
+                Categories               = $Categories
+                Path                     = $File.FullName
+                Contract                 = $Contract
+                HasDeclarativeDefinition = $HasDefinition
+                DefinitionPath           = if ($HasDefinition) { $DefinitionPath } else { $null }
             }
         }
     }
