@@ -191,35 +191,14 @@ Describe 'The v1 inventory engine runs outside StrictMode' {
     }
 }
 
-Describe 'An empty job set is a valid state, not a failure' {
-
-    BeforeAll {
-        . (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Jobs/Wait-AZTIJob.ps1')
-    }
-
-    It 'returns quietly when there are no jobs to wait for' {
-        # Get-Job -Name rejects an empty collection with "Cannot validate argument on parameter
-        # 'Name'", so a run whose jobs had all completed and been harvested died here instead of
-        # going on to build the report.
-        Set-StrictMode -Version Latest
-        { Wait-AZSCJob -JobNames @() -JobType 'Resource' -LoopTime 1 } | Should -Not -Throw
-    }
-
-    It 'returns quietly for a null job list' {
-        Set-StrictMode -Version Latest
-        { Wait-AZSCJob -JobNames $null -JobType 'Resource' -LoopTime 1 } | Should -Not -Throw
-    }
-
-    It 'ignores null and blank entries mixed into the job list' {
-        Set-StrictMode -Version Latest
-        { Wait-AZSCJob -JobNames @($null, '', '   ') -JobType 'Diagram' -LoopTime 1 } | Should -Not -Throw
-    }
+# The 'An empty job set is a valid state' tests that stood here exercised Wait-AZSCJob, which
+# AB#5649 DELETED — the run orchestration starts no background jobs at all now, so there is no
+# job list to be empty. tests/DeterministicPipeline.Tests.ps1 carries the forward-looking guard
+# (the pipeline and the diagram lookup must start no jobs). Only the caller-side check survives,
+# because building a name list off a Where-Object that matches nothing is a general trap.
+Describe 'Callers never member-enumerate an empty Get-Job result' {
 
     It 'callers build the job list without member-enumerating an empty result' {
-        # Start-AZTIProcessJob.ps1 and Start-AZTIAutProcessJob.ps1 were in this list until
-        # AB#5649 deleted them along with the resource-processing jobs. The remaining two are
-        # still job-adjacent: the orchestration hands off to the deterministic pipeline, and
-        # Invoke-AzureScout still waits on the draw.io diagram jobs.
         foreach ($File in 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1',
                           'Modules/Public/PublicFunctions/Invoke-AzureScout.ps1') {
             $Raw = Get-Content -Path (Join-Path $script:RepoRoot $File)

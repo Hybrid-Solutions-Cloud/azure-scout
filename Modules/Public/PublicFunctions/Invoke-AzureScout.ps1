@@ -953,18 +953,10 @@ Function Invoke-AzureScout {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished Charts Phase.')
 
-    if(!$SkipDiagram.IsPresent -and !$Automation.IsPresent)
-    {
-        Write-Progress -activity 'Diagrams' -Status "Completing Diagram" -PercentComplete 70 -CurrentOperation "Consolidating Diagram"
-
-        $JobNames = @(Get-Job | Where-Object {$_.name -eq 'DrawDiagram'} | ForEach-Object { $_.Name })
-
-        Wait-AZSCJob -JobNames $JobNames -JobType 'Diagram' -LoopTime 5
-
-        Remove-Job -Name 'DrawDiagram' | Out-Null
-
-        Write-Progress -activity 'Diagrams' -Status "Closing Diagram File" -Completed
-    }
+    # AB#5649 — the 'DrawDiagram' wait stood here. Invoke-AZSCDrawIOJob no longer starts a
+    # background job, so the diagram is already built by the time control reaches this point and
+    # there is nothing to wait for or destroy. This was the last Wait-AZSCJob caller in the
+    # product; the function itself is gone with it.
 
 
     if ($StorageAccount)

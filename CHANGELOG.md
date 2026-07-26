@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-07-25
+
 ### Changed
 
 - **The inventory processing phase no longer uses background jobs** (AB#5649, Epic AB#5638) —

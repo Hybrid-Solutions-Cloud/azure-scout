@@ -55,8 +55,7 @@ Describe 'Public/Jobs Files Exist' {
         'Start-AZTIAdvisoryJob.ps1',
         'Start-AZTIPolicyJob.ps1',
         'Start-AZTISecCenterJob.ps1',
-        'Start-AZTISubscriptionJob.ps1',
-        'Wait-AZTIJob.ps1'
+        'Start-AZTISubscriptionJob.ps1'
     )
 
     It '<_> exists' -ForEach $jobFiles {
@@ -104,8 +103,7 @@ Describe 'Public/PublicFunctions Syntax Validation' {
         'Start-AZTIAdvisoryJob.ps1',
         'Start-AZTIPolicyJob.ps1',
         'Start-AZTISecCenterJob.ps1',
-        'Start-AZTISubscriptionJob.ps1',
-        'Wait-AZTIJob.ps1'
+        'Start-AZTISubscriptionJob.ps1'
     )
 
     It 'Jobs/<_> parses without errors' -ForEach $jobFiles {
@@ -179,8 +177,10 @@ Describe 'Public/Jobs Function Definitions' {
         $content | Should -Match 'function\s+Start-AZSCSubscriptionJob'
     }
 
-    It 'Wait-AZTIJob.ps1 defines Wait-AZSCJob' {
-        $content = Get-Content (Join-Path $script:JobsPath 'Wait-AZTIJob.ps1') -Raw
-        $content | Should -Match 'function\s+Wait-AZSCJob'
+    # Wait-AZTIJob.ps1 was DELETED by AB#5649 — the run orchestration starts no background jobs,
+    # so nothing is left to wait on. The four Start-AZSC*Job functions above survive as ordinary
+    # in-process functions; only the job plumbing around them went.
+    It 'Wait-AZTIJob.ps1 stays deleted' {
+        Join-Path $script:JobsPath 'Wait-AZTIJob.ps1' | Should -Not -Exist
     }
 }

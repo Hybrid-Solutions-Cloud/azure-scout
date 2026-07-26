@@ -13,7 +13,48 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.5.3 — Empty Is Not Null, and Runs That Explain Themselves
+## Current Release — v2.6.0 — The Engine Stops Using Background Jobs
+
+Released 25 July 2026, published to the PowerShell Gallery. First phase of the engine rebuild
+(Epic **AB#5638**).
+
+The inventory processing phase used to create one `Start-Job` per category, and each of those
+created one `[PowerShell]::Create()` runspace **per collector**. Every defect of the v2.5.x wave
+lived in that coordination rather than in the collectors themselves: `Start-Job` is asynchronous,
+so a job still in `NotStarted` was excluded from the wait, harvested empty and then deleted —
+taking its whole category out of the report with no trace. The inner wait read
+`$Job.Runspace.IsCompleted`, but those handles have no `Runspace` property, so the loop never
+waited at all. Each job re-imported the module, which is why the v2.5.3 StrictMode opt-out needed
+**17** entry points. And category ordering came from `Get-Job`, so the same tenant could produce
+different reports on consecutive runs.
+
+Collectors are pure functions of the resource set, so none of that concurrency was ever required.
+All 176 now run **in-process, in a fixed order**. Identical input produces an identical report
+cache — verified against a live tenant across two consecutive full runs: 32 collector sections
+compared, **31 byte-identical**, and the single difference checked against Resource Graph and
+confirmed as the estate genuinely changing between runs.
+
+Resilience improved rather than regressed: each collector's failure is contained individually, so
+one bad collector no longer empties its category or aborts the batch. `Wait-AZSCJob` and the job
+machinery are **deleted**; the run orchestration starts no background jobs.
+
+**Four defects that had shipped in every release surfaced the moment collectors ran in-process:**
+
+- The **Security Center worksheet had been empty in every release that had one**.
+  `Invoke-AZSCSecurityCenterJob` was called with `-SecurityCenter` against a parameter block that
+  declared no such parameter — and PowerShell does not reject an unknown named argument to a
+  simple function, it collects it into `$args` and carries on. `$null` crossed the job boundary
+  as the security rows. It now carries real data.
+- Five collectors called `Write-AZSCLog -Color` / `-Level Verbose`, neither of which the function
+  accepted, so each threw on its first log line and produced nothing.
+- Per-file `.CATEGORY` filtering had **never matched a single file** — the expression required a
+  line break between the keyword and its value, and all 176 collectors write it on one line.
+- The Excel report loop invoked every collector whether or not it had data, because it counted
+  rows with `@($SmaResources).count` and **`@($null).Count` is 1, not 0**.
+
+Full detail: [CHANGELOG.md § 2.6.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#260---2026-07-25).
+
+## Previous Release — v2.5.3 — Empty Is Not Null, and Runs That Explain Themselves
 
 Released 25 July 2026, published to the PowerShell Gallery.
 
@@ -42,7 +83,7 @@ the four defects above were found by reading the log rather than by re-running w
 
 Full detail: [CHANGELOG.md § 2.5.3](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
 
-## Previous Release — v2.5.2 — Determinism
+## Earlier Release — v2.5.2 — Determinism
 
 Released 25 July 2026, published to the PowerShell Gallery.
 
