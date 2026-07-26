@@ -1,0 +1,834 @@
+{
+  "subscriptions": [
+    {
+      "id": "sub-00000001",
+      "Name": "Scout Sample Subscription 1"
+    },
+    {
+      "id": "sub-00000002",
+      "Name": "Scout Sample Subscription 2"
+    }
+  ],
+  "retirements": [
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.documentdb/databaseaccounts/cosmos-prod",
+      "ServiceID": "SVC-0001"
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-eu",
+      "ServiceID": "SVC-0002"
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-eu",
+      "ServiceID": "SVC-0003"
+    }
+  ],
+  "unsupported": [
+    {
+      "Id": "SVC-0001",
+      "RetiringFeature": "Cosmos DB legacy backup mode",
+      "RetirementDate": "2027-01-31"
+    },
+    {
+      "Id": "SVC-0002",
+      "RetiringFeature": "SQL VM lightweight agent",
+      "RetirementDate": "2027-06-30"
+    },
+    {
+      "Id": "SVC-0003",
+      "RetiringFeature": "Windows Server 2012 SQL image",
+      "RetirementDate": "2027-09-30"
+    }
+  ],
+  "resources": [
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.documentdb/databaseaccounts/cosmos-prod",
+      "NAME": "cosmos-prod",
+      "TYPE": "microsoft.documentdb/databaseaccounts",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "virtualNetworkRules": [
+          {
+            "id": "/subscriptions/sub-00000001/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-cosmos/subnets/cosmos-subnet"
+          }
+        ],
+        "privateEndpointConnections": [
+          {
+            "Id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-cosmos"
+          }
+        ],
+        "failoverPolicies": [
+          {
+            "locationName": "East US",
+            "failoverPriority": 0
+          },
+          {
+            "locationName": "West US",
+            "failoverPriority": 1
+          }
+        ],
+        "mongoEndpoint": null,
+        "documentEndpoint": "https://cosmos-prod.documents.azure.com:443/",
+        "enableFreeTier": false,
+        "EnabledApiTypes": "Sql",
+        "backupPolicy": {
+          "type": "Periodic",
+          "periodicModeProperties": {
+            "backupStorageRedundancy": "Geo"
+          }
+        },
+        "databaseAccountOfferType": "Standard",
+        "isVirtualNetworkFilterEnabled": true,
+        "capapcity": {
+          "totalthroughputlimit": 4000
+        },
+        "capabilities": [
+          {
+            "Name": "EnableServerless"
+          }
+        ],
+        "publicNetworkAccess": "Enabled",
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
+        },
+        "readLocations": [
+          {
+            "locationName": "East US"
+          }
+        ],
+        "writeLocations": [
+          {
+            "locationName": "East US"
+          }
+        ],
+        "cors": []
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.dbformariadb/servers/mariadb-prod",
+      "NAME": "mariadb-prod",
+      "TYPE": "microsoft.dbformariadb/servers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "Id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-mariadb"
+          }
+        ],
+        "version": "10.3",
+        "storageProfile": {
+          "backupRetentionDays": 7,
+          "geoRedundantBackup": "Disabled",
+          "storageAutogrow": "Enabled",
+          "storageMB": 51200
+        },
+        "publicNetworkAccess": "Enabled",
+        "administratorLogin": "dbadmin",
+        "InfrastructureEncryption": "Disabled",
+        "minimalTlsVersion": "TLS1_2",
+        "userVisibleState": "Ready",
+        "replicaCapacity": 5,
+        "replicationRole": "None",
+        "byokEnforcement": "Disabled",
+        "sslEnforcement": "Enabled"
+      },
+      "SKU": {
+        "name": "GP_Gen5_2",
+        "family": "Gen5",
+        "tier": "GeneralPurpose",
+        "capacity": 2
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.dbformysql/servers/mysql-prod",
+      "NAME": "mysql-prod",
+      "TYPE": "microsoft.dbformysql/servers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "Id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-mysql"
+          }
+        ],
+        "version": "5.7",
+        "storageProfile": {
+          "backupRetentionDays": 14,
+          "geoRedundantBackup": "Enabled",
+          "storageAutogrow": "Enabled",
+          "storageMB": 102400
+        },
+        "publicNetworkAccess": "Disabled",
+        "administratorLogin": "mysqladmin",
+        "InfrastructureEncryption": "Enabled",
+        "minimalTlsVersion": "TLS1_2",
+        "userVisibleState": "Ready",
+        "replicaCapacity": 5,
+        "replicationRole": "None",
+        "byokEnforcement": "Disabled",
+        "sslEnforcement": "Enabled"
+      },
+      "SKU": {
+        "name": "GP_Gen5_4",
+        "family": "Gen5",
+        "tier": "GeneralPurpose",
+        "capacity": 4
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.DBforMySQL/flexibleServers/mysql-flex-prod",
+      "NAME": "mysql-flex-prod",
+      "TYPE": "Microsoft.DBforMySQL/flexibleServers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "sku": {
+          "name": "Standard_D2ds_v4"
+        },
+        "version": "8.0",
+        "state": "Ready",
+        "availabilityZone": "1",
+        "administratorLogin": "flexadmin",
+        "storage": {
+          "storageSizeGB": 128,
+          "iops": 360,
+          "autoGrow": "Enabled",
+          "storageSku": "Premium_LRS"
+        },
+        "maintenanceWindow": {
+          "customWindow": "Enabled"
+        },
+        "replicationRole": "None",
+        "replicaCapacity": 10,
+        "network": {
+          "publicNetworkAccess": "Disabled"
+        },
+        "backup": {
+          "backupRetentionDays": 7,
+          "geoRedundantBackup": "Disabled"
+        },
+        "highAvailability": {
+          "mode": "ZoneRedundant",
+          "state": "Healthy"
+        },
+        "fullyQualifiedDomainName": "mysql-flex-prod.mysql.database.azure.com"
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.dbforpostgresql/servers/pg-prod",
+      "NAME": "pg-prod",
+      "TYPE": "microsoft.dbforpostgresql/servers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "Id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-pg"
+          }
+        ],
+        "version": "11",
+        "storageProfile": {
+          "backupRetentionDays": 14,
+          "geoRedundantBackup": "Enabled",
+          "storageAutogrow": "Enabled",
+          "storageMB": 204800
+        },
+        "publicNetworkAccess": "Disabled",
+        "administratorLogin": "pgadmin",
+        "InfrastructureEncryption": "Enabled",
+        "minimalTlsVersion": "TLS1_2",
+        "userVisibleState": "Ready",
+        "replicaCapacity": 5,
+        "replicationRole": "None",
+        "byokEnforcement": "Disabled",
+        "sslEnforcement": "Enabled"
+      },
+      "SKU": {
+        "name": "GP_Gen5_8",
+        "family": "Gen5",
+        "tier": "GeneralPurpose",
+        "capacity": 8
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-flex-prod",
+      "NAME": "pg-flex-prod",
+      "TYPE": "Microsoft.DBforPostgreSQL/flexibleServers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "fullyqualifieddomainname": "pg-flex-prod.postgres.database.azure.com",
+        "administratorLogin": "pgflexadmin",
+        "version": "15",
+        "minorversion": "4",
+        "authconfig": {
+          "activedirectoryauth": "Enabled",
+          "passwordauth": "Enabled"
+        },
+        "storage": {
+          "storagesizegb": 256
+        },
+        "availabilityzone": "2",
+        "highavailability": {
+          "state": "Healthy"
+        },
+        "dataencryption": {
+          "type": "SystemManaged"
+        },
+        "backup": {
+          "backupretentiondays": 7,
+          "geoRedundantBackup": "Disabled"
+        },
+        "replicationRole": "Primary",
+        "replicaCapacity": 5,
+        "network": {
+          "publicnetworkaccess": "Disabled",
+          "delegatedsubnetresourceid": "/subscriptions/sub-00000001/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-pg/subnets/pg-subnet",
+          "privatednszonearmresourceid": "/subscriptions/sub-00000001/resourceGroups/rg-net/providers/Microsoft.Network/privateDnsZones/pg.postgres.database.azure.com"
+        }
+      },
+      "SKU": {
+        "tier": "GeneralPurpose",
+        "name": "Standard_D4s_v3"
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.cache/redis/redis-prod",
+      "NAME": "redis-prod",
+      "TYPE": "microsoft.cache/redis",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "properties": {
+              "privateEndpoint": {
+                "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-redis"
+              }
+            }
+          }
+        ],
+        "redisVersion": "6.0",
+        "publicNetworkAccess": "Disabled",
+        "hostName": "redis-prod.redis.cache.windows.net",
+        "port": 6379,
+        "enableNonSslPort": false,
+        "minimumTlsVersion": "1.2",
+        "sslPort": 6380,
+        "sku": {
+          "name": "Premium",
+          "capacity": 1,
+          "family": "P"
+        },
+        "redisConfiguration": {
+          "maxfragmentationmemory-reserved": "642",
+          "maxmemory-reserved": "642",
+          "maxmemory-delta": "642",
+          "maxclients": "7500"
+        }
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.cache/redisenterprise/redis-ent-prod",
+      "NAME": "redis-ent-prod",
+      "TYPE": "microsoft.cache/redisenterprise",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [],
+        "redisVersion": "6.0",
+        "publicNetworkAccess": "Enabled",
+        "hostName": "redis-ent-prod.redisenterprise.cache.azure.net",
+        "port": 10000,
+        "enableNonSslPort": false,
+        "minimumTlsVersion": "",
+        "sslPort": 10000,
+        "sku": {
+          "name": "Enterprise_E10",
+          "capacity": 2,
+          "family": "Enterprise"
+        },
+        "redisConfiguration": {
+          "maxfragmentationmemory-reserved": null,
+          "maxmemory-reserved": null,
+          "maxmemory-delta": null,
+          "maxclients": null
+        }
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod/databases/appdb",
+      "NAME": "appdb",
+      "TYPE": "microsoft.sql/servers/databases",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "elasticPoolId": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Sql/servers/sql-prod/elasticPools/ep-prod",
+        "earliestrestoredate": "2025-06-01T00:00:00Z",
+        "defaultSecondaryLocation": "westus",
+        "status": "Online",
+        "availabilityzone": "1",
+        "minCapacity": 0.5,
+        "currentSku": {
+          "capacity": 2,
+          "tier": "GeneralPurpose",
+          "name": "GP_S_Gen5"
+        },
+        "zoneRedundant": false,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "readReplicaCount": 0,
+        "maxSizeBytes": 34359738368
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/managedInstances/sqlmi-prod",
+      "NAME": "sqlmi-prod",
+      "TYPE": "microsoft.sql/managedInstances",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "adminitrators": {
+          "login": "sqladmin",
+          "azureADOnlyAuthentication": false
+        },
+        "fullyQualifiedDomainName": "sqlmi-prod.abcdef123456.database.windows.net",
+        "publicDataEndpointEnabled": false,
+        "licenseType": "LicenseIncluded",
+        "managedInstanceCreateMode": "Default",
+        "zoneRedundant": true
+      },
+      "SKU": {
+        "Name": "GP_Gen5",
+        "capacity": 8,
+        "tier": "GeneralPurpose"
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ],
+      "privateEndpointConnections": [
+        {
+          "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Network/privateEndpoints/pe-sqlmi"
+        }
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/managedinstances/sqlmi-prod/databases/midb-app",
+      "NAME": "midb-app",
+      "TYPE": "microsoft.sql/managedinstances/databases",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Sql/managedInstances/sqlmi-prod/privateEndpoints/pe-midb"
+          }
+        ],
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "creationDate": "2025-03-15T10:00:00Z",
+        "defaultSecondaryLocation": "westus",
+        "status": "Online"
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod/elasticPools/ep-prod",
+      "NAME": "ep-prod",
+      "TYPE": "microsoft.sql/servers/elasticPools",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "state": "Ready",
+        "licenseType": "LicenseIncluded",
+        "maxSizeBytes": 107374182400,
+        "perDatabaseSettings": {
+          "maxCapacity": 2,
+          "minCapacity": 0
+        },
+        "zoneRedundant": false
+      },
+      "SKU": {
+        "capacity": 200,
+        "name": "GP_Gen5",
+        "tier": "GeneralPurpose"
+      },
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod",
+      "NAME": "sql-prod",
+      "TYPE": "microsoft.sql/servers",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [
+          {
+            "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.Sql/servers/sql-prod/privateEndpoints/pe-sqlserver"
+          }
+        ],
+        "administratorLogin": "sqladmin",
+        "fullyQualifiedDomainName": "sql-prod.database.windows.net",
+        "publicNetworkAccess": "Disabled",
+        "minimalTlsVersion": "1.2",
+        "state": "Ready",
+        "version": "12.0"
+      },
+      "SKU": null,
+      "kind": "v12.0",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-prod",
+      "NAME": "sqlvm-prod",
+      "TYPE": "microsoft.sqlvirtualmachine/sqlvirtualmachines",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "sqlServerLicenseType": "PAYG",
+        "sqlImageOffer": "SQL2019-WS2019",
+        "sqlManagement": "Full",
+        "sqlImageSku": "Enterprise"
+      },
+      "SKU": null,
+      "kind": "",
+      "zones": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.cache/redis/redis-late",
+      "NAME": "redis-late",
+      "TYPE": "microsoft.cache/redis",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": {
+        "owner": "platform"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [],
+        "redisVersion": "6.2",
+        "publicNetworkAccess": "Enabled",
+        "hostName": "redis-late.redis.cache.windows.net",
+        "port": 6379,
+        "enableNonSslPort": true,
+        "minimumTlsVersion": "1.2",
+        "sslPort": 6380,
+        "sku": {
+          "name": "Basic",
+          "capacity": 0,
+          "family": "C"
+        },
+        "redisConfiguration": {
+          "maxfragmentationmemory-reserved": "125",
+          "maxmemory-reserved": "125",
+          "maxmemory-delta": "125",
+          "maxclients": "256"
+        }
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod/databases/master",
+      "NAME": "master",
+      "TYPE": "microsoft.sql/servers/databases",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "elasticPoolId": null,
+        "earliestrestoredate": null,
+        "defaultSecondaryLocation": "westus",
+        "status": "Online",
+        "availabilityzone": "NoZone",
+        "minCapacity": null,
+        "currentSku": {
+          "capacity": 0,
+          "tier": "System",
+          "name": "System"
+        },
+        "zoneRedundant": false,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "readReplicaCount": 0,
+        "maxSizeBytes": 0
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sql/servers/sql-eu/databases/reportdb",
+      "NAME": "reportdb",
+      "TYPE": "microsoft.sql/servers/databases",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": {
+        "env": "prod",
+        "costCentre": "CC-1234"
+      },
+      "PROPERTIES": {
+        "elasticPoolId": null,
+        "earliestrestoredate": "2026-01-05T00:00:00Z",
+        "defaultSecondaryLocation": "northeurope",
+        "status": "Online",
+        "availabilityzone": "2",
+        "minCapacity": 1.0,
+        "currentSku": {
+          "capacity": 4,
+          "tier": "BusinessCritical",
+          "name": "BC_Gen5"
+        },
+        "zoneRedundant": true,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "readReplicaCount": 1,
+        "maxSizeBytes": 107374182400
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sql/servers/sql-eu",
+      "NAME": "sql-eu",
+      "TYPE": "microsoft.sql/servers",
+      "KIND": "v12.0",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": null,
+      "PROPERTIES": {
+        "privateEndpointConnections": [],
+        "administratorLogin": "euadmin",
+        "fullyQualifiedDomainName": "sql-eu.database.windows.net",
+        "publicNetworkAccess": "Enabled",
+        "minimalTlsVersion": "1.2",
+        "state": "Ready",
+        "version": "12.0"
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sql/managedinstances/sqlmi-eu/databases/midb-nopec",
+      "NAME": "midb-nopec",
+      "TYPE": "microsoft.sql/managedinstances/databases",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": null,
+      "PROPERTIES": {
+        "privateEndpointConnections": [],
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "creationDate": "2026-02-01T09:00:00Z",
+        "defaultSecondaryLocation": "northeurope",
+        "status": "Online"
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-eu",
+      "NAME": "sqlvm-eu",
+      "TYPE": "microsoft.sqlvirtualmachine/sqlvirtualmachines",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": null,
+      "PROPERTIES": {
+        "sqlServerLicenseType": "AHUB",
+        "sqlImageOffer": "SQL2022-WS2022",
+        "sqlManagement": "LightWeight",
+        "sqlImageSku": "Standard"
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000009/resourceGroups/rg-orphan/providers/microsoft.dbformysql/servers/mysql-orphan",
+      "NAME": "mysql-orphan",
+      "TYPE": "microsoft.dbformysql/servers",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000009",
+      "tags": {
+        "env": "sandbox"
+      },
+      "PROPERTIES": {
+        "privateEndpointConnections": [],
+        "version": "5.7",
+        "storageProfile": {
+          "backupRetentionDays": 7,
+          "geoRedundantBackup": "Disabled",
+          "storageAutogrow": "Disabled",
+          "storageMB": 5120
+        },
+        "publicNetworkAccess": "Enabled",
+        "administratorLogin": "orphanadmin",
+        "InfrastructureEncryption": "Disabled",
+        "minimalTlsVersion": "TLSEnforcementDisabled",
+        "userVisibleState": "Ready",
+        "replicaCapacity": 0,
+        "replicationRole": "None",
+        "byokEnforcement": "Disabled",
+        "sslEnforcement": "Disabled"
+      },
+      "SKU": {
+        "name": "B_Gen5_1",
+        "family": "Gen5",
+        "tier": "Basic",
+        "capacity": 1
+      },
+      "ZONES": [
+        "1"
+      ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.storage/storageaccounts/stnotadb",
+      "NAME": "stnotadb",
+      "TYPE": "microsoft.storage/storageaccounts",
+      "KIND": "",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "supportsHttpsTrafficOnly": true
+      },
+      "SKU": null,
+      "ZONES": [
+        "1"
+      ]
+    }
+  ]
+}
