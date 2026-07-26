@@ -13,7 +13,46 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## Current Release — v2.6.0 — The Engine Stops Using Background Jobs
+## Current Release — v2.7.0 — Reporting Leaves `Modules/`, and Collectors Become Data
+
+Released 26 July 2026, published to the PowerShell Gallery. Second phase of the engine rebuild
+(Epic **AB#5638**).
+
+**Excel COM is gone.** All 26 inventory report renderers moved out of `Modules/Private/Reporting/`
+into `src/report/renderers/`, each file renamed to match the function it defines, and
+`Build-AZTIExcelComObject.ps1` was deleted outright — chart styling now runs on EPPlus/ImportExcel
+only. COM is why `-Lite` defaulted to true, and why the module surfaced a raw
+`0x80040154 REGDB_E_CLASSNOTREG` on every machine and CI runner without Excel installed. Verified
+against a live tenant on a machine with no Excel: a 42-worksheet workbook, `SecurityCenter`
+carrying 489 rows.
+
+**The first collector category is now data rather than code.** All 13 Databases collectors ship as
+`.psd1` definitions interpreted at runtime. Each one is pinned by an equivalence test that runs the
+original imperative collector and the declarative definition over the same input, then compares the
+processed rows key-by-key *and* the written `.xlsx` cell-by-cell, under both `-IncludeTags` states.
+Writing that test caught two defects that would have silently changed shipped reports: tag columns
+were being appended rather than inserted, reordering the last three columns of every tagged
+worksheet, and `ResourceTypes` was applied as a membership test rather than a grouping.
+
+An AST audit of all 176 collectors now ships alongside it: of the 163 that remain, **115 are
+mechanically convertible** and **48 must stay hand-written** — 29 make live cmdlet calls, 20 do
+cross-resource joins, 10 never filter `$Resources`, and 2 are unimplemented.
+
+**A single-pass collection layer landed — as capability only.** `src/collect/` gained five
+functions and a resource-type map covering 128 ARM types; one raw pass satisfies 34 of the 35
+collect queries. But **nothing in the product calls them yet**, so a run still reaches Resource
+Graph exactly as often as it did in v2.6.0. Inverting the pipeline onto this layer is **AB#5648**
+and is not in this release.
+
+**A defect that had shipped in every release:** an unbound `[string[]]` parameter is `$null`, and
+`@($null).Count` is **1**, not 0 — so the subscription-resolution branch in `Invoke-Collect` never
+fired on the default path. The subscription list was never derived from `resourcecontainers`, and
+every later table degraded to a single un-batched tenant-wide call with none of the documented
+per-batch isolation. Same `@($null).Count` class as the empty-Excel-loop bug fixed in v2.6.0.
+
+Full detail: [CHANGELOG.md § 2.7.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#270---2026-07-26).
+
+## Previous Release — v2.6.0 — The Engine Stops Using Background Jobs
 
 Released 25 July 2026, published to the PowerShell Gallery. First phase of the engine rebuild
 (Epic **AB#5638**).

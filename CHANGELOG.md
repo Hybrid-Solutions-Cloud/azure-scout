@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-07-26
+
+Second phase of the engine rebuild (Epic **AB#5638**).
+
+### Changed
+
+- **The inventory reporting layer moved out of `Modules/`** (AB#5662). All 26 renderers now live
+  under `src/report/renderers/inventory/` and `src/report/renderers/inventory/style/`, each file
+  renamed to match the function it defines — the legacy `AZTI`-file / `AZSC`-function mismatch is
+  gone. Function names are unchanged, so no call site changed behaviour.
+
+- **Excel COM is deleted** (AB#5662). `Build-AZTIExcelComObject.ps1` is gone; chart styling runs
+  on EPPlus/ImportExcel only, via the new `Build-AZSCExcelChartStyle`. COM is why `-Lite`
+  defaulted to true and why the module surfaced a raw `0x80040154 REGDB_E_CLASSNOTREG` on every
+  machine and CI runner without Excel installed. No live COM call remains anywhere in `src/`,
+  `Modules/` or `tests/`.
+
+  Verified against a live tenant on a machine with no Excel: a 42-worksheet workbook, with
+  `SecurityCenter` carrying 489 rows.
+
+  The EPPlus chart styling is an **approximation** of the former COM styling, documented in the
+  function's `.NOTES`. Nobody has yet compared the two workbooks side by side.
+
+- **The Databases collectors are now data, not code** (AB#5656). All 13 ship as
+  `manifests/collectors/Databases/*.psd1`, interpreted at runtime by
+  `Invoke-ScoutDeclarativeCollector`. `Get-ScoutCollector` was extended to report
+  `HasDeclarativeDefinition` and `DefinitionPath` rather than adding a second discovery mechanism.
+
+  Each definition is pinned by an equivalence test that runs the original imperative collector
+  and the declarative definition over the same input, then compares the processed rows
+  key-by-key **and** the written `.xlsx` cell-by-cell, under both `-IncludeTags` states.
+
+### Added
+
+- **A single-pass collection layer** (AB#5639) — `Get-ScoutRawInventory`, `Get-ScoutApiResources`,
+  `Get-ScoutCostInventory`, `Get-ScoutVmQuotas`, `Get-ScoutVmSkuDetails` in `src/collect/`, plus
+  an AST-derived resource-type map covering 128 ARM types, 17 cognitive-services `kind` values and
+  the VM quota/SKU pseudo-types. One raw pass satisfies **34 of the 35** collect queries;
+  `sqlDefenderPricing` reads `SecurityResources` and genuinely cannot be served from inventory.
+
+  **This is capability only.** Nothing in the product calls these functions yet, so a run still
+  reaches Resource Graph exactly as many times as it did in v2.6.0. Inverting the pipeline onto
+  this layer is **AB#5648** and is not in this release.
+
+- **An AST audit of all 176 collectors** — `docs/design/collector-audit.md`. Of the 163
+  non-Databases collectors, **115 are mechanically convertible** and **48 must stay hand-written**:
+  29 make live cmdlet calls (18 of them `Invoke-AzRestMethod`), 20 do cross-resource joins, 10
+  never filter `$Resources`, and 2 are unimplemented.
+
+- **A StrictMode-safe property accessor** and the first collector converted to use it, with
+  recorded live-payload fixtures and edge-case fixtures for the shapes that have historically
+  broken runs (AB#5667).
+
+### Fixed
+
+- **Subscription batching never happened on the default path** (AB#5639). An unbound `[string[]]`
+  parameter is `$null`, and `@($null).Count` is **1**, not 0 — so the subscription-resolution
+  branch in `Invoke-Collect` gated on `.Count -eq 0` never fired. The subscription list was never
+  derived from `resourcecontainers`, and every later table degraded to a single un-batched
+  tenant-wide call with none of the documented per-batch isolation. The existing test passed
+  either way because it asserted only the container count; the regression test now asserts the
+  actual `-Subscription` argument.
+
+  This is the **same `@($null).Count` class** that made the Excel loop run every collector
+  regardless of data in v2.6.0.
+
+- **Tag columns were appended rather than inserted** in the declarative interpreter (AB#5656), so
+  every tagged worksheet came out with its last three columns reordered — all 13 collectors add
+  their trailing column *after* the tag block. A definition naming a column that does not exist
+  is now a load-time error rather than a silent fallback to appending.
+
+- **`ResourceTypes` was a membership test rather than a grouping** (AB#5656), so `RedisCache` lost
+  the ordering its original produced by concatenating `redis` then `redisenterprise`.
+
+- Three callers left pointing at the old reporting paths (`Export-PowerBi.ps1`,
+  `tests/OutputFormat.Tests.ps1`, `tests/Private.Processing.Tests.ps1`), plus the `Support.json`
+  and `Retirement.kql` path walk-ups.
+
+### Known limitations
+
+- `Management/ManagementGroups` fails on every live run with *"missing mandatory parameters:
+  GroupName"* — environment and permissions, not a code defect.
+- `RedisCache` exports a blank `Resource Group` column and `SQLMI` a blank
+  `ActiveDirectoryOnlyAuthentication` column. Both have been blank in every shipped release; the
+  declarative definitions reproduce them faithfully rather than diverge from the imperative path.
+- `Identity/IdentityProviders` and `Identity/SecurityDefaults` are still written against a
+  registration API that exists only as a test mock and have never produced a row.
+- `ChartP6` fails due to an unconditional `Add-PivotTable` in `Build-AZSCExcelChart.ps1`.
+- `tests/Web.Module.Tests.ps1` uses a fixed shared temp path and deletes it in `BeforeAll`, so
+  concurrent suite runs interfere with each other.
+
 ## [2.6.0] - 2026-07-25
 
 ### Changed
