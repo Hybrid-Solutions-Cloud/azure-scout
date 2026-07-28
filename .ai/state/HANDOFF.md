@@ -10,6 +10,11 @@
 
 ### Latest release-hardening progress (2026-07-28)
 
+- **Released:** commit `df06aaa` was pushed to `main`, annotated tag `v3.0.0` was pushed, GitHub
+  release created, and PowerShell Gallery resolves `AzureScout` **3.0.0** successfully. The
+  Gallery publish used `hcs-vault-azure-scout-powershellgallery-publisher-api-key` from
+  `kv-hcs-vault-01`; no secret was written to the repository.
+
 - Repointed active output, reporting, helper, and permission-audit tests to `src/` after retiring
   `Modules/Private`; permission-audit no-context tests now mock Azure context so they remain offline.
   Verified: OutputFormat **41 passed / 1 skipped**, PermissionAudit **46 passed / 1 skipped**,
