@@ -41,18 +41,9 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER DefaultPath
     Run folder. Cache files are written to its ReportCache subdirectory.
 
-.PARAMETER InventoryRoot
-    InventoryModules directory. Defaults to the one shipped with the module.
-
 .PARAMETER DefinitionRoot
     Declarative definition tree (`manifests/collectors`). Defaults, via Get-ScoutCollector, to
-    the one shipped with the module. Present so a fixture tree can supply its own definitions,
-    the same reason InventoryRoot is a parameter.
-
-.PARAMETER ForceImperativeCollectors
-    Run every collector as its hand-written `.ps1`, ignoring any `.psd1`. The programmatic form
-    of the `AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS` kill switch — see
-    `Test-ScoutDeclarativeCutoverDisabled`.
+    the one shipped with the module. Present so a fixture tree can supply its own definitions.
 
 .OUTPUTS
     PSCustomObject summarising the run: collectors executed, how many ran declaratively,
@@ -63,9 +54,8 @@ $ErrorActionPreference = 'Stop'
 
     THE CUTOVER (AB#5656) happens one level down, in Invoke-ScoutCollector, and this function is
     unchanged in structure because of it: a collector is still discovered once, run once, and
-    contained once. All that changed is WHICH implementation of a given collector executes —
-    which is the whole reason the declarative work was staged behind an equivalence proof rather
-    than folded into the pipeline rewrite.
+    contained once. The definition is the implementation and its committed golden contract is
+    the release evidence.
 #>
 function Invoke-ScoutProcessing {
     [CmdletBinding(SupportsShouldProcess)]
@@ -103,20 +93,25 @@ function Invoke-ScoutProcessing {
 
         [Parameter()]
         [AllowNull()]
-        [string]$DefinitionRoot,
+        [string]$DefinitionRoot
 
-        [Parameter()]
-        [switch]$ForceImperativeCollectors
     )
 
     $Started = Get-Date
 
-    if (-not $InventoryRoot) {
-        $ModuleRoot    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-        $InventoryRoot = Join-Path $ModuleRoot 'Modules' 'Public' 'InventoryModules'
+    if (-not $DefinitionRoot) {
+        $ModuleRoot     = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $DefinitionRoot = Join-Path $ModuleRoot 'manifests' 'collectors'
     }
 
-    $Collectors = @(Get-ScoutCollector -InventoryRoot $InventoryRoot -Category $Category -DefinitionRoot $DefinitionRoot)
+    # The v3 runtime reads the complete declarative catalog.  InventoryRoot is retained only
+    # for isolated legacy-fixture tests while the source tree is being removed; it is never
+    # inferred from Modules/.
+    if ($InventoryRoot) {
+        $Collectors = @(Get-ScoutCollector -InventoryRoot $InventoryRoot -Category $Category -DefinitionRoot $DefinitionRoot)
+    } else {
+        $Collectors = @(Get-ScoutCollector -Category $Category -DefinitionRoot $DefinitionRoot)
+    }
     $Total      = $Collectors.Count
 
     if ($Total -eq 0) {
@@ -128,7 +123,6 @@ function Invoke-ScoutProcessing {
         return [PSCustomObject]@{
             CollectorCount   = 0
             DeclarativeCount = 0
-            ImperativeCount  = 0
             FailureCount     = 0
             Failures         = @()
             SkippedCount     = 0
@@ -142,7 +136,7 @@ function Invoke-ScoutProcessing {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + "Running $Total collectors in-process.")
 
     $Context = @{
-        ScriptRoot    = $InventoryRoot
+        ScriptRoot    = $DefinitionRoot
         Subscriptions = $Subscriptions
         InTag         = $InTag
         Resources     = $Resources
@@ -160,11 +154,9 @@ function Invoke-ScoutProcessing {
     $CacheFiles = [System.Collections.Generic.List[object]]::new()
     $Done       = 0
 
-    # How each collector was actually executed (AB#5656). Counted from the RESULT, not predicted
-    # from the descriptor: a definition that fails to load falls back to its `.ps1`, and a summary
-    # that reported the intention rather than the outcome would hide exactly that.
+    # Every shipped collector is declarative in v3. The result mode is kept as a checked runtime
+    # invariant so a future alternate executor cannot be counted as a successful release run.
     $Declarative = 0
-    $Imperative  = 0
 
     # Group by folder category: the cache file is named for the folder, so a category's file is
     # written once, after all of its collectors have run.
@@ -179,21 +171,10 @@ function Invoke-ScoutProcessing {
             Write-Progress -Id 1 -Activity 'Processing inventory' -Status "$Percent% Complete." `
                 -PercentComplete $Percent -CurrentOperation "$CategoryName / $($Collector.Name)"
 
-            # Collectors written against the never-implemented registration API are counted
-            # and reported, not run — see Get-ScoutCollector for why they cannot succeed.
-            if ($Collector.Contract -eq 'Unsupported') {
-                $Skipped.Add([PSCustomObject]@{
-                    Collector = $Collector.Name
-                    Category  = $Collector.FolderCategory
-                    Reason    = 'Written against the unimplemented Register-AZSCInventoryModule contract (AB#5656)'
-                })
-                $Done++
-                continue
-            }
+            $Result = Invoke-ScoutCollector -Collector $Collector -Context $Context
 
-            $Result = Invoke-ScoutCollector -Collector $Collector -Context $Context -Imperative:$ForceImperativeCollectors
-
-            if ($Result.Mode -eq 'Declarative') { $Declarative++ } else { $Imperative++ }
+            if ($Result.Mode -ne 'Declarative') { throw "Collector '$($Collector.FolderCategory)/$($Collector.Name)' returned unsupported execution mode '$($Result.Mode)'." }
+            $Declarative++
 
             if (-not $Result.Success) {
                 $Failures.Add([PSCustomObject]@{
@@ -223,7 +204,6 @@ function Invoke-ScoutProcessing {
     $Summary = [PSCustomObject]@{
         CollectorCount   = $Total
         DeclarativeCount = $Declarative
-        ImperativeCount  = $Imperative
         FailureCount     = $Failures.Count
         Failures         = @($Failures)
         SkippedCount     = $Skipped.Count
@@ -244,7 +224,6 @@ function Invoke-ScoutProcessing {
             -Detail @{
                 'Collectors run'    = $Total - $Summary.SkippedCount
                 'Collectors declarative' = $Summary.DeclarativeCount
-                'Collectors imperative'  = $Summary.ImperativeCount
                 'Collectors failed' = $Summary.FailureCount
                 'Collectors skipped' = $Summary.SkippedCount
                 'Categories cached' = @($CacheFiles | Where-Object { $_.Written }).Count

@@ -37,7 +37,10 @@ function Export-AZSCMarkdownReport {
 
         [Parameter()]
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
-        [string]$Scope = 'All'
+        [string]$Scope = 'All',
+
+        [Parameter()]
+        [string]$DefinitionRoot = (Join-Path (Join-Path ((Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent.FullName) 'manifests') 'collectors')
     )
 
     $MdFile = [System.IO.Path]::ChangeExtension($File, '.md')
@@ -60,13 +63,14 @@ function Export-AZSCMarkdownReport {
     $lines.Add("| Tool | AzureScout |")
     $lines.Add('')
 
-    # ── Discover module folders ───────────────────────────────────────────
-    # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory
-    # (4 levels below repo root, was 2) -- the walk-up depth changed accordingly.
-    $RepoRoot             = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
-    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-    $ModuleFolders        = Get-ChildItem -Path $InventoryModulesPath -Directory | Sort-Object Name
-    $CacheFiles           = Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue
+    # Definitions are the report contract; cache keys are definition names.
+    $SectionIndex = @(Get-ScoutReportSectionIndex -DefinitionRoot $DefinitionRoot)
+    $CacheFiles = @(Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue | Sort-Object FullName)
+    $CacheByName = @{}
+    foreach ($CacheFile in $CacheFiles) {
+        if (-not $CacheByName.ContainsKey($CacheFile.Name)) { $CacheByName[$CacheFile.Name] = $CacheFile }
+    }
+    $ParsedCache = @{}
 
     # ── Table of Contents ─────────────────────────────────────────────────
     $tocLines       = [System.Collections.Generic.List[string]]::new()
@@ -76,75 +80,55 @@ function Export-AZSCMarkdownReport {
     $tocLines.Add('## Table of Contents')
     $tocLines.Add('')
 
-    foreach ($ModuleFolder in $ModuleFolders) {
-        $FolderName   = $ModuleFolder.Name
-        $JSONFileName = "$FolderName.json"
-        $CacheFile    = $CacheFiles | Where-Object { $_.Name -eq $JSONFileName }
-        if (-not $CacheFile) { continue }
+    $CurrentCategory = $null
+    foreach ($Section in $SectionIndex) {
+        if ($Scope -eq 'ArmOnly' -and $Section.Category -eq 'Identity') { continue }
+        if ($Scope -eq 'EntraOnly' -and $Section.Category -ne 'Identity') { continue }
+        if (-not $CacheByName.ContainsKey($Section.CacheFileName)) { continue }
+        if (-not $ParsedCache.ContainsKey($Section.CacheFileName)) {
+            $RawJson = [System.IO.File]::ReadAllText($CacheByName[$Section.CacheFileName].FullName)
+            if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
+            $ParsedCache[$Section.CacheFileName] = $RawJson | ConvertFrom-Json
+        }
 
-        $RawJson = try { [System.IO.File]::ReadAllText($CacheFile.FullName) } catch { $null }
-        if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
+        $CacheData = $ParsedCache[$Section.CacheFileName]
+        $CacheProperty = $CacheData.PSObject.Properties[$Section.CacheKey]
+        $ModResources = if ($CacheProperty) { $CacheProperty.Value } else { $null }
+        if (-not $ModResources -or @($ModResources).Count -eq 0) { continue }
 
-        $CacheData  = $RawJson | ConvertFrom-Json
-        $ModuleFiles = Get-ChildItem -Path (Join-Path $ModuleFolder.FullName '*.ps1') -ErrorAction SilentlyContinue | Sort-Object BaseName
+        $rows = @($ModResources)
+        $totalResources += $rows.Count
+        if ($CurrentCategory -ne $Section.Category) {
+            $CurrentCategory = $Section.Category
+            $anchor = $CurrentCategory.ToLowerInvariant() -replace '[^a-z0-9]', '-'
+            $tocLines.Add("- [$CurrentCategory](#$anchor)")
+            $sectionLines.Add("## $CurrentCategory")
+            $sectionLines.Add('')
+        }
 
-        $folderHasData = $false
-        $folderSections = [System.Collections.Generic.List[string]]::new()
+        $modAnchor = $Section.Name.ToLowerInvariant() -replace '[^a-z0-9]', '-'
+        $tocLines.Add("  - [$($Section.Name)](#$modAnchor)")
+        $sectionLines.Add("### $($Section.Name)")
+        $sectionLines.Add('')
+        $sectionLines.Add("_$($rows.Count) resource(s)_")
+        $sectionLines.Add('')
 
-        foreach ($Module in $ModuleFiles) {
-            $ModName      = $Module.BaseName
-            # $CacheData.$ModName throws "The property ... cannot be found on this object"
-            # under StrictMode when the cache carries no entry for that collector. It always
-            # did; it went unnoticed only because the old pipeline created a hashtable key for
-            # EVERY module file, even one that produced nothing, so the key was always there.
-            # The deterministic pipeline writes keys only for collectors it actually ran, so a
-            # skipped or filtered collector now legitimately has no key. Ask before reading.
-            # (AB#5649)
-            $ModResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
-            if (-not $ModResources -or @($ModResources).Count -eq 0) { continue }
-
-            $rows = @($ModResources)
-            $totalResources += $rows.Count
-
-            if (-not $folderHasData) {
-                # Add category heading
-                $anchor = $FolderName.ToLower() -replace '[^a-z0-9]', '-'
-                $tocLines.Add("- [$FolderName](#$anchor)")
-                $folderSections.Add("## $FolderName")
-                $folderSections.Add('')
-                $folderHasData = $true
-            }
-
-            # Module sub-heading
-            $modAnchor = $ModName.ToLower() -replace '[^a-z0-9]', '-'
-            $tocLines.Add("  - [$ModName](#$modAnchor)")
-            $folderSections.Add("### $ModName")
-            $folderSections.Add('')
-            $folderSections.Add("_$($rows.Count) resource(s)_")
-            $folderSections.Add('')
-
-            # Build table from first row's properties
-            $props = $rows[0].PSObject.Properties.Name | Where-Object { $_ -notmatch 'Tag (Name|Value)|Resource U' }
-            if (@($props).Count -gt 0) {
-                $header = '| ' + ($props -join ' | ') + ' |'
-                $sep    = '| ' + (($props | ForEach-Object { '---' }) -join ' | ') + ' |'
-                $folderSections.Add($header)
-                $folderSections.Add($sep)
-                foreach ($row in $rows) {
-                    $cells = $props | ForEach-Object {
-                        $v = $row.$_
-                        if ($null -eq $v) { '' }
-                        else { [string]$v -replace '\|', '&#124;' -replace '\r?\n', ' ' }
-                    }
-                    $folderSections.Add('| ' + ($cells -join ' | ') + ' |')
+        $props = $rows[0].PSObject.Properties.Name | Where-Object { $_ -notmatch 'Tag (Name|Value)|Resource U' }
+        if (@($props).Count -gt 0) {
+            $header = '| ' + ($props -join ' | ') + ' |'
+            $sep    = '| ' + (($props | ForEach-Object { '---' }) -join ' | ') + ' |'
+            $sectionLines.Add($header)
+            $sectionLines.Add($sep)
+            foreach ($row in $rows) {
+                $cells = $props | ForEach-Object {
+                    $v = $row.$_
+                    if ($null -eq $v) { '' }
+                    else { [string]$v -replace '\|', '&#124;' -replace '\r?\n', ' ' }
                 }
+                $sectionLines.Add('| ' + ($cells -join ' | ') + ' |')
             }
-            $folderSections.Add('')
         }
-
-        if ($folderHasData) {
-            foreach ($l in $folderSections) { $sectionLines.Add($l) }
-        }
+        $sectionLines.Add('')
     }
 
     $tocLines.Add('')

@@ -68,6 +68,30 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -1047,6 +1071,760 @@
           "NAME": "arcresourcebridge-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.resourceconnector/appliances"
+        }
+      ]
+    },
+    "ArcServerOperationalData": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "NAME": "arcserveroperationaldata-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1/ArcServerOperationalData/arcserveroperationaldata-t1a-join1",
+          "NAME": "arcserveroperationaldata-t1a-join1",
+          "TYPE": "AZSC/Operational/ArcServerOperationalData",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "NAME": "arcserveroperationaldata-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1/ArcServerOperationalData/arcserveroperationaldata-t1b-join1",
+          "NAME": "arcserveroperationaldata-t1b-join1",
+          "TYPE": "AZSC/Operational/ArcServerOperationalData",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "NAME": "arcserveroperationaldata-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "NAME": "arcserveroperationaldata-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1/ArcServerOperationalData/arcserveroperationaldata-t1d-join1",
+          "NAME": "arcserveroperationaldata-t1d-join1",
+          "TYPE": "AZSC/Operational/ArcServerOperationalData",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "NAME": "arcserveroperationaldata-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1/ArcServerOperationalData/arcserveroperationaldata-t1e-join1",
+          "NAME": "arcserveroperationaldata-t1e-join1",
+          "TYPE": "AZSC/Operational/ArcServerOperationalData",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "osName": "res-value",
+            "osSku": "res-value",
+            "osVersion": "res-value",
+            "agentVersion": "res-value",
+            "status": "res-value",
+            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "errorDetails": [
+              {
+                "message": "res-value"
+              },
+              {
+                "message": "res-value"
+              }
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "NAME": "arcserveroperationaldata-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1/ArcServerOperationalData/arcserveroperationaldata-t1f-join1",
+          "NAME": "arcserveroperationaldata-t1f-join1",
+          "TYPE": "AZSC/Operational/ArcServerOperationalData",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        }
+      ]
+    },
+    "ARCServers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1a",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1a-1/ARCServers/arcservers-t1a-join1",
+          "NAME": "arcservers-t1a-join1",
+          "TYPE": "AZSC/Operational/ARCServers",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1b",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1b-1/ARCServers/arcservers-t1b-join1",
+          "NAME": "arcservers-t1b-join1",
+          "TYPE": "AZSC/Operational/ARCServers",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1c",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1d",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1d-1/ARCServers/arcservers-t1d-join1",
+          "NAME": "arcservers-t1d-join1",
+          "TYPE": "AZSC/Operational/ARCServers",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1e",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1e-1/ARCServers/arcservers-t1e-join1",
+          "NAME": "arcservers-t1e-join1",
+          "TYPE": "AZSC/Operational/ARCServers",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "networkprofile": {
+              "networkinterfaces": {
+                "ipaddresses": [
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  },
+                  {
+                    "address": [
+                      "res-item-0",
+                      "res-item-1"
+                    ],
+                    "subnet": {
+                      "addressprefix": [
+                        "res-item-0",
+                        "res-item-1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
+            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "licenseprofile": {
+              "esuprofile": {
+                "servertype": "res-value"
+              },
+              "licensestatus": "res-value",
+              "licensechannel": "res-value"
+            },
+            "agentConfiguration": {
+              "proxy": {
+                "url": "res-value"
+              }
+            },
+            "privateLinkScopeResourceId": "res-value",
+            "status": "res-value",
+            "displayname": "res-value",
+            "domainname": "res-value",
+            "adfqdn": "res-value",
+            "dnsfqdn": "res-value",
+            "cloudmetadata": {
+              "provider": "res-value"
+            },
+            "detectedproperties": {
+              "manufacturer": "res-value",
+              "model": "res-value",
+              "processornames": "res-value",
+              "processorcount": "res-value",
+              "logicalcorecount": "res-value",
+              "totalphysicalmemoryingigabytes": "res-value",
+              "serialnumber": "res-value",
+              "smbiosassettag": "res-value"
+            },
+            "mssqldiscovered": "res-value",
+            "agentversion": "res-value",
+            "osName": "res-value",
+            "osVersion": "res-value",
+            "osSku": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "NAME": "arcservers-t1f",
+          "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcservers-t1f-1/ARCServers/arcservers-t1f-join1",
+          "NAME": "arcservers-t1f-join1",
+          "TYPE": "AZSC/Operational/ARCServers",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
         }
       ]
     },
@@ -3056,10 +3834,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }
@@ -3112,10 +3890,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }
@@ -3169,10 +3947,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }
@@ -3223,10 +4001,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }
@@ -3279,10 +4057,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }
@@ -3335,10 +4113,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               ]
             }

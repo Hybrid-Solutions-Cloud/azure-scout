@@ -8,7 +8,7 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Write-AZTIRunLog.ps1')
+    . (Join-Path $script:RepoRoot 'src/Write-AZTIRunLog.ps1')
 }
 
 Describe 'Start-AZSCRunLog' {
@@ -190,7 +190,7 @@ Describe 'Stop-AZSCRunLog' {
 Describe 'Invoke-AzureScout wiring' {
 
     BeforeAll {
-        $script:EntryPoint = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Invoke-AzureScout.ps1')
+        $script:EntryPoint = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/Invoke-AzureScout.ps1')
     }
 
     It 'starts the run log once the run folder exists' {

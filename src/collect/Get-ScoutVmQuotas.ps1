@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
     Quota usage (`Get-AzVMUsage`) is an ARM data-plane call scoped to a subscription context
     and a region -- it has no Resource Graph table, so it cannot be folded into
     `Get-ScoutRawInventory`'s ARG queries no matter how the raw row set is shaped. The type
-    map this task derived from the 176 legacy collectors (`scripts/
+    map this task derived from the 174 legacy collectors (`scripts/
     Get-CollectorResourceTypeMap.ps1`) surfaces exactly this: three collectors
     (AKS, VirtualMachine, VirtualMachineScaleSet) filter `$Resources` for a synthetic
     `'AZSC/VM/Quotas'`-typed row that only this call can produce -- confirming the legacy

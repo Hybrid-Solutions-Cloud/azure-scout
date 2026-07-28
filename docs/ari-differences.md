@@ -20,7 +20,7 @@ The following core capabilities come directly from the original project:
 | **ARM Resource Extraction** | The fundamental pattern of using Azure Resource Graph and ARM APIs to enumerate resources across subscriptions. |
 | **Draw.io Diagram Engine** | All network topology diagram generation — VNets, subnets, peerings, NSGs, load balancers, and resource layout logic. |
 | **Excel Report Pipeline** | The ImportExcel-based pipeline that turns resource data into formatted `.xlsx` workbooks with conditional formatting. |
-| **154 ARM Resource Modules** | Every ARM inventory module in `Modules/Public/InventoryModules/` (the module count excludes the 17 Entra ID modules, cataloged separately — see [Entra ID Inventory](#entra-id-inventory-17-modules) below) descends from ARI's original module set. AzureScout has added new modules and enhanced existing ones, but the pattern and many files trace back to ARI. |
+| **154 ARM Resource Modules** | Every ARM inventory module in `manifests/collectors/` (the module count excludes the 17 Entra ID modules, cataloged separately — see [Entra ID Inventory](#entra-id-inventory-17-modules) below) descends from ARI's original module set. AzureScout has added new modules and enhanced existing ones, but the pattern and many files trace back to ARI. |
 | **Orchestration Pattern** | The extraction → processing → reporting three-phase orchestration that powers the main pipeline. |
 | **Automation Account Mode** | The concept of running inside an Azure Automation Account with a Managed Identity (though AzureScout has not yet documented or validated this path — see [roadmap](roadmap.md)). |
 

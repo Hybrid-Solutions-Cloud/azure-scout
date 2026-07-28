@@ -93,20 +93,22 @@ $AutoScale = if([string]::IsNullOrEmpty($2.enableAutoScaling)){$false}else{if($2
                         $Labels = if ($Labels -like '* ,*') { $Labels -replace ".$" }else { $Labels }
 
                         # Extra VM Details
-                        $VMExtraDetail = $VMExtraDetails.properties | Where-Object {$_.Location -eq $1.location}
-                        $VMExtraDetail = $VMExtraDetail.SKUs | Where-Object {$_.Name -eq $2.vmSize}
+                        $vCPUs = $null; $vCPUsPerCore = $null; $RAM = $null
+                        $VMExtraDetail = @(Get-AZSCCollectedValue -InputObject $VMExtraDetails -Name 'properties') | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'Location') -eq $1.location }
+                        $VMExtraDetail = @(Get-AZSCCollectedValue -InputObject $VMExtraDetail -Name 'SKUs') | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'Name') -eq $2.vmSize }
 
-                        foreach ($Capability in $VMExtraDetail.Capabilities) {
+                        foreach ($Capability in @(Get-AZSCCollectedValue -InputObject $VMExtraDetail -Name 'Capabilities')) {
                             if ($Capability.Name -eq 'vCPUs') {$vCPUs = $Capability.Value}
                             if ($Capability.Name -eq 'vCPUsPerCore') {$vCPUsPerCore = $Capability.Value}
                             if ($Capability.Name -eq 'MemoryGB') {$RAM = $Capability.Value}
                         }
 
                         # Quotas
-                        $Size = $VMExtraDetail.Family
-                        $Quota = $VMQuotas.properties | Where-Object {$_.SubId -eq $1.subscriptionId}
-                        $Quota = $Quota | Where-Object {$_.Location -eq $1.location}
-                        $RemainingQuota = (($Quota.Data | Where-Object {$_.Name.Value -eq $Size}).Limit - ($Quota.Data | Where-Object {$_.Name.Value -eq $Size}).CurrentValue)
+                        $Size = Get-AZSCCollectedValue -InputObject $VMExtraDetail -Name 'Family'
+                        $Quota = @(Get-AZSCCollectedValue -InputObject $VMQuotas -Name 'properties') | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'SubId') -eq $1.subscriptionId }
+                        $Quota = $Quota | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'Location') -eq $1.location }
+                        $QuotaData = @(Get-AZSCCollectedValue -InputObject $Quota -Name 'Data') | Where-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'Name.Value') -eq $Size }
+                        $RemainingQuota = (Get-AZSCCollectedValue -InputObject $QuotaData -Name 'Limit') - (Get-AZSCCollectedValue -InputObject $QuotaData -Name 'CurrentValue')
 '@
         }
     )
@@ -296,7 +298,7 @@ $AutoScale = if([string]::IsNullOrEmpty($2.enableAutoScaling)){$false}else{if($2
         }
         @{
             Name = 'Zones Available in the Region'
-            Expression = '[string]$VMExtraDetail.LocationInfo.ZoneDetails.Name'
+            Expression = '[string](Get-AZSCSafeProperty -InputObject $VMExtraDetail -Path ''LocationInfo.ZoneDetails.Name'' -Enumerate)'
         }
         @{
             Name = 'Autoscale'

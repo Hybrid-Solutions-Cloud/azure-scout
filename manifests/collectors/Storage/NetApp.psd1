@@ -46,12 +46,12 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $VNET = if(![string]::IsNullOrEmpty($data.subnetId)){$data.subnetId.split('/')[8]}else{$null}
-                $Subnet = if(![string]::IsNullOrEmpty($data.subnetId)){$data.subnetId.split('/')[10]}else{$null}
+                $VNET = if(![string]::IsNullOrEmpty($data.subnetId)){Get-AZSCIdSegment -Id $data.subnetId -Index 8}else{$null}
+                $Subnet = if(![string]::IsNullOrEmpty($data.subnetId)){Get-AZSCIdSegment -Id $data.subnetId -Index 10}else{$null}
                 $ExportPolicy = @($data.exportPolicy.rules).count
-                $NetApp = if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[0]}else{$null}
-                $CapacityPool = if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[1]}else{$null}
-                $Volume =if(![string]::IsNullOrEmpty($1.Name)){$1.Name.split('/')[2]}else{$null}
+                $NetApp = if(![string]::IsNullOrEmpty($1.Name)){Get-AZSCIdSegment -Id $1.Name -Index 0}else{$null}
+                $CapacityPool = if(![string]::IsNullOrEmpty($1.Name)){Get-AZSCIdSegment -Id $1.Name -Index 1}else{$null}
+                $Volume =if(![string]::IsNullOrEmpty($1.Name)){Get-AZSCIdSegment -Id $1.Name -Index 2}else{$null}
                 $Quota = ((($data.usageThreshold/1024)/1024)/1024)/1024
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@

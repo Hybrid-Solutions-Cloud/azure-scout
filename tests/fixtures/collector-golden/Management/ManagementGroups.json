@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "ManagementGroups",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "23e783ac13f45f95d3abcf8e0aba579312649ebc98bb6c3aa8145d4648571b72",
+  "Rows": [
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>",
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>",
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>",
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>",
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>",
+    "Direct Child MGs=<null>|Direct Subscription Names=<null>|Direct Subscriptions=<null>|Display Name=<null>|Display Name (Raw)=<null>|Full Path=<null>|Hierarchy Depth=<null>|Management Group ID=<null>|Parent Management Group=<null>|Resource U=j:1|Tenant ID=<null>"
+  ],
+  "Workbook": {
+    "WithoutTags": "Management Group ID\tDisplay Name\tDisplay Name (Raw)\tFull Path\tHierarchy Depth\tParent Management Group\tTenant ID\tDirect Child MGs\tDirect Subscriptions\tDirect Subscription Names\tResource U\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1",
+    "WithTags": "Management Group ID\tDisplay Name\tDisplay Name (Raw)\tFull Path\tHierarchy Depth\tParent Management Group\tTenant ID\tDirect Child MGs\tDirect Subscriptions\tDirect Subscription Names\tResource U\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t\t1"
+  }
+}

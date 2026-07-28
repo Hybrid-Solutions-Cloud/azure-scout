@@ -100,7 +100,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -135,7 +135,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -163,7 +163,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -188,7 +188,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -241,7 +241,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -276,7 +276,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -304,7 +304,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -329,7 +329,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -383,7 +383,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -418,7 +418,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -446,7 +446,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -471,7 +471,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -502,7 +502,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -537,7 +537,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -565,7 +565,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -590,7 +590,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -643,7 +643,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -678,7 +678,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -706,7 +706,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -731,7 +731,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -784,7 +784,7 @@
             "addonProfiles": {
               "omsagent": {
                 "config": {
-                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "logAnalyticsWorkspaceResourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "ingressApplicationGateway": {
@@ -819,7 +819,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               },
               {
@@ -847,7 +847,7 @@
                 "minCount": "res-value",
                 "maxCount": "res-value",
                 "maxPods": "res-value",
-                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+                "vnetSubnetID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
                 "enableNodePublicIP": "res-value"
               }
             ],
@@ -872,7 +872,7 @@
             "publicNetworkAccess": "res-value",
             "identityprofile": {
               "kubeletidentity": {
-                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "resourceid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             },
             "apiServerAccessProfile": {
@@ -950,7 +950,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1019,7 +1019,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1089,7 +1089,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1156,7 +1156,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1225,7 +1225,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1294,7 +1294,7 @@
             },
             "masterProfile": {
               "vmSize": "res-value",
-              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "subnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "workerProfiles": [
               {
@@ -1356,7 +1356,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [
@@ -1431,7 +1431,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [
@@ -1507,7 +1507,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [
@@ -1580,7 +1580,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [
@@ -1655,7 +1655,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [
@@ -1730,7 +1730,7 @@
                 "res-item-1"
               ]
             },
-            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "template": [
               {
                 "containers": [

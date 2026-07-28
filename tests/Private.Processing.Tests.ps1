@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Pester tests for Private/Processing modules.
+    Pester tests for v3 pipeline modules that replaced Private/Processing.
 
 .DESCRIPTION
     Tests processing pipeline functions: the draw.io job wrapper and the extra-processing
@@ -16,7 +16,7 @@
 
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
-    $script:ProcessingPath  = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Processing'
+    $script:ProcessingPath  = Join-Path $script:ModuleRoot 'src' 'pipeline'
 
     # Return a file's executable code with ALL comments removed, using the PowerShell
     # tokenizer. A line regex is not good enough here: these files document the machinery they
@@ -37,14 +37,14 @@ BeforeAll {
 # =====================================================================
 # FILE EXISTENCE
 # =====================================================================
-Describe 'Private/Processing Module Files Exist' {
+Describe 'v3 pipeline module files exist' {
     # Build-AZTICacheFiles, Start-AZTIProcessJob and Start-AZTIAutProcessJob were DELETED by
     # AB#5649 — see the regression Describe at the end of this file.
     # Only the draw.io wrapper survives — the Advisory, Policy, SecurityCenter and Sub wrappers
     # were deleted by AB#5649 along with the jobs they existed to wrap.
     $processingFiles = @(
-        'Invoke-AZTIDrawIOJob.ps1',
-        'Start-AZTIExtraJobs.ps1'
+        'Invoke-ScoutDrawIoJob.ps1',
+        'Start-ScoutExtraJobs.ps1'
     )
 
     It '<_> exists' -ForEach $processingFiles {
@@ -55,14 +55,14 @@ Describe 'Private/Processing Module Files Exist' {
 # =====================================================================
 # SYNTAX VALIDATION
 # =====================================================================
-Describe 'Private/Processing Script Syntax Validation' {
+Describe 'v3 pipeline script syntax validation' {
     # Build-AZTICacheFiles, Start-AZTIProcessJob and Start-AZTIAutProcessJob were DELETED by
     # AB#5649 — see the regression Describe at the end of this file.
     # Only the draw.io wrapper survives — the Advisory, Policy, SecurityCenter and Sub wrappers
     # were deleted by AB#5649 along with the jobs they existed to wrap.
     $processingFiles = @(
-        'Invoke-AZTIDrawIOJob.ps1',
-        'Start-AZTIExtraJobs.ps1'
+        'Invoke-ScoutDrawIoJob.ps1',
+        'Start-ScoutExtraJobs.ps1'
     )
 
     It '<_> parses without errors' -ForEach $processingFiles {
@@ -76,15 +76,15 @@ Describe 'Private/Processing Script Syntax Validation' {
 # =====================================================================
 # FUNCTION DEFINITIONS
 # =====================================================================
-Describe 'Private/Processing Function Definitions' {
+Describe 'v3 pipeline function definitions' {
 
-    It 'Invoke-AZTIDrawIOJob.ps1 defines Invoke-AZSCDrawIOJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-AZTIDrawIOJob.ps1') -Raw
+    It 'Invoke-ScoutDrawIoJob.ps1 defines Invoke-AZSCDrawIOJob' {
+        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-ScoutDrawIoJob.ps1') -Raw
         $content | Should -Match 'function\s+Invoke-AZSCDrawIOJob'
     }
 
-    It 'Start-AZTIExtraJobs.ps1 defines Start-AZSCExtraJobs' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1') -Raw
+    It 'Start-ScoutExtraJobs.ps1 defines Start-AZSCExtraJobs' {
+        $content = Get-Content (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExtraJobs'
     }
 }
@@ -115,7 +115,7 @@ Describe 'Resource-processing background jobs stay deleted' {
         Join-Path $script:ProcessingPath $_ | Should -Not -Exist
     }
 
-    It 'no file under Modules/Private/Processing starts a ResourceJob_* background job' {
+    It 'no v3 pipeline file starts a ResourceJob_* background job' {
         $Offenders = Get-ChildItem -Path $script:ProcessingPath -Filter '*.ps1' -File |
             Where-Object { (Get-Content $_.FullName -Raw) -match "ResourceJob_" }
 
@@ -126,7 +126,7 @@ Describe 'Resource-processing background jobs stay deleted' {
         # Comments describing the old design are allowed; executable calls are not. Stripped
         # with the tokenizer rather than a line regex: the design note in that file is a
         # <# … #> block, whose inner lines do not start with '#'.
-        $Code = Get-StrippedCode (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1')
+        $Code = Get-StrippedCode (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1')
 
         $Code | Should -Not -Match 'Start-Job'
         $Code | Should -Not -Match 'Start-ThreadJob'
@@ -144,7 +144,7 @@ Describe 'Resource-processing background jobs stay deleted' {
         # $args for a simple function, so $null crossed the job boundary as -Security and
         # `foreach ($1 in $Security)` iterated nothing — the Security Center sheet was empty in
         # every release that had one. (AB#5649)
-        $Source = Get-Content (Join-Path $script:ProcessingPath 'Start-AZTIExtraJobs.ps1') -Raw
+        $Source = Get-Content (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1') -Raw
         $Source | Should -Match 'Start-AZSCSecCenterJob\s+-Subscriptions\s+\$Subscriptions\s+-Security\s+\$Security'
     }
 

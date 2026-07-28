@@ -22,6 +22,8 @@ BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
     . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Write-ScoutCacheFile.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutProcessing.ps1')
@@ -30,6 +32,7 @@ BeforeAll {
     # Mirrors the real InventoryModules layout: one directory per category, each holding
     # collectors that take the ten positional parameters and switch on $Task.
     $script:FixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-pipeline-" + [guid]::NewGuid().ToString('N'))
+    $script:DefinitionRoot = Join-Path $script:FixtureRoot 'definitions'
 
     function New-FixtureCollector {
         Param($Category, $Name, $Body, $DeclaredCategory)
@@ -52,6 +55,29 @@ BeforeAll {
         $Lines += '}'
 
         Set-Content -LiteralPath (Join-Path $Dir "$Name.ps1") -Value ($Lines -join "`n") -Encoding UTF8
+    }
+
+    function New-FixtureDefinition {
+        param([string]$Category, [string]$Name, [string]$ResourceType, [string]$Kind, [switch]$Throws)
+        $Dir = Join-Path $script:DefinitionRoot $Category
+        $null = New-Item -ItemType Directory -Path $Dir -Force
+        $Preamble = if ($Throws) { "throw 'this collector is broken'" } else { '$ResUCount = 1' }
+        $Text = @"
+@{
+    ResourceTypes = @('$ResourceType')
+    RowLoopVariable = '1'
+    TagLoop = `$null
+    Preamble = @'
+$Preamble
+'@
+    Fields = @(
+        @{ Name = 'Name'; Expression = '`$1.NAME' }
+        @{ Name = 'Kind'; Expression = '`$1.TYPE' }
+    )
+    Export = @{ WorksheetName = '$Name'; Columns = @('Name', 'Kind'); TagColumns = @() }
+}
+"@
+        Set-Content -LiteralPath (Join-Path $Dir "$Name.psd1") -Value $Text -Encoding utf8
     }
 
     # Compute: two healthy collectors.
@@ -87,11 +113,19 @@ BeforeAll {
     @()
 '@
 
+    New-FixtureDefinition -Category 'Compute' -Name 'VirtualMachines' -ResourceType 'vm' -Kind 'vm'
+    New-FixtureDefinition -Category 'Compute' -Name 'Disks' -ResourceType 'disk' -Kind 'disk'
+    New-FixtureDefinition -Category 'Storage' -Name 'Accounts' -ResourceType 'storage' -Kind 'storage'
+    New-FixtureDefinition -Category 'Storage' -Name 'Exploding' -ResourceType 'storage' -Kind 'broken' -Throws
+    New-FixtureDefinition -Category 'Networking' -Name 'Firewalls' -ResourceType 'firewall' -Kind 'firewall'
+    New-FixtureDefinition -Category 'Empty' -Name 'Nothing' -ResourceType 'nothing' -Kind 'nothing'
+
     $script:SampleResources = @(
         [PSCustomObject]@{ NAME = 'vm-a';   TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'vm-b';   TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'disk-a'; TYPE = 'disk' }
         [PSCustomObject]@{ NAME = 'sa-a';   TYPE = 'storage' }
+        [PSCustomObject]@{ NAME = 'fw-a';   TYPE = 'firewall' }
     )
 }
 
@@ -247,7 +281,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
     It 'runs every collector and caches each non-empty category' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
 
         $Summary.CollectorCount | Should -Be 6
 
@@ -260,7 +294,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
     It 'completes the run despite a broken collector, and reports it' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
 
         $Summary.FailureCount | Should -Be 1
         $Summary.Failures[0].Collector | Should -Be 'Exploding'
@@ -280,9 +314,9 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $null = New-Item -Path (Join-Path $RunB 'ReportCache') -ItemType Directory -Force
 
         $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunA `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
         $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunB `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
 
         $FilesA = @(Get-ChildItem -LiteralPath (Join-Path $RunA 'ReportCache') | Sort-Object Name)
         $FilesB = @(Get-ChildItem -LiteralPath (Join-Path $RunB 'ReportCache') | Sort-Object Name)
@@ -298,7 +332,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
     It 'honours the category filter' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -Category 'Compute' -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -Category 'Compute' -WarningAction SilentlyContinue
 
         $Summary.CollectorCount | Should -Be 2
         Test-Path -LiteralPath (Join-Path $script:RunPath 'ReportCache/Storage.json') | Should -BeFalse
@@ -310,14 +344,14 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $Before = @(Get-Job).Count
 
         $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
 
         @(Get-Job).Count | Should -Be $Before
     }
 
     It 'returns an empty summary rather than throwing when nothing matches' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
 
         $Summary.CollectorCount | Should -Be 0
         $Summary.FailureCount   | Should -Be 0
@@ -328,9 +362,9 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         # first time a caller reads the missing property — the exact trap behind the v2.5.3
         # crash wave.
         $Full = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
         $Empty = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -Category 'NoSuchCategory' -WarningAction SilentlyContinue
 
         $FullProps  = @($Full.PSObject.Properties.Name  | Sort-Object)
         $EmptyProps = @($Empty.PSObject.Properties.Name | Sort-Object)
@@ -342,7 +376,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 Describe 'Start-AZSCExtraJobs — security, policy, advisory and subscriptions, in-process' {
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'Modules/Private/Processing/Start-AZTIExtraJobs.ps1')
+        . (Join-Path $script:RepoRoot 'src/pipeline/Start-ScoutExtraJobs.ps1')
 
         # Stand-ins for the four real processing functions and the diagram wrapper. Each
         # records what it was handed so the argument-passing can be asserted.
@@ -426,9 +460,8 @@ Describe 'Excel reporting only invokes collectors that have data' {
 
     # Found by a live run, not by the suite. The reporting loop guarded on
     # `@($SmaResources).count -gt 0`, and @($null).Count is 1 — so every collector was invoked
-    # in Reporting mode whether or not it had rows. That was invisible while it was merely
-    # wasted work; it became fatal at the two Identity files whose top-level statement is
-    # Register-AZSCInventoryModule, which is not a real function. The Excel build died.
+    # in Reporting mode whether or not it had rows. Filtering null cache entries means only
+    # collectors with data execute in the reporting phase.
 
     It 'counts an absent cache entry as zero rows, not one' {
         # The exact PowerShell behaviour behind the bug. @($null) is a one-element array
@@ -437,26 +470,26 @@ Describe 'Excel reporting only invokes collectors that have data' {
         @($null).Where({ $null -ne $_ }).Count | Should -Be 0
     }
 
-    It 'Start-AZSCExcelJob filters nulls out of the row count' {
+    It 'Start-AZSCExcelJob filters nulls out of definition-indexed cache rows' {
         $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
-        $Source | Should -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.Where'
-        $Source | Should -Not -Match '\$ModuleResourceCount\s*=\s*@\(\$SmaResources\)\.count\s*$'
+        $Source | Should -Match '\$SmaResources\s*=\s*if\s*\(\$CacheProperty\)\s*\{\s*@\(\$CacheProperty\.Value\)\.Where'
+        $Source | Should -Not -Match '\$CacheData\.\$ModName'
     }
 
-    It 'Start-AZSCExcelJob refuses the unimplemented-contract collectors outright' {
+    It 'Start-AZSCExcelJob runs only definitions with rows' {
         $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
-        $Source | Should -Match 'Register-AZSCInventoryModule'
-        $Source | Should -Match '-not \$Unsupported'
+        $Source | Should -Match '\$SmaResources\.Count -gt 0'
+        $Source | Should -Match 'Invoke-ScoutDeclarativeReporting'
     }
 
-    It 'the two unimplemented collectors are still the only ones using that contract' {
-        # If a third appears, both the pipeline and the reporting loop need to know about it.
-        $Root  = Join-Path $script:RepoRoot 'Modules/Public/InventoryModules'
-        $Users = @(Get-ChildItem -LiteralPath $Root -Filter '*.ps1' -Recurse -File |
-            Where-Object { (Get-Content $_.FullName -Raw) -match '(?m)^\s*Register-AZSCInventoryModule' } |
-            ForEach-Object { $_.BaseName } | Sort-Object)
+    It 'has no collector using the retired registration contract' {
+        $Roots = @('src', 'Modules') | ForEach-Object { Join-Path $script:RepoRoot $_ }
+        $Users = @($Roots | ForEach-Object {
+            Get-ChildItem -LiteralPath $_ -Filter '*.ps1' -Recurse -File |
+                Where-Object { (Get-Content $_.FullName -Raw) -match 'Register-AZSCInventoryModule' }
+        })
 
-        $Users | Should -Be @('IdentityProviders', 'SecurityDefaults')
+        $Users | Should -BeNullOrEmpty
     }
 }
 
@@ -480,7 +513,9 @@ Describe 'Every report exporter tolerates a cache with no entry for a collector'
         $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot $_) -Raw
 
         $Source | Should -Not -Match '(?m)^\s*\$ModResources\s*=\s*\$CacheData\.\$ModName\s*$'
-        $Source | Should -Match 'PSObject\.Properties\.Name -contains \$ModName'
+        # The original guard checked the dynamic name against .Properties.Name.  Manifest-backed
+        # exporters use the equivalent indexer form so their cache key comes from the definition.
+        $Source | Should -Match 'PSObject\.Properties(?:\.Name -contains \$ModName|\[\$Section\.CacheKey\])'
     }
 
     It 'reading a missing property on a PSCustomObject throws under StrictMode' {
@@ -508,7 +543,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     # no-op wait. It is now one bucket-sorting pass over $Resources.
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
+        . (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1')
 
         $script:DiagramResources = @(
             [PSCustomObject]@{ Type = 'microsoft.network/virtualnetworks'; name = 'vnet1' }
@@ -567,7 +602,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     }
 
     It 'no longer contains the runspace fan-out or the no-op wait' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1') -Raw
         $Tokens = $null
         $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
         $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
@@ -579,7 +614,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     }
 
     It 'Start-AZSCDrawIODiagram takes the lookup as a value instead of harvesting a job' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDrawIODiagram.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDrawIoDiagram.ps1') -Raw
         $Tokens = $null
         $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
         $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
@@ -592,12 +627,12 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
 Describe 'The processing path no longer depends on background jobs' {
 
     It 'Start-AZSCProcessOrchestration calls the deterministic pipeline' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Start-AZTIProcessOrchestration.ps1') -Raw
         $Source | Should -Match 'Invoke-ScoutProcessing'
     }
 
     It 'Start-AZSCProcessOrchestration no longer creates, waits on or harvests jobs' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Start-AZTIProcessOrchestration.ps1') -Raw
 
         # Comments explaining the history are allowed; executable calls are not.
         $Code = ($Source -split "`r?`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"

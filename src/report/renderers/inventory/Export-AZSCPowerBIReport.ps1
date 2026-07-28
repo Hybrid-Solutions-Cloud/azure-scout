@@ -67,7 +67,10 @@ function Export-AZSCPowerBIReport {
 
         [Parameter()]
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
-        [string]$Scope = 'All'
+        [string]$Scope = 'All',
+
+        [Parameter()]
+        [string]$DefinitionRoot = (Join-Path (Join-Path ((Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent.FullName) 'manifests') 'collectors')
     )
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Power BI CSV export.')
@@ -193,89 +196,47 @@ function Export-AZSCPowerBIReport {
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Subscriptions CSV written.')
 
-    # ── 3. Discover inventory module folders ─────────────────────────────
-    # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory
-    # (4 levels below repo root, was 2) -- the walk-up depth changed accordingly.
-    $RepoRoot             = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
-    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-    $ModuleFolders       = Get-ChildItem -Path $InventoryModulesPath -Directory -ErrorAction SilentlyContinue
-
-    $EntraFolders = @('Identity')
-
-    # Build module name lookup: lowercase → actual BaseName
-    $ModuleMap = @{}
-    if ($ModuleFolders) {
-        foreach ($folder in $ModuleFolders) {
-            foreach ($mod in (Get-ChildItem $folder.FullName -Filter '*.ps1' -ErrorAction SilentlyContinue)) {
-                $ModuleMap[$mod.BaseName.ToLower()] = $mod.BaseName
-            }
-        }
+    # ── 3. Read definition-indexed cache files and export CSVs ───────────
+    # Definitions are the report contract; cache keys are definition names.
+    $SectionIndex = @(Get-ScoutReportSectionIndex -DefinitionRoot $DefinitionRoot)
+    $CacheFiles = @(Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue | Sort-Object FullName)
+    $CacheByName = @{}
+    foreach ($CacheFile in $CacheFiles) {
+        if (-not $CacheByName.ContainsKey($CacheFile.Name)) { $CacheByName[$CacheFile.Name] = $CacheFile }
     }
-
-    # Helper: PascalCase fallback
-    function ConvertTo-PascalCase {
-        param([string]$Name)
-        if ([string]::IsNullOrEmpty($Name)) { return $Name }
-        return $Name.Substring(0,1).ToUpper() + $Name.Substring(1)
-    }
-
-    # ── 4. Read cache files and export CSVs ──────────────────────────────
-    $CacheFiles = Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue
+    $ParsedCache = @{}
 
     # Track all relationship sources for manifest
     $relationshipTables = [System.Collections.Generic.List[string]]::new()
 
-    foreach ($ModuleFolder in $ModuleFolders) {
-        $FolderName    = $ModuleFolder.Name
-        $JSONFileName  = "$FolderName.json"
-        $CacheFile     = $CacheFiles | Where-Object { $_.Name -eq $JSONFileName }
-
-        if (-not $CacheFile) {
-            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - No cache file for $FolderName — skipping.")
-            continue
+    foreach ($Section in $SectionIndex) {
+        if ($Scope -eq 'ArmOnly' -and $Section.Category -eq 'Identity') { continue }
+        if ($Scope -eq 'EntraOnly' -and $Section.Category -ne 'Identity') { continue }
+        if (-not $CacheByName.ContainsKey($Section.CacheFileName)) { continue }
+        if (-not $ParsedCache.ContainsKey($Section.CacheFileName)) {
+            $RawJson = [System.IO.File]::ReadAllText($CacheByName[$Section.CacheFileName].FullName)
+            if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
+            $ParsedCache[$Section.CacheFileName] = $RawJson | ConvertFrom-Json
         }
 
-        $Reader  = New-Object System.IO.StreamReader($CacheFile.FullName)
-        $RawJson = $Reader.ReadToEnd()
-        $Reader.Dispose()
+        $CacheData = $ParsedCache[$Section.CacheFileName]
+        $CacheProperty = $CacheData.PSObject.Properties[$Section.CacheKey]
+        $ModResources = if ($CacheProperty) { $CacheProperty.Value } else { $null }
+        if (-not $ModResources -or @($ModResources).Count -eq 0) { continue }
 
-        if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
+        $isEntra = $Section.Category -eq 'Identity'
+        $prefix = if ($isEntra) { 'Entra' } else { 'Resources' }
+        $csvName = "${prefix}_$($Section.Name).csv"
+        $csvPath = Join-Path $PowerBIDir $csvName
+        $categoryDisplay = if ($isEntra) { 'Identity' } else { $Section.Category }
+        $rowCount = Export-FlatCsv -FilePath $csvPath -Data @($ModResources) -Category $categoryDisplay -Module $Section.Name
 
-        $CacheData = $RawJson | ConvertFrom-Json
+        if ($rowCount -gt 0) {
+            $generatedFiles.Add([PSCustomObject]@{ File = $csvName; Category = $categoryDisplay; Rows = $rowCount })
+            $totalRows += $rowCount
+            $relationshipTables.Add($csvName)
 
-        $ModulePath  = Join-Path $ModuleFolder.FullName '*.ps1'
-        $ModuleFiles = Get-ChildItem -Path $ModulePath -ErrorAction SilentlyContinue
-
-        $isEntra = $FolderName -in $EntraFolders
-
-        foreach ($Module in $ModuleFiles) {
-            $ModName      = $Module.BaseName
-            # $CacheData.$ModName throws "The property ... cannot be found on this object"
-            # under StrictMode when the cache carries no entry for that collector. It always
-            # did; it went unnoticed only because the old pipeline created a hashtable key for
-            # EVERY module file, even one that produced nothing, so the key was always there.
-            # The deterministic pipeline writes keys only for collectors it actually ran, so a
-            # skipped or filtered collector now legitimately has no key. Ask before reading.
-            # (AB#5649)
-            $ModResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
-
-            if (-not $ModResources -or @($ModResources).Count -eq 0) { continue }
-
-            # Build filename: Resources_ModuleName.csv or Entra_ModuleName.csv
-            $prefix  = if ($isEntra) { 'Entra' } else { 'Resources' }
-            $csvName = "${prefix}_${ModName}.csv"
-            $csvPath = Join-Path $PowerBIDir $csvName
-
-            $categoryDisplay = if ($isEntra) { 'Identity' } else { $FolderName }
-            $rowCount = Export-FlatCsv -FilePath $csvPath -Data @($ModResources) -Category $categoryDisplay -Module $ModName
-
-            if ($rowCount -gt 0) {
-                $generatedFiles.Add([PSCustomObject]@{ File = $csvName; Category = $categoryDisplay; Rows = $rowCount })
-                $totalRows += $rowCount
-                $relationshipTables.Add($csvName)
-
-                Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Exported $rowCount rows → $csvName")
-            }
+            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Exported $rowCount rows → $csvName")
         }
     }
 

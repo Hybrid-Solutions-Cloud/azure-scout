@@ -58,6 +58,9 @@
                           state since the StrictMode hardening -- its equivalence test passed,
                           because with StrictMode off the stale expression and the new one happen to
                           agree on the fixture, so nothing else in the repo could have caught it.
+                          Definitions with ManualConversionReason are the deliberately narrow
+                          exception: the generator refuses their branch-dependent loop topology,
+                          so focused imperative/declarative equivalence tests are their evidence.
 
 .PARAMETER RepoRoot
     Repository root. Defaults to the parent of this script's directory.
@@ -264,17 +267,18 @@ foreach ($File in $Files) {
         }
     }
 
-    # --- 6. SOURCE ---------------------------------------------------------------------------
-    if ([string]::IsNullOrWhiteSpace($Definition.SourceCollector)) {
-        Add-Violation -Path $Relative -Message 'SourceCollector is empty, so nothing records which collector this definition was lifted from and the drift check below cannot run.'
-    } elseif (-not (Test-Path -LiteralPath (Join-Path $RepoRoot $Definition.SourceCollector))) {
-        Add-Violation -Path $Relative -Message "SourceCollector names '$($Definition.SourceCollector)', which does not exist."
-    } elseif (-not $SkipDriftCheck) {
+    # --- 6. SOURCE / DRIFT -------------------------------------------------------------------
+    # SourceCollector is provenance for definitions lifted during v2.  v3 deliberately retires
+    # that executable source tree; committed golden output is then the behavioural evidence.
+    # Retain byte-for-byte drift checks while a source exists, but never make a deleted legacy
+    # implementation a runtime/catalog dependency.
+    $SourcePath = if ([string]::IsNullOrWhiteSpace($Definition.SourceCollector)) { $null } else { Join-Path $RepoRoot $Definition.SourceCollector }
+    if ($SourcePath -and (Test-Path -LiteralPath $SourcePath) -and -not $SkipDriftCheck -and [string]::IsNullOrWhiteSpace($Definition.ManualConversionReason)) {
         # --- 7. DRIFT ------------------------------------------------------------------------
         $Regenerated = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-defdrift-" + [guid]::NewGuid().ToString('N') + '.psd1')
         try {
             $null = & (Join-Path $RepoRoot 'scripts/ConvertTo-ScoutCollectorDefinition.ps1') `
-                -CollectorPath (Join-Path $RepoRoot $Definition.SourceCollector) -OutputPath $Regenerated 6>$null
+                -CollectorPath $SourcePath -OutputPath $Regenerated 6>$null
 
             # Line endings normalised: git may check the tree out with either, and a CRLF/LF
             # difference is not drift.
@@ -288,6 +292,8 @@ foreach ($File in $Files) {
         } finally {
             if (Test-Path -LiteralPath $Regenerated) { Remove-Item -LiteralPath $Regenerated -Force -ErrorAction SilentlyContinue }
         }
+    } elseif ($SourcePath -and (Test-Path -LiteralPath $SourcePath) -and -not $SkipDriftCheck) {
+        Write-Host "[AzureScout] Manual conversion drift exemption: $Relative -- $($Definition.ManualConversionReason)"
     }
 }
 

@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 .DESCRIPTION
     `Get-AzComputeResourceSku` is another ARM data-plane call (region-scoped, not
     subscription-scoped) with no Resource Graph table -- the same class of gap
-    `Get-ScoutVmQuotas` fills. The type map this task derived from the 176 legacy collectors
+    `Get-ScoutVmQuotas` fills. The type map this task derived from the 174 legacy collectors
     confirms the same three collectors (AKS, VirtualMachine, VirtualMachineScaleSet) also
     filter for a synthetic `'AZSC/VM/SKU'`-typed row alongside `'AZSC/VM/Quotas'`.
 

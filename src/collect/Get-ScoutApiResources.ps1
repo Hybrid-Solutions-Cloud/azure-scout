@@ -24,7 +24,7 @@ $ErrorActionPreference = 'Stop'
                               assignment/definition data for the assessment platform via its
                               own ARG + ambient-token calls; this is kept here only for
                               feature parity with the legacy per-subscription REST pull the
-                              176-collector engine already depends on, not as a second source
+                              174-collector engine already depends on, not as a second source
                               the assessment platform should ALSO consume.
 
     Every call is independently non-fatal: a single endpoint failing (missing RBAC,

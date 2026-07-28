@@ -273,16 +273,6 @@ Write-Host $File -ForegroundColor White
 # ── Phase 1: Report Orchestration ────────────────────────────────────────
 Write-Host "`n── Phase 1: Report Generation ──────────────────────────────" -ForegroundColor DarkCyan
 
-# Stub for Register-AZSCInventoryModule (used by Identity/IdentityProviders.ps1 and
-# Identity/SecurityDefaults.ps1 which use a newer registration pattern not yet wired
-# into the main reporting pipeline). Without this stub the dot-sourcing fails.
-if (-not (Get-Command 'Register-AZSCInventoryModule' -ErrorAction SilentlyContinue)) {
-    function global:Register-AZSCInventoryModule {
-        param($ModuleId, $PhaseId, $ScriptBlock)
-        # no-op stub — these modules are skipped during Excel generation
-    }
-}
-
 $ReportingTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
 Start-AZSCReporOrchestration `

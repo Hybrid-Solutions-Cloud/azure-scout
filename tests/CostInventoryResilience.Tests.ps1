@@ -9,13 +9,12 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Write-AZTIRunLog.ps1')
+    . (Join-Path $script:RepoRoot 'src/Write-AZTIRunLog.ps1')
     # AB#5648: Get-AZSCCostInventory is now a shim over src/collect's Get-ScoutCostInventory,
     # so the implementation has to be loaded for these assertions to exercise anything. The
     # assertions themselves are unchanged -- they are the AB#5636 contract, and running them
     # against the NEW path is the point: the guarantee has to survive the inversion.
     . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutCostInventory.ps1')
-    . (Join-Path $script:RepoRoot 'Modules/Private/Extraction/Get-AZTICostInventory.ps1')
 
     # Pester cannot mock a command that does not exist, and the whole point of AB#5636 is
     # that Az.CostManagement may be absent. Stub it so the mocks below have something to
@@ -33,13 +32,13 @@ BeforeAll {
     )
 }
 
-Describe 'Get-AZSCCostInventory resilience' {
+Describe 'Get-ScoutCostInventory resilience' {
 
     It 'completes instead of throwing when Az.CostManagement is not installed' {
         Mock -CommandName Invoke-AzCostManagementQuery -MockWith {
             throw "The term 'Invoke-AzCostManagementQuery' is not recognized as a name of a cmdlet, function, script file, or executable program."
         }
-        { Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue } |
+        { Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue } |
             Should -Not -Throw
     }
 
@@ -49,14 +48,14 @@ Describe 'Get-AZSCCostInventory resilience' {
         }
         # Captured by stream redirection rather than -WarningVariable: Get-AZSCCostInventory
         # is a simple function, so the common warning parameters are not reliable here.
-        $Warnings = @(Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' 3>&1 |
+        $Warnings = @(Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' 3>&1 |
             Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
         ($Warnings -join ' ') | Should -Match 'Install-Module Az.CostManagement'
     }
 
     It 'still returns one row per subscription, with empty cost data' {
         Mock -CommandName Invoke-AzCostManagementQuery -MockWith { throw 'Cost Management is unavailable' }
-        $Result = @(Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue)
+        $Result = @(Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue)
         $Result.Count | Should -Be 2
         @($Result[0].CostData).Count | Should -Be 0
         $Result[1].SubscriptionName | Should -Be 'Second subscription'
@@ -68,21 +67,21 @@ Describe 'Get-AZSCCostInventory resilience' {
             if ($Scope -like '*sub-1*') { throw 'Subscription not enrolled for Cost Management' }
             return @([pscustomobject]@{ PreTaxCost = 42 })
         }
-        $Result = @(Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue)
+        $Result = @(Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' -WarningAction SilentlyContinue)
         @($Result[0].CostData).Count | Should -Be 0
         @($Result[1].CostData).Count | Should -Be 1
     }
 
     It 'warns with the underlying message for a non-dependency failure' {
         Mock -CommandName Invoke-AzCostManagementQuery -MockWith { throw 'Subscription not enrolled for Cost Management' }
-        $Warnings = @(Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' 3>&1 |
+        $Warnings = @(Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly' 3>&1 |
             Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
         ($Warnings -join ' ') | Should -Match 'not enrolled for Cost Management'
     }
 
     It 'returns the cost data unchanged on the success path' {
         Mock -CommandName Invoke-AzCostManagementQuery -MockWith { return @([pscustomobject]@{ PreTaxCost = 7 }) }
-        $Result = @(Get-AZSCCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly')
+        $Result = @(Get-ScoutCostInventory -Subscriptions $script:Subs -Days 60 -Granularity 'Monthly')
         $Result.Count | Should -Be 2
         $Result[0].CostData[0].PreTaxCost | Should -Be 7
     }
@@ -110,11 +109,7 @@ Describe 'Cost dependency stays opt-in' {
 Describe 'The dead-code fallback is gone' {
 
     It 'no longer rethrows out of the cost collector' {
-        # Both files, since AB#5648: the legacy one is a shim and the implementation moved to
-        # src/collect. Checking only the shim would pass forever while the rethrow lived on in
-        # the file that actually runs.
-        foreach ($Relative in 'Modules/Private/Extraction/Get-AZTICostInventory.ps1',
-                              'src/collect/Get-ScoutCostInventory.ps1') {
+        foreach ($Relative in 'src/collect/Get-ScoutCostInventory.ps1') {
             $Raw = Get-Content -Path (Join-Path $script:RepoRoot $Relative)
             $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
             $Active | Should -Not -Match 'throw \$_\.Exception\.Message' -Because "$Relative must not rethrow"

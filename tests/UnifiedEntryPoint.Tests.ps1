@@ -47,10 +47,44 @@ Describe 'Single entry point — parameter surface' {
         $alias | Should -Contain 'Assess'
     }
 
-    It 'the deprecated Invoke-ScoutAssessment name still resolves' {
-        # Published in v2.3.0 — kept working until the next major so existing
-        # scripts do not break on upgrade.
-        Get-Command Invoke-ScoutAssessment -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+    It 'does not export the removed Invoke-ScoutAssessment name' {
+        # Re-import from this repository after removing any gallery version a
+        # developer may already have loaded. This makes the command-not-found
+        # assertion a release-contract test rather than a machine-state test.
+        Remove-Module AzureScout -Force -ErrorAction SilentlyContinue
+        Import-Module (Join-Path $script:ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
+        $script:Module = Get-Module AzureScout | Where-Object {
+            $_.ModuleBase -eq $script:ModuleRoot
+        } | Select-Object -First 1
+
+        # Do not use Get-Command without -ListImported: on a developer machine
+        # with an older gallery version installed it would auto-load that *other*
+        # module solely to answer this lookup. The imported module's export table
+        # is the release contract.
+        $script:Module.ExportedCommands.ContainsKey('Invoke-ScoutAssessment') | Should -BeFalse
+
+        # Run the invocation assertion in a clean process: Pester shares one
+        # PowerShell session with other suites, which may have loaded a prior
+        # gallery version for compatibility tests.
+        $modulePath = (Join-Path $script:ModuleRoot 'AzureScout.psd1').Replace("'", "''")
+        $probe = @"
+`$env:AZURESCOUT_SKIP_UPDATE_CHECK = '1'
+`$ErrorActionPreference = 'Stop'
+Import-Module '$modulePath' -Force -ErrorAction Stop
+`$PSModuleAutoloadingPreference = 'None'
+try {
+    Invoke-ScoutAssessment -Assessment LandingZone
+    exit 1
+}
+catch [System.Management.Automation.CommandNotFoundException] {
+    exit 0
+}
+catch {
+    exit 2
+}
+"@
+        & pwsh -NoProfile -Command $probe
+        $LASTEXITCODE | Should -Be 0
     }
 }
 

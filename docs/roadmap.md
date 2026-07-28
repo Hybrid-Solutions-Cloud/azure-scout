@@ -13,50 +13,35 @@ Community contributions are welcome — see [Contributing](contributing.md) to g
 > plan live in the [Master Design & Plan](design/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
-## The engine rebuild is in progress, not complete
+## v3.0.0 engine rebuild status
 
-**Epic AB#5638 — the engine rebuild — is open.** It was closed after v2.11.0 and announced as
-complete; that was wrong, and it has been reopened. The releases below all shipped and are on the
-PowerShell Gallery, but none of them finished the epic, whose stated end state is the **deletion of
-the forked `microsoft/ARI` engine under `Modules/`**.
+**Epic AB#5638 is ready for v3.0.0 release validation.** The declarative collector catalog has
+replaced the retired source-script tree. Publication follows the final package and full-suite gates.
 
 Measured on `main` as of 26 July 2026:
 
 | Acceptance criterion | Target | Actual |
 |---|---|---|
-| `Modules/` deleted, nothing depending on it | 0 files | **221 `.ps1`** |
-| `Modules/Public/InventoryModules/` empty (AB#5659) | 0 collectors | **176 collector `.ps1`** |
-| Every collector expressed as a definition (AB#5656) | 176 | **138** (`manifests/collectors/*.psd1`) |
-| `Set-StrictMode -Version Latest` in every module scope | 0 weakening sites | **20** across 19 files — 4 live, 15 dead |
-| Inventory and assessment share one reporting layer | cut over | **not cut over** |
+| Retired collector source tree | absent | **removed** |
+| Declarative collector catalog | 174 definitions | **174** (`manifests/collectors/*.psd1`) |
+| Strict declarative processing | all collectors | **174/174 verified** |
+| Golden report contract | rows + two worksheet modes | **174 rows / 348 worksheet cases verified** |
+| Inventory and assessment share one reporting layer | cut over | **declarative reporting path** |
 | Three consecutive runs on an unchanged estate are identical | yes | **yes** (v2.6.0) |
 
-Reporting is the one people ask about most: `Start-AZSCExcelJob` still walks
-`Modules/Public/InventoryModules/` with its own duplicate discovery and executes each collector's
-own `.ps1` reporting branch, so every declarative definition's `Export` section is exercised **only
-by tests**. That is why converting 138 collectors did not shrink `Modules/`.
+Reporting reads each definition's `Export` section through the same manifest catalog as processing;
+there is no collector-script reporting branch.
 
 You can check every number yourself — `scripts/Test-StrictModeGuard.ps1` prints the weakening-site
 count, and the rest are file counts.
 
-### What v3.0.0 requires
+### v3.0.0 completion criteria
 
-**v3.0.0 is not cut and has no changelog entry.** It is the release that can only be tagged once
-the fork is gone. Outstanding:
+All collector definitions, source retirement, strict runtime contracts, and reporting contracts are
+complete. The remaining release steps are package validation, broad test-suite completion, tag, and
+publication. Historical v2 entries below are retained as release history rather than current status.
 
-- **Rewrite the 38 collectors that cannot be expressed declaratively.** 32 make live Azure calls or
-  have no resource-type filter to drive the interpreter; 6 have conditional row shape or loop depth.
-  Until these are rewritten, `Modules/Public/InventoryModules/` cannot be emptied.
-- **Cut reporting over** to the definitions' `Export` sections, retiring `Start-AZSCExcelJob`'s
-  duplicate discovery.
-- **Remove the 20 StrictMode weakening sites**, then complete a full live inventory run with
-  `Set-StrictMode -Version Latest` active in every module scope.
-- **Delete `Modules/`** — beyond the 176 collectors it holds a further **45 `.ps1` files defining 61
-  functions** (extraction, processing, diagram and job helpers), each of which needs a home under
-  `src/` or deletion.
-- **Remove `Invoke-ScoutAssessment`**, deprecated since v2.4.0 and still exported.
-
-## Current Release — v2.11.0 — 138 Collectors Declarative, and the Definitions Are Gated
+## Current Release — v3.0.0 — Declarative engine rebuild
 
 Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638** — **reopened**; this
 release advanced it but did not complete it (see [above](#the-engine-rebuild-is-in-progress-not-complete)).
@@ -390,7 +375,7 @@ Released 25 July 2026, published to the PowerShell Gallery.
 | One entry point | Inventory and assessment are modes of a single `Invoke-AzureScout`, not two cmdlets. `-Assessment` selects the CAF/WAF assessment; `-CollectOnly` and `-FromCollect` moved across too. Assessment mode now honours the inventory sign-in parameters, which the standalone cmdlet never did (AB#5540) |
 | Guided wizard | A bare `Invoke-AzureScout` in an interactive session signs you in, lets you pick the tenant, verifies your rights, then offers pre-selected checklists for run type, categories/assessments, formats, and report directory — and prints the equivalent one-liner. Never fires in CI; `-NoWizard` opts out (AB#5541) |
 | Output formats | `-OutputFormat` accepts several renderers in one run and spans both modes; a wrong-mode format now throws an error naming the switch you wanted |
-| Deprecation | `Invoke-ScoutAssessment` still works but will be removed in v3.0.0 |
+| Assessment entry point | The former standalone assessment command is removed in v3.0.0; use `Invoke-AzureScout -Assessment` |
 | Documentation | Corrected pages claiming a PowerShell 5.1 floor the module never had, and collapsed the "Inventory vs Assessment" framing across the site |
 
 Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
@@ -523,8 +508,8 @@ Focus: depth, breadth, and multi-tenant scenarios.
 | Feature | Description | Status |
 |---------|-------------|--------|
 | Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. The run-isolation prerequisite shipped in v2.3.0 (AB#331). | :bulb: Idea (AB#323) |
-| Word document export (#22) | Shipped as `-OutputFormat Word` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
-| PDF report export (#23) | Shipped as `-OutputFormat Pdf` on `Invoke-ScoutAssessment` (v2.2.0): `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
+| Word document export (#22) | Shipped as `-OutputFormat Word` in assessment mode: `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
+| PDF report export (#23) | Shipped as `-OutputFormat Pdf` in assessment mode: `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
 | Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |
 | Bicep / IaC gap detection | Shipped as the offline `Get-ScoutIacGap` function (v2.2.0) — compares discovered resources against a folder of Bicep/ARM-JSON templates and flags unmanaged resources; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#325) |
 | Resource drift reporting | Shipped as the offline `Get-ScoutInventoryDrift` function (v2.2.0) — compares the current `collect.json` against the previous run's snapshot and reports Added/Removed/Changed resources. | :white_check_mark: Done (v2.2.0, AB#326) |
@@ -573,7 +558,7 @@ for cut status.
 
 | Capability | Description | Status |
 |---|---|---|
-| Report tiers — Word/ECharts/PDF/JSON evidence | `Export-Word` (`.docx` via OpenXML), `Export-EChartsDashboard` (offline ECharts HTML, no CDN), `Export-Pdf` (hand-rolled, dependency-free), `Export-JsonEvidence` (resources-only JSON, no assessment metadata/scores). All wired into `Export-Report` and `-OutputFormat` on `Invoke-ScoutAssessment`/`Invoke-ScoutPipeline`. | :white_check_mark: Done (AB#333, AB#344, AB#396, AB#379/394/395) |
+| Report tiers — Word/ECharts/PDF/JSON evidence | `Export-Word` (`.docx` via OpenXML), `Export-EChartsDashboard` (offline ECharts HTML, no CDN), `Export-Pdf` (hand-rolled, dependency-free), `Export-JsonEvidence` (resources-only JSON, no assessment metadata/scores). All wired into `Export-Report`, `Invoke-AzureScout -Assessment`, and `Invoke-ScoutPipeline`. | :white_check_mark: Done (AB#333, AB#344, AB#396, AB#379/394/395) |
 | Excel visual dashboard tabs | Native ImportExcel PivotTable/PivotChart dashboard sheets in the assessment Excel evidence tier: Findings-by-Severity (pie), Score-by-Area (column), Pass-Fail-Manual (stacked column), Resource-Counts (bar) — omitted when a sheet's data is empty. | :white_check_mark: Done (AB#322) |
 | Richer React report + `report.pbit` | The self-contained `report-react.html` gains a vis.js VNet topology diagram, an MG-hierarchy diagram, 14 KPI cards, an Azure Firewall drill-down, a Governance section (budgets/locks/tag chips), a policy-enforcement badge, per-section search/filter, clickable rows with a side panel, and scope tooltips. The Power BI tier also generates a `report.pbit` bound to the star-schema CSVs. | :white_check_mark: Done (AB#376–378, 380, 386, 387, 389–393, AB#5046) |
 | Cross-run resource drift | `Get-ScoutInventoryDrift` — offline, compares the current `collect.json` against the previous run and reports Added/Removed/Changed resources, complementing the existing findings-level `Get-ScoutDrift` (v2.1.0). | :white_check_mark: Done (AB#326) |

@@ -58,7 +58,7 @@ $ErrorActionPreference = 'Stop'
     etc.) this writes a self-contained "assessment_word_fallback.html" next
     to where the .docx would have gone (mirroring Export-Pdf.ps1's
     Export-ScoutPdfHtmlFallback pattern) instead of throwing and aborting the
-    whole multi-renderer Export-Report loop in Invoke-ScoutAssessment.ps1.
+    whole multi-renderer Export-Report loop in the assessment core.
 #>
 
 #region Assembly acquisition (first-use NuGet acquire + cache, no committed binaries)

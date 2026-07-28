@@ -134,7 +134,7 @@ When you add a new inventory module:
 4. Run the test file and verify both Processing and Reporting phases pass.
 
 ::: tip
-Use the `Module-template.tpl` in `Modules/Public/InventoryModules/` as the starting point for both the module and its corresponding test entry.
+Use the `Module-template.tpl` in `manifests/collectors/` as the starting point for both the module and its corresponding test entry.
 :::
 
 ## Common Pitfalls

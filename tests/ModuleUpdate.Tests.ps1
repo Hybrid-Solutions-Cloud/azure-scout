@@ -5,7 +5,7 @@
     Pester tests for the module auto-UPDATE check (AB#369).
 
 .DESCRIPTION
-    Tests Test-AZSCModuleUpdate (Modules\Private\Main\Test-AZSCModuleUpdate.ps1), the
+    Tests Test-AZSCModuleUpdate (src\Test-AZSCModuleUpdate.ps1), the
     function AzureScout.psm1 calls once on import to surface a newer PSGallery release.
     Find-Module, Get-Module, and Update-Module are mocked throughout so these tests never
     touch the network or the real PSGallery. The marker file used for the 24h throttle is
@@ -22,7 +22,7 @@
 
 BeforeAll {
     $script:ModuleRoot   = Split-Path -Parent $PSScriptRoot
-    $script:MainPath     = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main'
+    $script:MainPath     = Join-Path $script:ModuleRoot 'src'
     $script:FunctionFile = Join-Path $script:MainPath 'Test-AZSCModuleUpdate.ps1'
     $script:ManifestPath = Join-Path $script:ModuleRoot 'AzureScout.psd1'
     $script:ThrottleFile = Join-Path ([System.IO.Path]::GetTempPath()) 'azurescout-update-check.txt'

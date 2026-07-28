@@ -47,7 +47,11 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $PvtEndP = if(![string]::IsNullOrEmpty($data.privateEndpointConnections.properties.privateEndpoint.id)){($data.privateEndpointConnections.properties.privateEndpoint.id.split('/')[8])}else{$null}
+                # Private endpoints are optional.  Resource Graph omits the whole envelope
+                # when none is configured, so walk it safely rather than relying on the
+                # legacy non-StrictMode member chain.
+                $PrivateEndpointId = Get-AZSCSafeProperty -InputObject $data -Path 'privateEndpointConnections.properties.privateEndpoint.id' -Enumerate
+                $PvtEndP = if(![string]::IsNullOrEmpty($PrivateEndpointId)){($PrivateEndpointId.split('/')[8])}else{$null}
                 if ($1.ZONES) { $Zones = $1.ZONES }else { $Zones = 'Not Configured' }
                 if ([string]::IsNullOrEmpty($data.minimumTlsVersion)){$MinTLS = 'Default'}Else{$MinTLS = "TLS $($data.minimumTlsVersion)"}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}

@@ -23,7 +23,7 @@ cmdlet with no `-Scope` flag already does this.
 
 ::: tip Source of truth
 Counts on this page are generated from the module files under
-`Modules/Public/InventoryModules/` and the `-Category` `[ValidateSet]` in
+`manifests/collectors/` and the `-Category` `[ValidateSet]` in
 `Invoke-AzureScout.ps1`. See the [Coverage Table](coverage-table.md) for a per-category
 summary that includes the Entra split, and [Category Structure](category-structure.md)
 for the full `-Category` alias mapping.
@@ -158,7 +158,7 @@ Azure Arc and Azure Local (Azure Stack HCI) resource management.
 ### Identity (1 ARM module)
 
 The `Identity` category folder is shared: this is the **only** ARM-based module in it.
-The other 17 files in `Modules/Public/InventoryModules/Identity/` are Microsoft
+The other 17 files in `manifests/collectors/Identity/` are Microsoft
 Graph-based and cataloged on the [Entra ID Modules](entra-modules.md) page.
 
 | Module | Resource Type |

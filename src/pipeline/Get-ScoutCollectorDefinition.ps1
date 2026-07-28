@@ -66,6 +66,61 @@ function Get-ScoutCollectorDefinition {
     if (-not $Raw.ContainsKey('RowLoopVariable') -or [string]::IsNullOrWhiteSpace($Raw.RowLoopVariable)) {
         $Errors.Add('RowLoopVariable must name the variable field expressions use for the current resource (e.g. "1").')
     }
+    if ($Raw.Contains('RowCondition') -and $null -ne $Raw.RowCondition -and $Raw.RowCondition -isnot [string]) {
+        $Errors.Add('RowCondition must be a string expression evaluated once per matched resource.')
+    }
+
+    # Most definitions are mechanically regenerated from their source collector.  A small and
+    # explicit class cannot be: its imperative source has branch-dependent loop depth, while the
+    # definition expresses the same behavior with a conditional loop source.  Do not silently
+    # exempt such definitions from drift evidence; require a human-readable reason that the
+    # structural gate and focused equivalence test can audit.
+    if ($Raw.Contains('ManualConversionReason') -and
+        ($Raw.ManualConversionReason -isnot [string] -or [string]::IsNullOrWhiteSpace($Raw.ManualConversionReason))) {
+        $Errors.Add('ManualConversionReason must be a non-empty string when supplied.')
+    }
+
+    # A RowSource projects already-collected resources (for example a subscription envelope) into
+    # the collection consumed by the row loop.  It is schema data, not a collector-specific branch.
+    if ($Raw.Contains('RowSource') -and $null -ne $Raw.RowSource) {
+        if ($Raw.RowSource -isnot [System.Collections.IDictionary] -or
+            -not $Raw.RowSource.Contains('Expression') -or
+            $Raw.RowSource.Expression -isnot [string] -or
+            [string]::IsNullOrWhiteSpace($Raw.RowSource.Expression)) {
+            $Errors.Add('RowSource must be $null or a hashtable with a non-empty string Expression.')
+        } else {
+            $RowSourceTokens = $null
+            $RowSourceParseErrors = $null
+            $RowSourceAst = [System.Management.Automation.Language.Parser]::ParseInput(
+                [string]$Raw.RowSource.Expression, [ref]$RowSourceTokens, [ref]$RowSourceParseErrors)
+            if (@($RowSourceParseErrors).Count -gt 0) {
+                $Errors.Add("RowSource.Expression does not parse: $($RowSourceParseErrors[0].Message)")
+            } else {
+                $DetectedCommands = foreach ($Command in $RowSourceAst.FindAll({
+                    param($Node) $Node -is [System.Management.Automation.Language.CommandAst]
+                }, $true)) {
+                    $CommandName = $Command.GetCommandName()
+                    if ($CommandName -ieq 'New-Object') {
+                        $ComParameter = @($Command.CommandElements | Where-Object {
+                            $_ -is [System.Management.Automation.Language.CommandParameterAst] -and
+                            $_.ParameterName -in @('Com', 'ComObject')
+                        })
+                        if ($ComParameter.Count -gt 0) { 'New-Object -Com' }
+                        continue
+                    }
+                    if ($CommandName -and $CommandName -notin @('Get-AZSCSafeProperty', 'Get-AZSCIdSegment', 'Get-AZSCCollectedValue') -and
+                        ($CommandName -match '^(Get-Az|Invoke-Az|New-Az|Set-Az|Connect-Az|Get-Msol|Get-Mg|Invoke-Mg)' -or
+                         $CommandName -in @('Search-AzGraph', 'Invoke-RestMethod', 'Invoke-WebRequest'))) {
+                        $CommandName
+                    }
+                }
+                $ExternalCommands = @($DetectedCommands | Select-Object -Unique)
+                if ($ExternalCommands.Count -gt 0) {
+                    $Errors.Add("RowSource.Expression contains live external access: $($ExternalCommands -join ', ').")
+                }
+            }
+        }
+    }
 
     if (-not $Raw.ContainsKey('Fields') -or @($Raw.Fields).Count -eq 0) {
         $Errors.Add('Fields must be a non-empty array of { Name; Expression } entries.')
@@ -127,6 +182,9 @@ function Get-ScoutCollectorDefinition {
             # 'System.Collections.Hashtable' and be injected into the generated script as garbage.
             if ($Loop.Contains('Preamble') -and $null -ne $Loop.Preamble -and $Loop.Preamble -isnot [string]) {
                 $Errors.Add("AdditionalRowLoops entry '$($Loop.Variable)' has a Preamble that is not a string.")
+            }
+            if ($Loop.Contains('EmitNullWhenEmpty') -and $Loop.EmitNullWhenEmpty -isnot [bool]) {
+                $Errors.Add("AdditionalRowLoops entry '$($Loop.Variable)' has EmitNullWhenEmpty that is not a boolean.")
             }
         }
     }
@@ -212,6 +270,9 @@ function Get-ScoutCollectorDefinition {
         AdditionalFilter   = if ($Raw.Contains('AdditionalFilter')) { $Raw.AdditionalFilter } else { $null }
         FilterPreamble     = if ($Raw.Contains('FilterPreamble')) { [string]$Raw.FilterPreamble } else { '' }
         RowLoopVariable    = $Raw.RowLoopVariable
+        RowSource           = if ($Raw.Contains('RowSource') -and $null -ne $Raw.RowSource) { [PSCustomObject]@{ Expression = [string]$Raw.RowSource.Expression } } else { $null }
+        RowCondition        = if ($Raw.Contains('RowCondition') -and $null -ne $Raw.RowCondition) { [string]$Raw.RowCondition } else { '' }
+        ManualConversionReason = if ($Raw.Contains('ManualConversionReason') -and $null -ne $Raw.ManualConversionReason) { [string]$Raw.ManualConversionReason } else { '' }
         SetupPreamble      = if ($Raw.Contains('SetupPreamble') -and $null -ne $Raw.SetupPreamble) { [string]$Raw.SetupPreamble } else { '' }
         SetupVariables     = $DeclaredSetupVars
         Preamble           = if ($Raw.Contains('Preamble')) { [string]$Raw.Preamble } else { '' }
@@ -223,6 +284,7 @@ function Get-ScoutCollectorDefinition {
                     Variable = $Loop.Variable
                     Source   = $Loop.Source
                     Preamble = if ($Loop.Contains('Preamble') -and $null -ne $Loop.Preamble) { [string]$Loop.Preamble } else { '' }
+                    EmitNullWhenEmpty = if ($Loop.Contains('EmitNullWhenEmpty')) { [bool]$Loop.EmitNullWhenEmpty } else { $false }
                 }
             }
         } else { @() })

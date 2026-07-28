@@ -111,7 +111,7 @@ inventory mode and honours the same parameters — `-TenantID`, `-DeviceLogin`,
 `Get-AzContext` (from `Connect-AzAccount` or a managed identity) is reused as-is.
 
 ::: warning Changed in v2.4.0
-Before v2.4.0 the standalone `Invoke-ScoutAssessment` cmdlet had **no** sign-in
+Before v2.4.0 the former standalone assessment cmdlet had **no** sign-in
 step — it silently required a pre-existing `Connect-AzAccount` context and ignored
 the inventory's authentication parameters. Assessment mode on `Invoke-AzureScout`
 does not have that gap.

@@ -31,7 +31,7 @@ $ProtectedItems = $Resources | Where-Object {$_.TYPE -eq 'microsoft.recoveryserv
 $ResUCount = 1
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
                 $data = $1.PROPERTIES
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties } else { '0' }
                 $ProtectedObjs = $ProtectedItems | Where-Object {$_.properties.policyid -eq $1.id}
                 $ProtectedObjs = if(![string]::IsNullOrEmpty($ProtectedObjs)){$ProtectedObjs}else{'0'}
 
@@ -48,12 +48,15 @@ $ResUCount = 1
             Variable = 'ProtectedItem'
             Source = '$ProtectedObjs'
             Preamble = @'
-$VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid)){$ProtectedItem.properties.vaultid.split('/')[8]}else{''}
-                        if(![string]::IsNullOrEmpty($ProtectedItem.properties.lastbackuptime))
+$ProtectedItemProperties = Get-AZSCSafeProperty -InputObject $ProtectedItem -Path 'properties'
+                        $VaultId = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'vaultid'
+                        $VaultResource = if(![string]::IsNullOrEmpty($VaultId)){$VaultId.split('/')[8]}else{''}
+                        $LastBackupTime = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'lastbackuptime'
+                        if(![string]::IsNullOrEmpty($LastBackupTime))
                             {
-                                $LastBackup = [string](get-date($ProtectedItem.properties.lastbackuptime))
+                                $LastBackup = [string](get-date($LastBackupTime))
                                 $Currenttime = get-date
-                                $OldTime = get-date($ProtectedItem.properties.lastbackuptime)
+                                $OldTime = get-date($LastBackupTime)
                                 $DaysSinceBKP = New-TimeSpan -Start $OldTime -End $Currenttime
                             }
                         else
@@ -61,8 +64,10 @@ $VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid))
                                 $LastBackup = ''
                                 $DaysSinceBKP = ''
                             }
-                        $LastRecovery = if(![string]::IsNullOrEmpty($ProtectedItem.properties.lastrecoverypoint)){[string](get-date($ProtectedItem.properties.lastrecoverypoint))}else{''}
-                        $LastRecoverySecondary = if(![string]::IsNullOrEmpty($ProtectedItem.properties.latestrecoverypointinsecondaryregion)){[string](get-date($ProtectedItem.properties.latestrecoverypointinsecondaryregion))}
+                        $LastRecoveryPoint = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'lastrecoverypoint'
+                        $LastRecoverySecondaryPoint = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'latestrecoverypointinsecondaryregion'
+                        $LastRecovery = if(![string]::IsNullOrEmpty($LastRecoveryPoint)){[string](get-date($LastRecoveryPoint))}else{''}
+                        $LastRecoverySecondary = if(![string]::IsNullOrEmpty($LastRecoverySecondaryPoint)){[string](get-date($LastRecoverySecondaryPoint))}else{$null}
 '@
         }
     )
@@ -116,11 +121,11 @@ $VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid))
         }
         @{
             Name = 'Protected Item Type'
-            Expression = '$ProtectedItem.properties.backupmanagementtype'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''backupmanagementtype'''
         }
         @{
             Name = 'Protected Item'
-            Expression = '$ProtectedItem.properties.friendlyname'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''friendlyname'''
         }
         @{
             Name = 'Vault'
@@ -128,27 +133,27 @@ $VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid))
         }
         @{
             Name = 'Retention Period'
-            Expression = '[string]$ProtectedItem.properties.configuredmaximumretention'
+            Expression = '[string](Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''configuredmaximumretention'')'
         }
         @{
             Name = 'Backup Frequency'
-            Expression = '[string]$ProtectedItem.properties.configuredrpgenerationfrequency'
+            Expression = '[string](Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''configuredrpgenerationfrequency'')'
         }
         @{
             Name = 'Health Status'
-            Expression = '$ProtectedItem.properties.healthstatus'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''healthstatus'''
         }
         @{
             Name = 'Protection Status'
-            Expression = '$ProtectedItem.properties.protectionstatus'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''protectionstatus'''
         }
         @{
             Name = 'Archive Enabled'
-            Expression = '$ProtectedItem.properties.isarchiveenabled'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''isarchiveenabled'''
         }
         @{
             Name = 'Last Backup Status'
-            Expression = '$ProtectedItem.properties.lastbackupstatus'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''lastbackupstatus'''
         }
         @{
             Name = 'Last Backup Time'
@@ -156,7 +161,7 @@ $VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid))
         }
         @{
             Name = 'Days Since Last Backup'
-            Expression = '$DaysSinceBKP.Days'
+            Expression = 'if ($DaysSinceBKP -is [TimeSpan]) { $DaysSinceBKP.Days } else { $null }'
         }
         @{
             Name = 'Last Recovery Point'
@@ -168,15 +173,15 @@ $VaultResource = if(![string]::IsNullOrEmpty($ProtectedItem.properties.vaultid))
         }
         @{
             Name = 'Protection State'
-            Expression = '$ProtectedItem.properties.protectionstate'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''protectionstate'''
         }
         @{
             Name = 'Protection State (Secondary Region)'
-            Expression = '$ProtectedItem.properties.protectionstateinsecondaryregion'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''protectionstateinsecondaryregion'''
         }
         @{
             Name = 'Soft Delete Retention Period'
-            Expression = '$ProtectedItem.properties.softdeleteretentionperiod'
+            Expression = 'Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path ''softdeleteretentionperiod'''
         }
         @{
             Name = 'Resource U'

@@ -6,7 +6,7 @@
     Pester tests for the unattended pipeline wrapper (src/Invoke-ScoutPipeline.ps1).
 
 .DESCRIPTION
-    Invoke-ScoutAssessment (and, transitively, Test-ScoutPermission) is mocked
+    The internal assessment core (and, transitively, Test-ScoutPermission) is mocked
     throughout -- no Azure call is ever made. Validates:
       - pipeline-summary.json is written with the documented schema keys
       - outcome is computed correctly for Success / PartialSuccess (exporter
@@ -26,7 +26,7 @@ BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
     # Dot-source the real orchestrator purely so Mock has a command with a matching
     # parameter set to attach a proxy to -- its body is never actually executed here.
-    . "$root/src/Invoke-ScoutAssessment.ps1"
+    . "$root/src/Invoke-ScoutAssessmentCore.ps1"
     . "$root/src/Get-ScoutNewErrorCount.ps1"
     . "$root/src/Invoke-ScoutPipeline.ps1"
 
@@ -48,7 +48,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
         $script:seenConfirm  = $null
         $script:seenProgress = $null
 
-        Mock Invoke-ScoutAssessment {
+        Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
 
             $script:seenConfirm  = $ConfirmPreference
@@ -116,7 +116,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
 
     It 'threads -ManagementGroupId and -Category through to the orchestrator call' {
         Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath -ManagementGroupId 'contoso-root-mg' -Category 'Security' | Out-Null
-        Should -Invoke Invoke-ScoutAssessment -ParameterFilter {
+        Should -Invoke Invoke-ScoutAssessmentCore -ParameterFilter {
             -not $PermissionAudit -and $ManagementGroupId -eq 'contoso-root-mg' -and ($Category -contains 'Security')
         } -Times 1
     }
@@ -125,7 +125,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
 Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
     BeforeEach {
         $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
-        Mock Invoke-ScoutAssessment {
+        Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             $folder = Join-Path $OutputPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
@@ -134,9 +134,9 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
         }
     }
 
-    It 'never calls Invoke-ScoutAssessment -PermissionAudit' {
+    It 'never calls the assessment core -PermissionAudit mode' {
         Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath -SkipPermissionAudit | Out-Null
-        Should -Invoke Invoke-ScoutAssessment -ParameterFilter { $PermissionAudit } -Times 0 -Exactly
+        Should -Invoke Invoke-ScoutAssessmentCore -ParameterFilter { $PermissionAudit } -Times 0 -Exactly
     }
 
     It 'records the audit as Skipped in the summary' {
@@ -150,7 +150,7 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
 Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
     BeforeEach {
         $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
-        Mock Invoke-ScoutAssessment {
+        Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             # Simulate the orchestrator getting partway through (collect.json written)
             # before an exporter throws -- the run folder exists but is incomplete.
@@ -182,7 +182,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
 Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)' {
     BeforeEach {
         $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
-        Mock Invoke-ScoutAssessment {
+        Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-FailedPermissionCheck) }
             $folder = Join-Path $OutputPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
@@ -207,7 +207,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)
 Describe 'Invoke-ScoutPipeline -- Failed (assess returns nothing)' {
     BeforeEach {
         $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
-        Mock Invoke-ScoutAssessment {
+        Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             # Simulate total failure: no folder created, nothing returned.
             return $null

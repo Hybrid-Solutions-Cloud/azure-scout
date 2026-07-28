@@ -193,10 +193,9 @@ $ErrorActionPreference = 'Stop'
       `-Source TypedQueries` remains available for a narrow, single-category collect where
       projection size matters more than call count.
 
-    `scripts/Get-CollectorResourceTypeMap.ps1` derives, from the real AST of the 176
-    `Modules/Public/InventoryModules` collectors, which ARM types (and which non-ARG synthetic
-    types, e.g. `AZSC/VM/Quotas`) they depend on — the cross-check for how much of that
-    surface `src/collect` covers.
+    `scripts/Get-CollectorResourceTypeMap.ps1` derives, from the 174 shipped definitions,
+    which ARM types (and which non-ARG synthetic types, e.g. `AZSC/VM/Quotas`) they depend on
+    — the cross-check for how much of that surface `src/collect` covers.
 #>
 function Invoke-Collect {
     [CmdletBinding()]

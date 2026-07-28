@@ -81,7 +81,8 @@ $ResUCount = 1
             Source = '$sessionhosts'
             Preamble = @'
 $domain = $2.name.replace(($2.name.split(".")[0]),'')
-                    $vmsessionhosts = $VM | Where-Object { $_.ID -eq $2.properties.resourceId}
+                    $sessionHostResourceId = Get-AZSCSafeProperty -InputObject $2 -Path 'properties.resourceId'
+                    $vmsessionhosts = $VM | Where-Object { $_.ID -eq $sessionHostResourceId }
 '@
         }
     )
@@ -143,23 +144,23 @@ $domain = $2.name.replace(($2.name.split(".")[0]),'')
         }
         @{
             Name = 'AVD Agent Version'
-            Expression = '$2.properties.agentVersion'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.agentVersion'')'
         }
         @{
             Name = 'Last Assigned User'
-            Expression = '$2.properties.assignedUser'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.assignedUser'')'
         }
         @{
             Name = 'Allow New Session'
-            Expression = '$2.properties.allowNewSession'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.allowNewSession'')'
         }
         @{
             Name = 'Update Status'
-            Expression = '$2.properties.updateState'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.updateState'')'
         }
         @{
             Name = 'Hostname'
-            Expression = '$vmsessionhosts.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $vmsessionhosts -Path ''name'')'
         }
         @{
             Name = 'Domain'
@@ -167,27 +168,27 @@ $domain = $2.name.replace(($2.name.split(".")[0]),'')
         }
         @{
             Name = 'VM Size'
-            Expression = '$vmsessionhosts.properties.hardwareProfile.vmsize'
+            Expression = '(Get-AZSCSafeProperty -InputObject $vmsessionhosts -Path ''properties.hardwareProfile.vmsize'')'
         }
         @{
             Name = 'OS Type'
-            Expression = '$vmsessionhosts.properties.storageProfile.osdisk.ostype'
+            Expression = '(Get-AZSCSafeProperty -InputObject $vmsessionhosts -Path ''properties.storageProfile.osdisk.ostype'')'
         }
         @{
             Name = 'VM Disk Type'
-            Expression = '$vmsessionhosts.properties.storageProfile.osdisk.managedDisk.storageAccountType'
+            Expression = '(Get-AZSCSafeProperty -InputObject $vmsessionhosts -Path ''properties.storageProfile.osdisk.managedDisk.storageAccountType'')'
         }
         @{
             Name = 'Sessions'
-            Expression = '$2.properties.sessions'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.sessions'')'
         }
         @{
             Name = 'Host Status'
-            Expression = '$2.properties.status'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.status'')'
         }
         @{
             Name = 'OS Version'
-            Expression = '$2.properties.osVersion'
+            Expression = '(Get-AZSCSafeProperty -InputObject $2 -Path ''properties.osVersion'')'
         }
         @{
             Name = 'Resource U'

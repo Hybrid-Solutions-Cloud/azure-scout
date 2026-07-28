@@ -22,7 +22,8 @@ $ErrorActionPreference = 'Stop'
     the reasons the same tenant produced different reports on consecutive runs (AB#5629).
 
 .PARAMETER InventoryRoot
-    Path to the InventoryModules directory holding one subdirectory per category.
+    Optional legacy fixture root. Production discovery uses DefinitionRoot only; this parameter
+    remains solely for isolated test fixtures that carry a sibling definitions directory.
 
 .PARAMETER Category
     Categories to include. The default, 'All', disables filtering. Filtering is applied twice,
@@ -36,15 +37,8 @@ $ErrorActionPreference = 'Stop'
 
 .PARAMETER DefinitionRoot
     Path to the declarative collector definition tree (`manifests/collectors`, one
-    `<Category>/<Name>.psd1` per converted collector -- see
-    `docs/design/decisions/declarative-collectors.md`). Defaults to the sibling `manifests/
-    collectors` of the module root that contains InventoryRoot.
-
-    This EXTENDS the existing discovery rather than adding a second one: a collector is still
-    found by walking InventoryRoot, and `HasDeclarativeDefinition` is an additive report of
-    whether a definition happens to exist beside it. `Contract` is unchanged and a collector
-    with no definition is not a defect -- it is the expected state for every escape-hatch
-    collector (ADR §2.4, §3).
+    `<Category>/<Name>.psd1` per collector -- see `docs/v3.0.0.md`). It is the production
+    catalog and defaults to the module's shipped manifests/collectors tree.
 
 .OUTPUTS
     PSCustomObject with Name, FolderCategory, Categories, Path, Contract,
@@ -57,7 +51,7 @@ function Get-ScoutCollector {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     Param(
-        [Parameter(Mandatory, Position = 0)]
+        [Parameter(Position = 0)]
         [string]$InventoryRoot,
 
         [Parameter(Position = 1)]
@@ -69,17 +63,25 @@ function Get-ScoutCollector {
         [string]$DefinitionRoot
     )
 
-    if (-not (Test-Path -LiteralPath $InventoryRoot)) {
-        Write-Warning "[AzureScout] Inventory module root not found: $InventoryRoot"
-        return
-    }
-
-    # InventoryRoot is <ModuleRoot>/Modules/Public/InventoryModules; the definitions live at
-    # <ModuleRoot>/manifests/collectors. Derived rather than hard-coded off $PSScriptRoot so the
-    # function stays a pure function of its arguments and remains testable against a fixture tree.
+    # v3's production catalog is the manifest tree.  InventoryRoot remains an explicit
+    # compatibility input for focused imperative-fixture tests only; production callers do not
+    # discover or execute a collector script.
     if ([string]::IsNullOrWhiteSpace($DefinitionRoot)) {
-        $ModuleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $InventoryRoot))
-        $DefinitionRoot = Join-Path $ModuleRoot 'manifests' 'collectors'
+        if ([string]::IsNullOrWhiteSpace($InventoryRoot)) {
+            $ModuleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        } else {
+            # Isolated test estates keep their declarative catalog under the fixture root.
+            # Production has no InventoryRoot and therefore never relies on this convention.
+            $FixtureDefinitionRoot = Join-Path $InventoryRoot 'definitions'
+            if (Test-Path -LiteralPath $FixtureDefinitionRoot -PathType Container) {
+                $DefinitionRoot = $FixtureDefinitionRoot
+            } else {
+                $ModuleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $InventoryRoot))
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($DefinitionRoot)) {
+            $DefinitionRoot = Join-Path $ModuleRoot 'manifests' 'collectors'
+        }
     }
 
     # $null and @() both mean "no filter", the same as 'All'. Callers derive this from a
@@ -87,6 +89,41 @@ function Get-ScoutCollector {
     $FilterActive = $false
     if ($Category -and @($Category).Count -gt 0 -and $Category -notcontains 'All') {
         $FilterActive = $true
+    }
+
+    # A definition root without an inventory root is the v3 path.  The directory names and
+    # file basenames are the catalog's category and collector identity, so no source-script
+    # metadata is needed to construct the deterministic descriptor.
+    if ([string]::IsNullOrWhiteSpace($InventoryRoot)) {
+        if (-not (Test-Path -LiteralPath $DefinitionRoot -PathType Container)) {
+            Write-Warning "[AzureScout] Collector definition root not found: $DefinitionRoot"
+            return
+        }
+
+        $Folders = @(Get-ChildItem -LiteralPath $DefinitionRoot -Directory | Sort-Object Name)
+        if ($FilterActive) {
+            $Folders = @($Folders | Where-Object { $Category -contains $_.Name })
+        }
+
+        foreach ($Folder in $Folders) {
+            foreach ($File in @(Get-ChildItem -LiteralPath $Folder.FullName -Filter '*.psd1' -File | Sort-Object BaseName)) {
+                [PSCustomObject]@{
+                    Name                     = $File.BaseName
+                    FolderCategory           = $Folder.Name
+                    Categories               = @($Folder.Name)
+                    Path                     = $null
+                    Contract                 = 'Declarative'
+                    HasDeclarativeDefinition = $true
+                    DefinitionPath           = $File.FullName
+                }
+            }
+        }
+        return
+    }
+
+    if (-not (Test-Path -LiteralPath $InventoryRoot)) {
+        Write-Warning "[AzureScout] Inventory module root not found: $InventoryRoot"
+        return
     }
 
     $Folders = @(Get-ChildItem -LiteralPath $InventoryRoot -Directory | Sort-Object Name)
@@ -104,29 +141,13 @@ function Get-ScoutCollector {
             # than the whole file — these are read for every collector on every run.
             $HeaderText = (@(Get-Content -LiteralPath $File.FullName -TotalCount 80 -ErrorAction SilentlyContinue) -join "`n")
 
-            # Which calling contract does this file implement?
-            #
-            # 'Standard'    — the param($SCPath, $Sub, $Intag, $Resources, ...) shape that 174
-            #                 of the 176 collectors use and that Invoke-ScoutCollector calls.
-            # 'Unsupported' — Identity/IdentityProviders and Identity/SecurityDefaults are
-            #                 written against a registration API (Register-AZSCInventoryModule,
-            #                 Get-AZSCProcessedData, $Context.EntraData) that exists ONLY as a
-            #                 mock inside tests/Identity.Module.Tests.ps1. It was never
-            #                 implemented in the module, so those two files have never produced
-            #                 a row in any release. The old pipeline hid that: the "term is not
-            #                 recognized" error surfaced detached inside a runspace and their
-            #                 category simply came back empty.
-            #
-            # They are reported rather than executed, so a genuine collector failure is not
-            # buried under two guaranteed ones. Porting them to the standard contract needs the
-            # Entra data plumbing and belongs to the declarative-collector work (AB#5656).
-            $Contract = if ($HeaderText -match '(?m)^\s*param\s*\(\s*\$SCPath') { 'Standard' }
-                        elseif ($HeaderText -match '(?m)^\s*Register-AZSCInventoryModule') { 'Unsupported' }
-                        else { 'Standard' }
+            # All remaining collectors implement the standard invocation shape. Keep the field
+            # while callers still consume it; its value is now deterministic.
+            $Contract = 'Standard'
 
             # Both header forms are accepted:
             #
-            #     .CATEGORY Compute          <- same line, what all 176 shipped collectors use
+            #     .CATEGORY Compute          <- same line, what all 174 shipped collectors use
             #     .CATEGORY
             #     Compute                    <- value on the following line
             #

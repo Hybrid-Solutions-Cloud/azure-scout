@@ -143,11 +143,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Master vNET'
-            Expression = 'if($data.masterProfile.subnetId){$data.masterProfile.subnetId.split("/")[8]}'
+            Expression = 'if($data.masterProfile.subnetId){Get-AZSCIdSegment -Id $data.masterProfile.subnetId -Index 8}'
         }
         @{
             Name = 'Master Subnet'
-            Expression = 'if($data.masterProfile.subnetId){$data.masterProfile.subnetId.split("/")[10]}'
+            Expression = 'if($data.masterProfile.subnetId){Get-AZSCIdSegment -Id $data.masterProfile.subnetId -Index 10}'
         }
         @{
             Name = 'Worker SKU'
@@ -163,11 +163,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Worker vNET'
-            Expression = '$data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[8] } | Select-Object -Unique'
+            Expression = '$data.workerProfiles.subnetId | ForEach-Object { Get-AZSCIdSegment -Id $_ -Index 8 } | Select-Object -Unique'
         }
         @{
             Name = 'Worker Subnet'
-            Expression = '$data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[10] } | Select-Object -Unique'
+            Expression = '$data.workerProfiles.subnetId | ForEach-Object { Get-AZSCIdSegment -Id $_ -Index 10 } | Select-Object -Unique'
         }
         @{
             Name = 'Resource U'

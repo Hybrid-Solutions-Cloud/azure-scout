@@ -15,11 +15,11 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'Modules/Private/Main/Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
     # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
     # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
     # without it the same expression quietly returned $null.
-    . (Join-Path $script:RepoRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
+    . (Join-Path $script:RepoRoot 'src' 'Get-AZSCIdSegment.ps1')
 }
 
 Describe 'StrictMode member enumeration — the behaviour that caused AB#5633' {
@@ -135,20 +135,20 @@ Describe 'Start-AZSCExtractionOrchestration reads API results safely' {
     BeforeAll {
         # Comment lines stripped: the fix carries an explanation that necessarily quotes the
         # broken expression, and matching that would defeat the check.
-        $Raw = Get-Content -Path (Join-Path $script:RepoRoot 'Modules/Private/Main/Start-AZTIExtractionOrchestration.ps1')
+        $Raw = Get-Content -Path (Join-Path $script:RepoRoot 'src/Start-AZTIExtractionOrchestration.ps1')
         $script:Orchestration = (($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n")
     }
 
     It 'no longer member-enumerates $APIResults for any of the seven API fields' {
-        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecomen',
-                           'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecommendations',
+                           'PolicyAssignments', 'PolicyDefinitions', 'PolicySetDefinitions') {
             $script:Orchestration | Should -Not -Match ([regex]::Escape('$APIResults.' + $Field))
         }
     }
 
     It 'routes all seven API fields through Get-AZSCCollectedValue' {
-        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecomen',
-                           'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecommendations',
+                           'PolicyAssignments', 'PolicyDefinitions', 'PolicySetDefinitions') {
             $script:Orchestration | Should -Match ([regex]::Escape("-Name '$Field'"))
         }
     }
@@ -165,10 +165,10 @@ Describe 'The v1 inventory engine runs outside StrictMode' {
     # tree. Removing these turns a working run back into a tenant-specific crash. (AB#5633)
 
     $EntryPoints = @(
-        'Modules/Private/Main/Start-AZTIExtractionOrchestration.ps1'
-        'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1'
-        'Modules/Private/Main/Start-AZTIReporOrchestration.ps1'
-        'Modules/Private/Processing/Start-AZTIExtraJobs.ps1'
+        'src/Start-AZTIExtractionOrchestration.ps1'
+        'src/Start-AZTIProcessOrchestration.ps1'
+        'src/Start-AZTIReporOrchestration.ps1'
+        'src/pipeline/Start-ScoutExtraJobs.ps1'
         'src/report/renderers/inventory/style/Start-AZSCExcelCustomization.ps1'
     )
 
@@ -181,7 +181,7 @@ Describe 'The v1 inventory engine runs outside StrictMode' {
         # The opt-out must stay scoped to the v1 engine. src/ was written for StrictMode and
         # its tests depend on it.
         $Root = Split-Path -Parent $PSScriptRoot
-        $Assessment = Get-Content -Raw -Path (Join-Path $Root 'src/Invoke-ScoutAssessment.ps1')
+        $Assessment = Get-Content -Raw -Path (Join-Path $Root 'src/Invoke-ScoutAssessmentCore.ps1')
         $Assessment | Should -Match 'Set-StrictMode -Version Latest'
         $Assessment | Should -Not -Match 'Set-StrictMode -Off'
     }
@@ -203,8 +203,8 @@ Describe 'The v1 inventory engine runs outside StrictMode' {
 Describe 'Callers never member-enumerate an empty Get-Job result' {
 
     It 'callers build the job list without member-enumerating an empty result' {
-        foreach ($File in 'Modules/Private/Main/Start-AZTIProcessOrchestration.ps1',
-                          'Modules/Public/PublicFunctions/Invoke-AzureScout.ps1') {
+        foreach ($File in 'src/Start-AZTIProcessOrchestration.ps1',
+                          'src/Invoke-AzureScout.ps1') {
             $Raw = Get-Content -Path (Join-Path $script:RepoRoot $File)
             $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
             $Active | Should -Not -Match '\(Get-Job \| Where-Object.*\)\.Name'
@@ -226,7 +226,7 @@ Describe 'Job waits never member-enumerate a possibly-empty handle collection' {
         # now only MENTIONS the expression in the note explaining what went. Strip comments with
         # the tokenizer, not a line regex — that note is a <# … #> block whose inner lines do
         # not start with '#', so a regex strip matches the prose instead of the code.
-        $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramJob.ps1')
+        $Text = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1')
         $Tokens = $null
         $null = [System.Management.Automation.Language.Parser]::ParseInput($Text, [ref]$Tokens, [ref]$null)
         $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '

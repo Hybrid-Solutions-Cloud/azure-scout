@@ -10,21 +10,21 @@ This page maps the `-Category` parameter values to Microsoft's official Azure po
 
 | `-Category` Value | Azure Portal Label | Module Folder Path |
 |-------------------|--------------------|--------------------|
-| `AI` | AI + Machine Learning | `Modules/Public/InventoryModules/AI/` |
-| `Analytics` | Analytics | `Modules/Public/InventoryModules/Analytics/` |
-| `Compute` | Compute | `Modules/Public/InventoryModules/Compute/` |
-| `Containers` | Containers | `Modules/Public/InventoryModules/Containers/` |
-| `Databases` | Databases | `Modules/Public/InventoryModules/Databases/` |
-| `Hybrid` | Hybrid + multicloud | `Modules/Public/InventoryModules/Hybrid/` |
-| `Identity` | Identity | `Modules/Public/InventoryModules/Identity/` |
-| `Integration` | Integration | `Modules/Public/InventoryModules/Integration/` |
-| `IoT` | Internet of Things | `Modules/Public/InventoryModules/IoT/` |
-| `Management` | Management and governance | `Modules/Public/InventoryModules/Management/` |
-| `Monitor` | Monitor | `Modules/Public/InventoryModules/Monitor/` |
-| `Networking` | Networking | `Modules/Public/InventoryModules/Networking/` |
-| `Security` | Security | `Modules/Public/InventoryModules/Security/` |
-| `Storage` | Storage | `Modules/Public/InventoryModules/Storage/` |
-| `Web` | Web & Mobile | `Modules/Public/InventoryModules/Web/` |
+| `AI` | AI + Machine Learning | `manifests/collectors/AI/` |
+| `Analytics` | Analytics | `manifests/collectors/Analytics/` |
+| `Compute` | Compute | `manifests/collectors/Compute/` |
+| `Containers` | Containers | `manifests/collectors/Containers/` |
+| `Databases` | Databases | `manifests/collectors/Databases/` |
+| `Hybrid` | Hybrid + multicloud | `manifests/collectors/Hybrid/` |
+| `Identity` | Identity | `manifests/collectors/Identity/` |
+| `Integration` | Integration | `manifests/collectors/Integration/` |
+| `IoT` | Internet of Things | `manifests/collectors/IoT/` |
+| `Management` | Management and governance | `manifests/collectors/Management/` |
+| `Monitor` | Monitor | `manifests/collectors/Monitor/` |
+| `Networking` | Networking | `manifests/collectors/Networking/` |
+| `Security` | Security | `manifests/collectors/Security/` |
+| `Storage` | Storage | `manifests/collectors/Storage/` |
+| `Web` | Web & Mobile | `manifests/collectors/Web/` |
 
 ## Accepted Aliases
 
@@ -77,7 +77,7 @@ Invoke-AzureScout
 
 To add a new category:
 
-1. Create a new folder under `Modules/Public/InventoryModules/`
+1. Create a new folder under `manifests/collectors/`
 2. Add the folder name to `[ValidateSet]` for `-Category` in `Invoke-AzureScout.ps1`
 3. Add any alias entries to the `$_categoryAliasMap` hashtable in `Invoke-AzureScout.ps1`
 4. Update the [Coverage Table](coverage-table.md) with the new modules

@@ -49,7 +49,7 @@ $ErrorActionPreference = 'Stop'
     run in the same output tree shares one history log.
 
 .PARAMETER RunId
-    The caller-supplied run identifier (e.g. Invoke-ScoutAssessment's
+    The caller-supplied run identifier (e.g. the assessment core's
     yyyyMMdd_HHmmss run folder name) stamped onto this run's history record.
     Required — drift has no meaning without a stable, caller-controlled id
     to compare across.

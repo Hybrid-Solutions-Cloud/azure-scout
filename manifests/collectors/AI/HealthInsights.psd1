@@ -34,8 +34,8 @@ $ResUCount = 1
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp = [pscustomobject]@{
-                                        'RetiredFeature'            = $RetiredFeature.RetiringFeature
-                                        'RetiredDate'               = $Retired.RetirementDate 
+                                        'RetiredFeature'            = $RetiredServiceID.RetiringFeature
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp
                             }
@@ -54,8 +54,8 @@ $ResUCount = 1
                     }
                 $pvt = if(![string]::IsNullOrEmpty($data.privateendpointconnections)){$data.privateendpointconnections}else{'0'}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $Language = if(![string]::IsNullOrEmpty($data.apiProperties.TA4HResourceId)){$data.apiProperties.TA4HResourceId}else{'0'}
-                $Language = $Language.split('/')[8]
+                $Language = Get-AZSCSafeProperty -InputObject $data -Path 'apiProperties.TA4HResourceId'
+                $Language = Get-AZSCIdSegment -Id $Language -Index 8
 '@
 
     AdditionalRowLoops = @(

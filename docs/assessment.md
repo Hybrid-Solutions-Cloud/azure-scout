@@ -22,9 +22,8 @@ PowerPoint tier — see [Assessment Prerequisites](assessment-prerequisites.md).
 
 ::: info One command
 Assessment is a mode of `Invoke-AzureScout`, not a separate tool:
-`Invoke-AzureScout -Assessment LandingZone`. The older
-`Invoke-ScoutAssessment` name still works but is deprecated and will be
-removed in v3.0.0 — see [Overview](overview.md).
+`Invoke-AzureScout -Assessment LandingZone`. The former standalone assessment
+command was removed in v3.0.0; use the unified entry point — see [Overview](overview.md).
 :::
 
 ## Architecture — three layers, JSON on disk

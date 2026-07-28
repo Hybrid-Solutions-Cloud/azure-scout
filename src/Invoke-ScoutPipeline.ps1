@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
     into a single dated run folder, with a machine-readable run summary.
 
 .DESCRIPTION
-    Wraps Invoke-ScoutAssessment (the collect -> assess -> report orchestrator) for
+    Wraps the internal assessment core (the collect -> assess -> report orchestrator) for
     CI/cron hosts that have no console to answer a prompt or watch a progress bar,
     and that need a single artifact to inspect afterward instead of parsing scrollback.
 
@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
     ShouldContinue prompt or spam progress records into a log file.
 
     Unless -SkipPermissionAudit is set, runs the existing read-only permission
-    pre-flight first (Invoke-ScoutAssessment -PermissionAudit, i.e. Test-ScoutPermission)
+    pre-flight first (the assessment core's -PermissionAudit mode, i.e. Test-ScoutPermission)
     and folds its result into the summary. A permission-audit failure is recorded, not
     thrown -- governance datasets (AzGovViz / Graph-backed rules) can legitimately come
     back partial (degrading to 'Unknown' findings) without that being fatal to the run
@@ -27,7 +27,7 @@ $ErrorActionPreference = 'Stop'
     pattern already used for the AzGovViz ingest in src/ingest/Import-AzGovViz.ps1: an
     exporter (or any orchestrator step) throwing mid-run degrades the outcome to
     'PartialSuccess' rather than losing whatever collect.json / findings.json / reports
-    were already written to disk. Invoke-ScoutAssessment only returns its run-folder
+    were already written to disk. The assessment core only returns its run-folder
     path on a clean return, so when it throws this function recovers the folder by
     diffing the directory listing of -OutputPath from before/after the call (the
     orchestrator creates its dated run folder as its very first action, before doing
@@ -44,23 +44,23 @@ $ErrorActionPreference = 'Stop'
 
 .PARAMETER Assessment
     One or many assessment names from manifests/assessments.psd1 (or 'All').
-    Same contract as Invoke-ScoutAssessment -Assessment.
+    Same assessment selection contract as Invoke-AzureScout -Assessment.
 
 .PARAMETER OutputFormat
     One or many report renderers, or 'All'. Same contract as
-    Invoke-ScoutAssessment -OutputFormat.
+    Invoke-AzureScout -OutputFormat in assessment mode.
 
 .PARAMETER OutputPath
     Parent folder the dated run folder is created under. Same contract as
-    Invoke-ScoutAssessment -OutputPath.
+    Invoke-AzureScout's assessment-mode report path.
 
 .PARAMETER ManagementGroupId
     Scopes the ARG collect (and the AzGovViz/ArgQueryPack ingests) to a management
-    group, exactly as Invoke-ScoutAssessment -ManagementGroupId does.
+    group, exactly as Invoke-AzureScout's assessment mode does.
 
 .PARAMETER Category
     Filters which Resource Graph collect categories run, exactly as
-    Invoke-ScoutAssessment -Category does.
+    Invoke-AzureScout's assessment-mode -Category does.
 
 .PARAMETER SkipPermissionAudit
     Skip the Test-ScoutPermission pre-flight entirely (useful when the caller has
@@ -91,10 +91,10 @@ $ErrorActionPreference = 'Stop'
     artifact upload, let a Failed outcome fail the CI step.
 
 .NOTES
-    Read-only throughout (delegates entirely to Invoke-ScoutAssessment / Invoke-Collect,
+    Read-only throughout (delegates entirely to the assessment core / Invoke-Collect,
     neither of which writes to Azure). Tracks ADO AB#5050.
 
-    Per-assessment status in the summary is best-effort: Invoke-ScoutAssessment's
+    Per-assessment status in the summary is best-effort: the assessment core's
     return contract is a single run-folder path, not a per-assessment result, so every
     requested assessment name is reported with the same overall status (Completed /
     Error) rather than an independently-verified one.
@@ -165,7 +165,7 @@ function Invoke-ScoutPipeline {
         # without changing the audit's own non-fatal-by-design outcome.
         $errSentinelBeforeAudit = if ($Error.Count) { $Error[0] } else { $null }
         try {
-            $auditResult = Invoke-ScoutAssessment -Assessment $Assessment -PermissionAudit
+            $auditResult = Invoke-ScoutAssessmentCore -Assessment $Assessment -PermissionAudit
             $permissionAudit.Ran = $true
             $permissionAudit.Checks = @($auditResult | ForEach-Object {
                 [ordered]@{ Check = $_.Check; Ok = $_.Ok; Fix = $_.Fix }
@@ -215,7 +215,7 @@ function Invoke-ScoutPipeline {
     $runFolder       = $null
     $assessmentError = $null
     try {
-        $runFolder = Invoke-ScoutAssessment @assessParams
+        $runFolder = Invoke-ScoutAssessmentCore @assessParams
     }
     catch {
         # Mirrors the resilience pattern in src/ingest/Import-AzGovViz.ps1: a failure
@@ -223,7 +223,7 @@ function Invoke-ScoutPipeline {
         # to PartialSuccess rather than killing it outright -- whatever collect.json /
         # findings.json / reports were already written stay on disk and get reported on.
         $assessmentError = $_.Exception.Message
-        Write-Warning "Invoke-ScoutPipeline: Invoke-ScoutAssessment failed: $assessmentError"
+        Write-Warning "Invoke-ScoutPipeline: assessment core failed: $assessmentError"
     }
     $assessNewErrors = Get-ScoutNewErrorCount $errSentinelBeforeAssess
     $assessmentHadNonTerminatingErrors = ($assessNewErrors -gt 0)

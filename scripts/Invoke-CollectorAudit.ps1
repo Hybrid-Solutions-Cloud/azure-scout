@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     The first step of the declarative-collector rebuild (AB#5656, Epic AB#5638) needs a factual
-    answer to "how many of the 176 collectors are pure data-shaping, and what specifically makes
+    answer to "how many of the 174 collectors are pure data-shaping, and what specifically makes
     the rest not that" — before any schema gets designed. This script answers it by parsing every
     collector with the PowerShell AST (`[System.Management.Automation.Language.Parser]::ParseFile`),
     never by regex-matching source text, so the classification cannot be fooled by comments,
@@ -19,20 +19,20 @@
 
       * the Azure resource type(s) its Processing branch filters `$Resources` by
       * the field names of the row it builds (from the near-universal `$obj = @{ ... }`
-        hashtable-literal convention — 175 of 176 files use it) and the ordered Excel export
+        hashtable-literal convention — 174 files use it) and the ordered Excel export
         column list (from the `$Exc.Add('...')` calls in its Reporting branch)
       * whether it correlates against `$Sub` (subscription name lookup) and/or
         `$Retirements`/`$Unsupported` (retirement cross-reference) — both are treated as
         STANDARD PRIMITIVES because they are near-universal, not as escape-hatch triggers
       * whether it filters `$Resources` by MORE THAN ONE resource type and then correlates
         between those sets inside its per-row loop — a genuine cross-resource JOIN
-      * whether it calls any cmdlet that reaches out to Azure/Graph itself (`Get-Az*`,
-        `Invoke-Az*`, `Invoke-RestMethod`, `Invoke-WebRequest`, `Get-Msol*`, `Get-Mg*`,
-        `Invoke-Mg*`) instead of shaping the `$Resources` array it was handed
+      * whether it calls any command that reaches out to Azure/Graph itself (`Get-Az*`,
+        `Invoke-Az*`, `Search-AzGraph`, `Invoke-RestMethod`, `Invoke-WebRequest`, `Get-Msol*`,
+        `Get-Mg*`, `Invoke-Mg*`) or creates a COM object instead of shaping the `$Resources`
+        array it was handed
 
     A collector is classified EscapeHatch when it has a cross-resource join, a live cmdlet call,
-    or (for the two Identity files) is written against an API that was never implemented — and
-    PureShaping otherwise.
+    and PureShaping otherwise.
 
 .PARAMETER InventoryRoot
     Path to the InventoryModules directory. Defaults to the repo's own.
@@ -267,20 +267,51 @@ function Get-ExportColumns {
 
 function Get-ExternalCalls {
     <#
-        Cmdlets in the block that reach Azure/Graph themselves rather than shaping the
-        $Resources array the collector was handed. Write-AZSCLog and the ImportExcel/collection
-        cmdlets (Where-Object, ForEach-Object, Select-Object, New-Object, Get-Date, Measure-Object,
-        Export-Excel, New-ExcelStyle, New-ConditionalText) are the declarative vocabulary and are
-        excluded deliberately.
+        Commands in the block that reach Azure/Graph themselves, or depend on an external COM
+        runtime, rather than shaping the $Resources array the collector was handed.
+
+        This is deliberately structural in two dimensions:
+
+          * CommandAst.GetCommandName() decides the command. A broad `Get-Az*` regex alone also
+            matches this repo's in-process Get-AZSCSafeProperty/Get-AZSCIdSegment/
+            Get-AZSCCollectedValue helpers, moving pure collectors into the escape-hatch set.
+          * New-Object is external only when its CommandParameterAst requests `-Com`/
+            `-ComObject`; ordinary New-Object use remains part of the shaping vocabulary.
+
+        Search-AzGraph is named explicitly because it does not begin with Get/Invoke, and was
+        therefore invisible to the previous prefix classifier.
     #>
     param([System.Management.Automation.Language.Ast]$Block)
 
     if (-not $Block) { return @() }
-    $Pattern = '^(Get-Az(?!ureADServicePrincipal$)|Invoke-Az|New-Az|Set-Az|Connect-Az|Invoke-RestMethod$|Invoke-WebRequest$|Get-Msol|Get-Mg|Invoke-Mg)'
+
+    $InProcessHelpers = @(
+        'Get-AZSCSafeProperty'
+        'Get-AZSCIdSegment'
+        'Get-AZSCCollectedValue'
+    )
+    $AzureCommandPattern = '^(Get-Az|Invoke-Az|New-Az|Set-Az|Connect-Az|Get-Msol|Get-Mg|Invoke-Mg)'
+    $ExactExternalNames = @(
+        'Search-AzGraph'
+        'Invoke-RestMethod'
+        'Invoke-WebRequest'
+    )
+
     $Commands = $Block.FindAll({ param($n) $n -is [System.Management.Automation.Language.CommandAst] }, $true)
     $Names = @(foreach ($Cmd in $Commands) {
         $Name = $Cmd.GetCommandName()
-        if ($Name -and $Name -match $Pattern) { $Name }
+        if (-not $Name -or $Name -in $InProcessHelpers) { continue }
+
+        if ($Name -ieq 'New-Object') {
+            $ComParameter = @($Cmd.CommandElements | Where-Object {
+                $_ -is [System.Management.Automation.Language.CommandParameterAst] -and
+                $_.ParameterName -in @('Com', 'ComObject')
+            })
+            if ($ComParameter.Count -gt 0) { 'New-Object -Com' }
+            continue
+        }
+
+        if ($Name -in $ExactExternalNames -or $Name -match $AzureCommandPattern) { $Name }
     })
     return @($Names | Select-Object -Unique)
 }
@@ -354,35 +385,6 @@ function Get-CollectorAuditRecord {
         ExternalCalls           = @()
         Classification          = 'PureShaping'
         EscapeHatchReasons      = @()
-    }
-
-    if ($Collector.Contract -eq 'Unsupported') {
-        # Identity/IdentityProviders and Identity/SecurityDefaults — written against
-        # Register-AZSCInventoryModule / Get-AZSCProcessedData / $Context.EntraData, an API
-        # that exists only as a mock in tests/Identity.Module.Tests.ps1 (see Get-ScoutCollector.ps1
-        # and docs/design/decisions/deterministic-pipeline.md §5.3). Never produced a row.
-        $Record.Classification = 'EscapeHatch'
-        $Record.EscapeHatchReasons = @('UnimplementedContract: written against Register-AZSCInventoryModule/$Context.EntraData, which the module never implements')
-        $RecordFields = @($Ast.FindAll({
-            param($n)
-            $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
-            $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
-            $n.Left.VariablePath.UserPath -ieq 'Record'
-        }, $true))
-        if ($RecordFields.Count -gt 0) {
-            # `[PSCustomObject][ordered]@{...}` is TWO stacked casts around the hashtable
-            # literal -- peel ConvertExpressionAst.Child repeatedly (not just once) until the
-            # HashtableAst itself is reached.
-            $Rhs = Get-InnerExpression -Node $RecordFields[0].Right
-            while ($Rhs -is [System.Management.Automation.Language.ConvertExpressionAst]) { $Rhs = $Rhs.Child }
-            if ($Rhs -is [System.Management.Automation.Language.HashtableAst]) {
-                $Record.ProcessingFields = @($Rhs.KeyValuePairs | ForEach-Object {
-                    if ($_.Item1 -is [System.Management.Automation.Language.StringConstantExpressionAst]) { $_.Item1.Value }
-                })
-                $Record.ProcessingFieldCount = @($Record.ProcessingFields).Count
-            }
-        }
-        return [PSCustomObject]$Record
     }
 
     $ProcessingBlock = Get-ProcessingBlock -Ast $Ast

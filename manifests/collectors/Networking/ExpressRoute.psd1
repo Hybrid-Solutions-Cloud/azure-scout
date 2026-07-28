@@ -72,7 +72,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sub1 -Path ''name'')'
         }
         @{
             Name = 'Resource Group'
@@ -104,7 +104,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Authorization'
-            Expression = '$Auth.Name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $Auth -Path ''Name'')'
         }
         @{
             Name = 'Circuit Status'

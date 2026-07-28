@@ -27,13 +27,14 @@ $ResUCount = 1
             $hpRefCount    = if ($data.hostPoolReferences) { @($data.hostPoolReferences).Count } else { 0 }
             $hpNames       = if ($data.hostPoolReferences) {
                 (@($data.hostPoolReferences) | ForEach-Object {
-                    if ($_.hostPoolArmPath) { ($_.hostPoolArmPath -split '/')[-1] } else { 'N/A' }
+                    $hostPoolArmPath = Get-AZSCSafeProperty -InputObject $_ -Path 'hostPoolArmPath'
+                    if ($hostPoolArmPath) { ($hostPoolArmPath -split '/')[-1] } else { 'N/A' }
                 }) -join '; '
             } else { 'None' }
 
             # Flatten schedule details into one row per plan (summary)
             $scheduleNames = if ($data.schedules) {
-                (@($data.schedules) | ForEach-Object { $_.name }) -join '; '
+                (@($data.schedules) | ForEach-Object { Get-AZSCSafeProperty -InputObject $_ -Path 'name' }) -join '; '
             } else { 'None' }
 '@
 

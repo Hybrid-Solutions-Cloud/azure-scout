@@ -9,7 +9,7 @@
     without the step itself throwing -- forcing the run's overall outcome to
     PartialSuccess and recording `hadNonTerminatingErrors` in the summary.
 
-    Invoke-ScoutAssessment is mocked throughout -- no live Azure connection or
+    The internal assessment core is mocked throughout -- no live Azure connection or
     real Invoke-Collect call is made.
 #>
 
@@ -17,7 +17,7 @@ BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
     # Dot-source the real orchestrator purely so Mock has a command with a matching
     # parameter set to attach a proxy to -- its body is never actually executed here.
-    . "$root/src/Invoke-ScoutAssessment.ps1"
+    . "$root/src/Invoke-ScoutAssessmentCore.ps1"
     . "$root/src/Get-ScoutNewErrorCount.ps1"
     . "$root/src/Invoke-ScoutPipeline.ps1"
 
@@ -44,7 +44,7 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
 
     Context 'the collect/assess/report step swallowed an error internally' {
         BeforeEach {
-            Mock Invoke-ScoutAssessment {
+            Mock Invoke-ScoutAssessmentCore {
                 if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
                 Add-SimulatedSwallowedError
                 $folder = Join-Path $OutputPath '20260101_000000'
@@ -81,7 +81,7 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
 
     Context 'the permission audit swallowed an error internally' {
         BeforeEach {
-            Mock Invoke-ScoutAssessment {
+            Mock Invoke-ScoutAssessmentCore {
                 if ($PermissionAudit) {
                     Add-SimulatedSwallowedError
                     return @(Get-OkPermissionCheck)
@@ -104,7 +104,7 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
 
     Context 'a fully clean run records no non-terminating errors' {
         BeforeEach {
-            Mock Invoke-ScoutAssessment {
+            Mock Invoke-ScoutAssessmentCore {
                 if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
                 $folder = Join-Path $OutputPath '20260101_000000'
                 New-Item -ItemType Directory -Path $folder -Force | Out-Null

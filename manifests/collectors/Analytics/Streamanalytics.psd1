@@ -61,10 +61,12 @@ $ResUCount = 1
                     }
                 $LastOutput = if($data.lastOutputEventTime){[string](get-date $data.lastOutputEventTime)}else{''}
                 $OutputStart = if($data.outputStartTime){[string](get-date $data.outputStartTime)}else{''}
-                $ClusterDate = if($Cluster.properties.createddate){[string](get-date($Cluster.properties.createddate))}else{''}
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $ClusterCreatedDate = Get-AZSCSafeProperty -InputObject $Cluster -Path 'properties.createddate'
+                $ClusterDate = if($ClusterCreatedDate){[string](get-date($ClusterCreatedDate))}else{''}
+                $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties } else { '0' }
 
-                $sub2 = $SUB | Where-Object { $_.id -eq $Cluster.subscriptionid }
+                $ClusterSubscriptionId = Get-AZSCSafeProperty -InputObject $Cluster -Path 'subscriptionid'
+                $sub2 = $SUB | Where-Object { $_.id -eq $ClusterSubscriptionId }
 '@
 
     AdditionalRowLoops = @()
@@ -86,19 +88,19 @@ $ResUCount = 1
         }
         @{
             Name = 'Cluster Resource Group'
-            Expression = '$Cluster.resourcegroup'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''resourcegroup'''
         }
         @{
             Name = 'Cluster Name'
-            Expression = '$Cluster.NAME'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''NAME'''
         }
         @{
             Name = 'Cluster Location'
-            Expression = '$Cluster.location'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''location'''
         }
         @{
             Name = 'Cluster SKU'
-            Expression = '$Cluster.sku.name'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''sku.name'''
         }
         @{
             Name = 'Retiring Feature'
@@ -110,11 +112,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Capacity Allocated'
-            Expression = '$Cluster.properties.capacityallocated'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''properties.capacityallocated'''
         }
         @{
             Name = 'Capacity Assigned'
-            Expression = '$Cluster.properties.capacityassigned'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Cluster -Path ''properties.capacityassigned'''
         }
         @{
             Name = 'Cluster Creation Date'

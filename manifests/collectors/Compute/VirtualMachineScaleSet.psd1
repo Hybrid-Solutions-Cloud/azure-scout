@@ -19,7 +19,7 @@
 
     SetupPreamble = @'
 $vmss = $Resources | Where-Object {$_.TYPE -eq 'microsoft.compute/virtualmachinescalesets'}
-        $AutoScale = $Resources | Where-Object {$_.TYPE -eq "microsoft.insights/autoscalesettings" -and $_.Properties.enabled -eq 'true'} 
+        $AutoScale = $Resources | Where-Object { $_.TYPE -eq 'microsoft.insights/autoscalesettings' -and (Get-AZSCSafeProperty -InputObject $_ -Path 'Properties.enabled') -eq 'true' }
         $AKS = $Resources | Where-Object {$_.TYPE -eq 'microsoft.containerservice/managedclusters'}
         $SFC = $Resources | Where-Object {$_.TYPE -eq 'microsoft.servicefabric/clusters'}
         $VMExtraDetails = $Resources | Where-Object { $_.TYPE -eq 'AZSC/VM/SKU' }

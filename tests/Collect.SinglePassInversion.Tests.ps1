@@ -40,7 +40,7 @@ BeforeAll {
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
     . "$script:root/src/collect/Invoke-Collect.ps1"
-    . "$script:root/Modules/Private/Extraction/Start-AZTIGraphExtraction.ps1"
+    . "$script:root/src/collect/Start-ScoutGraphExtraction.ps1"
 
     function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) return $Subscriptions }
 

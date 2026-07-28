@@ -44,12 +44,12 @@ BeforeAll {
     # chain (which throws when an intermediate segment is genuinely ABSENT rather than $null), and
     # Get-AZSCCollectedValue is its member-ENUMERATION counterpart for a read over a collection
     # that may be empty. Both are needed here from AB#5671 onwards.
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZTICollectedValue.ps1')
     # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
     # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
     # without it the same expression quietly returned $null.
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCIdSegment.ps1')
     $script:InventoryPath    = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
     $script:StylePath        = Join-Path $script:InventoryPath 'style'
     # Unique per run -- a fixed folder that BeforeAll deletes lets two concurrent runs of this
@@ -331,8 +331,11 @@ Describe 'Inventory Excel end-to-end (real ReportCache -> real workbook)' -Skip:
         # Only what this test needs -- not the whole module (no Azure auth, no
         # dependency-install bootstrap). Order doesn't matter: these are all
         # function definitions, resolved at call time.
-        . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Clear-AZTIMemory.ps1')
-        . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Start-AZTIReporOrchestration.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'Clear-AZTIMemory.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'Start-AZTIReporOrchestration.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Invoke-ScoutDeclarativeCollector.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'report' 'Get-ScoutReportSectionIndex.ps1')
         . (Join-Path $script:InventoryPath 'Start-AZSCExcelJob.ps1')
         . (Join-Path $script:InventoryPath 'Start-AZSCExcelExtraData.ps1')
         . (Join-Path $script:InventoryPath 'Start-AZSCExtraReports.ps1')

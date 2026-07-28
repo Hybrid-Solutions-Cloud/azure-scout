@@ -56,6 +56,30 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1e-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1f-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1f-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1e-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1f-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1f-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -65,6 +89,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightswebtests-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1e-1/AppInsightsWorkItems/appinsightsworkitems-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1f-1/AppInsightsWorkItems/appinsightsworkitems-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1f-1/AppInsightsWorkItems/appinsightsworkitems-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -101,6 +137,30 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/datacollectionrules/datacollectionrules-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1e-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1f-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1f-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1e-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1f-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1f-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -164,6 +224,18 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1e-1/Outage/outages-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1f-1/Outage/outages-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1f-1/Outage/outages-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -197,6 +269,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1e-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1f-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1f-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -1145,8 +1229,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1170,8 +1258,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1196,8 +1288,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1219,8 +1315,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1244,8 +1344,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1269,8 +1373,12 @@
         {
           "PROPERTIES": {
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Kind": "res-value",
             "Enabled": "res-value",
@@ -1293,6 +1401,384 @@
         }
       ]
     },
+    "AppInsightsContinuousExport": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1a-parent",
+          "NAME": "appinsightscontinuousexport-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1a-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1a-2",
+          "NAME": "appinsightscontinuousexport-t1a",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1b-parent",
+          "NAME": "appinsightscontinuousexport-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1b-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1b-2",
+          "NAME": "appinsightscontinuousexport-t1b",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1c-parent",
+          "NAME": "appinsightscontinuousexport-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1c-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1c-2",
+          "NAME": "appinsightscontinuousexport-t1c",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1d-parent",
+          "NAME": "appinsightscontinuousexport-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1d-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1d-2",
+          "NAME": "appinsightscontinuousexport-t1d",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1e-parent",
+          "NAME": "appinsightscontinuousexport-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1e-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1e-2",
+          "NAME": "appinsightscontinuousexport-t1e",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1f-parent",
+          "NAME": "appinsightscontinuousexport-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DestinationStorageSubscriptionId": "res-value",
+          "RecordTypes": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "ExportId": "res-value",
+          "IsUserEnabled": "res-value",
+          "DestinationStorageLocationId": "res-value",
+          "DestinationAccountId": "res-value",
+          "DestinationContainerId": "res-value",
+          "ExportStatus": "res-value",
+          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1f-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1f-2",
+          "NAME": "appinsightscontinuousexport-t1f",
+          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "AppInsightsProactiveDetection": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1a-parent",
+          "NAME": "appinsightsproactivedetection-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "appinsightsproactivedetection-t1a",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1a-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1a-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1b-parent",
+          "NAME": "appinsightsproactivedetection-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "appinsightsproactivedetection-t1b",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1b-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1b-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1c-parent",
+          "NAME": "appinsightsproactivedetection-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "appinsightsproactivedetection-t1c",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1c-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1c-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1d-parent",
+          "NAME": "appinsightsproactivedetection-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "appinsightsproactivedetection-t1d",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1d-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1d-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1e-parent",
+          "NAME": "appinsightsproactivedetection-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "appinsightsproactivedetection-t1e",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1e-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1e-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1f-parent",
+          "NAME": "appinsightsproactivedetection-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsproactivedetection-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "appinsightsproactivedetection-t1f",
+          "RuleDefinitions": {
+            "DisplayName": "res-value"
+          },
+          "Enabled": "res-value",
+          "SendEmailsToSubscriptionOwners": "res-value",
+          "CustomEmails": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1f-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1f-2",
+          "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "AppInsightsWebTests": {
       "resources": [
         {
@@ -1307,8 +1793,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1338,8 +1828,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1370,8 +1864,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1399,8 +1897,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1430,8 +1932,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1461,8 +1967,12 @@
               "FollowRedirects": "res-value"
             },
             "Locations": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "Id": "res-value"
+              },
+              {
+                "Id": "res-value"
+              }
             ],
             "Enabled": "res-value",
             "Frequency": "res-value",
@@ -1482,19 +1992,198 @@
         }
       ]
     },
+    "AppInsightsWorkItems": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1a-parent",
+          "NAME": "appinsightsworkitems-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1a-1/AppInsightsWorkItems/appinsightsworkitems-t1a-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1a",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1b-parent",
+          "NAME": "appinsightsworkitems-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1b-1/AppInsightsWorkItems/appinsightsworkitems-t1b-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1b",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1c-parent",
+          "NAME": "appinsightsworkitems-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1c-1/AppInsightsWorkItems/appinsightsworkitems-t1c-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1c",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1d-parent",
+          "NAME": "appinsightsworkitems-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1d-1/AppInsightsWorkItems/appinsightsworkitems-t1d-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1d",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1e-parent",
+          "NAME": "appinsightsworkitems-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1e-1/AppInsightsWorkItems/appinsightsworkitems-t1e-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1e",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1f-parent",
+          "NAME": "appinsightsworkitems-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1f-1/AppInsightsWorkItems/appinsightsworkitems-t1f-2",
+          "ConfigDisplayName": "res-value",
+          "IsDefault": "res-value",
+          "ConfigProperties": "res-value",
+          "NAME": "appinsightsworkitems-t1f",
+          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "AutoscaleSettings": {
       "resources": [
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -1511,14 +2200,52 @@
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -1536,14 +2263,52 @@
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -1558,14 +2323,52 @@
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -1582,14 +2385,52 @@
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -1606,14 +2447,52 @@
         {
           "PROPERTIES": {
             "notifications": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              },
+              {
+                "email": {
+                  "sendToSubscriptionAdministrator": "res-value",
+                  "sendToSubscriptionCoAdministrators": "res-value",
+                  "customEmails": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "webhooks": [
+                  {
+                    "serviceUri": "res-value"
+                  },
+                  {
+                    "serviceUri": "res-value"
+                  }
+                ]
+              }
             ],
             "targetResourceUri": "res-value",
             "targetResourceLocation": "res-value",
             "profiles": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "name": "res-value"
+              },
+              {
+                "name": "res-value"
+              }
             ],
             "enabled": "res-value"
           },
@@ -2427,6 +3306,324 @@
         }
       ]
     },
+    "LAWorkspaceLinkedServices": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1a-parent",
+          "NAME": "laworkspacelinkedservices-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "laworkspacelinkedservices-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1a-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1a-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1b-parent",
+          "NAME": "laworkspacelinkedservices-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "laworkspacelinkedservices-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1b-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1b-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1c-parent",
+          "NAME": "laworkspacelinkedservices-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "laworkspacelinkedservices-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1c-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1c-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1d-parent",
+          "NAME": "laworkspacelinkedservices-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "laworkspacelinkedservices-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1d-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1d-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1e-parent",
+          "NAME": "laworkspacelinkedservices-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "laworkspacelinkedservices-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1e-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1e-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1f-parent",
+          "NAME": "laworkspacelinkedservices-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "resourceId": "res-value",
+            "writeAccessResourceId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacelinkedservices-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "laworkspacelinkedservices-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacelinkedservices-t1f-1/LAWorkspaceLinkedServices/laworkspacelinkedservices-t1f-2",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceLinkedServices",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "LAWorkspaceSavedSearches": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1a-parent",
+          "NAME": "laworkspacesavedsearches-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1a-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1a-2",
+          "NAME": "laworkspacesavedsearches-t1a",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1b-parent",
+          "NAME": "laworkspacesavedsearches-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1b-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1b-2",
+          "NAME": "laworkspacesavedsearches-t1b",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1c-parent",
+          "NAME": "laworkspacesavedsearches-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1c-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1c-2",
+          "NAME": "laworkspacesavedsearches-t1c",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1d-parent",
+          "NAME": "laworkspacesavedsearches-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1d-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1d-2",
+          "NAME": "laworkspacesavedsearches-t1d",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1e-parent",
+          "NAME": "laworkspacesavedsearches-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1e-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1e-2",
+          "NAME": "laworkspacesavedsearches-t1e",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1f-parent",
+          "NAME": "laworkspacesavedsearches-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "category": "res-value",
+            "query": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "version": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/laworkspacesavedsearches-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/laworkspacesavedsearches-t1f-1/LAWorkspaceSavedSearches/laworkspacesavedsearches-t1f-2",
+          "NAME": "laworkspacesavedsearches-t1f",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceSavedSearches",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "LAWorkspaceSolutions": {
       "resources": [
         {
@@ -3027,8 +4224,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3053,8 +4254,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3080,8 +4285,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3104,8 +4313,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3130,8 +4343,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3156,8 +4373,12 @@
               "res-item-1"
             ],
             "scopedResources": [
-              "res-item-0",
-              "res-item-1"
+              {
+                "linkedResourceId": "res-value"
+              },
+              {
+                "linkedResourceId": "res-value"
+              }
             ],
             "accessModeSettings": {
               "queryAccessMode": "res-value",
@@ -3291,6 +4512,273 @@
           "LOCATION": "res-value",
           "KIND": "res-value",
           "TYPE": "microsoft.insights/workbooks"
+        }
+      ]
+    },
+    "Outages": {
+      "resources": [
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1a-1/Outage/outages-t1a-2",
+          "NAME": "outages-t1a",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1b-1/Outage/outages-t1b-2",
+          "NAME": "outages-t1b",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1c-1/Outage/outages-t1c-2",
+          "NAME": "outages-t1c",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1d-1/Outage/outages-t1d-2",
+          "NAME": "outages-t1d",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1e-1/Outage/outages-t1e-2",
+          "NAME": "outages-t1e",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "SourceResource": {
+              "properties": {
+                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
+                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impact": {
+                  "impactedRegions": {
+                    "impactedSubscriptions": [
+                      "res-item-0",
+                      "res-item-1"
+                    ]
+                  },
+                  "impactedService": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                },
+                "eventType": "res-value",
+                "status": "res-value",
+                "eventlevel": "res-value",
+                "title": "res-value"
+              },
+              "id": "res-value",
+              "name": "res-value"
+            },
+            "DescriptionSections": {
+              "What happened": "res-value",
+              "What went wrong and why": "res-value",
+              "How did we respond": "res-value",
+              "How are we making incidents like this less likely or less impactful": "res-value",
+              "How can customers make incidents like this less impactful": "res-value"
+            }
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Monitor/outages-t1f-1/Outage/outages-t1f-2",
+          "NAME": "outages-t1f",
+          "TYPE": "AZSC/Monitor/Outage",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },
@@ -4074,6 +5562,279 @@
           "NAME": "smartdetectoralertrules-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.alertsmanagement/smartdetectoralertrules"
+        }
+      ]
+    },
+    "SubscriptionDiagnosticSettings": {
+      "resources": [
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1a-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1a-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1a",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1b-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1b-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1b",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1c-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1c-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1c",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1d-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1d-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1d",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1e-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1e-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1e",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Logs": [
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            },
+            {
+              "Enabled": "res-value",
+              "Category": "res-value",
+              "RetentionPolicy": {
+                "Days": "res-value"
+              }
+            }
+          ],
+          "WorkspaceId": "res-value",
+          "StorageAccountId": "res-value",
+          "EventHubAuthorizationRuleId": "res-value",
+          "EventHubName": "res-value",
+          "MarketplacePartnerId": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/subscriptiondiagnosticsettings-t1f-1/SecurityPolicySweep/subscriptiondiagnosticsettings-t1f-2",
+          "SubscriptionName": "res-value",
+          "NAME": "subscriptiondiagnosticsettings-t1f",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "SubscriptionDiagnosticSettings": [
+              {
+                "Name": "res-value",
+                "WorkspaceId": "res-value",
+                "StorageAccountId": "res-value",
+                "EventHubAuthorizationRuleId": "res-value",
+                "EventHubName": "res-value",
+                "MarketplacePartnerId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

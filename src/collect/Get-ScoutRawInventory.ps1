@@ -79,6 +79,24 @@ $ErrorActionPreference = 'Stop'
     `resources`/`servicehealthresources` with its own joins -- so it is one of the two
     documented exceptions to "one pass" (the other is `Invoke-Collect`'s `sqlDefenderPricing`).
 
+.PARAMETER IncludeArmChildResources
+    Also collect the ARM child datasets required by the declarative inventory collectors. The
+    synthetic rows are appended to `Resources`. Off by default because this is ARM REST work,
+    not part of the Resource Graph pass.
+
+.PARAMETER IncludeSubscriptionSecurityPolicy
+    Also collect one synthetic Defender/diagnostics/policy-compliance envelope per discovered
+    subscription and append it to `Resources`. Off by default.
+
+.PARAMETER IncludeTenantWideResources
+    Also collect the custom-role, management-group, policy-definition, and policy-set
+    envelopes and append them to `Resources`. Off by default.
+
+.PARAMETER IncludeOperationalCollectorEnrichment
+    Also collect the parent-scoped ARM/Az-cmdlet envelopes consumed by the remaining live-access
+    inventory collectors (VM, Arc, storage, and subscription enrichment), appending them to
+    `Resources`. Off by default so the ordinary Resource Graph output is unchanged.
+
 .PARAMETER RetirementQueryPath
     Overrides where the retirement KQL is read from. Defaults to
     `src/report/renderers/inventory/style/Retirement.kql` resolved from this file's location.
@@ -109,7 +127,9 @@ $ErrorActionPreference = 'Stop'
 .OUTPUTS
     [pscustomobject] with `Resources`, `ResourceContainers`, `Advisories`, `Security` and
     `Retirements` -- the same shape `Start-AZTIGraphExtraction` returns, and the same shape
-    `Invoke-Collect -FromInventory` already accepts.
+    `Invoke-Collect -FromInventory` already accepts. When one of the optional non-ARG switches
+    is supplied, its synthetic collector envelopes are appended to `Resources`; no top-level
+    property is added, so callers that have not opted in observe the identical contract.
 
 .NOTES
     Tracks ADO AB#5639 (Task AB#5642, Epic AB#5638).
@@ -201,6 +221,11 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
         [switch]   $IncludeRetirements,
+        [switch]   $IncludeArmChildResources,
+        [switch]   $IncludeSubscriptionSecurityPolicy,
+        [switch]   $IncludeTenantWideResources,
+
+        [switch]   $IncludeOperationalCollectorEnrichment,
         [string]   $RetirementQueryPath,
         [string[]] $ResourceGroups,
         [string]   $TagKey,
@@ -342,6 +367,35 @@ function Get-ScoutRawInventory {
         return , @($rows)
     }
 
+    function Import-ScoutRawInventoryHelper {
+        param(
+            [Parameter(Mandatory)] [string] $CommandName,
+            [Parameter(Mandatory)] [string] $FileName
+        )
+
+        # Optional helpers are loaded only for an explicit opt-in. This keeps normal raw
+        # collection independent from staged rebuild files that may not yet be available.
+        if (Get-Command $CommandName -ErrorAction SilentlyContinue) { return $true }
+
+        $helperPath = Join-Path $PSScriptRoot $FileName
+        if (-not (Test-Path -LiteralPath $helperPath -PathType Leaf)) {
+            Write-Warning "Get-ScoutRawInventory: optional helper '$CommandName' is unavailable; skipping its opted-in dataset."
+            return $false
+        }
+
+        try { . $helperPath }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: optional helper '$CommandName' could not be loaded; skipping its opted-in dataset: $($_.Exception.Message)"
+            return $false
+        }
+
+        if (-not (Get-Command $CommandName -ErrorAction SilentlyContinue)) {
+            Write-Warning "Get-ScoutRawInventory: optional helper '$CommandName' did not load; skipping its opted-in dataset."
+            return $false
+        }
+        return $true
+    }
+
     # ---- resourcecontainers first: gives every other table a subscription list to batch by,
     # exactly like Invoke-Collect's own AB#397 ordering guarantee. ----
     # `@($SubscriptionIds)` alone is NOT safe here: an unbound [string[]] parameter is $null,
@@ -413,6 +467,110 @@ function Get-ScoutRawInventory {
         catch {
             Write-Warning "Get-ScoutRawInventory: the retirement query at '$resolvedRetirementPath' could not be read -- Retirements will be empty and the rest of the inventory is unaffected: $($_.Exception.Message)"
             $retirements = @()
+        }
+    }
+
+    # Optional non-ARG collector inputs use the existing Resources envelope rather than adding
+    # a new top-level contract. The assessment shaper ignores unknown AZSC/* types, so opting
+    # into these inventory-only rows cannot alter assessment-shaped output.
+    #
+    # Outage description normalisation is deliberately unconditional: it is a pure,
+    # cross-platform transform of Resource Graph rows already in memory, and the collector's
+    # only former dependency was the Windows HTMLFile COM object. The original event rows stay
+    # intact; the typed envelopes are consumed exclusively by Monitor/Outages.
+    if (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutOutageResource' -FileName 'Get-ScoutOutageResource.ps1') {
+        try {
+            foreach ($row in @(Get-ScoutOutageResource -Resources @($resources))) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: outage normalisation failed; continuing with the raw Resource Health events: $($_.Exception.Message)"
+        }
+    }
+
+    if ($IncludeArmChildResources -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutArmChildResource' -FileName 'Get-ScoutArmChildResource.ps1')) {
+        try {
+            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources))) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: ARM child collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
+    # This is a pure transform of rows already collected above, not an optional ARM enrichment.
+    # Appending its typed envelope lets the AVDAzureLocal declarative collector retain the legacy
+    # Arc -> Azure Local -> session-host fallback ordering without mutating raw ARG rows.
+    if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutAvdAzureLocalSessionHost' -FileName 'ConvertTo-ScoutAvdAzureLocalSessionHost.ps1') {
+        try {
+            foreach ($row in @(ConvertTo-ScoutAvdAzureLocalSessionHost -Resources @($resources))) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: AVD Azure Local row transform failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
+    # Normalise the subscription rows once. Explicit subscription ids remain usable when the
+    # resourcecontainers call is unavailable, but container names take precedence when present.
+    $subscriptionEnvelopes = @(
+        $resourceContainers |
+            Where-Object { [string] $_.type -ieq 'microsoft.resources/subscriptions' -and $_.subscriptionId } |
+            ForEach-Object {
+                [pscustomobject]@{
+                    id   = [string] $_.subscriptionId
+                    name = if ($_.PSObject.Properties['name'] -and $_.name) { [string] $_.name } else { [string] $_.subscriptionId }
+                }
+            }
+    )
+    if ($subscriptionEnvelopes.Count -eq 0 -and $resolvedSubscriptionIds.Count -gt 0) {
+        $subscriptionEnvelopes = @($resolvedSubscriptionIds | ForEach-Object {
+                [pscustomobject]@{ id = [string] $_; name = [string] $_ }
+            })
+    }
+
+    if ($IncludeSubscriptionSecurityPolicy -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutSubscriptionSecurityPolicySweep' -FileName 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')) {
+        try {
+            foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $subscriptionEnvelopes)) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: subscription security/policy collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
+    if ($IncludeOperationalCollectorEnrichment -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutOperationalCollectorEnrichment' -FileName 'Get-ScoutOperationalCollectorEnrichment.ps1')) {
+        try {
+            foreach ($row in @(Get-ScoutOperationalCollectorEnrichment -Resources @($resources) -Subscriptions $subscriptionEnvelopes)) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: operational collector enrichment failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
+    if ($IncludeTenantWideResources) {
+        $tenantHelpersAvailable =
+            (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1') -and
+            (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutManagementGroupHierarchy' -FileName 'ConvertTo-ScoutManagementGroupHierarchy.ps1') -and
+            (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutTenantWideResource' -FileName 'Get-ScoutTenantWideResource.ps1')
+        if ($tenantHelpersAvailable) {
+            try {
+                # Tenant-wide policy envelopes consume the API result rather than duplicating
+                # any policy call in their own helper.
+                $apiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment)
+                foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $apiResources)) {
+                    if ($null -ne $row) { $resources.Add($row) }
+                }
+            }
+            catch {
+                Write-Warning "Get-ScoutRawInventory: tenant-wide collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+            }
         }
     }
 

@@ -11,7 +11,7 @@
 #>
 
 BeforeAll {
-    . (Join-Path (Split-Path -Parent $PSScriptRoot) 'Modules/Private/Main/Get-AZSCSafeProperty.ps1')
+    . (Join-Path (Split-Path -Parent $PSScriptRoot) 'src/Get-AZSCSafeProperty.ps1')
 }
 
 Describe 'Get-AZSCSafeProperty' {
@@ -90,7 +90,7 @@ Describe 'Get-AZSCSafeProperty -Enumerate reproduces member enumeration (AB#5671
 
     BeforeAll {
         $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-        . (Join-Path $script:RepoRoot 'Modules' 'Private' 'Main' 'Get-AZSCSafeProperty.ps1')
+        . (Join-Path $script:RepoRoot 'src' 'Get-AZSCSafeProperty.ps1')
 
         function Assert-SameAsRawChain {
             param(

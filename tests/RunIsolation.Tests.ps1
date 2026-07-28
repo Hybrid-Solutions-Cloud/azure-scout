@@ -17,7 +17,7 @@
 
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
-    $script:MainPath   = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main'
+    $script:MainPath   = Join-Path $script:ModuleRoot 'src'
     $script:TempDir    = Join-Path $env:TEMP 'AZSC_RunIsolationTests'
 
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }

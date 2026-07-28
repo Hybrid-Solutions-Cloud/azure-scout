@@ -75,15 +75,27 @@ $AllowList = @(
     @{ Path = 'src/pipeline/Invoke-ScoutCollector.ps1'
        State = 'LIVE'
        Reason = 'Wraps the 176 InventoryModules collectors. AB#5671 converted every collector that the recorded fixtures exercise, and tests/CollectorStrictMode.Tests.ps1 now runs all 174 Standard collectors under -Version Latest with zero failures -- so on the evidence available this opt-out is ready to be lifted. It is NOT lifted here only because src/pipeline is owned by the concurrent declarative-collector work; lifting it is the obvious next move once that lands.' }
-    @{ Path = 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1'
-       State = 'LIVE'
-       Reason = 'Two sites. The declarative (.psd1) collector runtime, actively being written. Its own owner should retire these.' }
     @{ Path = 'src/ingest/Import-AzGovViz.ps1'
        State = 'LIVE'
        Reason = 'Parses third-party AzGovViz output, whose shape this repo does not control and has no fixtures for. Needs recorded fixtures before it can be tightened.' }
     @{ Path = 'src/report/renderers/inventory/style/Start-AZSCExcelCustomization.ps1'
        State = 'LIVE'
        Reason = 'Walks EPPlus worksheet objects whose members vary by sheet content. Needs its own conversion pass.' }
+    @{ Path = 'src/Start-AZTIExtractionOrchestration.ps1'; State = 'DEAD'; Reason = 'Migrated job-era orchestration compatibility surface.' }
+    @{ Path = 'src/Start-AZTIProcessOrchestration.ps1'; State = 'DEAD'; Reason = 'Migrated job-era orchestration compatibility surface.' }
+    @{ Path = 'src/Start-AZTIReporOrchestration.ps1'; State = 'DEAD'; Reason = 'Migrated job-era orchestration compatibility surface.' }
+    @{ Path = 'src/pipeline/Start-ScoutExtraJobs.ps1'; State = 'DEAD'; Reason = 'Migrated job-era extra-data fan-out.' }
+    @{ Path = 'src/pipeline/jobs/Start-ScoutAdvisoryJob.ps1'; State = 'DEAD'; Reason = 'Migrated job-era compatibility function.' }
+    @{ Path = 'src/pipeline/jobs/Start-ScoutPolicyJob.ps1'; State = 'DEAD'; Reason = 'Migrated job-era compatibility function.' }
+    @{ Path = 'src/pipeline/jobs/Start-ScoutSecCenterJob.ps1'; State = 'DEAD'; Reason = 'Migrated job-era compatibility function.' }
+    @{ Path = 'src/pipeline/jobs/Start-ScoutSubscriptionJob.ps1'; State = 'DEAD'; Reason = 'Migrated job-era compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Build-ScoutDiagramSubnet.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Set-ScoutDiagramFile.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Start-ScoutDiagramNetwork.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Start-ScoutDiagramOrganization.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Start-ScoutDiagramSubscription.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
+    @{ Path = 'src/pipeline/diagram/Start-ScoutDrawIoDiagram.ps1'; State = 'DEAD'; Reason = 'Migrated job-era diagram compatibility function.' }
 
     # ---- DEAD (job-era leftovers; verified unreferenced outside tests/) ------------------------
     @{ Path = 'Modules/Private/Main/Start-AZTIExtractionOrchestration.ps1'; State = 'DEAD'; Reason = 'Job-era orchestration; referenced only by tests.' }
@@ -102,6 +114,10 @@ $AllowList = @(
     @{ Path = 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDiagramSubscription.ps1'; State = 'DEAD'; Reason = 'Diagram fan-out predating the AB#5649 single-pass diagram; referenced only by tests.' }
     @{ Path = 'Modules/Public/PublicFunctions/Diagram/Start-AZTIDrawIODiagram.ps1';       State = 'DEAD'; Reason = 'Diagram fan-out predating the AB#5649 single-pass diagram; referenced only by tests.' }
 )
+
+# v3 removes Modules/ entirely.  Keep the historical entries above as migration context, but do
+# not let deleted paths participate in the executable guard baseline.
+$AllowList = @($AllowList | Where-Object { $_.Path -notlike 'Modules/*' -and $_.Path -ne 'src/pipeline/Invoke-ScoutCollector.ps1' })
 
 # Directories that ship. tests/ is deliberately excluded: a test may need to demonstrate the unsafe
 # behaviour it is asserting against, and tests/CollectorStrictMode.Tests.ps1 does exactly that.

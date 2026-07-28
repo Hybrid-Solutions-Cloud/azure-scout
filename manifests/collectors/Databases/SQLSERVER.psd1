@@ -22,7 +22,7 @@ $ResUCount = 1
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
                 $data = $1.PROPERTIES
 
-                $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties } else { '0' }
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {
@@ -48,7 +48,8 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $pvteps = if(!($data.privateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$data.privateEndpointConnections | Select-Object @{Name="id";Expression={$_.id.split("/")[10]}}}
+                $PrivateEndpointConnections = Get-AZSCSafeProperty -InputObject $data -Path 'privateEndpointConnections'
+                $pvteps = if(!($PrivateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$PrivateEndpointConnections | Select-Object @{Name="id";Expression={(Get-AZSCSafeProperty -InputObject $_ -Path 'id').split("/")[10]}}}
 '@
 
     AdditionalRowLoops = @(

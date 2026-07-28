@@ -112,16 +112,15 @@ run-mode examples: [Assessment guide](assessment.md#run-modes).
 | `-Scope` | `ArmOnly` or `All` — both run the ARM/Resource Graph collect. `EntraOnly` throws, because the assessment Collect layer has no Entra/Graph path; use an inventory run with `-Scope EntraOnly` for Entra ID. |
 | `-Category` | Filters which Resource Graph queries the Collect layer runs, narrowing the collect below the assessment's manifest default. |
 | `-OutputFormat` | `Html` (default), `Pptx`, `PowerBI`, `Excel`, `Json`, `JsonEvidence`, `React`, `Word`, `EChartsDashboard`, `Pdf`, or `All` — accepts an array, e.g. `-OutputFormat Html,Pptx`. Inventory-only formats (`Markdown`, `AsciiDoc`) are rejected here with a message naming the valid set. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab; `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](assessment.md#report-tiers). |
-| `-ReportDir` | Base output directory; each run writes to a dated subfolder. (The deprecated `Invoke-ScoutAssessment` called this `-OutputPath`.) |
+| `-ReportDir` | Base output directory; each run writes to a dated subfolder. |
 | `-PermissionAudit` | Switch — runs `Test-ScoutPermission` for the requested `-Assessment` set and returns before any collection happens. |
 | `-CollectOnly` | Switch — stop after Collect; returns the path to `collect.json`. |
 | `-FromCollect` | Path to an existing `collect.json` — skips Collect/Ingest and assesses/reports from it directly. Runs fully offline, so it does **not** trigger a sign-in. |
 | `-ManagementGroup` | Scopes the Resource Graph `Collect` layer (and the opt-in `AzGovViz` ingest, if selected instead of the native `Governance` default) for assessments that need it (`LandingZone`, `Management`, `Identity`, `Governance`, `Policy`). |
 
-::: warning `Invoke-ScoutAssessment` is deprecated
-It still works and still accepts its original parameter names (including
-`-OutputPath` and `-ManagementGroupId`), but it will be removed in **v3.0.0**.
-Move to `Invoke-AzureScout -Assessment`.
+::: warning Former assessment command removed
+The standalone assessment command was removed in **v3.0.0**. Use
+`Invoke-AzureScout -Assessment` with `-ReportDir` and `-ManagementGroup` instead.
 :::
 
 ## Invoke-ScoutPipeline Parameters

@@ -117,11 +117,11 @@ graph TD
 
 To add a new category to AZSC:
 
-1. Create a folder under `Modules/Public/InventoryModules/<CategoryName>/`
+1. Create a folder under `manifests/collectors/<CategoryName>/`
 2. Add the folder name to the `[ValidateSet]` for `-Category` in `Invoke-AzureScout.ps1`
 3. Optionally add alias entries to `$_categoryAliasMap` for common name variants
 4. Update [Category Structure](category-structure.md) with the new mapping
-5. Create one or more `.ps1` module files using the module template in `Modules/Public/InventoryModules/`
+5. Create one or more `.ps1` module files using the module template in `manifests/collectors/`
 
 ## See Also
 

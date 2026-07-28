@@ -191,7 +191,7 @@ Describe 'Invoke-AzureScout — Parameter Validation' {
 # ===================================================================
 Describe 'Invoke-AzureScout — PowerShell edition guard' {
     BeforeAll {
-        $script:InvokeSource = Get-Content -Path (Join-Path -Path $ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Public', 'PublicFunctions', 'Invoke-AzureScout.ps1') -Raw
+        $script:InvokeSource = Get-Content -Path (Join-Path -Path $ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AzureScout.ps1') -Raw
     }
 
     It 'Source contains an explicit PSEdition guard' {

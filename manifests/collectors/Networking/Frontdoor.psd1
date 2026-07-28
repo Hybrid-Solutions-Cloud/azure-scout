@@ -19,6 +19,7 @@
 
     Preamble = @'
 $ResUCount = 1
+                    $Total = $null
                     $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
                     $data = $1.PROPERTIES
                     $Retired = $Retirements | Where-Object { $_.id -eq $1.id }

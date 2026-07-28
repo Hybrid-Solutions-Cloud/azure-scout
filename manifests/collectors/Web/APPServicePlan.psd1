@@ -19,7 +19,7 @@
 
     SetupPreamble = @'
 $APPSvcPlan = $Resources | Where-Object {$_.TYPE -eq 'microsoft.web/serverfarms'}
-        $APPAutoScale = $Resources | Where-Object {$_.TYPE -eq "microsoft.insights/autoscalesettings" -and $_.Properties.enabled -eq 'true'}
+        $APPAutoScale = $Resources | Where-Object { $_.TYPE -eq 'microsoft.insights/autoscalesettings' -and (Get-AZSCSafeProperty -InputObject $_ -Path 'Properties.enabled') -eq 'true' }
 '@
 
     SetupVariables = @(

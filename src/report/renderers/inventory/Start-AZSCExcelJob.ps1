@@ -1,114 +1,106 @@
 <#
-.Synopsis
-Module for Excel Job Processing
+.SYNOPSIS
+    Build the inventory Excel workbook from declarative collector definitions.
 
 .DESCRIPTION
-This script processes inventory modules and builds the Excel report.
-
-.Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelJob.ps1
-
-.COMPONENT
-This PowerShell Module is part of Azure Scout (AZSC)
-
-.NOTES
-Version: 3.6.0
-First Release Date: 15th Oct, 2024
-Authors: Claudio Merola
+    Reads the processing cache and renders each definition-indexed collector through
+    Invoke-ScoutDeclarativeReporting.  The report layer deliberately never discovers or
+    executes legacy collector scripts: manifests are the sole contract between collection,
+    cache, and Excel output.
 #>
-
 function Start-AZSCExcelJob {
-    Param($ReportCache, $File, $TableStyle)
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory)]
+        [string]$ReportCache,
 
-    # AB#5662: this file moved from Modules/Private/Reporting to src/report/renderers/inventory,
-    # four levels below the repo root (inventory -> renderers -> report -> src -> root), so the
-    # walk-up depth to reach Modules/Public/InventoryModules changed from 2 to 4.
-    $RepoRoot = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
-    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-    $ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
+        [Parameter(Mandatory)]
+        [string]$File,
 
-    Write-Progress -activity 'Azure Inventory' -Status "68% Complete." -PercentComplete 68 -CurrentOperation "Starting the Report Loop.."
+        [Parameter(Mandatory)]
+        [string]$TableStyle,
 
-    $ModulesCount = [string]@(Get-ChildItem -Path $InventoryModulesPath -Recurse -Filter "*.ps1").count
+        [Parameter()]
+        [switch]$InTag,
 
+        [Parameter()]
+        [string]$DefinitionRoot = (Join-Path (Join-Path ((Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent.FullName) 'manifests') 'collectors')
+    )
+
+    if (-not (Test-Path -LiteralPath $ReportCache -PathType Container)) {
+        throw "Report cache path not found: $ReportCache"
+    }
+
+    $SectionIndex = @(Get-ScoutReportSectionIndex -DefinitionRoot $DefinitionRoot)
+    $SectionsCount = $SectionIndex.Count
+
+    Write-Progress -Activity 'Azure Inventory' -Status '68% Complete.' -PercentComplete 68 -CurrentOperation 'Starting the Report Loop..'
     Write-Output 'Starting to Build Excel Report.'
     Write-Host 'Supported Resource Types: ' -NoNewline -ForegroundColor Green
-    Write-Host $ModulesCount -ForegroundColor Cyan
+    Write-Host $SectionsCount -ForegroundColor Cyan
 
-    $Lops = $ModulesCount
-    $ReportCounter = 0
-
-    # Dedicated tabs (Cost Management, Security Overview, Azure Update Manager,
-    # Azure Monitor) are created by Build-AZSC*Report functions called from
-    # Start-AZSCExtraReports later in the pipeline. No placeholder creation needed here.
-
-    Foreach ($ModuleFolder in $ModuleFolders)
-        {
-            $CacheData = $null
-            $ModulePath = Join-Path $ModuleFolder.FullName '*.ps1'
-            $ModuleFiles = Get-ChildItem -Path $ModulePath
-
-            $CacheFiles = Get-ChildItem -Path $ReportCache -Recurse
-            $JSONFileName = ($ModuleFolder.Name + '.json')
-            $CacheFile = $CacheFiles | Where-Object { $_.Name -like "*$JSONFileName" }
-
-            if ($CacheFile)
-                {
-                    $CacheFileContent = New-Object System.IO.StreamReader($CacheFile.FullName)
-                    $CacheData = $CacheFileContent.ReadToEnd()
-                    $CacheFileContent.Dispose()
-                    $CacheData = $CacheData | ConvertFrom-Json
-                }
-
-            Foreach ($Module in $ModuleFiles)
-                {
-                    $c = (($ReportCounter / $Lops) * 100)
-                    $c = [math]::Round($c)
-                    Write-Progress -Id 1 -activity "Building Report" -Status "$c% Complete." -PercentComplete $c
-
-                    $ModuleFileContent = New-Object System.IO.StreamReader($Module.FullName)
-                    $ModuleData = $ModuleFileContent.ReadToEnd()
-                    $ModuleFileContent.Dispose()
-                    $ModName = $Module.Name.replace(".ps1","")
-
-                    # Guarded: $CacheData can be $null (no cache file for this folder), and
-                    # dynamic property access ($CacheData.$ModName) on $null — or on a key that
-                    # doesn't exist in the parsed JSON — throws under StrictMode.
-                    $SmaResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
-
-                    # @($null).Count is 1, NOT 0. The guard below was `@($SmaResources).count`,
-                    # so a module with no cache data scored 1 and was invoked anyway — every one
-                    # of the 176 collectors ran in Reporting mode on every run, not just the
-                    # ~30 that had rows. Mostly that was only wasted work, because a collector
-                    # opens with `if ($SmaResources)`. It stopped being harmless for the two
-                    # Identity files whose top-level statement is Register-AZSCInventoryModule:
-                    # invoking them at all throws, and that killed the Excel build outright.
-                    # Filtering out the nulls makes the count mean what it reads as. (AB#5649)
-                    $ModuleResourceCount = @($SmaResources).Where({ $null -ne $_ }).Count
-
-                    # The same two files must never be invoked here either, data or not. The
-                    # processing pipeline already refuses them by contract; this is the second
-                    # place that iterates the collector set, and it had drifted apart from the
-                    # first — which is exactly how this reached a live run.
-                    $Unsupported = $ModuleData -match '(?m)^\s*Register-AZSCInventoryModule'
-
-                    if ($ModuleResourceCount -gt 0 -and -not $Unsupported)
-                    {
-                        Start-Sleep -Milliseconds 25
-                        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Running Module: '$ModName'. Excel Rows: $ModuleResourceCount")
-
-                        $ScriptBlock = [Scriptblock]::Create($ModuleData)
-
-                        Invoke-Command -ScriptBlock $ScriptBlock -ArgumentList $PSScriptRoot, $null, $InTag, $null, $null, 'Reporting', $file, $SmaResources, $TableStyle, $null
-
-                    }
-
-                    $ReportCounter ++
-
-                }
-                Remove-Variable -Name CacheData
-                Remove-Variable -Name SmaResources
-                Clear-AZSCMemory
+    # Cache files are category documents.  Read each document at most once, even though every
+    # category has multiple definitions, and retain the old tolerant behavior for a category
+    # that was skipped during processing.
+    $CacheByName = @{}
+    foreach ($CacheFile in @(Get-ChildItem -LiteralPath $ReportCache -Recurse -Filter '*.json' -File -ErrorAction SilentlyContinue | Sort-Object FullName)) {
+        if (-not $CacheByName.ContainsKey($CacheFile.Name)) {
+            $CacheByName[$CacheFile.Name] = $CacheFile
         }
-        Write-Progress -Id 1 -activity "Building Report" -Status "100% Complete." -Completed
     }
+    $ParsedCache = @{}
+
+    $ReportCounter = 0
+    $PreviousCategory = $null
+    foreach ($Section in $SectionIndex) {
+        if ($PreviousCategory -and $PreviousCategory -ne $Section.Category) {
+            if (Get-Command -Name Clear-AZSCMemory -ErrorAction SilentlyContinue) {
+                Clear-AZSCMemory
+            }
+        }
+        $PreviousCategory = $Section.Category
+
+        $Progress = if ($SectionsCount -gt 0) {
+            [math]::Round(($ReportCounter / $SectionsCount) * 100)
+        }
+        else { 100 }
+        Write-Progress -Id 1 -Activity 'Building Report' -Status "$Progress% Complete." -PercentComplete $Progress
+
+        if (-not $CacheByName.ContainsKey($Section.CacheFileName)) {
+            $ReportCounter++
+            continue
+        }
+
+        if (-not $ParsedCache.ContainsKey($Section.CacheFileName)) {
+            $RawJson = [System.IO.File]::ReadAllText($CacheByName[$Section.CacheFileName].FullName)
+            if ([string]::IsNullOrWhiteSpace($RawJson)) {
+                $ParsedCache[$Section.CacheFileName] = $null
+            }
+            else {
+                $ParsedCache[$Section.CacheFileName] = $RawJson | ConvertFrom-Json
+            }
+        }
+
+        $CacheData = $ParsedCache[$Section.CacheFileName]
+        $CacheProperty = if ($CacheData) { $CacheData.PSObject.Properties[$Section.CacheKey] } else { $null }
+        $SmaResources = if ($CacheProperty) { @($CacheProperty.Value).Where({ $null -ne $_ }) } else { @() }
+
+        if ($SmaResources.Count -gt 0) {
+            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Rendering definition: '$($Section.Name)'. Excel Rows: $($SmaResources.Count)")
+            $Definition = Get-ScoutCollectorDefinition -Path $Section.DefinitionPath
+            Invoke-ScoutDeclarativeReporting -Definition $Definition -Context @{
+                InTag       = $InTag.IsPresent
+                File        = $File
+                SmaResources = $SmaResources
+                TableStyle  = $TableStyle
+            }
+        }
+
+        $ReportCounter++
+    }
+
+    if ($PreviousCategory -and (Get-Command -Name Clear-AZSCMemory -ErrorAction SilentlyContinue)) {
+        Clear-AZSCMemory
+    }
+    Write-Progress -Id 1 -Activity 'Building Report' -Status '100% Complete.' -Completed
+}

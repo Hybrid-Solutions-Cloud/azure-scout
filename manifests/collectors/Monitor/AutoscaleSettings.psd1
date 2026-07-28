@@ -31,15 +31,17 @@ $ResUCount = 1
             # Profiles summary
             $profileCount = if ($data.profiles) { @($data.profiles).Count } else { 0 }
             $profileNames = if ($data.profiles) {
-                (@($data.profiles) | ForEach-Object { $_.name }) -join '; '
+                (@($data.profiles) | ForEach-Object { (Get-AZSCSafeProperty -InputObject $_ -Path 'name') }) -join '; '
             } else { '' }
 
             # Capacity across all profiles (use first/default profile)
             $defaultProfile = if ($data.profiles) { @($data.profiles)[0] } else { $null }
-            $capacityMin     = if ($defaultProfile -and $defaultProfile.capacity) { $defaultProfile.capacity.minimum } else { 'N/A' }
-            $capacityMax     = if ($defaultProfile -and $defaultProfile.capacity) { $defaultProfile.capacity.maximum } else { 'N/A' }
-            $capacityDefault = if ($defaultProfile -and $defaultProfile.capacity) { $defaultProfile.capacity.default }  else { 'N/A' }
-            $defaultRulesCount = if ($defaultProfile -and $defaultProfile.rules) { @($defaultProfile.rules).Count } else { 0 }
+$capacity = Get-AZSCSafeProperty -InputObject $defaultProfile -Path 'capacity'
+            $capacityMin     = if ($capacity) { Get-AZSCSafeProperty -InputObject $capacity -Path 'minimum' } else { 'N/A' }
+            $capacityMax     = if ($capacity) { Get-AZSCSafeProperty -InputObject $capacity -Path 'maximum' } else { 'N/A' }
+            $capacityDefault = if ($capacity) { Get-AZSCSafeProperty -InputObject $capacity -Path 'default' } else { 'N/A' }
+            $defaultRules = Get-AZSCSafeProperty -InputObject $defaultProfile -Path 'rules'
+            $defaultRulesCount = if ($defaultRules) { @($defaultRules).Count } else { 0 }
 
             # Notifications
             $notifyEmails = @()
@@ -71,7 +73,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sub1 -Path ''Name'')'
         }
         @{
             Name = 'Resource Group'

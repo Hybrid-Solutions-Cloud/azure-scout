@@ -72,6 +72,118 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         $result.PSObject.Properties.Name | Should -Contain 'Advisories'
         $result.PSObject.Properties.Name | Should -Contain 'Security'
     }
+
+    It 'does not invoke optional non-ARG helpers unless their switches are supplied' {
+        $script:armChildCalls = 0
+        $script:subscriptionSweepCalls = 0
+        $script:tenantWideCalls = 0
+        $script:operationalEnrichmentCalls = 0
+        function Get-ScoutArmChildResource { $script:armChildCalls++ }
+        function Get-ScoutSubscriptionSecurityPolicySweep { $script:subscriptionSweepCalls++ }
+        function Get-ScoutTenantWideResource { $script:tenantWideCalls++ }
+        function Get-ScoutOperationalCollectorEnrichment { $script:operationalEnrichmentCalls++ }
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+
+        Get-ScoutRawInventory | Out-Null
+
+        $script:armChildCalls | Should -Be 0
+        $script:subscriptionSweepCalls | Should -Be 0
+        $script:tenantWideCalls | Should -Be 0
+        $script:operationalEnrichmentCalls | Should -Be 0
+    }
+}
+
+Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
+    BeforeEach {
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            if ($Query -match '^resourcecontainers\b') { return @((New-MockSubscriptionRow -Id 'sub-1')) }
+            if ($Query -match '^resources\b') {
+                return @([pscustomobject]@{
+                        id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.MachineLearningServices/workspaces/ml-one'
+                        name = 'ml-one'; type = 'microsoft.machinelearningservices/workspaces'; subscriptionId = 'sub-1'
+                        resourceGroup = 'rg'; kind = $null; properties = [pscustomobject]@{}
+                    })
+            }
+            return @()
+        }
+    }
+
+    It 'appends ARM child rows exactly once when requested' {
+        $script:armChildInputs = @()
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources)
+            $script:armChildInputs += , @($Resources)
+            [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources
+
+        $script:armChildInputs.Count | Should -Be 1
+        @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+    }
+
+    It 'appends one subscription security/policy envelope per resolved subscription when requested' {
+        $script:sweepSubscriptions = @()
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            $script:sweepSubscriptions += , @($Subscriptions)
+            foreach ($subscription in $Subscriptions) {
+                [pscustomobject]@{
+                    id = "sweep-$($subscription.id)"; type = 'AZSC/Subscription/SecurityPolicySweep'
+                    subscriptionId = $subscription.id; properties = @{}
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+
+        $script:sweepSubscriptions.Count | Should -Be 1
+        $script:sweepSubscriptions[0][0].id | Should -Be 'sub-1'
+        @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep').Count | Should -Be 1
+    }
+
+    It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
+        $script:apiSubscriptions = @()
+        function Get-ScoutApiResources {
+            param([object[]] $Subscriptions, [string] $AzureEnvironment)
+            $script:apiSubscriptions += , @($Subscriptions)
+            [pscustomobject]@{ PolicyDefinitions = @([pscustomobject]@{ id = 'policy-1' }); PolicySetDefinitions = @() }
+        }
+        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
+        function Get-ScoutTenantWideResource {
+            param([object[]] $ApiResources)
+            @(
+                [pscustomobject]@{ type = 'AZSC/Management/RoleDefinition'; properties = @() }
+                [pscustomobject]@{ type = 'AZSC/Management/PolicyDefinition'; properties = @($ApiResources[0].PolicyDefinitions) }
+            )
+        }
+
+        $result = Get-ScoutRawInventory -IncludeTenantWideResources
+        $shaped = ConvertFrom-ScoutInventory -Resources $result.Resources -ResourceContainers $result.ResourceContainers
+
+        $script:apiSubscriptions.Count | Should -Be 1
+        $script:apiSubscriptions[0][0].id | Should -Be 'sub-1'
+        @($result.Resources | Where-Object type -eq 'AZSC/Management/RoleDefinition').Count | Should -Be 1
+        @($result.Resources | Where-Object type -eq 'AZSC/Management/PolicyDefinition').Count | Should -Be 1
+        @($shaped.virtualNetworks).Count | Should -Be 0
+    }
+
+    It 'appends operational enrichment only when explicitly requested' {
+        $script:operationalInputs = @()
+        function Get-ScoutOperationalCollectorEnrichment {
+            param([object[]] $Resources, [object[]] $Subscriptions)
+            $script:operationalInputs += , [pscustomobject]@{ Resources = @($Resources); Subscriptions = @($Subscriptions) }
+            [pscustomobject]@{ id = 'operational-vm'; type = 'AZSC/Operational/VirtualMachine'; properties = @{} }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeOperationalCollectorEnrichment
+
+        $script:operationalInputs.Count | Should -Be 1
+        $script:operationalInputs[0].Resources.Count | Should -BeGreaterThan 0
+        $script:operationalInputs[0].Subscriptions[0].id | Should -Be 'sub-1'
+        @($result.Resources | Where-Object type -eq 'AZSC/Operational/VirtualMachine').Count | Should -Be 1
+    }
 }
 
 Describe 'Get-ScoutRawInventory -- SkipToken paging' {

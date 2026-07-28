@@ -29,13 +29,13 @@ BeforeAll {
     # chain (which throws when an intermediate segment is genuinely ABSENT rather than $null), and
     # Get-AZSCCollectedValue is its member-ENUMERATION counterpart for a read over a collection
     # that may be empty. Both are needed here from AB#5671 onwards.
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZTICollectedValue.ps1')
     # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
     # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
     # without it the same expression quietly returned $null.
-    . (Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Get-AZSCIdSegment.ps1')
-    $script:InvokeScript    = Join-Path $script:ModuleRoot 'Modules' 'Public'   'PublicFunctions' 'Invoke-AzureScout.ps1'
+    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCIdSegment.ps1')
+    $script:InvokeScript    = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
     # AB#5662: the inventory report renderers moved from Modules/Private/Reporting to
     # src/report/renderers/inventory, and the files took the AZSC name their functions
     # already used (Export-AZTIMarkdownReport.ps1 -> Export-AZSCMarkdownReport.ps1).
@@ -53,6 +53,8 @@ BeforeAll {
     $script:Cmd = Get-Command -Name Invoke-AzureScout -ErrorAction SilentlyContinue
 
     # Dot-source the reporting helpers
+    . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:ModuleRoot 'src' 'report' 'Get-ScoutReportSectionIndex.ps1')
     . $script:MarkdownScript
     . $script:AsciiDocScript
     . $script:PowerBIScript
@@ -158,10 +160,15 @@ Describe 'OutputFormat Parameter — Metadata' {
     }
 
     It 'OutputFormat default value is "All"' {
-        $default = $script:Cmd.Parameters['OutputFormat'].DefaultValue
-        if ($null -eq $default) {
+        $parameterMetadata = $script:Cmd.Parameters['OutputFormat']
+        if (-not $parameterMetadata.PSObject.Properties['DefaultValue']) {
             Set-ItResult -Skipped -Because 'Default value not accessible via reflection'
         } else {
+            $default = $parameterMetadata.DefaultValue
+            if ($null -eq $default) {
+                Set-ItResult -Skipped -Because 'Default value not accessible via reflection'
+                return
+            }
             $default | Should -Be 'All'
         }
     }

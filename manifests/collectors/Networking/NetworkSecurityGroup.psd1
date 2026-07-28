@@ -63,23 +63,28 @@ $ResUCount = 1
 
             $NSGFlows = foreach ($flow in $flowlogs)
                 {
-                    if ($flow.properties.targetResourceId -eq $1.id) { $flow }
+                    if ((Get-AZSCSafeProperty -InputObject $flow -Path 'properties.targetResourceId') -eq $1.id) { $flow }
                 }
-            $FlowLogsEnabled = if ($NSGFlows.properties.enabled -eq 'true') { $true }else { $false }
-            $FlowLogsRetention = if (![string]::IsNullOrEmpty($NSGFlows.properties.retentionPolicy.days)) { $NSGFlows.properties.retentionPolicy.days }else { 'Not Enabled' }
-            $FlowLogsStorage = if (![string]::IsNullOrEmpty($NSGFlows.properties.storageId)) { ($NSGFlows.properties.storageId).split('/')[8] }else { 'Not Enabled' }
-            $Tags = if (![string]::IsNullOrEmpty($1.tags.psobject.properties)) { $1.tags.psobject.properties }else { '0' }
+            $FlowLogsEnabled = if ((Get-AZSCSafeProperty -InputObject $NSGFlows -Path 'properties.enabled') -eq 'true') { $true }else { $false }
+            $FlowLogRetentionDays = Get-AZSCSafeProperty -InputObject $NSGFlows -Path 'properties.retentionPolicy.days'
+            $FlowLogsRetention = if (![string]::IsNullOrEmpty($FlowLogRetentionDays)) { $FlowLogRetentionDays }else { 'Not Enabled' }
+            $FlowLogStorageId = Get-AZSCSafeProperty -InputObject $NSGFlows -Path 'properties.storageId'
+            $FlowLogsStorage = if (![string]::IsNullOrEmpty($FlowLogStorageId)) { $FlowLogStorageId.split('/')[8] }else { 'Not Enabled' }
+            $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties }else { '0' }
+            $NetworkInterfaceIds = Get-AZSCSafeProperty -InputObject $data -Path 'networkInterfaces.id' -Enumerate
+            $SubnetIds = Get-AZSCSafeProperty -InputObject $data -Path 'subnets.id' -Enumerate
             $RelatedNics = @()
             $RelatedSubs = @()
 
-            if (![string]::IsNullOrEmpty($data.networkInterfaces.id))
+            if (![string]::IsNullOrEmpty($NetworkInterfaceIds))
                 {
-                    foreach ($NICID in $data.networkInterfaces.id)
+                    foreach ($NICID in $NetworkInterfaceIds)
                         {
                             $NICDetails = $nic | Where-Object {$_.id -eq $NICID}
                             if (![string]::IsNullOrEmpty($NICDetails))
                                 {
-                                    $RelatedNics += ($NICDetails.name + ' ('+$NICDetails.properties.ipconfigurations.properties.privateipaddress+')')
+                                    $NicPrivateIp = Get-AZSCSafeProperty -InputObject $NICDetails -Path 'properties.ipconfigurations.properties.privateipaddress' -Enumerate
+                                    $RelatedNics += ($NICDetails.name + ' ('+$NicPrivateIp+')')
                                 }
                             elseif ($NICID -like '*microsoft.compute/virtualmachinescalesets*')
                                 {
@@ -91,22 +96,22 @@ $ResUCount = 1
                     $FinalNICs = [string]$FinalNICs
                     $FinalNICs = if ($FinalNICs -like '* ,*') { $FinalNICs -replace ".$" }else { $FinalNICs }
                 }
-            if (![string]::IsNullOrEmpty($data.Subnets.id))
+            if (![string]::IsNullOrEmpty($SubnetIds))
                 {
-                    foreach ($SUBID in $data.Subnets.id)
+                    foreach ($SUBID in $SubnetIds)
                         {
-                            $RelatedSubs += ($SUBID.Split('/')[8] + ' ('+ $SUBID.Split('/')[10] + ')')
+                            $RelatedSubs += ((Get-AZSCIdSegment -Id $SUBID -Index 8) + ' ('+ (Get-AZSCIdSegment -Id $SUBID -Index 10) + ')')
                         }
                     $FinalSUBs = if ($RelatedSubs.count -gt 1) { $RelatedSubs | ForEach-Object { $_ + ' ,' } }else { $RelatedSubs }
                     $FinalSUBs = [string]$FinalSUBs
                     $FinalSUBs = if ($FinalSUBs -like '* ,*') { $FinalSUBs -replace ".$" }else { $FinalSUBs }
                 }
-            elseif ([string]::IsNullOrEmpty($data.Subnets.id) -and $data.networkInterfaces.id -like '*microsoft.compute/virtualmachinescalesets*')
+            elseif ([string]::IsNullOrEmpty($SubnetIds) -and $NetworkInterfaceIds -like '*microsoft.compute/virtualmachinescalesets*')
                 {
                     $VMSSs = $vmss | Where-Object {$_.properties.virtualmachineprofile.networkprofile.networkinterfaceconfigurations.properties.networksecuritygroup.id -eq $1.id}
                     foreach ($VM in $VMSSs)
                         {
-                            $SUBID = $VM.properties.virtualmachineprofile.networkprofile.networkinterfaceconfigurations.properties.ipconfigurations.properties.subnet.id
+                            $SUBID = Get-AZSCSafeProperty -InputObject $VM -Path 'properties.virtualmachineprofile.networkprofile.networkinterfaceconfigurations.properties.ipconfigurations.properties.subnet.id' -Enumerate
                             $RelatedSubs += ($SUBID.Split('/')[8] + ' ('+ $SUBID.Split('/')[10] + ')')
                         }
                     $FinalSUBs = if ($RelatedSubs.count -gt 1) { $RelatedSubs | ForEach-Object { $_ + ' ,' } }else { $RelatedSubs }
@@ -198,7 +203,7 @@ if (![string]::IsNullOrEmpty($2.properties.sourceAddressPrefixes))
                             $DestinationPort = ''
                         }
 
-                    if (@($data.networkInterfaces).count -eq 0 -and @($data.subnets).count -eq 0)
+                    if (@($NetworkInterfaceIds).count -eq 0 -and @($SubnetIds).count -eq 0)
                         {
                             $Orphaned = $true;
                         } else {

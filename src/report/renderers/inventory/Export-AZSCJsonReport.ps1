@@ -52,7 +52,10 @@ function Export-AZSCJsonReport {
         [switch]$SkipPolicy,
 
         [Parameter()]
-        [switch]$IncludeCosts
+        [switch]$IncludeCosts,
+
+        [Parameter()]
+        [string]$DefinitionRoot = (Join-Path (Join-Path ((Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent.FullName) 'manifests') 'collectors')
     )
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting JSON report export.')
@@ -83,87 +86,46 @@ function Export-AZSCJsonReport {
         scope         = $Scope
     }
 
-    # ── Discover inventory module folders ────────────────────────────────
-    # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory
-    # (4 levels below repo root, was 2) -- the walk-up depth changed accordingly.
-    $RepoRoot     = (Get-Item $PSScriptRoot).Parent.Parent.Parent.Parent
-    $InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-    $ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
-
     # ── Category mapping ─────────────────────────────────────────────────
-    # Map each InventoryModules folder name to a top-level JSON section.
-    # Identity modules go under "entra"; everything else goes under "arm".
-    $EntraFolders = @('Identity')
+    # Definitions are the report contract; cache keys are definition names.
+    $SectionIndex = @(Get-ScoutReportSectionIndex -DefinitionRoot $DefinitionRoot)
+    $EntraCategories = @('Identity')
 
     $ArmData   = [ordered]@{}
     $EntraData = [ordered]@{}
 
-    $CacheFiles = Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue
+    $CacheFiles = @(Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue | Sort-Object FullName)
+    $CacheByName = @{}
+    foreach ($CacheFile in $CacheFiles) {
+        if (-not $CacheByName.ContainsKey($CacheFile.Name)) { $CacheByName[$CacheFile.Name] = $CacheFile }
+    }
+    $ParsedCache = @{}
 
-    foreach ($ModuleFolder in $ModuleFolders) {
-        $FolderName   = $ModuleFolder.Name
-        $JSONFileName = "$FolderName.json"
-        $CacheFile    = $CacheFiles | Where-Object { $_.Name -eq $JSONFileName }
-
-        if (-not $CacheFile) {
-            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - No cache file for folder: $FolderName — skipping.")
-            continue
+    foreach ($Section in $SectionIndex) {
+        if ($Scope -eq 'ArmOnly' -and $Section.Category -in $EntraCategories) { continue }
+        if ($Scope -eq 'EntraOnly' -and $Section.Category -notin $EntraCategories) { continue }
+        if (-not $CacheByName.ContainsKey($Section.CacheFileName)) { continue }
+        if (-not $ParsedCache.ContainsKey($Section.CacheFileName)) {
+            $RawJson = [System.IO.File]::ReadAllText($CacheByName[$Section.CacheFileName].FullName)
+            if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
+            $ParsedCache[$Section.CacheFileName] = $RawJson | ConvertFrom-Json
         }
 
-        # Read and parse the cache file
-        $Reader   = New-Object System.IO.StreamReader($CacheFile.FullName)
-        $RawJson  = $Reader.ReadToEnd()
-        $Reader.Dispose()
+        $CacheData = $ParsedCache[$Section.CacheFileName]
+        $CacheProperty = $CacheData.PSObject.Properties[$Section.CacheKey]
+        $Resources = if ($CacheProperty) { @($CacheProperty.Value) } else { @() }
+        if ($Resources.Count -eq 0) { continue }
 
-        if ([string]::IsNullOrWhiteSpace($RawJson)) {
-            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Cache file is empty for folder: $FolderName — skipping.")
-            continue
-        }
-
-        $CacheData = $RawJson | ConvertFrom-Json
-
-        # Each cache file contains properties keyed by module name (filename without .ps1).
-        # Collect all modules within this folder into a section object.
-        $SectionData = [ordered]@{}
-
-        $ModulePath  = Join-Path $ModuleFolder.FullName '*.ps1'
-        $ModuleFiles = Get-ChildItem -Path $ModulePath -ErrorAction SilentlyContinue
-
-        foreach ($Module in $ModuleFiles) {
-            $ModName     = $Module.BaseName   # e.g. "VirtualMachines"
-            # $CacheData.$ModName throws "The property ... cannot be found on this object"
-            # under StrictMode when the cache carries no entry for that collector. It always
-            # did; it went unnoticed only because the old pipeline created a hashtable key for
-            # EVERY module file, even one that produced nothing, so the key was always there.
-            # The deterministic pipeline writes keys only for collectors it actually ran, so a
-            # skipped or filtered collector now legitimately has no key. Ask before reading.
-            # (AB#5649)
-            $ModResources = if ($CacheData -and $CacheData.PSObject.Properties.Name -contains $ModName) { $CacheData.$ModName } else { $null }
-
-            if ($ModResources -and @($ModResources).Count -gt 0) {
-                # Convert the module name to a camelCase JSON key
-                $JsonKey = $ModName.Substring(0,1).ToLower() + $ModName.Substring(1)
-                $SectionData[$JsonKey] = @($ModResources)
-                Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Added $(@($ModResources).Count) resources from $FolderName/$ModName")
-            }
-        }
-
-        if ($SectionData.Count -eq 0) {
-            continue
-        }
-
-        # Convert folder name to camelCase JSON key
-        $FolderKey = $FolderName.Substring(0,1).ToLower() + $FolderName.Substring(1)
-
-        if ($FolderName -in $EntraFolders) {
-            # Entra data — flatten identity modules directly into the "entra" section
-            foreach ($key in $SectionData.Keys) {
-                $EntraData[$key] = $SectionData[$key]
-            }
+        $JsonKey = $Section.Name.Substring(0, 1).ToLowerInvariant() + $Section.Name.Substring(1)
+        if ($Section.Category -in $EntraCategories) {
+            $EntraData[$JsonKey] = $Resources
         }
         else {
-            $ArmData[$FolderKey] = $SectionData
+            $FolderKey = $Section.Category.Substring(0, 1).ToLowerInvariant() + $Section.Category.Substring(1)
+            if (-not $ArmData.Contains($FolderKey)) { $ArmData[$FolderKey] = [ordered]@{} }
+            $ArmData[$FolderKey][$JsonKey] = $Resources
         }
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Added $($Resources.Count) resources from $($Section.Category)/$($Section.Name)")
     }
 
     # ── Build extra data sections ────────────────────────────────────────

@@ -4,7 +4,7 @@
 <#
     Regression test for the renderer return-value leak (found in live E2E, AB#5053
     wiring): Export-React RETURNS the path it writes, and the reporter loop in
-    Invoke-ScoutAssessment must swallow that (| Out-Null) so the function's only
+    The internal assessment core must swallow that (| Out-Null) so its only
     output is the single run-folder path. Without the guard, a run whose
     -OutputFormat includes 'React' returns @(reportPath, runPath), which breaks
     every caller that expects one path (notably Invoke-ScoutPipeline).
@@ -16,6 +16,9 @@
 BeforeAll {
     $script:root = Split-Path $PSScriptRoot -Parent
     Import-Module "$script:root/AzureScout.psd1" -Force -ErrorAction Stop
+    $script:Module = Get-Module AzureScout | Where-Object {
+        $_.ModuleBase -eq $script:root
+    } | Select-Object -First 1
     $script:fixture = "$script:root/tests/datadump/sample-collect.json"
     $script:outRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_ReportReturn_" + [System.IO.Path]::GetRandomFileName())
 }
@@ -26,10 +29,12 @@ AfterAll {
     }
 }
 
-Describe 'Invoke-ScoutAssessment return value with the React renderer' {
+Describe 'Assessment core return value with the React renderer' {
     It 'returns a single run-folder path (string), not an array, when React is included' {
-        $result = Invoke-ScoutAssessment -Assessment LandingZone -FromCollect $script:fixture `
-            -OutputFormat React, Json -OutputPath $script:outRoot
+        $result = & $script:Module {
+            param($fixture, $outRoot)
+            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React, Json -OutputPath $outRoot
+        } $script:fixture $script:outRoot
 
         @($result).Count | Should -Be 1
         $result          | Should -BeOfType [string]
@@ -38,8 +43,10 @@ Describe 'Invoke-ScoutAssessment return value with the React renderer' {
     }
 
     It 'produces a self-contained React report with no external CDN references' {
-        $run  = Invoke-ScoutAssessment -Assessment LandingZone -FromCollect $script:fixture `
-            -OutputFormat React -OutputPath $script:outRoot
+        $run  = & $script:Module {
+            param($fixture, $outRoot)
+            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
+        } $script:fixture $script:outRoot
         $html = Join-Path $run 'report-react.html'
 
         Test-Path $html | Should -BeTrue
@@ -50,7 +57,10 @@ Describe 'Invoke-ScoutAssessment return value with the React renderer' {
     It 'accumulates cross-run drift history across runs under the output root' {
         # Two runs into the same output root -> the shared history log gains a
         # second record, proving the drift wiring runs inside the orchestrator.
-        Invoke-ScoutAssessment -Assessment LandingZone -FromCollect $script:fixture -OutputFormat React -OutputPath $script:outRoot | Out-Null
+        & $script:Module {
+            param($fixture, $outRoot)
+            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
+        } $script:fixture $script:outRoot | Out-Null
         $histFile = Join-Path $script:outRoot '.scout-history/findings-history.json'
         Test-Path $histFile | Should -BeTrue
         $records = Get-Content $histFile -Raw | ConvertFrom-Json

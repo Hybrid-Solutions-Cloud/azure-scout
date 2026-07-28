@@ -176,6 +176,78 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1e-1/MLComputes/mlcomputes-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1f-1/MLComputes/mlcomputes-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1f-1/MLComputes/mlcomputes-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1e-1/MLDatasets/mldatasets-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1f-1/MLDatasets/mldatasets-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1f-1/MLDatasets/mldatasets-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1e-1/MLDatastores/mldatastores-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1f-1/MLDatastores/mldatastores-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1f-1/MLDatastores/mldatastores-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1e-1/MLEndpoints/mlendpoints-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1f-1/MLEndpoints/mlendpoints-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1f-1/MLEndpoints/mlendpoints-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1e-1/MLModels/mlmodels-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1f-1/MLModels/mlmodels-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1f-1/MLModels/mlmodels-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1e-1/MLPipelines/mlpipelines-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1f-1/MLPipelines/mlpipelines-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1f-1/MLPipelines/mlpipelines-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/openaiaccounts-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -185,6 +257,30 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/openaiaccounts-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1e-1/OpenAIDeployments/openaideployments-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1f-1/OpenAIDeployments/openaideployments-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1f-1/OpenAIDeployments/openaideployments-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1e-1/SearchIndexes/searchindexes-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1f-1/SearchIndexes/searchindexes-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1f-1/SearchIndexes/searchindexes-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -1067,7 +1163,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1101,7 +1199,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1136,7 +1236,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1168,7 +1270,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1202,7 +1306,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1236,7 +1342,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1274,7 +1382,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1308,7 +1418,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1343,7 +1455,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1375,7 +1489,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1409,7 +1525,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1443,7 +1561,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1481,7 +1601,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1515,7 +1637,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1550,7 +1674,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1582,7 +1708,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1616,7 +1744,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1650,7 +1780,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1688,7 +1820,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1722,7 +1856,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1757,7 +1893,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1789,7 +1927,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1823,7 +1963,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1857,7 +1999,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1895,7 +2039,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1929,7 +2075,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1964,7 +2112,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -1996,7 +2146,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2030,7 +2182,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2064,7 +2218,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2102,7 +2258,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2136,7 +2294,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2171,7 +2331,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2203,7 +2365,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2237,7 +2401,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2271,7 +2437,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2309,10 +2477,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2346,10 +2516,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2384,10 +2556,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2419,10 +2593,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2456,10 +2632,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2493,10 +2671,12 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
             "apiProperties": {
-              "TA4HResourceId": "res-value"
+              "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2534,7 +2714,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2568,7 +2750,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2603,7 +2787,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2635,7 +2821,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2669,7 +2857,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2703,7 +2893,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -2741,10 +2933,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2770,10 +2962,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2800,10 +2992,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2827,10 +3019,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2856,10 +3048,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2885,10 +3077,10 @@
         {
           "PROPERTIES": {
             "creationTime": "2026-01-15T10:30:00.0000000Z",
-            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
-            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15",
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "containerRegistry": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "friendlyName": "res-value",
             "description": "res-value",
             "hbiWorkspace": "res-value",
@@ -2910,6 +3102,1164 @@
           "NAME": "machinelearning-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.machinelearningservices/workspaces"
+        }
+      ]
+    },
+    "MLComputes": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1a-parent",
+          "NAME": "mlcomputes-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlcomputes-t1a",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1a-1/MLComputes/mlcomputes-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1b-parent",
+          "NAME": "mlcomputes-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlcomputes-t1b",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1b-1/MLComputes/mlcomputes-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1c-parent",
+          "NAME": "mlcomputes-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlcomputes-t1c",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1c-1/MLComputes/mlcomputes-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1d-parent",
+          "NAME": "mlcomputes-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mlcomputes-t1d",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1d-1/MLComputes/mlcomputes-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1e-parent",
+          "NAME": "mlcomputes-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlcomputes-t1e",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1e-1/MLComputes/mlcomputes-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1f-parent",
+          "NAME": "mlcomputes-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "properties": {
+              "vmSize": "res-value",
+              "scaleSettings": {
+                "minNodeCount": "res-value",
+                "maxNodeCount": "res-value"
+              },
+              "vmPriority": "res-value"
+            },
+            "computeType": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlcomputes-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlcomputes-t1f",
+          "location": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlcomputes-t1f-1/MLComputes/mlcomputes-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLComputes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "MLDatasets": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1a-parent",
+          "NAME": "mldatasets-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatasets-t1a",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1a-1/MLDatasets/mldatasets-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1b-parent",
+          "NAME": "mldatasets-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatasets-t1b",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1b-1/MLDatasets/mldatasets-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1c-parent",
+          "NAME": "mldatasets-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatasets-t1c",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1c-1/MLDatasets/mldatasets-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1d-parent",
+          "NAME": "mldatasets-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mldatasets-t1d",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1d-1/MLDatasets/mldatasets-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1e-parent",
+          "NAME": "mldatasets-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatasets-t1e",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1e-1/MLDatasets/mldatasets-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1f-parent",
+          "NAME": "mldatasets-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "dataType": "res-value",
+                "dataUri": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatasets-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatasets-t1f",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatasets-t1f-1/MLDatasets/mldatasets-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLDatasets",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "MLDatastores": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1a-parent",
+          "NAME": "mldatastores-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatastores-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1a-1/MLDatastores/mldatastores-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1b-parent",
+          "NAME": "mldatastores-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatastores-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1b-1/MLDatastores/mldatastores-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1c-parent",
+          "NAME": "mldatastores-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatastores-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1c-1/MLDatastores/mldatastores-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1d-parent",
+          "NAME": "mldatastores-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mldatastores-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1d-1/MLDatastores/mldatastores-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1e-parent",
+          "NAME": "mldatastores-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatastores-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1e-1/MLDatastores/mldatastores-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1f-parent",
+          "NAME": "mldatastores-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "accountName": "res-value",
+            "containerName": "res-value",
+            "fileShareName": "res-value",
+            "credentials": {
+              "credentialsType": "res-value"
+            },
+            "datastoreType": "res-value",
+            "isDefault": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mldatastores-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mldatastores-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mldatastores-t1f-1/MLDatastores/mldatastores-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLDatastores",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "MLEndpoints": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1a-parent",
+          "NAME": "mlendpoints-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlendpoints-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1a-1/MLEndpoints/mlendpoints-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1b-parent",
+          "NAME": "mlendpoints-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlendpoints-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1b-1/MLEndpoints/mlendpoints-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1c-parent",
+          "NAME": "mlendpoints-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlendpoints-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1c-1/MLEndpoints/mlendpoints-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1d-parent",
+          "NAME": "mlendpoints-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mlendpoints-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1d-1/MLEndpoints/mlendpoints-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1e-parent",
+          "NAME": "mlendpoints-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlendpoints-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1e-1/MLEndpoints/mlendpoints-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1f-parent",
+          "NAME": "mlendpoints-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "EndpointType": "res-value",
+            "DeploymentCount": "res-value"
+          },
+          "properties": {
+            "authMode": "res-value",
+            "scoringUri": "res-value",
+            "provisioningState": "res-value",
+            "description": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlendpoints-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlendpoints-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlendpoints-t1f-1/MLEndpoints/mlendpoints-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLEndpoints",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "MLModels": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1a-parent",
+          "NAME": "mlmodels-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlmodels-t1a",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1a-1/MLModels/mlmodels-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1b-parent",
+          "NAME": "mlmodels-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlmodels-t1b",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1b-1/MLModels/mlmodels-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1c-parent",
+          "NAME": "mlmodels-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlmodels-t1c",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1c-1/MLModels/mlmodels-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1d-parent",
+          "NAME": "mlmodels-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mlmodels-t1d",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1d-1/MLModels/mlmodels-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1e-parent",
+          "NAME": "mlmodels-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlmodels-t1e",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1e-1/MLModels/mlmodels-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1f-parent",
+          "NAME": "mlmodels-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "AZSC": {
+            "LatestVersion": {
+              "name": "res-value",
+              "properties": {
+                "flavors": "res-value"
+              },
+              "systemData": {
+                "createdAt": "2026-01-15T10:30:00.0000000Z"
+              }
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlmodels-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlmodels-t1f",
+          "properties": {
+            "description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlmodels-t1f-1/MLModels/mlmodels-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLModels",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "MLPipelines": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1a-parent",
+          "NAME": "mlpipelines-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlpipelines-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1a-1/MLPipelines/mlpipelines-t1a-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1b-parent",
+          "NAME": "mlpipelines-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlpipelines-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1b-1/MLPipelines/mlpipelines-t1b-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1c-parent",
+          "NAME": "mlpipelines-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlpipelines-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1c-1/MLPipelines/mlpipelines-t1c-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1d-parent",
+          "NAME": "mlpipelines-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "mlpipelines-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1d-1/MLPipelines/mlpipelines-t1d-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1e-parent",
+          "NAME": "mlpipelines-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlpipelines-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1e-1/MLPipelines/mlpipelines-t1e-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1f-parent",
+          "NAME": "mlpipelines-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "status": "res-value",
+            "creationContext": {
+              "createdAt": "2026-01-15T10:30:00.0000000Z",
+              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+            },
+            "description": "res-value",
+            "experimentName": "res-value",
+            "settings": {
+              "defaultCompute": "res-value"
+            }
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/mlpipelines-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "mlpipelines-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/mlpipelines-t1f-1/MLPipelines/mlpipelines-t1f-2",
+          "TYPE": "AZSC/ARMChild/MLPipelines",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },
@@ -3090,11 +4440,475 @@
         }
       ]
     },
+    "OpenAIDeployments": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1a-parent",
+          "NAME": "openaideployments-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "openaideployments-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1a-1/OpenAIDeployments/openaideployments-t1a-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1b-parent",
+          "NAME": "openaideployments-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "openaideployments-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1b-1/OpenAIDeployments/openaideployments-t1b-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1c-parent",
+          "NAME": "openaideployments-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "openaideployments-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1c-1/OpenAIDeployments/openaideployments-t1c-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1d-parent",
+          "NAME": "openaideployments-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "openaideployments-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1d-1/OpenAIDeployments/openaideployments-t1d-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1e-parent",
+          "NAME": "openaideployments-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "openaideployments-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1e-1/OpenAIDeployments/openaideployments-t1e-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1f-parent",
+          "NAME": "openaideployments-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "properties": {
+            "model": {
+              "name": "res-value",
+              "version": "res-value",
+              "format": "res-value"
+            },
+            "scaleSettings": {
+              "scaleType": "res-value",
+              "capacity": "res-value"
+            },
+            "dynamicThrottlingEnabled": "res-value",
+            "provisioningState": "res-value"
+          },
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/openaideployments-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "openaideployments-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/openaideployments-t1f-1/OpenAIDeployments/openaideployments-t1f-2",
+          "TYPE": "AZSC/ARMChild/OpenAIDeployments",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "SearchIndexes": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1a-parent",
+          "NAME": "searchindexes-t1a-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1a-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1a",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1a-1/SearchIndexes/searchindexes-t1a-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1b-parent",
+          "NAME": "searchindexes-t1b-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1b-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1b",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1b-1/SearchIndexes/searchindexes-t1b-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1c-parent",
+          "NAME": "searchindexes-t1c-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1c-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1c",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1c-1/SearchIndexes/searchindexes-t1c-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1d-parent",
+          "NAME": "searchindexes-t1d-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1d-parent",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1d",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1d-1/SearchIndexes/searchindexes-t1d-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1e-parent",
+          "NAME": "searchindexes-t1e-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1e-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1e",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1e-1/SearchIndexes/searchindexes-t1e-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1f-parent",
+          "NAME": "searchindexes-t1f-parent",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "TYPE": "AZSC/FixtureParents"
+        },
+        {
+          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/searchindexes-t1f-parent",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "fields": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "analyzers": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "scoringProfiles": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "suggesters": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "NAME": "searchindexes-t1f",
+          "corsOptions": {
+            "allowedOrigins": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "defaultScoringProfile": "res-value",
+          "@odata.etag": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/searchindexes-t1f-1/SearchIndexes/searchindexes-t1f-2",
+          "TYPE": "AZSC/ARMChild/SearchIndexes",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "SearchServices": {
       "resources": [
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3125,7 +4939,9 @@
         },
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3157,7 +4973,9 @@
         },
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3186,7 +5004,9 @@
         },
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3217,7 +5037,9 @@
         },
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3248,7 +5070,9 @@
         },
         {
           "PROPERTIES": {
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "status": "res-value",
             "statusdetails": "res-value",
             "publicnetworkaccess": "res-value",
@@ -3284,7 +5108,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3318,7 +5144,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3353,7 +5181,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3385,7 +5215,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3419,7 +5251,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3453,7 +5287,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3491,7 +5327,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3531,7 +5369,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3572,7 +5412,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3610,7 +5452,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3650,7 +5494,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3690,7 +5536,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "quotaLimit": {
@@ -3734,7 +5582,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3768,7 +5618,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3803,7 +5655,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3835,7 +5689,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3869,7 +5725,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",
@@ -3903,7 +5761,9 @@
         {
           "PROPERTIES": {
             "datecreated": "2026-01-15T10:30:00.0000000Z",
-            "privateendpointconnections": "res-value",
+            "privateendpointconnections": [
+              "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            ],
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
             "customsubdomainname": "res-value",

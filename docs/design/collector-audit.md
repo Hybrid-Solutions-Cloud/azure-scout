@@ -1,5 +1,5 @@
 ---
-description: AST-based classification of all 176 inventory collectors — how many are pure data-shaping and what makes the rest not that. Delivers AB#5658 under Feature AB#5656, Epic AB#5638.
+description: AST-based classification of all 174 inventory collectors — how many are pure data-shaping and what makes the rest not that. Delivers AB#5658 under Feature AB#5656, Epic AB#5638.
 ---
 
 # Collector audit — AB#5658
@@ -10,19 +10,19 @@ description: AST-based classification of all 176 inventory collectors — how ma
 
 ## 1. Method
 
-Every collector under `Modules/Public/InventoryModules/` was parsed with the PowerShell AST
+Every collector under `manifests/collectors/` was parsed with the PowerShell AST
 (`[System.Management.Automation.Language.Parser]::ParseFile`) — never by regex over the source
 text — using
 [`scripts/Invoke-CollectorAudit.ps1`](../../scripts/Invoke-CollectorAudit.ps1). Discovery reuses
 `src/pipeline/Get-ScoutCollector.ps1`, the single discovery implementation the deterministic-
 pipeline work (AB#5649) established, rather than re-walking the filesystem a second way.
 
-For each of the 176 collectors the script structurally extracts:
+For each of the 174 collectors the script structurally extracts:
 
 - the Azure resource type(s) its Processing branch filters `$Resources` by (`$_.TYPE -eq '...'`
   inside a `$Resources | Where-Object {...}` pipeline)
 - the row schema: the field names of the near-universal `$obj = @{ 'Key' = ...; ... }` hashtable
-  literal — **175 of 176 files use exactly this convention** — plus the ordered Excel export
+  literal — **all 174 files use exactly this convention** — plus the ordered Excel export
   column list from the `$Exc.Add('Column')` calls in the Reporting branch
 - whether it correlates against `$Sub` (subscription-name lookup) and/or
   `$Retirements`/`$Unsupported` (retirement cross-reference)
@@ -48,40 +48,35 @@ schema must support directly**, not as evidence a collector needs an escape hatc
 
 | Primitive | Present in | What it does |
 |---|---|---|
-| `$Sub` correlation | 150 / 176 | `$sub1 = $SUB \| Where-Object { $_.id -eq $1.subscriptionId }` — subscription id → name lookup |
-| Retirement/unsupported cross-reference | 88 / 176 | Looks up `$1.id` against `$Retirements`, then `$Unsupported` by `ServiceID`, and folds one-or-many retiring features/dates into a single display string |
+| `$Sub` correlation | 150 / 174 | `$sub1 = $SUB \| Where-Object { $_.id -eq $1.subscriptionId }` — subscription id → name lookup |
+| Retirement/unsupported cross-reference | 88 / 174 | Looks up `$1.id` against `$Retirements`, then `$Unsupported` by `ServiceID`, and folds one-or-many retiring features/dates into a single display string |
 | Tag expansion | effectively universal | One output row per tag on the resource (or one row with empty tag columns when there are none), gated on `$InTag` for whether the two Tag columns are exported at all |
 
 A collector is classified an **escape hatch** only when it does something a per-field
 expression language over a single filtered resource set cannot express.
 
-> **Known limitation, found during the conversion (AB#5659).** The external-call detection above
-> searches for `Get-Az*`, `Invoke-Az*`, `Invoke-RestMethod`, `Invoke-WebRequest`, `Get-Msol*`,
-> `Get-Mg*` and `Invoke-Mg*` — a list of *cmdlet names*. It therefore does not see a dependency
-> expressed any other way, and `Monitor/Outages.ps1` has one: it builds several of its columns with
-> `New-Object -Com 'HTMLFile'` and reads `$Html.body.innerText`. That collector is classified `Pure`
-> here and is **not** pure shaping; it is left imperative. Counted correctly the split is 127 pure /
-> 49 escape-hatch. The table below is left as the audit produced it rather than silently corrected,
-> so the classification and its one known error stay traceable.
+The external-access classifier uses `CommandAst` names rather than a broad text or prefix match.
+It explicitly recognises `Search-AzGraph` and `New-Object -Com`, while excluding the in-process
+`Get-AZSCSafeProperty`, `Get-AZSCIdSegment`, and `Get-AZSCCollectedValue` helpers. Focused tests pin
+both failure directions so a future classifier cannot silently move pure shaping into the escape
+set or miss a non-`Get`/`Invoke` external dependency.
 
 ## 2. Headline numbers
 
 | | Count |
 |---|---|
-| Total collectors | 176 |
+| Total collectors | 174 |
 | Standard contract (the `param($SCPath, $Sub, ...)` shape) | 174 |
-| Unsupported contract (never implemented — see §4) | 2 |
-| **Pure shaping** | **128 (73%)** |
-| **Needs an escape hatch** | **48 (27%)** |
+| **Pure shaping** | **126 (72%)** |
+| **Needs an escape hatch** | **48 (28%)** |
 
 Escape-hatch reasons (a collector can have more than one):
 
 | Reason | Count | What it looks like |
 |---|---|---|
 | Cross-resource join | 20 | Filters `$Resources` by more than one type and correlates between the sets — either inside the per-row loop (`Compute/AVD.ps1` joins hostpools → sessionhosts → VMs) or by unioning several filtered sets before looping over the union (`Compute/AVDAzureLocal.ps1` combines Arc machines + HCI VM instances + a synthesized session-host set) |
-| Live cmdlet call | 29 | Calls `Get-Az*`/`Invoke-AzRestMethod`/etc. itself rather than shaping the `$Resources` it was handed — e.g. `AI/MLModels.ps1` calls `Invoke-AzRestMethod` per workspace, `Security/DefenderAlerts.ps1` calls `Get-AzSecurityAlert` per subscription |
+| External access | 31 | Calls `Get-Az*`/`Invoke-AzRestMethod`/`Search-AzGraph`/etc. or constructs a COM object rather than shaping the `$Resources` it was handed — e.g. `AI/MLModels.ps1` calls `Invoke-AzRestMethod` per workspace, `Management/AllSubscriptions.ps1` calls `Search-AzGraph`, and `Monitor/Outages.ps1` constructs `HTMLFile` through COM |
 | No `$Resources` filter at all | 10 | Builds its row set entirely from live cmdlet output (all 10 overlap with "live cmdlet call" above) — `Management/PolicyDefinitions.ps1`, all four `Security/Defender*.ps1`, etc. |
-| Unimplemented contract | 2 | `Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` — see §4 |
 
 Per-category breakdown:
 
@@ -93,11 +88,11 @@ Per-category breakdown:
 | Containers | 6 | 4 | 2 |
 | Databases | 13 | **13** | **0** |
 | Hybrid | 16 | 14 | 2 |
-| Identity | 18 | 16 | 2 |
+| Identity | 16 | **16** | **0** |
 | Integration | 2 | 2 | 0 |
 | IoT | 1 | 1 | 0 |
-| Management | 19 | 12 | 7 |
-| Monitor | 24 | 18 | 6 |
+| Management | 19 | 11 | 8 |
+| Monitor | 24 | 17 | 7 |
 | Networking | 21 | 13 | 8 |
 | Security | 5 | 1 | 4 |
 | Storage | 2 | 1 | 1 |
@@ -216,14 +211,12 @@ construct(s) that force it (`CrossResourceJoin`, `LiveCmdletCall`, `NoResourcesF
 | Identity | DirectoryRoles | Pure | 6 | 4 |  |
 | Identity | Domains | Pure | 9 | 7 |  |
 | Identity | Groups | Pure | 12 | 10 |  |
-| Identity | IdentityProviders | Escape | 12 | 0 | UnimplementedContract |
 | Identity | Licensing | Pure | 11 | 9 |  |
 | Identity | ManagedIdentities | Pure | 7 | 5 |  |
 | Identity | ManagedIds | Pure | 9 | 7 |  |
 | Identity | NamedLocations | Pure | 10 | 8 |  |
 | Identity | PIMAssignments | Pure | 9 | 7 |  |
 | Identity | RiskyUsers | Pure | 11 | 9 |  |
-| Identity | SecurityDefaults | Escape | 8 | 0 | UnimplementedContract |
 | Identity | SecurityPolicies | Pure | 13 | 11 |  |
 | Identity | ServicePrincipals | Pure | 11 | 9 |  |
 | Identity | Users | Pure | 14 | 12 |  |
@@ -231,7 +224,7 @@ construct(s) that force it (`CrossResourceJoin`, `LiveCmdletCall`, `NoResourcesF
 | Integration | ServiceBUS | Pure | 16 | 15 |  |
 | IoT | IOTHubs | Pure | 20 | 19 |  |
 | Management | AdvisorScore | Pure | 11 | 9 |  |
-| Management | AllSubscriptions | Pure | 13 | 12 |  |
+| Management | AllSubscriptions | Escape | 13 | 12 | LiveCmdletCall |
 | Management | AutomationAccounts | Escape | 18 | 17 | CrossResourceJoin |
 | Management | Backup | Escape | 29 | 28 | CrossResourceJoin |
 | Management | CustomRoleDefinitions | Escape | 15 | 14 | LiveCmdletCall; NoResourcesFilter |
@@ -267,7 +260,7 @@ construct(s) that force it (`CrossResourceJoin`, `LiveCmdletCall`, `NoResourcesF
 | Monitor | MonitorMetricsIngestion | Pure | 16 | 13 |  |
 | Monitor | MonitorPrivateLinkScopes | Pure | 14 | 11 |  |
 | Monitor | MonitorWorkbooks | Pure | 15 | 11 |  |
-| Monitor | Outages | Pure | 16 | 14 |  |
+| Monitor | Outages | Escape | 16 | 14 | LiveCmdletCall |
 | Monitor | ResourceDiagnosticSettings | Pure | 16 | 13 |  |
 | Monitor | ScheduledQueryRules | Pure | 19 | 18 |  |
 | Monitor | SmartDetectorAlertRules | Pure | 16 | 13 |  |
@@ -304,33 +297,13 @@ construct(s) that force it (`CrossResourceJoin`, `LiveCmdletCall`, `NoResourcesF
 | Web | APPServicePlan | Escape | 21 | 20 | CrossResourceJoin |
 | Web | APPServices | Pure | 37 | 36 |  |
 
-## 4. `Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` — recommend deletion, not porting
+## 4. Removed dead registration-contract collectors
 
-Both files are written against `Register-AZSCInventoryModule -ModuleId ... -ScriptBlock {...}`,
-`Get-AZSCProcessedData`, `Add-AZSCProcessedData`, and `$Context.EntraData` — a registration API
-that **exists only as a mock inside `tests/Identity.Module.Tests.ps1`** and was never implemented
-anywhere in the module. `src/pipeline/Get-ScoutCollector.ps1` already tags them
-`Contract = 'Unsupported'` and the pipeline reports them as skipped rather than executing them
-(see `docs/design/decisions/deterministic-pipeline.md` §5.3) — they have never produced a single
-row in any shipped release.
-
-**Recommendation: delete both rather than port them.** Reasons:
-
-1. Nothing in this codebase implements `$Context.EntraData`, so "porting" them is not a
-   mechanical schema conversion like every other collector here — it is net-new work to build an
-   Entra ID data-collection path (Graph API calls for identity providers and the security-defaults
-   policy) that has never existed. That is out of scope for a collector-declarativization epic; it
-   is a new collection capability.
-2. Neither file has ever shipped a row, in any version, to any user. Deleting them removes zero
-   observable functionality.
-3. If Entra identity-provider/security-defaults reporting is wanted, it is better scoped as its
-   own feature under a future epic — with the Graph permissions, live-tenant verification, and
-   an actual `$Context.EntraData` implementation that the current two files only pretend exists —
-   rather than smuggled in as a side effect of a schema-conversion epic.
-
-This audit does not delete the files itself (that is a call for whoever owns AB#5656's
-completion), but the schema and conversion work in AB#5657/AB#5659/AB#5660 treat them as
-out of scope: they are not converted, because there is nothing real to convert.
+`Identity/IdentityProviders.ps1` and `Identity/SecurityDefaults.ps1` were removed during the
+v3 rebuild. They depended on a registration API that was only mocked by tests and was never
+implemented by the module, so neither could produce a row in a shipped run. The processing and
+reporting special cases were removed with them. The Entra extraction capability remains separate
+from this retired inventory-collector contract.
 
 ## 5. What this means for the schema (AB#5657)
 

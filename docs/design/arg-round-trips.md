@@ -19,7 +19,7 @@ Every `Search-AzGraph` call site in the shipped module:
 | `src/collect/Get-ScoutRawInventory.ps1` | the single raw pass | 3 tables always; up to 6 more behind `-Include*` switches |
 | `src/collect/Invoke-Collect.ps1` | typed assessment pack | 1 (`sqlDefenderPricing`) by default; 35 under `-Source TypedQueries` |
 | `Modules/Private/Extraction/Get-AZTIManagementGroups.ps1` | expand a management group into its subscriptions | 1, only when `-ManagementGroup` is supplied |
-| `Modules/Public/InventoryModules/Management/AllSubscriptions.ps1` | one inventory collector's own lookup | 1, during processing |
+| `manifests/collectors/Management/AllSubscriptions.ps1` | one inventory collector's own lookup | 1, during processing |
 | `src/ingest/Import-Governance.ps1` | governance ingestor | per its own query pack, only for assessments whose manifest lists `Ingest = 'Governance'` |
 | `src/ingest/Invoke-ArgQueryPack.ps1` | opt-in ARG query pack ingestor | per its own pack, only when the manifest lists it |
 | `scripts/Export-ScoutFixture.ps1` | developer fixture capture | not part of a product run |
@@ -35,7 +35,7 @@ Measured with a counting stub in place of `Search-AzGraph`, and pinned by
 
 | Entry point | v2.7.0 | after AB#5648 |
 |---|---|---|
-| Assessment-only collect (`Invoke-ScoutAssessment`, default) | **35** | **4** |
+| Assessment-only collect (`Invoke-AzureScout -Assessment`, default) | **35** | **4** |
 | Assessment collect, `-Source TypedQueries` (opt-in) | 35 | 35 |
 | Assessment collect, `-FromInventory` (combined run) | 1 | 1 |
 | Inventory extraction (`Invoke-AzureScout`, default switches) | 8 | 8 |

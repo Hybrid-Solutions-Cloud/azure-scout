@@ -214,10 +214,9 @@ RowLoopVariable = '1'
         $Output | Should -Match 'Two'
     }
 
-    It 'fails a definition whose SourceCollector does not exist' {
+    It 'accepts retired SourceCollector provenance without making it a runtime dependency' {
         $Result = New-BrokenDefinitionTree -Body ($script:ValidBody -replace 'Databases/SQLSERVER.ps1', 'Databases/NoSuchCollector.ps1')
-        $Result.ExitCode | Should -Be 1
-        $Result.Output   | Should -Match 'NoSuchCollector'
+        $Result.ExitCode | Should -Be 0
     }
 
     It 'fails a definition whose Preamble does not parse' {
@@ -228,10 +227,7 @@ RowLoopVariable = '1'
 }
 
 Describe 'Collector definition validation (AB#5661) -- the real tree passes' {
-    It 'every definition under manifests/collectors passes every check, including the drift check' {
-        # The drift check is NOT skipped here. It regenerates each definition from its own
-        # SourceCollector and compares byte for byte, which is the only thing in the repo that
-        # notices a collector being edited without its definition being regenerated.
+    It 'every definition under manifests/collectors passes every v3 catalog check' {
         $Output = & pwsh -NoProfile -File $script:Validator 2>&1 | Out-String
         $Code = $LASTEXITCODE
         $Code | Should -Be 0 -Because "collector definitions must be valid and current:`n$Output"

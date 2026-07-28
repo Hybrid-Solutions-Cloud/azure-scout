@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-28
+
+### Changed
+
+- Completed Epic AB#5638: production collection and reporting now run the 174-definition
+  declarative catalog under StrictMode; no imperative collector fallback remains.
+- Retired `Modules/Public/InventoryModules` and moved the remaining engine implementation to
+  `src/`.
+- Replaced source-script equivalence with committed canonical golden contracts for 174 ordered
+  row sets and 348 workbook cases.
+
+### Verification
+
+- All 174 definitions validate and execute against strict optional-property fixtures.
+- Category-level, deterministic-pipeline, rendering, and golden row/workbook contract tests pass.
+
 ### Documentation
 
 - **Corrected the claim that the engine rebuild is finished.** Epic AB#5638 was closed as complete

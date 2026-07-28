@@ -18,7 +18,7 @@
 
 BeforeAll {
     $script:ModuleRoot    = Split-Path -Parent $PSScriptRoot
-    $script:InvokeScript  = Join-Path $script:ModuleRoot 'Modules' 'Public' 'PublicFunctions' 'Invoke-AzureScout.ps1'
+    $script:InvokeScript  = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
 
     # Dot-source the script to load the function into scope without a full module import
     . $script:InvokeScript

@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "NamedLocations",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "4bba8b241f2b4fe506dad75f4878d42bf12407a4a0e585034dd4b79ac3a4a46d",
+  "Rows": [
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1a-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value",
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1b-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value",
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1c-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value",
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1d-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value",
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1e-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value",
+    "Countries=s:|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1f-1|IP Ranges=s:|Is Trusted=j:false|Location Type=s:Unknown|Modified DateTime=j:\"2026-01-15T10:30:00Z\"|Resource U=j:1|Tenant ID=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": "Display Name\tLocation Type\tIs Trusted\tIP Ranges\tCountries\tCreated DateTime\tModified DateTime\tResource U\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1",
+    "WithTags": "Display Name\tLocation Type\tIs Trusted\tIP Ranges\tCountries\tCreated DateTime\tModified DateTime\tResource U\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1\nres-value\tUnknown\tFalse\t\t\t46037.4375\t46037.4375\t1"
+  }
+}

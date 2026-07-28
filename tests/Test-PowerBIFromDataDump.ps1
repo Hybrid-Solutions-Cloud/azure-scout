@@ -97,14 +97,6 @@ if (-not (Test-Path $ModulePath)) {
 Write-Host "  Loading module..." -ForegroundColor Gray
 Import-Module $ModulePath -Force -DisableNameChecking
 
-# Stub Register-AZSCInventoryModule in case any private module uses it
-if (-not (Get-Command 'Register-AZSCInventoryModule' -ErrorAction SilentlyContinue)) {
-    function global:Register-AZSCInventoryModule {
-        param($ModuleId, $PhaseId, $ScriptBlock)
-        # no-op stub
-    }
-}
-
 # ── Parse the JSON Report ────────────────────────────────────────────────
 Write-Host "  Parsing JSON report..." -ForegroundColor Gray
 

@@ -89,14 +89,14 @@ See [Prerequisites & Required Modules](prerequisites.md) for the module list, an
 [Assessment Prerequisites](assessment-prerequisites.md) for the extra dependencies the
 PowerPoint and PDF report tiers need.
 
-## Migrating from `Invoke-ScoutAssessment`
+## Assessment command migration
 
-`Invoke-ScoutAssessment` was a second entry point in v2.3.0 and earlier. It still works, but
-it is **deprecated** and will be removed in v3.0.0. Move to the switch:
+The former standalone assessment command was a second entry point in v2.3.0 and
+earlier. It was removed in v3.0.0. Use the unified switch:
 
 ```powershell
 # Before
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
 
 # After
 Invoke-AzureScout -Assessment LandingZone -OutputFormat Html

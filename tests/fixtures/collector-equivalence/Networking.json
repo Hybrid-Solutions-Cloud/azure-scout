@@ -176,6 +176,18 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routetables/routetables-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -221,6 +233,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworkgateways/virtualnetworkgateways-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -620,7 +644,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -635,7 +659,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -793,7 +817,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -808,7 +832,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -967,7 +991,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -982,7 +1006,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1018,7 +1042,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1033,7 +1057,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1191,7 +1215,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1206,7 +1230,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1364,7 +1388,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1379,7 +1403,7 @@
                 ],
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "privateIPAddress": [
                     "res-item-0",
@@ -1536,10 +1560,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -1564,10 +1588,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -1593,10 +1617,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -1619,10 +1643,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -1647,10 +1671,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -1675,10 +1699,10 @@
             "ipConfigurations": {
               "properties": {
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             },
@@ -2163,7 +2187,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2199,7 +2223,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2236,7 +2260,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2270,7 +2294,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2306,7 +2330,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2342,7 +2366,7 @@
             "frontendendpoints": {
               "properties": {
                 "webApplicationFirewallPolicyLink": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               },
               "name": "res-value"
@@ -2401,10 +2425,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2412,10 +2436,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2459,10 +2483,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2470,10 +2494,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2518,10 +2542,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2529,10 +2553,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2574,10 +2598,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2585,10 +2609,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2632,10 +2656,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2643,10 +2667,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2690,10 +2714,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2701,10 +2725,10 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicIPAddress": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -2731,17 +2755,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2762,17 +2786,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2794,17 +2818,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2823,17 +2847,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2854,17 +2878,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2885,17 +2909,17 @@
         {
           "PROPERTIES": {
             "publicipaddresses": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "publicipprefixes": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "subnets": [
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               },
               {
-                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
               }
             ],
             "idleTimeoutInMinutes": "res-value"
@@ -2920,16 +2944,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -2944,7 +2968,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -2958,7 +2982,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -2994,16 +3018,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3018,7 +3042,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3032,7 +3056,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -3069,16 +3093,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3093,7 +3117,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3107,7 +3131,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -3131,16 +3155,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3155,7 +3179,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3169,7 +3193,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -3205,16 +3229,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3229,7 +3253,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3243,7 +3267,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -3279,16 +3303,16 @@
         {
           "PROPERTIES": {
             "virtualmachine": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "privateendpoint": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "ipconfigurations": [
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3303,7 +3327,7 @@
               {
                 "properties": {
                   "subnet": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "publicipaddress": {
                     "id": "res-value"
@@ -3317,7 +3341,7 @@
               }
             ],
             "networksecuritygroup": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "dnssettings": {
               "dnsservers": [
@@ -3356,6 +3380,18 @@
       "resources": [
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -3438,34 +3474,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -3532,6 +3540,18 @@
         },
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -3614,34 +3634,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -3709,6 +3701,18 @@
         },
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -3791,34 +3795,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -3832,6 +3808,18 @@
         },
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -3914,34 +3902,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -4008,6 +3968,18 @@
         },
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -4090,34 +4062,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -4184,6 +4128,18 @@
         },
         {
           "PROPERTIES": {
+            "networkInterfaces": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "subnets": {
+              "id": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
             "securityRules": [
               {
                 "properties": {
@@ -4266,34 +4222,6 @@
                   "protocol": "res-value"
                 },
                 "name": "res-value"
-              }
-            ],
-            "networkInterfaces": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              }
-            ],
-            "Subnets": [
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
-              },
-              {
-                "id": [
-                  "res-item-0",
-                  "res-item-1"
-                ]
               }
             ]
           },
@@ -4619,7 +4547,7 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1a-1/virtualnetworklinks/privatedns-t1a-join1",
           "properties": {
             "virtualNetwork": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             }
           },
           "NAME": "privatedns-t1a-join1",
@@ -4650,7 +4578,7 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1b-1/virtualnetworklinks/privatedns-t1b-join1",
           "properties": {
             "virtualNetwork": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             }
           },
           "NAME": "privatedns-t1b-join1",
@@ -4694,7 +4622,7 @@
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1d-1/virtualnetworklinks/privatedns-t1d-join1",
           "properties": {
             "virtualNetwork": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             }
           },
           "NAME": "privatedns-t1d-join1",
@@ -4724,7 +4652,7 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1e-1/virtualnetworklinks/privatedns-t1e-join1",
           "properties": {
             "virtualNetwork": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             }
           },
           "NAME": "privatedns-t1e-join1",
@@ -4754,7 +4682,7 @@
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/privatednszones/privatedns-t1f-1/virtualnetworklinks/privatedns-t1f-join1",
           "properties": {
             "virtualNetwork": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             }
           },
           "NAME": "privatedns-t1f-join1",
@@ -4771,7 +4699,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -4820,7 +4748,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -4870,7 +4798,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -4907,7 +4835,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -4956,7 +4884,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -5005,7 +4933,7 @@
         {
           "PROPERTIES": {
             "subnet": {
-              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
             "customDnsConfigs": {
               "ipAddresses": [
@@ -5155,6 +5083,165 @@
           "NAME": "publicdns-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.network/dnszones"
+        }
+      ]
+    },
+    "PublicIP": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1a",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1b",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1c",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1d",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1e",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
+        },
+        {
+          "PROPERTIES": {
+            "ipConfiguration": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "natGateway": {
+              "id": "res-value"
+            },
+            "publicIPAllocationMethod": "res-value",
+            "publicIPAddressVersion": "res-value",
+            "ipAddress": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/publicipaddresses/publicip-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "publicip-t1f",
+          "SKU": {
+            "Name": "res-value"
+          },
+          "LOCATION": "res-value",
+          "Zones": "res-value",
+          "TYPE": "microsoft.network/publicipaddresses"
         }
       ]
     },
@@ -5554,13 +5641,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5584,13 +5671,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5642,13 +5729,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5672,13 +5759,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5731,13 +5818,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5761,13 +5848,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5817,13 +5904,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5847,13 +5934,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5905,13 +5992,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5935,13 +6022,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -5993,13 +6080,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -6023,13 +6110,13 @@
                     }
                   },
                   "networkSecurityGroup": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "defaultOutboundAccess": "res-value",
                   "privateLinkServiceNetworkPolicies": "res-value",
                   "privateEndpointNetworkPolicies": "res-value",
                   "routeTable": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   }
                 },
                 "name": "res-value"
@@ -6123,10 +6210,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6201,10 +6288,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6280,10 +6367,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6356,10 +6443,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6434,10 +6521,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6512,10 +6599,10 @@
             "ipConfigurations": {
               "properties": {
                 "publicIPAddress": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 },
                 "subnet": {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                 }
               }
             }
@@ -6529,6 +6616,381 @@
           "NAME": "virtualnetworkgateways-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.network/virtualnetworkgateways"
+        }
+      ]
+    },
+    "VirtualWAN": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "virtualHubs": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1a-1/virtualhubs/virtualwan-t1a-join1"
+              }
+            ],
+            "vpnSites": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1a-1/vpnsites/virtualwan-t1a-join1"
+              }
+            ],
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "name": "virtualwan-t1a-join1",
+          "location": "res-value",
+          "properties": {
+            "addressPrefix": "res-value",
+            "preferredRoutingGateway": "res-value",
+            "virtualRouterAsn": "res-value",
+            "virtualRouterIps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1a-1/virtualhubs/virtualwan-t1a-join1",
+          "TYPE": "microsoft.network/virtualhubs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "name": "virtualwan-t1a-join1",
+          "properties": {
+            "deviceProperties": {
+              "deviceVendor": "res-value"
+            },
+            "vpnSiteLinks": {
+              "properties": {
+                "ipAddress": "res-value",
+                "linkProperties": {
+                  "linkProviderName": "res-value",
+                  "linkSpeedInMbps": "res-value"
+                }
+              }
+            },
+            "addressSpace": {
+              "addressPrefixes": "res-value"
+            }
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1a-1/vpnsites/virtualwan-t1a-join1",
+          "TYPE": "microsoft.network/vpnsites",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualHubs": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1b-1/virtualhubs/virtualwan-t1b-join1"
+              }
+            ],
+            "vpnSites": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1b-1/vpnsites/virtualwan-t1b-join1"
+              }
+            ],
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "name": "virtualwan-t1b-join1",
+          "location": "res-value",
+          "properties": {
+            "addressPrefix": "res-value",
+            "preferredRoutingGateway": "res-value",
+            "virtualRouterAsn": "res-value",
+            "virtualRouterIps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1b-1/virtualhubs/virtualwan-t1b-join1",
+          "TYPE": "microsoft.network/virtualhubs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "name": "virtualwan-t1b-join1",
+          "properties": {
+            "deviceProperties": {
+              "deviceVendor": "res-value"
+            },
+            "vpnSiteLinks": {
+              "properties": {
+                "ipAddress": "res-value",
+                "linkProperties": {
+                  "linkProviderName": "res-value",
+                  "linkSpeedInMbps": "res-value"
+                }
+              }
+            },
+            "addressSpace": {
+              "addressPrefixes": "res-value"
+            }
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1b-1/vpnsites/virtualwan-t1b-join1",
+          "TYPE": "microsoft.network/vpnsites",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualHubs": {
+              "id": "res-value"
+            },
+            "vpnSites": {
+              "id": "res-value"
+            },
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "PROPERTIES": {
+            "virtualHubs": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1d-1/virtualhubs/virtualwan-t1d-join1"
+              }
+            ],
+            "vpnSites": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1d-1/vpnsites/virtualwan-t1d-join1"
+              }
+            ],
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "name": "virtualwan-t1d-join1",
+          "location": "res-value",
+          "properties": {
+            "addressPrefix": "res-value",
+            "preferredRoutingGateway": "res-value",
+            "virtualRouterAsn": "res-value",
+            "virtualRouterIps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1d-1/virtualhubs/virtualwan-t1d-join1",
+          "TYPE": "microsoft.network/virtualhubs",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "name": "virtualwan-t1d-join1",
+          "properties": {
+            "deviceProperties": {
+              "deviceVendor": "res-value"
+            },
+            "vpnSiteLinks": {
+              "properties": {
+                "ipAddress": "res-value",
+                "linkProperties": {
+                  "linkProviderName": "res-value",
+                  "linkSpeedInMbps": "res-value"
+                }
+              }
+            },
+            "addressSpace": {
+              "addressPrefixes": "res-value"
+            }
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1d-1/vpnsites/virtualwan-t1d-join1",
+          "TYPE": "microsoft.network/vpnsites",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualHubs": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1/virtualhubs/virtualwan-t1e-join1"
+              }
+            ],
+            "vpnSites": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1/vpnsites/virtualwan-t1e-join1"
+              }
+            ],
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "name": "virtualwan-t1e-join1",
+          "location": "res-value",
+          "properties": {
+            "addressPrefix": "res-value",
+            "preferredRoutingGateway": "res-value",
+            "virtualRouterAsn": "res-value",
+            "virtualRouterIps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1/virtualhubs/virtualwan-t1e-join1",
+          "TYPE": "microsoft.network/virtualhubs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "name": "virtualwan-t1e-join1",
+          "properties": {
+            "deviceProperties": {
+              "deviceVendor": "res-value"
+            },
+            "vpnSiteLinks": {
+              "properties": {
+                "ipAddress": "res-value",
+                "linkProperties": {
+                  "linkProviderName": "res-value",
+                  "linkSpeedInMbps": "res-value"
+                }
+              }
+            },
+            "addressSpace": {
+              "addressPrefixes": "res-value"
+            }
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1e-1/vpnsites/virtualwan-t1e-join1",
+          "TYPE": "microsoft.network/vpnsites",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "virtualHubs": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1/virtualhubs/virtualwan-t1f-join1"
+              }
+            ],
+            "vpnSites": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1/vpnsites/virtualwan-t1f-join1"
+              }
+            ],
+            "allowBranchToBranchTraffic": "res-value",
+            "allowVnetToVnetTraffic": "res-value",
+            "disableVpnEncryption": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "virtualwan-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/virtualwans"
+        },
+        {
+          "name": "virtualwan-t1f-join1",
+          "location": "res-value",
+          "properties": {
+            "addressPrefix": "res-value",
+            "preferredRoutingGateway": "res-value",
+            "virtualRouterAsn": "res-value",
+            "virtualRouterIps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1/virtualhubs/virtualwan-t1f-join1",
+          "TYPE": "microsoft.network/virtualhubs",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "tags": {}
+        },
+        {
+          "name": "virtualwan-t1f-join1",
+          "properties": {
+            "deviceProperties": {
+              "deviceVendor": "res-value"
+            },
+            "vpnSiteLinks": {
+              "properties": {
+                "ipAddress": "res-value",
+                "linkProperties": {
+                  "linkProviderName": "res-value",
+                  "linkSpeedInMbps": "res-value"
+                }
+              }
+            },
+            "addressSpace": {
+              "addressPrefixes": "res-value"
+            }
+          },
+          "ID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualwans/virtualwan-t1f-1/vpnsites/virtualwan-t1f-join1",
+          "TYPE": "microsoft.network/vpnsites",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         }
       ]
     },
@@ -6552,7 +7014,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6572,7 +7034,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6614,7 +7076,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6634,7 +7096,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6677,7 +7139,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6697,7 +7159,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6737,7 +7199,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6757,7 +7219,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6799,7 +7261,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6819,7 +7281,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6861,7 +7323,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",
@@ -6881,7 +7343,7 @@
                     ]
                   },
                   "remoteVirtualNetwork": {
-                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15"
+                    "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
                   },
                   "peeringState": "res-value",
                   "useRemoteGateways": "res-value",

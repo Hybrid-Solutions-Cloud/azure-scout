@@ -21,8 +21,8 @@
 
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
-    $script:InvokeScript    = Join-Path $script:ModuleRoot 'Modules' 'Public' 'PublicFunctions' 'Invoke-AzureScout.ps1'
-    $script:AuditScript     = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Main' 'Invoke-AZTIPermissionAudit.ps1'
+    $script:InvokeScript    = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
+    $script:AuditScript     = Join-Path $script:ModuleRoot 'src' 'Invoke-AZTIPermissionAudit.ps1'
 
     # Dot-source both scripts to inspect function metadata
     . $script:InvokeScript
@@ -156,17 +156,18 @@ Describe 'Invoke-AZSCPermissionAudit — Function Signature' {
 # No-auth graceful behavior
 # ===================================================================
 Describe 'Invoke-AZSCPermissionAudit — No Azure Context Behavior' {
+    BeforeEach {
+        # The test contract is the unauthenticated path.  Do not let a developer's
+        # cached Azure session turn this unit test into a live RBAC/provider scan.
+        Mock -CommandName Get-AzContext -MockWith { $null }
+    }
+
     It 'Returns $null when no Azure context is present (no auth)' {
         # The function calls Get-AzContext internally; without auth it returns $null
         # and the function returns $null early with an error message — not a throw
         $result = Invoke-AZSCPermissionAudit -ErrorAction SilentlyContinue 2>$null
         # If no context, function should return null (not throw)
-        # If somehow context IS present (CI with auth), this still validates the result type
-        if ($null -ne $result) {
-            $result | Should -BeOfType [PSCustomObject]
-        } else {
-            $result | Should -BeNullOrEmpty
-        }
+        $result | Should -BeNullOrEmpty
     }
 
     It 'Does not throw terminating error when Get-AzContext returns $null' {
@@ -271,8 +272,8 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
     BeforeAll {
         # Bring the private Graph helper functions into scope so they can be mocked
         # (they are dot-sourced by the module but not by this test's BeforeAll).
-        . (Join-Path -Path $script:ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Private', 'Main', 'Get-AZTIGraphToken.ps1')
-        . (Join-Path -Path $script:ModuleRoot -ChildPath 'Modules' -AdditionalChildPath 'Private', 'Main', 'Invoke-AZTIGraphRequest.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'Get-AZTIGraphToken.ps1')
+        . (Join-Path $script:ModuleRoot 'src' 'Invoke-AZTIGraphRequest.ps1')
 
         # Exactly ONE enabled subscription — the precise shape that collapses
         # $subs | Where-Object {...} | Select-Object -First 3 to a scalar.

@@ -93,6 +93,54 @@ function Get-ProcessingAndReportingBlocks {
     return [PSCustomObject]@{ Processing = $null; Reporting = $null }
 }
 
+function Get-ExternalAccessCall {
+    <#
+        Return commands that make live Azure/Graph calls or construct a COM object. This mirrors
+        the audit classifier because conversion must refuse the exact set the audit classifies as
+        live access; otherwise a live call can be lifted verbatim into Preamble/Fields and execute
+        inside the supposedly declarative interpreter.
+
+        The three Get-AZSC helpers are local data-shaping functions, despite sharing the Get-Az
+        prefix case-insensitively. New-Object is rejected only for -Com/-ComObject.
+    #>
+    param([System.Management.Automation.Language.Ast]$Block)
+
+    if (-not $Block) { return @() }
+
+    $InProcessHelpers = @(
+        'Get-AZSCSafeProperty'
+        'Get-AZSCIdSegment'
+        'Get-AZSCCollectedValue'
+    )
+    $AzureCommandPattern = '^(Get-Az|Invoke-Az|New-Az|Set-Az|Connect-Az|Get-Msol|Get-Mg|Invoke-Mg)'
+    $ExactExternalNames = @(
+        'Search-AzGraph'
+        'Invoke-RestMethod'
+        'Invoke-WebRequest'
+    )
+
+    $Calls = @(foreach ($Command in $Block.FindAll({
+        param($Node)
+        $Node -is [System.Management.Automation.Language.CommandAst]
+    }, $true)) {
+        $Name = $Command.GetCommandName()
+        if (-not $Name -or $Name -in $InProcessHelpers) { continue }
+
+        if ($Name -ieq 'New-Object') {
+            $ComParameter = @($Command.CommandElements | Where-Object {
+                $_ -is [System.Management.Automation.Language.CommandParameterAst] -and
+                $_.ParameterName -in @('Com', 'ComObject')
+            })
+            if ($ComParameter.Count -gt 0) { 'New-Object -Com' }
+            continue
+        }
+
+        if ($Name -in $ExactExternalNames -or $Name -match $AzureCommandPattern) { $Name }
+    })
+
+    return @($Calls | Select-Object -Unique)
+}
+
 function ConvertTo-Psd1Literal {
     <# Render a value as a PowerShell data-file literal: strings single-quoted/escaped, arrays as @(...), hashtables as @{...}. #>
     param($Value, [int]$Indent = 0)
@@ -137,6 +185,11 @@ $Category = Split-Path -Leaf (Split-Path -Parent $FullPath)
 $Blocks = Get-ProcessingAndReportingBlocks -Ast $Ast
 if (-not $Blocks.Processing) { throw "Could not find the '`$Task -eq ''Processing''' branch in $FullPath -- is this a Standard-contract collector?" }
 
+$ExternalCalls = @(Get-ExternalAccessCall -Block $Blocks.Processing)
+if ($ExternalCalls.Count -gt 0) {
+    throw "$FullPath -- the Processing branch contains live external access ($($ExternalCalls -join ', ')); move that access into src/collect before generating a declarative definition."
+}
+
 # --- The per-row loop, found FIRST ----------------------------------------------------------------
 #
 # `$tmp = foreach ($1 in <var>) { ... $obj = @{...} ... }`. Its own iteration variable is what field
@@ -169,6 +222,29 @@ $RowSourceVar = if ($RowSourceNode -is [System.Management.Automation.Language.Va
     $RowSourceNode.VariablePath.UserPath
 } else {
     throw "$FullPath -- the row loop iterates '$($RowLoop.Condition.Extent.Text)' rather than a variable holding a filtered `$Resources` set; this collector's shape is not recognised."
+}
+
+# A source assignment can fan a synthetic, already-collected envelope out into the items that the
+# row loop consumes.  Record the RHS as a generic RowSource expression instead of teaching the
+# interpreter collector names.  Direct '$Resources | Where-Object' assignments keep the compact
+# ResourceTypes-only form used by existing definitions.
+$RowSourceExpression = $null
+$RowSourceAssignment = @($Blocks.Processing.FindAll({
+    param($n)
+    $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+    $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+    $n.Left.VariablePath.UserPath -ieq $RowSourceVar
+}, $true) | Select-Object -First 1)
+if ($RowSourceAssignment.Count -gt 0) {
+    $SourceHasResources = @($RowSourceAssignment[0].Right.FindAll({
+        param($n) $n -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.VariablePath.UserPath -ieq 'Resources'
+    }, $true)).Count -gt 0
+    $SourceHasForEach = @($RowSourceAssignment[0].Right.FindAll({
+        param($n) $n -is [System.Management.Automation.Language.ForEachStatementAst]
+    }, $true)).Count -gt 0
+    if ($SourceHasResources -and $SourceHasForEach) {
+        $RowSourceExpression = $RowSourceAssignment[0].Right.Extent.Text.Trim()
+    }
 }
 
 # The top-level statement that CONTAINS the row loop -- almost always `if ($X) { $tmp = foreach ... }`.
@@ -242,6 +318,19 @@ foreach ($Assign in $Assignments) {
     $FullFilterText = $ScriptBlockParam.Extent.Text.Trim('{', '}').Trim()
     if ($FullFilterText -match '(?s)-and\s+(.+)$') {
         $AdditionalFilterText = $Matches[1].Trim()
+    }
+}
+
+# An envelope projection keeps its type filter inside RowSource.Expression.  Declare those types in
+# the manifest too, so inventory coverage is visible and schema validation is identical to direct
+# collectors.
+if ($ResourceTypes.Count -eq 0 -and $RowSourceExpression) {
+    foreach ($String in @($RowSourceAssignment[0].Right.FindAll({
+        param($n) $n -is [System.Management.Automation.Language.StringConstantExpressionAst]
+    }, $true))) {
+        if ($String.Value -match '^[a-zA-Z0-9.]+/[a-zA-Z0-9./]+$' -and $ResourceTypes -notcontains $String.Value) {
+            [void]$ResourceTypes.Add($String.Value)
+        }
     }
 }
 
@@ -385,14 +474,58 @@ function Get-RowExpansion {
     })
     if (@($ObjHere).Count -gt 0) {
         $Preamble = Get-StatementRangeText -Statements @($Body.Statements | Where-Object { $_.Extent.StartOffset -lt $ObjHere[0].Extent.StartOffset }) -Text $Text
-        return [PSCustomObject]@{ Preamble = $Preamble; Loops = @() }
+        return [PSCustomObject]@{ Preamble = $Preamble; Loops = @(); RowCondition = $null; ConditionalFieldIf = $null }
     }
 
     $Candidates = @($Body.Statements |
         Where-Object { $_ -is [System.Management.Automation.Language.ForEachStatementAst] } |
         Where-Object { Test-ContainsObjAssignment -Node $_ })
     if (@($Candidates).Count -eq 0) {
-        throw "$Where -- no row-emitting ``foreach`` or ```$obj`` assignment at this level; this collector's shape is not recognised."
+        # Two deliberately narrow conditional shapes are declarative too:
+        #
+        # * a guard with no else (AdvisorScore): it suppresses all rows for a resource, but the
+        #   nested loop and fields are otherwise ordinary; and
+        # * two branches with the same loop topology (PublicIP): only individual field values
+        #   differ. Those values are merged below into `if (...) { ... } else { ... }` field
+        #   expressions. Different loop depth is NOT accepted -- that changes row cardinality and
+        #   needs a richer, separately designed schema.
+        $Conditional = @($Body.Statements |
+            Where-Object { $_ -is [System.Management.Automation.Language.IfStatementAst] } |
+            Where-Object { Test-ContainsObjAssignment -Node $_ })
+        if (@($Conditional).Count -ne 1) {
+            throw "$Where -- no row-emitting ``foreach`` or ```$obj`` assignment at this level; this collector's shape is not recognised."
+        }
+
+        $If = $Conditional[0]
+        if (@($If.Clauses).Count -ne 1) {
+            throw "$Where -- a conditional row shape has more than one condition; this collector needs manual conversion."
+        }
+        $Before = Get-StatementRangeText -Statements @($Body.Statements | Where-Object { $_.Extent.StartOffset -lt $If.Extent.StartOffset }) -Text $Text
+        $Then = Get-RowExpansion -Body $If.Clauses[0].Item2 -Text $Text -Where $Where
+        if (-not $If.ElseClause) {
+            $Condition = $If.Clauses[0].Item1.Extent.Text.Trim()
+            if ($Then.RowCondition) { $Condition = "($Condition) -and ($($Then.RowCondition))" }
+            return [PSCustomObject]@{
+                Preamble = (@($Before, $Then.Preamble) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join "`n"
+                Loops = @($Then.Loops)
+                RowCondition = $Condition
+                ConditionalFieldIf = $Then.ConditionalFieldIf
+            }
+        }
+
+        $Else = Get-RowExpansion -Body $If.ElseClause -Text $Text -Where $Where
+        $SamePreamble = $Then.Preamble.Trim() -eq $Else.Preamble.Trim()
+        $SameCondition = [string]$Then.RowCondition -eq [string]$Else.RowCondition
+        $SameLoops = (ConvertTo-Json -InputObject @($Then.Loops) -Depth 8 -Compress) -eq (ConvertTo-Json -InputObject @($Else.Loops) -Depth 8 -Compress)
+        if (-not ($SamePreamble -and $SameCondition -and $SameLoops)) {
+            throw "$Where -- conditional branches have different row-loop topology or setup; this collector needs manual conversion."
+        }
+        return [PSCustomObject]@{
+            Preamble = (@($Before, $Then.Preamble) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join "`n"
+            Loops = @($Then.Loops)
+            RowCondition = $Then.RowCondition
+            ConditionalFieldIf = $If
+        }
     }
     $BoundaryLoop = $Candidates[-1]
     $Preamble = Get-StatementRangeText -Statements @($Body.Statements | Where-Object { $_.Extent.StartOffset -lt $BoundaryLoop.Extent.StartOffset }) -Text $Text
@@ -410,12 +543,24 @@ function Get-RowExpansion {
         Source   = $SourceRef
         Preamble = $Inner.Preamble
     }
-    return [PSCustomObject]@{ Preamble = $Preamble; Loops = @(@($Loop) + @($Inner.Loops)) }
+    return [PSCustomObject]@{
+        Preamble = $Preamble
+        Loops = @(@($Loop) + @($Inner.Loops))
+        RowCondition = $Inner.RowCondition
+        ConditionalFieldIf = $Inner.ConditionalFieldIf
+    }
 }
 
 $Expansion = Get-RowExpansion -Body $RowLoop.Body -Text $FileText -Where $FullPath
 $Preamble  = $Expansion.Preamble
+if ($Name -eq 'PublicIP') {
+    # An unattached public IP has `ipConfiguration = {}`. Preserve its legacy `$null` result
+    # under v3 StrictMode rather than directly reading a missing `.id` property.
+    $Preamble = $Preamble -replace '\$data\.ipConfiguration\.id', "(Get-AZSCSafeProperty -InputObject `$data -Path 'ipConfiguration.id')"
+    $Preamble = $Preamble -replace '\$data\.natGateway\.id', "(Get-AZSCSafeProperty -InputObject `$data -Path 'natGateway.id')"
+}
 $AllLoops  = @($Expansion.Loops)
+$RowCondition = $Expansion.RowCondition
 
 # The INNERMOST loop is the tag loop when it iterates $Tags -- recorded as its own key rather than
 # left implicit, because it is not universal (25 collectors have none) and not always called 'Tag'
@@ -439,18 +584,47 @@ $ObjAssignments = $RowLoop.Body.FindAll({
 }, $true)
 if (@($ObjAssignments).Count -eq 0) { throw "$FullPath -- no `$obj = @{...}` hashtable literal found." }
 
-$FirstObj = $ObjAssignments[0]
-$HashtableNode = Get-InnerExpr -Node $FirstObj.Right
-if ($HashtableNode -isnot [System.Management.Automation.Language.HashtableAst]) { throw "$FullPath -- `$obj`'s right-hand side is not a plain hashtable literal; this collector needs manual conversion." }
+function Get-ObjectFields {
+    param([System.Management.Automation.Language.AssignmentStatementAst]$Assignment)
+    $HashtableNode = Get-InnerExpr -Node $Assignment.Right
+    if ($HashtableNode -isnot [System.Management.Automation.Language.HashtableAst]) { throw "$FullPath -- `$obj`'s right-hand side is not a plain hashtable literal; this collector needs manual conversion." }
+    $Result = [ordered]@{}
+    foreach ($Pair in $HashtableNode.KeyValuePairs) {
+        if ($Pair.Item1 -is [System.Management.Automation.Language.StringConstantExpressionAst]) {
+            $Result[$Pair.Item1.Value] = $Pair.Item2.Extent.Text.Trim()
+        }
+    }
+    return $Result
+}
 
+function ConvertTo-StrictSafeCollectorText {
+    param([AllowNull()][string]$Text)
+    if ($Name -ne 'PublicIP' -or [string]::IsNullOrEmpty($Text)) { return $Text }
+    $Safe = $Text -replace '\$data\.ipConfiguration\.id', "(Get-AZSCSafeProperty -InputObject `$data -Path 'ipConfiguration.id')"
+    return $Safe -replace '\$data\.natGateway\.id', "(Get-AZSCSafeProperty -InputObject `$data -Path 'natGateway.id')"
+}
+
+$FirstObj = $ObjAssignments[0]
+$FirstFields = Get-ObjectFields -Assignment $FirstObj
 $Fields = [System.Collections.Generic.List[hashtable]]::new()
-$SeenFieldNames = [System.Collections.Generic.HashSet[string]]::new()
-foreach ($Pair in $HashtableNode.KeyValuePairs) {
-    if ($Pair.Item1 -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) { continue }
-    $FieldName = $Pair.Item1.Value
-    if (-not $SeenFieldNames.Add($FieldName)) { continue }
-    $ExprText = $Pair.Item2.Extent.Text.Trim()
-    [void]$Fields.Add(@{ Name = $FieldName; Expression = $ExprText })
+if ($Expansion.ConditionalFieldIf) {
+    $If = $Expansion.ConditionalFieldIf
+    $ThenObjects = @($If.Clauses[0].Item2.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true))
+    $ElseObjects = @($If.ElseClause.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true))
+    if ($ThenObjects.Count -ne 1 -or $ElseObjects.Count -ne 1) { throw "$FullPath -- conditional row branches must each contain exactly one `$obj` literal; this collector needs manual conversion." }
+    $ThenFields = Get-ObjectFields -Assignment $ThenObjects[0]
+    $ElseFields = Get-ObjectFields -Assignment $ElseObjects[0]
+    if ((@($ThenFields.Keys) -join "`0") -ne (@($ElseFields.Keys) -join "`0")) { throw "$FullPath -- conditional row branches declare different fields; this collector needs manual conversion." }
+    $Condition = $If.Clauses[0].Item1.Extent.Text.Trim()
+    foreach ($FieldName in $ThenFields.Keys) {
+        $ThenExpression = $ThenFields[$FieldName]
+        $ElseExpression = $ElseFields[$FieldName]
+        $Expression = if ($ThenExpression -eq $ElseExpression) { $ThenExpression } else { "if ($Condition) { $ThenExpression } else { $ElseExpression }" }
+        $Expression = ConvertTo-StrictSafeCollectorText -Text $Expression
+        [void]$Fields.Add(@{ Name = $FieldName; Expression = $Expression })
+    }
+} else {
+    foreach ($FieldName in $FirstFields.Keys) { [void]$Fields.Add(@{ Name = $FieldName; Expression = (ConvertTo-StrictSafeCollectorText -Text $FirstFields[$FieldName]) }) }
 }
 
 # --- Reporting branch: worksheet name, table-name prefix, columns, conditional formatting -------
@@ -545,6 +719,7 @@ $Definition = [ordered]@{
     SetupPreamble       = $SetupPreamble
     SetupVariables      = @($SetupVariables)
     Preamble            = $Preamble
+    RowCondition        = $RowCondition
     AdditionalRowLoops  = @($AdditionalRowLoops | ForEach-Object { [ordered]@{ Variable = $_.Variable; Source = $_.Source; Preamble = $_.Preamble } })
     TagLoop             = if ($TagLoop) { [ordered]@{ Variable = $TagLoop.Variable; Source = $TagLoop.Source; Preamble = $TagLoop.Preamble } } else { $null }
     Fields              = @($Fields | ForEach-Object { [ordered]@{ Name = $_.Name; Expression = $_.Expression } })
@@ -560,6 +735,13 @@ $Definition = [ordered]@{
     SourceCollector     = ("Modules/Public/InventoryModules/$Category/$Name.ps1").Replace('\', '/')
 }
 
+# Omit the key entirely for ordinary direct-resource collectors so their generated definitions
+# remain byte-identical.  Insert it beside RowLoopVariable only for the envelope-fan-out shape.
+if ($RowSourceExpression) {
+    $RowLoopIndex = [array]::IndexOf([object[]]@($Definition.Keys), 'RowLoopVariable')
+    $Definition.Insert($RowLoopIndex + 1, 'RowSource', [ordered]@{ Expression = $RowSourceExpression })
+}
+
 $Psd1Text = "@{`n" + (($Definition.GetEnumerator() | ForEach-Object {
     if ($_.Key -eq 'FilterPreamble' -and -not [string]::IsNullOrWhiteSpace($_.Value)) {
         "    FilterPreamble = @'`n$($_.Value)`n'@"
@@ -571,6 +753,10 @@ $Psd1Text = "@{`n" + (($Definition.GetEnumerator() | ForEach-Object {
         # noise that hides the 15 where the section is load-bearing.
         $null
     } elseif ($_.Key -eq 'SetupVariables' -and @($_.Value).Count -eq 0) {
+        $null
+    } elseif ($_.Key -eq 'RowCondition' -and [string]::IsNullOrWhiteSpace($_.Value)) {
+        # Preserve byte-for-byte regeneration for the existing, unconditional definitions. A row
+        # condition is emitted only for the narrow guard shape this converter recognises.
         $null
     } elseif ($_.Key -eq 'Preamble') {
         # A here-string, not ConvertTo-Psd1Literal's normal single-quoted escaping -- preamble

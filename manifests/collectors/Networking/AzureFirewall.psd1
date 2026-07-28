@@ -32,7 +32,8 @@ $AzureFirewall = $Resources | Where-Object { $_.TYPE -eq 'microsoft.network/azur
     )
 
     Preamble = @'
-$sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
+$ResUCount = $null
+                    $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                     $data = $1.PROPERTIES
                     if ($1.zones) { $Zones = $1.zones } Else { $Zones = "Not Configured" }
                     $Retired = Foreach ($Retirement in $Retirements)
@@ -64,7 +65,7 @@ $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                             $RetiringDate = $null
                         }
                     $Threat = if($data.threatintelmode -eq 'deny'){'Alert and deny'}elseif($data.threatintelmode -eq 'alert'){'Alert only'}else{'Off'}
-                    $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                    $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties } else { '0' }
                     
                     $VNETs = @()
                     $PIPs = @()
@@ -78,7 +79,8 @@ $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                     
                     $Policy = $AzureFWPolicies | Where-Object {$_.id -eq $data.firewallpolicy.id}
                     $Policy = if(![string]::IsNullOrEmpty($Policy)){$Policy}else{'0'}
-                    $Rules = $AzureFWPoliciesRules | Where-Object {$_.id -eq $Policy.properties.rulecollectiongroups.id}
+                    $PolicyRuleCollectionGroupIds = Get-AZSCSafeProperty -InputObject $Policy -Path 'properties.rulecollectiongroups.id' -Enumerate
+                    $Rules = $AzureFWPoliciesRules | Where-Object {$_.id -eq $PolicyRuleCollectionGroupIds}
                     $Rules = if(![string]::IsNullOrEmpty($Rules)){$Rules}else{'0'}
                     $FinalPIP = if ($PIPs.count -gt 1) { $PIPs | ForEach-Object { $_ + ' ,' } }else { $PIPs }
                     $FinalPIP = [string]$FinalPIP
@@ -89,7 +91,8 @@ $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                     $FinalPrivIP = if ($PrivIPs.count -gt 1) { $PrivIPs | ForEach-Object { $_ + ' ,' } }else { $PrivIPs }
                     $FinalPrivIP = [string]$FinalPrivIP
                     $FinalPrivIP = if ($FinalPrivIP -like '* ,*') { $FinalPrivIP -replace ".$" }else { $FinalPrivIP }
-                    $FinalDNSServers = if (@($Policy.properties.dnssettings.servers).count -gt 1) { $Policy.properties.dnssettings.servers | ForEach-Object { $_ + ' ,' } }else { $Policy.properties.dnssettings.servers }
+                    $PolicyDnsServers = Get-AZSCSafeProperty -InputObject $Policy -Path 'properties.dnssettings.servers'
+                    $FinalDNSServers = if (@($PolicyDnsServers).count -gt 1) { $PolicyDnsServers | ForEach-Object { $_ + ' ,' } }else { $PolicyDnsServers }
                     $FinalDNSServers = [string]$FinalDNSServers
                     $FinalDNSServers = if ($FinalDNSServers -like '* ,*') { $FinalDNSServers -replace ".$" }else { $FinalDNSServers }
 '@
@@ -99,7 +102,7 @@ $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
             Variable = 'CoreRule'
             Source = '$Rules'
             Preamble = @'
-$CoreCollections = $CoreRule.properties.rulecollections
+$CoreCollections = Get-AZSCSafeProperty -InputObject $CoreRule -Path 'properties.rulecollections'
                             $CoreCollections = if(![string]::IsNullOrEmpty($CoreCollections)){$CoreCollections}else{'0'}
 '@
         }
@@ -107,7 +110,7 @@ $CoreCollections = $CoreRule.properties.rulecollections
             Variable = 'RuleCollection'
             Source = '$CoreCollections'
             Preamble = @'
-$RuleCoreCollections = $RuleCollection.rules
+$RuleCoreCollections = Get-AZSCSafeProperty -InputObject $RuleCollection -Path 'rules'
                                     $RuleCoreCollections = if(![string]::IsNullOrEmpty($RuleCoreCollections)){$RuleCoreCollections}else{'0'}
 '@
         }
@@ -115,17 +118,20 @@ $RuleCoreCollections = $RuleCollection.rules
             Variable = 'Rule'
             Source = '$RuleCoreCollections'
             Preamble = @'
-$FinalProtocol = if (@($Rule.ipprotocols).count -gt 1) { $Rule.ipprotocols | ForEach-Object { $_ + ' ,' } }else { $Rule.ipprotocols}
+$RuleProtocols = Get-AZSCSafeProperty -InputObject $Rule -Path 'ipprotocols'
+                                            $FinalProtocol = if (@($RuleProtocols).count -gt 1) { $RuleProtocols | ForEach-Object { $_ + ' ,' } }else { $RuleProtocols}
                                             $FinalProtocol = [string]$FinalProtocol
                                             $FinalProtocol = if ($FinalProtocol -like '* ,*') { $FinalProtocol -replace ".$" }else { $FinalProtocol }
 
-                                            $FinalPort = if (@($Rule.destinationports).count -gt 1) { $Rule.destinationports | ForEach-Object { $_ + ' ,' } }else { $Rule.destinationports}
+$RuleDestinationPorts = Get-AZSCSafeProperty -InputObject $Rule -Path 'destinationports'
+                                            $FinalPort = if (@($RuleDestinationPorts).count -gt 1) { $RuleDestinationPorts | ForEach-Object { $_ + ' ,' } }else { $RuleDestinationPorts}
                                             $FinalPort = [string]$FinalPort
                                             $FinalPort = if ($FinalPort -like '* ,*') { $FinalPort -replace ".$" }else { $FinalPort }
 
-                                            if(![string]::IsNullOrEmpty($Rule.sourceipgroups))
+                                            $RuleSourceIpGroups = Get-AZSCSafeProperty -InputObject $Rule -Path 'sourceipgroups'
+                                            if(![string]::IsNullOrEmpty($RuleSourceIpGroups))
                                                 {
-                                                    $SourceIpGroup = ($AzureIPGroups | Where-Object {$_.id -eq $Rule.sourceipgroups}).properties.ipaddresses
+                                                    $SourceIpGroup = Get-AZSCSafeProperty -InputObject ($AzureIPGroups | Where-Object {$_.id -eq $RuleSourceIpGroups}) -Path 'properties.ipaddresses' -Enumerate
                                                     $SourceIP = if (@($SourceIpGroup).count -gt 1) { $SourceIpGroup | ForEach-Object { $_ + ' ,' } }else { $SourceIpGroup }
                                                     $SourceIP = [string]$SourceIP
                                                     $SourceIP = if ($SourceIP -like '* ,*') { $SourceIP -replace ".$" }else { $SourceIP }
@@ -133,26 +139,27 @@ $FinalProtocol = if (@($Rule.ipprotocols).count -gt 1) { $Rule.ipprotocols | For
                                                 }
                                             else
                                                 {
-                                                    $SourceIP = [string]$Rule.sourceaddresses
+                                                    $SourceIP = [string](Get-AZSCSafeProperty -InputObject $Rule -Path 'sourceaddresses')
                                                     $SourceType = 'IP Address'
                                                 }
 
-                                            if(![string]::IsNullOrEmpty($Rule.destinationipgroups))
+                                            $RuleDestinationIpGroups = Get-AZSCSafeProperty -InputObject $Rule -Path 'destinationipgroups'
+                                            if(![string]::IsNullOrEmpty($RuleDestinationIpGroups))
                                                 {
-                                                    $DestinationIpGroup = ($AzureIPGroups | Where-Object {$_.id -eq $Rule.destinationipgroups}).properties.ipaddresses
+                                                    $DestinationIpGroup = Get-AZSCSafeProperty -InputObject ($AzureIPGroups | Where-Object {$_.id -eq $RuleDestinationIpGroups}) -Path 'properties.ipaddresses' -Enumerate
                                                     $DestinationIP = if (@($DestinationIpGroup).count -gt 1) { $DestinationIpGroup | ForEach-Object { $_ + ' ,' } }else { $DestinationIpGroup }
                                                     $DestinationIP = [string]$DestinationIP
                                                     $DestinationIP = if ($DestinationIP -like '* ,*') { $DestinationIP -replace ".$" }else { $DestinationIP }
                                                     $DestionationType = 'IP Group'
                                                 }
-                                            elseif(![string]::IsNullOrEmpty($Rule.destinationfqdns))
+                                            elseif(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $Rule -Path 'destinationfqdns')))
                                                 {
-                                                    $DestinationIP = [string]$Rule.destinationfqdns
+                                                    $DestinationIP = [string](Get-AZSCSafeProperty -InputObject $Rule -Path 'destinationfqdns')
                                                     $DestionationType = 'FQDN'
                                                 }
                                             else
                                                 {
-                                                    $DestinationIP = [string]$Rule.destinationaddresses
+                                                    $DestinationIP = [string](Get-AZSCSafeProperty -InputObject $Rule -Path 'destinationaddresses')
                                                     $DestionationType = 'IP Address'
                                                 }
 '@
@@ -220,11 +227,11 @@ $FinalProtocol = if (@($Rule.ipprotocols).count -gt 1) { $Rule.ipprotocols | For
         }
         @{
             Name = 'Policy Name'
-            Expression = '$Policy.name'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Policy -Path ''name'''
         }
         @{
             Name = 'DNS Proxy'
-            Expression = '$Policy.properties.dnssettings.enableproxy'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Policy -Path ''properties.dnssettings.enableproxy'''
         }
         @{
             Name = 'DNS Servers'
@@ -232,31 +239,31 @@ $FinalProtocol = if (@($Rule.ipprotocols).count -gt 1) { $Rule.ipprotocols | For
         }
         @{
             Name = 'Rule Collection Group'
-            Expression = '$CoreRule.name'
+            Expression = 'Get-AZSCSafeProperty -InputObject $CoreRule -Path ''name'''
         }
         @{
             Name = 'Rule Collection Group Priority'
-            Expression = '$CoreRule.properties.priority'
+            Expression = 'Get-AZSCSafeProperty -InputObject $CoreRule -Path ''properties.priority'''
         }
         @{
             Name = 'Rule Collection'
-            Expression = '$RuleCollection.name'
+            Expression = 'Get-AZSCSafeProperty -InputObject $RuleCollection -Path ''name'''
         }
         @{
             Name = 'Rule Action'
-            Expression = '$RuleCollection.action.type'
+            Expression = 'Get-AZSCSafeProperty -InputObject $RuleCollection -Path ''action.type'''
         }
         @{
             Name = 'Rule Priority'
-            Expression = '$RuleCollection.priority'
+            Expression = 'Get-AZSCSafeProperty -InputObject $RuleCollection -Path ''priority'''
         }
         @{
             Name = 'Rule Type'
-            Expression = '$Rule.ruletype'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Rule -Path ''ruletype'''
         }
         @{
             Name = 'Rule Name'
-            Expression = '$Rule.name'
+            Expression = 'Get-AZSCSafeProperty -InputObject $Rule -Path ''name'''
         }
         @{
             Name = 'Source Type'

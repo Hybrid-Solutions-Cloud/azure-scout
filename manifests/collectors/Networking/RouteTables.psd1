@@ -59,7 +59,7 @@ $ResUCount = 1
     )
 
     TagLoop = @{
-        Variable = 'TagKey'
+        Variable = 'Tag'
         Source = '$Tags'
         Preamble = ''
     }
@@ -127,11 +127,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Tag Name'
-            Expression = '[string]$Tag.Name'
+            Expression = "''"
         }
         @{
             Name = 'Tag Value'
-            Expression = '[string]$Tag.Value'
+            Expression = "''"
         }
     )
 

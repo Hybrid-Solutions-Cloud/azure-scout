@@ -36,7 +36,7 @@
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
     $script:ManifestPath = Join-Path $script:ModuleRoot 'AzureScout.psd1'
-    $script:DiagramPath = Join-Path $script:ModuleRoot 'Modules' 'Public' 'PublicFunctions' 'Diagram'
+    $script:DiagramPath = Join-Path $script:ModuleRoot 'src' 'pipeline' 'diagram'
 
     Import-Module $script:ManifestPath -Force
 
@@ -130,13 +130,10 @@ AfterAll {
 # =====================================================================
 Describe 'Diagram module files exist and parse cleanly' {
     $diagramFiles = @(
-        'Build-AZTIDiagramSubnet.ps1',
-        'Set-AZTIDiagramFile.ps1',
-        'Start-AZTIDiagramJob.ps1',
-        'Start-AZTIDiagramNetwork.ps1',
-        'Start-AZTIDiagramOrganization.ps1',
-        'Start-AZTIDiagramSubscription.ps1',
-        'Start-AZTIDrawIODiagram.ps1'
+        'Build-ScoutDiagramSubnet.ps1', 'Set-ScoutDiagramFile.ps1',
+        'Start-ScoutDiagramJob.ps1', 'Start-ScoutDiagramNetwork.ps1',
+        'Start-ScoutDiagramOrganization.ps1', 'Start-ScoutDiagramSubscription.ps1',
+        'Start-ScoutDrawIoDiagram.ps1'
     )
 
     It '<_> exists' -ForEach $diagramFiles {

@@ -871,7 +871,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLComputes"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -913,13 +913,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "MLDatasets",
@@ -928,7 +924,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLDatasets"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -964,13 +960,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "MLDatastores",
@@ -979,7 +971,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLDatastores"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1017,13 +1009,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "MLEndpoints",
@@ -1032,7 +1020,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLEndpoints"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1070,13 +1058,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "MLModels",
@@ -1085,7 +1069,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLModels"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1119,13 +1103,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "MLPipelines",
@@ -1134,7 +1114,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.machinelearningservices/workspaces"
+      "AZSC/ARMChild/MLPipelines"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1176,13 +1156,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "OpenAIAccounts",
@@ -1247,7 +1223,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.cognitiveservices/accounts"
+      "AZSC/ARMChild/OpenAIDeployments"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1289,13 +1265,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "SearchIndexes",
@@ -1304,7 +1276,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.search/searchservices"
+      "AZSC/ARMChild/SearchIndexes"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -1343,13 +1315,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "SearchServices",
@@ -2236,7 +2204,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.desktopvirtualization/applicationgroups"
+      "AZSC/ARMChild/AVDApplications"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -2277,13 +2245,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "AVDAzureLocal",
@@ -2727,13 +2691,10 @@
       "AZSC/VM/SKU",
       "AZSC/VM/Quotas"
     ],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "CrossResourceJoin: correlates against microsoft.network/networkinterfaces, microsoft.compute/virtualmachines/extensions, microsoft.compute/disks, microsoft.network/virtualnetworks, AZSC/VM/SKU, AZSC/VM/Quotas inside the per-row loop",
-      "LiveCmdletCall: Invoke-AzRestMethod"
+      "CrossResourceJoin: correlates against microsoft.network/networkinterfaces, microsoft.compute/virtualmachines/extensions, microsoft.compute/disks, microsoft.network/virtualnetworks, AZSC/VM/SKU, AZSC/VM/Quotas inside the per-row loop"
     ]
   },
   {
@@ -3010,13 +2971,10 @@
       "microsoft.advisor/recommendations",
       "microsoft.compute/virtualmachines/extensions"
     ],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "CrossResourceJoin: correlates against microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems, microsoft.advisor/recommendations, microsoft.compute/virtualmachines/extensions inside the per-row loop",
-      "LiveCmdletCall: Invoke-AzRestMethod"
+      "CrossResourceJoin: correlates against microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems, microsoft.advisor/recommendations, microsoft.compute/virtualmachines/extensions inside the per-row loop"
     ]
   },
   {
@@ -5879,42 +5837,6 @@
     "EscapeHatchReasons": []
   },
   {
-    "Name": "IdentityProviders",
-    "Category": "Identity",
-    "Path": "Modules/Public/InventoryModules/Identity/IdentityProviders.ps1",
-    "Contract": "Unsupported",
-    "ParseErrorCount": 0,
-    "ResourceTypes": [],
-    "ResourceTypeFilterCount": 0,
-    "HasCompoundFilter": false,
-    "ProcessingFields": [
-      "Name",
-      "Id",
-      "Type",
-      "IdentityProviderType",
-      "ClientId",
-      "ClientSecretConfigured",
-      "IssuerUrl",
-      "DomainsHint",
-      "ResponseMode",
-      "ResponseType",
-      "Scope",
-      "Enabled"
-    ],
-    "ProcessingFieldCount": 12,
-    "ExportColumns": [],
-    "ExportColumnCount": 0,
-    "UsesSubCorrelation": false,
-    "UsesRetirementLookup": false,
-    "CrossResourceJoin": false,
-    "JoinedResourceTypes": [],
-    "ExternalCalls": [],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "UnimplementedContract: written against Register-AZSCInventoryModule/$Context.EntraData, which the module never implements"
-    ]
-  },
-  {
     "Name": "Licensing",
     "Category": "Identity",
     "Path": "Modules/Public/InventoryModules/Identity/Licensing.ps1",
@@ -6165,38 +6087,6 @@
     "ExternalCalls": [],
     "Classification": "PureShaping",
     "EscapeHatchReasons": []
-  },
-  {
-    "Name": "SecurityDefaults",
-    "Category": "Identity",
-    "Path": "Modules/Public/InventoryModules/Identity/SecurityDefaults.ps1",
-    "Contract": "Unsupported",
-    "ParseErrorCount": 0,
-    "ResourceTypes": [],
-    "ResourceTypeFilterCount": 0,
-    "HasCompoundFilter": false,
-    "ProcessingFields": [
-      "TenantId",
-      "PolicyName",
-      "Id",
-      "Enabled",
-      "Description",
-      "LastModified",
-      "ProtectionsProvided",
-      "RecommendationStatus"
-    ],
-    "ProcessingFieldCount": 8,
-    "ExportColumns": [],
-    "ExportColumnCount": 0,
-    "UsesSubCorrelation": false,
-    "UsesRetirementLookup": false,
-    "CrossResourceJoin": false,
-    "JoinedResourceTypes": [],
-    "ExternalCalls": [],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "UnimplementedContract: written against Register-AZSCInventoryModule/$Context.EntraData, which the module never implements"
-    ]
   },
   {
     "Name": "SecurityPolicies",
@@ -6626,9 +6516,13 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [],
-    "Classification": "PureShaping",
-    "EscapeHatchReasons": []
+    "ExternalCalls": [
+      "Search-AzGraph"
+    ],
+    "Classification": "EscapeHatch",
+    "EscapeHatchReasons": [
+      "LiveCmdletCall: Search-AzGraph"
+    ]
   },
   {
     "Name": "AutomationAccounts",
@@ -6830,12 +6724,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzRoleDefinition"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzRoleDefinition",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -7234,13 +7125,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzContext",
-      "Get-AzManagementGroup"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzContext, Get-AzManagementGroup",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -7295,18 +7182,13 @@
       "Resource U"
     ],
     "ExportColumnCount": 18,
-    "UsesSubCorrelation": true,
+    "UsesSubCorrelation": false,
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzContext",
-      "Set-AzContext",
-      "Get-AzPolicyState"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzContext, Set-AzContext, Get-AzPolicyState",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -7354,12 +7236,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzPolicyDefinition"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzPolicyDefinition",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -7409,12 +7288,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzPolicySetDefinition"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzPolicySetDefinition",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -7827,7 +7703,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.insights/components"
+      "AZSC/ARMChild/AppInsightsContinuousExport"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -7868,13 +7744,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "AppInsightsProactiveDetection",
@@ -7883,7 +7755,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.insights/components"
+      "AZSC/ARMChild/AppInsightsProactiveDetection"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -7919,13 +7791,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "AppInsightsWebTests",
@@ -7996,7 +7864,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.insights/components"
+      "AZSC/ARMChild/AppInsightsWorkItems"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -8028,13 +7896,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "AutoscaleSettings",
@@ -8214,7 +8078,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.operationalinsights/workspaces"
+      "AZSC/ARMChild/LAWorkspaceLinkedServices"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -8248,13 +8112,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "LAWorkspaceSavedSearches",
@@ -8263,7 +8123,7 @@
     "Contract": "Standard",
     "ParseErrorCount": 0,
     "ResourceTypes": [
-      "microsoft.operationalinsights/workspaces"
+      "AZSC/ARMChild/LAWorkspaceSavedSearches"
     ],
     "ResourceTypeFilterCount": 1,
     "HasCompoundFilter": false,
@@ -8296,13 +8156,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Invoke-AzRestMethod"
-    ],
-    "Classification": "EscapeHatch",
-    "EscapeHatchReasons": [
-      "LiveCmdletCall: Invoke-AzRestMethod"
-    ]
+    "ExternalCalls": [],
+    "Classification": "PureShaping",
+    "EscapeHatchReasons": []
   },
   {
     "Name": "LAWorkspaceSolutions",
@@ -8621,9 +8477,13 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [],
-    "Classification": "PureShaping",
-    "EscapeHatchReasons": []
+    "ExternalCalls": [
+      "New-Object -Com"
+    ],
+    "Classification": "EscapeHatch",
+    "EscapeHatchReasons": [
+      "LiveCmdletCall: New-Object -Com"
+    ]
   },
   {
     "Name": "ResourceDiagnosticSettings",
@@ -8835,12 +8695,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzDiagnosticSetting"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzDiagnosticSetting",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -10379,12 +10236,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzSecurityAlert"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzSecurityAlert",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -10438,12 +10292,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzSecurityAssessment"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzSecurityAssessment",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -10489,12 +10340,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzSecurityPricing"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzSecurityPricing",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },
@@ -10540,13 +10388,9 @@
     "UsesRetirementLookup": false,
     "CrossResourceJoin": false,
     "JoinedResourceTypes": [],
-    "ExternalCalls": [
-      "Get-AzSecuritySecureScore",
-      "Get-AzSecuritySecureScoreControl"
-    ],
+    "ExternalCalls": [],
     "Classification": "EscapeHatch",
     "EscapeHatchReasons": [
-      "LiveCmdletCall: Get-AzSecuritySecureScore, Get-AzSecuritySecureScoreControl",
       "NoResourcesFilter: the Processing branch does not filter $Resources by $_.TYPE at all (builds its row set another way)"
     ]
   },

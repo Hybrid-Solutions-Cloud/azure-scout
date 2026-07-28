@@ -340,7 +340,12 @@ function Resolve-ShapePath {
         # @( <path> ) -- the path is being treated as a collection.
         $Inner = Resolve-ShapePath -Node $Node.SubExpression -Aliases $Aliases
         if ($Inner) { [void]$Inner.Usages.Add('array'); $Inner.IsArray = $true }
-        return $null
+        # The expression is also commonly the SOURCE of a following pipeline, for example
+        # `@($data.profiles) | ForEach-Object { $_.name }`.  Returning $null here made the
+        # pipeline walker lose the element shape, so fixtures emitted string profiles and the
+        # strict declarative collector correctly threw on their missing `name`.  Preserve the
+        # marked node so downstream pipeline analysis can bind `$_` to its element.
+        return $Inner
     }
 
     if ($Node -is [System.Management.Automation.Language.IndexExpressionAst]) {
@@ -680,10 +685,9 @@ function Build-CollectorShape {
 
 # --- Value synthesis --------------------------------------------------------------------------
 
-# 16 segments, so any fixed positional index a collector uses on a split id or a split
-# sub-resource path ($_.id.split('/')[10] is the deepest in the estate) resolves to a real value
-# instead of $null.
-$script:PathValue = (0..15 | ForEach-Object { "seg$_" }) -join '/'
+# Legacy preambles retain fixed split indexes from several ARM resource shapes.  Give every
+# synthetic path ample segments so a coverage fixture reaches the row contract first.
+$script:PathValue = (0..32 | ForEach-Object { "seg$_" }) -join '/'
 $script:DateValue = '2026-01-15T10:30:00.0000000Z'
 
 function ConvertTo-ShapeValue {
@@ -735,7 +739,10 @@ function ConvertTo-ShapeValue {
         $Node.Usages.Contains('method:substring') -or $Node.Usages.Contains('method:indexof')) {
         return $script:PathValue
     }
-    if ($Node.Name -match '(?i)(date|time)$') { return $script:DateValue }
+    # Property names such as timeCreated carry their temporal cue as a prefix rather than a
+    # suffix.  They are frequently cast with [datetime] in lifted preambles, so synthetic text
+    # makes both the reference capture and declarative proof fail before producing a row.
+    if ($Node.Name -match '(?i)(date|time|created)$') { return $script:DateValue }
     return 'res-value'
 }
 
@@ -772,6 +779,71 @@ function New-FixtureResource {
     $Body['tags'] = $Tags
 
     if ($Definition.AdditionalFilter) { $Body = Resolve-FixtureFilter -Body $Body -Definition $Definition }
+
+    # Additional row loops may filter their source (`Where { $_.aggregationLevel -eq
+    # 'Monthly' }`).  Populate that predicate's member wherever it occurs in the generated
+    # shape so the loop has at least one reachable item.  This is data derived from the
+    # manifest expression, not a collector-name exception.
+    foreach ($Loop in @($Definition.AdditionalRowLoops)) {
+        $LoopFilterText = "$($Definition.Preamble)`n$($Loop.Preamble)`n$($Loop.Source)"
+        if ($LoopFilterText -match '\$_\.([A-Za-z0-9_]+)\s*-eq\s*''([^'']+)''') {
+            $Member = $Matches[1]; $Value = $Matches[2]
+            $Stack = [System.Collections.Generic.Stack[object]]::new()
+            $Stack.Push($Body)
+            while ($Stack.Count -gt 0) {
+                $Current = $Stack.Pop()
+                if ($Current -is [System.Collections.IDictionary]) {
+                    foreach ($Key in @($Current.Keys)) {
+                        if ($Key -ieq $Member) { $Current[$Key] = $Value }
+                        $Stack.Push($Current[$Key])
+                    }
+                } elseif ($Current -is [System.Collections.IEnumerable] -and $Current -isnot [string]) {
+                    foreach ($Item in $Current) { $Stack.Push($Item) }
+                }
+            }
+        }
+    }
+
+    # RowSource collectors project nested prefetch envelopes instead of iterating a resource
+    # directly (for example SecurityPolicySweep.PROPERTIES.PolicyComplianceStates).  Populate a
+    # representative projected object from the manifest field expressions so the same fixture
+    # reaches both the legacy reference and declarative row source.
+    $RowSourceExpression = if ($Definition.PSObject.Properties.Name -contains 'RowSource' -and
+        $null -ne $Definition.RowSource -and
+        $Definition.RowSource.PSObject.Properties.Name -contains 'Expression') {
+        [string]$Definition.RowSource.Expression
+    } else { '' }
+    if (-not [string]::IsNullOrWhiteSpace($RowSourceExpression) -and
+        $RowSourceExpression -match '(?i)PROPERTIES\.([A-Za-z0-9_]+)') {
+        $CollectionName = $Matches[1]
+        $PropertiesKey = Resolve-FixtureKey -Body $Body -Name 'PROPERTIES'
+        if ($Body[$PropertiesKey] -isnot [System.Collections.IDictionary]) { $Body[$PropertiesKey] = [ordered]@{} }
+        $State = [ordered]@{}
+        foreach ($Field in @($Definition.Fields)) {
+            foreach ($Match in @([regex]::Matches([string]$Field.Expression, '\$[A-Za-z][A-Za-z0-9_]*\.([A-Za-z0-9_]+)'))) {
+                $Member = $Match.Groups[1].Value
+                if (-not $State.Contains($Member)) { $State[$Member] = if ($Member -match '(?i)(date|time|created|stamp)$') { $script:DateValue } else { 'res-value' } }
+            }
+        }
+        # A subscription-scoped RowSource commonly filters projected objects by an Id containing
+        # the sweep subscription. Preserve that contract in the fixture so the projection reaches
+        # its rows instead of being filtered out before field evaluation.
+        if ($RowSourceExpression -match '(?i)/subscriptions/\$\(\$sweep\.subscriptionId\)/') {
+            $State['Id'] = "/subscriptions/$SubscriptionId/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+        }
+        if ($State.Count -eq 0) { $State['Name'] = 'res-value' }
+        $Body[$PropertiesKey][$CollectionName] = @($State)
+    }
+
+    # RowCondition is evaluated by the declarative interpreter after resource selection.  It is
+    # distinct from AdditionalFilter, so the latter's fixture resolver cannot make a resource
+    # such as AdvisorScore (which gates on `$1.name`) reach its row loop.  Use the first quoted
+    # condition literal as the deterministic primary name; the full collector still validates
+    # that its remaining condition semantics are satisfied.
+    if (-not [string]::IsNullOrWhiteSpace($Definition.RowCondition) -and
+        $Definition.RowCondition -match "'([^']+)'") {
+        $Body[(Resolve-FixtureKey -Body $Body -Name 'NAME')] = $Matches[1]
+    }
 
     return $Body
 }
@@ -969,6 +1041,48 @@ foreach ($File in (Get-ChildItem -LiteralPath $DefinitionDir -Filter '*.psd1' | 
             $Resource = New-FixtureResource -Shape $Shape -Definition $Definition -ResourceType $ResourceType `
                 -Id $Id -Name $Slug -Tags $Variant.Tags -SubscriptionId $Variant.Sub
 
+            # Some legacy preambles assign an ARM child collection to a local and an
+            # AdditionalRowLoop then indexes a slash-delimited member (`$pv.split('/')[8]`).
+            # Populate that property as an array of a valid path so the fixture reaches the
+            # loop body instead of failing on a scalar placeholder.
+            foreach ($Loop in @($Definition.AdditionalRowLoops)) {
+                $LoopVariable = [regex]::Escape([string]$Loop.Variable)
+                if ($Loop.Preamble -notmatch ('\$' + $LoopVariable + '\.split\(')) { continue }
+                $SourceVariableMatch = [regex]::Match([string]$Loop.Source, '^\$(\w+)$')
+                if (-not $SourceVariableMatch.Success) { continue }
+                $SourceVariable = [regex]::Escape($SourceVariableMatch.Groups[1].Value)
+                $PropertyMatch = [regex]::Match([string]$Definition.Preamble, '\$' + $SourceVariable + '\s*=.*?\$data\.([A-Za-z0-9_]+)')
+                if (-not $PropertyMatch.Success) { continue }
+                $PropertiesKey = Resolve-FixtureKey -Body $Resource -Name 'PROPERTIES'
+                if ($Resource[$PropertiesKey] -isnot [System.Collections.IDictionary]) { $Resource[$PropertiesKey] = [ordered]@{} }
+                $Resource[$PropertiesKey][$PropertyMatch.Groups[1].Value] = @($script:PathValue)
+            }
+
+            # ARM child collectors frequently recover their workspace/parent from the same raw
+            # inventory set (`$Resources | Where-Object { $_.id -eq $1.PARENTID }`).  A literal
+            # PARENTID fixture value only exercised the legacy non-StrictMode null path; it could
+            # never prove the declared parent columns.  Materialise the parent and wire its ID
+            # before adding the child.  The parent type is deliberately outside this definition's
+            # ResourceTypes, so it is available to the join but cannot become an output row.
+            if ([regex]::IsMatch("$($Definition.Preamble)`n$($Definition.SetupPreamble)", '\$Resources\s*\|\s*Where-Object\s*\{\s*\$_\.id\s*-eq\s*\$1\.PARENTID')) {
+                $ParentId = "/subscriptions/$($Variant.Sub)/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/$Slug-parent"
+                $ParentKey = Resolve-FixtureKey -Body $Resource -Name 'PARENTID'
+                $Resource[$ParentKey] = $ParentId
+                $Resources.Add([ordered]@{
+                    id = $ParentId
+                    NAME = "$Slug-parent"
+                    RESOURCEGROUP = 'rg-fixture-01'
+                    LOCATION = 'eastus'
+                    TYPE = 'AZSC/FixtureParents'
+                })
+            }
+
+            # The shape walk can encounter a `TYPE` literal in a preamble join (for example an
+            # operational-envelope lookup) and leave that derived value on the primary object.
+            # ResourceTypes is the authoritative identity of the primary row: restore it here,
+            # immediately before it enters the fixture estate, so a collector's own selection is
+            # always exercised and an operational partner remains a separate joined resource.
+            $Resource[(Resolve-FixtureKey -Body $Resource -Name 'TYPE')] = $ResourceType
             $Resources.Add($Resource)
 
             # One joined resource per secondary type PER PRIMARY, not one per collector: the join
@@ -984,9 +1098,23 @@ foreach ($File in (Get-ChildItem -LiteralPath $DefinitionDir -Filter '*.psd1' | 
                     $JoinIndex = 0
                     foreach ($JoinType in @($Set.ResourceTypes)) {
                         $JoinIndex++
-                        $Resources.Add((New-FixtureJoinedResource -ShapeNode $SecondaryShape -ResourceType $JoinType `
+                        $Joined = New-FixtureJoinedResource -ShapeNode $SecondaryShape -ResourceType $JoinType `
                             -PrimaryId $Id -Slug "$Slug-join$JoinIndex" -SubscriptionId $Variant.Sub `
-                            -Correlations $Correlations[$Set.Variable] -PrimaryBody $Resource))
+                            -Correlations $Correlations[$Set.Variable] -PrimaryBody $Resource
+                        $Resources.Add($Joined)
+
+                        # Reverse references are stored on the primary (for example a virtual
+                        # WAN has properties.virtualHubs[].id) rather than in a Where-Object
+                        # predicate over the joined set.  Wire those declared primary paths to
+                        # the joined ID so the topology is reachable in the fixture.
+                        $JoinLeaf = (@($JoinType -split '/')[-1] -replace '[^A-Za-z0-9]', '').ToLowerInvariant()
+                        foreach ($Match in @([regex]::Matches("$($Definition.Preamble)`n$($Definition.SetupPreamble)", '(?i)\$data\.([A-Za-z0-9_]+)\.id'))) {
+                            $Collection = $Match.Groups[1].Value
+                            if ((($Collection -replace '[^A-Za-z0-9]', '').ToLowerInvariant()) -ne $JoinLeaf) { continue }
+                            $PropertiesKey = Resolve-FixtureKey -Body $Resource -Name 'PROPERTIES'
+                            if ($Resource[$PropertiesKey] -isnot [System.Collections.IDictionary]) { $Resource[$PropertiesKey] = [ordered]@{} }
+                            $Resource[$PropertiesKey][$Collection] = @([ordered]@{ id = $Joined.id })
+                        }
                     }
                 }
             }

@@ -31,7 +31,7 @@ BeforeAll {
     # cannot pull the real module (and therefore the real Search-AzGraph) into this session.
     function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
     . "$root/src/collect/Get-ScoutRawInventory.ps1"
-    . "$root/Modules/Private/Extraction/Start-AZTIGraphExtraction.ps1"
+    . "$root/src/collect/Start-ScoutGraphExtraction.ps1"
 
     function Get-AZSCManagementGroups {
         param($ManagementGroup, $Subscriptions)
@@ -119,7 +119,7 @@ Describe 'Start-AZSCGraphExtraction issues no Resource Graph query of its own (A
         # comments name both retired functions (explaining what replaced them), and a text
         # match cannot tell an explanation from a call.
         $root = Split-Path $PSScriptRoot -Parent
-        $path = "$root/Modules/Private/Extraction/Start-AZTIGraphExtraction.ps1"
+        $path = "$root/src/collect/Start-ScoutGraphExtraction.ps1"
         $ast = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$null)
         $commands = @(
             $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true) |

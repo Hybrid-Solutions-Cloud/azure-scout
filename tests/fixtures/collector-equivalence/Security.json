@@ -8,6 +8,54 @@
   ],
   "retirements": [
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1e-1/SecurityPolicySweep/defenderalerts-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1f-1/SecurityPolicySweep/defenderalerts-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1f-1/SecurityPolicySweep/defenderalerts-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1e-1/SecurityPolicySweep/defenderassessments-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1f-1/SecurityPolicySweep/defenderassessments-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1f-1/SecurityPolicySweep/defenderassessments-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1e-1/SecurityPolicySweep/defenderpricing-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1f-1/SecurityPolicySweep/defenderpricing-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1f-1/SecurityPolicySweep/defenderpricing-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1e-1/SecurityPolicySweep/defendersecurescore-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1f-1/SecurityPolicySweep/defendersecurescore-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1f-1/SecurityPolicySweep/defendersecurescore-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/vaults/vault-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -33,6 +81,1002 @@
     }
   ],
   "collectors": {
+    "DefenderAlerts": {
+      "resources": [
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1a",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1a-1/SecurityPolicySweep/defenderalerts-t1a-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1b",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1b-1/SecurityPolicySweep/defenderalerts-t1b-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1c",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1c-1/SecurityPolicySweep/defenderalerts-t1c-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1d",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1d-1/SecurityPolicySweep/defenderalerts-t1d-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1e",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1e-1/SecurityPolicySweep/defenderalerts-t1e-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "AlertDisplayName": "res-value",
+          "AlertType": "res-value",
+          "Severity": "res-value",
+          "Status": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Entities": [
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            },
+            {
+              "Type": "res-value",
+              "ResourceId": "res-value"
+            }
+          ],
+          "ResourceIdentifiers": {
+            "ResourceGroup": "res-value"
+          },
+          "TimeGeneratedUtc": "res-value",
+          "Description": "res-value",
+          "RemediationSteps": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "Intent": "res-value",
+          "ExtendedProperties": {
+            "Tactics": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "NAME": "defenderalerts-t1f",
+          "ConfidenceLevel": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderalerts-t1f-1/SecurityPolicySweep/defenderalerts-t1f-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAlerts": [
+              {
+                "Name": "res-value",
+                "ConfidenceLevel": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DefenderAssessments": {
+      "resources": [
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1a-1/SecurityPolicySweep/defenderassessments-t1a-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1a",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1b-1/SecurityPolicySweep/defenderassessments-t1b-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1b",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1c-1/SecurityPolicySweep/defenderassessments-t1c-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1c",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1d-1/SecurityPolicySweep/defenderassessments-t1d-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1d",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1e-1/SecurityPolicySweep/defenderassessments-t1e-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1e",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Status": {
+            "Code": "res-value",
+            "Severity": "res-value",
+            "Description": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderassessments-t1f-1/SecurityPolicySweep/defenderassessments-t1f-2",
+          "ResourceDetails": {
+            "Id": "res-value"
+          },
+          "AdditionalData": {
+            "AssessedResourceType": "res-value"
+          },
+          "NAME": "defenderassessments-t1f",
+          "DisplayName": "res-value",
+          "Metadata": {
+            "Category": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "ImplementationEffort": "res-value",
+            "UserImpact": "res-value",
+            "Threats": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "AssessmentType": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderAssessments": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Metadata": "res-value",
+                "Id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Security/assessments/fixture-assessment"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DefenderPricing": {
+      "resources": [
+        {
+          "NAME": "defenderpricing-t1a",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1a-1/SecurityPolicySweep/defenderpricing-t1a-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "NAME": "defenderpricing-t1b",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1b-1/SecurityPolicySweep/defenderpricing-t1b-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "NAME": "defenderpricing-t1c",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1c-1/SecurityPolicySweep/defenderpricing-t1c-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "NAME": "defenderpricing-t1d",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1d-1/SecurityPolicySweep/defenderpricing-t1d-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "NAME": "defenderpricing-t1e",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1e-1/SecurityPolicySweep/defenderpricing-t1e-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "NAME": "defenderpricing-t1f",
+          "PricingTier": "res-value",
+          "Extensions": [
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            },
+            {
+              "Name": "res-value",
+              "IsEnabled": "res-value"
+            }
+          ],
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Deprecated": "res-value",
+          "ReplacedBy": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderpricing-t1f-1/SecurityPolicySweep/defenderpricing-t1f-2",
+          "SubscriptionName": "res-value",
+          "FreeTrialRemainingTime": {
+            "TotalDays": "res-value"
+          },
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderPricing": [
+              {
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DefenderSecureScore": {
+      "resources": [
+        {
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1a",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1a-1/SecurityPolicySweep/defendersecurescore-t1a-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1b",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1b-1/SecurityPolicySweep/defendersecurescore-t1b-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1c",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1c-1/SecurityPolicySweep/defendersecurescore-t1c-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1d",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1d-1/SecurityPolicySweep/defendersecurescore-t1d-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1e",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1e-1/SecurityPolicySweep/defendersecurescore-t1e-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "Score": {
+            "Current": "res-value",
+            "Max": "res-value",
+            "HealthyResourceCount": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "NotApplicableResourceCount": "res-value"
+          },
+          "NAME": "defendersecurescore-t1f",
+          "DisplayName": "res-value",
+          "Weight": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defendersecurescore-t1f-1/SecurityPolicySweep/defendersecurescore-t1f-2",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScores": [
+              {
+                "Name": "res-value",
+                "DisplayName": "res-value",
+                "Score": "res-value",
+                "Weight": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "Vault": {
       "resources": [
         {

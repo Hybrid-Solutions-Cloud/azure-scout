@@ -5,7 +5,7 @@
     (AB#5667).
 
 .DESCRIPTION
-    The 176 `Modules/Public/InventoryModules/*/*.ps1` collectors were unit-tested only against
+    The former source-script collectors were unit-tested only against
     small, hand-built mock objects (see e.g. `tests/Compute.Module.Tests.ps1`). That is enough
     to prove a collector does not throw on ONE clean shape, but it is not enough to catch the
     StrictMode class of defect: real Azure API responses omit properties, return empty arrays

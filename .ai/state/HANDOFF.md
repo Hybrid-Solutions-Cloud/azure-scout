@@ -6,6 +6,282 @@
   (possibly a different tool) starts by reading it.
 -->
 
+## IN PROGRESS (2026-07-28, Codex) — code-derived v3.0.0 engine rebuild
+
+### Latest release-hardening progress (2026-07-28)
+
+- Repointed active output, reporting, helper, and permission-audit tests to `src/` after retiring
+  `Modules/Private`; permission-audit no-context tests now mock Azure context so they remain offline.
+  Verified: OutputFormat **41 passed / 1 skipped**, PermissionAudit **46 passed / 1 skipped**,
+  Private.Reporting **86/86**.
+- Retired the obsolete source-script golden-capture command and the duplicate legacy
+  ManagementGroups test; the current `Collect.TenantWideResources` suite owns and verifies the
+  management-group fallback (**27/27** with schema and cutover tests). Resource-type reporting now
+  reads the manifest catalog (**174 files, 152 declared types**) rather than deleted scripts.
+- Version/doc release work is now at **3.0.0**: manifest, CHANGELOG, README/doc release page,
+  roadmap, docs changelog, and release ledger are aligned. `Test-ModuleManifest`, clean
+  import/smoke (`Invoke-AzureScout` exported), `git diff --check`, and DocsVersionSync **8/8** pass.
+- Current contract evidence remains: 174/174 strict direct collectors; golden rows **174/174**;
+  golden worksheets **348/348** in bounded groups. Remaining pre-publication work is broad suite
+  completion, packaging/CI review, commit/tag, and authenticated publication. Do not claim the
+  PowerShell Gallery release exists yet.
+- Broad-suite batch two exposed and fixed a real StrictMode interpolation defect in
+  `Get-ScoutOperationalCollectorEnrichment`: `$VmName?api-version` parsed as variable
+  `$VmName?api`. It now uses `${VmName}`; focused operational-enrichment suite **4/4** passes.
+
+### Strict declarative proof correction (2026-07-28, Codex — current)
+
+- **Corrected prior completion evidence:** catalog coverage (174 manifests) and captured golden
+  output (174 records) did **not** prove that every manifest executes under StrictMode against
+  optional/missing data.  A direct 174-definition Processing sweep found **142** runtime failures;
+  do not represent the declarative rebuild as complete or release-ready.
+- `src/pipeline/Invoke-ScoutDeclarativeCollector.ps1` now preserves two legacy output contracts
+  explicitly while keeping StrictMode enabled: an absent subscription lookup produces an empty
+  Subscription cell, and the legacy no-tag sentinel produces empty tag cells.  Direct failures
+  dropped **142 → 112**.  A focused golden regression test for those two cases passes (**1/0**),
+  and `ManifestCollectorRuntime.Tests.ps1` remains **2/0**.
+- `scripts/New-ScoutCollectorFixture.ps1` now materialises a parent resource when a definition
+  resolves `$1.PARENTID` via `$Resources`; regenerated AI fixture.  AI direct execution failures
+  are now **0/27** after extending synthetic path coverage and correcting the retirement fold
+  compiler typo (`$Retired.ServiceID` → per-item `$Retire.ServiceID`). `AI/HealthInsights` also
+  has an explicit safe language-resource lookup and correct retirement local bindings. This
+  fixture change invalidates AI golden input hashes; recapture only after confirming the legacy
+  reference has the same intended contract.
+- Remaining global failure categories include retirement lookup locals, ARM-child/joined-resource
+  fixture topology, fixed string/index assumptions, and optional nested property reads.  Fix them
+  as explicit definition/fixture contracts; **do not reintroduce StrictMode Off** to make the
+  proof pass.
+
+### Latest strict sweep (2026-07-28, Codex)
+
+- Regenerated every non-Database category fixture using the updated generator.  The direct
+  Processing sweep is now **51 failures / 174 definitions** (down from 142), with AI **0/27**.
+- Remaining exact collectors are logged by the current direct sweep; largest shared cluster is
+  17 projected/joined objects missing the expected `name` member (primarily Hybrid plus Monitor).
+  Other clusters: 8 missing nested `properties` envelopes, 3 fixed indexes, and named individual
+  prefetch shapes (AVD, Security, management policy/role, network).  Golden records are stale for
+  regenerated fixture hashes and must not be claimed green until recaptured after all runtime
+  errors are cleared.
+
+### Parallel strictness fixes received (2026-07-28, Codex)
+
+- Fixed all fixed split-index reads in `Compute/AvailabilitySets`, `Containers/ARO`, and
+  `Storage/NetApp` in both legacy reference scripts and manifests, using `Get-AZSCIdSegment`.
+  Added `tests/CollectorIdSegmentRegression.Tests.ps1`; focused Pester **3/0**.  The direct
+  global runtime sweep is now **43/174 failures** (the nested-properties batch was partially
+  applied during this run; wait for its focused proof before using this count as final).
+- The eight nested-properties manifests (`Analytics/Streamanalytics`; `Databases/RedisCache`,
+  `SQLMIDB`, `SQLSERVER`, `SQLVM`; `Management/Backup`; `Networking/AzureFirewall`,
+  `NetworkSecurityGroup`) now pass focused strict Processing with rows **7,3,2,2,2,7,7,14**.
+  They intentionally drift from the legacy sources because optional data handling is now
+  explicit; the current validator’s source-drift check must be retired in favour of golden proof
+  before deleting legacy source. Do not “fix” this by reverting the safe manifests.
+- Projected-name cluster completed: Hybrid subscription-name fields, Management policy definitions,
+  Monitor autoscale/outages, Networking ExpressRoute, and DefenderPricing were made safe and their
+  fixtures regenerated. Full direct strict Processing audit now reports **21 failures / 174**,
+  down from 142. Exact residual list: Compute AVD/AVDScalingPlans/VMSS; Containers AKS;
+  Hybrid ArcServerOperationalData; Identity AppRegistrations/ServicePrincipals; Management
+  AllSubscriptions/CustomRoleDefinitions/ManagementGroups/PolicyComplianceStates; Monitor
+  AutoscaleSettings/SubscriptionDiagnosticSettings; Networking Connections/Frontdoor/RouteTables;
+  Security DefenderAlerts/DefenderAssessments/DefenderPricing/DefenderSecureScore; Web APPServicePlan.
+
+### Strict execution milestone / golden-capture blocker (2026-07-28, Codex)
+
+- **Latest verification (2026-07-28):** the direct 174-definition StrictMode Processing audit is
+  **174/174 clean**. The row-equivalence gate is **174/174 passed**. The workbook proof is fully
+  green when run in bounded category groups (the all-at-once 348-case run exceeds the shell's
+  120-second cap): AI **54/54**; Analytics+Compute+Containers+Databases+Hybrid+Identity
+  **142/142**; Networking **42/42**; Integration+IoT+Management+Monitor+Security+Storage+Web
+  **110/110** — **348/348 passed** total. `Invoke-ScoutDeclarativeReporting` was corrected to
+  safe-read optional `Resource U` while totaling worksheet rows; `Networking/VirtualNetwork`
+  exposed that StrictMode-only renderer bug.
+- **Next in progress:** retire `Invoke-ScoutCollector -Imperative`, the processing kill-switch,
+  and `Modules/Public/InventoryModules` only after re-pointing/removing the obsolete source-drift
+  test contracts. Current cutover tests still deliberately assert legacy fallback/kill-switch
+  behavior and must be rewritten as declarative-only invariants before deletion. Then run module
+  suites and full solution, update docs/version, and publish v3.0.0. Do not claim release ready.
+
+- Full direct declarative Processing audit is now **0 failures / 174 definitions** under
+  StrictMode.  Do not confuse this with the golden/workbook gate: fixtures and golden files have
+  changed materially and require recapture plus comparison.
+- Golden recapture succeeded through AI, Analytics, Containers, Databases, Hybrid, Identity,
+  Integration, IoT, and Management; it stopped in **Compute/VirtualMachine** because the
+  imperative reference emitted no rows for the regenerated fixture. The capture script correctly
+  refused to write a vacuous golden record. Diagnose that legacy fixture/source contract before
+  completing Compute and remaining categories, then run the full 700-test golden suite.
+- Fixed primary resource TYPE restoration in `New-ScoutCollectorFixture.ps1`, regenerated Compute
+  and Storage, and completed golden record capture for every category. Full 700-test golden run
+  was allowed to execute for 120 seconds but timed out after entering workbook proofs; early
+  failures are meaningful—not a harness defect. The declarative compiler safely corrects the
+  legacy retirement-fold loop variable, so manifests now emit retirement data while legacy source
+  reference scripts emit blanks (`Retired.ServiceID` instead of per-item `Retire.ServiceID`).
+  Reconcile reference source behavior and recapture; do not change golden assertions to accept
+  both outputs.
+- Corrected the retirement fold in **88 legacy reference collectors** (and HealthInsights’ two
+  analogous bindings); AST parse clean and no `$Retired.ServiceID` / `$Retired.RetirementDate`
+  remains in the inventory tree. All 174 golden records have now been recaptured from that
+  corrected reference, including Compute/VirtualMachine and StorageAccounts after the primary
+  TYPE fixture fix. Full golden test still needs a successful completion (normal shell timeout is
+  120 seconds; the direct run previously reached workbook proofs and exposed the now-fixed
+  retirement mismatches).
+
+**Do not use ADO status as completion evidence.** A fresh code audit established that the engine
+rebuild is still materially incomplete: `Modules/` holds 221 `.ps1` files (176 collectors + 45
+other engine files), 138 collector definitions exist, 20 StrictMode weakening sites exist, live
+reporting walks and executes the collector `.ps1` tree, and `Invoke-ScoutAssessment` remains an
+exported/live internal name. The repo's detailed and code-derived sequence is in
+`scripts/trees/v3-engine-completion*.psd1`.
+
+### Current code state (updated 2026-07-28)
+
+- **174/174** collector definitions now exist and the runtime catalog is manifest-first:
+  `Get-ScoutCollector -DefinitionRoot manifests/collectors` discovers all 174 without an
+  InventoryModules root. `tests/ManifestCollectorRuntime.Tests.ps1`: **2/0**; deterministic
+  pipeline regression: **44/0**.
+- JSON, Markdown, Excel, AsciiDoc and Power BI inventory renderers use the manifest section
+  index. Combined manifest renderer gate: **30/0** after the entry-point assertion correction.
+- `Modules/Private/Main` and `Modules/Public/PublicFunctions` are empty. Their implementations
+  now reside under `src/`; `AzureScout.psm1` loads `src/` only. Public API + clean import:
+  **62/0** (agent broader public relocation proof: **89/0**); private-main relocation proof:
+  **133/0**.
+- `Invoke-ScoutAssessment` is removed; internal callers use `Invoke-ScoutAssessmentCore`.
+  The clean-process test must set `$ErrorActionPreference = 'Stop'` before asserting the missing
+  command (without it, command-not-found is nonterminating and falsely returns exit 1).
+- `Modules/` currently contains only the **174** legacy inventory collector scripts. An agent is
+  actively retiring these and moving the validator/tests from source-drift proof to the committed
+  manifest/golden proof. Do not call the release complete until this is done and full validation,
+  docs/version/roadmap and publish are complete.
+- Golden capture update: records were added for AI/MLComputes, MLDatasets, MLDatastores,
+  MLEndpoints, MLModels, MLPipelines, OpenAIDeployments and SearchIndexes. Capture then stopped
+  honestly at `Compute/AVDApplications`: `tests/fixtures/collector-equivalence/Compute.json`
+  has no entry for that collector. The golden gate therefore cannot yet prove all 174 manifests;
+  build missing fixture coverage before deleting any collector script.
+
+### Golden-proof expansion update (2026-07-28, Codex)
+
+- The golden catalog now has **174 files for 174 collector definitions**. Capture was expanded
+  using the still-present legacy scripts; added outputs include all new AI, Compute, Hybrid,
+  Management, Monitor, Networking, Security, and Storage definitions.
+- `scripts/New-ScoutCollectorFixture.ps1` was hardened for date/time-shaped leaves, RowCondition
+  literal names, loop-filter literals, RowSource prefetch envelopes, subscription-correlated
+  security envelopes, and reverse primary-to-joined-resource references (VirtualWAN).
+- Do **not** yet delete `Modules/Public/InventoryModules`: full
+  `tests/DeclarativeCollectorGolden.Tests.ps1` is red. Its concrete failures are fixture-hash
+  mismatch for existing golden files after category fixtures were regenerated (e.g. AI), and a
+  mutation-proof fixture shape issue (`properties` missing). Recapture every golden whose fixture
+  hash changed, then fix that mutation proof, before source deletion.
+
+### Completed this session — safe prerequisite work
+
+- Added `src/report/Get-ScoutReportSectionIndex.ps1` and
+  `tests/Report.SectionIndex.Tests.ps1`: deterministic, manifest-derived report section index.
+  It does not change production report routing before every collector has a definition. Pester:
+  **7 passed / 0 failed**; PSScriptAnalyzer: 0 findings.
+- Added golden collector proof tooling:
+  `scripts/CollectorGolden.Common.ps1`, `scripts/Export-ScoutGoldenRowSet.ps1`,
+  `tests/DeclarativeCollectorGolden.Tests.ps1`, and **138** committed golden records under
+  `tests/fixtures/collector-golden/`. The golden suite proves all definition output against
+  recorded imperative output without invoking `-Imperative`: **555 passed / 0 failed / 0 skipped**
+  (138 row proofs + 276 tagged/untagged workbook comparisons).
+- Corrected collector audit/conversion tooling in `scripts/Invoke-CollectorAudit.ps1`,
+  `scripts/ConvertTo-ScoutCollectorDefinition.ps1`, `tests/CollectorTooling.Tests.ps1`,
+  `tests/fixtures/collector-audit.json`, and `docs/design/collector-audit.md`. The AST classifier
+  now detects `Search-AzGraph` / COM access and excludes local helpers; the converter refuses to
+  emit a definition containing live external access. Focused + schema + coverage: **29 passed / 0
+  failed**; parser/analyzer: 0 errors. The current audit is **174 collectors: 126 pure-shaping /
+  48 escape-hatch**.
+- Removed the two dead Identity collector scripts (`IdentityProviders`, `SecurityDefaults`) plus
+  their never-implemented registration-contract handling in discovery, processing, Excel
+  reporting, tests, and audit. Code proof: no `Register-AZSCInventoryModule` remains under
+  `src/` or `Modules/`; collector count is now **174** and missing definitions are **36**.
+  Focused identity + deterministic-pipeline Pester: **144 passed / 0 failed**.
+- Added and independently tested three collection prerequisites, not yet wired into the
+  production inventory flow: `Get-ScoutArmChildResource` (14 child datasets),
+  `Get-ScoutSubscriptionSecurityPolicySweep` (per-subscription Defender/policy/diagnostics),
+  and `Get-ScoutTenantWideResource` plus `ConvertTo-ScoutManagementGroupHierarchy` (role,
+  management-group, policy, policy-set datasets). Combined focused Pester: **30 passed / 0
+  failed**; the ARM-child suite also passed its wider Collect regression set (**102 / 0**).
+- Wired those prefetch helpers into `Get-ScoutRawInventory` behind explicit opt-in switches
+  (`IncludeArmChildResources`, `IncludeSubscriptionSecurityPolicy`,
+  `IncludeTenantWideResources`) while retaining the default output contract. Focused raw
+  inventory integration: **17 passed / 0 failed**.
+- Extended declarative conversion for two safe non-flat patterns: `RowCondition` (AdvisorScore)
+  and equal-topology conditional field merging (PublicIP). Added their definitions and focused
+  imperative-vs-declarative proof (**2 / 0**). Definition validation is now **140 definitions**.
+- Removed both StrictMode weakenings from `Invoke-ScoutDeclarativeCollector`, removed its stale
+  guard allow-list entry, and added AST regression coverage. Declarative cutover suite:
+  **37 / 0**; StrictMode guard now reports **18** weakening sites (3 live, 15 legacy Modules).
+- Current tree progress after the first source-cutover batches: **174 collector scripts / 168
+  definitions / 6 missing definitions**. The source cutovers use raw-inventory opt-in synthetic
+  rows; do not count a manifest as complete until its imperative/declarative proof passes. A full
+  equivalence run exceeded the 120-second command limit and must be rerun with sufficient time.
+
+### Corrected code facts and next sequence
+
+- Of the current **34** missing definitions, all are escape-hatch shapes requiring prefetch or
+  deliberate data-shaping conversion. The final target remains **174 definitions, zero collector
+  scripts**.
+- The 20 StrictMode weakening sites are all reachable; the current guard's 15 `DEAD` labels are
+  incorrect. Fix reachability evidence, then harden all call trees.
+- Before deleting any collector: finish golden proof/drift migration (now started), prefetch all
+  live-access clusters, convert/test every remaining collector, and route Excel/JSON/Markdown/
+  AsciiDoc/PowerBI reporting through manifest definitions. Then merge/relocate 45 non-collector
+  files, invert discovery, remove fallbacks, delete `Modules/`, remove `Invoke-ScoutAssessment`,
+  update docs/release metadata, run full validation + live verification, and publish v3.0.0.
+
+## Board update (2026-07-28, Codex) — AB#323 is now standards-compliant
+
+**ADO-only change; no repository code or documentation changed.** The existing multi-tenant
+Epic **AB#5410** remains the parent. Its feature **AB#323** was not linked to the epic and
+had no delivery decomposition. It is now title/description/AC/tag complete and parented to
+AB#5410 as **"Add cross-tenant inventory scanning"** (P4 backlog).
+
+Created and verified the full required hierarchy:
+
+- **AB#6360** Define the cross-tenant access model
+  - Tasks **AB#6363–6365**: audit current assumptions; validate Azure Lighthouse delegated
+    access; document whether Lighthouse is required.
+- **AB#6361** Collect authorized external subscriptions
+  - Tasks **AB#6366–6368**: discovery; read-only multi-tenant collection; per-scope
+    failure containment.
+- **AB#6362** Produce tenant-aware inventory output
+  - Tasks **AB#6369–6371**: tenant identity stamping; cache/output isolation; report validation.
+
+All three User Stories have descriptions, 3 testable AC each, P4 priority, valid vocabulary tags,
+and parent AB#323. All nine Tasks have descriptions, P4 priority, valid tags, and their correct
+User Story parent. REST read-back confirmed the full **AB#5410 → AB#323 → Story → Task** chain.
+
+The first story deliberately makes the Azure Lighthouse decision evidence-based: it validates
+whether Lighthouse is needed rather than treating it as a prerequisite.
+
+## Board update (2026-07-28, Codex) — AB#5093 served-web backlog is fully decomposed
+
+**ADO-only change; no repository code or documentation changed.** **AB#5093** already was the
+correct standalone Epic. Its 11 Features were parented properly but had no User Stories or Tasks.
+All unscheduled web items are now P4 backlog, including the epic and every Feature.
+
+Created 11 User Stories and 40 Tasks — one complete delivery decomposition under each Feature:
+
+- **AB#6372 / 6373–6376** browser inventory portal (AB#346)
+- **AB#6377 / 6378–6380** worker Azure-context preservation (AB#350)
+- **AB#6381 / 6382–6385** bounded web collection requests (AB#352)
+- **AB#6386 / 6387–6390** nonblocking background collection (AB#381)
+- **AB#6391 / 6392–6395** collection progress publication (AB#382)
+- **AB#6396 / 6397–6400** named collection stages (AB#383)
+- **AB#6401 / 6402–6405** overlapping-collection guard (AB#384)
+- **AB#6406 / 6407–6410** cache-backed inventory serving (AB#385)
+- **AB#6411 / 6412–6414** PowerShell 7 web launch (AB#388)
+- **AB#6415 / 6416–6418** worker cleanup (AB#403)
+- **AB#6419 / 6420–6422** duplicate-poll prevention (AB#404)
+
+AB#388 was corrected from a `.cmd` / `.sh` launcher proposal to a cross-platform **PowerShell 7**
+launcher, as the global scripting standard forbids Batch and Bash scripts. AB#350 and AB#352
+received missing web-portal/relevant functional tags.
+
+REST read-back: **63 items total — 1 Epic, 11 Features, 11 User Stories, 40 Tasks; 0 non-P4;
+0 Features without Stories; 0 Stories without Tasks; 0 Tasks missing descriptions; 0 Stories
+missing acceptance criteria.**
+
 ## Last session (2026-07-25, Claude Code) — AB#5649: the processing phase has no background jobs left
 
 **First phase of Epic AB#5638 delivered. The inventory processing phase no longer uses

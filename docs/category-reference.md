@@ -21,24 +21,24 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 
 | Report section heading | `-Category` value | Collector folder | Modules |
 |---|---|---|---|
-| AI + machine learning | `AI` | `Modules/Public/InventoryModules/AI/` | 27 |
-| Analytics | `Analytics` | `Modules/Public/InventoryModules/Analytics/` | 6 |
-| Compute | `Compute` | `Modules/Public/InventoryModules/Compute/` | 14 |
-| Containers | `Containers` | `Modules/Public/InventoryModules/Containers/` | 6 |
-| Databases | `Databases` | `Modules/Public/InventoryModules/Databases/` | 13 |
-| Hybrid + multicloud | `Hybrid` | `Modules/Public/InventoryModules/Hybrid/` | 16 |
-| Identity | `Identity` | `Modules/Public/InventoryModules/Identity/` | 18 |
-| Integration | `Integration` | `Modules/Public/InventoryModules/Integration/` | 2 |
-| Internet of Things | `IoT` | `Modules/Public/InventoryModules/IoT/` | 1 |
-| Management and governance | `Management` | `Modules/Public/InventoryModules/Management/` | 19 |
-| Monitor | `Monitor` | `Modules/Public/InventoryModules/Monitor/` | 24 |
-| Networking | `Networking` | `Modules/Public/InventoryModules/Networking/` | 21 |
-| Security | `Security` | `Modules/Public/InventoryModules/Security/` | 5 |
-| Storage | `Storage` | `Modules/Public/InventoryModules/Storage/` | 2 |
-| Web and mobile | `Web` | `Modules/Public/InventoryModules/Web/` | 2 |
+| AI + machine learning | `AI` | `manifests/collectors/AI/` | 27 |
+| Analytics | `Analytics` | `manifests/collectors/Analytics/` | 6 |
+| Compute | `Compute` | `manifests/collectors/Compute/` | 14 |
+| Containers | `Containers` | `manifests/collectors/Containers/` | 6 |
+| Databases | `Databases` | `manifests/collectors/Databases/` | 13 |
+| Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 16 |
+| Identity | `Identity` | `manifests/collectors/Identity/` | 18 |
+| Integration | `Integration` | `manifests/collectors/Integration/` | 2 |
+| Internet of Things | `IoT` | `manifests/collectors/IoT/` | 1 |
+| Management and governance | `Management` | `manifests/collectors/Management/` | 19 |
+| Monitor | `Monitor` | `manifests/collectors/Monitor/` | 24 |
+| Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
+| Security | `Security` | `manifests/collectors/Security/` | 5 |
+| Storage | `Storage` | `manifests/collectors/Storage/` | 2 |
+| Web and mobile | `Web` | `manifests/collectors/Web/` | 2 |
 
-**176 collector modules across 15 categories.** Counts are the `.ps1` file count in each
-folder; one module generally maps to one worksheet in the Excel report.
+**174 declarative collector definitions across 15 categories.** Counts are the `.psd1` file count
+in each category directory; one definition generally maps to one worksheet in the Excel report.
 
 The five Azure DevOps collectors sit under `Management`, which is why that count jumped in
 v2.3.0. They only run when `-IncludeDevOps` is supplied — see [Azure DevOps](azure-devops.md).

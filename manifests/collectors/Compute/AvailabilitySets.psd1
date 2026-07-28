@@ -70,7 +70,7 @@ $ResUCount = 1
         @{
             Variable = 'vmid'
             Source = '$AvSetVMIds'
-            Preamble = '$vmIds = $vmid.split(''/'')[8]'
+            Preamble = '$vmIds = Get-AZSCIdSegment -Id $vmid -Index 8'
         }
     )
 

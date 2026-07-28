@@ -5,7 +5,7 @@ description: The catalogue of every Azure Scout assessment — description, cate
 # Assessment Registry
 
 Every assessment Azure Scout can run — **22 in total**, categorized and
-tagged. Run one with `Invoke-ScoutAssessment -Assessment <Name>`.
+tagged. Run one with `Invoke-AzureScout -Assessment <Name>`.
 
 ::: info What `Category`/`Collect` scope in practice
 Each assessment declares a `Collect` list in the manifest, and the value is
@@ -66,10 +66,10 @@ permissions): [Auth & permissions per scan type](../assessment-permissions.md).
 ## Examples
 
 ```powershell
-Invoke-ScoutAssessment -Assessment Management      # governance + policy + update manager, scored
-Invoke-ScoutAssessment -Assessment Monitor         # monitoring/diagnostics only
-Invoke-ScoutAssessment -Assessment Networking,Security -OutputFormat Html
-Invoke-ScoutAssessment -Assessment LandingZone -OutputFormat PowerBi,Html,Pptx
+Invoke-AzureScout -Assessment Management      # governance + policy + update manager, scored
+Invoke-AzureScout -Assessment Monitor         # monitoring/diagnostics only
+Invoke-AzureScout -Assessment Networking,Security -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -OutputFormat PowerBi,Html,Pptx
 ```
 
 ## Adding an assessment

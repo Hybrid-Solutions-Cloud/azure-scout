@@ -33,7 +33,7 @@ BeforeAll {
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
-    # Mirrors the REAL shape Invoke-ScoutAssessment passes to Export-Report/
+    # Mirrors the real shape the internal assessment core passes to Export-Report/
     # Export-React: the canonical collect.json object itself (networking/
     # compute/governance/tags at the top level), with `_meta` sitting
     # alongside those keys — not wrapped under a `.raw` property.
@@ -153,7 +153,7 @@ Describe 'Export-React — with drift embedded' {
     Firewall drill-down, Governance section (budgets/locks/tag chips), policy
     enforcement badge, scope tooltips. sample-collect.json already carries real
     networking/compute/governance/tags data, so -Collect is passed as-is (the
-    canonical collect.json shape, mirroring Invoke-ScoutAssessment) to prove the
+    canonical collect.json shape, mirroring the internal assessment core) to prove the
     renderer reads it out correctly. There is no headless browser in this test
     run, so — matching the existing Drift-tab test's approach above — assertions
     check (1) the embedded JSON payload actually carries the expected data, and

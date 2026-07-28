@@ -50,11 +50,9 @@ $ErrorActionPreference = 'Stop'
 .NOTES
     Tracks ADO AB#5657/AB#5659/AB#5656 (Feature AB#5656, Epic AB#5638).
 
-    THIS IS NOW THE LIVE PATH. Up to and including v2.9.0 this function ran only under
-    `tests/DeclarativeCollectorEquivalence.Tests.ps1` -- 124 definitions existed and nothing
-    executed them. `Invoke-ScoutCollector` routes to it for every collector that has a `.psd1`,
-    so a defect here is a defect in a customer's report. The kill switch
-    (`AZURESCOUT_FORCE_IMPERATIVE_COLLECTORS`) puts every collector back on its `.ps1`.
+    This is the live collector path. `Invoke-ScoutCollector` routes every catalog entry here,
+    so a defect in this interpreter is a defect in a customer's report. Golden row and workbook
+    contracts preserve the behavior independently of the retired source scripts.
 #>
 function Invoke-ScoutDeclarativeCollector {
     [CmdletBinding()]
@@ -75,6 +73,13 @@ function Invoke-ScoutDeclarativeCollector {
 function Build-ScoutDeclarativeRowScript {
     <# Compose the per-resource script text described in the function help above. #>
     param([PSCustomObject]$Definition)
+
+    # In 88 lifted collectors, the retirement fold declares `$Retire` but then reads the
+    # surrounding collection as `$Retired.ServiceID`.  That happened to work for one item with
+    # StrictMode off, but fails as soon as the fixture exercises the documented many-retirement
+    # case.  The per-item variable is the only correct binding; repair this known mechanical
+    # legacy typo during compilation rather than weaken StrictMode or encode it 88 times.
+    $PreambleText = [string]$Definition.Preamble -replace '\$Retired\.ServiceID', '$Retire.ServiceID'
 
     # Expressions are emitted UNWRAPPED, exactly as the original collector's own `$obj = @{ ... }`
     # hashtable literal wrote them. Two separate reasons, each of which broke a real collector when
@@ -115,8 +120,43 @@ function Build-ScoutDeclarativeRowScript {
 
     $OpenLoops  = ''
     $CloseLoops = ''
+    $LoopIndex = 0
     foreach ($Loop in $Nest) {
-        $OpenLoops  += "foreach (`$$($Loop.Variable) in $($Loop.Source)) {`n"
+        $LoopIndex++
+        $EmitNullWhenEmpty = if ($Loop -is [System.Collections.IDictionary]) {
+            $Loop.Contains('EmitNullWhenEmpty') -and [bool]$Loop['EmitNullWhenEmpty']
+        } else {
+            (@($Loop.PSObject.Properties.Name) -contains 'EmitNullWhenEmpty') -and [bool]$Loop.EmitNullWhenEmpty
+        }
+        if ($EmitNullWhenEmpty) {
+            # A conditional imperative branch can emit a row even when an associated collection
+            # is empty.  Preserve that topology generically by materialising one null loop item;
+            # do it before foreach because a subexpression drops a bare null from its output
+            # stream.  The generated variable is unique per nesting level and never visible to
+            # collector fields.
+            $LoopValues = "`$__scoutLoopValues$LoopIndex"
+            $OpenLoops += "$LoopValues = @($($Loop.Source))`n"
+            $OpenLoops += "if (@($LoopValues).Count -eq 0) { $LoopValues = @(`$null) }`n"
+            $OpenLoops += "foreach (`$$($Loop.Variable) in $LoopValues) {`n"
+        } else {
+            $OpenLoops  += "foreach (`$$($Loop.Variable) in $($Loop.Source)) {`n"
+        }
+        # Legacy collectors use the string sentinel '0' when a resource has no tags, then
+        # read `$Tag.Name` / `$Tag.Value`.  With StrictMode that sentinel has no such members.
+        # Preserve the legacy row shape explicitly: an untagged row has empty tag cells, rather
+        # than weakening StrictMode for every lifted definition.  Do this only for definitions
+        # that actually use the property form; collectors such as RouteTables intentionally use
+        # their tag-loop value directly.
+        $UsesTagNameOrValue = $false
+        if ($Definition.TagLoop -and $Loop.Variable -eq $Definition.TagLoop.Variable) {
+            $TagMemberPattern = '\$' + [regex]::Escape([string]$Loop.Variable) + '\.(Name|Value)\b'
+            $UsesTagNameOrValue = @($Definition.Fields | Where-Object {
+                [regex]::IsMatch([string]$_.Expression, $TagMemberPattern)
+            }).Count -gt 0
+        }
+        if ($UsesTagNameOrValue) {
+            $OpenLoops += "if (`$null -eq `$$($Loop.Variable) -or `$$($Loop.Variable).PSObject.Properties.Match('Name').Count -eq 0 -or `$$($Loop.Variable).PSObject.Properties.Match('Value').Count -eq 0) { `$$($Loop.Variable) = [pscustomobject]@{ Name = `$null; Value = `$null } }`n"
+        }
         # Get-ScoutCollectorDefinition normalises every entry to Variable/Source/Preamble, so the
         # key is always present here even when the original loop body had no setup statements.
         if (-not [string]::IsNullOrWhiteSpace($Loop.Preamble)) {
@@ -125,8 +165,23 @@ function Build-ScoutDeclarativeRowScript {
         $CloseLoops  = "}`n" + $CloseLoops
     }
 
-    @"
-$($Definition.Preamble)
+    # A deliberately absent subscription is one of the canonical fixture cases.  The original
+    # collectors rendered an empty Subscription cell because they ran without StrictMode; make
+    # that contract explicit for the conventional `$sub*` lookup locals without loosening the
+    # interpreter.  Other preamble locals are intentionally not papered over here: those require
+    # a collector-specific definition/fixture correction.
+    $SubscriptionFallbacks = [System.Collections.Generic.List[string]]::new()
+    $DeclaredSubscriptions = [regex]::Matches($PreambleText, '\$(sub\w*)\s*=') |
+        ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
+    foreach ($VariableName in $DeclaredSubscriptions) {
+        if ([regex]::IsMatch(($Definition.Fields.Expression -join "`n"), '\$' + [regex]::Escape($VariableName) + '\.Name\b')) {
+            $SubscriptionFallbacks.Add("if (-not (Test-Path -LiteralPath 'variable:$VariableName') -or `$null -eq `$$VariableName) { `$$VariableName = [pscustomobject]@{ Name = `$null } }")
+        }
+    }
+
+    $Body = @"
+$PreambleText
+$($SubscriptionFallbacks -join "`n")
 
 $OpenLoops
     @{
@@ -135,6 +190,8 @@ $FieldLines
     if (`$ResUCount -eq 1) { `$ResUCount = 0 }
 $CloseLoops
 "@
+    if ([string]::IsNullOrWhiteSpace($Definition.RowCondition)) { return $Body }
+    return "if ($($Definition.RowCondition)) {`n$Body`n}"
 }
 
 function Invoke-ScoutDeclarativeProcessing {
@@ -144,7 +201,9 @@ function Invoke-ScoutDeclarativeProcessing {
         [Parameter(Mandatory)] [hashtable]$Context
     )
 
-    Set-StrictMode -Off
+    # This interpreter is production engine code, not lifted collector source. Its inputs are
+    # schema-normalised by Get-ScoutCollectorDefinition and the context is a hashtable, so keep
+    # the module's StrictMode contract while it evaluates a definition.
     $ErrorActionPreference = 'Continue'
 
     $Resources    = $Context['Resources']
@@ -167,7 +226,17 @@ function Invoke-ScoutDeclarativeProcessing {
     # `Hybrid/ArcSites.ps1` is the second shape, and interpreting it as the first reordered its
     # worksheet -- caught by the equivalence proof, which is why the mode is declared per collector
     # instead of assumed. For a single-type collector the two are identical.
-    $Matched = if ($Definition.ResourceTypeMatching -eq 'SinglePass') {
+    $Matched = if ($Definition.RowSource) {
+        # A schema-validated projection lets any envelope fan out without service-specific
+        # interpreter logic.  Its input is limited to values the imperative Processing branch had.
+        $SourceVariables = [System.Collections.Generic.List[psvariable]]::new()
+        $SourceVariables.Add([psvariable]::new('Resources', $Resources))
+        $SourceVariables.Add([psvariable]::new('SUB', $Sub))
+        $SourceVariables.Add([psvariable]::new('Retirements', $Retirements))
+        $SourceVariables.Add([psvariable]::new('Unsupported', $Unsupported))
+        $RowSourceBlock = [scriptblock]::Create($Definition.RowSource.Expression)
+        @($RowSourceBlock.InvokeWithContext($null, $SourceVariables))
+    } elseif ($Definition.ResourceTypeMatching -eq 'SinglePass') {
         @($Resources | Where-Object { @($Definition.ResourceTypes) -contains $_.TYPE })
     } else {
         @(foreach ($Type in @($Definition.ResourceTypes)) {
@@ -226,7 +295,7 @@ function Invoke-ScoutDeclarativeProcessing {
             # Tested with `-is` and used AS IS -- deliberately NOT unwrapped first. Items returned
             # through the output stream are PSObject-wrapped, but `.BaseObject` is not reachable by
             # plain member access on a wrapped object: member lookup resolves against the BASE type,
-            # PSVariable has no BaseObject, and with StrictMode off the read returns $null. Every
+            # PSVariable has no BaseObject; reading it would be an invalid member access. Every
             # harvested variable was silently discarded that way, which is worth spelling out
             # because the symptom was not a blank column -- the declared-name check below turned it
             # into a throw naming all 13 collectors at once, which is the only reason it took
@@ -297,7 +366,8 @@ function Invoke-ScoutDeclarativeReporting {
         [Parameter(Mandatory)] [hashtable]$Context
     )
 
-    Set-StrictMode -Off
+    # Reporting consumes the same schema-normalised definition contract as Processing. Do not
+    # weaken StrictMode here: missing export metadata is a definition defect and must fail loudly.
     $ErrorActionPreference = 'Continue'
 
     $SmaResources = $Context['SmaResources']
@@ -308,7 +378,10 @@ function Invoke-ScoutDeclarativeReporting {
     $TableStyle = $Context['TableStyle']
     $Export    = $Definition.Export
 
-    $RowUnits = @($SmaResources | ForEach-Object { $_.'Resource U' } | Measure-Object -Sum).Sum
+    # Some legacy collectors intentionally emit detail rows without Resource U.  Reporting
+    # must treat those as a zero contribution rather than dereferencing a missing member
+    # under StrictMode.
+    $RowUnits = @($SmaResources | ForEach-Object { Get-AZSCSafeProperty -InputObject $_ -Path 'Resource U' } | Measure-Object -Sum).Sum
     $TableName = "$($Export.TableNamePrefix)$RowUnits"
 
     $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat $Export.NumberFormat

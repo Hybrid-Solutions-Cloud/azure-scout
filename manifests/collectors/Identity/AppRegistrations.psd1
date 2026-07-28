@@ -19,23 +19,23 @@
 
     Preamble = @'
 $ResUCount = 1
-            $data = $1.properties
+            $data = Get-AZSCSafeProperty -InputObject $1 -Path 'properties'
 
             # Get nearest key credential expiry
             $keyExpiry = $null
-            if ($data.keyCredentials) {
-                $keyExpiry = ($data.keyCredentials | Sort-Object endDateTime | Select-Object -First 1).endDateTime
+            if (Get-AZSCSafeProperty -InputObject $data -Path 'keyCredentials') {
+                $keyExpiry = Get-AZSCSafeProperty -InputObject $data -Path 'keyCredentials' -Enumerate | ForEach-Object { Get-AZSCSafeProperty -InputObject $_ -Path 'endDateTime' } | Where-Object { $_ } | Sort-Object | Select-Object -First 1
             }
 
             # Get nearest password credential expiry
             $passwordExpiry = $null
-            if ($data.passwordCredentials) {
-                $passwordExpiry = ($data.passwordCredentials | Sort-Object endDateTime | Select-Object -First 1).endDateTime
+            if (Get-AZSCSafeProperty -InputObject $data -Path 'passwordCredentials') {
+                $passwordExpiry = Get-AZSCSafeProperty -InputObject $data -Path 'passwordCredentials' -Enumerate | ForEach-Object { Get-AZSCSafeProperty -InputObject $_ -Path 'endDateTime' } | Where-Object { $_ } | Sort-Object | Select-Object -First 1
             }
 
             $permissionCount = 0
-            if ($data.requiredResourceAccess) {
-                $permissionCount = @($data.requiredResourceAccess).Count
+            if (Get-AZSCSafeProperty -InputObject $data -Path 'requiredResourceAccess') {
+                $permissionCount = @(Get-AZSCSafeProperty -InputObject $data -Path 'requiredResourceAccess' -Enumerate).Count
             }
 '@
 
@@ -46,23 +46,23 @@ $ResUCount = 1
     Fields = @(
         @{
             Name = 'ID'
-            Expression = '$1.id'
+            Expression = 'Get-AZSCSafeProperty -InputObject $1 -Path ''id'''
         }
         @{
             Name = 'Tenant ID'
-            Expression = '$1.tenantId'
+            Expression = 'Get-AZSCSafeProperty -InputObject $1 -Path ''tenantId'''
         }
         @{
             Name = 'Display Name'
-            Expression = '$data.displayName'
+            Expression = 'Get-AZSCSafeProperty -InputObject $data -Path ''displayName'''
         }
         @{
             Name = 'Application ID'
-            Expression = '$data.appId'
+            Expression = 'Get-AZSCSafeProperty -InputObject $data -Path ''appId'''
         }
         @{
             Name = 'Sign-In Audience'
-            Expression = '$data.signInAudience'
+            Expression = 'Get-AZSCSafeProperty -InputObject $data -Path ''signInAudience'''
         }
         @{
             Name = 'Key Credential Expiry'
@@ -78,11 +78,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Publisher Domain'
-            Expression = '$data.publisherDomain'
+            Expression = 'Get-AZSCSafeProperty -InputObject $data -Path ''publisherDomain'''
         }
         @{
             Name = 'Created DateTime'
-            Expression = '$data.createdDateTime'
+            Expression = 'Get-AZSCSafeProperty -InputObject $data -Path ''createdDateTime'''
         }
         @{
             Name = 'Resource U'

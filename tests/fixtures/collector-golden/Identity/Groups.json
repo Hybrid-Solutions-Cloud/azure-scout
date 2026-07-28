@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "Groups",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "4bba8b241f2b4fe506dad75f4878d42bf12407a4a0e585034dd4b79ac3a4a46d",
+  "Rows": [
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1a-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value",
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1b-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value",
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1c-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value",
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1d-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value",
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1e-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value",
+    "Description=s:res-value|Display Name=s:res-value|Dynamic Membership=s:Yes|Dynamic Rule=s:res-value|Group Type=s:Security|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/groups/groups-t1f-1|Is Role Assignable=s:Yes|Mail Enabled=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Security Enabled=s:res-value|Tenant ID=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": "Display Name\tGroup Type\tSecurity Enabled\tMail Enabled\tIs Role Assignable\tDynamic Membership\tDynamic Rule\tOn-Premises Sync\tDescription\tResource U\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1",
+    "WithTags": "Display Name\tGroup Type\tSecurity Enabled\tMail Enabled\tIs Role Assignable\tDynamic Membership\tDynamic Rule\tOn-Premises Sync\tDescription\tResource U\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1\nres-value\tSecurity\tres-value\tres-value\tYes\tYes\tres-value\tYes\tres-value\t1"
+  }
+}

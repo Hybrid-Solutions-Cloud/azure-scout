@@ -50,14 +50,14 @@ $ResUCount = 1
 
                 # IPsec Policy (first policy if multiple)
                 $ipsecPolicy = if ($data.ipsecPolicies -and @($data.ipsecPolicies).count -gt 0) { @($data.ipsecPolicies)[0] } else { $null }
-                $IPsecEncryption = if ($ipsecPolicy) { $ipsecPolicy.ipsecEncryption } else { $null }
-                $IPsecIntegrity = if ($ipsecPolicy) { $ipsecPolicy.ipsecIntegrity } else { $null }
-                $IKEEncryption = if ($ipsecPolicy) { $ipsecPolicy.ikeEncryption } else { $null }
-                $IKEIntegrity = if ($ipsecPolicy) { $ipsecPolicy.ikeIntegrity } else { $null }
-                $DHGroup = if ($ipsecPolicy) { $ipsecPolicy.dhGroup } else { $null }
-                $PFSGroup = if ($ipsecPolicy) { $ipsecPolicy.pfsGroup } else { $null }
-                $SALifetime = if ($ipsecPolicy) { $ipsecPolicy.saLifeTimeSeconds } else { $null }
-                $SADataSize = if ($ipsecPolicy) { $ipsecPolicy.saDataSizeKilobytes } else { $null }
+                $IPsecEncryption = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'ipsecEncryption'
+                $IPsecIntegrity = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'ipsecIntegrity'
+                $IKEEncryption = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'ikeEncryption'
+                $IKEIntegrity = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'ikeIntegrity'
+                $DHGroup = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'dhGroup'
+                $PFSGroup = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'pfsGroup'
+                $SALifetime = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'saLifeTimeSeconds'
+                $SADataSize = Get-AZSCSafeProperty -InputObject $ipsecPolicy -Path 'saDataSizeKilobytes'
 
                 # Traffic selectors
                 $TrafficSelectors = if ($data.trafficSelectorPolicies -and @($data.trafficSelectorPolicies).count -gt 0) {
@@ -85,7 +85,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sub1 -Path ''name'')'
         }
         @{
             Name = 'Resource Group'

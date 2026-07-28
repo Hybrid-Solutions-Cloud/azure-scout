@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Pester tests for Private/Extraction modules.
+    Pester tests for the v3 collection modules that replaced Private/Extraction.
 
 .DESCRIPTION
     Tests extraction pipeline functions: API resource retrieval, cost inventory,
@@ -17,92 +17,78 @@
 
 BeforeAll {
     $script:ModuleRoot     = Split-Path -Parent $PSScriptRoot
-    $script:ExtractionPath = Join-Path $script:ModuleRoot 'Modules' 'Private' 'Extraction'
-    $script:ResourceDetails = Join-Path $script:ExtractionPath 'ResourceDetails'
+    $script:CollectionPath = Join-Path $script:ModuleRoot 'src' 'collect'
 }
 
 # =====================================================================
 # FILE EXISTENCE
 # =====================================================================
-Describe 'Private/Extraction Module Files Exist' {
-    $extractionFiles = @(
-        'Get-AZTIAPIResources.ps1',
-        'Get-AZTICostInventory.ps1',
-        'Get-AZTIManagementGroups.ps1',
-        'Get-AZTISubscriptions.ps1',
-        'Start-AZTIEntraExtraction.ps1',
-        'Start-AZTIGraphExtraction.ps1'
+Describe 'v3 collection module files exist' {
+    $collectionFiles = @(
+        'Get-ScoutApiResources.ps1',
+        'Get-ScoutCostInventory.ps1',
+        'Get-ScoutManagementGroups.ps1',
+        'Get-ScoutSubscriptions.ps1',
+        'Get-ScoutVmQuotas.ps1',
+        'Get-ScoutVmSkuDetails.ps1',
+        'Start-ScoutDevOpsExtraction.ps1',
+        'Start-ScoutEntraExtraction.ps1',
+        'Start-ScoutGraphExtraction.ps1'
     )
 
-    It '<_> exists' -ForEach $extractionFiles {
-        Join-Path $script:ExtractionPath $_ | Should -Exist
-    }
-
-    It 'ResourceDetails/Get-AZTIVMQuotas.ps1 exists' {
-        Join-Path $script:ResourceDetails 'Get-AZTIVMQuotas.ps1' | Should -Exist
-    }
-
-    It 'ResourceDetails/Get-AZTIVMSkuDetails.ps1 exists' {
-        Join-Path $script:ResourceDetails 'Get-AZTIVMSkuDetails.ps1' | Should -Exist
+    It '<_> exists' -ForEach $collectionFiles {
+        Join-Path $script:CollectionPath $_ | Should -Exist
     }
 }
 
 # =====================================================================
 # SYNTAX VALIDATION
 # =====================================================================
-Describe 'Private/Extraction Script Syntax Validation' {
+Describe 'v3 collection script syntax validation' {
     $allFiles = @(
-        'Get-AZTIAPIResources.ps1',
-        'Get-AZTICostInventory.ps1',
-        'Get-AZTIManagementGroups.ps1',
-        'Get-AZTISubscriptions.ps1',
-        'Start-AZTIEntraExtraction.ps1',
-        'Start-AZTIGraphExtraction.ps1'
+        'Get-ScoutApiResources.ps1', 'Get-ScoutCostInventory.ps1',
+        'Get-ScoutManagementGroups.ps1', 'Get-ScoutSubscriptions.ps1',
+        'Get-ScoutVmQuotas.ps1', 'Get-ScoutVmSkuDetails.ps1',
+        'Start-ScoutDevOpsExtraction.ps1', 'Start-ScoutEntraExtraction.ps1',
+        'Start-ScoutGraphExtraction.ps1'
     )
 
     It '<_> parses without errors' -ForEach $allFiles {
-        $filePath = Join-Path $script:ExtractionPath $_
+        $filePath = Join-Path $script:CollectionPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
         $errors | Should -BeNullOrEmpty
     }
 
-    $rdFiles = @('Get-AZTIVMQuotas.ps1', 'Get-AZTIVMSkuDetails.ps1')
-    It 'ResourceDetails/<_> parses without errors' -ForEach $rdFiles {
-        $filePath = Join-Path $script:ResourceDetails $_
-        $errors = $null
-        [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
-        $errors | Should -BeNullOrEmpty
-    }
 }
 
 # =====================================================================
 # FUNCTION DEFINITIONS
 # =====================================================================
-Describe 'Private/Extraction Function Definitions' {
+Describe 'v3 collection function definitions' {
 
-    It 'Get-AZTIAPIResources.ps1 defines Get-AZSCAPIResources' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Get-AZTIAPIResources.ps1') -Raw
-        $content | Should -Match 'function\s+Get-AZSCAPIResources'
+    It 'Get-ScoutApiResources.ps1 defines Get-ScoutApiResources' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutApiResources.ps1') -Raw
+        $content | Should -Match 'function\s+Get-ScoutApiResources'
     }
 
-    It 'Get-AZTICostInventory.ps1 defines Get-AZSCCostInventory' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Get-AZTICostInventory.ps1') -Raw
-        $content | Should -Match 'function\s+Get-AZSCCostInventory'
+    It 'Get-ScoutCostInventory.ps1 defines Get-ScoutCostInventory' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutCostInventory.ps1') -Raw
+        $content | Should -Match 'function\s+Get-ScoutCostInventory'
     }
 
-    It 'Get-AZTIManagementGroups.ps1 defines Get-AZSCManagementGroups' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Get-AZTIManagementGroups.ps1') -Raw
+    It 'Get-ScoutManagementGroups.ps1 defines Get-AZSCManagementGroups' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutManagementGroups.ps1') -Raw
         $content | Should -Match 'function\s+Get-AZSCManagementGroups'
     }
 
-    It 'Get-AZTISubscriptions.ps1 defines Get-AZSCSubscriptions' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Get-AZTISubscriptions.ps1') -Raw
+    It 'Get-ScoutSubscriptions.ps1 defines Get-AZSCSubscriptions' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutSubscriptions.ps1') -Raw
         $content | Should -Match 'function\s+Get-AZSCSubscriptions'
     }
 
     It 'Invoke-AZTIInventoryLoop.ps1 is deleted and nothing references Invoke-AZSCInventoryLoop (AB#5648)' {
-        Join-Path $script:ExtractionPath 'Invoke-AZTIInventoryLoop.ps1' | Should -Not -Exist
+        Join-Path $script:CollectionPath 'Invoke-AZTIInventoryLoop.ps1' | Should -Not -Exist
         $root = Split-Path $PSScriptRoot -Parent
         # AST command names, not raw text: the replacement shim's comments name the retired
         # function to explain what superseded it, and that is not a call site.
@@ -118,24 +104,24 @@ Describe 'Private/Extraction Function Definitions' {
         $callers | Should -BeNullOrEmpty
     }
 
-    It 'Start-AZTIEntraExtraction.ps1 defines Start-AZSCEntraExtraction' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Start-AZTIEntraExtraction.ps1') -Raw
+    It 'Start-ScoutEntraExtraction.ps1 defines Start-AZSCEntraExtraction' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Start-ScoutEntraExtraction.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCEntraExtraction'
     }
 
-    It 'Start-AZTIGraphExtraction.ps1 defines Start-AZSCGraphExtraction' {
-        $content = Get-Content (Join-Path $script:ExtractionPath 'Start-AZTIGraphExtraction.ps1') -Raw
+    It 'Start-ScoutGraphExtraction.ps1 defines Start-AZSCGraphExtraction' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Start-ScoutGraphExtraction.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCGraphExtraction'
     }
 
-    It 'Get-AZTIVMQuotas.ps1 defines Get-AZSCVMQuotas' {
-        $content = Get-Content (Join-Path $script:ResourceDetails 'Get-AZTIVMQuotas.ps1') -Raw
-        $content | Should -Match 'function\s+Get-AZSCVMQuotas'
+    It 'Get-ScoutVmQuotas.ps1 defines Get-ScoutVmQuotas' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutVmQuotas.ps1') -Raw
+        $content | Should -Match 'function\s+Get-ScoutVmQuotas'
     }
 
-    It 'Get-AZTIVMSkuDetails.ps1 defines Get-AZSCVMSkuDetails' {
-        $content = Get-Content (Join-Path $script:ResourceDetails 'Get-AZTIVMSkuDetails.ps1') -Raw
-        $content | Should -Match 'function\s+Get-AZSCVMSkuDetails'
+    It 'Get-ScoutVmSkuDetails.ps1 defines Get-ScoutVmSkuDetails' {
+        $content = Get-Content (Join-Path $script:CollectionPath 'Get-ScoutVmSkuDetails.ps1') -Raw
+        $content | Should -Match 'function\s+Get-ScoutVmSkuDetails'
     }
 }
 

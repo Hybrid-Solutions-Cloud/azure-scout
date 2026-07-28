@@ -41,7 +41,7 @@ $ErrorActionPreference = 'Stop'
     shown — this keeps Export-React callable with the exact same 3-argument
     shape as every other Export-* renderer for callers that don't have drift
     data yet (e.g. a first CollectOnly/FromCollect run), while still letting
-    Invoke-ScoutAssessment pass -Drift once Get-ScoutDrift has run.
+    assessment-core pass -Drift once Get-ScoutDrift has run.
 
 .OUTPUTS
     [string] the full path to the written report-react.html file.

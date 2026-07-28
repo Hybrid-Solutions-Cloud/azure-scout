@@ -12,7 +12,7 @@ steps:
       pwsh: true
       Inline: |
         Import-Module ./AzureScout.psd1
-        Invoke-ScoutAssessment `
+        Invoke-AzureScout `
           -Assessment All `
           -ManagementGroupId $env:MG_ID `
           -OutputFormat PowerBi,Html,Pptx,Json `

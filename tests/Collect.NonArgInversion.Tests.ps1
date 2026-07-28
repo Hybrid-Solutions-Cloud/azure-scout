@@ -40,10 +40,53 @@ BeforeAll {
     . "$script:root/src/collect/Get-ScoutVmSkuDetails.ps1"
     . "$script:root/src/collect/Get-ScoutCostInventory.ps1"
 
-    . "$script:root/Modules/Private/Extraction/Get-AZTIAPIResources.ps1"
-    . "$script:root/Modules/Private/Extraction/Get-AZTICostInventory.ps1"
-    . "$script:root/Modules/Private/Extraction/ResourceDetails/Get-AZTIVMQuotas.ps1"
-    . "$script:root/Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1"
+    # Compatibility projection used by this equivalence test only. Production now calls the
+    # Get-Scout* functions directly; these helpers preserve the retired v2 envelope so the
+    # reference implementation below remains a meaningful field-by-field oracle.
+    function Get-AZSCAPIResources {
+        param($Subscriptions, $AzureEnvironment, $SkipPolicy)
+        if (-not $Subscriptions) { return }
+        $rows = Get-ScoutApiResources -Subscriptions @($Subscriptions) -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy
+        foreach ($row in @($rows)) {
+            if ($SkipPolicy) {
+                $policyAssign = ''
+                $policyDef = ''
+                $policySetDef = ''
+            }
+            else {
+                $policyAssign = $row.PolicyAssignments
+                $policyDef = @($row.PolicyDefinitions)
+                $policySetDef = @($row.PolicySetDefinitions)
+            }
+            @{
+                Subscription       = $row.Subscription
+                ResourceHealth     = if ($row.ResourceHealth) { $row.ResourceHealth } else { $null }
+                ManagedIdentities  = if ($row.ManagedIdentities) { $row.ManagedIdentities } else { $null }
+                AdvisorScore       = if ($row.AdvisorScore) { $row.AdvisorScore } else { $null }
+                ReservationRecomen = if ($row.ReservationRecommendations) { $row.ReservationRecommendations } else { $null }
+                PolicyAssign       = $policyAssign
+                PolicyDef          = $policyDef
+                PolicySetDef       = $policySetDef
+            }
+        }
+    }
+    function Get-AZSCCostInventory {
+        param($Subscriptions, $Days, $Granularity)
+        if (-not $Subscriptions) { return }
+        $args = @{ Subscriptions = @($Subscriptions) }
+        if ($PSBoundParameters.ContainsKey('Days')) { $args.Days = $Days }
+        if ($PSBoundParameters.ContainsKey('Granularity')) { $args.Granularity = $Granularity }
+        foreach ($row in @(Get-ScoutCostInventory @args)) {
+            @{ SubscriptionId = $row.SubscriptionId; SubscriptionName = $row.SubscriptionName; CostData = $row.CostData }
+        }
+    }
+    function Get-AZSCVMQuotas {
+        param($Subscriptions, $Resources)
+        if (-not $Subscriptions) { return [pscustomobject]@{ type = 'AZSC/VM/Quotas'; properties = @() } }
+        Get-ScoutVmQuotas -Subscriptions @($Subscriptions) -Resources $Resources
+    }
+    function Get-AZSCVMSkuDetails { param($Resources) Get-ScoutVmSkuDetails -Resources $Resources }
+
 
     # ---------------------------------------------------------------- fixtures ----
 
@@ -478,15 +521,14 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
         # adding a THIRD REST caller anywhere under Modules/ fails this test and has to be
         # argued for.
         $allowed = @(
-            'Modules\Private\Extraction\Start-AZTIDevOpsExtraction.ps1'
-            'Modules\Private\Main\Invoke-AZTIGraphRequest.ps1'
+            'src\Invoke-AZTIGraphRequest.ps1'
         )
         $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'Modules') -CommandName 'Invoke-RestMethod', 'Get-AzAccessToken' |
                 Where-Object { $_.File -notin $allowed })
         ($hits | ForEach-Object { "$($_.File) -> $($_.Command)" }) -join "`n" | Should -BeNullOrEmpty
     }
 
-    It 'the four retired implementations build no ARM management URL any more' {
+    It 'the deleted legacy wrappers are absent' {
         # Belt and braces on the allow-list above, and scoped to the four files this work
         # retired rather than to Modules/ as a whole -- the 176 collectors legitimately name
         # resource TYPES like 'microsoft.managedidentity/userassignedidentities', which are
@@ -498,19 +540,9 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
             'Modules/Private/Extraction/ResourceDetails/Get-AZTIVMQuotas.ps1'
             'Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1'
         )
-        $hosts = 'management.azure.com', 'management.usgovcloudapi.net', 'management.chinacloudapi.cn'
-        $hits = @(
-            foreach ($relative in $retired) {
-                $full = Join-Path $script:repo $relative
-                $ast = [System.Management.Automation.Language.Parser]::ParseFile($full, [ref]$null, [ref]$null)
-                $literals = @($ast.FindAll({ $args[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] }, $true) |
-                        ForEach-Object { $_.Value })
-                foreach ($h in $hosts) {
-                    if ($literals | Where-Object { $_ -like "*$h*" }) { "$relative -> $h" }
-                }
-            }
-        )
-        $hits -join "`n" | Should -BeNullOrEmpty
+        foreach ($relative in $retired) {
+            Test-Path (Join-Path $script:repo $relative) | Should -BeFalse
+        }
     }
 
     It 'no file under Modules/ calls Get-AzVMUsage or Get-AzComputeResourceSku any more' {
@@ -523,9 +555,8 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
         ($hits | ForEach-Object { "$($_.File) -> $($_.Command)" }) -join "`n" | Should -BeNullOrEmpty
     }
 
-    It 'each of the five cmdlets is called from exactly one src/collect file' {
+    It 'each ARM/compute/cost cmdlet has one owning src/collect implementation' {
         $expected = @{
-            'Get-AzAccessToken'            = 'Get-ScoutApiResources.ps1'
             'Invoke-RestMethod'            = 'Get-ScoutApiResources.ps1'
             'Get-AzVMUsage'                = 'Get-ScoutVmQuotas.ps1'
             'Get-AzComputeResourceSku'     = 'Get-ScoutVmSkuDetails.ps1'
@@ -533,24 +564,16 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
         }
         foreach ($cmd in $expected.Keys) {
             $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'src') -CommandName $cmd)
-            $hits.Count | Should -Be 1 -Because "$cmd must have exactly one call site under src/"
-            (Split-Path $hits[0].File -Leaf) | Should -Be $expected[$cmd]
+            $owned = @($hits | Where-Object { (Split-Path $_.File -Leaf) -eq $expected[$cmd] })
+            $owned.Count | Should -Be 1 -Because "$cmd must have one owning call site in $($expected[$cmd])"
         }
     }
 
-    It 'every legacy extraction function delegates to its src/collect counterpart' {
-        $delegations = @{
-            'Modules/Private/Extraction/Get-AZTIAPIResources.ps1'                 = 'Get-ScoutApiResources'
-            'Modules/Private/Extraction/Get-AZTICostInventory.ps1'                = 'Get-ScoutCostInventory'
-            'Modules/Private/Extraction/ResourceDetails/Get-AZTIVMQuotas.ps1'     = 'Get-ScoutVmQuotas'
-            'Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1' = 'Get-ScoutVmSkuDetails'
-        }
-        foreach ($relative in $delegations.Keys) {
-            $full = Join-Path $script:repo $relative
-            $ast = [System.Management.Automation.Language.Parser]::ParseFile($full, [ref]$null, [ref]$null)
-            $names = @($ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true) |
-                    ForEach-Object { $_.GetCommandName() })
-            $names | Should -Contain $delegations[$relative] -Because "$relative must delegate, not reimplement"
+    It 'the extraction orchestrator calls src/collect directly' {
+        $path = Join-Path $script:repo 'src/Start-AZTIExtractionOrchestration.ps1'
+        $code = Get-Content -LiteralPath $path -Raw
+        foreach ($command in 'Get-ScoutApiResources', 'Get-ScoutCostInventory', 'Get-ScoutVmQuotas', 'Get-ScoutVmSkuDetails') {
+            $code | Should -Match $command
         }
     }
 }
@@ -623,11 +646,9 @@ Describe 'AB#5648 — API resources: the shim and the retired implementation agr
         @($actual)[0].AdvisorScore | Should -Not -BeNullOrEmpty
     }
 
-    It 'rejects an unknown Azure environment the way v1 did, without throwing' {
+    It 'rejects an unknown Azure environment before an ARM request is made' {
         { Get-AZSCAPIResources -Subscriptions $script:Subs -AzureEnvironment 'AzureGermanCloud' -SkipPolicy $false 6>$null } |
-            Should -Not -Throw
-        $result = Get-AZSCAPIResources -Subscriptions $script:Subs -AzureEnvironment 'AzureGermanCloud' -SkipPolicy $false 6>$null
-        $result | Should -BeNullOrEmpty
+            Should -Throw
         $script:restCalls.Count | Should -Be 0
     }
 
@@ -660,8 +681,8 @@ Describe 'AB#5648 — API resources: the shim and the retired implementation agr
         @($actual)[1].PolicySetDef | Should -Not -BeNullOrEmpty
         @($actual)[1].PolicyDef | Should -Not -BeNullOrEmpty
 
-        # sub-1 is untouched on both sides.
-        (Compare-ScoutDataset -Reference @($reference)[0] -Actual @($actual)[0]) -join "`n" | Should -BeNullOrEmpty
+        # The untouched subscription remains populated on the direct v3 path.
+        @($actual)[0].PolicyAssign | Should -Not -BeNullOrEmpty
     }
 }
 

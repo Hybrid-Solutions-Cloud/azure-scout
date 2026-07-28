@@ -17,7 +17,7 @@ without re-scanning. **Read-only throughout** (Reader RBAC + read-only Graph).
 
 | Path | Purpose | ADO |
 |---|---|---|
-| `Invoke-ScoutAssessment.ps1` | Assessment orchestrator. Reached via `Invoke-AzureScout -Assessment`; the same-named public cmdlet is deprecated (remove in v3.0.0) | AB#5024, AB#5540 |
+| `Invoke-ScoutAssessmentCore.ps1` | Internal assessment orchestrator, reached via `Invoke-AzureScout -Assessment` or `Invoke-ScoutPipeline` | AB#5024, AB#5540 |
 | `../manifests/assessments.psd1` | Module registry (run one/some/all) | AB#5025 |
 | `assess/engine/` | Rule loader, JSONPath resolver, evaluator, scoring | AB#5027, AB#5034 |
 | `assess/rules/*.yaml` | CAF 8-area + WAF 5-pillar rule files | AB#5031 |

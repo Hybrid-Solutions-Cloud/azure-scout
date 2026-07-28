@@ -48,7 +48,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Subscription'
-            Expression = '$sub1.Name'
+            Expression = '(Get-AZSCSafeProperty -InputObject $sub1 -Path ''name'')'
         }
         @{
             Name = 'Resource Group'
