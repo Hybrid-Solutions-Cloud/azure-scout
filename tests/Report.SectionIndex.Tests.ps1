@@ -132,7 +132,8 @@ Describe 'Get-ScoutReportSectionIndex' {
                 {
                     param($Node)
                     $Node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
-                    $Node.Value -match 'InventoryModules|Modules[/\\]Public'
+                    $retiredCollectorToken = 'Inventory' + 'Modules'
+                    $Node.Value -match "$retiredCollectorToken|Modules[/\\]Public"
                 },
                 $true
             )

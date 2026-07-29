@@ -139,6 +139,38 @@ Describe 'Wizard — interactive-host gate' {
     }
 }
 
+Describe 'Wizard — common-parameter eligibility' {
+    It 'opens for every PowerShell common parameter when the host is interactive' {
+        $commonParameters = @(
+            [System.Management.Automation.PSCmdlet]::CommonParameters
+            [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+        )
+
+        foreach ($name in $commonParameters) {
+            & $script:Module {
+                param($ParameterName)
+                Test-AZSCWizardEligible -BoundParameters @{ $ParameterName = $true } -NoWizard $false -Interactive $true
+            } $name | Should -BeTrue
+        }
+    }
+
+    It 'does not open when the operator supplied a product parameter' {
+        & $script:Module {
+            Test-AZSCWizardEligible -BoundParameters @{ SkipDiagram = $true } -NoWizard $false -Interactive $true
+        } | Should -BeFalse
+    }
+
+    It 'honours -NoWizard and non-interactive hosts' -ForEach @(
+        @{ NoWizard = $true; Interactive = $true }
+        @{ NoWizard = $false; Interactive = $false }
+    ) {
+        & $script:Module {
+            param($NoWizardValue, $InteractiveValue)
+            Test-AZSCWizardEligible -BoundParameters @{} -NoWizard $NoWizardValue -Interactive $InteractiveValue
+        } $NoWizard $Interactive | Should -BeFalse
+    }
+}
+
 Describe 'Wizard — checklist primitive' {
     It 'pre-selects every item and accepts on a bare Enter' {
         $result = & $script:Module {

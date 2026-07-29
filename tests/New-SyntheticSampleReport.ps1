@@ -3,7 +3,7 @@
     Generates a synthetic sample-report.json for the Excel test harness.
 
 .DESCRIPTION
-    Reads every InventoryModule .ps1 file, extracts the column names from
+    Reads every retired collector .ps1 file, extracts the column names from
     the Reporting section, and generates 2-3 fake rows per module with
     Contoso-themed data. Outputs a JSON file matching the structure that
     Export-AZSCJsonReport produces.
@@ -23,7 +23,7 @@ if (-not $OutputFile) {
     $OutputFile = Join-Path $RepoRoot 'tests' 'datadump' 'sample-report.json'
 }
 
-$InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
+$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
 $EntraFolders = @('Identity')
 
 # ── Fake data pools ──────────────────────────────────────────────────────
@@ -148,14 +148,14 @@ function Get-FieldsFromModule {
 # vs what goes into the cache. But for the JSON, we just need PascalCase module names.
 
 Write-Host "`nGenerating synthetic sample report..." -ForegroundColor Cyan
-Write-Host "Reading module schemas from: $InventoryModulesPath`n" -ForegroundColor Gray
+Write-Host "Reading retired collector schemas from: $RetiredCollectorPath`n" -ForegroundColor Gray
 
 $ArmData = [ordered]@{}
 $EntraData = [ordered]@{}
 $ModuleCount = 0
 $RowsPerModule = 3
 
-$ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory | Sort-Object Name
+$ModuleFolders = Get-ChildItem -Path $RetiredCollectorPath -Directory | Sort-Object Name
 
 foreach ($folder in $ModuleFolders) {
     $folderKey = $folder.Name.Substring(0, 1).ToLower() + $folder.Name.Substring(1)

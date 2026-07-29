@@ -9,7 +9,7 @@ BeforeAll {
 }
 
 Describe 'v3 declarative collector cutover' {
-    It 'discovers the shipped manifest catalog without an InventoryModules tree' {
+    It 'discovers the shipped manifest catalog without a retired collector tree' {
         $Definitions = Join-Path $script:RepoRoot 'manifests/collectors'
         $Collectors = @(Get-ScoutCollector -DefinitionRoot $Definitions)
 

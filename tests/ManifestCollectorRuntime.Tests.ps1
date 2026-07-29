@@ -10,7 +10,7 @@ BeforeAll {
 }
 
 Describe 'Manifest collector runtime catalog' {
-    It 'discovers every shipped collector without an InventoryModules root' {
+    It 'discovers every shipped collector without a retired collector root' {
         $DefinitionRoot = Join-Path $script:RepoRoot 'manifests/collectors'
         $Expected = @(Get-ChildItem -LiteralPath $DefinitionRoot -Recurse -Filter '*.psd1' -File)
         $Actual = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot)

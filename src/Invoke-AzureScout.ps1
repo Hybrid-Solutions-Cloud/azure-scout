@@ -255,6 +255,44 @@
 .LINK
     Official Repository: https://github.com/thisismydemo/azure-scout
 #>
+function Test-AZSCWizardEligible {
+    <#
+    .SYNOPSIS
+    Determines whether the guided wizard should open for an invocation.
+
+    .DESCRIPTION
+    PowerShell adds common parameters such as -Debug and -Verbose to
+    $PSBoundParameters. They are diagnostics, not operator choices, so they
+    must not suppress the guided wizard. The list comes from the runtime so a
+    future PowerShell common parameter is handled without editing this module.
+    #>
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.IDictionary]$BoundParameters,
+
+        [Parameter(Mandatory)]
+        [bool]$NoWizard,
+
+        [Parameter(Mandatory)]
+        [bool]$Interactive
+    )
+
+    if ($NoWizard -or -not $Interactive) {
+        return $false
+    }
+
+    $commonParameters = @(
+        [System.Management.Automation.PSCmdlet]::CommonParameters
+        [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+    )
+    $explicitProductParameters = @($BoundParameters.Keys | Where-Object {
+        $_ -notin $commonParameters
+    })
+
+    return $explicitProductParameters.Count -eq 0
+}
+
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]
     param (
@@ -488,7 +526,7 @@ Function Invoke-AzureScout {
     # assessment can run AFTER the inventory pass and reuse its rows. Declared here so the
     # reference below is always set under StrictMode.
     $deferredAssessArgs = $null
-    if ($PSBoundParameters.Count -eq 0 -and -not $NoWizard.IsPresent -and (Test-AZSCInteractiveHost)) {
+    if (Test-AZSCWizardEligible -BoundParameters $PSBoundParameters -NoWizard $NoWizard.IsPresent -Interactive (Test-AZSCInteractiveHost)) {
         $wizard = Start-AZSCWizard -AzureEnvironment $AzureEnvironment -PlatOS $PlatOS
         if (-not $wizard) { return }   # operator cancelled
 

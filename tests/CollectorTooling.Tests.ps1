@@ -17,7 +17,7 @@ BeforeAll {
     $script:AuditScript = Join-Path $script:RepoRoot 'scripts' 'Invoke-CollectorAudit.ps1'
     $script:ConverterScript = Join-Path $script:RepoRoot 'scripts' 'ConvertTo-ScoutCollectorDefinition.ps1'
     $script:Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-collector-tooling-" + [guid]::NewGuid().ToString('N'))
-    $script:InventoryRoot = Join-Path $script:Sandbox 'Modules' 'Public' 'InventoryModules'
+    $script:InventoryRoot = Join-Path $script:Sandbox 'retired-collector-scripts'
     $script:CategoryRoot = Join-Path $script:InventoryRoot 'Test'
     $script:AuditJson = Join-Path $script:Sandbox 'collector-audit.json'
     New-Item -ItemType Directory -Path $script:CategoryRoot -Force | Out-Null

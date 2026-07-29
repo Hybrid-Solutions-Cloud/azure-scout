@@ -73,7 +73,7 @@ BeforeAll {
         # ones like this.
         TagColumns = @()
     }
-    SourceCollector = 'Modules/Public/InventoryModules/Databases/SQLSERVER.ps1'
+    SourceCollector = 'retired/Databases/SQLSERVER.ps1'
 }
 '@
 }
@@ -151,7 +151,7 @@ Describe 'Collector definition validation (AB#5661) -- the gate fires' {
         Columns = @('Name')
         TagColumns = @()
     }
-    SourceCollector = 'Modules/Public/InventoryModules/Databases/SQLSERVER.ps1'
+    SourceCollector = 'retired/Databases/SQLSERVER.ps1'
 }
 '@
         $Result = New-BrokenDefinitionTree -Body $Body

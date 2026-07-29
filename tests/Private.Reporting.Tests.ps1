@@ -9,7 +9,7 @@
     definitions, and two real end-to-end checks --
 
       - "Inventory Excel end-to-end" builds a tiny real ReportCache (one real
-        InventoryModules collector's Reporting-mode output, plus a synthetic
+        retired collector's Reporting-mode output, plus a synthetic
         Subscriptions sheet exactly as Start-AZSCExtraReports produces one) and
         runs the actual Start-AZSCReporOrchestration -> Start-AZSCExcelCustomization
         call chain the product uses, then asserts on the real .xlsx it writes:
@@ -357,7 +357,7 @@ Describe 'Inventory Excel end-to-end (real ReportCache -> real workbook)' -Skip:
         $script:ReportCache  = Join-Path $script:RunDir 'ReportCache'
         New-Item -ItemType Directory -Path $script:ReportCache -Force | Out-Null
 
-        # Real Reporting-mode row shape for Modules/Public/InventoryModules/IoT/IOTHubs.ps1
+        # Real Reporting-mode row shape for the retired IoT/IOTHubs collector
         # (lifted from tests/datadump/sample-report.json's arm.iot.iOTHubs fixture) -- two
         # rows, matching exactly what ReportCache/IoT.json would hold after a live Processing
         # phase populated it.

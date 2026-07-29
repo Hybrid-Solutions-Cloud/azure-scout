@@ -313,7 +313,7 @@ Describe 'Export-AZSCPowerBIReport — Output File Generation' {
     BeforeAll {
         $script:PbiBaseFile = Join-Path $script:TempDir 'AzureScout_PBI_Report.xlsx'
 
-        # Build a minimal ReportCache that matches the InventoryModules folder structure
+        # Build a minimal ReportCache that matches the retired collector folder structure
         $script:PbiCacheDir = Join-Path $script:TempDir 'pbi-cache'
         if (Test-Path $script:PbiCacheDir) { Remove-Item $script:PbiCacheDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:PbiCacheDir -Force | Out-Null

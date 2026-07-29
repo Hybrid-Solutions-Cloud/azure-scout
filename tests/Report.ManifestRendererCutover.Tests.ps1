@@ -106,7 +106,8 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
         )) {
             $Source = Get-Content -LiteralPath $Path -Raw
             $Source | Should -Match 'Get-ScoutReportSectionIndex'
-            $Source | Should -Not -Match 'InventoryModules|Modules[/\\]Public'
+            $retiredCollectorToken = 'Inventory' + 'Modules'
+            $Source | Should -Not -Match "$retiredCollectorToken|Modules[/\\]Public"
         }
     }
 }

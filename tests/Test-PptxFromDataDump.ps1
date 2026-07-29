@@ -12,7 +12,7 @@
     scored Findings contract produced by Get-Score (GeneratedOn/Frameworks/
     Areas/Gaps/Manual/Errors/Findings) rather than the raw ARM-inventory
     shape sample-report.json carries (that shape belongs to the legacy
-    Modules/Public/InventoryModules Excel/Power BI pipeline), this harness
+    retired collector Excel/Power BI pipeline), this harness
     synthesizes a plausible Findings array from sample-report.json's ARM
     category/module inventory — deterministic Pass/Partial/Fail/Manual/
     Unknown statuses across CAF and WAF, including deliberately blank/null

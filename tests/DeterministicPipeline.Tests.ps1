@@ -29,7 +29,7 @@ BeforeAll {
     . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
     # ── Fixture collector tree ───────────────────────────────────────────────────────────
-    # Mirrors the real InventoryModules layout: one directory per category, each holding
+    # Mirrors the retired collector layout: one directory per category, each holding
     # collectors that take the ten positional parameters and switch on $Task.
     $script:FixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-pipeline-" + [guid]::NewGuid().ToString('N'))
     $script:DefinitionRoot = Join-Path $script:FixtureRoot 'definitions'

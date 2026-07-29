@@ -138,8 +138,8 @@ function ConvertTo-PascalCase {
 }
 
 # Build module name lookup maps
-$InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-$ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
+$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
+$ModuleFolders = Get-ChildItem -Path $RetiredCollectorPath -Directory
 
 $FolderMap = @{}
 foreach ($folder in $ModuleFolders) {

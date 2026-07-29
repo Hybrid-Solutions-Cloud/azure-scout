@@ -129,9 +129,9 @@ function ConvertTo-PascalCase {
     return $Name.Substring(0, 1).ToUpper() + $Name.Substring(1)
 }
 
-# Build the InventoryModules folder map for key validation
-$InventoryModulesPath = Join-Path $RepoRoot 'Modules' 'Public' 'InventoryModules'
-$ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
+# Build the retired collector folder map for key validation
+$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
+$ModuleFolders = Get-ChildItem -Path $RetiredCollectorPath -Directory
 
 # Map of lowercase folder name → actual folder name (for matching JSON keys)
 $FolderMap = @{}

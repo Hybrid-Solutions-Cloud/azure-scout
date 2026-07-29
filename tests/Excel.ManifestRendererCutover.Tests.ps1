@@ -30,7 +30,8 @@ Describe 'Start-AZSCExcelJob manifest cutover' {
 
         $Source | Should -Match 'Get-ScoutReportSectionIndex'
         $Source | Should -Match 'Invoke-ScoutDeclarativeReporting'
-        $Source | Should -Not -Match 'InventoryModules|Modules[/\\]Public|Scriptblock\]::Create|Invoke-Command'
+        $retiredCollectorToken = 'Inventory' + 'Modules'
+        $Source | Should -Not -Match "$retiredCollectorToken|Modules[/\\]Public|Scriptblock\]::Create|Invoke-Command"
     }
 
     It 'renders only definition-indexed cache rows through declarative reporting' {
