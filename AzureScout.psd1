@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.1'
+ModuleVersion = '3.0.2'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.1 — tenant-scoped context correction. Subscription switches, quota collection, security sweeps, advisor ingestion, and permission-audit restores now bind the requested tenant explicitly, preventing unrelated cached-tenant authentication attempts. The guided wizard now remains available when PowerShell common parameters such as -Debug are supplied. See CHANGELOG.md and docs/v3.0.1.md for verification details.'
+        ReleaseNotes = 'v3.0.2 — runtime collector hardening. Retired Application Insights Continuous Export and Work Item Config endpoints are no longer queried. Storage service-property lookups now enter the owning account subscription and contain context failures as warnings. See CHANGELOG.md and docs/v3.0.2.md for verification details.'
 
         # Prerelease string of this module
         # Prerelease = ''

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-07-28
+
+### Fixed
+
+- Stopped issuing requests to Azure's retired Application Insights Continuous Export and
+  Work Item Config endpoints.
+- Storage blob and file service-property lookups now enter the owning subscription and
+  never fall back to an unrelated ambient context when that switch fails.
+
+### Verification
+
+- App Insights child-resource contract: 9 passed / 0 failed.
+- Operational storage-enrichment contract: 5 passed / 0 failed.
+
 ## [3.0.1] - 2026-07-28
 
 ### Fixed
