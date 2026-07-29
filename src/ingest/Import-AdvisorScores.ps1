@@ -11,9 +11,14 @@ $ErrorActionPreference = 'Stop'
 #>
 function Import-AdvisorScores {
     param($Collect)
-    $subs = (Get-AzSubscription | Where-Object State -eq 'Enabled')
+    $context = Get-AzContext -ErrorAction SilentlyContinue
+    $tenantId = if ($context -and $context.Tenant -and $context.Tenant.Id) { $context.Tenant.Id } else { $null }
+    $subs = (Get-AzSubscription -TenantId $tenantId | Where-Object State -eq 'Enabled')
     $recs = foreach ($s in $subs) {
-        Set-AzContext -SubscriptionId $s.Id | Out-Null
+        $switchParams = @{ Subscription = $s.Id }
+        $subscriptionTenantId = if ($s.PSObject.Properties.Name -contains 'TenantId') { $s.TenantId } else { $tenantId }
+        if ($subscriptionTenantId) { $switchParams['Tenant'] = $subscriptionTenantId }
+        Set-AzContext @switchParams | Out-Null
         Get-AzAdvisorRecommendation | Select-Object Category, Impact, ImpactedField, ImpactedValue,
             @{ n = 'Subscription'; e = { $s.Name } }, ShortDescriptionProblem, ShortDescriptionSolution
     }

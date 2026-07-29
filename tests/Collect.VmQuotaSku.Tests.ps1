@@ -63,8 +63,8 @@ Describe 'Get-ScoutVmQuotas' {
     It 'restores the original Az context even when a quota lookup throws' {
         $script:restoredTo = $null
         function Set-AzContext {
-            param([string] $Subscription, [string] $SubscriptionId, [Parameter(ValueFromRemainingArguments)] $Rest)
-            if ($SubscriptionId) { $script:restoredTo = $SubscriptionId }
+            param([string] $Subscription, [string] $Tenant, [Parameter(ValueFromRemainingArguments)] $Rest)
+            if ($Subscription -eq 'original-sub') { $script:restoredTo = $Subscription }
         }
         function Get-AzVMUsage { param([string] $Location) throw 'transient quota API error' }
         { Get-ScoutVmQuotas -Subscriptions $script:subs -Resources $script:mixedResources -WarningAction SilentlyContinue } | Should -Not -Throw

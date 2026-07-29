@@ -361,7 +361,11 @@ function Invoke-AZSCPermissionAudit {
                 }
             }
             if ($restoreId) {
-                Set-AzContext -SubscriptionId $restoreId -ErrorAction SilentlyContinue | Out-Null
+                $restoreParams = @{ Subscription = $restoreId; ErrorAction = 'SilentlyContinue' }
+                if ($providerLoopContext.PSObject.Properties.Name -contains 'Tenant' -and $providerLoopContext.Tenant -and $providerLoopContext.Tenant.PSObject.Properties.Name -contains 'Id' -and $providerLoopContext.Tenant.Id) {
+                    $restoreParams['Tenant'] = $providerLoopContext.Tenant.Id
+                }
+                Set-AzContext @restoreParams | Out-Null
             }
         }
     }

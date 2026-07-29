@@ -70,7 +70,14 @@ function Get-ScoutVmQuotas {
             )
             if ($locations.Count -eq 0) { continue }
 
-            Set-AzContext -Subscription $sub.id -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+            $contextParams = @{ Subscription = $sub.id; ErrorAction = 'SilentlyContinue'; WarningAction = 'SilentlyContinue' }
+            if ($sub.PSObject.Properties.Name -contains 'TenantId' -and $sub.TenantId) {
+                $contextParams['Tenant'] = $sub.TenantId
+            }
+            elseif ($originalContext -and $originalContext.PSObject.Properties.Name -contains 'Tenant' -and $originalContext.Tenant -and $originalContext.Tenant.PSObject.Properties.Name -contains 'Id' -and $originalContext.Tenant.Id) {
+                $contextParams['Tenant'] = $originalContext.Tenant.Id
+            }
+            Set-AzContext @contextParams | Out-Null
             foreach ($loc in $locations) {
                 try {
                     # NOT wrapped in @(): the legacy function assigned the filtered pipeline
@@ -99,7 +106,13 @@ function Get-ScoutVmQuotas {
         if ($originalContext -and $originalContext.PSObject.Properties.Name -contains 'Subscription' -and $originalContext.Subscription) {
             if ($originalContext.Subscription.PSObject.Properties.Name -contains 'Id') { $restoreId = $originalContext.Subscription.Id }
         }
-        if ($restoreId) { Set-AzContext -SubscriptionId $restoreId -ErrorAction SilentlyContinue | Out-Null }
+        if ($restoreId) {
+            $restoreParams = @{ Subscription = $restoreId; ErrorAction = 'SilentlyContinue' }
+            if ($originalContext.PSObject.Properties.Name -contains 'Tenant' -and $originalContext.Tenant -and $originalContext.Tenant.PSObject.Properties.Name -contains 'Id' -and $originalContext.Tenant.Id) {
+                $restoreParams['Tenant'] = $originalContext.Tenant.Id
+            }
+            Set-AzContext @restoreParams | Out-Null
+        }
     }
 
     return [pscustomobject]@{

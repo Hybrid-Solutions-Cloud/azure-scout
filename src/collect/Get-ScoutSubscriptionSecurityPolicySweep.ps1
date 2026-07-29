@@ -131,6 +131,16 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             }
 
             $subscriptionId = [string] $idProperty.Value
+            $tenantIdProperty = $subscription.PSObject.Properties['tenantId']
+            $subscriptionTenantId = if ($null -ne $tenantIdProperty -and -not [string]::IsNullOrWhiteSpace([string] $tenantIdProperty.Value)) {
+                [string] $tenantIdProperty.Value
+            }
+            elseif ($null -ne $originalContext -and $null -ne $originalContext.PSObject.Properties['Tenant'] -and $null -ne $originalContext.Tenant -and $null -ne $originalContext.Tenant.PSObject.Properties['Id']) {
+                [string] $originalContext.Tenant.Id
+            }
+            else {
+                $null
+            }
             $nameProperty = $subscription.PSObject.Properties['name']
             $subscriptionName = if (
                 $null -ne $nameProperty -and
@@ -155,7 +165,9 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             $collectionErrors = [System.Collections.Generic.List[object]]::new()
 
             try {
-                Set-AzContext -SubscriptionId $subscriptionId -ErrorAction Stop | Out-Null
+                $contextParams = @{ Subscription = $subscriptionId; ErrorAction = 'Stop' }
+                if ($subscriptionTenantId) { $contextParams['Tenant'] = $subscriptionTenantId }
+                Set-AzContext @contextParams | Out-Null
             }
             catch {
                 $message = $_.Exception.Message
@@ -278,7 +290,11 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         }
         if (-not [string]::IsNullOrWhiteSpace($restoreId)) {
             try {
-                Set-AzContext -SubscriptionId $restoreId -ErrorAction Stop | Out-Null
+                $restoreParams = @{ Subscription = $restoreId; ErrorAction = 'Stop' }
+                if ($null -ne $originalContext.PSObject.Properties['Tenant'] -and $null -ne $originalContext.Tenant -and $null -ne $originalContext.Tenant.PSObject.Properties['Id'] -and $originalContext.Tenant.Id) {
+                    $restoreParams['Tenant'] = $originalContext.Tenant.Id
+                }
+                Set-AzContext @restoreParams | Out-Null
             }
             catch {
                 Write-Warning "Get-ScoutSubscriptionSecurityPolicySweep: could not restore subscription context '$restoreId': $($_.Exception.Message)"
