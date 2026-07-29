@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.4] - 2026-07-28
+
+### Fixed
+
+- A live Compute SKU payload can repeat the `MemoryGB` capability. The VM report calculation
+  now selects one usable value before numeric conversion, so that shape cannot skip the entire
+  `Compute/VirtualMachine` collector.
+
+### Verification
+
+- Repeated-`MemoryGB` declarative VM regression contract: 1 passed / 0 failed.
+
 ## [3.0.3] - 2026-07-28
 
 ### Fixed

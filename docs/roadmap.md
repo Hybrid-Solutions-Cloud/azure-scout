@@ -41,7 +41,12 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.0.3 — Production runtime collection
+## Current Release — v3.0.4 — VM runtime regression correction
+
+Released 28 July 2026. This patch keeps the production `Compute/VirtualMachine` collector
+running when Azure returns repeated `MemoryGB` values in a Compute SKU payload.
+
+## v3.0.3 — Production runtime collection
 
 Released 28 July 2026. This patch enables the hardened ARM-child, storage enrichment, and
 subscription security/policy collectors in normal extraction.

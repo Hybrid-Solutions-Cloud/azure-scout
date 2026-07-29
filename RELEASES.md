@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.0.4** | 2026-07-28 | 🟡 | **VM runtime regression correction** — makes production VM reporting resilient to repeated Compute SKU capability values. Package and live verification in progress. | **Epic AB#5638** / **AB#6152** |
 | **3.0.3** | 2026-07-28 | 🟡 | **Production runtime collection** — enables the runtime collector paths in normal extraction. Package and live verification in progress. | **Epic AB#5638** / **AB#6152–6158** |
 | **3.0.2** | 2026-07-28 | 🟡 | **Runtime collector hardening** — retires App Insights endpoints Azure no longer serves and scopes storage service-property lookups to the owning subscription. Package verification in progress. | **Epic AB#5638** / **AB#6153–6155** |
 | **3.0.1** | 2026-07-28 | 🟡 | **Tenant-scoped authentication and wizard correction** — binds every Azure context switch to the requested tenant and keeps the guided wizard available with common parameters. Package verification in progress. | **Epic AB#5638** / **AB#6059**, **AB#6159** |

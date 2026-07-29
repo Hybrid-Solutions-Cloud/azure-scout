@@ -212,6 +212,34 @@ Describe 'Golden collector proof - coverage and independence' {
         @($Rows | Where-Object { $_['Subscription'] -eq $null }).Count | Should -BeGreaterThan 0
         @($Rows | Where-Object { $_['Tag Name'] -eq '' -and $_['Tag Value'] -eq '' }).Count | Should -BeGreaterThan 0
     }
+
+    It 'keeps the VM collector running when a prefetched SKU repeats its MemoryGB capability' -Tag 'Runtime' {
+        # Live Compute SKU payloads can contain a repeated capability value.  The operational
+        # envelope deliberately preserves that shape; it must not make the report calculation
+        # attempt to cast an object array to [double] and skip every VM row (AB#6152).
+        $Fixture = Get-GoldenFixture -Category 'Compute'
+        $Resources = @($Fixture.collectors.VirtualMachine.resources)
+        $Vm = @($Resources | Where-Object { $_.TYPE -eq 'microsoft.compute/virtualmachines' } | Select-Object -First 1)
+        $Vm | Should -Not -BeNullOrEmpty
+        $Resources += [pscustomobject]@{
+            type = 'AZSC/VM/SKU'
+            id = 'synthetic-vm-sku'
+            properties = [pscustomobject]@{
+                Location = $Vm[0].location
+                SKUs = @([pscustomobject]@{
+                    Name = $Vm[0].PROPERTIES.hardwareProfile.vmSize
+                    Family = 'Standard_D'
+                    Capabilities = @([pscustomobject]@{ Name = 'MemoryGB'; Value = @('4', '4') })
+                    LocationInfo = [pscustomobject]@{ ZoneDetails = [pscustomobject]@{ Name = ''; Capabilities = [pscustomobject]@{ Name = '' } } }
+                })
+            }
+        }
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot 'manifests/collectors/Compute/VirtualMachine.psd1')
+        $Context = Get-GoldenVerificationContext -Category 'Compute' -Name 'VirtualMachine'
+        $Context.Resources = $Resources
+
+        { @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context $Context) } | Should -Not -Throw
+    }
 }
 
 Describe 'Golden processing proof - <Category>/<Name>' -ForEach $GoldenCollectors {

@@ -412,7 +412,13 @@ $vmnic = foreach ($netinterface in $nic)
                         $CpuValues = @(Get-AZSCSafeProperty -InputObject $Operational -Path 'CpuMetrics.value.timeseries.data.average' -Enumerate | Where-Object { $_ -ne $null })
                         if ($CpuValues) { $avgCpu = [math]::Round(($CpuValues | Measure-Object -Average).Average, 1) }
                         $MemoryValues = @(Get-AZSCSafeProperty -InputObject $Operational -Path 'MemoryMetrics.value.timeseries.data.average' -Enumerate | Where-Object { $_ -ne $null })
-                        $ramBytes = [double]$RAM * 1073741824
+                        # Compute SKU responses occasionally repeat a capability value.  The
+                        # legacy row loop happened to receive one scalar; the pre-fetched
+                        # envelope can preserve the repeated values as an array.  Select one
+                        # usable value before numeric conversion so an advisory payload cannot
+                        # discard the entire VM collector (AB#6152).
+                        $ramValue = @($RAM | Where-Object { $null -ne $_ } | Select-Object -First 1)
+                        $ramBytes = if ($ramValue.Count -gt 0 -and $null -ne $ramValue[0]) { [double]$ramValue[0] * 1073741824 } else { 0 }
                         if ($MemoryValues -and $ramBytes -gt 0) {
                             $avgAvailBytes = ($MemoryValues | Measure-Object -Average).Average
                             $avgMem = [math]::Round((($ramBytes - $avgAvailBytes) / $ramBytes) * 100, 1)
