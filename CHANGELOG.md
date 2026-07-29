@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-07-28
+
+### Fixed
+
+- Tenant-scoped runs now pass the requested tenant through every subscription-context
+  switch, including quota collection, Defender/security sweeps, Advisor ingestion, and
+  permission-audit restoration. This prevents authentication attempts against unrelated
+  cached tenants.
+- The guided wizard remains available when an interactive operator supplies a PowerShell
+  common parameter such as `-Debug` or `-Verbose`.
+
+### Verification
+
+- A live tenant-scoped run completed with 174 declarative collectors, zero collector
+  failures, no unrelated-tenant authentication attempts, and a generated Excel report.
+
 ## [3.0.0] - 2026-07-28
 
 ### Changed

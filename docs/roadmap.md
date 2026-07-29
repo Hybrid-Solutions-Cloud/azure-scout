@@ -41,7 +41,14 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.0.0 — Declarative engine rebuild
+## Current Release — v3.0.1 — Tenant-scoped authentication and wizard correction
+
+Released 28 July 2026. This patch binds every Azure subscription context switch to the
+requested tenant, preventing unrelated cached-tenant authentication attempts during a
+tenant-scoped run. It also preserves the interactive wizard when PowerShell common
+parameters such as `-Debug` are supplied.
+
+## v3.0.0 — Declarative engine rebuild
 
 Released 26 July 2026, published to the PowerShell Gallery. Epic **AB#5638** — **reopened**; this
 release advanced it but did not complete it (see [above](#the-engine-rebuild-is-in-progress-not-complete)).

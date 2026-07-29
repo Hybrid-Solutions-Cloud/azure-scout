@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.0.1** | 2026-07-28 | 🟡 | **Tenant-scoped authentication and wizard correction** — binds every Azure context switch to the requested tenant and keeps the guided wizard available with common parameters. Package verification in progress. | **Epic AB#5638** / **AB#6059**, **AB#6159** |
 | **3.0.0** | 2026-07-28 | 🟡 | **Declarative engine rebuild** — 174 manifest collectors execute under StrictMode; source-script collectors and imperative fallback are retired. Final package verification in progress. | **Epic AB#5638** |
 | **1.0.0** | 2026-02-25 | ✅ | Fork from microsoft/ARI → AzureScout; 170+ ARM modules, 15 Entra modules, Excel/JSON/Markdown output, draw.io diagrams, category filtering, permission pre-flight | — |
 | **1.1.0** | _TBD_ | 🔵 | Quality & reliability — Pester suite, CI, throttling/retry, `-WhatIf`, non-destructive cache | AB#315–#352 |
