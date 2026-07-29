@@ -161,23 +161,46 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
-    foreach ($Account in $StorageAccounts) {
-        $Id = [string](Get-ScoutValue $Account @('id', 'ID'))
-        try {
-            $Blob = Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+    $StorageContext = Get-AzContext -ErrorAction SilentlyContinue
+    try {
+        foreach ($Account in $StorageAccounts) {
+            $Id = [string](Get-ScoutValue $Account @('id', 'ID'))
+            $SubscriptionId = [string](Get-ScoutValue $Account @('subscriptionId', 'SubscriptionId'))
+            $Subscription = @($Subscriptions | Where-Object { [string](Get-ScoutValue $_ @('id', 'Id')) -eq $SubscriptionId } | Select-Object -First 1)
+            $StorageContextEntered = $false
+            $StorageContextError = $null
+            try {
+                if ([string]::IsNullOrWhiteSpace($SubscriptionId)) { throw 'Storage account has no subscriptionId.' }
+                $contextParams = @{ Subscription = $SubscriptionId; ErrorAction = 'Stop' }
+                $tenantId = if ($Subscription.Count -gt 0) { Get-ScoutValue $Subscription[0] @('tenantId', 'TenantId') } else { $null }
+                if (-not $tenantId -and $StorageContext -and $StorageContext.Tenant) { $tenantId = $StorageContext.Tenant.Id }
+                if ($tenantId) { $contextParams['Tenant'] = $tenantId }
+                Set-AzContext @contextParams | Out-Null
+                $StorageContextEntered = $true
+                $Blob = Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+            }
+            catch {
+                $StorageContextError = $_.Exception.Message
+                Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
+                $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+            }
+            try {
+                if (-not $StorageContextEntered) { throw "Subscription context was not entered: $StorageContextError" }
+                $File = Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+            }
+            catch {
+                Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
+                $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+            }
+            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/StorageAccount' -Parent $Account -Properties @{ BlobService = $Blob; FileService = $File }
         }
-        catch {
-            Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
-            $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+    }
+    finally {
+        if ($StorageContext -and $StorageContext.Subscription -and $StorageContext.Subscription.Id) {
+            $restoreParams = @{ Subscription = $StorageContext.Subscription.Id; ErrorAction = 'SilentlyContinue' }
+            if ($StorageContext.Tenant -and $StorageContext.Tenant.Id) { $restoreParams['Tenant'] = $StorageContext.Tenant.Id }
+            Set-AzContext @restoreParams | Out-Null
         }
-        try {
-            $File = Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
-        }
-        catch {
-            Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
-            $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
-        }
-        ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/StorageAccount' -Parent $Account -Properties @{ BlobService = $Blob; FileService = $File }
     }
 
     $ResourceCounts = @{}
