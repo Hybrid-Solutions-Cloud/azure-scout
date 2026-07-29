@@ -74,6 +74,9 @@ Function Start-AZSCGraphExtraction {
         IncludeRetirements           = $true
         IncludeAdvisories            = (-not [bool]$SkipAdvisory)
         IncludeSecurityCenter        = [bool]$SecurityCenter
+        IncludeArmChildResources     = $true
+        IncludeOperationalCollectorEnrichment = $true
+        IncludeSubscriptionSecurityPolicy = $true
         IncludeTags                  = [bool]$IncludeTags
         AzureEnvironment             = $AzureEnvironment
     }
