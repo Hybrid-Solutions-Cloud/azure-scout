@@ -117,7 +117,7 @@ names; Microsoft's portal long names are accepted as aliases.
 | `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 2 |
 
 Note that `Monitor` is canonical, not `Monitoring`. Matching is case-insensitive. The
-complete mapping — every alias, collector folder, and the resource types behind each
+complete mapping — every alias, manifest definition, and the resource types behind each
 heading — is in the [Category Reference](docs/category-reference.md).
 
 ## Documentation

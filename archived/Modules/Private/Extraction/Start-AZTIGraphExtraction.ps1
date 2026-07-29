@@ -1,0 +1,202 @@
+<#
+.Synopsis
+Module responsible for coordinate the extraction of Resource and build the Graph queries
+
+.DESCRIPTION
+This module is the main module for the Azure Resource Graphs that will be run against the environment.
+
+.Link
+https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Start-AZSCGraphExtraction.ps1
+
+.COMPONENT
+This powershell Module is part of Azure Scout (AZSC)
+
+.NOTES
+Version: 3.6.11
+First Release Date: 15th Oct, 2024
+Authors: Claudio Merola
+
+#>
+Function Start-AZSCGraphExtraction {
+    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment)
+
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Extractor function')
+
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Powershell Edition: ' + ([string]$psversiontable.psEdition))
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Powershell Version: ' + ([string]$psversiontable.psVersion))
+
+    #Field for tags
+    if ([bool]$IncludeTags) {
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Tags will be included")
+        $GraphQueryTags = ",tags "
+    } else {
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+"Tags will be ignored")
+        $GraphQueryTags = ""
+    }
+
+    <###################################################### Subscriptions ######################################################################>
+
+    Write-Progress -activity 'Azure Inventory' -Status "2% Complete." -PercentComplete 2 -CurrentOperation 'Discovering Subscriptions..'
+
+    if (![string]::IsNullOrEmpty($ManagementGroup))
+        {
+            $Subscriptions = Get-AZSCManagementGroups -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions
+        }
+
+    $SubCount = [string]@(if ($Subscriptions) { $Subscriptions.id }).count
+
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Subscriptions Found: ' + $SubCount)
+    Write-Progress -activity 'Azure Inventory' -Status "3% Complete." -PercentComplete 3 -CurrentOperation "$SubCount Subscriptions found.."
+
+    <######################################################## INVENTORY LOOPs #######################################################################>
+
+    Write-Progress -activity 'Azure Inventory' -Status "4% Complete." -PercentComplete 4 -CurrentOperation "Starting Resources extraction jobs.."
+
+    if(![string]::IsNullOrEmpty($ResourceGroup) -and [string]::IsNullOrEmpty($SubscriptionID))
+        {
+            # Throw rather than Exit — Exit kills the whole host/runbook uncatchably (AB#5077).
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Resource Group Name present, but missing Subscription ID.')
+            throw 'If using the -ResourceGroup parameter, the -SubscriptionID must also be provided.'
+        }
+    else
+        {
+            $Subscri = @(if ($Subscriptions) { $Subscriptions.id })
+            $RGQueryExtension = ''
+            $TagQueryExtension = ''
+            $MGQueryExtension = ''
+            # Only assigned in the -ManagementGroup branch below, but consumed unconditionally by
+            # the resourcecontainers query further down. Without this initialiser a run WITHOUT
+            # -ManagementGroup throws "The variable '$MGContainerExtension' cannot be retrieved
+            # because it has not been set" under Set-StrictMode, which the HCS scripting standard
+            # requires of every calling script. Same defect class as AB#335-AB#340.
+            $MGContainerExtension = ''
+            if(![string]::IsNullOrEmpty($ResourceGroup) -and ![string]::IsNullOrEmpty($SubscriptionID))
+                {
+                    $RGQueryExtension = "| where resourceGroup in~ ('$([String]::Join("','",$ResourceGroup))')"
+                }
+            elseif(![string]::IsNullOrEmpty($TagKey) -or ![string]::IsNullOrEmpty($TagValue))
+                {
+
+                    $TagQueryExtension = "| where isnotempty(tags) | mvexpand tags | extend tagKey = tostring(bag_keys(tags)[0]) | extend tagValue = tostring(tags[tagKey]) "
+
+                    if (![string]::IsNullOrEmpty($TagKey)){
+                        $TagQueryExtension = $TagQueryExtension + "| where tagKey =~ '$TagKey'"
+                    }
+
+                    if (![string]::IsNullOrEmpty($TagValue)){
+                        $TagQueryExtension = $TagQueryExtension + " and tagValue =~ '$TagValue'"
+                    }
+
+                    #$TagQueryExtension = "| where isnotempty(tags) | mvexpand tags | extend tagKey = tostring(bag_keys(tags)[0]) | extend tagValue = tostring(tags[tagKey]) | where tagKey =~ '$TagKey' and tagValue =~ '$TagValue'"
+                }
+            elseif (![string]::IsNullOrEmpty($ManagementGroup))
+                {
+                    $MGQueryExtension = "| join kind=inner (resourcecontainers | where type == 'microsoft.resources/subscriptions' | mv-expand managementGroupParent = properties.managementGroupAncestorsChain | where managementGroupParent.name =~ '$ManagementGroup' | project subscriptionId, managanagementGroup = managementGroupParent.name) on subscriptionId"
+                    $MGContainerExtension = "| mv-expand managementGroupParent = properties.managementGroupAncestorsChain | where managementGroupParent.name =~ '$ManagementGroup'"
+                }
+        }
+
+            # Initialize as a real (possibly empty) array so the += accumulation below
+            # never silently collapses to $null, which would crash any later
+            # `.Count`/`@($Resources).Count` consumer under StrictMode.
+            $Resources = @()
+            # $Advisories / $Security are only assigned inside the -SkipAdvisory / -SecurityCenter
+            # conditional blocks below; without this, skipping either (the common default path)
+            # leaves the variable completely unset, and referencing it in $tmp further down
+            # throws "variable cannot be retrieved because it has not been set" under StrictMode.
+            $Advisories = @()
+            $Security = @()
+
+            $ExcludedTypes = "| where type !in ('microsoft.logic/workflows','microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
+
+            $GraphQuery = "resources $RGQueryExtension $TagQueryExtension $MGQueryExtension $ExcludedTypes | project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Resources')
+            $Resources += Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Resources'
+
+            $GraphQuery = "networkresources $RGQueryExtension $TagQueryExtension $MGQueryExtension | project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Network Resources')
+            $Resources += Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Network Resources'
+
+            if ($AzureEnvironment -ne 'AzureUSGovernment')
+                {
+                    $GraphQuery = "SupportResources $RGQueryExtension $TagQueryExtension $MGQueryExtension | project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Support Tickets')
+                    $Resources += Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'SupportTickets'
+                }
+
+            $GraphQuery = "recoveryservicesresources $RGQueryExtension $TagQueryExtension | where type =~ 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' or type =~ 'microsoft.recoveryservices/vaults/backuppolicies' $MGQueryExtension  | project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Backup Resources')
+            $Resources += Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Backup Items'
+
+            $GraphQuery = "desktopvirtualizationresources $RGQueryExtension $MGQueryExtension| project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for AVD Resources')
+            $Resources += Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Virtual Desktop'
+
+            $GraphQuery = "resourcecontainers $RGQueryExtension $TagQueryExtension $MGContainerExtension | project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$($GraphQueryTags) | order by id asc"
+
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Resource Containers')
+            $ResourceContainers = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Subscriptions and Resource Groups'
+
+            $ContainerCount = @($ResourceContainers).count
+            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Resource Containers: '+ $ContainerCount)
+
+            if (!([bool]$SkipAdvisory))
+                {
+                    $GraphQuery = "advisorresources $RGQueryExtension $MGQueryExtension | where properties.impact in~ ('Medium','High') | order by id asc"
+
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Advisories')
+                    $Advisories = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Advisories'
+
+                    $AdvisorCount = @($Advisories).count
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Advisors: '+ $AdvisorCount)
+                }
+            if ([bool]$SecurityCenter)
+                {
+                    $GraphQuery = "securityresources $RGQueryExtension | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $MGQueryExtension | order by id asc"
+
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Security Resources')
+                    $Security = Invoke-AZSCInventoryLoop -GraphQuery $GraphQuery -FSubscri $Subscri -LoopName 'Security Center'
+
+                    $SecurityCount = @($Security).count
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Security Center Advisors: '+ $SecurityCount)
+                }
+
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Invoking Inventory Loop for Retirements')
+
+    $RootPath = (get-item $PSScriptRoot).parent
+
+    $RetirementPath = Join-Path $RootPath 'Reporting' 'StyleFunctions' 'Retirement.kql'
+
+    $RetirementQuery = Get-Content -Path $RetirementPath | Out-String
+
+    $ResourceRetirements = Invoke-AZSCInventoryLoop -GraphQuery $RetirementQuery -FSubscri $Subscri -LoopName 'Retirements'
+
+    $RetirementCount = @($ResourceRetirements).count
+
+    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Number of Retirements: '+ $RetirementCount)
+
+    Write-Progress -activity 'Azure Inventory' -PercentComplete 10
+
+    # Zero-resources guard: an (almost) empty result usually means a permission or
+    # scope problem, not an empty tenant — surface it rather than silently produce
+    # an empty report (AB#5080).
+    if (@($Resources).Count -eq 0 -and @($ResourceContainers).Count -eq 0) {
+        Write-Warning ("[AzureScout] Extraction returned zero resources. Verify the identity has Reader " +
+            "at the target scope (root management group for full coverage) and that the -ManagementGroup/" +
+            "-SubscriptionID scope is correct.")
+    }
+
+    $tmp = [PSCustomObject]@{
+        Resources              = $Resources
+        ResourceContainers     = $ResourceContainers
+        Advisories             = $Advisories
+        Security               = $Security
+        Retirements            = $ResourceRetirements
+    }
+    return $tmp
+}

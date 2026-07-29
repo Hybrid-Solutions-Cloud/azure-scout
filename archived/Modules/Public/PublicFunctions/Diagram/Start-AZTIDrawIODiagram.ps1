@@ -1,0 +1,185 @@
+<#
+.Synopsis
+Diagram Module for Draw.io
+
+.DESCRIPTION
+This script processes and creates a Draw.io Diagram based on resources present in the extraction variable $Resources.
+
+.Link
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDrawIODiagram.ps1
+
+.COMPONENT
+This PowerShell Module is part of Azure Scout (AZSC)
+
+.NOTES
+Version: 3.6.5
+First Release Date: 15th Oct, 2024
+Authors: Claudio Merola
+
+#>
+function Start-AZSCDrawIODiagram {
+    param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnvironment, $ResourceContainers, $Automation, $AZSCModule)
+    # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
+    # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
+    # functions run inside Start-Job script blocks that RE-IMPORT the module, so module-scope
+    # StrictMode -- leaked in by src/*.ps1 setting it at file scope -- applies again inside the
+    # job even though the calling orchestrator opted out. The opt-out has to be on the function
+    # itself. Without it, a Defender assessment or Advisor recommendation whose payload simply
+    # omits an optional field aborts the whole run.
+    Set-StrictMode -Off
+
+
+    $TempPath = (get-item $DiagramCache).parent
+
+    $Logfile = Join-Path $TempPath 'DiagramLogFile.log'
+
+    $AZSCModuleVersion = (get-module -Name AzureScout).Version.ToString()
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - ################################################ Starting AzureScout Diagram ##################################') | Out-File -FilePath $LogFile -Append
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - AzureScout Module Version: ' + $AZSCModuleVersion) | Out-File -FilePath $LogFile -Append
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Start-AZSCDiagramJob Function') | Out-File -FilePath $LogFile -Append
+
+    # AB#5649 — this used to start a 'DiagramVariables' background job whose result was harvested
+    # further down with Wait-Job / Receive-Job / Remove-Job. It only ever filtered $Resources by
+    # 27 resource types, so it now returns the lookup directly. Capturing it here also removes an
+    # ordering hazard: the harvest sat AFTER the organisation job was started, so the two were
+    # only accidentally sequenced.
+    $Job = Start-AZSCDiagramJob -Resources $Resources -Automation $Automation
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting Draw.IO Diagram File') | Out-File -FilePath $LogFile -Append 
+
+    $XMLFiles = @()
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting XML files to be clean') | Out-File -FilePath $LogFile -Append 
+
+    $XMLFiles += Join-Path $DiagramCache 'Organization.xml'
+    $XMLFiles += Join-Path $DiagramCache 'Subscriptions.xml'
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Cleaning old files') | Out-File -FilePath $LogFile -Append 
+
+    foreach($File in $XMLFiles)
+        {
+            Remove-Item -Path $File -ErrorAction SilentlyContinue
+        }
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Jobs') | Out-File -FilePath $LogFile -Append 
+
+    if ([bool]$Automation) {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Thread Job') | Out-File -FilePath $LogFile -Append 
+        Start-ThreadJob -Name 'Diagram_Subscriptions' -ScriptBlock {
+            try
+            {
+                Start-AZSCDiagramSubscription -Subscriptions $($args[0]) -Resources $($args[1]) -DiagramCache $($args[2]) -LogFile $($args[3])
+            }
+            catch
+            {
+                ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[3]) -Append
+            }
+        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile | Out-Null
+    }
+    else
+    {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Job') | Out-File -FilePath $LogFile -Append 
+        Start-Job -Name 'Diagram_Subscriptions' -ScriptBlock {
+            try
+                {
+                    Import-Module $($args[4])
+                    Start-AZSCDiagramSubscription -Subscriptions $($args[0]) -Resources $($args[1]) -DiagramCache $($args[2]) -LogFile $($args[3])
+                }
+            catch
+                {
+                    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[3]) -Append
+                }
+        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile, $AZSCModule
+    }
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Jobs') | Out-File -FilePath $LogFile -Append 
+
+    if ([bool]$Automation) {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Thread Job') | Out-File -FilePath $LogFile -Append 
+        Start-ThreadJob -Name 'Diagram_Organization' -ScriptBlock {
+            try
+            {
+                Start-AZSCDiagramOrganization -ResourceContainers $($args[0]) -DiagramCache $($args[1]) -LogFile $($args[2])
+            }
+            catch
+            {
+                ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[2]) -Append
+            }
+        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile | Out-Null
+    }
+    else
+    {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Job') | Out-File -FilePath $LogFile -Append 
+        Start-Job -Name 'Diagram_Organization' -ScriptBlock {
+            try
+            {
+                Import-Module $($args[3])
+                Start-AZSCDiagramOrganization -ResourceContainers $($args[0]) -DiagramCache $($args[1]) -LogFile $($args[2])
+            }
+            catch
+            {
+                ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[2]) -Append
+            }
+        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile, $AZSCModule
+    }
+
+    # The Wait-Job / Receive-Job / Remove-Job harvest for 'DiagramVariables' stood here. The
+    # lookup is now computed in-process above, so there is nothing to wait for. (AB#5649)
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram variables ready: '+@($Job.Keys).Count+' resource groups') | Out-File -FilePath $LogFile -Append
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Jobs') | Out-File -FilePath $LogFile -Append
+
+    if ([bool]$Automation) {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append 
+        Start-ThreadJob -Name 'Diagram_NetworkTopology' -ScriptBlock {
+            try
+            {
+                Start-AZSCDiagramNetwork -Subscriptions $($args[0]) -Job $($args[1]) -Advisories $($args[2]) -DiagramCache $($args[3]) -FullEnvironment $($args[4]) -DDFile $($args[5]) -XMLFiles $($args[6]) -LogFile $($args[7]) -Automation $($args[8])
+            }
+            catch
+            {
+                ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[7]) -Append
+            }
+        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation | Out-Null
+    }
+    else
+    {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Job') | Out-File -FilePath $LogFile -Append 
+        Start-Job -Name 'Diagram_NetworkTopology' -ScriptBlock {
+            try
+            {
+                Import-Module $($args[9])
+                Start-AZSCDiagramNetwork -Subscriptions $($args[0]) -Job $($args[1]) -Advisories $($args[2]) -DiagramCache $($args[3]) -FullEnvironment $($args[4]) -DDFile $($args[5]) -XMLFiles $($args[6]) -LogFile $($args[7]) -Automation $($args[8]) -AZSCModule $($args[9])
+            }
+            catch
+            {
+                ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[7]) -Append
+            }
+        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation, $AZSCModule
+    }
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting for Jobs') | Out-File -FilePath $LogFile -Append 
+
+    (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Wait-Job
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Merging XML Files') | Out-File -FilePath $LogFile -Append 
+    Set-AZSCDiagramFile -XMLFiles $XMLFiles -DDFile $DDFile -LogFile $LogFile
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Log Details from Jobs') | Out-File -FilePath $LogFile -Append
+
+    Foreach ($DiagramJob in (Get-Job | Where-Object {$_.name -like 'Diagram_*'})) {
+        $Logger = Receive-Job -Name $DiagramJob.Name
+        Foreach ($LogEntry in $Logger) {
+            $LogEntry | Out-File -FilePath $LogFile -Append
+        }
+    }
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Removing old jobs') | Out-File -FilePath $LogFile -Append
+
+    (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Remove-Job
+
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram Complete') | Out-File -FilePath $LogFile -Append 
+}

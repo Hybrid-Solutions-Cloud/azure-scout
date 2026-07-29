@@ -1,11 +1,11 @@
 ---
-description: Complete reference mapping every report section heading to its category alias, collector folder, and module count.
+description: Complete reference mapping every report section heading to its category alias, manifest directory, and module count.
 ---
 
 # Category Reference
 
 Every section heading in an AzureScout report comes from a category. This page is the
-mapping in both directions: heading → category → collector folder, and every alias the
+mapping in both directions: heading → category → manifest directory, and every alias the
 `-Category` parameter accepts.
 
 Use it when you see a heading in a report and want to know which collector produced it,
@@ -19,7 +19,7 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 
 ## Report section heading → category
 
-| Report section heading | `-Category` value | Collector folder | Modules |
+| Report section heading | `-Category` value | manifest directory | Modules |
 |---|---|---|---|
 | AI + machine learning | `AI` | `manifests/collectors/AI/` | 27 |
 | Analytics | `Analytics` | `manifests/collectors/Analytics/` | 6 |
@@ -76,7 +76,7 @@ the canonical value.
 
 `DevOps` and `Migration` resolve to `Management` because those resource types are
 collected by modules that live in the `Management` folder — there is no separate DevOps
-or Migration collector folder to filter to.
+or Migration manifest directory to filter to.
 
 ## What each category covers
 
@@ -122,7 +122,7 @@ reports how many categories were selected and how many modules actually executed
 
 ## Keeping this page accurate
 
-The module counts here are derived from the collector folders. When you add or remove a
+The module counts here are derived from the manifest directorys. When you add or remove a
 collector, update the counts in the first table; when you add an alias to
 `$_categoryAliasMap`, add the row to the alias table. See
 [Category Structure](category-structure.md) for the folder layout and

@@ -1,0 +1,136 @@
+<#
+.Synopsis
+Module responsible for looping through Azure Resource Graph queries.
+
+.DESCRIPTION
+This module is used to loop through Azure Resource Graph queries and retrieve resources in batches.
+
+.Link
+https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Invoke-AZSCInventoryLoop.ps1
+
+.COMPONENT
+This PowerShell Module is part of Azure Scout (AZSC).
+
+.NOTES
+Version: 3.6.0
+First Release Date: 15th Oct, 2024
+Authors: Claudio Merola
+#>
+function Invoke-AZSCInventoryLoop {
+    param($GraphQuery, $FSubscri, $LoopName)
+
+    # Helper: emit a clear, actionable message for permission-related errors (19.7.4)
+    function Write-PermissionWarning {
+        param($ErrorRecord, $LoopName, $SubscriptionContext)
+        $msg = $ErrorRecord.Exception.Message
+        if ($msg -match 'AuthorizationFailed|Forbidden|does not have authorization|Access to.*subscription.*denied|403') {
+            $subHint = if ($SubscriptionContext) { " (subscription: $SubscriptionContext)" } else { '' }
+            Write-Warning (
+                "[AZSC] Permission error extracting '$LoopName'$subHint. " +
+                "The identity is missing the 'Reader' role (or equivalent). " +
+                "Remediation: New-AzRoleAssignment -ObjectId <principalId> -RoleDefinitionName 'Reader' -Scope '/subscriptions/<subId>'"
+            )
+        }
+        # Always surface to debug log
+        Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - InventoryLoop error [$LoopName]: $msg")
+    }
+
+    Write-Progress -Id 1 -activity 'Azure Inventory' -Status "1% Complete." -PercentComplete 1 -CurrentOperation ('Extracting: ' + $LoopName)
+    $ReportCounter = 1
+    $LocalResults = @()
+    if(@($FSubscri).count -gt 200)
+        {
+            # Batch in non-overlapping windows of 200. The previous inclusive range
+            # $FSubscri[$NStart..$NEnd] produced 201-item batches and re-queried the
+            # boundary subscription in two consecutive batches, double-counting its
+            # resources; clamp the upper bound to the array end (AB#5078).
+            $SubLoop = [math]::Ceiling(@($FSubscri).count / 200)
+            $SubLooper = 0
+            $NStart = 0
+            $NEnd = 199
+            while ($SubLooper -lt $SubLoop)
+                {
+                    $upper = [math]::Min($NEnd, @($FSubscri).count - 1)
+                    $Sub = $FSubscri[$NStart..$upper]
+                    try
+                        {
+                            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting First 1000 '+ $LoopName)
+                            $QueryResult = Search-AzGraph -Query $GraphQuery -first 1000 -Subscription $Sub -Debug:$false
+                        }
+                    catch
+                        {
+                            Write-PermissionWarning -ErrorRecord $_ -LoopName $LoopName -SubscriptionContext ($Sub -join ',')
+                            Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting First 200 ' + $LoopName)
+                            # Isolate the fallback too — if it also throws (genuine auth error,
+                            # throttling), skip this batch instead of aborting the whole tenant (AB#5079).
+                            try {
+                                $QueryResult = Search-AzGraph -Query $GraphQuery -first 200 -Subscription $Sub -Debug:$false
+                            }
+                            catch {
+                                Write-PermissionWarning -ErrorRecord $_ -LoopName $LoopName -SubscriptionContext ($Sub -join ',')
+                                Write-Warning "[AzureScout] Skipping a subscription batch for '$LoopName' after repeated Graph failures."
+                                $QueryResult = @()
+                            }
+                        }
+                    $LocalResults += $QueryResult
+                    while ($QueryResult -and $QueryResult.PSObject.Properties['SkipToken'] -and $QueryResult.SkipToken) {
+                        $ReportCounterVar = [string]$ReportCounter
+                        try
+                            {
+                                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting Next 1000 ' + $LoopName + '. Loop Number: ' + $ReportCounterVar)
+                                Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "$ReportCounter% Complete." -PercentComplete $ReportCounter
+                                $QueryResult = Search-AzGraph -Query $GraphQuery -SkipToken $QueryResult.SkipToken -Subscription $Sub -first 1000 -Debug:$false
+                            }
+                        catch
+                            {
+                                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting Next 200 ' + $LoopName + '. Loop Number: ' + $ReportCounterVar)
+                                Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "$ReportCounter% Complete." -PercentComplete $ReportCounter
+                                $QueryResult = Search-AzGraph -Query $GraphQuery -SkipToken $QueryResult.SkipToken -Subscription $Sub -first 200 -Debug:$false
+                            }
+                        $LocalResults += $QueryResult
+                    }
+                    $NStart = $NStart + 200
+                    $NEnd = $NEnd + 200
+                    $SubLooper ++
+                    $ReportCounter ++
+                    if ($NStart -ge @($FSubscri).count) { break }
+                }
+        }
+    else
+        {
+            try
+                {
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting First 1000 ' + $LoopName)
+                    $QueryResult = Search-AzGraph -Query $GraphQuery -first 1000 -Subscription $FSubscri -Debug:$false
+                }
+            catch
+                {
+                    Write-PermissionWarning -ErrorRecord $_ -LoopName $LoopName
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting First 200 ' + $LoopName)
+                    $QueryResult = Search-AzGraph -Query $GraphQuery -first 200 -Subscription $FSubscri -Debug:$false
+                }
+
+            $LocalResults += $QueryResult
+            while ($QueryResult -and $QueryResult.PSObject.Properties['SkipToken'] -and $QueryResult.SkipToken) {
+                $ReportCounterVar = [string]$ReportCounter
+                try
+                    {
+                        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting Next 1000 ' + $LoopName + '. Loop Number: ' + $ReportCounterVar)
+                        Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "$ReportCounter% Complete." -PercentComplete $ReportCounter
+                        $QueryResult = Search-AzGraph -Query $GraphQuery -SkipToken $QueryResult.SkipToken -Subscription $FSubscri -first 1000 -Debug:$false
+                    }
+                catch
+                    {
+                        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Extracting Next 200 ' + $LoopName + '. Loop Number: ' + $ReportCounterVar)
+                        Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "$ReportCounter% Complete." -PercentComplete $ReportCounter
+                        $QueryResult = Search-AzGraph -Query $GraphQuery -SkipToken $QueryResult.SkipToken -Subscription $FSubscri -first 200 -Debug:$false
+                    }
+                $LocalResults += $QueryResult
+                $ReportCounter ++
+            }
+        }
+        Write-Progress -Id 1 -activity ('Extracting: ' + $LoopName) -Status "100% Complete." -Completed
+    # Comma-prefix prevents PowerShell from unrolling an empty $LocalResults to $null
+    # on return, which would crash any caller doing `.Count` under StrictMode (AB#5041 sweep).
+    return ,$LocalResults
+}

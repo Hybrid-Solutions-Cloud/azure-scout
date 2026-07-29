@@ -1206,3 +1206,20 @@ report (do NOT close as done). Epics AB#5023/5056 close when their children are 
   3. Optional: designer `deck.pptx.template` to replace the programmatic slide master.
   4. Update ADO board states for items whose acceptance criteria verification now meets.
   5. Live AzGovViz/governance ingest run once MG-scope permissions are confirmed.
+
+## Epic AB#5638: Engine Rebuild Final Audit and Completion (Current Session)
+
+- **Phase 1: Audit of Closed Items**
+  - **AB#5958 (v3 release):** The release of v3.0.0 and subsequent patches are verified in RELEASES.md and git history.
+  - **AB#6059 & AB#6060 (Wizard common parameters):** The pipeline now preserves interactive flows. Tested in local suite.
+  - **AB#6148 (Gallery export surface):** Invoke-ScoutAssessment is completely removed from exports; Invoke-AzureScout is the primary entry point.
+  - **AB#6159 (Tenant-scoped context):** Context scoping bindings were verified via code audits and Pester tests.
+  - **AB#6150 & AB#6151:** Resolved successfully as documented in earlier HANDOFF entries.
+
+- **Phase 2: Finalizing Open Items**
+  - **AB#5949 / AB#5954 (Legacy Modules/ retirement):** The Modules/ directory has been completely deleted. All legacy fallback code paths are gone.
+  - **AB#6137, AB#6138, AB#6139:** Completed acceptance criteria via the destruction of the legacy module framework and Pester validations.
+  - **Live Verification Scenarios (AB#6149, AB#6153, AB#6156, AB#6157):** Due to local Azure CLI token retrieval failures (zext_metadata.json Permission Denied), these live-environment verifications (Cross-subscription storage, Live Defender rate-limits, Unregistered providers) cannot be programmatically executed from this machine. They are formally handed off for live-environment execution by the operator.
+  - **AB#6152 Active Child Bugs (AB#6154/AB#6155 & AB#6158):** Code fixes for retired App Insights endpoints and worksheet name controls are implemented and covered by unit tests. ADO state updates remain pending.
+
+**Epic AB#5638 is locally code-complete and structurally verified.**

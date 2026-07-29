@@ -1,0 +1,92 @@
+[
+  {
+    "ID": 5955,
+    "State": "Active",
+    "Title": "Remove the deprecated assessment entry point and release version three",
+    "AcceptanceCriteria": "<ul>\n<li>The exported function list does not contain the deprecated name and a test asserts calling it throws a command-not-found error. </li>\n<li>The published pipeline example and all current documentation use the unified entry point. </li>\n<li>Version three is tagged, published to the gallery, installed from the gallery, and its release notes state what changed. </li>\n</ul>"
+  },
+  {
+    "ID": 5958,
+    "State": "Resolved",
+    "Title": "Release version three",
+    "AcceptanceCriteria": "<ul>\n<li>The version sync test passes and the manifest, changelog, roadmap and releases ledger all name version three. </li>\n<li>The module installs from the gallery and imports at version three in a clean session. </li>\n<li>A live tenant run completes with zero collector failures and the run log reports every collector as declarative. </li>\n</ul>"
+  },
+  {
+    "ID": 6059,
+    "State": "Resolved",
+    "Title": "Fix defects in the guided wizard and interactive command line surface",
+    "AcceptanceCriteria": "<ul>\n<li>Invoke-AzureScout -Debug presents the guided wizard on an interactive host. </li>\n<li>Every PowerShell common parameter is covered by a test asserting the wizard still appears. </li>\n<li>Invoke-AzureScout -NoWizard still bypasses the wizard, and a non-interactive host still falls through without prompting. </li>\n</ul>"
+  },
+  {
+    "ID": 6060,
+    "State": "Resolved",
+    "Title": "Fix the guided wizard being skipped when a common parameter such as -Debug is supplied",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0, Invoke-AzureScout opens the wizard and Invoke-AzureScout -Debug does not. </li>\n<li>Fix verified: Invoke-AzureScout -Debug opens the wizard, and a test asserts the same for every PowerShell common parameter. </li>\n<li>Invoke-AzureScout -NoWizard still bypasses the wizard and a non-interactive host still falls through without prompting. </li>\n</ul>"
+  },
+  {
+    "ID": 6148,
+    "State": "Closed",
+    "Title": "Install from the gallery into a clean session and verify the public surface",
+    "AcceptanceCriteria": null
+  },
+  {
+    "ID": 6149,
+    "State": "Active",
+    "Title": "Run the installed release against a live tenant and compare to the baseline",
+    "AcceptanceCriteria": null
+  },
+  {
+    "ID": 6150,
+    "State": "Closed",
+    "Title": "Count only explicitly supplied non common parameters when opening the wizard",
+    "AcceptanceCriteria": null
+  },
+  {
+    "ID": 6151,
+    "State": "Closed",
+    "Title": "Add a regression test per common parameter and pin the opt out paths",
+    "AcceptanceCriteria": null
+  },
+  {
+    "ID": 6153,
+    "State": "Active",
+    "Title": "Fix storage service-property lookups running against the wrong subscription",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 a tenant with storage accounts in more than one subscription produces ResourceGroupNotFound errors printed as raw error records. </li>\n<li>Fix verified: the same tenant produces populated soft-delete, versioning and retention columns for every account, with no raw error record in the output. </li>\n<li>A failure that is genuinely unreadable warns once naming the account and does not abort the collector. </li>\n</ul>"
+  },
+  {
+    "ID": 6154,
+    "State": "Active",
+    "Title": "Stop calling the retired App Insights exportconfiguration endpoint",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 the run issues the exportconfiguration request and receives 400 DisallowedResourceOperation. </li>\n<li>Fix verified: a run issues no request to that endpoint. </li>\n<li>If the collector is retained, it emits no rows and records why, rather than failing. </li>\n</ul>"
+  },
+  {
+    "ID": 6155,
+    "State": "Active",
+    "Title": "Handle the App Insights WorkItemConfigs 404 that returns HTML instead of JSON",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 the request returns 404 with an HTML body. </li>\n<li>Fix verified: a recorded HTML 404 payload produces zero rows and no parse error. </li>\n<li>The run issues no request to a known-retired endpoint. </li>\n</ul>"
+  },
+  {
+    "ID": 6156,
+    "State": "Active",
+    "Title": "Retry transient server errors from the Defender assessment collector",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: a stubbed 500 response causes the collector to fail immediately with no retry and no rows. </li>\n<li>Fix verified: a stubbed 500 followed by a success yields the rows from the successful attempt. </li>\n<li>Exhausted retries warn once naming the subscription and the run continues. </li>\n</ul>"
+  },
+  {
+    "ID": 6157,
+    "State": "Active",
+    "Title": "Treat an unregistered Defender provider as a normal result rather than an exception",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 an unregistered subscription produces an exception in the run output. </li>\n<li>Fix verified: the same subscription produces no exception and is recorded as having no Defender plan. </li>\n<li>A genuine failure from the same cmdlet still warns. </li>\n</ul>"
+  },
+  {
+    "ID": 6158,
+    "State": "Active",
+    "Title": "Fix the worksheet name that exceeds the Excel character limit and gate it in CI",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 the run emits the truncation warning for App Insights Proactive Detection. </li>\n<li>Fix verified: no run emits a worksheet truncation warning, and a test asserts the workbook contains no truncated names. </li>\n<li>The CI gate fails the build on a deliberately over-length worksheet name. </li>\n</ul>"
+  },
+  {
+    "ID": 6159,
+    "State": "Resolved",
+    "Title": "Restrict a tenant-scoped run to the requested tenant instead of enumerating all of them",
+    "AcceptanceCriteria": "<ul>\n<li>Repro confirmed: on v2.11.0 a tenant-scoped run from an account with access to other tenants produces Conditional Access, multi-factor and wrong-issuer failures naming those tenants. </li>\n<li>Fix verified: the same run attempts authentication only against the requested tenant and produces none of those failures. </li>\n<li>Any token-acquisition failure names the tenant it was for rather than an empty string. </li>\n</ul>"
+  }
+]

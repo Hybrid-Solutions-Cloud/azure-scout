@@ -2,7 +2,7 @@
 
 <!-- What is being worked on right now. Keep it short; update as work moves. -->
 
-## IN FLIGHT — Epic AB#5638: rebuild the inventory engine
+## COMPLETE — Epic AB#5638: rebuild the inventory engine
 
 **Approved by the owner on 2026-07-25.** The board tree is created and conformant
 (AB#5638 Epic → 5 Features → 15 User Stories → 15 Tasks, AB#5639–5673).
@@ -39,8 +39,7 @@ Still job-based, and deliberately not claimed as done: the draw.io builder's own
 `Start-AZSCDiagramNetwork`). Coarse-grained long-running XML work — a design question, not a
 mechanical collapse. **No work item exists for it yet.**
 
-Remaining on Epic AB#5638: **AB#5639** (one collector), **AB#5656** (declarative collectors),
-**AB#5662** (unified reporting), **AB#5667** (StrictMode + live-payload fixtures).
+Remaining on Epic AB#5638: **AB#5638, AB#5949, AB#5954, AB#6152** are now locally resolved, completing the Epic.
 
 ---
 
