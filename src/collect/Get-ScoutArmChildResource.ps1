@@ -7,9 +7,11 @@ $ErrorActionPreference = 'Stop'
     Prefetch ARM child collections consumed by fourteen inventory collectors.
 
 .DESCRIPTION
-    Moves per-parent ARM calls out of collector row loops and into the collect phase. The function
-    is intentionally isolated in this change: Invoke-Collect does not call it yet, and no existing
-    collector or definition is modified.
+    Moves supported per-parent ARM calls out of collector row loops and into the collect phase.
+    Application Insights Continuous Export and Work Item Config endpoints are deliberately not
+    represented: Azure retired them, so querying either would produce a permanent failure rather
+    than inventory data. The function is intentionally isolated in this change: Invoke-Collect
+    does not call it yet, and no existing collector or definition is modified.
 
     Each returned row preserves the child payload's top-level properties and adds a stable
     synthetic resource contract:
@@ -34,7 +36,7 @@ $ErrorActionPreference = 'Stop'
     Resource Graph rows containing the parent workspaces/accounts/application groups.
 
 .PARAMETER Dataset
-    Optional subset of the fourteen dataset names. Defaults to All.
+    Optional subset of the supported dataset names. Defaults to All.
 
 .OUTPUTS
     PSCustomObject rows using the synthetic contract documented above.
@@ -63,9 +65,7 @@ function Get-ScoutArmChildResource {
             'OpenAIDeployments',
             'SearchIndexes',
             'AVDApplications',
-            'AppInsightsContinuousExport',
             'AppInsightsProactiveDetection',
-            'AppInsightsWorkItems',
             'LAWorkspaceLinkedServices',
             'LAWorkspaceSavedSearches'
         )]
@@ -82,9 +82,7 @@ function Get-ScoutArmChildResource {
         'OpenAIDeployments',
         'SearchIndexes',
         'AVDApplications',
-        'AppInsightsContinuousExport',
         'AppInsightsProactiveDetection',
-        'AppInsightsWorkItems',
         'LAWorkspaceLinkedServices',
         'LAWorkspaceSavedSearches'
     )
@@ -352,32 +350,10 @@ function Get-ScoutArmChildResource {
                     }
                 }
             }
-            'AppInsightsContinuousExport' {
-                foreach ($Parent in $AppInsightsParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    $Content = Get-ArmChildContent -Path "$Base/exportconfiguration?api-version=2015-05-01" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
-                }
-            }
             'AppInsightsProactiveDetection' {
                 foreach ($Parent in $AppInsightsParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/ProactiveDetectionConfigs?api-version=2018-05-01-preview" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
-                }
-            }
-            'AppInsightsWorkItems' {
-                foreach ($Parent in $AppInsightsParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    $Content = Get-ArmChildContent -Path "$Base/WorkItemConfigs?api-version=2015-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {

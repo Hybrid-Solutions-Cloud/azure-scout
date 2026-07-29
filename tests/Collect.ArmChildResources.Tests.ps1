@@ -85,16 +85,8 @@ BeforeAll {
                     @{ value = @(@{ id = "$Path/endpoint-batch"; name = 'endpoint-batch'; type = 'Microsoft.MachineLearningServices/batchEndpoints'; properties = @{ authMode = 'aadToken' } }) }
                     break
                 }
-                '/exportconfiguration\?' {
-                    @(@{ id = "$Path/export-one"; name = 'export-one'; ExportId = 'export-one' })
-                    break
-                }
                 '/ProactiveDetectionConfigs\?' {
                     @(@{ id = "$Path/rule-one"; name = 'rule-one'; Enabled = $true })
-                    break
-                }
-                '/WorkItemConfigs\?' {
-                    @{ value = @(@{ id = "$Path/workitem-one"; name = 'workitem-one'; ConfigDisplayName = 'Work item' }) }
                     break
                 }
                 default {
@@ -126,8 +118,8 @@ BeforeEach {
     Get-ArmChildResponseStub
 }
 
-Describe 'Get-ScoutArmChildResource - complete fourteen-dataset contract' {
-    It 'emits all fourteen synthetic types in canonical order' {
+Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
+    It 'emits all supported synthetic types in canonical order without retired endpoints' {
         $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents)
         $Types = @($Rows.TYPE | Select-Object -Unique)
 
@@ -141,13 +133,11 @@ Describe 'Get-ScoutArmChildResource - complete fourteen-dataset contract' {
             'AZSC/ARMChild/OpenAIDeployments'
             'AZSC/ARMChild/SearchIndexes'
             'AZSC/ARMChild/AVDApplications'
-            'AZSC/ARMChild/AppInsightsContinuousExport'
             'AZSC/ARMChild/AppInsightsProactiveDetection'
-            'AZSC/ARMChild/AppInsightsWorkItems'
             'AZSC/ARMChild/LAWorkspaceLinkedServices'
             'AZSC/ARMChild/LAWorkspaceSavedSearches'
         )
-        $Rows.Count | Should -Be 15 -Because 'MLEndpoints emits one online and one batch endpoint'
+        $Rows.Count | Should -Be 13 -Because 'MLEndpoints emits one online and one batch endpoint'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {
@@ -201,11 +191,11 @@ Describe 'Get-ScoutArmChildResource - complete fourteen-dataset contract' {
         $Calls | Should -Match '/deployments\?api-version=2023-05-01'
         $Calls | Should -Match '/indexes\?api-version=2023-11-01'
         $Calls | Should -Match '/applications\?api-version=2022-09-09'
-        $Calls | Should -Match '/exportconfiguration\?api-version=2015-05-01'
         $Calls | Should -Match '/ProactiveDetectionConfigs\?api-version=2018-05-01-preview'
         $Calls | Should -Match '/linkedServices\?api-version=2020-08-01'
         $Calls | Should -Match '/savedSearches\?api-version=2020-08-01'
         $Calls | Should -Not -Match 'listQueryKeys' -Because 'the current SearchIndexes collector constructs that URI but never calls it'
+        $Calls | Should -Not -Match '(?i)exportconfiguration|WorkItemConfigs' -Because 'both Application Insights endpoints are retired'
     }
 }
 
@@ -258,15 +248,10 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
     }
 
     It 'accepts both ARM value envelopes and bare arrays without changing child shape' {
-        $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents `
-            -Dataset @('AppInsightsContinuousExport', 'AppInsightsWorkItems'))
+        $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents)
 
-        @($Rows | Where-Object TYPE -eq 'AZSC/ARMChild/AppInsightsContinuousExport').Count | Should -Be 1
-        @($Rows | Where-Object TYPE -eq 'AZSC/ARMChild/AppInsightsWorkItems').Count | Should -Be 1
-        ($Rows | Where-Object TYPE -eq 'AZSC/ARMChild/AppInsightsContinuousExport').ExportId |
-            Should -Be 'export-one'
-        ($Rows | Where-Object TYPE -eq 'AZSC/ARMChild/AppInsightsWorkItems').ConfigDisplayName |
-            Should -Be 'Work item'
+        @($Rows | Where-Object TYPE -match 'AppInsights(ContinuousExport|WorkItems)').Count | Should -Be 0
+        ($script:ArmCalls -join "`n") | Should -Not -Match '(?i)exportconfiguration|WorkItemConfigs'
     }
 }
 }
