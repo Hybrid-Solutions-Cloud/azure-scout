@@ -41,7 +41,12 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.0.2 — Runtime collector hardening
+## Current Release — v3.0.3 — Production runtime collection
+
+Released 28 July 2026. This patch enables the hardened ARM-child, storage enrichment, and
+subscription security/policy collectors in normal extraction.
+
+## v3.0.2 — Runtime collector hardening
 
 Released 28 July 2026. This patch stops queries to retired Application Insights endpoints
 and scopes storage service-property lookups to the resource-owning subscription.

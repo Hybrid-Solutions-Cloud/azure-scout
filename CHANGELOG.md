@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-07-28
+
+### Fixed
+
+- Enabled ARM child-resource collection, storage operational enrichment, and the subscription
+  security/policy sweep in the production extraction path rather than leaving them opt-in helpers.
+
+### Verification
+
+- Raw inventory contract: 18 passed / 0 failed.
+- Single-pass and StrictMode graph-extraction contracts: 22 passed / 0 failed.
+
 ## [3.0.2] - 2026-07-28
 
 ### Fixed

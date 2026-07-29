@@ -14,6 +14,7 @@ AzureScout follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form
 
 | Version | Highlights |
 |---------|------------|
+| **v3.0.3** (2026-07-28) | **Production runtime collection.** Hardened ARM-child, storage, and security/policy collectors now run in the standard extraction path. See [v3.0.3](v3.0.3.md). |
 | **v3.0.2** (2026-07-28) | **Runtime collector hardening.** Retired App Insights endpoints are not queried, and storage service-property lookups run in the owning subscription. See [v3.0.2](v3.0.2.md). |
 | **v3.0.1** (2026-07-28) | **Tenant-scoped authentication and wizard correction.** Every Azure context switch binds the requested tenant; a verified live run makes no unrelated-tenant authentication attempts. Interactive common parameters no longer suppress the wizard. See [v3.0.1](v3.0.1.md). |
 | **v3.0.0** (2026-07-28) | **Epic AB#5638 engine rebuild.** The 174-definition declarative collector catalog now powers collection and reporting under StrictMode; the retired collector-script tree and imperative fallback are gone. Canonical contracts cover 174 ordered row sets and 348 worksheet cases. See [v3.0.0](v3.0.0.md). |
