@@ -16,6 +16,13 @@
   Insights parents while asserting neither URI can be called. Pushed to `main`, but not
   yet included in a Gallery patch; do not resolve AB#6154/6155 until the next published
   package is verified.
+- **Production wiring correction:** `873fbb9` turns on ARM-child resources, operational
+  collector enrichment, and the subscription security/policy sweep in
+  `Start-ScoutGraphExtraction`'s real `Get-ScoutRawInventory` invocation. This matters:
+  before it, the runtime helper fixes were opt-in and not exercised by the normal inventory
+  path. `Collect.RawInventory.Tests.ps1` is 18/18 and the single-pass + strict graph
+  extraction suites are 22/22. This commit also post-dates Gallery 3.0.2; make a 3.0.3
+  patch and run it live before resolving AB#6152–6158.
 
 - **Published and tagged:** `v3.0.1` is pushed to `main` (`23586c6`), has a GitHub release,
   and is published to the PowerShell Gallery. It contains the common-parameter wizard fix
