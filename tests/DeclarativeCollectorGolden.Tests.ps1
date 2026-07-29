@@ -234,11 +234,19 @@ Describe 'Golden collector proof - coverage and independence' {
                 })
             }
         }
+        $Resources += [pscustomobject]@{
+            type = 'AZSC/Operational/VirtualMachine'
+            id = $Vm[0].id
+            properties = [pscustomobject]@{
+                EstimatedCost = [pscustomobject]@{ properties = [pscustomobject]@{ rows = @(@('42.5', 'USD')) } }
+            }
+        }
         $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot 'manifests/collectors/Compute/VirtualMachine.psd1')
         $Context = Get-GoldenVerificationContext -Category 'Compute' -Name 'VirtualMachine'
         $Context.Resources = $Resources
 
-        { @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context $Context) } | Should -Not -Throw
+        $Rows = @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context $Context)
+        @($Rows | Where-Object { $_['Est. Monthly Cost (USD)'] -eq 42.5 }).Count | Should -BeGreaterThan 0
     }
 }
 

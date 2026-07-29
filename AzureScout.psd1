@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.4'
+ModuleVersion = '3.0.5'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.4 — fixes a live Compute SKU shape regression in production runtime collection. Repeated MemoryGB capability values no longer discard the VirtualMachine collector. See CHANGELOG.md and docs/v3.0.4.md for verification details.'
+        ReleaseNotes = 'v3.0.5 — fixes the Cost Management nested-row shape in production VM reporting. See CHANGELOG.md and docs/v3.0.5.md for verification details.'
 
         # Prerelease string of this module
         # Prerelease = ''

@@ -417,8 +417,13 @@ $vmnic = foreach ($netinterface in $nic)
                         # envelope can preserve the repeated values as an array.  Select one
                         # usable value before numeric conversion so an advisory payload cannot
                         # discard the entire VM collector (AB#6152).
-                        $ramValue = @($RAM | Where-Object { $null -ne $_ } | Select-Object -First 1)
-                        $ramBytes = if ($ramValue.Count -gt 0 -and $null -ne $ramValue[0]) { [double]$ramValue[0] * 1073741824 } else { 0 }
+                        $ramValue = @($RAM | Where-Object { $null -ne $_ } | ForEach-Object {
+                            if ($_ -is [System.Collections.IEnumerable] -and $_ -isnot [string]) { @($_)[0] } else { $_ }
+                        } | Select-Object -First 1)
+                        $ramBytes = 0
+                        if ($ramValue.Count -gt 0 -and $null -ne $ramValue[0]) {
+                            try { $ramBytes = [double]$ramValue[0] * 1073741824 } catch { $ramBytes = 0 }
+                        }
                         if ($MemoryValues -and $ramBytes -gt 0) {
                             $avgAvailBytes = ($MemoryValues | Measure-Object -Average).Average
                             $avgMem = [math]::Round((($ramBytes - $avgAvailBytes) / $ramBytes) * 100, 1)
@@ -447,8 +452,16 @@ $vmnic = foreach ($netinterface in $nic)
                         }
 
                         $estMonthlyCost = 'N/A'
-                        $rawCost = Get-AZSCSafeProperty -InputObject $Operational -Path 'EstimatedCost.properties.rows' -Enumerate | Select-Object -First 1
-                        if ($null -ne $rawCost) { $estMonthlyCost = [math]::Round([double]$rawCost, 2) }
+                        # Cost Management returns each row as an array (amount followed by
+                        # dimensions/currency).  Preserve the response envelope but take the
+                        # amount cell explicitly; casting the full row makes one VM discard the
+                        # entire collector under StrictMode.
+                        $rawCost = @(Get-AZSCSafeProperty -InputObject $Operational -Path 'EstimatedCost.properties.rows' -Enumerate | Select-Object -First 1)
+                        if ($rawCost.Count -gt 0) { $rawCost = $rawCost[0] }
+                        if ($rawCost -is [System.Collections.IEnumerable] -and $rawCost -isnot [string] -and @($rawCost).Count -gt 0) { $rawCost = @($rawCost)[0] }
+                        if ($null -ne $rawCost) {
+                            try { $estMonthlyCost = [math]::Round([double]$rawCost, 2) } catch { $estMonthlyCost = 'N/A' }
+                        }
 '@
         }
     )
