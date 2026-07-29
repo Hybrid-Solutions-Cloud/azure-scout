@@ -151,24 +151,24 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     BeforeAll {
         $script:Subs = @(
-            [PSCustomObject]@{ Id = 'sub-1'; Name = 'One' }
-            [PSCustomObject]@{ Id = 'sub-2'; Name = 'Two' }
-            [PSCustomObject]@{ Id = 'sub-3'; Name = 'Three' }
+            [PSCustomObject]@{ Id = 'sub-1'; Name = 'One'; TenantId = 'tenant-a' }
+            [PSCustomObject]@{ Id = 'sub-2'; Name = 'Two'; TenantId = 'tenant-a' }
+            [PSCustomObject]@{ Id = 'sub-3'; Name = 'Three'; TenantId = 'tenant-a' }
         )
     }
 
     It 'Switches context once per subscription and restores once at the end' {
-        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' } } }
+        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
         Mock Set-AzContext { }
 
         Invoke-AZSCInSubscriptionContext -Subscription $script:Subs -Process { param($s) $null = $s }
 
-        Should -Invoke Set-AzContext -Times 3 -Exactly -ParameterFilter { $SubscriptionId -in 'sub-1','sub-2','sub-3' }
-        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $SubscriptionId -eq 'original-sub' }
+        Should -Invoke Set-AzContext -Times 3 -Exactly -ParameterFilter { $Subscription -in 'sub-1','sub-2','sub-3' -and $Tenant -eq 'tenant-a' }
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'original-sub' -and $Tenant -eq 'tenant-a' }
     }
 
     It 'Runs the process block once per subscription' {
-        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' } } }
+        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
         Mock Set-AzContext { }
 
         $seen = [System.Collections.Generic.List[string]]::new()
@@ -179,7 +179,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
     }
 
     It 'Restores the original context when the loop throws part way through' {
-        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' } } }
+        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
         Mock Set-AzContext { }
 
         {
@@ -189,17 +189,17 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
             }
         } | Should -Throw
 
-        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $SubscriptionId -eq 'original-sub' }
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'original-sub' -and $Tenant -eq 'tenant-a' }
     }
 
     It 'Accepts plain subscription ID strings' {
-        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' } } }
+        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
         Mock Set-AzContext { }
 
         Invoke-AZSCInSubscriptionContext -Subscription @('sub-a', 'sub-b') -Process { param($s) $null = $s }
 
-        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $SubscriptionId -eq 'sub-a' }
-        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $SubscriptionId -eq 'sub-b' }
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'sub-a' -and $Tenant -eq 'tenant-a' }
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'sub-b' -and $Tenant -eq 'tenant-a' }
     }
 
     It 'Does not attempt a restore when there was no original context' {
@@ -237,8 +237,8 @@ Describe 'Restore-AZSCContext (AB#368)' {
 
     It 'Restores a valid context' {
         Mock Set-AzContext { }
-        Restore-AZSCContext -Context ([PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'restore-me' } })
-        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $SubscriptionId -eq 'restore-me' }
+        Restore-AZSCContext -Context ([PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'restore-me' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } })
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'restore-me' -and $Tenant -eq 'tenant-a' }
     }
 }
 

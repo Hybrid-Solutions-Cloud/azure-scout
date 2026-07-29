@@ -207,7 +207,7 @@ function Invoke-AZSCPermissionAudit {
         try {
             foreach ($sub in $subs) {
                 try {
-                    Set-AzContext -SubscriptionId $sub.Id -ErrorAction SilentlyContinue | Out-Null
+                    Set-AzContext -Subscription $sub.Id -Tenant $tenantId -ErrorAction SilentlyContinue | Out-Null
                     $assignments = @(Get-AzRoleAssignment -Scope "/subscriptions/$($sub.Id)" -ErrorAction Stop)
 
                     $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
@@ -269,7 +269,11 @@ function Invoke-AZSCPermissionAudit {
                 }
             }
             if ($restoreId) {
-                Set-AzContext -SubscriptionId $restoreId -ErrorAction SilentlyContinue | Out-Null
+                $restoreParams = @{ Subscription = $restoreId; ErrorAction = 'SilentlyContinue' }
+                if ($armLoopContext.PSObject.Properties.Name -contains 'Tenant' -and $armLoopContext.Tenant -and $armLoopContext.Tenant.PSObject.Properties.Name -contains 'Id' -and $armLoopContext.Tenant.Id) {
+                    $restoreParams['Tenant'] = $armLoopContext.Tenant.Id
+                }
+                Set-AzContext @restoreParams | Out-Null
             }
         }
     }
@@ -312,7 +316,7 @@ function Invoke-AZSCPermissionAudit {
         # leave the caller parked in it once the section is done.
         $providerLoopContext = Get-AzContext -ErrorAction SilentlyContinue
         try {
-            Set-AzContext -SubscriptionId $checkSub.Id -ErrorAction SilentlyContinue | Out-Null
+            Set-AzContext -Subscription $checkSub.Id -Tenant $tenantId -ErrorAction SilentlyContinue | Out-Null
             Write-Host "  Checking against subscription: $($checkSub.Name)" -ForegroundColor Gray
             Write-Host "  NOTE: Not all providers need to be registered. Unregistered providers are" -ForegroundColor DarkGray
             Write-Host "        expected — they simply mean that service is not deployed here." -ForegroundColor DarkGray

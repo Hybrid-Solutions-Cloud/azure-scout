@@ -60,6 +60,20 @@ function Invoke-AZSCInSubscriptionContext {
             Foreach ($Sub in $Subscription)
                 {
                     $SubId = if ($Sub -is [string]) { $Sub } elseif ($Sub -and $Sub.PSObject.Properties.Name -contains 'Id') { $Sub.Id } else { $null }
+                    # Set-AzContext without -Tenant makes Az.Accounts resolve the
+                    # subscription against every cached tenant. That turns a
+                    # tenant-scoped Scout run into unrelated authentication attempts.
+                    # Prefer the subscription's tenant, then preserve the caller's
+                    # current tenant for string-only subscription inputs.
+                    $SubTenant = if ($Sub -isnot [string] -and $Sub -and $Sub.PSObject.Properties.Name -contains 'TenantId') {
+                        $Sub.TenantId
+                    }
+                    elseif ($OriginalContext -and $OriginalContext.PSObject.Properties.Name -contains 'Tenant' -and $OriginalContext.Tenant -and $OriginalContext.Tenant.PSObject.Properties.Name -contains 'Id') {
+                        $OriginalContext.Tenant.Id
+                    }
+                    else {
+                        $null
+                    }
 
                     if (-not $SubId)
                         {
@@ -68,7 +82,9 @@ function Invoke-AZSCInSubscriptionContext {
                         }
 
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Switching context to subscription: '+$SubId)
-                    Set-AzContext -SubscriptionId $SubId -ErrorAction SilentlyContinue | Out-Null
+                    $contextParams = @{ Subscription = $SubId; ErrorAction = 'SilentlyContinue' }
+                    if ($SubTenant) { $contextParams['Tenant'] = $SubTenant }
+                    Set-AzContext @contextParams | Out-Null
 
                     & $Process $Sub
                 }
@@ -106,7 +122,11 @@ function Restore-AZSCContext {
     try
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Restoring original subscription context: '+$Context.Subscription.Id)
-            Set-AzContext -SubscriptionId $Context.Subscription.Id -ErrorAction SilentlyContinue | Out-Null
+            $restoreParams = @{ Subscription = $Context.Subscription.Id; ErrorAction = 'SilentlyContinue' }
+            if ($Context.PSObject.Properties.Name -contains 'Tenant' -and $Context.Tenant -and $Context.Tenant.PSObject.Properties.Name -contains 'Id' -and $Context.Tenant.Id) {
+                $restoreParams['Tenant'] = $Context.Tenant.Id
+            }
+            Set-AzContext @restoreParams | Out-Null
         }
     catch
         {
