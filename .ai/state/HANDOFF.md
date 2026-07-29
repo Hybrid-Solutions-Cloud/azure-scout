@@ -8,6 +8,33 @@
 
 ## IN PROGRESS (2026-07-28, Codex) — code-derived v3.0.0 engine rebuild
 
+### Latest release/runtime verification (2026-07-28, Codex)
+
+- **Published and tagged:** `v3.0.1` is pushed to `main` (`23586c6`), has a GitHub release,
+  and is published to the PowerShell Gallery. It contains the common-parameter wizard fix
+  (`d00db3e`) and tenant-scoped context fix (`2fdf47d`, `131d60d`).
+- **Gallery proof:** downloaded 3.0.1 to
+  `D:\tmp\AzureScoutGalleryVerify-3.0.1-20260728-220950`, imported it in a fresh
+  `pwsh -NoProfile` process, and verified version 3.0.1, exactly 21 exports,
+  `Invoke-AzureScout` present, and `Invoke-ScoutAssessment` absent.
+- **Gallery live proof:** `D:\tmp\AzureScoutGallery301Live-20260728-221420` completed
+  in 3:37 against the explicit requested tenant. `scout-run.log` reports 174 declarative,
+  0 failed, 0 skipped collectors and a written Excel report. Console audit found zero empty-
+  tenant/unrelated-tenant warnings, no `exportconfiguration`/`WorkItemConfigs` requests, and
+  no raw `ResourceGroupNotFound`/error-record output.
+- **Focused verification:** wizard eligibility Pester 4/4; context restore 9/9;
+  VM quota + subscription security sweep 13/13; permission audit 46/46 (1 skipped);
+  docs-version sync 8/8. The source tenant-scoped run also completed before publishing.
+- **ADO evidence/state updates:** AB#6060, #6059, #6159, #5958 → Resolved. AB#6150,
+  #6151, #6148 → Closed (Task workflow supports New/Active/Closed, not Resolved).
+  Each has a concise evidence history entry. Do not infer the remaining runtime child bugs
+  are complete merely from the clean live run; inspect their individual fixture/acceptance
+  coverage before resolving them.
+- **Known local residue:** Git tracks no `Modules/` files and the Gallery package has none,
+  but an empty untracked `D:\git\thisismydemo\azure-scout\Modules` directory remains.
+  The filesystem policy blocked its deletion; do not claim the literal local `Test-Path Modules`
+  acceptance check is met until that residue is removed.
+
 ### Latest release-hardening progress (2026-07-28)
 
 - **Released:** commit `df06aaa` was pushed to `main`, annotated tag `v3.0.0` was pushed, GitHub
