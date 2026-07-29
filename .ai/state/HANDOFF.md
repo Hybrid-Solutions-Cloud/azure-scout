@@ -10,6 +10,13 @@
 
 ### Latest release/runtime verification (2026-07-28, Codex)
 
+- **New unshipped follow-up:** `981f6cd` removes the permanently retired App Insights
+  `exportconfiguration` and `WorkItemConfigs` child-endpoint paths (AB#6154/6155) from
+  `Get-ScoutArmChildResource`. Its focused contract suite is **9/9** and includes App
+  Insights parents while asserting neither URI can be called. Pushed to `main`, but not
+  yet included in a Gallery patch; do not resolve AB#6154/6155 until the next published
+  package is verified.
+
 - **Published and tagged:** `v3.0.1` is pushed to `main` (`23586c6`), has a GitHub release,
   and is published to the PowerShell Gallery. It contains the common-parameter wizard fix
   (`d00db3e`) and tenant-scoped context fix (`2fdf47d`, `131d60d`).
