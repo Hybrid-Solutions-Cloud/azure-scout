@@ -8,6 +8,16 @@
 
 ## IN PROGRESS (2026-07-28, Codex) — code-derived v3.0.0 engine rebuild
 
+### Latest release/runtime verification (2026-07-29, Codex)
+
+- **Gallery v3.0.5 live proof is complete:** a clean Gallery-installed 3.0.5 package ran against
+  the requested live tenant with `-Scope ArmOnly`. `D:\tmp\AzureScoutGallery305ArmOnly-20260729\scout-run.log`
+  records 174 declarative collectors run, **0 failed**, 1,121 Excel rows written, and a completed
+  Excel workbook after 4:59. The corrected VM cost-row path is therefore proven in the actual
+  shipped package. Record this exact evidence in the applicable AB#5638 child work items before
+  resolving them; do not infer that every remaining child acceptance criterion is met from this
+  one run.
+
 ### Latest release/runtime verification (2026-07-28, Codex)
 
 - **New unshipped follow-up:** `981f6cd` removes the permanently retired App Insights

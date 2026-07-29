@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Verification
 
 - Repeated-`MemoryGB` and nested-cost-row declarative VM regression contract: 1 passed / 0 failed.
+- Clean PowerShell Gallery **3.0.5** install, live tenant, `-Scope ArmOnly` (2026-07-29):
+  174 declarative collectors run, 0 failed, 1,121 Excel rows written, and the Excel report
+  completed successfully in 4:59. The immutable run evidence is retained under
+  `D:\tmp\AzureScoutGallery305ArmOnly-20260729\scout-run.log`.
 
 ## [3.0.4] - 2026-07-28
 

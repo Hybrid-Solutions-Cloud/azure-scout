@@ -44,7 +44,9 @@ publication. Historical v2 entries below are retained as release history rather 
 ## Current Release — v3.0.5 — VM cost-row regression correction
 
 Released 28 July 2026. This patch keeps production VM reporting running when Cost Management
-returns the amount and currency as a nested row.
+returns the amount and currency as a nested row. Clean Gallery v3.0.5 live verification completed
+on 29 July 2026 with `-Scope ArmOnly`: 174 declarative collectors run, 0 failures, and 1,121 Excel
+rows written.
 
 ## v3.0.4 — VM runtime regression correction
 
