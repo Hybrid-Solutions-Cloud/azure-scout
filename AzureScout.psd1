@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.7'
+ModuleVersion = '3.0.8'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.7 - Hotfix: resolves a StrictMode VariableNotSet error on common parameters (AB#5410).'
+        ReleaseNotes = 'v3.0.8 - Hotfix: suppress Az module breaking change warnings in non-debug mode.'
 
         # Prerelease string of this module
         # Prerelease = ''
