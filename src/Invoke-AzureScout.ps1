@@ -503,7 +503,7 @@ Function Invoke-AzureScout {
     # warnings so the console remains clean of 400/429 ARC errors. However, we hook
     # Write-Warning to explicitly forward the messages to our structured log, guaranteeing
     # no diagnostics are lost in the background.
-    if (-not ($Debug.IsPresent -or $Verbose.IsPresent)) {
+    if (-not ($PSBoundParameters.ContainsKey('Debug') -or $PSBoundParameters.ContainsKey('Verbose'))) {
         $WarningPreference = 'SilentlyContinue'
         function Write-Warning {
             param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
