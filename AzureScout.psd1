@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.6'
+ModuleVersion = '3.0.7'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.6 - Core UX/Resilience updates: defaults output to C:\AzureScout, suppresses ARC 429 warnings on console, gracefully bypasses locked Excel reports.'
+        ReleaseNotes = 'v3.0.7 - Hotfix: resolves a StrictMode VariableNotSet error on common parameters (AB#5410).'
 
         # Prerelease string of this module
         # Prerelease = ''
