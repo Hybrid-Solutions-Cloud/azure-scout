@@ -505,6 +505,7 @@ Function Invoke-AzureScout {
     # no diagnostics are lost in the background.
     if (-not ($PSBoundParameters.ContainsKey('Debug') -or $PSBoundParameters.ContainsKey('Verbose'))) {
         $WarningPreference = 'SilentlyContinue'
+        $env:SuppressAzurePowerShellBreakingChangeWarnings = 'true'
         function Write-Warning {
             param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
             if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
