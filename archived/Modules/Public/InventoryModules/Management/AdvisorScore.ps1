@@ -16,7 +16,7 @@ https://github.com/thisismydemo/azure-scout/Modules/public/InventoryModules/APIs
 .NOTES
 Version: 3.6.1
 First Release Date: 25th Aug, 2024
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -62,7 +62,7 @@ If ($Task -eq 'Processing') {
                                     'Potential Score Increase'  = $Serie.potentialScoreIncrease;
                                     'Resource U'                = $ResUCount
                                 }
-                                if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                                if ($ResUCount -eq 1) { $ResUCount = 0 }
                                 $obj
                             }
                     }
@@ -93,8 +93,8 @@ Else {
         $Exc.Add('Consumption Units')
         $Exc.Add('Potential Score Increase')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'AdvisorScore' -AutoSize -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -ConditionalText $condtxt -Numberformat '0' -Style $Style
 
     }

@@ -3,7 +3,7 @@
 Inventory for Azure Kubernetes Service (AKS)
 
 .DESCRIPTION
-This script consolidates information for all microsoft.containerservice/managedclusters resource provider in $Resources variable. 
+This script consolidates information for all microsoft.containerservice/managedclusters resource provider in $Resources variable.
 Excel Sheet Name: AKS
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -43,14 +43,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -62,7 +62,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -132,13 +132,13 @@ If ($Task -eq 'Processing')
                                 'Outbound Type'                                 = $data.networkProfile.outboundType;
                                 'Infrastructure Resource Group'                 = $data.noderesourcegroup;
                                 'Cluster Managed Identity'                      = $Identity;
-                                'App Gateway Ingress Controller'                = $Ingress;                        
+                                'App Gateway Ingress Controller'                = $Ingress;
                                 'Private Cluster'                               = $PrivateCluster;
                                 'Private Cluster FQDN'                          = $data.privatefqdn;
                                 'Public Network Access'                         = $PubliAccess;
                                 'Automatic Upgrade Type'                        = $UpgradeChannel;
                                 'Node Security Channel Type'                    = $NodeChannel;
-                                'Container Insights'                            = $Insights;                    
+                                'Container Insights'                            = $Insights;
                                 'API Server Address'                            = $data.fqdn
                                 'Node Pool Name'                                = $2.name;
                                 'Node Pool Power State'                         = $2.powerstate.code;
@@ -170,8 +170,8 @@ If ($Task -eq 'Processing')
                                 'Tag Value'                                     = [string]$Tag.Value
                             }
                             $obj
-                            if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                        }                   
+                            if ($ResUCount -eq 1) { $ResUCount = 0 }
+                        }
                 }
             }
             $tmp
@@ -192,7 +192,7 @@ Else
 
         $Style = @()
         $Style += New-ExcelStyle -HorizontalAlignment Center -AutoSize
-        $Style += New-ExcelStyle -HorizontalAlignment Left -Range AZ:BA -Width 90 -WrapText 
+        $Style += New-ExcelStyle -HorizontalAlignment Left -Range AZ:BA -Width 90 -WrapText
 
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
@@ -251,7 +251,7 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
@@ -259,9 +259,9 @@ Else
         $noNumberConversion += 'Kubernetes Version'
         $noNumberConversion += 'Node Pool Version'
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
-        Export-Excel -Path $File -WorksheetName $SheetName -AutoSize -TableName $TableName -MaxAutoSizeRows 50 -TableStyle $tableStyle -ConditionalText $condtxt -Numberformat '0' -Style $Style -NoNumberConversion $noNumberConversion 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
+        Export-Excel -Path $File -WorksheetName $SheetName -AutoSize -TableName $TableName -MaxAutoSizeRows 50 -TableStyle $tableStyle -ConditionalText $condtxt -Numberformat '0' -Style $Style -NoNumberConversion $noNumberConversion
 
     }
 }

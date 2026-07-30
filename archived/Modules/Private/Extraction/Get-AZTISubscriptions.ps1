@@ -21,7 +21,7 @@ function Get-AZSCSubscriptions {
     if($PlatOS -eq 'Azure CloudShell')
         {
             $Subscriptions = Get-AzSubscription -WarningAction SilentlyContinue -Debug:$false
-            
+
             if ($SubscriptionID)
                 {
                     if(@($SubscriptionID).count -gt 1)
@@ -46,7 +46,7 @@ function Get-AZSCSubscriptions {
                     Write-Host ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+ " Error: $_")
                     return
                 }
-            
+
             if ($SubscriptionID)
                 {
                     if(@($SubscriptionID).count -gt 1)

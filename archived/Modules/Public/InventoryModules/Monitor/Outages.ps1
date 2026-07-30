@@ -16,7 +16,7 @@ https://github.com/thisismydemo/azure-scout/Modules/APIs/Outages.ps1
 .NOTES
 Version: 4.0.1
 First Release Date: 25th Aug, 2024
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -80,7 +80,7 @@ If ($Task -eq 'Processing') {
                             'Resource U'                                                          = $ResUCount
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
                     }
                 }
             $tmp
@@ -106,7 +106,7 @@ Else {
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
         $Exc.Add('Outage ID')
-        $Exc.Add('Event Type')       
+        $Exc.Add('Event Type')
         $Exc.Add('Status')
         $Exc.Add('Event Level')
         $Exc.Add('Title')
@@ -119,8 +119,8 @@ Else {
         $Exc.Add('How are we making incidents like this less likely or less impactful')
         $Exc.Add('How can customers make incidents like this less impactful')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Outages' -AutoSize -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -Numberformat '0' -Style $Style
 
     }

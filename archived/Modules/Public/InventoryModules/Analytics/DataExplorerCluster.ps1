@@ -3,7 +3,7 @@
 Inventory for Azure Data Explorer
 
 .DESCRIPTION
-This script consolidates information for all microsoft.kusto/clusters resource provider in $Resources variable. 
+This script consolidates information for all microsoft.kusto/clusters resource provider in $Resources variable.
 Excel Sheet Name: DataExplorerCluster
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -35,14 +35,14 @@ If ($Task -eq 'Processing') {
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -54,7 +54,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -96,8 +96,8 @@ If ($Task -eq 'Processing') {
                             'Tag Value'                 = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }                
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
         }
@@ -146,12 +146,12 @@ Else {
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        $SmaResources | 
-        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc | 
+        $SmaResources |
+        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Data Explorer Clusters' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
     }

@@ -3,7 +3,7 @@
 Inventory for Azure Purview
 
 .DESCRIPTION
-This script consolidates information for all resource provider in $Resources variable. 
+This script consolidates information for all resource provider in $Resources variable.
 Excel Sheet Name: Purview
 
 .Link
@@ -15,7 +15,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Anal
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -41,14 +41,14 @@ If ($Task -eq 'Processing') {
                 $timecreated = [datetime]$timecreated
                 $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -60,7 +60,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -86,15 +86,15 @@ If ($Task -eq 'Processing') {
                             'Managed Storage Account'           = [string]$StorageAcc;
                             'Managed Event Hub'                 = [string]$eventHubNamespace;
                             'Public Network Access'             = $data.publicNetworkAccess;
-                            'Created By'                        = $data.createdBy;      
+                            'Created By'                        = $data.createdBy;
                             'Created Time'                      = $timecreated;
                             'Resource U'                       = $ResUCount;
                             'Tag Name'                          = [string]$Tag.Name;
                             'Tag Value'                         = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }                
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
         }
@@ -112,7 +112,7 @@ Else {
         $condtxt = @()
         #Retirement
         $condtxt += New-ConditionalText -Range F2:F100 -ConditionalType ContainsText
-        
+
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
         $Exc.Add('Resource Group')
@@ -138,8 +138,8 @@ Else {
             }
         $Exc.Add('Resource U')
 
-        $SmaResources | 
-        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc | 
+        $SmaResources |
+        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Purview' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -ConditionalText $condtxt -TableStyle $tableStyle -Style $Style
 
     }

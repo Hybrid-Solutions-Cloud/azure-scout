@@ -31,7 +31,7 @@ function Get-AZSCCostInventory {
         {
             #$StartDate = ($EndDate).AddDays(-$Days)
             $StartDate = (Get-Date -Day 1).AddMonths(-2)
-        }  
+        }
 
     $Result = Foreach ($Subscription in $Subscriptions)
         {

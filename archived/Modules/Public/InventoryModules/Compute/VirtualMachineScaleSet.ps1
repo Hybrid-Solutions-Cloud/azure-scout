@@ -3,7 +3,7 @@
 Inventory for Azure Virtual Machine Scale Set
 
 .DESCRIPTION
-This script consolidates information for all microsoft.compute/virtualmachinescalesets resource provider in $Resources variable. 
+This script consolidates information for all microsoft.compute/virtualmachinescalesets resource provider in $Resources variable.
 Excel Sheet Name: VMSS
 
 .Link
@@ -17,7 +17,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Comp
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -30,7 +30,7 @@ If ($Task -eq 'Processing')
     <######### Insert the resource extraction here ########>
 
         $vmss = $Resources | Where-Object {$_.TYPE -eq 'microsoft.compute/virtualmachinescalesets'}
-        $AutoScale = $Resources | Where-Object {$_.TYPE -eq "microsoft.insights/autoscalesettings" -and $_.Properties.enabled -eq 'true'} 
+        $AutoScale = $Resources | Where-Object {$_.TYPE -eq "microsoft.insights/autoscalesettings" -and $_.Properties.enabled -eq 'true'}
         $AKS = $Resources | Where-Object {$_.TYPE -eq 'microsoft.containerservice/managedclusters'}
         $SFC = $Resources | Where-Object {$_.TYPE -eq 'microsoft.servicefabric/clusters'}
         $VMExtraDetails = $Resources | Where-Object { $_.TYPE -eq 'AZSC/VM/SKU' }
@@ -51,7 +51,7 @@ If ($Task -eq 'Processing')
                 if([string]::IsNullOrEmpty($Scaling)){$AutoSc = $false}else{$AutoSc = $true}
                 $Diag = if($data.virtualMachineProfile.diagnosticsProfile){'Enabled'}else{'Disabled'}
                 if($OS -eq 'Linux'){$PWD = $data.virtualMachineProfile.osProfile.linuxConfiguration.disablePasswordAuthentication}Else{$PWD = 'N/A'}
-                $AcceleratedNet = if(![string]::IsNullOrEmpty($data.virtualMachineProfile.networkProfile.networkInterfaceConfigurations.properties.enableAcceleratedNetworking)){$true}else{$false} 
+                $AcceleratedNet = if(![string]::IsNullOrEmpty($data.virtualMachineProfile.networkProfile.networkInterfaceConfigurations.properties.enableAcceleratedNetworking)){$true}else{$false}
 
                 # Extra Hardware Details
                 $VMExtraDetail = $VMExtraDetails.properties | Where-Object {$_.Location -eq $1.location}
@@ -81,14 +81,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -100,7 +100,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -109,7 +109,7 @@ If ($Task -eq 'Processing')
                 $VNET = if(![string]::IsNullOrEmpty($subnet)){$Subnet.split('/')[8]}else{$null}
                 $Subnet = if(![string]::IsNullOrEmpty($Subnet)){$Subnet.split('/')[10]}else{$null}
                 $ext = @()
-                $ext = foreach ($ex in $1.Properties.virtualMachineProfile.extensionProfile.extensions.name) 
+                $ext = foreach ($ex in $1.Properties.virtualMachineProfile.extensionProfile.extensions.name)
                                 {
                                     $ex + ', '
                                 }
@@ -127,7 +127,7 @@ If ($Task -eq 'Processing')
                         'Retiring Feature'              = $RetiringFeature;
                         'Retiring Date'                 = $RetiringDate;
                         'Fault Domain'                  = $data.platformFaultDomainCount;
-                        'Upgrade Policy'                = $data.upgradePolicy.mode;                                    
+                        'Upgrade Policy'                = $data.upgradePolicy.mode;
                         'Diagnostics'                   = $Diag;
                         'VM Size'                       = $1.sku.name;
                         'Instances'                     = $1.sku.capacity;
@@ -138,14 +138,14 @@ If ($Task -eq 'Processing')
                         'Autoscale Enabled'             = $AutoSc;
                         'VM OS'                         = $OS;
                         'OS Image'                      = $data.virtualMachineProfile.storageProfile.imageReference.offer;
-                        'Image Version'                 = $data.virtualMachineProfile.storageProfile.imageReference.sku;                            
+                        'Image Version'                 = $data.virtualMachineProfile.storageProfile.imageReference.sku;
                         'VM OS Disk Size (GB)'          = $data.virtualMachineProfile.storageProfile.osDisk.diskSizeGB;
                         'Disk Storage Account Type'     = $data.virtualMachineProfile.storageProfile.osDisk.managedDisk.storageAccountType;
                         'Disable Password Authentication'= $PWD;
                         'Custom DNS Servers'            = [string]$data.virtualMachineProfile.networkProfile.networkInterfaceConfigurations.properties.dnsSettings.dnsServers;
                         'Virtual Network'               = $VNET;
                         'Subnet'                        = $Subnet;
-                        'Accelerated Networking Enabled'= $AcceleratedNet; 
+                        'Accelerated Networking Enabled'= $AcceleratedNet;
                         'Network Security Group'        = $NSG;
                         'Extensions'                    = [string]$ext;
                         'Admin Username'                = $data.virtualMachineProfile.osProfile.adminUsername;
@@ -156,7 +156,7 @@ If ($Task -eq 'Processing')
                         'Tag Value'                     = [string]$Tag.Value
                     }
                     $obj
-                    if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                    if ($ResUCount -eq 1) { $ResUCount = 0 }
                 }
             }
             $tmp
@@ -174,7 +174,7 @@ Else
         $SheetName = 'Virtual Machine Scale Sets'
 
         $TableName = ('VMSSTable_'+(($SmaResources.'Resource U' | Measure-Object -Sum).Sum))
-        $Style = @()        
+        $Style = @()
         $Style += New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0' -Range A:W
         $Style += New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0.0' -Range Y:AA
         $Style += New-ExcelStyle -HorizontalAlignment Left -Range W:W -Width 60 -WrapText
@@ -199,7 +199,7 @@ Else
         $Exc.Add('Retiring Feature')
         $Exc.Add('Retiring Date')
         $Exc.Add('Fault Domain')
-        $Exc.Add('Upgrade Policy')                                   
+        $Exc.Add('Upgrade Policy')
         $Exc.Add('Diagnostics')
         $Exc.Add('VM Size')
         $Exc.Add('Instances')
@@ -210,7 +210,7 @@ Else
         $Exc.Add('Autoscale Enabled')
         $Exc.Add('VM OS')
         $Exc.Add('OS Image')
-        $Exc.Add('Image Version')                        
+        $Exc.Add('Image Version')
         $Exc.Add('VM OS Disk Size (GB)')
         $Exc.Add('Disk Storage Account Type')
         $Exc.Add('Disable Password Authentication')
@@ -226,12 +226,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        $SmaResources | 
-        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc | 
+        $SmaResources |
+        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName $SheetName -AutoSize -MaxAutoSizeRows 50 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
 

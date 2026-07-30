@@ -3,7 +3,7 @@
 Inventory for Azure App Service Plan
 
 .DESCRIPTION
-This script consolidates information for all microsoft.web/serverfarms resource provider in $Resources variable. 
+This script consolidates information for all microsoft.web/serverfarms resource provider in $Resources variable.
 Excel Sheet Name: APPSERVICEPLAN
 
 .Link
@@ -15,7 +15,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Web/
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -30,7 +30,7 @@ If ($Task -eq 'Processing')
 
         $APPSvcPlan = $Resources | Where-Object {$_.TYPE -eq 'microsoft.web/serverfarms'}
         $APPAutoScale = $Resources | Where-Object {$_.TYPE -eq "microsoft.insights/autoscalesettings" -and $_.Properties.enabled -eq 'true'}
-        
+
     <######### Insert the resource Process here ########>
 
     if($APPSvcPlan)
@@ -46,14 +46,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -65,7 +65,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -87,10 +87,10 @@ If ($Task -eq 'Processing')
                             'Intances Size'       = $data.currentWorkerSize;
                             'Current Instances'   = $data.currentNumberOfWorkers;
                             'Autoscale Enabled'   = $AutoSc;
-                            'Max Instances'       = $data.maximumNumberOfWorkers;                                                            
+                            'Max Instances'       = $data.maximumNumberOfWorkers;
                             'App Plan OS'         = if ($data.reserved -eq 'true') { 'Linux' }else { 'Windows' };
                             'Apps Type'           = $data.kind;
-                            'Apps'                = $data.numberOfSites;                    
+                            'Apps'                = $data.numberOfSites;
                             'Zone Redundant'      = $data.zoneRedundant;
                             'Orphaned'            = $Orphaned;
                             'Resource U'          = $ResUCount;
@@ -98,11 +98,11 @@ If ($Task -eq 'Processing')
                             'Tag Value'           = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }               
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
-        }   
+        }
 }
 
 <######## Resource Excel Reporting Begins Here ########>
@@ -124,7 +124,7 @@ Else
         #Retirement
         $condtxt += New-ConditionalText -Range E2:E100 -ConditionalType ContainsText
         $condtxt += New-ConditionalText TRUE -Range H:H
-        
+
 
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
@@ -147,12 +147,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'App Service Plan' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
     }

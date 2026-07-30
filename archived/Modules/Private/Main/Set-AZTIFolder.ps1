@@ -37,5 +37,5 @@ function Set-AZSCFolder {
         {
             Write-Output ($_.Exception.Message)
         }
-    
+
 }

@@ -266,7 +266,7 @@ function New-AZSCPowerBITemplate {
         [void]$mLines.AppendLine('              ),')
         [void]$mLines.AppendLine('    _promoted = Table.PromoteHeaders(_source, [PromoteAllScalars = true]),')
         [void]$mLines.AppendLine('    _typed    = Table.TransformColumnTypes(_promoted,')
-        
+
         # Build column type list — everything as text for maximum compatibility
         $typeList = ($t.Columns | ForEach-Object { "{{`"$_`", type text}}" }) -join ', '
         if ($typeList) {

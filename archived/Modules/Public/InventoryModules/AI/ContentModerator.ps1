@@ -3,7 +3,7 @@
 Inventory for Azure Content Moderator
 
 .DESCRIPTION
-This script consolidates information for all microsoft.cognitiveservices/accounts and resource provider in $Resources variable. 
+This script consolidates information for all microsoft.cognitiveservices/accounts and resource provider in $Resources variable.
 Excel Sheet Name: Content Moderator
 
 .Link
@@ -45,14 +45,14 @@ If ($Task -eq 'Processing')
                 $timecreated = [datetime]$timecreated
                 $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -64,7 +64,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -97,7 +97,7 @@ If ($Task -eq 'Processing')
                                     'Tag Value'                                 = [string]$Tag.Value
                                 }
                                 $tmp += $obj
-                                if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                                if ($ResUCount -eq 1) { $ResUCount = 0 }
                             }
                         }
             }
@@ -142,12 +142,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-            [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+            [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Content Moderator' -AutoSize -MaxAutoSizeRows 100 -ConditionalText $condtxt -TableName $TableName -TableStyle $tableStyle -Style $Style
 
     }

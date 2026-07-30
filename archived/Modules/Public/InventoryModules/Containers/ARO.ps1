@@ -3,7 +3,7 @@
 Inventory for Azure RedHat OpenShift
 
 .DESCRIPTION
-This script consolidates information for all microsoft.redhatopenshift/openshiftclusters resource provider in $Resources variable. 
+This script consolidates information for all microsoft.redhatopenshift/openshiftclusters resource provider in $Resources variable.
 Excel Sheet Name: ARO
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -41,14 +41,14 @@ If ($Task -eq 'Processing') {
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -60,7 +60,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -86,22 +86,22 @@ If ($Task -eq 'Processing') {
                             'API Server IP'        = $data.apiserverProfile.ip;
                             'Docker Pod Cidr'      = $data.networkProfile.podCidr;
                             'Service Cidr'         = $data.networkProfile.serviceCidr;
-                            'Console URL'          = $data.consoleProfile.url;                   
+                            'Console URL'          = $data.consoleProfile.url;
                             'Master SKU'           = $data.masterProfile.vmSize;
                             'Master vNET'          = if($data.masterProfile.subnetId){$data.masterProfile.subnetId.split("/")[8]};
-                            'Master Subnet'        = if($data.masterProfile.subnetId){$data.masterProfile.subnetId.split("/")[10]};                    
-                            'Worker SKU'           = $data.workerProfiles.vmSize | Select-Object -Unique;        
-                            'Worker DiskSize'      = $data.workerProfiles.diskSizeGB | Select-Object -Unique;        
+                            'Master Subnet'        = if($data.masterProfile.subnetId){$data.masterProfile.subnetId.split("/")[10]};
+                            'Worker SKU'           = $data.workerProfiles.vmSize | Select-Object -Unique;
+                            'Worker DiskSize'      = $data.workerProfiles.diskSizeGB | Select-Object -Unique;
                             'Total Worker Nodes'   = @($data.workerProfiles).count;
-                            'Worker vNET'          = $data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[8] } | Select-Object -Unique; 
-                            'Worker Subnet'        = $data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[10] } | Select-Object -Unique;       
+                            'Worker vNET'          = $data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[8] } | Select-Object -Unique;
+                            'Worker Subnet'        = $data.workerProfiles.subnetId | ForEach-Object { $_.split("/")[10] } | Select-Object -Unique;
                             'Resource U'           = $ResUCount;
                             'Tag Name'             = [string]$Tag.Name;
                             'Tag Value'            = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }                
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
         }
@@ -124,39 +124,39 @@ Else {
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
         $Exc.Add('Resource Group')
-        $Exc.Add('Clusters')         
+        $Exc.Add('Clusters')
         $Exc.Add('Location')
         $Exc.Add('Retiring Feature')
-        $Exc.Add('Retiring Date')        
-        $Exc.Add('ARO Version')          
-        $Exc.Add('ARO Domain')           
-        $Exc.Add('Outbound Type')        
+        $Exc.Add('Retiring Date')
+        $Exc.Add('ARO Version')
+        $Exc.Add('ARO Domain')
+        $Exc.Add('Outbound Type')
         $Exc.Add('Ingress Profile Name')
-        $Exc.Add('Ingress Profile type') 
-        $Exc.Add('Ingress Profile IP')   
-        $Exc.Add('API Server type')      
-        $Exc.Add('API Server URL')       
-        $Exc.Add('API Server IP')        
-        $Exc.Add('Docker Pod Cidr')      
-        $Exc.Add('Service Cidr')         
-        $Exc.Add('Console URL')                
-        $Exc.Add('Master SKU')           
-        $Exc.Add('Master vNET')          
-        $Exc.Add('Master Subnet')                     
-        $Exc.Add('Worker SKU')           
-        $Exc.Add('Worker DiskSize')        
-        $Exc.Add('Total Worker Nodes')   
-        $Exc.Add('Worker vNET')          
+        $Exc.Add('Ingress Profile type')
+        $Exc.Add('Ingress Profile IP')
+        $Exc.Add('API Server type')
+        $Exc.Add('API Server URL')
+        $Exc.Add('API Server IP')
+        $Exc.Add('Docker Pod Cidr')
+        $Exc.Add('Service Cidr')
+        $Exc.Add('Console URL')
+        $Exc.Add('Master SKU')
+        $Exc.Add('Master vNET')
+        $Exc.Add('Master Subnet')
+        $Exc.Add('Worker SKU')
+        $Exc.Add('Worker DiskSize')
+        $Exc.Add('Total Worker Nodes')
+        $Exc.Add('Worker vNET')
         $Exc.Add('Worker Subnet')
         if($InTag)
         {
             $Exc.Add('Tag Name')
-            $Exc.Add('Tag Value') 
+            $Exc.Add('Tag Value')
         }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'ARO' -AutoSize -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -ConditionalText $condtxt -Numberformat '0' -Style $Style
     }
 }

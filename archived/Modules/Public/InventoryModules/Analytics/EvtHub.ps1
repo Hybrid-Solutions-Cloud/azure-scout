@@ -3,7 +3,7 @@
 Inventory for Azure EventHubs
 
 .DESCRIPTION
-This script consolidates information for all microsoft.eventhub/namespaces and resource provider in $Resources variable. 
+This script consolidates information for all microsoft.eventhub/namespaces and resource provider in $Resources variable.
 Excel Sheet Name: EvHub
 
 .Link
@@ -15,7 +15,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Anal
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -44,14 +44,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -63,14 +63,14 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
                 $LocalAuth = if($data.disablelocalauth -eq $false){$true}else{$false}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                    foreach ($Tag in $Tags) { 
+                    foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                   = $1.id;
                             'Subscription'         = $sub1.Name;
@@ -95,8 +95,8 @@ If ($Task -eq 'Processing')
                             'Tag Value'            = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }               
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
         }
@@ -139,19 +139,19 @@ Else
         $Exc.Add('Kafka Enabled')
         $Exc.Add('Minimum TLS Version')
         $Exc.Add('Endpoint')
-        $Exc.Add('Created Time')  
+        $Exc.Add('Created Time')
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
         $noNumberConversion = @()
         $noNumberConversion += 'Minimum TLS Version'
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName $SheetName -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style -NoNumberConversion $noNumberConversion
     }
 }

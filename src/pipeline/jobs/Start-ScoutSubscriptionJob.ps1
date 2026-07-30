@@ -47,7 +47,7 @@ function Start-AZSCSubscriptionJob {
 
             $subsWithResources = @{}
 
-            $FormattedTable = foreach ($ResourcesSUB in $ResTable3) 
+            $FormattedTable = foreach ($ResourcesSUB in $ResTable3)
                 {
                     $ResourceDetails = $ResourcesSUB.name -split ", "
                     $SubName = $Subscriptions | Where-Object { $_.Id -eq $ResourceDetails[3] }
@@ -135,7 +135,7 @@ function Start-AZSCSubscriptionJob {
                 'Detailed Cost' = $CostTable.DetailedCost
                 'Year' = $CostTable.Year
                 'Month' = $CostTable.Month
-            }  
+            }
         }
 
         [System.Func[System.Object, [Collections.Generic.IEnumerable[System.Object]], System.Object]]$query = {

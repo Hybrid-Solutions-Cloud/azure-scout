@@ -14,7 +14,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 4.0.1
 First Release Date: 25th Aug, 2024
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -51,7 +51,7 @@ If ($Task -eq 'Processing') {
                         'Tag Value'                 = [string]$Tag.Value
                     }
                     $obj
-                    if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                    if ($ResUCount -eq 1) { $ResUCount = 0 }
                 }
             }
             $tmp
@@ -71,17 +71,17 @@ Else {
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
         $Exc.Add('Name')
-        $Exc.Add('Location')         
+        $Exc.Add('Location')
         $Exc.Add('Principal ID')
         $Exc.Add('Client ID')
         if($InTag)
         {
             $Exc.Add('Tag Name')
-            $Exc.Add('Tag Value') 
+            $Exc.Add('Tag Value')
         }
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Managed Identity' -AutoSize -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -Numberformat '0' -Style $Style
 
     }

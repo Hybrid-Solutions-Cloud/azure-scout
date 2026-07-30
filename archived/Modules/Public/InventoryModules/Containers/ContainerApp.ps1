@@ -3,7 +3,7 @@
 Inventory for Azure Container App instance
 
 .DESCRIPTION
-This script consolidates information for all microsoft.app/containerapps resource provider in $Resources variable. 
+This script consolidates information for all microsoft.app/containerapps resource provider in $Resources variable.
 Excel Sheet Name: Container App
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.7
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -39,14 +39,14 @@ If ($Task -eq 'Processing')
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -58,7 +58,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -81,9 +81,9 @@ If ($Task -eq 'Processing')
                                 'Retiring Date'             = $RetiringDate;
                                 'Running Status'            = $data.runningStatus;
                                 'Container App Environment' = $Env;
-                                'Workload Profile'          = $data.workloadProfileName;  
+                                'Workload Profile'          = $data.workloadProfileName;
                                 'Ingress'                   = $ingress;
-                                'Ingress Port'              = $data.configuration.ingress.targetPort; 
+                                'Ingress Port'              = $data.configuration.ingress.targetPort;
                                 'External Ingress'          = $data.configuration.ingress.external;
                                 'Insecure Connections'      = $data.configuration.ingress.allowInsecure;
                                 'Ingress Transport'         = $data.configuration.ingress.transport;
@@ -99,7 +99,7 @@ If ($Task -eq 'Processing')
                                 'Tag Value'                 = [string]$Tag.Value
                             }
                             $obj
-                            if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                            if ($ResUCount -eq 1) { $ResUCount = 0 }
                         }
                     }
                 }
@@ -152,12 +152,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Container Apps' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -ConditionalText $condtxt -TableStyle $tableStyle -Style $Style
 
     }

@@ -3,7 +3,7 @@
 Inventory for Azure Function and App Services
 
 .DESCRIPTION
-This script consolidates information for all microsoft.web/sites resource provider in $Resources variable. 
+This script consolidates information for all microsoft.web/sites resource provider in $Resources variable.
 Excel Sheet Name: APPServices
 
 .Link
@@ -15,7 +15,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Web/
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -42,14 +42,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -61,7 +61,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -105,17 +105,17 @@ If ($Task -eq 'Processing')
                                 'Virtual Network'               = $VNET;
                                 'Subnet'                        = $SUBNET;
                                 'SSL State'                     = $2.sslState;
-                                'Default Hostname'              = $data.defaultHostName;                        
+                                'Default Hostname'              = $data.defaultHostName;
                                 'Container Size'                = $data.containerSize;
-                                'Admin Enabled'                 = $data.adminEnabled;                        
-                                'FTPs Host Name'                = $data.ftpsHostName;                        
+                                'Admin Enabled'                 = $data.adminEnabled;
+                                'FTPs Host Name'                = $data.ftpsHostName;
                                 'Resource U'                    = $ResUCount;
                                 'Tag Name'                      = [string]$Tag.Name;
                                 'Tag Value'                     = [string]$Tag.Value
                             }
                             $obj
-                            if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                        }                   
+                            if ($ResUCount -eq 1) { $ResUCount = 0 }
+                        }
                 }
             }
             $tmp
@@ -171,9 +171,9 @@ Else
         $Exc.Add('Virtual Network')
         $Exc.Add('Subnet')
         $Exc.Add('SSL State')
-        $Exc.Add('Default Hostname')                      
+        $Exc.Add('Default Hostname')
         $Exc.Add('Container Size')
-        $Exc.Add('Admin Enabled')                       
+        $Exc.Add('Admin Enabled')
         $Exc.Add('FTPs Host Name')
         if($InTag)
             {
@@ -182,8 +182,8 @@ Else
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'App Services' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
     }

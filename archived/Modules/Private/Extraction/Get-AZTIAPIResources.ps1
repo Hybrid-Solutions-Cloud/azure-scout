@@ -37,11 +37,11 @@ function Get-AZSCAPIResources {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Error: ' + $_.Exception.Message)
             return
         }
-    
+
 
     if ($AzureEnvironment -eq 'AzureCloud') {
         $AzURL = 'management.azure.com'
-    } 
+    }
     elseif ($AzureEnvironment -eq 'AzureUSGovernment') {
         $AzURL = 'management.usgovcloudapi.net'
     }
@@ -81,7 +81,7 @@ function Get-AZSCAPIResources {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Error: ' + $_.Exception.Message)
                 $ResourceHealth = ""
             }
-            
+
             Start-Sleep -Milliseconds 200
 
             #Managed Identities
@@ -173,7 +173,7 @@ function Get-AZSCAPIResources {
 
         $Carbon = Invoke-RestMethod -Uri $url -Headers $header -Body ($Body | ConvertTo-Json) -Method POST -ContentType 'application/json'
 
-        
+
 
         $Today = Get-Date
         $EndDate = Get-Date -Year $Today.Year -Month $Today.Month -Day $Today.Day -Hour 23 -Minute 59 -Second 59 -Millisecond 0

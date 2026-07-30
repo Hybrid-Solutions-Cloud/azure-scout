@@ -3,7 +3,7 @@
 Inventory for Azure Virtual WAN
 
 .DESCRIPTION
-This script consolidates information for all microsoft.network/virtualwans and  resource provider in $Resources variable. 
+This script consolidates information for all microsoft.network/virtualwans and  resource provider in $Resources variable.
 Excel Sheet Name: VirtualWAN
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -38,14 +38,14 @@ If ($Task -eq 'Processing') {
                 $vhub = $VirtualHub | Where-Object { $_.ID -in $data.virtualHubs.id }
                 $vpn = $VPNSite | Where-Object { $_.ID -in $data.vpnSites.id }
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -57,7 +57,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -66,8 +66,8 @@ If ($Task -eq 'Processing') {
                 if($vpn)
                     {
                         foreach ($2 in $vhub) {
-                            foreach ($3 in $vpn) {                        
-                                    foreach ($Tag in $Tags) {  
+                            foreach ($3 in $vpn) {
+                                    foreach ($Tag in $Tags) {
                                         $obj = @{
                                             'ID'                                 = $1.id;
                                             'Subscription'                       = $sub1.Name;
@@ -96,15 +96,15 @@ If ($Task -eq 'Processing') {
                                             'Tag Value'                          = [string]$Tag.Value
                                         }
                                         $obj
-                                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                                    }                       
+                                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                                    }
                             }
                         }
                     }
                 else
                     {
-                        foreach ($2 in $vhub) {                    
-                                    foreach ($Tag in $Tags) {  
+                        foreach ($2 in $vhub) {
+                                    foreach ($Tag in $Tags) {
                                         $obj = @{
                                             'ID'                                 = $1.id;
                                             'Subscription'                       = $sub1.Name;
@@ -133,8 +133,8 @@ If ($Task -eq 'Processing') {
                                             'Tag Value'                          = [string]$Tag.Value
                                         }
                                         $obj
-                                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                                    }                       
+                                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                                    }
                             }
                     }
             }
@@ -154,34 +154,34 @@ Else {
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Subscription')
         $Exc.Add('Resource Group')
-        $Exc.Add('Name')                              
+        $Exc.Add('Name')
         $Exc.Add('Location')
         $Exc.Add('Retiring Feature')
-        $Exc.Add('Retiring Date')                
-        $Exc.Add('Allow BranchToBranch Traffic')        
-        $Exc.Add('Allow VnetToVnet Traffic')            
-        $Exc.Add('Disable Vpn Encryption')              
-        $Exc.Add('HUB Name')                          
-        $Exc.Add('HUB Location')                      
-        $Exc.Add('HUB Address Prefix')                
-        $Exc.Add('HUB Gateway Preference')            
-        $Exc.Add('HUB Router ASN')                   
-        $Exc.Add('HUB Router IPs')                   
-        $Exc.Add('Virtual Site Name')                 
-        $Exc.Add('Device Vendor')                     
-        $Exc.Add('Device Vendor IpAddress')           
-        $Exc.Add('Link Provider name')                
-        $Exc.Add('Link Speed in Mbps')                
-        $Exc.Add('Virtual Site Private Address Space') 
+        $Exc.Add('Retiring Date')
+        $Exc.Add('Allow BranchToBranch Traffic')
+        $Exc.Add('Allow VnetToVnet Traffic')
+        $Exc.Add('Disable Vpn Encryption')
+        $Exc.Add('HUB Name')
+        $Exc.Add('HUB Location')
+        $Exc.Add('HUB Address Prefix')
+        $Exc.Add('HUB Gateway Preference')
+        $Exc.Add('HUB Router ASN')
+        $Exc.Add('HUB Router IPs')
+        $Exc.Add('Virtual Site Name')
+        $Exc.Add('Device Vendor')
+        $Exc.Add('Device Vendor IpAddress')
+        $Exc.Add('Link Provider name')
+        $Exc.Add('Link Speed in Mbps')
+        $Exc.Add('Virtual Site Private Address Space')
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Virtual WAN' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -Style $Style -ConditionalText $condtxt
 
     }

@@ -3,7 +3,7 @@
 Inventory for Azure Backup Items
 
 .DESCRIPTION
-This script consolidates information for all microsoft.recoveryservices/vaults/backuppolicies resource provider in $Resources variable. 
+This script consolidates information for all microsoft.recoveryservices/vaults/backuppolicies resource provider in $Resources variable.
 Excel Sheet Name: Backup
 
 .Link
@@ -17,7 +17,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Mana
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -160,12 +160,12 @@ Else
         if($InTag)
         {
             $Exc.Add('Tag Name')
-            $Exc.Add('Tag Value') 
+            $Exc.Add('Tag Value')
         }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Backup' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
     }

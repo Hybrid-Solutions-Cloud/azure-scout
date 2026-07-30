@@ -71,12 +71,12 @@ Function Start-AZSCDiagramOrganization {
 
     Function Add-Icon {
         Param($Style,$x,$y,$w,$h,$p)
-        
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('style', $Style)
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -84,15 +84,15 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
         }
 
     Function Add-Connection {
         Param($Source,$Target,$Parent)
-        
+
             if($Parent){$Parent = $Parent}else{$Parent = 1}
-        
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
             $Script:XmlWriter.WriteAttributeString('style', "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;")
@@ -103,27 +103,27 @@ Function Start-AZSCDiagramOrganization {
             $Script:XmlWriter.WriteAttributeString('parent', $Parent)
             $Script:XmlWriter.WriteAttributeString('source', $Source)
             $Script:XmlWriter.WriteAttributeString('target', $Target)
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('relative', "1")
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
-        
+
         }
 
     Function Add-Container0 {
         Param($x,$y,$w,$h,$title)
             $Script:ContID0 = (-join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})+'-'+1)
-    
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID0)
             $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;swimlaneFillColor=#F5F5F5;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', "1")
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -131,21 +131,21 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
     }
 
     Function Add-Container1 {
         Param($x,$y,$w,$h,$title)
             $Script:ContID = (-join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})+'-'+1)
-    
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID)
             $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', "1")
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -153,21 +153,21 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
     }
 
     Function Add-Container2 {
         Param($x,$y,$w,$h,$title,$p)
             $Script:ContID2 = (-join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})+'-'+1)
-    
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID2)
             $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -175,21 +175,21 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
     }
 
     Function Add-Container3 {
         Param($x,$y,$w,$h,$title,$p)
             $Script:ContID3 = (-join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})+'-'+1)
-    
+
             $Script:XmlWriter.WriteStartElement('mxCell')
             $Script:XmlWriter.WriteAttributeString('id', $Script:ContID3)
             $Script:XmlWriter.WriteAttributeString('value', (Get-AZSCDiagramSafeLabel -Text $title))
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;swimlaneFillColor=#FFE6CC;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -197,7 +197,7 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
     }
 
@@ -214,7 +214,7 @@ Function Start-AZSCDiagramOrganization {
             $Script:XmlWriter.WriteAttributeString('style', "swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;rounded=1;")
             $Script:XmlWriter.WriteAttributeString('vertex', "1")
             $Script:XmlWriter.WriteAttributeString('parent', $p)
-        
+
                 $Script:XmlWriter.WriteStartElement('mxGeometry')
                 $Script:XmlWriter.WriteAttributeString('x', $x)
                 $Script:XmlWriter.WriteAttributeString('y', $y)
@@ -222,7 +222,7 @@ Function Start-AZSCDiagramOrganization {
                 $Script:XmlWriter.WriteAttributeString('height', $h)
                 $Script:XmlWriter.WriteAttributeString('as', "geometry")
                 $Script:XmlWriter.WriteEndElement()
-            
+
             $Script:XmlWriter.WriteEndElement()
     }
 
@@ -239,7 +239,7 @@ Function Start-AZSCDiagramOrganization {
 
     Function Start-OrgDiagram {
 
-            $OrgObjs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions'} 
+            $OrgObjs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions'}
 
             $Script:1stLevel = @()
             $Lvl2 = @()
@@ -282,7 +282,7 @@ Function Start-AZSCDiagramOrganization {
 
             $Script:XTop = $Script:XTop + 200
 
-            $RoundSubs00 = @() 
+            $RoundSubs00 = @()
             foreach($Sub in $OrgObjs)
                     {
                         if($Sub.properties.managementgroupancestorschain[0].displayname -eq 'tenant root group')
@@ -290,7 +290,7 @@ Function Start-AZSCDiagramOrganization {
                                 $RoundSubs00 += $Sub
                             }
                     }
-            
+
             # Use the array's own .Count rather than member-enumerating .id.count: when
             # $RoundSubs00 is empty, property-enumeration over zero elements throws
             # "the property 'id' cannot be found" under strict mode (the module runs
@@ -301,10 +301,10 @@ Function Start-AZSCDiagramOrganization {
 
             Add-Container0 '0' '0' '200' $MgmtHeight0 'tenant root group'
 
-            $Script:XmlWriter.WriteStartElement('object')            
+            $Script:XmlWriter.WriteStartElement('object')
             $Script:XmlWriter.WriteAttributeString('label', '')
             $Script:XmlWriter.WriteAttributeString('ManagementGroup', 'tenant root group')
-            $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+            $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                 if($RoundSubs00)
                     {
@@ -324,7 +324,7 @@ Function Start-AZSCDiagramOrganization {
             {
                 $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
-                $Script:XmlWriter.WriteStartElement('object')            
+                $Script:XmlWriter.WriteStartElement('object')
                 $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
@@ -333,7 +333,7 @@ Function Start-AZSCDiagramOrganization {
 
                 $Script:XmlWriter.WriteEndElement()
 
-                $Script:XmlWriter.WriteStartElement('object')            
+                $Script:XmlWriter.WriteStartElement('object')
                 $Script:XmlWriter.WriteAttributeString('label', '')
 
                 $RGNum = 1
@@ -343,8 +343,8 @@ Function Start-AZSCDiagramOrganization {
                         $Script:XmlWriter.WriteAttributeString($Attr, [string]$RG.Name)
                         $RGNum++
                     }
-                
-                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+
+                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                     Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID0
 
@@ -359,8 +359,8 @@ Function Start-AZSCDiagramOrganization {
 
             foreach($1stlvl in $Script:1stLevel)
                 {
-                $RoundSubs0 = @() 
-                
+                $RoundSubs0 = @()
+
                 foreach($Sub in $OrgObjs)
                     {
                         if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "displayname" -Index 0) -eq $1stlvl)
@@ -371,12 +371,12 @@ Function Start-AZSCDiagramOrganization {
 
                 $MgmtHeight = ((@($RoundSubs0).Count * 70) + 80)
 
-                Add-Container1 $XLeft $XTop '200' $MgmtHeight $1stlvl $Script:ContID0       
-                
-                $Script:XmlWriter.WriteStartElement('object')            
+                Add-Container1 $XLeft $XTop '200' $MgmtHeight $1stlvl $Script:ContID0
+
+                $Script:XmlWriter.WriteStartElement('object')
                 $Script:XmlWriter.WriteAttributeString('label', '')
                 $Script:XmlWriter.WriteAttributeString('ManagementGroup', [string]$1stlvl)
-                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                 if($RoundSubs0)
                     {
@@ -386,7 +386,7 @@ Function Start-AZSCDiagramOrganization {
                     {
                         Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID
                     }
-    
+
                 $Script:XmlWriter.WriteEndElement()
 
                 Add-Connection $Script:ContID0 $Script:ContID
@@ -398,7 +398,7 @@ Function Start-AZSCDiagramOrganization {
                     {
                         $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
-                        $Script:XmlWriter.WriteStartElement('object')            
+                        $Script:XmlWriter.WriteStartElement('object')
                         $Script:XmlWriter.WriteAttributeString('label', (Get-AZSCDiagramSafeLabel -Text $sub.name))
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
@@ -407,7 +407,7 @@ Function Start-AZSCDiagramOrganization {
 
                         $Script:XmlWriter.WriteEndElement()
 
-                        $Script:XmlWriter.WriteStartElement('object')            
+                        $Script:XmlWriter.WriteStartElement('object')
                         $Script:XmlWriter.WriteAttributeString('label', '')
 
                         $RGNum = 1
@@ -417,8 +417,8 @@ Function Start-AZSCDiagramOrganization {
                                 $Script:XmlWriter.WriteAttributeString($Attr, [string]$RG.Name)
                                 $RGNum++
                             }
-                        
-                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+
+                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                             Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID
 
@@ -427,12 +427,12 @@ Function Start-AZSCDiagramOrganization {
                         $LocalTop = $LocalTop + 90
 
                     }
-                
+
                 ######################################## 2ND LEVEL ##############################################
-                
+
                 $2ndLevel = @()
                 foreach($sub2nd in $OrgObjs)
-                {                 
+                {
                     if((Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "displayname" -Index 1) -eq $1stlvl)
                         {
                             $2ndLevel += (Get-AZSCDiagramChainValue -Chain $sub2nd.properties.managementgroupancestorschain -Property "name" -Index 0)
@@ -447,7 +447,7 @@ Function Start-AZSCDiagramOrganization {
                         }
                 }
                 $2ndLevel = @($2ndLevel | Select-Object -Unique)
-                
+
                 $XXLeft = 0
                 if($2ndLevel.count  % 2 -eq 1 )
                     {
@@ -458,7 +458,7 @@ Function Start-AZSCDiagramOrganization {
                     {
                         $Align = $false
                         $loops = [Math]::ceiling($2ndLevel.count / 2)
-                        
+
                     }
                 if($2ndLevel.count -eq 1)
                     {
@@ -469,10 +469,10 @@ Function Start-AZSCDiagramOrganization {
 
                 foreach($2nd in $2ndLevel)
                     {
-                        $RoundSubs = @() 
+                        $RoundSubs = @()
                         $Temp3rd = @()
                         $Temp4rd = @()
-                        $Temp5th = @()                                        
+                        $Temp5th = @()
 
                         foreach($Sub in $OrgObjs)
                             {
@@ -539,15 +539,15 @@ Function Start-AZSCDiagramOrganization {
                             }
 
                         $MgmtHeight1 = if(((@($RoundSubs).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs).Count * 90) + 50)}
-                        
+
                         $XXTop = $MgmtHeight + 200
 
                         Add-Container2 $XXLeft $XXTop '200' $MgmtHeight1 $2nd $Script:ContID
 
-                        $Script:XmlWriter.WriteStartElement('object')            
+                        $Script:XmlWriter.WriteStartElement('object')
                         $Script:XmlWriter.WriteAttributeString('label', '')
                         $Script:XmlWriter.WriteAttributeString('ManagementGroup', [string]$2nd)
-                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                         if($RoundSubs)
                             {
@@ -577,7 +577,7 @@ Function Start-AZSCDiagramOrganization {
                         $LocalLeft = 25
 
                         foreach($Sub in $RoundSubs)
-                            {                                
+                            {
                                 $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
                                 $Script:XmlWriter.WriteStartElement('object')
@@ -589,7 +589,7 @@ Function Start-AZSCDiagramOrganization {
 
                                 $Script:XmlWriter.WriteEndElement()
 
-                                $Script:XmlWriter.WriteStartElement('object')            
+                                $Script:XmlWriter.WriteStartElement('object')
                                 $Script:XmlWriter.WriteAttributeString('label', '')
 
                                 $RGNum = 1
@@ -599,8 +599,8 @@ Function Start-AZSCDiagramOrganization {
                                         $Script:XmlWriter.WriteAttributeString($Attr, [string]$RG.Name)
                                         $RGNum++
                                     }
-                                
-                                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+
+                                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                     Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID2
 
@@ -614,7 +614,7 @@ Function Start-AZSCDiagramOrganization {
 
                         $3rdLevel = @()
                         foreach($sub3rd in $OrgObjs)
-                            {                 
+                            {
                                 if((Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $2nd)
                                     {
                                         $3rdLevel += (Get-AZSCDiagramChainValue -Chain $sub3rd.properties.managementgroupancestorschain -Property "name" -Index 0)
@@ -640,7 +640,7 @@ Function Start-AZSCDiagramOrganization {
                                 {
                                     $Align3 = $false
                                     $loops3 = [Math]::ceiling($3rdLevel.count / 2) - 1
-                                    
+
                                 }
                             if($3rdLevel.count -eq 1)
                                 {
@@ -649,11 +649,11 @@ Function Start-AZSCDiagramOrganization {
 
 
                         foreach($3rd in $3rdLevel)
-                            {   
-                                $RoundSubs3 = @() 
+                            {
+                                $RoundSubs3 = @()
                                 $Temp4rd3 = @()
                                 $Temp5th3 = @()
-                        
+
                                 foreach($Sub in $OrgObjs)
                                     {
                                         if((Get-AZSCDiagramChainValue -Chain $Sub.properties.managementgroupancestorschain -Property "name" -Index 0) -eq $3rd)
@@ -673,7 +673,7 @@ Function Start-AZSCDiagramOrganization {
 
                                 $Temp4rd3 = @($Temp4rd3 | Select-Object -Unique)
                                 $Temp5th3 = @($Temp5th3 | Select-Object -Unique)
-                            
+
 
                                 if($XXXLeft -eq 0 -and $Align3 -eq $true)
                                     {
@@ -717,17 +717,17 @@ Function Start-AZSCDiagramOrganization {
                                         $loops3++
                                     }
 
-                                
+
                                 $MgmtHeight2 = if(((@($RoundSubs3).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs3).Count * 90) + 50)}
 
                                 $XXXTop = $MgmtHeight1 + 200
 
                                 Add-Container3 $XXXLeft $XXXTop '200' $MgmtHeight2 $3rd $Script:ContID2
 
-                                $Script:XmlWriter.WriteStartElement('object')            
+                                $Script:XmlWriter.WriteStartElement('object')
                                 $Script:XmlWriter.WriteAttributeString('label', '')
                                 $Script:XmlWriter.WriteAttributeString('ManagementGroup', [string]$3rd)
-                                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+                                $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                 if($RoundSubs3)
                                     {
@@ -755,7 +755,7 @@ Function Start-AZSCDiagramOrganization {
                                 $LocalLeft = 25
 
                                 foreach($Sub in $RoundSubs3)
-                                    {                                
+                                    {
 
                                         $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
@@ -768,7 +768,7 @@ Function Start-AZSCDiagramOrganization {
 
                                         $Script:XmlWriter.WriteEndElement()
 
-                                        $Script:XmlWriter.WriteStartElement('object')            
+                                        $Script:XmlWriter.WriteStartElement('object')
                                         $Script:XmlWriter.WriteAttributeString('label', '')
 
                                         $RGNum = 1
@@ -778,8 +778,8 @@ Function Start-AZSCDiagramOrganization {
                                                 $Script:XmlWriter.WriteAttributeString($Attr, [string]$RG.Name)
                                                 $RGNum++
                                             }
-                                        
-                                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+
+                                        $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                             Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID3
 
@@ -793,7 +793,7 @@ Function Start-AZSCDiagramOrganization {
 
                                     $4thLevel = @()
                                     foreach($sub4th in $OrgObjs)
-                                        {                 
+                                        {
                                             if((Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 1) -eq $3rd)
                                                 {
                                                     $4thLevel += (Get-AZSCDiagramChainValue -Chain $sub4th.properties.managementgroupancestorschain -Property "name" -Index 0)
@@ -897,18 +897,18 @@ Function Start-AZSCDiagramOrganization {
                                                     $XXXXLeft = $XXXXLeft + $XXXXTemp
                                                     $loops4++
                                                 }
-                
-                                            
+
+
                                             $MgmtHeight3 = if(((@($RoundSubs4).Count * 90) + 50) -eq 50){80}else{((@($RoundSubs4).Count * 90) + 50)}
 
                                             $XXXXTop = $MgmtHeight2 + 200
 
                                             Add-Container4 $XXXXLeft $XXXXTop '200' $MgmtHeight3 $4th $Script:ContID3
 
-                                            $Script:XmlWriter.WriteStartElement('object')            
+                                            $Script:XmlWriter.WriteStartElement('object')
                                             $Script:XmlWriter.WriteAttributeString('label', '')
                                             $Script:XmlWriter.WriteAttributeString('ManagementGroup', [string]$4th)
-                                            $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+                                            $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                             if($RoundSubs4)
                                                 {
@@ -936,7 +936,7 @@ Function Start-AZSCDiagramOrganization {
                                             $LocalLeft = 25
 
                                             foreach($Sub in $RoundSubs4)
-                                                {                                
+                                                {
 
                                                     $RGs = $ResourceContainers | Where-Object {$_.Type -eq 'microsoft.resources/subscriptions/resourcegroups' -and $_.subscriptionid -eq $sub.subscriptionid}
 
@@ -949,7 +949,7 @@ Function Start-AZSCDiagramOrganization {
 
                                                     $Script:XmlWriter.WriteEndElement()
 
-                                                    $Script:XmlWriter.WriteStartElement('object')            
+                                                    $Script:XmlWriter.WriteStartElement('object')
                                                     $Script:XmlWriter.WriteAttributeString('label', '')
 
                                                     $RGNum = 1
@@ -960,7 +960,7 @@ Function Start-AZSCDiagramOrganization {
                                                             $RGNum++
                                                         }
 
-                                                    $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))                        
+                                                    $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                                                         Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID4
 
@@ -1050,11 +1050,11 @@ Function Start-AZSCDiagramOrganization {
 
 
                     $Script:XmlWriter.WriteEndElement()
-                
+
                 $Script:XmlWriter.WriteEndElement()
 
             $Script:XmlWriter.WriteEndElement()
-        
+
         $Script:XmlWriter.WriteEndElement()
 
     $Script:XmlWriter.WriteEndDocument()

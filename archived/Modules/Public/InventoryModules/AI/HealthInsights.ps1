@@ -3,7 +3,7 @@
 Inventory for Azure Health Insights
 
 .DESCRIPTION
-This script consolidates information for all microsoft.cognitiveservices/accounts and resource provider in $Resources variable. 
+This script consolidates information for all microsoft.cognitiveservices/accounts and resource provider in $Resources variable.
 Excel Sheet Name: Health Insights
 
 .Link
@@ -47,14 +47,14 @@ If ($Task -eq 'Processing')
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredFeature.RetiringFeature
-                                        'RetiredDate'               = $Retired.RetirementDate 
+                                        'RetiredDate'               = $Retired.RetirementDate
                                     }
                                 $tmp
                             }
@@ -65,8 +65,8 @@ If ($Task -eq 'Processing')
                         $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
-                    } 
-                else 
+                    }
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -102,7 +102,7 @@ If ($Task -eq 'Processing')
                                     'Tag Value'                                 = [string]$Tag.Value
                                 }
                                 $obj
-                                if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                                if ($ResUCount -eq 1) { $ResUCount = 0 }
                             }
                         }
             }
@@ -148,12 +148,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        $SmaResources | 
-        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc | 
+        $SmaResources |
+        ForEach-Object { [PSCustomObject]$_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Health Insights' -AutoSize -MaxAutoSizeRows 100 -ConditionalText $condtxt -TableName $TableName -TableStyle $tableStyle -Style $Style
 
     }

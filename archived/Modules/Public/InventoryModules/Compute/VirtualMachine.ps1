@@ -3,7 +3,7 @@
 Inventory for Azure Virtual Machine
 
 .DESCRIPTION
-This script consolidates information for all microsoft.compute/virtualmachines resource provider in $Resources variable. 
+This script consolidates information for all microsoft.compute/virtualmachines resource provider in $Resources variable.
 Excel Sheet Name: Virtual Machines
 
 .Link
@@ -17,7 +17,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Comp
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -37,9 +37,9 @@ If ($Task -eq 'Processing')
         $VMQuotas = $Resources | Where-Object { $_.TYPE -eq 'AZSC/VM/Quotas' }
 
     if($vm)
-        {    
+        {
 
-            $tmp = foreach ($1 in $vm) 
+            $tmp = foreach ($1 in $vm)
                 {
                     $ResUCount = 1
                     # $SUB does not always contain the resource's subscription -- a management-group
@@ -120,14 +120,14 @@ If ($Task -eq 'Processing')
                         {
                             if ($Retirement.id -eq $1.id) { $Retirement }
                         }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [PSCustomObject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -139,13 +139,13 @@ If ($Task -eq 'Processing')
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
                         }
 
-                    #Extensions 
+                    #Extensions
                     $ext = @()
                     $AzDiag = ''
                     $Azinsights = ''
@@ -165,9 +165,9 @@ If ($Task -eq 'Processing')
                         {
                             if (($vmextension.id -split "/")[8] -eq $1.name) { $vmextension.properties.Publisher }
                         }
-                    if ($null -ne $ext) 
+                    if ($null -ne $ext)
                         {
-                            $ext = foreach ($ex in $ext) 
+                            $ext = foreach ($ex in $ext)
                                 {
                                     if ($ex | Where-Object { $_ -eq 'Microsoft.Azure.Performance.Diagnostics' }) { $AzDiag = $true }
                                     if ($ex | Where-Object { $_ -eq 'Microsoft.EnterpriseCloud.Monitoring' }) { $Azinsights = $true }
@@ -484,7 +484,7 @@ If ($Task -eq 'Processing')
                             }
                         } catch {}
 
-                        foreach ($Tag in $Tags) 
+                        foreach ($Tag in $Tags)
                             {
                                 $obj = @{
                                 'ID'                                    = $1.id;
@@ -636,7 +636,7 @@ else
             $Exc.Add('Private IP Address')
             $Exc.Add('Private IP Allocation')
             $Exc.Add('Public IP')
-            $Exc.Add('Creation Time')                
+            $Exc.Add('Creation Time')
             $Exc.Add('VM Extensions')
             $Exc.Add('Avg CPU % (7d)')
             $Exc.Add('Avg Memory % (7d)')
@@ -648,7 +648,7 @@ else
             if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
 
             $noNumberConversion = @()
@@ -657,8 +657,8 @@ else
             $noNumberConversion += 'Private IP Address'
             $noNumberConversion += 'DNS Servers'
 
-            [PSCustomObject]$SmaResources | 
-            ForEach-Object { $_ } | Select-Object $Exc | 
+            [PSCustomObject]$SmaResources |
+            ForEach-Object { $_ } | Select-Object $Exc |
             Export-Excel -Path $File -WorksheetName $SheetName -TableName $TableName -TableStyle $tableStyle -MaxAutoSizeRows 100 -ConditionalText $condtxt -Style $Style -NoNumberConversion $noNumberConversion
 
         }

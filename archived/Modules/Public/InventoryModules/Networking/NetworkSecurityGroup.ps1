@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Christopher Lewis, Claudio Merola 
+Authors: Christopher Lewis, Claudio Merola
 
 #>
 
@@ -36,14 +36,14 @@ If ($Task -eq 'Processing') {
             $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
             $data = $1.PROPERTIES
             $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-            if ($Retired) 
+            if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -55,7 +55,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -85,7 +85,7 @@ If ($Task -eq 'Processing') {
                                 {
                                     $RelatedNics += $NICID.split('/')[12]
                                 }
-                            
+
                         }
                     $FinalNICs = if ($RelatedNics.count -gt 1) { $RelatedNics | ForEach-Object { $_ + ' ,' } }else { $RelatedNics }
                     $FinalNICs = [string]$FinalNICs
@@ -224,7 +224,7 @@ If ($Task -eq 'Processing') {
                     if ($ResUCount -eq 1) { $ResUCount = 0 }
                     $obj
                 }
-            }    
+            }
         }
         $tmp
     }

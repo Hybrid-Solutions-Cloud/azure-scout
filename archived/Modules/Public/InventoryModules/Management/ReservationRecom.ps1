@@ -16,7 +16,7 @@ https://github.com/thisismydemo/azure-scout/Modules/APIs/ReservationRecom.ps1
 .NOTES
 Version: 4.0.1
 First Release Date: 25th Aug, 2024
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -94,8 +94,8 @@ Else {
         $Exc.Add('Reservation Term')
         $Exc.Add('Scope')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Reservation Advisor' -AutoSize -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -Style $Style
 
     }

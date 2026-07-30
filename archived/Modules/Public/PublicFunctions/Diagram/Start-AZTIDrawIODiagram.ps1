@@ -48,26 +48,26 @@ function Start-AZSCDrawIODiagram {
     # only accidentally sequenced.
     $Job = Start-AZSCDiagramJob -Resources $Resources -Automation $Automation
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting Draw.IO Diagram File') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting Draw.IO Diagram File') | Out-File -FilePath $LogFile -Append
 
     $XMLFiles = @()
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting XML files to be clean') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Setting XML files to be clean') | Out-File -FilePath $LogFile -Append
 
     $XMLFiles += Join-Path $DiagramCache 'Organization.xml'
     $XMLFiles += Join-Path $DiagramCache 'Subscriptions.xml'
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Cleaning old files') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Cleaning old files') | Out-File -FilePath $LogFile -Append
 
     foreach($File in $XMLFiles)
         {
             Remove-Item -Path $File -ErrorAction SilentlyContinue
         }
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Jobs') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Jobs') | Out-File -FilePath $LogFile -Append
 
     if ([bool]$Automation) {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Thread Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Thread Job') | Out-File -FilePath $LogFile -Append
         Start-ThreadJob -Name 'Diagram_Subscriptions' -ScriptBlock {
             try
             {
@@ -81,7 +81,7 @@ function Start-AZSCDrawIODiagram {
     }
     else
     {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Job') | Out-File -FilePath $LogFile -Append
         Start-Job -Name 'Diagram_Subscriptions' -ScriptBlock {
             try
                 {
@@ -95,10 +95,10 @@ function Start-AZSCDrawIODiagram {
         } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile, $AZSCModule
     }
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Jobs') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Jobs') | Out-File -FilePath $LogFile -Append
 
     if ([bool]$Automation) {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Thread Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Thread Job') | Out-File -FilePath $LogFile -Append
         Start-ThreadJob -Name 'Diagram_Organization' -ScriptBlock {
             try
             {
@@ -112,7 +112,7 @@ function Start-AZSCDrawIODiagram {
     }
     else
     {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Job') | Out-File -FilePath $LogFile -Append
         Start-Job -Name 'Diagram_Organization' -ScriptBlock {
             try
             {
@@ -133,7 +133,7 @@ function Start-AZSCDrawIODiagram {
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Jobs') | Out-File -FilePath $LogFile -Append
 
     if ([bool]$Automation) {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append
         Start-ThreadJob -Name 'Diagram_NetworkTopology' -ScriptBlock {
             try
             {
@@ -147,7 +147,7 @@ function Start-AZSCDrawIODiagram {
     }
     else
     {
-        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Job') | Out-File -FilePath $LogFile -Append 
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Job') | Out-File -FilePath $LogFile -Append
         Start-Job -Name 'Diagram_NetworkTopology' -ScriptBlock {
             try
             {
@@ -161,11 +161,11 @@ function Start-AZSCDrawIODiagram {
         } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation, $AZSCModule
     }
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting for Jobs') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting for Jobs') | Out-File -FilePath $LogFile -Append
 
     (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Wait-Job
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Merging XML Files') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Merging XML Files') | Out-File -FilePath $LogFile -Append
     Set-AZSCDiagramFile -XMLFiles $XMLFiles -DDFile $DDFile -LogFile $LogFile
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Log Details from Jobs') | Out-File -FilePath $LogFile -Append
@@ -181,5 +181,5 @@ function Start-AZSCDrawIODiagram {
 
     (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Remove-Job
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram Complete') | Out-File -FilePath $LogFile -Append 
+    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram Complete') | Out-File -FilePath $LogFile -Append
 }

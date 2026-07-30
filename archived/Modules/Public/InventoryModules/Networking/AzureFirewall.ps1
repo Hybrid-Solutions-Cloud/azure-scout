@@ -3,7 +3,7 @@
 Inventory for Azure Firewall
 
 .DESCRIPTION
-This script consolidates information for all microsoft.network/azurefirewalls and  resource provider in $Resources variable. 
+This script consolidates information for all microsoft.network/azurefirewalls and  resource provider in $Resources variable.
 Excel Sheet Name: AzureFirewall
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -33,8 +33,8 @@ If ($Task -eq 'Processing') {
 
     if($AzureFirewall)
         {
-            $tmp = foreach ($1 in $AzureFirewall) 
-                { 
+            $tmp = foreach ($1 in $AzureFirewall)
+                {
                     $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                     $data = $1.PROPERTIES
                     if ($1.zones) { $Zones = $1.zones } Else { $Zones = "Not Configured" }
@@ -42,14 +42,14 @@ If ($Task -eq 'Processing') {
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [pscustomobject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -61,14 +61,14 @@ If ($Task -eq 'Processing') {
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
                         }
                     $Threat = if($data.threatintelmode -eq 'deny'){'Alert and deny'}elseif($data.threatintelmode -eq 'alert'){'Alert only'}else{'Off'}
                     $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                    
+
                     $VNETs = @()
                     $PIPs = @()
                     $PrivIPs = @()
@@ -78,7 +78,7 @@ If ($Task -eq 'Processing') {
                             $VNETs += if(![string]::IsNullOrEmpty($2.properties.subnet.id)){$2.properties.subnet.id.split('/')[8]}else{$null}
                             $PrivIPs += $2.properties.privateIPAddress
                         }
-                    
+
                     $Policy = $AzureFWPolicies | Where-Object {$_.id -eq $data.firewallpolicy.id}
                     $Policy = if(![string]::IsNullOrEmpty($Policy)){$Policy}else{'0'}
                     $Rules = $AzureFWPoliciesRules | Where-Object {$_.id -eq $Policy.properties.rulecollectiongroups.id}
@@ -183,7 +183,7 @@ If ($Task -eq 'Processing') {
                                                         'Tag Value'                         = [string]$Tag.Value
                                                     }
                                                     $obj
-                                                    if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                                                    if ($ResUCount -eq 1) { $ResUCount = 0 }
                                                 }
                                         }
                                 }
@@ -239,12 +239,12 @@ Else {
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Azure Firewall' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style
 
     }

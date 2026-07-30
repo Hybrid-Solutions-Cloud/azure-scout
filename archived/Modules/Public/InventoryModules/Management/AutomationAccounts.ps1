@@ -3,7 +3,7 @@
 Inventory for Azure Automation Account
 
 .DESCRIPTION
-This script consolidates information for all microsoft.automation/automationaccounts and  resource provider in $Resources variable. 
+This script consolidates information for all microsoft.automation/automationaccounts and  resource provider in $Resources variable.
 
 .Link
 https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/AutomationAccounts.ps1
@@ -16,7 +16,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Mana
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -45,14 +45,14 @@ If ($Task -eq 'Processing')
                 $timecreated = [datetime]$timecreated
                 $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -64,14 +64,14 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
                 if ($null -ne $rbs) {
                     foreach ($1 in $rbs) {
-                            foreach ($Tag in $Tags) {    
+                            foreach ($Tag in $Tags) {
                                 $data = $1.PROPERTIES
                                 $obj = @{
                                     'ID'                                = $1.id;
@@ -82,7 +82,7 @@ If ($Task -eq 'Processing')
                                     'Retiring Date'                     = $RetiringDate;
                                     'Automation Account State'          = $0.properties.State;
                                     'Automation Account SKU'            = $0.properties.sku.name;
-                                    'Automation Account Created Time'   = $timecreated;   
+                                    'Automation Account Created Time'   = $timecreated;
                                     'Location'                          = $0.LOCATION;
                                     'Runbook Name'                      = $1.Name;
                                     'Last Modified Time'                = ([datetime]$data.lastModifiedTime).tostring('MM/dd/yyyy hh:mm') ;
@@ -94,12 +94,12 @@ If ($Task -eq 'Processing')
                                     'Tag Value'                         = [string]$Tag.Value
                                 }
                                 $obj
-                                if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                            }                        
+                                if ($ResUCount -eq 1) { $ResUCount = 0 }
+                            }
                     }
                 }
                 else {
-                        foreach ($Tag in $Tags) {  
+                        foreach ($Tag in $Tags) {
                             $obj = @{
                                 'ID'                                = $1.id;
                                 'Subscription'                      = $sub1.name;
@@ -109,7 +109,7 @@ If ($Task -eq 'Processing')
                                 'Retiring Date'                     = $RetiringDate;
                                 'Automation Account State'          = $0.properties.State;
                                 'Automation Account SKU'            = $0.properties.sku.name;
-                                'Automation Account Created Time'   = $timecreated;   
+                                'Automation Account Created Time'   = $timecreated;
                                 'Location'                          = $0.LOCATION;
                                 'Runbook Name'                      = $null;
                                 'Last Modified Time'                = $null;
@@ -121,8 +121,8 @@ If ($Task -eq 'Processing')
                                 'Tag Value'                         = [string]$Tag.Value
                             }
                             $obj
-                            if ($ResUCount -eq 1) { $ResUCount = 0 }                         
-                        }                   
+                            if ($ResUCount -eq 1) { $ResUCount = 0 }
+                        }
                 }
             }
             $tmp
@@ -140,7 +140,7 @@ Else
 
         $TableName = ('AutAccTable_'+(($SmaResources.'Resource U' | Measure-Object -Sum).Sum))
         $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat '0'
-        $StyleExt = New-ExcelStyle -HorizontalAlignment Left -Range K:K -Width 80 -WrapText 
+        $StyleExt = New-ExcelStyle -HorizontalAlignment Left -Range K:K -Width 80 -WrapText
 
         $condtxt = @()
         #Retirement
@@ -164,12 +164,12 @@ Else
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Runbooks' -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -ConditionalText $condtxt -Style $Style, $StyleExt
 
     }

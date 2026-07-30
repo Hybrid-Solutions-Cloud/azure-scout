@@ -3,7 +3,7 @@
 Inventory for Azure Public IP
 
 .DESCRIPTION
-This script consolidates information for all microsoft.network/publicipaddresses and  resource provider in $Resources variable. 
+This script consolidates information for all microsoft.network/publicipaddresses and  resource provider in $Resources variable.
 Excel Sheet Name: PublicIP
 
 .Link
@@ -15,7 +15,7 @@ This powershell Module is part of Azure Scout (AZSC)
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -37,14 +37,14 @@ If ($Task -eq 'Processing') {
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -56,17 +56,17 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
                 if (!($data.ipConfiguration.id)) { $Use = 'Underutilized' } else { $Use = 'Utilized' }
                 if (!($data.natGateway.id) -and $Use -eq 'Underutilized') { $Use = 'Underutilized' } else { $Use = 'Utilized' }
-                
+
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
                 if ($null -ne $data.ipConfiguration.id) {
-                    foreach ($Tag in $Tags) { 
+                    foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                       = $1.id;
                             'Subscription'             = $sub1.Name;
@@ -88,11 +88,11 @@ If ($Task -eq 'Processing') {
                             'Tag Value'                = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
                     }
-                }               
+                }
                 else {
-                    foreach ($Tag in $Tags) {  
+                    foreach ($Tag in $Tags) {
                         $obj = @{
                             'ID'                       = $1.id;
                             'Subscription'             = $sub1.name;
@@ -114,15 +114,15 @@ If ($Task -eq 'Processing') {
                             'Tag Value'                = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }               
-                }            
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
+                }
         }
         $tmp
     }
 }
 Else {
-    if ($SmaResources) {        
+    if ($SmaResources) {
 
         $SheetName = 'Public IPs'
 
@@ -152,15 +152,15 @@ Else {
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
         $noNumberConversion = @()
         $noNumberConversion += 'IP Address'
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName $SheetName -AutoSize -MaxAutoSizeRows 100 -TableName $TableName -TableStyle $tableStyle -Style $Style -ConditionalText $condtxt -NoNumberConversion $noNumberConversion
 
     }

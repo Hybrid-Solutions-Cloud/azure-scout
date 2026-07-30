@@ -16,7 +16,7 @@ https://github.com/thisismydemo/azure-scout/Modules/APIs/SupportTickets.ps1
 .NOTES
 Version: 4.0.1
 First Release Date: 25th Aug, 2024
-Authors: Claudio Merola 
+Authors: Claudio Merola
 
 #>
 
@@ -91,7 +91,7 @@ Else {
         $Exc = New-Object System.Collections.Generic.List[System.Object]
         $Exc.Add('Support Ticket')
         $Exc.Add('Title')
-        $Exc.Add('Support Plan')         
+        $Exc.Add('Support Plan')
         $Exc.Add('Service')
         $Exc.Add('Current Severity')
         $Exc.Add('Status')
@@ -105,8 +105,8 @@ Else {
         $Exc.Add('Ticket Contact Email')
         $Exc.Add('Ticket Contact Country')
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Support Tickets' -TableName $TableName -MaxAutoSizeRows 100 -TableStyle $tableStyle -ConditionalText $cond -Style $Style
 
     }

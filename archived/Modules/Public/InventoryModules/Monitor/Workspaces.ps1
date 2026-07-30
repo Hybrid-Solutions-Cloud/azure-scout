@@ -3,7 +3,7 @@
 Inventory for Azure Log Analytics Workspace
 
 .DESCRIPTION
-This script consolidates information for all microsoft.operationalinsights/workspaces and  resource provider in $Resources variable. 
+This script consolidates information for all microsoft.operationalinsights/workspaces and  resource provider in $Resources variable.
 Excel Sheet Name: WrkSpace
 
 .Link
@@ -17,7 +17,7 @@ https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Moni
 .NOTES
 Version: 3.6.0
 First Release Date: 19th November, 2020
-Authors: Claudio Merola and Renato Gregio 
+Authors: Claudio Merola and Renato Gregio
 
 #>
 
@@ -42,14 +42,14 @@ If ($Task -eq 'Processing')
                 $data = $1.PROPERTIES
                 $timecreated = [string](get-date($data.createdDate))
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -61,7 +61,7 @@ If ($Task -eq 'Processing')
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -88,8 +88,8 @@ If ($Task -eq 'Processing')
                             'Tag Value'                                 = [string]$Tag.Value
                         }
                         $obj
-                        if ($ResUCount -eq 1) { $ResUCount = 0 } 
-                    }               
+                        if ($ResUCount -eq 1) { $ResUCount = 0 }
+                    }
             }
             $tmp
         }
@@ -126,19 +126,19 @@ Else
         $Exc.Add('Daily Cap (GB)')
         $Exc.Add('Data Ingestion From Public Networks')
         $Exc.Add('Queries From Public Networks')
-        $Exc.Add('Created Time')  
+        $Exc.Add('Created Time')
         if($InTag)
             {
                 $Exc.Add('Tag Name')
-                $Exc.Add('Tag Value') 
+                $Exc.Add('Tag Value')
             }
         $Exc.Add('Resource U')
 
         $noNumberConversion = @()
         $noNumberConversion += 'Daily Cap (GB)'
 
-        [PSCustomObject]$SmaResources | 
-        ForEach-Object { $_ } | Select-Object $Exc | 
+        [PSCustomObject]$SmaResources |
+        ForEach-Object { $_ } | Select-Object $Exc |
         Export-Excel -Path $File -WorksheetName 'Workspaces' -AutoSize -MaxAutoSizeRows 100 -ConditionalText $condtxt -TableName $TableName -TableStyle $tableStyle -Style $Style -NoNumberConversion $noNumberConversion
 
     }

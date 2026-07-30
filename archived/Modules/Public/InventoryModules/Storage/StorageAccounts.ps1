@@ -40,14 +40,14 @@ If ($Task -eq 'Processing') {
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -59,7 +59,7 @@ If ($Task -eq 'Processing') {
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
@@ -79,7 +79,7 @@ If ($Task -eq 'Processing') {
                 $CrossTNT = if($data.allowCrossTenantReplication -eq $true){$true}else{$false}
                 $InfrastructureEncryption = if($data.encryption.requireInfrastructureEncryption -eq "True"){$true}else{$false}
 
-                
+
 
                 if ($data.azureFilesIdentityBasedAuthentication.directoryServiceOptions -eq 'None')
                     {
@@ -212,7 +212,7 @@ Else {
         $condtxt += New-ConditionalText 1.0 -Range M:M                                  #Minimum TLS Version
         $condtxt += New-ConditionalText 1.1 -Range M:M                                  #Minimum TLS Version
         $condtxt += New-ConditionalText true -Range O:O                                 #Allow Storage Account Key Access
-        $condtxt += New-ConditionalText all -Range Z:Z                                  #Public Network Access  
+        $condtxt += New-ConditionalText all -Range Z:Z                                  #Public Network Access
         $condtxt += New-ConditionalText . -Range AF:AF -ConditionalType ContainsText    #Firewall Exceptions
         $condtxt += New-ConditionalText unavailable -Range AH:AH                        #Status Of Primary Location
         $condtxt += New-ConditionalText unavailable -Range AI:AI                        #Status Of Secondary Location

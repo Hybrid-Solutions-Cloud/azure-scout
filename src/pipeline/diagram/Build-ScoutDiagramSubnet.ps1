@@ -80,11 +80,11 @@ Function Build-AZSCDiagramSubnet {
             $Script:IconNSG = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Network_Security_Groups.svg;" # width="26.35" height="32"
             $Script:IconUDR =  "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Route_Tables.svg;" #width="30.97" height="30"
             $Script:IconDDOS = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/DDoS_Protection_Plans.svg;" # width="23" height="28"
-            $Script:IconPIP = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Public_IP_Addresses.svg;" # width="65" height="52"  
-            $Script:IconNAT = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/NAT.svg;" # width="65" height="52"            
-        
+            $Script:IconPIP = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Public_IP_Addresses.svg;" # width="65" height="52"
+            $Script:IconNAT = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/NAT.svg;" # width="65" height="52"
+
             <########################## Azure Generic Stencils #############################>
-        
+
             $Script:SymError = "sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;shape=mxgraph.mscae.enterprise.not_allowed;fillColor=#EA1C24;" #width="50" height="50"
             $Script:SymInfo = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Information.svg;" #width="64" height="64"
             $Script:IconSubscription = "aspect=fixed;html=1;points=[];align=center;image;fontSize=20;image=img/lib/azure2/general/Subscriptions.svg;" #width="44" height="71"
@@ -93,46 +93,46 @@ Function Build-AZSCDiagramSubnet {
             $Script:IconContain = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/compute/Container_Instances.svg;" #width="64" height="68"
             $Script:IconVWAN = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Virtual_WANs.svg;" #width="65" height="64"
             $Script:IconCostMGMT = "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Cost_Analysis.svg;" #width="60" height="70"
-        
+
             <########################## Azure Computing Stencils #############################>
-        
+
             $Script:IconVMs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/compute/Virtual_Machine.svg;" #width="69" height="64"
             $Script:IconAKS = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/containers/Kubernetes_Services.svg;" #width="68" height="60"
             $Script:IconVMSS = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/compute/VM_Scale_Sets.svg;" # width="68" height="68"
             $Script:IconARO = "sketch=0;aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/mscae/OpenShift.svg;" #width="50" height="46"
             $Script:IconFunApps = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/compute/Function_Apps.svg;" # width="68" height="60"
-        
+
             <########################## Azure Service Stencils #############################>
-        
+
             $Script:IconAPIMs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/app_services/API_Management_Services.svg;" #width="65" height="60"
-            $Script:IconAPPs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/containers/App_Services.svg;" #width="64" height="64"                   
-        
+            $Script:IconAPPs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/containers/App_Services.svg;" #width="64" height="64"
+
             <########################## Azure Storage Stencils #############################>
-        
+
             $Script:IconNetApp = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/storage/Azure_NetApp_Files.svg;" #width="65" height="52"
-        
+
             <########################## Azure Storage Stencils #############################>
-        
+
             $Script:IconDataExplorer = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/databases/Azure_Data_Explorer_Clusters.svg;" #width="68" height="68"
-        
+
             <########################## Other Stencils #############################>
-            
+
             $Script:IconFWs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/Firewalls.svg;" #width="71" height="60"
             $Script:IconDet =  "aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/other/Detonation.svg;" #width="42.63" height="44"
             $Script:IconAppGWs = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/Application_Gateways.svg;" #width="64" height="64"
-            $Script:IconBricks = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/analytics/Azure_Databricks.svg;" #width="60" height="68"   
+            $Script:IconBricks = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/analytics/Azure_Databricks.svg;" #width="60" height="68"
             $Script:IconError = "sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;shape=mxgraph.mscae.enterprise.not_allowed;fillColor=#EA1C24;" #width="30" height="30"
             $Script:OnPrem = "sketch=0;aspect=fixed;html=1;points=[];align=center;image;fontSize=56;image=img/lib/mscae/Exchange_On_premises_Access.svg;" #width="168.2" height="290"
             $Script:Signature = "aspect=fixed;html=1;points=[];align=left;image;fontSize=22;image=img/lib/azure2/general/Dev_Console.svg;" #width="27.5" height="22"
             $Script:CloudOnly = "aspect=fixed;html=1;points=[];align=center;image;fontSize=56;image=img/lib/azure2/compute/Cloud_Services_Classic.svg;" #width="380.77" height="275"
             $Script:IconPowerPlatform = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/analytics/Power_Platform.svg"
-        
+
         }
 
         ####################################################### Subnet Components ####################################################
 
         Function Set-AZSCDiagramSubnetComponent {
-            Param($sub,$SubnetLocation,$Alt0,$ContainerID,$LogFile) 
+            Param($sub,$SubnetLocation,$Alt0,$ContainerID,$LogFile)
 
                 $CellID3 = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
                 remove-variable TrueTemp -ErrorAction SilentlyContinue
@@ -181,8 +181,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VM: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' VMs'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' VMs'))
 
                                                     $Count = 1
                                                     foreach ($VMName in $RESNames.Name)
@@ -196,23 +196,23 @@ Function Build-AZSCDiagramSubnet {
 
                                                         New-AZSCDiagramSubnetIcon $IconVMs ($SubnetLocation+64) ($Alt0+40) "69" "64" $ContainerID
 
-                                                    $XmlTempWriter.WriteEndElement()  
+                                                    $XmlTempWriter.WriteEndElement()
                                                 }
                                             else
                                                 {
 
-                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteStartElement('object')
                                                     $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                     $XmlTempWriter.WriteAttributeString('VM_Size', [string]$RESNames.properties.hardwareProfile.vmSize)
                                                     $XmlTempWriter.WriteAttributeString('OS', [string]$RESNames.properties.storageProfile.osDisk.osType)
                                                     $XmlTempWriter.WriteAttributeString('OS_Disk_Size_GB', [string]$RESNames.properties.storageProfile.osDisk.diskSizeGB)
                                                     $XmlTempWriter.WriteAttributeString('Image_Publisher', [string]$RESNames.properties.storageProfile.imageReference.publisher)
                                                     $XmlTempWriter.WriteAttributeString('Image_SKU', [string]$RESNames.properties.storageProfile.imageReference.sku)
-                                                    $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))                        
+                                                    $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                                         New-AZSCDiagramSubnetIcon $IconVMs ($SubnetLocation+64) ($Alt0+40) "69" "64" $ContainerID
 
-                                                    $XmlTempWriter.WriteEndElement() 
+                                                    $XmlTempWriter.WriteEndElement()
 
                                                 }
                                             }
@@ -220,8 +220,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding AKS: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' AKS Clusters'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' AKS Clusters'))
 
                                                     $Count = 1
                                                     foreach ($AKSName in $RESNames.Name)
@@ -238,10 +238,10 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteEndElement()
 
                                                 }
-                                            else 
+                                            else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)
 
                                                     $Count = 1
                                                     foreach($Pool in $RESNames.properties.agentPoolProfiles)
@@ -274,8 +274,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VMSS: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Virtual Machine Scale Sets'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Virtual Machine Scale Sets'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames.Name)
@@ -294,8 +294,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)
 
                                                     $XmlTempWriter.WriteAttributeString('VMSS_Name', [string]$RESNames.name)
                                                     $XmlTempWriter.WriteAttributeString('VMSS_SKU_Tier', [string]$RESNames.sku.tier)
@@ -306,14 +306,14 @@ Function Build-AZSCDiagramSubnet {
                                                         New-AZSCDiagramSubnetIcon $IconVMSS ($SubnetLocation+65) ($Alt0+40) "68" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                        
-                                            } 
+                                                }
+                                            }
                         'microsoft.network/loadbalancers' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Load Balancer: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Load Balancers'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Load Balancers'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -341,10 +341,10 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteEndElement()
 
                                                 }
-                                            else 
-                                                {            
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                        
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                                     $XmlTempWriter.WriteAttributeString('Load_Balancer_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Load_Balancer_SKU', [string]$ResNames.sku.name)
@@ -358,15 +358,15 @@ Function Build-AZSCDiagramSubnet {
                                                         New-AZSCDiagramSubnetIcon $IconLBs ($SubnetLocation+65) ($Alt0+40) "72" "72" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                    
+
                                                 }
-                                            } 
+                                            }
                         'microsoft.network/virtualnetworkgateways' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VPN Gateway: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Virtual Network Gateways'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Virtual Network Gateways'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -386,22 +386,22 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                                         New-AZSCDiagramSubnetIcon $IconVGW ($SubnetLocation+80) ($Alt0+40) "52" "69" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                                                         
-                                            } 
+                                                }
+                                            }
                         'microsoft.network/azurefirewalls' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Azure Firewall: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Firewalls'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Firewalls'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -422,11 +422,11 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
-                                            else 
+                                            else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)      
-                                                    
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)
+
 
                                                     $XmlTempWriter.WriteAttributeString('Firewall_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('SKU_Tier', [string]$ResNames.properties.sku.tier)
@@ -437,14 +437,14 @@ Function Build-AZSCDiagramSubnet {
                                                         New-AZSCDiagramSubnetIcon $IconFWs ($SubnetLocation+65) ($Alt0+40) "71" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                
-                                            } 
+                                                }
+                                            }
                         'microsoft.network/privateendpoints' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding PrivateLink: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Private Endpoints'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Private Endpoints'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -464,21 +464,21 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                                         New-AZSCDiagramSubnetIcon $IconPVTs ($SubnetLocation+65) ($Alt0+40) "72" "66" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                       
-                                            } 
+                                                }
+                                            }
                         'microsoft.network/applicationgateways' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding AppGateway: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Application Gateways'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Application Gateways'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -504,8 +504,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                                            
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                                     $XmlTempWriter.WriteAttributeString('App_Gateway_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('App_Gateway_SKU', [string]$RESNames.Properties.sku.tier)
@@ -517,14 +517,14 @@ Function Build-AZSCDiagramSubnet {
                                                         New-AZSCDiagramSubnetIcon $IconAppGWs ($SubnetLocation+65) ($Alt0+40) "64" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                                                                                                                             
+                                                }
                                             }
                         'microsoft.network/bastionhosts' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding BastionHost: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Bastion Hosts'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Bastion Hosts'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -541,21 +541,21 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
-                                            else 
+                                            else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)                                                            
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                                         New-AZSCDiagramSubnetIcon $IconBastions ($SubnetLocation+65) ($Alt0+40) "68" "67" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
-                                                }                                                                        
+                                                }
                                             }
                         'Microsoft.PowerPlatform/vnetaccesslinks' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding PowerPlatform: " + $CellID3+'-1')
-                                            $XmlTempWriter.WriteStartElement('object')            
+                                            $XmlTempWriter.WriteStartElement('object')
                                             $XmlTempWriter.WriteAttributeString('label', 'Delegated to Power Platform')
 
                                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
@@ -567,8 +567,8 @@ Function Build-AZSCDiagramSubnet {
                                             }
                         'Microsoft.ApiManagement/service' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding APIM: " + $CellID3+'-1')
-                                            $XmlTempWriter.WriteStartElement('object')            
-                                            $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                                            
+                                            $XmlTempWriter.WriteStartElement('object')
+                                            $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                             $APIMHost = [string]($RESNames.properties.hostnameConfigurations | Where-Object {$_.defaultSslBinding -eq $true}).hostname
 
@@ -588,8 +588,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding App Service: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' App Services'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' App Services'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -608,8 +608,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$ResNames.name)                                                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$ResNames.name)
 
                                                     $XmlTempWriter.WriteAttributeString('App_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Default_Hostname', [string]$RESNames.properties.defaultHostName)
@@ -633,8 +633,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Function App: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Function Apps'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Function Apps'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -653,8 +653,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$ResNames.name)                                                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$ResNames.name)
 
                                                     $XmlTempWriter.WriteAttributeString('App_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Default_Hostname', [string]$RESNames.properties.defaultHostName)
@@ -676,11 +676,11 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             }
                         'Microsoft.Databricks/workspaces' {
-                                            Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Databricks: " + $CellID3+'-1')                                            
+                                            Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Databricks: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Databricks'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Databricks'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -699,8 +699,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                                                
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                                     $XmlTempWriter.WriteAttributeString('Databrick_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Workspace_URL', [string]$RESNames.properties.workspaceUrl )
@@ -716,14 +716,14 @@ Function Build-AZSCDiagramSubnet {
                                                         New-AZSCDiagramSubnetIcon $IconBricks ($SubnetLocation+65) ($Alt0+40) "60" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
-                                                }                                                                                               
+                                                }
                                             }
                         'microsoft.redhatopenshift/openshiftclusters' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding OpenShift: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' OpenShift Clusters'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' OpenShift Clusters'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -743,8 +743,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                                                    
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
 
                                                     $XmlTempWriter.WriteAttributeString('ARO_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('OpenShift_Version', [string]$RESNames.properties.clusterProfile.version)
@@ -764,8 +764,8 @@ Function Build-AZSCDiagramSubnet {
                                                 Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Container Instance: " + $CellID3+'-1')
                                                 if($RESNames.count -gt 1)
                                                     {
-                                                        $XmlTempWriter.WriteStartElement('object')            
-                                                        $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Container Intances'))                                        
+                                                        $XmlTempWriter.WriteStartElement('object')
+                                                        $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Container Intances'))
 
                                                         $Count = 1
                                                         foreach ($ResName in $RESNames)
@@ -784,8 +784,8 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                 else
                                                     {
-                                                        $XmlTempWriter.WriteStartElement('object')            
-                                                        $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                        
+                                                        $XmlTempWriter.WriteStartElement('object')
+                                                        $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                         $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                                             New-AZSCDiagramSubnetIcon $IconContain ($SubnetLocation+65) ($Alt0+40) "64" "68" $ContainerID
@@ -793,12 +793,12 @@ Function Build-AZSCDiagramSubnet {
                                                         $XmlTempWriter.WriteEndElement()
                                                     }
                                             }
-                        'microsoft.netapp/volumes' {          
+                        'microsoft.netapp/volumes' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding ANF: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' NetApp Volumes'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' NetApp Volumes'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -817,8 +817,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]1+' NetApp Volume'))                                                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]1+' NetApp Volume'))
                                                     $XmlTempWriter.WriteAttributeString('NetApp_Volume_Name', [string]$ResNames.name)
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
@@ -832,8 +832,8 @@ Function Build-AZSCDiagramSubnet {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Data Explorer Cluster: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Data Explorer Clusters'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Data Explorer Clusters'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -853,8 +853,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                     $XmlTempWriter.WriteAttributeString('Data_Explorer_Cluster_Name', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Data_Explorer_Cluster_URI', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('Data_Explorer_Cluster_State', [string]$ResNames.name)
@@ -867,13 +867,13 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
-                                            } 
+                                            }
                         'microsoft.network/networkinterfaces' {
                                             Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding NIC: " + $CellID3+'-1')
                                             if($RESNames.count -gt 1)
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Network Interfaces'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]$RESNames.Count + ' Network Interfaces'))
 
                                                     $Count = 1
                                                     foreach ($ResName in $RESNames)
@@ -893,8 +893,8 @@ Function Build-AZSCDiagramSubnet {
                                                 }
                                             else
                                                 {
-                                                    $XmlTempWriter.WriteStartElement('object')            
-                                                    $XmlTempWriter.WriteAttributeString('label', ([string]1+' Network Interface'))                                        
+                                                    $XmlTempWriter.WriteStartElement('object')
+                                                    $XmlTempWriter.WriteAttributeString('label', ([string]1+' Network Interface'))
 
                                                     $Attr1 = ('NIC-Name')
                                                     $XmlTempWriter.WriteAttributeString($Attr1, [string]$ResNames.name)
@@ -906,7 +906,7 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteEndElement()
 
                                                 }
-                                            }                                                                                                                                                                            
+                                            }
                         'EmptySubnet' {Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: " + 'Blank Resource Type Name')}
                         default {Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: $TrueTemp - " + 'Missing ResourceType in the list')}
                     }
@@ -919,23 +919,23 @@ Function Build-AZSCDiagramSubnet {
                     if($null -ne $sub.properties.networkSecurityGroup -and $sub.properties.networkSecurityGroup.id)
                         {
                             $NSG = $sub.properties.networkSecurityGroup.id.split('/')[8]
-                            $XmlTempWriter.WriteStartElement('object')            
-                            $XmlTempWriter.WriteAttributeString('label', '')                                        
+                            $XmlTempWriter.WriteStartElement('object')
+                            $XmlTempWriter.WriteAttributeString('label', '')
                             $XmlTempWriter.WriteAttributeString('Network_Security_Group', [string]$NSG)
                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-2'))
 
                                 Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding NSG: " + $CellID3+'-2')
                                 New-AZSCDiagramSubnetIcon $IconNSG ($SubnetLocation+160) ($Alt0+15) "26.35" "32" $ContainerID
 
-                            $XmlTempWriter.WriteEndElement()  
+                            $XmlTempWriter.WriteEndElement()
                         }
                     # Same guard as the NSG check above: routeTable is $null for any subnet
                     # with no route table associated (the common case).
                     if($null -ne $sub.properties.routeTable -and $sub.properties.routeTable.id)
                         {
                             $UDR = $sub.properties.routeTable.id.split('/')[8]
-                            $XmlTempWriter.WriteStartElement('object')            
-                            $XmlTempWriter.WriteAttributeString('label', '')                                        
+                            $XmlTempWriter.WriteStartElement('object')
+                            $XmlTempWriter.WriteAttributeString('label', '')
                             $XmlTempWriter.WriteAttributeString('Route_Table', [string]$UDR)
                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-3'))
 
@@ -1046,7 +1046,7 @@ Function Build-AZSCDiagramSubnet {
                             }
                         if('functionapp' -in $WebApps.kind)
                             {
-                                $TrueTemp = 'microsoft.web/serverfarms/functionapps'                  
+                                $TrueTemp = 'microsoft.web/serverfarms/functionapps'
                             }
                         else
                             {
@@ -1122,9 +1122,9 @@ Function Build-AZSCDiagramSubnet {
             elseif($TrueTemp -eq 'Microsoft.Databricks/workspaces')
                 {
                     $RESNames = Foreach($Data in $Job.Databricks)
-                        {                 
+                        {
                             if($Data.properties.parameters.customVirtualNetworkId.value+'/subnets/'+$Data.properties.parameters.customPrivateSubnetName.value -eq $sub.id -or $Data.properties.parameters.customVirtualNetworkId.value+'/subnets/'+$Data.properties.parameters.custompublicSubnetName.value -eq $sub.id)
-                                {                         
+                                {
                                     $Data
                                 }
                         }
@@ -1138,7 +1138,7 @@ Function Build-AZSCDiagramSubnet {
                                     $App
                                 }
                         }
-                }                   
+                }
             elseif($TrueTemp -eq 'microsoft.apimanagement/service')
                 {
                     $RESNames = foreach ($APIM in $Job.APIM)
@@ -1219,7 +1219,7 @@ Function Build-AZSCDiagramSubnet {
 
         ######################################################### ICON #######################################################
 
-        Function New-AZSCDiagramSubnetIcon {    
+        Function New-AZSCDiagramSubnetIcon {
             Param($Style,$x,$y,$w,$h,$p)
 
                 Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Resource Icon: " + $Style)
@@ -1298,7 +1298,7 @@ Function Build-AZSCDiagramSubnet {
                             # the assessment platform).
                             $sizeL =  @($VNET.properties.subnets.properties.addressPrefix).Count
                             if ($sizeL -gt 5)
-                                {                                           
+                                {
                                     $sizeL = $sizeL / 2
                                     $sizeL = [math]::ceiling($sizeL)
                                     $sizeC = $sizeL
@@ -1310,7 +1310,7 @@ Function Build-AZSCDiagramSubnet {
                                     foreach($Sub in $VNET.properties.subnets)
                                     {
                                         $IDNum++
-                                        if ($SubC -eq $sizeC) 
+                                        if ($SubC -eq $sizeC)
                                         {
                                             $Alt1 = $Alt1 + 230
                                             $SubnetLocation0 = 20
@@ -1320,14 +1320,14 @@ Function Build-AZSCDiagramSubnet {
                                         $LoggingSubnetName = $sub.Name
                                         Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Subnet ($LoggingSubnetName): " + $CellID2+'-'+$IDNum)
 
-                                        $XmlTempWriter.WriteStartElement('object')            
+                                        $XmlTempWriter.WriteStartElement('object')
                                         $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +(Get-AZSCDiagramSafeLabel -Text $sub.Name) + "`n" + [string]$sub.properties.addressPrefix))
                                         if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
                                             New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 $Alt1 "200" "200" $ContainerID
 
-                                        $XmlTempWriter.WriteEndElement()      
+                                        $XmlTempWriter.WriteEndElement()
 
                                             Set-AZSCDiagramSubnetComponent -sub $sub -SubnetLocation $SubnetLocation0 -Alt0 $Alt1 -ContainerID $ContainerID -LogFile $LogFile
 
@@ -1348,14 +1348,14 @@ Function Build-AZSCDiagramSubnet {
                                         Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Subnet ($LoggingSubnetName): " + $CellID2+'-'+$IDNum)
 
 
-                                        $XmlTempWriter.WriteStartElement('object')            
+                                        $XmlTempWriter.WriteStartElement('object')
                                         $XmlTempWriter.WriteAttributeString('label', ("`n" + "`n" + "`n" + "`n" + "`n" + "`n" +(Get-AZSCDiagramSafeLabel -Text $sub.Name) + "`n" + [string]$sub.properties.addressPrefix))
                                         if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
                                             New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 40 "200" "200" $ContainerID
 
-                                        $XmlTempWriter.WriteEndElement()  
+                                        $XmlTempWriter.WriteEndElement()
 
                                             Set-AZSCDiagramSubnetComponent -sub $sub -SubnetLocation $SubnetLocation0 -Alt0 40 -ContainerID $ContainerID -LogFile $LogFile
 
@@ -1373,7 +1373,7 @@ Function Build-AZSCDiagramSubnet {
 
             $XmlTempWriter.WriteEndDocument()
             $XmlTempWriter.Flush()
-            $XmlTempWriter.Close() 
+            $XmlTempWriter.Close()
         }
         catch
         {
