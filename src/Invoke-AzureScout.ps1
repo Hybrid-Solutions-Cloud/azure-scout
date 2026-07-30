@@ -498,6 +498,21 @@ Function Invoke-AzureScout {
         Exit
     }
 
+    # ── Console verbosity (AB#5410) ───────────────────────────────────────────
+    # If the user did not explicitly request -Verbose or -Debug, we silently continue
+    # warnings so the console remains clean of 400/429 ARC errors. However, we hook
+    # Write-Warning to explicitly forward the messages to our structured log, guaranteeing
+    # no diagnostics are lost in the background.
+    if (-not ($Debug.IsPresent -or $Verbose.IsPresent)) {
+        $WarningPreference = 'SilentlyContinue'
+        function Write-Warning {
+            param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
+            if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                Write-AZSCLog -Level Warn -Message $Message
+            }
+        }
+    }
+
     # ── PowerShell edition guard ──────────────────────────────────────────────
     # Fail fast and clearly here rather than letting Windows PowerShell 5.1 (Desktop)
     # run deep into the permission audit / Entra-Graph code path and crash on a

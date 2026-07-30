@@ -419,8 +419,13 @@ function Invoke-ScoutDeclarativeReporting {
     }
     if (@($ConditionalText).Count -gt 0) { $ExportParams['ConditionalText'] = $ConditionalText }
 
-    $SmaResources |
-        ForEach-Object { [PSCustomObject]$_ } |
-        Select-Object $Columns |
-        Export-Excel @ExportParams
+    try {
+        $SmaResources |
+            ForEach-Object { [PSCustomObject]$_ } |
+            Select-Object $Columns |
+            Export-Excel @ExportParams -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "Failed to export $($Definition.Category)/$($Definition.Name) to Excel. Is the file open? Error: $_"
+    }
 }

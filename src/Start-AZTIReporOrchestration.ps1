@@ -57,19 +57,22 @@ Function Start-AZSCReporOrchestration {
     Write-Progress -activity 'Azure Inventory' -Status "65% Complete." -PercentComplete 65 -CurrentOperation "Starting the Report Phase.."
 
     <############################################################## REPORT CREATION ###################################################################>
+    try {
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Resource Reporting Cache.')
+        Start-AZSCExcelJob -ReportCache $ReportCache -TableStyle $TableStyle -File $File
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Resource Reporting Cache.')
-    Start-AZSCExcelJob -ReportCache $ReportCache -TableStyle $TableStyle -File $File
+        <############################################################## REPORT EXTRA DETAILS ###################################################################>
 
-    <############################################################## REPORT EXTRA DETAILS ###################################################################>
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Reporting Extra Details.')
+        Start-AZSCExcelExtraData -File $File
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Reporting Extra Details.')
-    Start-AZSCExcelExtraData -File $File
+        <############################################################## EXTRA REPORTS ###################################################################>
 
-    <############################################################## EXTRA REPORTS ###################################################################>
+        Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Default Data Reporting.')
 
-    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Default Data Reporting.')
-
-    Start-AZSCExtraReports -File $File -Quotas $Quotas -SecurityCenter $SecurityCenter -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -TableStyle $TableStyle -ReportCache $ReportCache -ExtraData $ExtraData
+        Start-AZSCExtraReports -File $File -Quotas $Quotas -SecurityCenter $SecurityCenter -SkipPolicy $SkipPolicy -SkipAdvisory $SkipAdvisory -IncludeCosts $IncludeCosts -TableStyle $TableStyle -ReportCache $ReportCache -ExtraData $ExtraData
+    } catch {
+        Write-Warning "Excel export failed (the file might be locked by another process). Skipping Excel generation. Error: $_"
+    }
 
 }

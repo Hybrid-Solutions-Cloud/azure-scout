@@ -217,8 +217,12 @@ function Start-AZSCWizard {
     if ($formats.Count -eq $formatPool.Count) { $formats = @('All') }
     $answers.OutputFormat = $formats
 
-    Write-Host ''
-    $defaultDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'AzureScout'
+    # Build the fallback folder based on OS
+    if ($IsWindows) {
+        $defaultDir = 'C:\AzureScout'
+    } else {
+        $defaultDir = Join-Path "$HOME" 'AzureScout'
+    }
     $dir = Read-AZSCWizardText -Prompt 'Report directory' -Default $defaultDir
     if ($dir) { $answers.ReportDir = $dir }
 
