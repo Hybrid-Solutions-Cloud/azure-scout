@@ -111,3 +111,27 @@ $result | Format-List
 ```
 
 The `Details` array contains per-check results with remediation guidance for any failures.
+
+## Complete Removal (Uninstall)
+
+If you need to completely remove Azure Scout and ensure no old, cached modules are loaded in future sessions, run the following commands. This forces PowerShell to unload the module from memory, uninstalls all registered versions, and physically deletes any lingering cached folders across your module paths.
+
+`powershell
+# 1. Unload from current active memory
+Remove-Module AzureScout -ErrorAction SilentlyContinue
+
+# 2. Uninstall all registered versions
+Uninstall-Module AzureScout -AllVersions -Force -ErrorAction SilentlyContinue
+
+# 3. Aggressively hunt down and delete any physical artifact folders left behind
+$modulePaths = ($env:PSModulePath -split ';') | Where-Object { $_ -ne '' }
+foreach ($path in $modulePaths) {
+    $target = Join-Path $path "AzureScout"
+    if (Test-Path $target) {
+        Remove-Item -Path $target -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+`
+
+> [!IMPORTANT]
+> Once you run these commands, you **must close your PowerShell terminal completely** and open a new one to fully flush the session cache.
