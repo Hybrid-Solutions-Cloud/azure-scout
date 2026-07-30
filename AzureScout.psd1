@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.5'
+ModuleVersion = '3.0.6'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.5 — fixes the Cost Management nested-row shape in production VM reporting. See CHANGELOG.md and docs/v3.0.5.md for verification details.'
+        ReleaseNotes = 'v3.0.6 - Core UX/Resilience updates: defaults output to C:\AzureScout, suppresses ARC 429 warnings on console, gracefully bypasses locked Excel reports.'
 
         # Prerelease string of this module
         # Prerelease = ''
