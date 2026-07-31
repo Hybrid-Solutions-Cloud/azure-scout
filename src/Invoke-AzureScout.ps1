@@ -355,6 +355,13 @@ Function Invoke-AzureScout {
         # CAF/WAF assessment platform. Same command, same sign-in, same module.
         [Alias('Assess')]
         [string[]]$Assessment,
+        # Run the inventory pass AND the assessment from one collection (AB#6775). Without
+        # this, -Assessment returns the assessment alone and the only way to reach the
+        # collect-once path was to answer the wizard's "both?" prompt -- unreachable from a
+        # script or a pipeline, which had to invoke the command twice and pay for two
+        # collections. The assessment runs second and is handed the inventory's rows.
+        [Alias('Both')]
+        [switch]$InventoryAndAssessment,
         [switch]$CollectOnly,
         [string]$FromCollect,
         # Suppress the guided wizard that a bare, interactive `Invoke-AzureScout`
@@ -593,7 +600,12 @@ Function Invoke-AzureScout {
         # the assessment issued its own Resource Graph pack, then the inventory re-fetched the
         # same resource types moments later. Inventory already projects the full `properties`
         # bag, so running it first and handing those rows to the assessment collects once.
-        if ($wizardRunBoth) { $deferredAssessArgs = $assessArgs }
+        # AB#6775 -- $wizardRunBoth used to be set from exactly one source, $wizard.RunBoth, so
+        # the combined run was reachable only by answering a prompt. `Invoke-AzureScout
+        # -Assessment LandingZone -InventoryAndAssessment` had no equivalent at all, which meant
+        # CI and every scripted caller were locked out of the collect-once path and had to run
+        # the command twice, collecting from Azure twice, to get both reports.
+        if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
         else { return Invoke-ScoutAssessmentCore @assessArgs }
     }
 
@@ -834,7 +846,22 @@ Function Invoke-AzureScout {
 
     $ExtractionRuntime = [System.Diagnostics.Stopwatch]::StartNew()
 
-        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
+    # AB#6776 -- the collect-once handoff silently lost tags.
+    #
+    # Invoke-Collect forces IncludeTags on its OWN raw pass and documents why: the canonical
+    # contract's top-level `tags` key is aggregated from the raw container row, and the raw pass
+    # omits the `tags` column unless asked. The inventory pass had no such rule -- it passed
+    # `-IncludeTags $IncludeTags`, defaulting to false -- so a combined run WITHOUT -IncludeTags
+    # handed the assessment rows with no tags column and produced an empty `collect.tags`
+    # aggregation. The assessment-only path got tags; the collect-once path did not, which is
+    # the worst shape for a defect to have: the cheaper path was the wrong one.
+    $extractionIncludeTags = $IncludeTags
+    if ($deferredAssessArgs -and -not $IncludeTags) {
+        Write-Verbose 'Invoke-AzureScout: forcing -IncludeTags on the inventory pass because an assessment will consume its rows (AB#6776).'
+        $extractionIncludeTags = [switch]$true
+    }
+
+        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
 
     $ExtractionRuntime.Stop()
 

@@ -55,7 +55,7 @@ $ErrorActionPreference = 'Stop'
     Invoke-AzureScout's assessment-mode report path.
 
 .PARAMETER ManagementGroupId
-    Scopes the ARG collect (and the AzGovViz/ArgQueryPack ingests) to a management
+    Scopes the ARG collect (and the AzGovViz ingest) to a management
     group, exactly as Invoke-AzureScout's assessment mode does.
 
 .PARAMETER Category

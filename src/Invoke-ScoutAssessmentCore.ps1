@@ -138,8 +138,23 @@ function Invoke-ScoutAssessmentCore {
                 # AzGovViz stays available as an opt-in heavy collector, but nothing
                 # in the manifest references it by default any more.
                 'AzGovViz'      { $collect = Import-AzGovViz     -Collect $collect -OutputPath $runPath -ManagementGroupId $ManagementGroupId }
-                'ArgQueryPack'  { $collect = Invoke-ArgQueryPack -Collect $collect -ManagementGroupId $ManagementGroupId }
-                'AdvisorScores' { $collect = Import-AdvisorScores -Collect $collect }
+                # AB#6774 -- ArgQueryPack is retired. All six of its queries duplicated data
+                # Invoke-Collect had just collected, and it overwrote the good copies with
+                # worse ones (no divide-by-zero guard on two of them, untyped projections on a
+                # third), while a fourth was fetched and never merged at all. Any manifest
+                # entry still naming it is ignored rather than erroring, because the value is
+                # in a data file a customer may have copied.
+                'ArgQueryPack'  { Write-Verbose 'Invoke-ScoutAssessmentCore: the ArgQueryPack ingest is retired (AB#6774) -- Invoke-Collect already produces all six of its datasets. Ignoring.' }
+                # AB#6777 -- in a combined run the advisor rows are already in memory from the
+                # inventory pass, so hand them over instead of re-fetching per subscription
+                # through a slower API.
+                'AdvisorScores' {
+                    $advisorArgs = @{ Collect = $collect }
+                    if ($FromInventory -and $FromInventory.PSObject.Properties['Advisories']) {
+                        $advisorArgs.FromInventory = @($FromInventory.Advisories)
+                    }
+                    $collect = Import-AdvisorScores @advisorArgs
+                }
             }
         }
         $collect | ConvertTo-Json -Depth 100 | Out-File "$runPath/collect.json"

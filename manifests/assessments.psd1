@@ -27,7 +27,7 @@
         # runs, an incomplete list here would silently starve Storage/Databases/Web/
         # Containers/Analytics/AI/Integration/Hybrid/IoT/Compute/Cost rules of data.
         Collect     = @('*')
-        Ingest      = @('Governance', 'ArgQueryPack', 'AdvisorScores')
+        Ingest      = @('Governance', 'AdvisorScores')
         # 'xr.*' pulls in the cross-resource rules (AB#6835). A landing-zone audit that could not
         # say which VMs have no backup was answering a narrower question than its name claims.
         Rules       = @('caf.*', 'waf.*', 'xr.*')
@@ -65,19 +65,19 @@
     # and warns, so scripted `-Assessment Compute` callers are not broken by a cosmetic change.
     'Assess: Management' = @{
         Description = 'Governance, policy, cost, backup, automation, update manager'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance', 'ArgQueryPack', 'AdvisorScores')
+        Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance', 'AdvisorScores')
         Rules = @('caf.governance', 'caf.management', 'caf.billing'); Frameworks = @('CAF: Governance', 'CAF: Management', 'CAF: Billing', 'WAF: Operational', 'WAF: Cost')
         Tags = @('caf', 'governance', 'management'); Reporters = @('Html', 'Excel')
     }
     'Assess: Monitor' = @{
         Description = 'Monitoring, alerting, diagnostics coverage'
-        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @('ArgQueryPack')
+        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
         Rules = @('caf.management', 'waf.operational'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('waf', 'monitor'); Reporters = @('Html', 'Excel')
     }
     'Assess: Networking' = @{
         Description = 'Network topology, firewall, DDoS, exposure, private link'
-        Category    = 'Networking'; Collect = @('Networking'); Ingest = @('ArgQueryPack')
+        Category    = 'Networking'; Collect = @('Networking'); Ingest = @()
         Rules = @('caf.network'); Frameworks = @('CAF: Network topology & connectivity', 'WAF: Security')
         Tags = @('caf', 'networking'); Reporters = @('Html', 'Excel')
     }
@@ -89,67 +89,67 @@
     }
     'Assess: Security' = @{
         Description = 'Defender, Key Vault, secure score, exposure'
-        Category    = 'Security'; Collect = @('Security'); Ingest = @('AdvisorScores', 'ArgQueryPack')
+        Category    = 'Security'; Collect = @('Security'); Ingest = @('AdvisorScores')
         Rules = @('caf.security', 'waf.security'); Frameworks = @('CAF: Security', 'WAF: Security')
         Tags = @('caf', 'waf', 'security'); Reporters = @('Html', 'Excel')
     }
     'Assess: Compute' = @{
         Description = 'VM resilience, zones, backup, right-size, orphans'
-        Category    = 'Compute'; Collect = @('Compute'); Ingest = @('ArgQueryPack', 'AdvisorScores')
+        Category    = 'Compute'; Collect = @('Compute'); Ingest = @('AdvisorScores')
         Rules = @('waf.reliability', 'waf.cost', 'waf.performance'); Frameworks = @('WAF: Reliability', 'WAF: Cost', 'WAF: Performance efficiency')
         Tags = @('waf', 'compute'); Reporters = @('Html', 'Excel')
     }
     'Assess: Storage' = @{
         Description = 'Storage public access, TLS, encryption, redundancy'
-        Category    = 'Storage'; Collect = @('Storage'); Ingest = @('ArgQueryPack')
+        Category    = 'Storage'; Collect = @('Storage'); Ingest = @()
         Rules = @('caf.storage', 'waf.storage'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'waf', 'storage'); Reporters = @('Html', 'Excel')
     }
     'Assess: Databases' = @{
         Description = 'SQL/DB private access, TDE, zone redundancy'
-        Category    = 'Databases'; Collect = @('Databases'); Ingest = @('ArgQueryPack')
+        Category    = 'Databases'; Collect = @('Databases'); Ingest = @()
         Rules = @('caf.databases'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'databases'); Reporters = @('Html', 'Excel')
     }
     'Assess: Containers' = @{
         Description = 'AKS private clusters, RBAC, registry hardening'
-        Category    = 'Containers'; Collect = @('Containers'); Ingest = @('ArgQueryPack')
+        Category    = 'Containers'; Collect = @('Containers'); Ingest = @()
         Rules = @('caf.containers'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'containers'); Reporters = @('Html', 'Excel')
     }
     'Assess: Web' = @{
         Description = 'App Service HTTPS-only, TLS, managed identity'
-        Category    = 'Web'; Collect = @('Web'); Ingest = @('ArgQueryPack')
+        Category    = 'Web'; Collect = @('Web'); Ingest = @()
         Rules = @('caf.web'); Frameworks = @('CAF: Security', 'WAF: Security')
         Tags = @('caf', 'web'); Reporters = @('Html', 'Excel')
     }
     'Assess: Analytics' = @{
         Description = 'Analytics data governance and network isolation'
-        Category    = 'Analytics'; Collect = @('Analytics'); Ingest = @('ArgQueryPack')
+        Category    = 'Analytics'; Collect = @('Analytics'); Ingest = @()
         Rules = @('caf.analytics'); Frameworks = @('CAF: Governance', 'WAF: Security')
         Tags = @('caf', 'analytics'); Reporters = @('Html', 'Excel')
     }
     'Assess: AI' = @{
         Description = 'AI/Cognitive private access and responsible-AI posture'
-        Category    = 'AI'; Collect = @('AI'); Ingest = @('ArgQueryPack')
+        Category    = 'AI'; Collect = @('AI'); Ingest = @()
         Rules = @('caf.ai'); Frameworks = @('CAF: Governance', 'WAF: Security')
         Tags = @('caf', 'ai'); Reporters = @('Html', 'Excel')
     }
     'Assess: Integration' = @{
         Description = 'Messaging redundancy and APIM network isolation'
-        Category    = 'Integration'; Collect = @('Integration'); Ingest = @('ArgQueryPack')
+        Category    = 'Integration'; Collect = @('Integration'); Ingest = @()
         Rules = @('caf.integration'); Frameworks = @('CAF: Network topology & connectivity', 'WAF: Reliability')
         Tags = @('caf', 'integration'); Reporters = @('Html', 'Excel')
     }
     'Assess: Hybrid' = @{
         Description = 'Arc onboarding, agent currency, Azure Local'
-        Category    = 'Hybrid'; Collect = @('Hybrid'); Ingest = @('ArgQueryPack')
+        Category    = 'Hybrid'; Collect = @('Hybrid'); Ingest = @()
         Rules = @('caf.hybrid'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('caf', 'hybrid'); Reporters = @('Html', 'Excel')
     }
     'Assess: IoT' = @{
         Description = 'IoT Hub/DPS network isolation and device auth'
-        Category    = 'IoT'; Collect = @('IoT'); Ingest = @('ArgQueryPack')
+        Category    = 'IoT'; Collect = @('IoT'); Ingest = @()
         Rules = @('caf.iot'); Frameworks = @('CAF: Security', 'WAF: Security')
         Tags = @('caf', 'iot'); Reporters = @('Html', 'Excel')
     }
@@ -167,12 +167,12 @@
     }
     UpdateManager = @{
         Description = 'Management sub-bundle — patch/update compliance'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @('ArgQueryPack')
+        Category    = 'Management'; Collect = @('Management'); Ingest = @()
         Rules = @('caf.management'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'update-manager', 'sub-bundle'); Reporters = @('Html')
     }
     Monitoring = @{
         Description = 'Monitor sub-bundle — diagnostic settings coverage'
-        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @('ArgQueryPack')
+        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
         Rules = @('waf.operational'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'monitoring', 'sub-bundle'); Reporters = @('Html')
     }
 
@@ -206,7 +206,7 @@
         Description = 'Findings that require two collected datasets correlated'
         Category    = '*'
         Collect     = @('Compute', 'Storage', 'Security', 'Networking', 'Management')
-        Ingest      = @('ArgQueryPack')
+        Ingest      = @()
         Rules       = @('xr.*')
         Frameworks  = @('XR: Cross-resource posture')
         Tags        = @('cross-resource', 'waf', 'caf')
@@ -216,7 +216,7 @@
     # ---- targeted cost pull ----
     Cost = @{
         Description = 'Cost / TCO data pull'
-        Category    = '*'; Collect = @('Cost', 'Compute', 'Storage'); Ingest = @('AdvisorScores', 'ArgQueryPack')
+        Category    = '*'; Collect = @('Cost', 'Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.cost'); Frameworks = @('WAF: Cost optimization'); Tags = @('waf', 'cost'); Reporters = @('Excel', 'PowerBi')
     }
 }

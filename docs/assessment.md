@@ -204,7 +204,7 @@ Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -Ou
 ```
 
 ::: warning Scopes Collect too now — and the benchmark still needs MG-root visibility
-`-ManagementGroupId` is passed to `Invoke-Collect` / `Invoke-ArgQueryPack`,
+`-ManagementGroupId` is passed to `Invoke-Collect`,
 which pass it through as `Search-AzGraph -ManagementGroup` on every Resource
 Graph query (and, if you've opted into the legacy `AzGovViz` ingestor, to
 `Import-AzGovViz` too). Omit it and Collect keeps tenant-wide behavior (no

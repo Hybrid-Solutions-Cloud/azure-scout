@@ -178,7 +178,7 @@ Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -Ou
 ```
 
 `-ManagementGroupId` scopes the Resource Graph `Collect` layer —
-`Invoke-Collect` and `Invoke-ArgQueryPack` pass it through to every
+`Invoke-Collect` passes it through to every
 `Search-AzGraph` call as `-ManagementGroup`. Omitting it leaves ARG queries
 running tenant-wide against whatever your authenticated context can see (no
 `-ManagementGroup`/`-Subscription` filter is sent at all). The ARM `Reader`
