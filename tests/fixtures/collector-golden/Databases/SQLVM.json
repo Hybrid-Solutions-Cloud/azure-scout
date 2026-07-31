@@ -9,7 +9,11 @@
     "ID=s:/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sqlvirtualmachine/sqlvirtualmachines/sqlvm-eu|Location=s:westeurope|Name=s:sqlvm-eu|Resource Group=s:rg-databases-2|Resource U=j:1|Retiring Date=s:2027-06-30 , 2027-09-30 |Retiring Feature=s:SQL VM lightweight agent , Windows Server 2012 SQL image |SQL Image=s:SQL2022-WS2022|SQL Image Sku=s:Standard|SQL Management=s:LightWeight|SQL Server License Type=s:AHUB|Subscription=s:Scout Sample Subscription 2|Tag Name=s:|Tag Value=s:|Zone=j:[\"1\"]"
   ],
   "Workbook": {
-    "WithoutTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tZone\tSQL Server License Type\tSQL Image\tSQL Management\tSQL Image Sku\tResource U\nScout Sample Subscription 1\trg-databases\tsqlvm-prod\teastus\t\t\tSystem.Object[]\tPAYG\tSQL2019-WS2019\tFull\tEnterprise\t1\nScout Sample Subscription 2\trg-databases-2\tsqlvm-eu\twesteurope\tSQL VM lightweight agent , Windows Server 2012 SQL image \t2027-06-30 , 2027-09-30 \tSystem.Object[]\tAHUB\tSQL2022-WS2022\tLightWeight\tStandard\t1",
-    "WithTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tZone\tSQL Server License Type\tSQL Image\tSQL Management\tSQL Image Sku\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tsqlvm-prod\teastus\t\t\tSystem.Object[]\tPAYG\tSQL2019-WS2019\tFull\tEnterprise\tenv\ttest\t1\nScout Sample Subscription 2\trg-databases-2\tsqlvm-eu\twesteurope\tSQL VM lightweight agent , Windows Server 2012 SQL image \t2027-06-30 , 2027-09-30 \tSystem.Object[]\tAHUB\tSQL2022-WS2022\tLightWeight\tStandard\t\t\t1"
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tZone\tSQL Server License Type\tSQL Image\tSQL Management\tSQL Image Sku\tResource U\nScout Sample Subscription 1\trg-databases\tsqlvm-prod\teastus\t\t\tSystem.Object[]\tPAYG\tSQL2019-WS2019\tFull\tEnterprise\t1\nScout Sample Subscription 2\trg-databases-2\tsqlvm-eu\twesteurope\tSQL VM lightweight agent , Windows Server 2012 SQL image \t2027-06-30 , 2027-09-30 \tSystem.Object[]\tAHUB\tSQL2022-WS2022\tLightWeight\tStandard\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tZone\tSQL Server License Type\tSQL Image\tSQL Management\tSQL Image Sku\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tsqlvm-prod\teastus\t\t\tSystem.Object[]\tPAYG\tSQL2019-WS2019\tFull\tEnterprise\tenv\ttest\t1\nScout Sample Subscription 2\trg-databases-2\tsqlvm-eu\twesteurope\tSQL VM lightweight agent , Windows Server 2012 SQL image \t2027-06-30 , 2027-09-30 \tSystem.Object[]\tAHUB\tSQL2022-WS2022\tLightWeight\tStandard\t\t\t1"
+    ]
   }
 }

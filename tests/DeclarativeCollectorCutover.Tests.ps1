@@ -13,9 +13,12 @@ Describe 'v3 declarative collector cutover' {
         $Definitions = Join-Path $script:RepoRoot 'manifests/collectors'
         $Collectors = @(Get-ScoutCollector -DefinitionRoot $Definitions)
 
-        # 174 through v3.0.9; 242 after AB#6741 added 68. The number is pinned rather than derived
-        # so that a collector silently DISAPPEARING is a failure, not an invisible regression.
-        $Collectors.Count | Should -Be 242
+        # 174 through v3.0.9; 242 after AB#6741 added 68; 236 after AB#6767/AB#6842 retired six
+        # that could never return a row -- three whose Azure endpoint no longer exists, and three
+        # declaring resource types the provider metadata does not have. The number is pinned
+        # rather than derived so that a collector silently DISAPPEARING is a failure, not an
+        # invisible regression.
+        $Collectors.Count | Should -Be 236
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

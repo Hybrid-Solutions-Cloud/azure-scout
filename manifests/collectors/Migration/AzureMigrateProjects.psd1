@@ -6,10 +6,9 @@
 @{
     ResourceTypes = @(
         'microsoft.migrate/migrateprojects'
-        'microsoft.migrate/projects'
     )
 
-    ResourceTypeMatching = 'SinglePass'
+    ResourceTypeMatching = 'Grouped'
 
     AdditionalFilter = $null
 

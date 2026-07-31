@@ -8,7 +8,11 @@
     "Admin Login=s:sqladmin|AzureADOnlyAuthentication=j:false|FQDN=s:sqlmi-prod.abcdef123456.database.windows.net|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/managedInstances/sqlmi-prod|licenseType=s:LicenseIncluded|Location=s:eastus|managedInstanceCreateMode=s:Default|Name=s:sqlmi-prod|Private Endpoint=s:pe-sqlmi|Public Network Access=j:false|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SkuCapacity=j:8|SkuName=s:GP_Gen5|SkuTier=s:GeneralPurpose|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test|Zone Redundant=j:true"
   ],
   "Workbook": {
-    "WithoutTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tSkuName\tSkuCapacity\tSkuTier\tAdmin Login\tActiveDirectoryOnlyAuthentication\tPrivate Endpoint\tFQDN\tPublic Network Access\tlicenseType\tmanagedInstanceCreateMode\tZone Redundant\tResource U\nScout Sample Subscription 1\trg-databases\tsqlmi-prod\teastus\t\t\tGP_Gen5\t8\tGeneralPurpose\tsqladmin\t\tpe-sqlmi\tsqlmi-prod.abcdef123456.database.windows.net\tFalse\tLicenseIncluded\tDefault\tTrue\t1",
-    "WithTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tSkuName\tSkuCapacity\tSkuTier\tAdmin Login\tActiveDirectoryOnlyAuthentication\tPrivate Endpoint\tFQDN\tPublic Network Access\tlicenseType\tmanagedInstanceCreateMode\tZone Redundant\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tsqlmi-prod\teastus\t\t\tGP_Gen5\t8\tGeneralPurpose\tsqladmin\t\tpe-sqlmi\tsqlmi-prod.abcdef123456.database.windows.net\tFalse\tLicenseIncluded\tDefault\tTrue\tenv\ttest\t1"
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tSkuName\tSkuCapacity\tSkuTier\tAdmin Login\tActiveDirectoryOnlyAuthentication\tPrivate Endpoint\tFQDN\tPublic Network Access\tlicenseType\tmanagedInstanceCreateMode\tZone Redundant\tResource U\nScout Sample Subscription 1\trg-databases\tsqlmi-prod\teastus\t\t\tGP_Gen5\t8\tGeneralPurpose\tsqladmin\t\tpe-sqlmi\tsqlmi-prod.abcdef123456.database.windows.net\tFalse\tLicenseIncluded\tDefault\tTrue\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tSkuName\tSkuCapacity\tSkuTier\tAdmin Login\tActiveDirectoryOnlyAuthentication\tPrivate Endpoint\tFQDN\tPublic Network Access\tlicenseType\tmanagedInstanceCreateMode\tZone Redundant\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tsqlmi-prod\teastus\t\t\tGP_Gen5\t8\tGeneralPurpose\tsqladmin\t\tpe-sqlmi\tsqlmi-prod.abcdef123456.database.windows.net\tFalse\tLicenseIncluded\tDefault\tTrue\tenv\ttest\t1"
+    ]
   }
 }

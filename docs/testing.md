@@ -137,6 +137,45 @@ When you add a new inventory module:
 Use the `Module-template.tpl` in `manifests/collectors/` as the starting point for both the module and its corresponding test entry.
 :::
 
+## The resource-type existence gate
+
+`tests/ResourceTypeExistence.Tests.ps1` checks every resource type a collector manifest declares
+against a committed catalogue of **real** Azure provider/type pairs. It runs offline, on every
+pull request, as part of the normal suite.
+
+**Why it cannot be replaced by an ordinary test.** `scripts/New-ScoutCollectorFixture.ps1`
+derives each collector's fixture estate from that collector's *own* expressions, so the declared
+resource type is fabricated into existence and every property it reads is present by
+construction. A collector for a type Azure does not have therefore passes forever — the manifests
+are the thing under test, so they cannot also be the ground truth. `Hybrid/ArcSites` declared
+three non-existent type strings and shipped green through every release before this gate existed.
+
+It is also the only coverage check that works on a **small tenant**: it needs the resource
+provider to be real, not for you to own one of the resources.
+
+### Refreshing the catalogue
+
+`manifests/azure-provider-types.json` is read from ARM and committed. Refresh it when you add a
+collector for a provider newer than the file's `GeneratedAt`, or when the gate reports a type you
+have independently confirmed is real:
+
+```powershell
+Connect-AzAccount
+./scripts/Update-ScoutProviderCatalog.ps1
+```
+
+It reads `Get-AzResourceProvider -ListAvailable`, which returns every provider ARM knows about
+regardless of whether your subscription has registered it — so any subscription in any tenant
+produces the same catalogue. Commit the result, and say in the commit message when it was taken.
+
+### What the gate deliberately does not fail on
+
+| Case | Treatment | Why |
+|---|---|---|
+| `AZSC/…`, `entra/…`, `devops/…` | Skipped | Scout's own synthetic TYPE strings. They have no ARM counterpart by design, so no catalogue can contain them. |
+| Three-segment child types (`…/vaults/backupPolicies`) | Checked against the **parent** | ARM's provider metadata under-reports nested types — `Microsoft.RecoveryServices/vaults` is listed but most of its `vaults/backup*` children are not, and they are real and callable. A child of a *non-existent* parent is still rejected. |
+| Whether a real type returns any rows | Not checked | That is a live-run question. Conflating "the type does not exist" with "this tenant has none" is exactly the ambiguity the row-count artifact exists to remove. |
+
 ## Common Pitfalls
 
 - **Case-sensitive hashtable keys** — PowerShell hashtable keys are case-insensitive; avoid duplicate keys like `SKU` and `sku` in mock data.

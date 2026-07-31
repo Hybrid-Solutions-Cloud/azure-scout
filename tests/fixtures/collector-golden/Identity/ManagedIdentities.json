@@ -13,7 +13,11 @@
     "Application ID=s:res-value|Associated Resource=s:|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/managedidentities/managedidentities-t1f-1|Identity Type=s:System-Assigned|Resource U=j:1|Tenant ID=s:res-value"
   ],
   "Workbook": {
-    "WithoutTags": "Display Name\tApplication ID\tIdentity Type\tAssociated Resource\tResource U\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1",
-    "WithTags": "Display Name\tApplication ID\tIdentity Type\tAssociated Resource\tResource U\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1"
+    "WithoutTags": [
+      "Display Name\tApplication ID\tIdentity Type\tAssociated Resource\tResource U\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1"
+    ],
+    "WithTags": [
+      "Display Name\tApplication ID\tIdentity Type\tAssociated Resource\tResource U\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1\nres-value\tres-value\tSystem-Assigned\t\t1"
+    ]
   }
 }

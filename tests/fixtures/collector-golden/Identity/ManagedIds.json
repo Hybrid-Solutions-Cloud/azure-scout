@@ -14,7 +14,11 @@
     "Client ID=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managedids-t1f-1|Location=s:res-value|Name=s:managedids-t1f|Principal ID=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
   ],
   "Workbook": {
-    "WithoutTags": "Subscription\tName\tLocation\tPrincipal ID\tClient ID\nsub-fixture-01\tmanagedids-t1a\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1c\tres-value\tres-value\tres-value\n\tmanagedids-t1d\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1e\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1f\tres-value\tres-value\tres-value",
-    "WithTags": "Subscription\tName\tLocation\tPrincipal ID\tClient ID\tTag Name\tTag Value\nsub-fixture-01\tmanagedids-t1a\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\towner\tplatform\nsub-fixture-01\tmanagedids-t1c\tres-value\tres-value\tres-value\t\t\n\tmanagedids-t1d\tres-value\tres-value\tres-value\tenv\tdev\nsub-fixture-01\tmanagedids-t1e\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1f\tres-value\tres-value\tres-value\tenv\tprod"
+    "WithoutTags": [
+      "Subscription\tName\tLocation\tPrincipal ID\tClient ID\nsub-fixture-01\tmanagedids-t1a\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1c\tres-value\tres-value\tres-value\n\tmanagedids-t1d\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1e\tres-value\tres-value\tres-value\nsub-fixture-01\tmanagedids-t1f\tres-value\tres-value\tres-value"
+    ],
+    "WithTags": [
+      "Subscription\tName\tLocation\tPrincipal ID\tClient ID\tTag Name\tTag Value\nsub-fixture-01\tmanagedids-t1a\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1b\tres-value\tres-value\tres-value\towner\tplatform\nsub-fixture-01\tmanagedids-t1c\tres-value\tres-value\tres-value\t\t\n\tmanagedids-t1d\tres-value\tres-value\tres-value\tenv\tdev\nsub-fixture-01\tmanagedids-t1e\tres-value\tres-value\tres-value\tenv\tprod\nsub-fixture-01\tmanagedids-t1f\tres-value\tres-value\tres-value\tenv\tprod"
+    ]
   }
 }

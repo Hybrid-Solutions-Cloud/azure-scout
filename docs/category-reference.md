@@ -40,7 +40,7 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Storage | `Storage` | `manifests/collectors/Storage/` | 12 |
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
-**242 declarative collector definitions across all 18 of Microsoft's published service
+**236 declarative collector definitions across all 18 of Microsoft's published service
 categories.** Counts are the `.psd1` file count in each category directory; one definition
 generally maps to one worksheet in the Excel report.
 

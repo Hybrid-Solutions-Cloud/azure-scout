@@ -13,7 +13,11 @@
     "Applies To=s:res-value|Capability Status=s:res-value|Consumed Units=j:1024|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/subscribedskus/licensing-t1f-1|Prepaid Enabled=j:1024|Prepaid Suspended=j:1024|Prepaid Warning=j:1024|Resource U=j:1|SKU ID=s:res-value|SKU Part Number=s:res-value|Tenant ID=s:res-value"
   ],
   "Workbook": {
-    "WithoutTags": "SKU Part Number\tSKU ID\tConsumed Units\tPrepaid Enabled\tPrepaid Suspended\tPrepaid Warning\tApplies To\tCapability Status\tResource U\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1",
-    "WithTags": "SKU Part Number\tSKU ID\tConsumed Units\tPrepaid Enabled\tPrepaid Suspended\tPrepaid Warning\tApplies To\tCapability Status\tResource U\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1"
+    "WithoutTags": [
+      "SKU Part Number\tSKU ID\tConsumed Units\tPrepaid Enabled\tPrepaid Suspended\tPrepaid Warning\tApplies To\tCapability Status\tResource U\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "SKU Part Number\tSKU ID\tConsumed Units\tPrepaid Enabled\tPrepaid Suspended\tPrepaid Warning\tApplies To\tCapability Status\tResource U\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1\nres-value\tres-value\t1024\t1024\t1024\t1024\tres-value\tres-value\t1"
+    ]
   }
 }

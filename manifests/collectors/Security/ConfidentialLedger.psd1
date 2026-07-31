@@ -6,10 +6,9 @@
 @{
     ResourceTypes = @(
         'microsoft.confidentialledger/ledgers'
-        'microsoft.confidentialledger/managedccfs'
     )
 
-    ResourceTypeMatching = 'SinglePass'
+    ResourceTypeMatching = 'Grouped'
 
     AdditionalFilter = $null
 

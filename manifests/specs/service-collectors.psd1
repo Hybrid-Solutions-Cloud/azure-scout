@@ -36,7 +36,7 @@
             Category = 'Migration'
             Name = 'AzureMigrateProjects'
             Worksheet = 'Migrate Projects'
-            ResourceTypes = @('microsoft.migrate/migrateprojects', 'microsoft.migrate/projects')
+            ResourceTypes = @('microsoft.migrate/migrateprojects')
             Fields = @(
                 @{ Name = 'Project Kind';          Expression = '$1.TYPE' }
                 @{ Name = 'Provisioning State';    Expression = '$data.provisioningState' }
@@ -788,20 +788,6 @@ $KeyVault = if(![string]::IsNullOrEmpty($data.activeKey.sourceVault.id)){Get-AZS
         }
         @{
             Category = 'Storage'
-            Name = 'DataLakeStoreGen1'
-            Worksheet = 'Data Lake Store Gen1'
-            ResourceTypes = @('microsoft.datalakestore/accounts')
-            Fields = @(
-                @{ Name = 'Provisioning State';  Expression = '$data.provisioningState' }
-                @{ Name = 'State';               Expression = '$data.state' }
-                @{ Name = 'Encryption State';    Expression = '$data.encryptionState' }
-                @{ Name = 'Firewall State';      Expression = '$data.firewallState' }
-                @{ Name = 'Endpoint';            Expression = '$data.endpoint' }
-                @{ Name = 'Retired';             Expression = '''Azure Data Lake Storage Gen1 was retired 2024-02-29''' }
-            )
-        }
-        @{
-            Category = 'Storage'
             Name = 'PartnerStorage'
             Worksheet = 'Partner Storage Services'
             ResourceTypes = @(
@@ -1157,7 +1143,7 @@ $Workspace = if(![string]::IsNullOrEmpty($data.workspaceResourceId)){Get-AZSCIdS
             Category = 'Security'
             Name = 'CloudHSM'
             Worksheet = 'Cloud HSM'
-            ResourceTypes = @('microsoft.hardwaresecuritymodules/cloudhsmclusters', 'microsoft.hardwaresecuritymodules/dedicatedhsms')
+            ResourceTypes = @('microsoft.hardwaresecuritymodules/cloudhsmclusters')
             Fields = @(
                 @{ Name = 'Resource Kind';        Expression = '$1.TYPE' }
                 @{ Name = 'SKU';                  Expression = '$1.sku.name' }
@@ -1219,7 +1205,7 @@ $AssociationCount = @($data.applicationGateways).Count + @($data.httpListeners).
             Category = 'Security'
             Name = 'ConfidentialLedger'
             Worksheet = 'Confidential Ledger'
-            ResourceTypes = @('microsoft.confidentialledger/ledgers', 'microsoft.confidentialledger/managedccfs')
+            ResourceTypes = @('microsoft.confidentialledger/ledgers')
             Fields = @(
                 @{ Name = 'Resource Kind';      Expression = '$1.TYPE' }
                 @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }

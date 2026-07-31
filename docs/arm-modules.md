@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **242 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **236 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -79,7 +79,7 @@ Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview.
 | Streamanalytics | `microsoft.streamanalytics/streamingjobs` |
 | Synapse | `microsoft.synapse/workspaces` |
 
-### Compute (14 modules)
+### Compute (13 modules)
 
 Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate.
 
@@ -93,7 +93,6 @@ Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop e
 | AVDScalingPlans | `microsoft.desktopvirtualization/scalingplans` |
 | AVDSessionHosts | `microsoft.desktopvirtualization/hostpools/sessionhosts` |
 | AVDWorkspaces | `microsoft.desktopvirtualization/workspaces` |
-| CloudServices | `microsoft.classiccompute/domainnames` |
 | VirtualMachine | `microsoft.compute/virtualmachines` |
 | VirtualMachineScaleSet | `microsoft.compute/virtualmachinescalesets` |
 | VMDisk | `microsoft.compute/disks` |
@@ -113,7 +112,7 @@ AKS, ARO, Container Apps, container instances, and container registries.
 | ContainerGroups | `microsoft.containerinstance/containergroups` |
 | ContainerRegistries | `microsoft.containerregistry/registries` |
 
-### Databases (13 modules)
+### Databases (12 modules)
 
 Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 
@@ -123,7 +122,6 @@ Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 | MariaDB | `microsoft.dbformariadb/servers` |
 | MySQL | `microsoft.dbformysql/servers` |
 | MySQLflexible | `Microsoft.DBforMySQL/flexibleServers` |
-| POSTGRE | `microsoft.dbforpostgresql/servers` |
 | POSTGREFlexible | `Microsoft.DBforPostgreSQL/flexibleServers` |
 | RedisCache | `microsoft.cache/redis` · `microsoft.cache/redisenterprise` |
 | SQLDB | `microsoft.sql/servers/databases` *(filtered)* |
@@ -163,7 +161,7 @@ Support tickets, reservations, and VM quotas — the platform-level surfaces tha
 | Reservations | `microsoft.capacity/reservationorders` · `microsoft.capacity/reservationorders/reservations` |
 | SupportTickets | `Microsoft.Support/supportTickets` |
 
-### Hybrid (16 modules)
+### Hybrid (15 modules)
 
 Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 
@@ -176,7 +174,6 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` |
 | ArcServerOperationalData | `microsoft.hybridcompute/machines` |
 | ARCServers | `microsoft.hybridcompute/machines` |
-| ArcSites | `microsoft.azurestackhci/sites` · `microsoft.edgeconfig/sites` · `microsoft.hybridcompute/sites` |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` |
 | Clusters | `microsoft.azurestackhci/clusters` |
@@ -272,12 +269,12 @@ Azure Migrate projects, assessments and discovery sites; Database Migration Serv
 |--------|---------------|
 | AzureMigrateAssessments | `microsoft.migrate/assessmentprojects` |
 | AzureMigrateDiscoverySites | `microsoft.offazure/vmwaresites` · `microsoft.offazure/hypervsites` · `microsoft.offazure/serversites` · `microsoft.offazure/mastersites` |
-| AzureMigrateProjects | `microsoft.migrate/migrateprojects` · `microsoft.migrate/projects` |
+| AzureMigrateProjects | `microsoft.migrate/migrateprojects` |
 | DatabaseMigrationServices | `microsoft.datamigration/services` · `microsoft.datamigration/sqlmigrationservices` |
 | DataBox | `microsoft.databox/jobs` |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` |
 
-### Monitor (24 modules)
+### Monitor (22 modules)
 
 Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.
 
@@ -287,10 +284,8 @@ Alert rules, Application Insights, data collection rules, diagnostic settings, a
 | ActivityLogAlertRules | `microsoft.insights/activitylogalerts` |
 | AppInsights | `microsoft.insights/components` |
 | AppInsightsAvailabilityTests | `microsoft.insights/webtests` |
-| AppInsightsContinuousExport | `AZSC/ARMChild/AppInsightsContinuousExport` |
 | AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` |
 | AppInsightsWebTests | `microsoft.insights/webtests` *(filtered)* |
-| AppInsightsWorkItems | `AZSC/ARMChild/AppInsightsWorkItems` |
 | AutoscaleSettings | `microsoft.insights/autoscalesettings` |
 | DataCollectionEndpoints | `microsoft.insights/datacollectionendpoints` |
 | DataCollectionRules | `microsoft.insights/datacollectionrules` |
@@ -345,8 +340,8 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | AppComplianceAutomation | `microsoft.appcomplianceautomation/reports` · `microsoft.appcomplianceautomation/reports/snapshots` |
 | ApplicationSecurityGroups | `microsoft.network/applicationsecuritygroups` |
 | ArtifactSigning | `microsoft.codesigning/codesigningaccounts` |
-| CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` · `microsoft.hardwaresecuritymodules/dedicatedhsms` |
-| ConfidentialLedger | `microsoft.confidentialledger/ledgers` · `microsoft.confidentialledger/managedccfs` |
+| CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` |
+| ConfidentialLedger | `microsoft.confidentialledger/ledgers` |
 | DdosProtectionPlans | `microsoft.network/ddosprotectionplans` |
 | DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` |
 | DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` |
@@ -360,14 +355,13 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | Vault | `microsoft.keyvault/vaults` |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` |
 
-### Storage (12 modules)
+### Storage (11 modules)
 
 Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.
 
 | Module | Resource Type |
 |--------|---------------|
 | BlobContainers | `AZSC/ARMChild/StorageBlobContainers` |
-| DataLakeStoreGen1 | `microsoft.datalakestore/accounts` |
 | DiskEncryptionSets | `microsoft.compute/diskencryptionsets` |
 | EdgeHardwareCenter | `microsoft.edgeorder/orders` · `microsoft.edgeorder/orderitems` · `microsoft.edgeorder/addresses` |
 | ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` |

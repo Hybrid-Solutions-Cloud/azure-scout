@@ -1983,20 +1983,34 @@ With these off, `Microsoft.CostManagement/query` returns empty or 403 for a subs
 
 AB#6444 traced these to defects in code. They emit zero rows **in every tenant, on every run, at any permission level.** Granting more access does not change the output; they will *present* as a permission failure and are not one.
 
-| Collector | Why it is broken |
-|---|---|
-| Databases/**POSTGRE** | Emits zero rows on every run (AB#6444 §4) |
-| Hybrid/**ArcSites** | Emits zero rows on every run |
-| Hybrid/**VirtualMachines** | Emits zero rows on every run |
-| Management/**CustomRoleDefinitions** | Consumes `AZSC/Management/RoleDefinition`, produced only by `Get-ScoutTenantWideResource`, which is gated at `Get-ScoutRawInventory.ps1:594` on `-IncludeTenantWideResources` |
-| Management/**ManagementGroups** | Same gate — `AZSC/Management/ManagementGroup` |
-| Management/**PolicyDefinitions** | Same gate — `AZSC/Management/PolicyDefinition` |
-| Management/**PolicySetDefinitions** | Same gate — `AZSC/Management/PolicySetDefinition` |
-| Management/**LighthouseDelegations** | Emits zero rows on every run |
-| Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events |
-| Monitor/**ResourceDiagnosticSettings** | Emits zero rows on every run |
-| Monitor/**AppInsightsContinuousExport** | No producer — Azure retired the endpoint. Permanently empty by design. |
-| Monitor/**AppInsightsWorkItems** | No producer — endpoint retired. Permanently empty by design. |
+| Collector | Why it is broken | Status |
+|---|---|---|
+| Management/**CustomRoleDefinitions** | Consumes `AZSC/Management/RoleDefinition`, produced only by `Get-ScoutTenantWideResource`, which was gated on `-IncludeTenantWideResources` — a switch no production caller set | ✅ **Fixed** — AB#6755 wired both call sites |
+| Management/**ManagementGroups** | Same gate — `AZSC/Management/ManagementGroup` | ✅ **Fixed** — AB#6755 |
+| Management/**PolicyDefinitions** | Same gate — `AZSC/Management/PolicyDefinition` | ✅ **Fixed** — AB#6755 |
+| Management/**PolicySetDefinitions** | Same gate — `AZSC/Management/PolicySetDefinition` | ✅ **Fixed** — AB#6755 |
+| Databases/**POSTGRE** | Targets `microsoft.dbforpostgresql/servers`. Single Server reached end of life; no customer can own one | 🗑️ **Retired** — AB#6768 |
+| Monitor/**AppInsightsContinuousExport** | No producer — Azure retired the endpoint. Permanently empty by design | 🗑️ **Retired** — AB#6768 |
+| Monitor/**AppInsightsWorkItems** | No producer — endpoint retired | 🗑️ **Retired** — AB#6768 |
+| Hybrid/**ArcSites** | Declares three type strings that do not exist: `microsoft.azurestackhci/sites`, `microsoft.edgeconfig/sites`, `microsoft.hybridcompute/sites` | 🗑️ **Retired** — AB#6842 |
+| Hybrid/**VirtualMachines** | Emits zero rows on every run. Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — so this is not the ArcSites failure and needs its own diagnosis | ⏳ Open |
+| Management/**LighthouseDelegations** | `Microsoft.ManagedServices/registrationDefinitions` is real, but no pass reads the `managedserviceresources` ARG table that carries it | ⏳ Open — AB#6771 |
+| Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events | ⏳ Open — AB#6770 |
+| Monitor/**ResourceDiagnosticSettings** | `microsoft.insights/diagnosticsettings` is not an ARG-indexed type; it must be re-sourced via ARM REST | ⏳ Open — AB#6769 |
+
+**Three more were found afterwards, by the gate rather than by reading.** AB#6842 built a
+resource-type existence check against provider metadata read from ARM — ground truth that does not
+come from the manifests — and its first run flagged eight strings. Three were collectors this
+audit had not identified at all:
+
+| Collector | Declared | Finding | Status |
+|---|---|---|---|
+| Compute/**CloudServices** | `microsoft.classiccompute/domainnames` | The provider now lists **zero** types. Classic/ASM is gone | 🗑️ **Retired** |
+| Storage/**DataLakeStoreGen1** | `microsoft.datalakestore/accounts` | Provider lists seven types and `accounts` is not among them. Gen1 retired 2024-02-29 | 🗑️ **Retired** |
+| Migration/**AzureMigrateProjects**, Security/**CloudHSM**, Security/**ConfidentialLedger** | `microsoft.migrate/projects`, `…/dedicatedhsms`, `…/managedccfs` | Each carried a **renamed or retired** type string alongside a live one, so each was half-collecting silently | ✅ **Corrected** — dead strings dropped from the spec |
+
+That is the argument for the gate in one table: reading the code found nine, and a check against
+Azure's own answer found five more in its first minute.
 
 **The `-IncludeTenantWideResources` switch has no production caller.** The string appears in exactly four places in the repo: the doc comment, the parameter declaration, the `if`, and one Pester test. Neither `Start-ScoutGraphExtraction.ps1:69-83` nor `Invoke-Collect.ps1:707` sets it. There is no operator flag that turns these four collectors on.
 

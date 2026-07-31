@@ -8,7 +8,11 @@
     "Capacity=j:200|DB Max DTU=j:2|DB Min DTU=j:0|Edition=s:GeneralPurpose|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod/elasticPools/ep-prod|License=s:LicenseIncluded|Location=s:eastus|Max Size (GB)=j:100|Name=s:ep-prod|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Sku Name=s:GP_Gen5|State=s:Ready|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test|Zone Redundant=j:false"
   ],
   "Workbook": {
-    "WithoutTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tCapacity\tSku Name\tEdition\tLicense\tDB Min DTU\tDB Max DTU\tMax Size (GB)\tZone Redundant\tResource U\nScout Sample Subscription 1\trg-databases\tep-prod\teastus\t\t\t200\tGP_Gen5\tGeneralPurpose\tLicenseIncluded\t0\t2\t100\tFalse\t1",
-    "WithTags": "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tCapacity\tSku Name\tEdition\tLicense\tDB Min DTU\tDB Max DTU\tMax Size (GB)\tZone Redundant\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tep-prod\teastus\t\t\t200\tGP_Gen5\tGeneralPurpose\tLicenseIncluded\t0\t2\t100\tFalse\tenv\ttest\t1"
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tCapacity\tSku Name\tEdition\tLicense\tDB Min DTU\tDB Max DTU\tMax Size (GB)\tZone Redundant\tResource U\nScout Sample Subscription 1\trg-databases\tep-prod\teastus\t\t\t200\tGP_Gen5\tGeneralPurpose\tLicenseIncluded\t0\t2\t100\tFalse\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tRetiring Feature\tRetiring Date\tCapacity\tSku Name\tEdition\tLicense\tDB Min DTU\tDB Max DTU\tMax Size (GB)\tZone Redundant\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tep-prod\teastus\t\t\t200\tGP_Gen5\tGeneralPurpose\tLicenseIncluded\t0\t2\t100\tFalse\tenv\ttest\t1"
+    ]
   }
 }

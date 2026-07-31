@@ -18,23 +18,23 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 |----------|---------|-------|
 | AI | 27 | Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search. |
 | Analytics | 6 | Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview. |
-| Compute | 14 | Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate. |
+| Compute | 13 | Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate. |
 | Containers | 6 | AKS, ARO, Container Apps, container instances, and container registries. |
-| Databases | 13 | Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis. |
+| Databases | 12 | Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis. |
 | DevOps | 12 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 4 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
-| Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
+| Hybrid | 15 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
 | Identity | 16 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 7 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
 | Management | 18 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
-| Monitor | 24 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
+| Monitor | 22 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 21 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
 | Security | 17 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
-| Storage | 12 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
+| Storage | 11 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **242** | across all 18 of Microsoft's published service categories |
+| **Total** | **236** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (27 modules)
 
@@ -79,7 +79,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Streamanalytics | `microsoft.streamanalytics/streamingjobs` | Stream Analytics Jobs |
 | Synapse | `microsoft.synapse/workspaces` | Synapse |
 
-## Compute Category (14 modules)
+## Compute Category (13 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -91,7 +91,6 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AVDScalingPlans | `microsoft.desktopvirtualization/scalingplans` | AVD Scaling Plans |
 | AVDSessionHosts | `microsoft.desktopvirtualization/hostpools/sessionhosts` | AVD Session Hosts |
 | AVDWorkspaces | `microsoft.desktopvirtualization/workspaces` | AVD Workspaces |
-| CloudServices | `microsoft.classiccompute/domainnames` | CloudServices |
 | VirtualMachine | `microsoft.compute/virtualmachines` | Virtual Machines |
 | VirtualMachineScaleSet | `microsoft.compute/virtualmachinescalesets` | Virtual Machine Scale Sets |
 | VMDisk | `microsoft.compute/disks` | Disks |
@@ -109,7 +108,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ContainerGroups | `microsoft.containerinstance/containergroups` | Containers |
 | ContainerRegistries | `microsoft.containerregistry/registries` | Registries |
 
-## Databases Category (13 modules)
+## Databases Category (12 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -117,7 +116,6 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | MariaDB | `microsoft.dbformariadb/servers` | MariaDB |
 | MySQL | `microsoft.dbformysql/servers` | MySQL |
 | MySQLflexible | `Microsoft.DBforMySQL/flexibleServers` | MySQL Flexible |
-| POSTGRE | `microsoft.dbforpostgresql/servers` | PostgreSQL |
 | POSTGREFlexible | `Microsoft.DBforPostgreSQL/flexibleServers` | PostgreSQL Flexible |
 | RedisCache | `microsoft.cache/redis` · `microsoft.cache/redisenterprise` | Redis Cache |
 | SQLDB | `microsoft.sql/servers/databases` | SQL DBs |
@@ -153,7 +151,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Reservations | `microsoft.capacity/reservationorders` · `microsoft.capacity/reservationorders/reservations` | Reservations |
 | SupportTickets | `Microsoft.Support/supportTickets` | Support Tickets |
 
-## Hybrid Category (16 modules)
+## Hybrid Category (15 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -164,7 +162,6 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` | Arc Resource Bridge |
 | ArcServerOperationalData | `microsoft.hybridcompute/machines` | Arc Server Operational Data |
 | ARCServers | `microsoft.hybridcompute/machines` | ARC Servers |
-| ArcSites | `microsoft.azurestackhci/sites` · `microsoft.edgeconfig/sites` · `microsoft.hybridcompute/sites` | Arc Sites |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` | Arc SQL Managed Instances |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` | Arc SQL Servers |
 | Clusters | `microsoft.azurestackhci/clusters` | AzLocal Clusters |
@@ -250,12 +247,12 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 |--------|---------------|-----------|
 | AzureMigrateAssessments | `microsoft.migrate/assessmentprojects` | Migrate Assessment Projects |
 | AzureMigrateDiscoverySites | `microsoft.offazure/vmwaresites` · `microsoft.offazure/hypervsites` · `microsoft.offazure/serversites` · `microsoft.offazure/mastersites` | Migrate Discovery Sites |
-| AzureMigrateProjects | `microsoft.migrate/migrateprojects` · `microsoft.migrate/projects` | Migrate Projects |
+| AzureMigrateProjects | `microsoft.migrate/migrateprojects` | Migrate Projects |
 | DatabaseMigrationServices | `microsoft.datamigration/services` · `microsoft.datamigration/sqlmigrationservices` | Database Migration Services |
 | DataBox | `microsoft.databox/jobs` | Data Box Jobs |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` | Stack Edge Devices |
 
-## Monitor Category (24 modules)
+## Monitor Category (22 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -263,10 +260,8 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ActivityLogAlertRules | `microsoft.insights/activitylogalerts` | Activity Log Alerts |
 | AppInsights | `microsoft.insights/components` | AppInsights |
 | AppInsightsAvailabilityTests | `microsoft.insights/webtests` | App Insights Availability Tests |
-| AppInsightsContinuousExport | `AZSC/ARMChild/AppInsightsContinuousExport` | App Insights Continuous Export |
 | AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` | App Insights ProactiveDetection |
 | AppInsightsWebTests | `microsoft.insights/webtests` | App Insights Web Tests |
-| AppInsightsWorkItems | `AZSC/ARMChild/AppInsightsWorkItems` | App Insights Work Items |
 | AutoscaleSettings | `microsoft.insights/autoscalesettings` | Autoscale Settings |
 | DataCollectionEndpoints | `microsoft.insights/datacollectionendpoints` | Data Collection Endpoints |
 | DataCollectionRules | `microsoft.insights/datacollectionrules` | Data Collection Rules |
@@ -317,8 +312,8 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AppComplianceAutomation | `microsoft.appcomplianceautomation/reports` · `microsoft.appcomplianceautomation/reports/snapshots` | App Compliance Automation |
 | ApplicationSecurityGroups | `microsoft.network/applicationsecuritygroups` | App Security Groups |
 | ArtifactSigning | `microsoft.codesigning/codesigningaccounts` | Artifact Signing |
-| CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` · `microsoft.hardwaresecuritymodules/dedicatedhsms` | Cloud HSM |
-| ConfidentialLedger | `microsoft.confidentialledger/ledgers` · `microsoft.confidentialledger/managedccfs` | Confidential Ledger |
+| CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` | Cloud HSM |
+| ConfidentialLedger | `microsoft.confidentialledger/ledgers` | Confidential Ledger |
 | DdosProtectionPlans | `microsoft.network/ddosprotectionplans` | DDoS Protection Plans |
 | DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` | Defender Alerts |
 | DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` | Defender Assessments |
@@ -332,12 +327,11 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Vault | `microsoft.keyvault/vaults` | Key Vaults |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` | WAF Policies |
 
-## Storage Category (12 modules)
+## Storage Category (11 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
 | BlobContainers | `AZSC/ARMChild/StorageBlobContainers` | Blob Containers |
-| DataLakeStoreGen1 | `microsoft.datalakestore/accounts` | Data Lake Store Gen1 |
 | DiskEncryptionSets | `microsoft.compute/diskencryptionsets` | Disk Encryption Sets |
 | EdgeHardwareCenter | `microsoft.edgeorder/orders` · `microsoft.edgeorder/orderitems` · `microsoft.edgeorder/addresses` | Edge Hardware Center |
 | ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` | Elastic SAN |

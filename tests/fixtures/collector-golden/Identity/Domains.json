@@ -13,7 +13,11 @@
     "Authentication Type=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/domains/domains-t1f-1|Is Admin Managed=j:true|Is Default=j:true|Is Verified=j:true|Resource U=j:1|Supported Services=s:res-item-0, res-item-1|Tenant ID=s:res-value"
   ],
   "Workbook": {
-    "WithoutTags": "Domain Name\tIs Verified\tIs Default\tIs Admin Managed\tAuthentication Type\tSupported Services\tResource U\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1",
-    "WithTags": "Domain Name\tIs Verified\tIs Default\tIs Admin Managed\tAuthentication Type\tSupported Services\tResource U\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1"
+    "WithoutTags": [
+      "Domain Name\tIs Verified\tIs Default\tIs Admin Managed\tAuthentication Type\tSupported Services\tResource U\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1"
+    ],
+    "WithTags": [
+      "Domain Name\tIs Verified\tIs Default\tIs Admin Managed\tAuthentication Type\tSupported Services\tResource U\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1\nres-value\tTrue\tTrue\tTrue\tres-value\tres-item-0, res-item-1\t1"
+    ]
   }
 }

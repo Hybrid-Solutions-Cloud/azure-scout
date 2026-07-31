@@ -6,10 +6,9 @@
 @{
     ResourceTypes = @(
         'microsoft.hardwaresecuritymodules/cloudhsmclusters'
-        'microsoft.hardwaresecuritymodules/dedicatedhsms'
     )
 
-    ResourceTypeMatching = 'SinglePass'
+    ResourceTypeMatching = 'Grouped'
 
     AdditionalFilter = $null
 
