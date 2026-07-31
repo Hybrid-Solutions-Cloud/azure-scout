@@ -1,15 +1,215 @@
 ---
-description: Consolidated audit of Azure Scout — coverage, assessments, collectors, permissions — with the decision log.
+description: Azure Scout audit — what it covers, what is broken, what was decided, and the plan to fix and extend it.
 ---
 
-# Azure Scout — Audit & Decisions
+# Azure Scout — Audit, Findings, Decisions & Plan
 
 **Date:** 2026-07-31
 **Scope:** ADO work items AB#6444, AB#6445, AB#6446, AB#6447 (Feature AB#6461)
 **Method:** four parallel Opus audits over the full repo, cross-checked against Microsoft Learn,
-plus findings that emerged in review afterwards.
+plus findings that emerged in review afterwards and an adversarial fact-check of the permission
+research.
 
-## 1. Executive summary
+## How to read this document
+
+It is four documents in one, in the order you would actually use them.
+
+| Part | Sections | What it is | Read it when |
+|---|---|---|---|
+| **I — Reference** | 1-3 | Microsoft's published lists, recorded verbatim. No opinion. | You need the authoritative answer to *"what does Azure actually have?"* |
+| **II — Findings** | 4-11 | What the audit found. Coverage, gaps, permissions, architecture, defects. | You want to know where Scout stands today |
+| **III — Decisions** | 12-13 | Every decision taken, with its reasoning | You want to know why something is the way it is, or is about to be |
+| **IV — Plan** | 14-17 | The 14 target assessments, the collector build list, the release plan, and how we prove it worked | You are about to do the work |
+
+**If you read one thing:** §13 — the decisions. All twelve are taken, each with its reasoning. One
+(DQ7) carries a dependency only the owner can clear; nothing else is waiting on anybody.
+
+**Status legend used throughout:** ✅ done · 🟡 agreed, not built · 🔲 not started ·
+⚠️ caveat · ⛔ not possible
+
+**Verification legend — this matters.** Claims in this document are marked:
+
+- **Verified** — read in the repo at a named `file:line`, or fetched from Microsoft Learn with the
+  URL cited.
+- **Documented** — Microsoft's documentation says so. Not the same as proven in a tenant.
+- **Untested** — reasoned from the above, never observed against real Azure.
+
+**No permission claim in §9 has been tested with a Reader-only principal.** See §9's verification
+status subsection before quoting any of it to a customer.
+
+---
+
+## Part I — Reference: what Microsoft publishes
+
+Two authoritative lists, recorded verbatim. Nothing here is a judgement about Scout.
+
+---
+
+## 1. Terminology — inventory vs assessment
+
+These are **two different products**. This document uses the words strictly, and so should the code.
+
+| | **Inventory** (audit / discovery) | **Assessment** |
+|---|---|---|
+| **Question it answers** | *What is there?* | *Is what is there any good?* |
+| **Output** | A list of resources and their properties | Findings, pass/fail, a score |
+| **Contains opinion?** | No — facts only | Yes — measured against a standard |
+| **Standard it scores against** | none | **CAF / WAF** |
+| **Example** | "There is a VM, Standard_D4s_v5, in eastus, tagged env=prod" | "This VM is not zone-redundant — WAF Reliability finding" |
+
+**"Assessment" means a CAF/WAF assessment. Full stop.** It is not a general word for looking at
+things. If a thing does not run rules and produce findings, it is not an assessment.
+
+**The relationship is one-way: assessment consumes inventory.** You cannot score what has not been
+discovered. Inventory stands alone; assessment does not.
+
+That relationship is what makes the collect-once design in row 12 and §10 correct — and it is why
+two things in the current code are wrong:
+
+- **`Estate` sits in the assessment registry with `Rules = @()`.** It scores nothing. It is
+  inventory, so it does not belong there (row 11).
+- **The 15 per-category assessment entries share names with the 15 inventory categories** —
+  Compute, Storage, Networking and so on. One filters what is *collected*; the other filters what
+  is *scored*. Same word, different meaning, presented in one menu.
+
+---
+
+## 2. Azure's 18 categories and their services
+
+Captured from the Azure portal's **All services** page (`portal.azure.com/#allservices/category/All`)
+on 2026-07-31. **This is the source of truth for what a category is and how many services it holds.**
+
+**18 categories, ~364 services.**
+
+| # | Category | Services |
+|---|---:|---:|
+| 1 | AI + machine learning | 21 |
+| 2 | Analytics | 20 |
+| 3 | Compute | 32 |
+| 4 | Containers | 12 |
+| 5 | Databases | 18 |
+| 6 | DevOps | 23 |
+| 7 | General | 10 |
+| 8 | Hybrid + multicloud | 18 |
+| 9 | Identity | 18 |
+| 10 | Integration | 15 |
+| 11 | Internet of Things | 19 |
+| 12 | Management and governance | 34 |
+| 13 | Migration | 5 |
+| 14 | Monitor | 24 |
+| 15 | Networking | 34 |
+| 16 | Security | 22 |
+| 17 | Storage | 17 |
+| 18 | Web & Mobile | 22 |
+| | **Total** | **~364** |
+
+### Two units of measurement — do not confuse them
+
+| Unit | Count | Where it appears |
+|---|---|---|
+| **Services** (portal "All services") | **~364** | This section, and §6 |
+| **Resource providers** (`Microsoft.*`) | 152 | §9 and §6 |
+
+One provider covers many services — `Microsoft.Compute` alone accounts for Virtual machines, VM
+scale sets, Disks, Images, Snapshots, Availability sets, Proximity placement groups, Restore point
+collections and more. **So "Scout collects 49 of 152 providers (32%)" and any service-level figure
+are not comparable**, and provider-level counting overstates coverage: a provider reads as
+"collected" when only one of its many services actually is.
+
+### Azure services by category — from the portal All services page
+
+| Category | Services |
+|---|---|
+| **AI + machine learning** (21) | Azure Machine Learning · AI Search · Azure AI Video Indexer · Anomaly detectors · Bot Services · Computer vision · Content moderators · Custom vision · Document Intelligence · Face APIs · Immersive readers · Language · Metrics advisor · Microsoft Foundry · Azure OpenAI · Personalizers · Speech services · Translators |
+| **Analytics** (20) | Analysis Services · Data Explorer clusters · Data Lake Analytics · Data Lake Storage Gen1 · Event Hubs · HDInsight clusters · Log Analytics workspaces · Microsoft Graph Data Connect · Power BI Embedded · Power BI · Data Shares · Data Share accounts · Stream Analytics clusters · Stream Analytics jobs · Azure Synapse Analytics · Azure Synapse Analytics (private link hubs) · Azure Databricks · Data factories · Apache Kafka and Apache Flink on Confluent · Informatica Intelligent Data Management Cloud |
+| **Compute** (32) | Availability sets · Community images · Compute Fleet · Azure compute galleries · Compute infrastructure · Host groups · Image templates · Images · Lab accounts · Proximity placement groups · Restore Point Collections · SSH keys · Azure Virtual Desktop · Virtual machine scale sets · Virtual machines · VM application definitions · VM application versions · VM image definitions · VM image versions · App Spaces · Cloud services (extended support) · Azure Spring Apps · Virtual instances for SAP solutions · Container Apps · Container Apps Environments · Function App · Kubernetes services - Automatic · Kubernetes services · Batch accounts · BareMetal Instances · SAP PubSub on Azure |
+| **Containers** (12) | Container instances · Container registries · Kubernetes services · Kubernetes Fleet Manager · Kubernetes services - Automatic · Azure Red Hat OpenShift clusters · Service Fabric clusters · Service Fabric managed clusters · App Configuration · Container Apps · Container Apps Jobs |
+| **Databases** (18) | Azure Cosmos DB · Azure Database for PostgreSQL flexible servers · Azure Database for MySQL flexible servers · Azure Database for MariaDB · Azure Database Migration Services · Azure Managed Instance for Apache Cassandra · Azure Cache for Redis · Azure Managed Redis · MongoDB Atlas · Oracle Database@Azure · Azure SQL · SQL Server instances · Azure Arc data controllers · Managed databases · SQL managed instances - Azure Arc · SQL Server stretch databases · SQL databases |
+| **DevOps** (23) | Chaos Studio · Azure Deployment Environments · Dev centers · DevTest Labs · GitHub · Azure Lab Services · Azure Load Testing · Managed DevOps Pools · Microsoft Dev Box · Network connections · Playwright Testing (Classic) · Projects · API Connections · API Management services · App Configuration · Application Insights · Monitor · Azure Native LambdaTest / HyperExecute Cloud · Elastic - on Azure Native ISV Service · Plastic Cloud (Rackmarole) · Azure Native New Relic Service |
+| **General** (10) | Cost Management + Billing · Pass services · Quotas · Reservations · Operations center · Resource Manager · Resources · Preview features · Quickstart Center · Help + support · Service Health |
+| **Hybrid + multicloud** (18) | Azure Arc data controllers · Azure Arc · Microsoft Entra ID · Azure Network Function Manager - Devices · Site recovery - Azure Arc · Azure VMware Solution · Azure Edge Hardware Center · ExpressRoute circuits · Operator Nexus · SQL managed instances - Azure Arc · SQL Server databases · Microsoft Purview Cloud Connect Health · Microsoft Defender for Cloud · Microsoft Sentinel · Azure Local · Virtual WANs |
+| **Identity** (18) | Microsoft Entra Cloud Health · Azure AD B2C · RBAC Tenants · Enterprise applications · External Identities · Access Connector for Azure Databricks · Agent IDs · App registrations · External Configuration Tenant · Guest Usages · Managed Identities · Microsoft Entra Domain Services · Microsoft Entra ID · Microsoft Entra Privileged Identity Management · Identity Governance · Microsoft Entra ID Protection · Microsoft Entra ID Security · Verified ID |
+| **Integration** (15) | App Configuration · Integration accounts · Logic apps · Logic Apps Custom Connector · API Connections · Azure API for FHIR · API Management services · FHIR service · Mobile Data Services workspaces · Apache Kafka and Apache Flink on Confluent · Event Grid · Event Hubs Clusters · Event Hubs · Relays · Service Bus |
+| **Internet of Things** (19) | IoT Central Applications · IoT Hub · Device Update for IoT Hubs · Azure IoT Hub Device Provisioning Service · Microsoft Defender for IoT · Azure Cosmos DB · Azure Data Explorer Clusters · Azure Digital Twins · Event Hubs · Function App · Stream Analytics jobs · Azure Synapse Analytics · Logic apps · Azure Machine Learning · Azure Maps Accounts · Azure Maps Creator Resources · Power Platform · Azure Stack Edge / Data Box Gateway · Storage accounts |
+| **Management and governance** (34) | Operations center · Advisor · Change Analysis · Deployment Scripts · Diagnostic settings · Azure Monitor for SAP solutions · Azure Resource Mover · Backups · Subscriptions · Template specs · Virtual instances for SAP solutions · Azure Capital admin center · Automanage · Automation accounts · Blueprints · Capacity Reservation Groups · Cost Management · Guest Assignments · Policy · Update Center · Microsoft Entra Domain Services · Customer Lockbox for Microsoft Azure · Azure Lighthouse · Managed applications center · Intune · Intune for Education · Managed Desktop · Universal Print · Backup vaults · Azure Native Qumulo Scalable File Service · Recovery Services vaults · Resiliency |
+| **Migration** (5) | Azure Database Migration Services · Azure Migrate · Azure Data Box · Recovery Services vaults · Azure Stack Edge / Data Box Gateway |
+| **Monitor** (24) | Alerts · Autoscale · Change Analysis · Diagnostic settings · Log Analytics dedicated clusters · Log Analytics workspaces · Managed Prometheus · Metrics · Azure Monitor workspaces · Azure Native Dynatrace Service · Observability agents · Azure Workbooks · Application Insights · Activity log · Data collection endpoints · Data collection rules · Database watchers · Elastic - on Azure Native ISV Service · Plastic Cloud (Rackmarole) · Log Analytics query packs · Azure Managed Grafana · Monitor · Azure Monitor for SAP solutions · Network Watcher · Service Health |
+| **Networking** (34) | Bastions · Custom IP Prefixes · DNS private resolvers · DNS zones · NAT gateways · Network interfaces · Network managers · Private DNS zones · Private Link · Public IP addresses · Public IP Prefixes · Route tables · Virtual networks · Connections · ExpressRoute circuits · ExpressRoute traffic collectors · Local network gateways · Peering Service · Peerings · Virtual network gateways · Networking monitoring and management · DDoS protection plans · IP Groups · Network security groups · Web Application Firewall policies (WAF) · Application gateways · Load balancers · Microsoft Connected Cache for Internet Service Providers · Monitor · Network Watcher · Front Doors · Virtual WANs · NSGWatch |
+| **Security** (22) | App Compliance Automation Tool for Microsoft · Application security groups · Confidential Ledgers · Log Analytics workspaces · Web Application Firewall policies (WAF) · Artifact Signing Accounts · Microsoft Entra Domain Services · Microsoft Entra ID · Microsoft Entra ID Security · Microsoft Entra Privileged Identity Management · Multifactor authentication · Application gateways · Azure Cloud HSM · DDoS protection plans · Firewalls · Azure Key Vault Managed HSM · Key vaults · Microsoft Defender for Cloud · Microsoft Defender for IoT · Microsoft Sentinel |
+| **Storage** (17) | Azure Edge Hardware Center · Azure Stack Edge / Data Box Gateway · Data Accesses · Disk Encryption Sets · Disks · Azure NetApp Files · Azure Data Box · Data resources · Data Lake Storage Gen1 · Elastic SANs · Azure Storage Locker · Azure Native Pure Storage Cloud Service · Azure Native Qumulo Scalable File Service · Snapshots · Storage accounts · Storage browser · Storage Sync Services |
+| **Web and Mobile** (22) | API Connections · API Management services · App Configuration · App Service Certificates · App Service Domains · App Service Environments · App Service plans · App Services · Application Insights · Container Apps · Function App · Logic apps · Azure Spring Apps · Static Web Apps · AI Search · Communication Services · Email Communication Services · Notification Hubs · SignalR · Web PubSub for Socket.IO · Web PubSub Service · Fluid Relay |
+
+## 3. Microsoft's 56 published assessments
+
+Every assessment on <https://learn.microsoft.com/assessments/browse/> as of 2026-07-31.
+**56 assessments across 4 pages.** Listed for reference — whether Scout can produce any of them
+is a separate question, deliberately not answered here.
+
+| Assessment | Description | Tags |
+|---|---|---|
+| **Azure Well-Architected Review** | Examine reliability, security, cost optimization, operational excellence and performance efficiency of workload design | Azure |
+| **Azure Well-Architected Framework Maturity Model Assessment** | Structured path to improve workload maturity against the five WAF pillars | — |
+| **Azure Landing Zone Review** | Assess Azure platform readiness and plan to create landing zones for workloads | Azure |
+| **Go-Live \| Well-Architected Review** | Holistically evaluate an Azure workload across the five WAF tenets | Azure |
+| **Mission Critical \| Well-Architected Review** | Evaluate mission-critical workloads and operational effectiveness | Azure |
+| **Sustainability \| Well-Architected Review** | Examine your workload through the lens of sustainability | Azure |
+| **SAP on Azure \| Well-Architected Review** | Well-architected review for SAP on Azure | — |
+| **Azure Local \| Well-Architected Review** | — | Azure |
+| **Azure Well-Architected AI workload** | Assess key technical design areas in AI workloads | Azure |
+| **Azure Well-Architected Azure Virtual Desktop workload** | Examine AVD readiness for production against best practices | Azure |
+| **Azure Well-Architected Azure VMware Solution workload** | Examine AVS readiness for production | Azure |
+| **Azure Well-Architected Oracle on Azure IaaS workload** | Examine Oracle on Azure IaaS readiness for production | — |
+| **Azure Well-Architected SaaS workload** | Assess key technical design areas in SaaS workloads, for ISVs | Azure |
+| **Azure Machine Learning** | Examine an ML workload through reliability, cost, operational excellence, security and performance | — |
+| **Azure VMware Solution Landing Zone Assessment Review** | Review platform readiness for deploying and managing AVS | Azure |
+| **Power Platform Well-Architected** | Reliability, security, operational excellence, performance efficiency and user experience | Power Platform |
+| **Microsoft Cloud for Financial Services \| Well-Architected for Industry** | Configuration, extension scenarios and WAF pillars | Industry Solutions |
+| **Microsoft Sustainability Manager \| Well-Architected Assessment** | Assess application deployment at different implementation stages | Industry Solutions |
+| **Cloud Adoption Security Assessment (CASA)** | Cloud security maturity across security teams/roles, posture modernization, incident preparedness and sustainment. **Aligned to the CAF Secure methodology** | Azure |
+| **Cloud Adoption Strategy Evaluator** | Assess cloud adoption strategy; recommendations for building or advancing a business case | Azure |
+| **Cloud Governance** | Assess cloud governance approach with tailored recommendations | — |
+| **Cloud Journey Tracker** | Identify your cloud adoption path and navigate to relevant CAF content | Azure |
+| **Strategic Migration Assessment and Readiness Tool** | Prepare for a scale migration | Azure |
+| **App and Data Modernization Readiness Tool** | First steps in modernizing workloads | Azure |
+| **FinOps Review** / **FinOps Review (New)** | Capability gaps against FinOps guidance; maximise cloud business value | Azure |
+| **DevOps Capability Assessment** | Capabilities across the software release lifecycle | Azure |
+| **Developer Velocity Assessment** | Developer Velocity Index score and guidance | Azure |
+| **Platform Engineering Technical Assessment** | Platform Engineering maturity with tailored recommendations | AKS, GitHub |
+| **AI Readiness Assessment** | Organizational AI preparedness across seven pillars: Business Strategy, AI Governance & Security, Data Foundations, AI Strategy & Experience, Organization & Culture, Infrastructure for AI, Model Management | Azure |
+| **GenAIOps Maturity Model Assessment** | GenAIOps knowledge, practices and experience; maturity ranking | Azure |
+| **Technical Assessment for Generative AI in Azure** | Readiness to develop, run and maintain Azure AI solutions in production | Azure |
+| **Analytics Journey Tracker** | Data and analytics capabilities across maturity levels | Azure, Synapse |
+| **Power Platform Solution Assessment** | Functionality, user experience, alignment with business goals | Power Platform |
+| **Power Platform Adoption Assessment** | Evaluation of current Power Platform use | Power Platform |
+| **Windows 11 Pro Migration Readiness Assessment** | Readiness to migrate to Windows 11 Pro | Windows |
+| **Primary and Secondary Education: Deploy Windows devices using Intune for Education** *(Preview)* | Deployment recommendations | Intune, M365 Education |
+| **Microsoft Cloud for Healthcare Learner Self-Assessment** *(Preview)* | Learning-journey guidance | Azure |
+| **AI Engineer Skill Assessment** | Strengths, growth opportunities, learning recommendations | — |
+| **Security Engineer Skill Assessment** | Strengths, growth opportunities, learning recommendations | 45 questions |
+| **Microsoft Cybersecurity Architect Learner Journey** | Learner journey for cybersecurity architecture | Defender, Sentinel |
+| **Azure Virtual Desktop \| Microsoft Partner** | Partner readiness for AVD | Azure, AVD |
+| **Azure Stack HCI \| Microsoft Partners** | Bridging on-premises with Azure for VMs and containers | Azure, HCI, AKS, AVD |
+| **Azure VMware Solution (AVS) \| Microsoft Partner** | Migrating VMware workloads to Azure | Azure, AVS |
+| **Microsoft Sentinel in a Box \| Microsoft Partners** | Building practices and offers around the SIEM platform | Azure |
+| **Unpacking Defender \| Microsoft Partners** | Defender for Endpoint expertise and offerings | Defender |
+| **MXDR Roadmap \| Microsoft Partner** | Advanced threat detection and response with extended XDR | — |
+| **Identity Compete \| Microsoft Partner** | Microsoft Entra identity and access management expertise | — |
+| **Information Protection and Governance \| Microsoft Partner** | Microsoft Purview protection, governance and compliance | Purview |
+| **Data Security for Copilot for Microsoft 365 \| Microsoft Partners** | Data security training and guidance | — |
+| **Microsoft Cloud for Retail Adoption Guide \| Microsoft Partners** | Retail solutions partner readiness | Industry Solutions |
+| **Microsoft Cloud for Sustainability Adoption Guide \| Microsoft Partners** | Sustainability solutions partner readiness | Industry Solutions |
+| **Energy Industry \| Microsoft Partners** | Core digital technologies for energy transformation | Azure |
+| **Financial Services Industry \| Microsoft Partners** | Key assets for the financial services industry | Industry Solutions |
+| **Healthcare Industry \| Microsoft Partners** | Training materials and readiness approaches | Industry Solutions |
+| **Manufacturing Industry \| Microsoft Partners** | How Microsoft empowers manufacturing organizations | Industry Solutions |
+
+---
+
+## Part II — Findings: what the audit discovered
+
+---
+
+## 4. Executive summary
 
 Three questions were asked. Here are the answers.
 
@@ -30,26 +230,7 @@ Three questions were asked. Here are the answers.
 
 ---
 
-## 2. Decision table
-
-Legend: ✅ done · 🟡 agreed, not built · 🔲 not started · ❓ needs a decision
-
-| # | Decision | Status | Decided by | Rationale | Where it stands |
-|---|---|---|---|---|---|
-| 1 | **Stop triggering patch assessments.** Read Azure Update Manager's Resource Graph tables instead of POSTing `assessPatches` per machine. | ✅ | Owner | *"To do a patch assessment is worthless cause that can take hours to run."* It was also an ARM **write** action, making a read-only tool mutate customer machines. | Implemented + 30/30 tests pass. Regression lock proven non-vacuous. **Uncommitted.** Not yet live-verified. |
-| 2 | **Dump ALL raw collected data to a file**, regardless of whether a collector exists to display it. | 🟡 | Owner | *"Shouldn't all the data that is collected no matter what be dumped into a .json or some other file?"* Better than the audit's proposal (a summary of skipped types) — eliminates silent data loss entirely instead of reporting on it. | Agreed. Not built. |
-| 3 | **Ship v3.0.9 without the diagram→PDF rasterisation fix.** | ✅ | Owner | Needs a new dependency (headless renderer) or a multi-week custom rasteriser. Not a point-release fix. | v3.0.9 shipped. **AB#6737 left open** with the scoping analysis recorded on it. |
-| 4 | **Fix the wizard manifest path bug.** | ✅ **Decided — do it** | Owner | One line. Unlocks 21 menu entries. `src/Start-AZSCWizard.ps1:238` climbs three directory levels to find `manifests/assessments.psd1`; the file lives in `src/` so it needs one. It resolves outside the repo, `Test-Path` returns false, and it silently falls back to a hardcoded `@('LandingZone')`. | **Decision: change the three `Split-Path` calls to one.**<br><br>From:<br>`$manifestPath = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) 'manifests/assessments.psd1'`<br><br>To:<br>`$manifestPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'manifests/assessments.psd1'`<br><br>Not yet applied. See §3.2. |
-| 5 | **Drop Security Reader and Monitoring Reader** from the required role set. | 🔲 | — | Both are strict subsets of `Reader` for every call Scout makes. Monitoring Reader additionally grants ticket **creation** — a write Scout never uses. | Not started. |
-| 6 | **Fix the readiness verdict** so a denied permission that empties a collector degrades the result. | 🔲 | — | Today only 4 of 9 Graph checks can turn the light red, so a green "READY" banner ships alongside empty security sheets. | Not started. |
-| 7 | **Wizard `-DefaultSelected` after the path fix** — keep LandingZone-only pre-checked? | ❓ | **Needs owner** | Defensible (LandingZone is the roll-up containing everything), but right now it's an accident of the broken fallback, not a choice. | Open. |
-| 8 | **De-duplicate the assessment registry.** `Governance`/`Policy` are behaviourally identical; `UpdateManager`/`Monitoring` are strict subsets of `Management`/`Monitor`. | ❓ | **Needs owner** | Four registry entries that add nothing a category filter doesn't already give. | Open — new finding, see §3.2. |
-| 9 | **Add the three non-Microsoft categories?** (Backup & Recovery, Cost & Optimisation, Virtual Desktop) | ❓ | **Needs owner** | These are *opinion* — consulting-driven splits, not gaps against Microsoft's taxonomy. Distinct from DevOps/Migration/General, which are objective gaps. | Open. |
-| 10 | **Build per-WAF-pillar / per-CAF-area / compliance assessments?** | ❓ | **Needs owner** | This is the *real* assessment gap and it remains unbuilt regardless of the wizard fix. See §3b for the full menu. | Open. |
-
----
-
-## 3. Discovery findings
+## 5. The five discovery findings
 
 The five things that changed the picture. Two of these correct statements made earlier in review.
 
@@ -82,7 +263,7 @@ Edge are all absent.
 
 Separately, and distinct from categories: Scout collects **110 real ARM resource types across 52
 resource providers**. Measured against Microsoft's own provider directory (152 providers across the
-18 categories), that is **49 of 152 = 32% coverage**. Full per-category breakdown in §4.
+18 categories), that is **49 of 152 = 32% coverage**. Full per-category breakdown in §6.
 
 > Two coverage numbers appear in this document and they are not in conflict — they use different
 > denominators. **32%** is against Microsoft's published 152-provider directory (the strict,
@@ -227,7 +408,582 @@ produces.
 
 ---
 
-## 3b. Catalogue of possible CAF/WAF assessments
+## 6. Coverage — service by service
+
+Every Azure service from the portal, mapped to the Scout collector that covers it.
+
+**Status:** ✅ **Have** — a collector exists · 🔲 **Need** — collectable, not built ·
+⛔ **Not collectable** — not an ARM resource, so ARG-based collection cannot reach it
+
+### AI + machine learning (21)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Azure Machine Learning | AI/MachineLearning (+ MLComputes, MLDatasets, MLDatastores, MLEndpoints, MLModels, MLPipelines) | ✅ Have |
+| Microsoft Foundry | AI/AIFoundryHubs, AI/AIFoundryProjects | ✅ Have |
+| Azure OpenAI | AI/OpenAIAccounts, AI/OpenAIDeployments | ✅ Have |
+| AI Search | AI/SearchServices, AI/SearchIndexes | ✅ Have |
+| Bot Services | AI/BotServices | ✅ Have |
+| Computer vision | AI/ComputerVision | ✅ Have |
+| Content moderators | AI/ContentModerator | ✅ Have |
+| Custom vision | AI/CustomVision | ✅ Have |
+| Document Intelligence | AI/FormRecognizer | ✅ Have |
+| Face APIs | AI/FaceAPI | ✅ Have |
+| Immersive readers | AI/ImmersiveReader | ✅ Have |
+| Language | AI/TextAnalytics | ✅ Have |
+| Speech services | AI/SpeechService | ✅ Have |
+| Translators | AI/Translator | ✅ Have |
+| Anomaly detectors | AI/AppliedAIServices | ✅ Have |
+| Metrics advisor | AI/AppliedAIServices | ✅ Have |
+| Azure AI Video Indexer | — | 🔲 Need |
+
+### Analytics (20)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Azure Databricks | Analytics/Databricks | ✅ Have |
+| Data Explorer clusters | Analytics/DataExplorerCluster | ✅ Have |
+| Event Hubs | Analytics/EvtHub | ✅ Have |
+| Log Analytics workspaces | Monitor/Workspaces | ✅ Have |
+| Azure Synapse Analytics | Analytics/Synapse | ✅ Have |
+| Stream Analytics jobs | Analytics/Streamanalytics | ✅ Have |
+| *(Purview — Analytics adjacent)* | Analytics/Purview | ✅ Have |
+| Data factories | — | 🔲 Need |
+| HDInsight clusters | — | 🔲 Need |
+| Analysis Services | — | 🔲 Need |
+| Power BI Embedded | — | 🔲 Need |
+| Stream Analytics clusters | — | 🔲 Need |
+| Azure Synapse Analytics (private link hubs) | — | 🔲 Need |
+| Data Shares · Data Share accounts | — | 🔲 Need |
+| Data Lake Analytics | — | 🔲 Need *(service retired)* |
+| Data Lake Storage Gen1 | — | 🔲 Need *(service retired)* |
+| Microsoft Graph Data Connect | — | 🔲 Need |
+| Apache Kafka / Flink on Confluent | — | 🔲 Need *(marketplace ISV)* |
+| Informatica IDMC | — | 🔲 Need *(marketplace ISV)* |
+| Power BI | — | ⛔ Not collectable — Power BI service, not ARM |
+
+### Compute (32)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Virtual machines | Compute/VirtualMachine, Compute/VMOperationalData | ✅ Have |
+| Virtual machine scale sets | Compute/VirtualMachineScaleSet | ✅ Have |
+| Availability sets | Compute/AvailabilitySets | ✅ Have |
+| Azure Virtual Desktop | Compute/AVD, AVDSessionHosts, AVDWorkspaces, AVDApplicationGroups, AVDScalingPlans, AVDApplications, AVDAzureLocal | ✅ Have |
+| Cloud services (extended support) | Compute/CloudServices | ✅ Have |
+| Container Apps | Containers/ContainerApp | ✅ Have |
+| Container Apps Environments | Containers/ContainerAppEnv | ✅ Have |
+| Kubernetes services | Containers/AKS | ✅ Have |
+| *(Disks — listed under Storage)* | Compute/VMDisk | ✅ Have |
+| Azure compute galleries | — | 🔲 Need |
+| Images | — | 🔲 Need |
+| Image templates | — | 🔲 Need |
+| VM image definitions | — | 🔲 Need |
+| VM image versions | — | 🔲 Need |
+| VM application definitions | — | 🔲 Need |
+| VM application versions | — | 🔲 Need |
+| Community images | — | 🔲 Need |
+| Restore Point Collections | — | 🔲 Need |
+| Host groups | — | 🔲 Need |
+| Proximity placement groups | — | 🔲 Need |
+| SSH keys | — | 🔲 Need |
+| Compute Fleet | — | 🔲 Need |
+| Batch accounts | — | 🔲 Need |
+| Azure Spring Apps | — | 🔲 Need *(retiring 2028)* |
+| Virtual instances for SAP solutions | — | 🔲 Need |
+| BareMetal Instances | — | 🔲 Need |
+| Lab accounts | — | 🔲 Need |
+| Function App | — | 🔲 Need — collected as `microsoft.web/sites`, not split out by kind |
+| Kubernetes services – Automatic | — | 🔲 Need — same ARM type as AKS, differs by config |
+| SAP PubSub on Azure | — | 🔲 Need |
+| Compute infrastructure | — | ⛔ Not collectable — portal view, not a resource |
+| App Spaces | — | ⛔ Not collectable — portal experience |
+
+### Containers (12)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Kubernetes services | Containers/AKS | ✅ Have |
+| Azure Red Hat OpenShift clusters | Containers/ARO | ✅ Have |
+| Container registries | Containers/ContainerRegistries | ✅ Have |
+| Container instances | Containers/ContainerGroups | ✅ Have |
+| Container Apps | Containers/ContainerApp | ✅ Have |
+| Container Apps Environments | Containers/ContainerAppEnv | ✅ Have |
+| Kubernetes Fleet Manager | — | 🔲 Need |
+| Container Apps Jobs | — | 🔲 Need |
+| Service Fabric clusters | — | 🔲 Need |
+| Service Fabric managed clusters | — | 🔲 Need |
+| App Configuration | — | 🔲 Need |
+| Kubernetes services – Automatic | — | 🔲 Need |
+
+### Databases (18)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Azure SQL / SQL databases | Databases/SQLDB, Databases/SQLSERVER, Databases/SQLPOOL | ✅ Have |
+| SQL managed instances | Databases/SQLMI, Databases/SQLMIDB | ✅ Have |
+| SQL Server instances *(on VM)* | Databases/SQLVM | ✅ Have |
+| Managed databases | Databases/SQLMIDB | ✅ Have |
+| Azure Cosmos DB | Databases/CosmosDB | ✅ Have |
+| Azure Cache for Redis | Databases/RedisCache | ✅ Have |
+| Azure Managed Redis | Databases/RedisCache | ✅ Have |
+| Azure Database for PostgreSQL flexible servers | Databases/POSTGREFlexible | ✅ Have |
+| Azure Database for MySQL flexible servers | Databases/MySQLflexible | ✅ Have |
+| Azure Database for MariaDB | Databases/MariaDB | ✅ Have |
+| Azure Arc data controllers | Hybrid/ArcDataControllers | ✅ Have |
+| SQL managed instances – Azure Arc | Hybrid/ArcSQLManagedInstances | ✅ Have |
+| Azure Managed Instance for Apache Cassandra | — | 🔲 Need |
+| Oracle Database@Azure | — | 🔲 Need |
+| MongoDB Atlas | — | 🔲 Need *(marketplace ISV)* |
+| Azure Database Migration Services | — | 🔲 Need |
+| SQL Server stretch databases | — | 🔲 Need *(retired)* |
+
+### DevOps (23)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Application Insights | Monitor/AppInsights | ✅ Have |
+| Monitor | Monitor/* | ✅ Have |
+| API Management services | Integration/APIM | ✅ Have |
+| Chaos Studio | — | 🔲 Need |
+| Azure Deployment Environments | — | 🔲 Need |
+| Dev centers | — | 🔲 Need |
+| Projects | — | 🔲 Need |
+| Microsoft Dev Box | — | 🔲 Need |
+| Network connections | — | 🔲 Need |
+| DevTest Labs | — | 🔲 Need |
+| Azure Lab Services | — | 🔲 Need |
+| Azure Load Testing | — | 🔲 Need |
+| Managed DevOps Pools | — | 🔲 Need |
+| Playwright Testing (Classic) | — | 🔲 Need |
+| API Connections | — | 🔲 Need |
+| App Configuration | — | 🔲 Need |
+| Azure Native LambdaTest · Elastic · Plastic Cloud · New Relic | — | 🔲 Need *(marketplace ISV)* |
+| GitHub | Management/DevOps* *(via ADO REST, not ARM)* | ⛔ Not collectable as an ARM resource |
+
+### General (10)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Help + support | Management/SupportTickets | ✅ Have |
+| Reservations | Management/ReservationRecom *(recommendations only)* | 🔲 Need — owned reservations not collected |
+| Quotas | — | 🔲 Need |
+| Cost Management + Billing | — | 🔲 Need — see §9 billing gates |
+| Subscriptions | — | 🔲 Need — enrichment only today |
+| Resources · Resource Manager | — | ⛔ Not collectable — the platform itself |
+| Operations center · Preview features · Quickstart Center · Pass services | — | ⛔ Not collectable — portal views |
+| Service Health | — | ⛔ Not collectable — a data plane, not a resource |
+
+### Hybrid + multicloud (18)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Azure Arc *(servers)* | Hybrid/ARCServers, ArcExtensions, ArcGateways, ArcServerOperationalData | ✅ Have |
+| Azure Arc data controllers | Hybrid/ArcDataControllers | ✅ Have |
+| SQL managed instances – Azure Arc | Hybrid/ArcSQLManagedInstances | ✅ Have |
+| SQL Server databases *(Arc)* | Hybrid/ArcSQLServers | ✅ Have |
+| Azure Local / Azure Stack HCI | Hybrid/Clusters, LogicalNetworks, StorageContainers, GalleryImages, MarketplaceGalleryImages, VirtualMachines, ArcSites | ✅ Have |
+| Azure VMware Solution | Compute/VMWare | ✅ Have |
+| *(Arc Kubernetes)* | Hybrid/ArcKubernetes | ✅ Have |
+| *(Arc resource bridge)* | Hybrid/ArcResourceBridge | ✅ Have |
+| Virtual WANs | Networking/VirtualWAN | ✅ Have |
+| ExpressRoute circuits | Networking/ExpressRoute | ✅ Have |
+| Microsoft Defender for Cloud | Security/Defender* | ✅ Have |
+| Azure Operator Nexus | — | 🔲 Need |
+| Azure Edge Hardware Center | — | 🔲 Need |
+| Azure Network Function Manager – Devices | — | 🔲 Need |
+| Site recovery – Azure Arc | — | 🔲 Need |
+| Microsoft Sentinel | — | 🔲 Need |
+| Microsoft Purview Cloud Connect Health | — | 🔲 Need |
+| Microsoft Entra ID | Identity/* *(Graph, `-Scope All`)* | ✅ Have |
+
+### Identity (18)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Microsoft Entra ID | Identity/Users, Groups, Domains, Licensing | ✅ Have *(Graph)* |
+| App registrations | Identity/AppRegistrations | ✅ Have *(Graph)* |
+| Enterprise applications | Identity/ServicePrincipals | ✅ Have *(Graph)* |
+| Managed Identities | Identity/ManagedIds | ✅ Have *(ARM)* |
+| Microsoft Entra Privileged Identity Management | Identity/PIMAssignments | ✅ Have *(Graph)* |
+| Microsoft Entra ID Protection | Identity/RiskyUsers | ✅ Have *(Graph)* |
+| Microsoft Entra ID Security | Identity/ConditionalAccess, NamedLocations, SecurityPolicies | ✅ Have *(Graph)* |
+| *(Administrative units)* | Identity/AdminUnits | ✅ Have *(Graph)* |
+| *(Directory roles)* | Identity/DirectoryRoles | ✅ Have *(Graph)* |
+| Microsoft Entra Domain Services | — | 🔲 Need *(ARM: `microsoft.aad/domainservices`)* |
+| Azure AD B2C | — | 🔲 Need *(ARM: `microsoft.azureactivedirectory/b2cdirectories`)* |
+| Access Connector for Azure Databricks | — | 🔲 Need |
+| Identity Governance | — | 🔲 Need *(Graph: entitlement management)* |
+| External Identities · External Configuration Tenant | — | 🔲 Need *(Graph)* |
+| Guest Usages | — | 🔲 Need *(Graph)* |
+| Verified ID | — | ⛔ Not collectable — separate service, no ARM/Graph inventory surface |
+| Agent IDs | — | ⛔ Not collectable — preview, no documented inventory API |
+| RBAC Tenants | — | ⛔ Not collectable — portal view |
+| Microsoft Entra Cloud Health | — | ⛔ Not collectable — portal experience |
+
+### Integration (15)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| API Management services | Integration/APIM | ✅ Have |
+| Service Bus | Integration/ServiceBUS | ✅ Have |
+| Event Hubs | Analytics/EvtHub | ✅ Have |
+| **Logic apps** | — | 🔲 Need — **also actively excluded from the ARG query; the exclusion must be removed first** |
+| Integration accounts | — | 🔲 Need |
+| Logic Apps Custom Connector | — | 🔲 Need |
+| API Connections | — | 🔲 Need |
+| Event Grid | — | 🔲 Need |
+| Event Hubs Clusters | — | 🔲 Need |
+| Relays | — | 🔲 Need |
+| App Configuration | — | 🔲 Need |
+| Azure API for FHIR | — | 🔲 Need |
+| FHIR service | — | 🔲 Need |
+| Mobile Data Services workspaces | — | 🔲 Need |
+| Apache Kafka / Flink on Confluent | — | 🔲 Need *(marketplace ISV)* |
+
+### Internet of Things (19)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| IoT Hub | IoT/IOTHubs | ✅ Have |
+| Azure Cosmos DB | Databases/CosmosDB | ✅ Have |
+| Azure Data Explorer Clusters | Analytics/DataExplorerCluster | ✅ Have |
+| Event Hubs | Analytics/EvtHub | ✅ Have |
+| Stream Analytics jobs | Analytics/Streamanalytics | ✅ Have |
+| Azure Synapse Analytics | Analytics/Synapse | ✅ Have |
+| Azure Machine Learning | AI/MachineLearning | ✅ Have |
+| Storage accounts | Storage/StorageAccounts | ✅ Have |
+| Azure IoT Hub Device Provisioning Service | — | 🔲 Need |
+| IoT Central Applications | — | 🔲 Need |
+| Device Update for IoT Hubs | — | 🔲 Need |
+| Azure Digital Twins | — | 🔲 Need |
+| Microsoft Defender for IoT | — | 🔲 Need |
+| Azure Maps Accounts | — | 🔲 Need |
+| Azure Maps Creator Resources | — | 🔲 Need |
+| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
+| Function App | — | 🔲 Need |
+| Logic apps | — | 🔲 Need *(excluded from query)* |
+| Power Platform | — | ⛔ Not collectable — Power Platform admin API, not ARM |
+
+### Management and governance (34)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Advisor | Management/AdvisorScore | ✅ Have |
+| Automation accounts | Management/AutomationAccounts | ✅ Have |
+| Update Center | Management/MaintenanceConfigurations | ✅ Have |
+| Azure Lighthouse | Management/LighthouseDelegations | ✅ Have |
+| Recovery Services vaults | Management/RecoveryVault | ✅ Have |
+| Backups *(policies only)* | Management/Backup | ✅ Have — **protected items not collected** |
+| Diagnostic settings | Monitor/ResourceDiagnosticSettings | ✅ Have |
+| *(Policy definitions / set definitions)* | Management/PolicyDefinitions, PolicySetDefinitions | ✅ Have — **but gated behind a switch with no production caller (§10)** |
+| *(Management groups)* | Management/ManagementGroups | ✅ Have — **same switch defect** |
+| *(Custom role definitions)* | Management/CustomRoleDefinitions | ✅ Have — **same switch defect** |
+| **Policy** *(assignments)* | — | 🔲 Need — **ingested by `Import-Governance`, never rendered** |
+| **Cost Management** *(budgets)* | — | 🔲 Need — **ingested, never rendered** |
+| *(Resource locks)* | — | 🔲 Need — **ingested, never rendered** |
+| *(RBAC role assignments)* | — | 🔲 Need — **ingested, never rendered** |
+| Backup vaults *(DataProtection)* | — | 🔲 Need |
+| Subscriptions | — | 🔲 Need |
+| Template specs | — | 🔲 Need — **excluded from the ARG query** |
+| Deployment Scripts | — | 🔲 Need |
+| Blueprints | — | 🔲 Need *(deprecated)* |
+| Capacity Reservation Groups | — | 🔲 Need |
+| Managed applications center | — | 🔲 Need |
+| Automanage | — | 🔲 Need |
+| Guest Assignments | — | 🔲 Need |
+| Azure Resource Mover | — | 🔲 Need |
+| Customer Lockbox for Microsoft Azure | — | 🔲 Need |
+| Azure Monitor for SAP solutions | — | 🔲 Need |
+| Virtual instances for SAP solutions | — | 🔲 Need |
+| Microsoft Entra Domain Services | — | 🔲 Need |
+| Azure Native Qumulo Scalable File Service | — | 🔲 Need *(marketplace ISV)* |
+| Resiliency | — | ⛔ Not collectable — portal view |
+| Change Analysis | — | ⛔ Not collectable — a data plane |
+| Operations center · Azure Capital admin center | — | ⛔ Not collectable — portal views |
+| Intune · Intune for Education · Managed Desktop · Universal Print | — | ⛔ Not collectable — Microsoft 365 services, not ARM |
+
+### Migration (5)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Recovery Services vaults | Management/RecoveryVault | ✅ Have |
+| Azure Migrate | — | 🔲 Need |
+| Azure Database Migration Services | — | 🔲 Need |
+| Azure Data Box | — | 🔲 Need |
+| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
+
+### Monitor (24)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Log Analytics workspaces | Monitor/Workspaces, LAWorkspaceSolutions, LAWorkspaceLinkedServices, LAWorkspaceSavedSearches | ✅ Have |
+| Application Insights | Monitor/AppInsights, AppInsightsWebTests, AppInsightsProactiveDetection, AppInsightsAvailabilityTests | ✅ Have |
+| Alerts | Monitor/MetricAlertRules, ActivityLogAlertRules, ScheduledQueryRules, SmartDetectorAlertRules | ✅ Have |
+| *(Action groups)* | Monitor/ActionGroups | ✅ Have |
+| Autoscale | Monitor/AutoscaleSettings | ✅ Have |
+| Data collection rules | Monitor/DataCollectionRules | ✅ Have |
+| Data collection endpoints | Monitor/DataCollectionEndpoints | ✅ Have |
+| Azure Workbooks | Monitor/MonitorWorkbooks | ✅ Have |
+| Diagnostic settings | Monitor/ResourceDiagnosticSettings | ✅ Have |
+| Network Watcher | Networking/NetworkWatchers | ✅ Have |
+| *(Private link scopes)* | Monitor/MonitorPrivateLinkScopes | ✅ Have |
+| *(Outages / Resource Health)* | Monitor/Outages | ✅ Have — **broken by a call-ordering defect (§5.5)** |
+| Azure Monitor workspaces | — | 🔲 Need |
+| Azure Managed Grafana | — | 🔲 Need |
+| Managed Prometheus | — | 🔲 Need |
+| Log Analytics dedicated clusters | — | 🔲 Need |
+| Log Analytics query packs | — | 🔲 Need |
+| Database watchers | — | 🔲 Need |
+| Azure Monitor for SAP solutions | — | 🔲 Need |
+| Azure Native Dynatrace · Elastic · Plastic Cloud | — | 🔲 Need *(marketplace ISV)* |
+| Metrics · Activity log | — | ⛔ Not collectable — data planes, not resources |
+| Change Analysis · Observability agents · Service Health · Monitor | — | ⛔ Not collectable — portal views |
+
+### Networking (34)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Virtual networks | Networking/VirtualNetwork, vNETPeering | ✅ Have |
+| Network security groups | Networking/NetworkSecurityGroup | ✅ Have |
+| Network interfaces | Networking/NetworkInterface | ✅ Have |
+| Public IP addresses | Networking/PublicIP | ✅ Have |
+| Load balancers | Networking/LoadBalancer | ✅ Have |
+| Application gateways | Networking/ApplicationGateways | ✅ Have |
+| Firewalls | Networking/AzureFirewall | ✅ Have |
+| Bastions | Networking/BastionHosts | ✅ Have |
+| NAT gateways | Networking/NATGateway | ✅ Have |
+| Route tables | Networking/RouteTables | ✅ Have |
+| DNS zones | Networking/PublicDNS | ✅ Have |
+| Private DNS zones | Networking/PrivateDNS | ✅ Have |
+| Private Link | Networking/PrivateEndpoint | ✅ Have |
+| Connections | Networking/Connections | ✅ Have |
+| ExpressRoute circuits | Networking/ExpressRoute | ✅ Have |
+| Virtual network gateways | Networking/VirtualNetworkGateways | ✅ Have |
+| Virtual WANs | Networking/VirtualWAN | ✅ Have |
+| Network Watcher | Networking/NetworkWatchers | ✅ Have |
+| Front Doors | Networking/Frontdoor | ✅ Have — **classic only; modern `microsoft.cdn/profiles` missing** |
+| *(Traffic Manager)* | Networking/TrafficManager | ✅ Have |
+| **Web Application Firewall policies (WAF)** | — | 🔲 Need |
+| **Firewall Policy** | — | 🔲 Need |
+| **Front Door and CDN profiles** *(modern)* | — | 🔲 Need |
+| DDoS protection plans | — | 🔲 Need |
+| Network managers | — | 🔲 Need |
+| IP Groups | — | 🔲 Need |
+| Custom IP Prefixes | — | 🔲 Need |
+| Public IP Prefixes | — | 🔲 Need |
+| DNS private resolvers | — | 🔲 Need |
+| Local network gateways | — | 🔲 Need |
+| ExpressRoute traffic collectors | — | 🔲 Need |
+| Peerings · Peering Service | — | 🔲 Need |
+| Application security groups | — | 🔲 Need |
+| Microsoft Connected Cache | — | 🔲 Need |
+| Networking monitoring and management · Monitor · NSGWatch | — | ⛔ Not collectable — portal views |
+
+### Security (22)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Key vaults | Security/Vault | ✅ Have — **keys/secrets/certificates not collected** |
+| Microsoft Defender for Cloud | Security/DefenderAlerts, DefenderAssessments, DefenderPricing, DefenderSecureScore | ✅ Have |
+| Firewalls | Networking/AzureFirewall | ✅ Have |
+| Application gateways | Networking/ApplicationGateways | ✅ Have |
+| Log Analytics workspaces | Monitor/Workspaces | ✅ Have |
+| Microsoft Entra ID · ID Security · PIM | Identity/* | ✅ Have *(Graph)* |
+| **Microsoft Sentinel** | — | 🔲 Need |
+| **Key Vault keys / secrets / certificates** | — | 🔲 Need |
+| Azure Key Vault Managed HSM | — | 🔲 Need |
+| Azure Cloud HSM | — | 🔲 Need |
+| Application security groups | — | 🔲 Need |
+| Web Application Firewall policies (WAF) | — | 🔲 Need |
+| DDoS protection plans | — | 🔲 Need |
+| Confidential Ledgers | — | 🔲 Need |
+| Artifact Signing Accounts | — | 🔲 Need |
+| Microsoft Defender for IoT | — | 🔲 Need |
+| Microsoft Entra Domain Services | — | 🔲 Need |
+| App Compliance Automation Tool | — | 🔲 Need |
+| Multifactor authentication | — | ⛔ Not collectable — Entra config, not an inventoried resource |
+
+### Storage (17)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| Storage accounts | Storage/StorageAccounts | ✅ Have |
+| Disks | Compute/VMDisk | ✅ Have |
+| Azure NetApp Files | Storage/NetApp | ✅ Have |
+| **Blob containers** *(child)* | — | 🔲 Need |
+| **File shares** *(child)* | — | 🔲 Need |
+| **Lifecycle / management policies** *(child)* | — | 🔲 Need |
+| Snapshots | — | 🔲 Need |
+| Disk Encryption Sets | — | 🔲 Need |
+| Elastic SANs | — | 🔲 Need |
+| Storage Sync Services *(File Sync)* | — | 🔲 Need |
+| Azure Data Box | — | 🔲 Need |
+| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
+| Azure Edge Hardware Center | — | 🔲 Need |
+| Data Lake Storage Gen1 | — | 🔲 Need *(retired)* |
+| Azure Native Pure Storage · Qumulo | — | 🔲 Need *(marketplace ISV)* |
+| Azure Storage Locker | — | 🔲 Need |
+| Storage browser · Data Accesses · Data resources | — | ⛔ Not collectable — portal views |
+
+### Web and Mobile (22)
+
+| Service | Scout collector | Status |
+|---|---|---|
+| App Services | Web/APPServices | ✅ Have |
+| App Service plans | Web/APPServicePlan | ✅ Have |
+| Application Insights | Monitor/AppInsights | ✅ Have |
+| API Management services | Integration/APIM | ✅ Have |
+| Container Apps | Containers/ContainerApp | ✅ Have |
+| AI Search | AI/SearchServices | ✅ Have |
+| **App Service Environments** | — | 🔲 Need |
+| **Static Web Apps** | — | 🔲 Need |
+| **Function App** | — | 🔲 Need — same ARM type as App Services, not split by kind |
+| **Deployment slots** | — | 🔲 Need |
+| App Service Certificates | — | 🔲 Need |
+| App Service Domains | — | 🔲 Need |
+| App Configuration | — | 🔲 Need |
+| API Connections | — | 🔲 Need |
+| SignalR | — | 🔲 Need |
+| Web PubSub Service · Web PubSub for Socket.IO | — | 🔲 Need |
+| Communication Services | — | 🔲 Need |
+| Email Communication Services | — | 🔲 Need |
+| Notification Hubs | — | 🔲 Need |
+| Fluid Relay | — | 🔲 Need |
+| Azure Spring Apps | — | 🔲 Need *(retiring 2028)* |
+| Logic apps | — | 🔲 Need *(excluded from query)* |
+
+---
+
+### Summary — coverage by category
+
+Counted from the tables above, not from a separate source. "Listed" is how many services this
+section enumerates; "Portal" is Microsoft's own count from §12. Where they differ, this section is
+**incomplete** — see DQ5.
+
+| Category | Listed | Portal | ✅ Have | 🔲 Need | ⛔ Not collectable | Have % |
+|---|---:|---:|---:|---:|---:|---:|
+| AI + machine learning | 17 | 21 | 16 | 1 | 0 | 94% |
+| Analytics | 20 | 20 | 7 | 12 | 1 | 35% |
+| Compute | 32 | 32 | 9 | 21 | 2 | 28% |
+| Containers | 12 | 12 | 6 | 6 | 0 | 50% |
+| Databases | 17 | 18 | 12 | 5 | 0 | 71% |
+| DevOps | 18 | 23 | 3 | 14 | 1 | 17% |
+| General | 8 | 10 | 1 | 4 | 3 | 13% |
+| Hybrid + multicloud | 18 | 18 | 12 | 6 | 0 | 67% |
+| Identity | 19 | 18 | 9 | 6 | 4 | 47% |
+| Integration | 15 | 15 | 3 | 12 | 0 | 20% |
+| Internet of Things | 19 | 19 | 8 | 10 | 1 | 42% |
+| Management and governance | 33 | 34 | 10 | 19 | 4 | 30% |
+| Migration | 5 | 5 | 1 | 4 | 0 | 20% |
+| Monitor | 22 | 24 | 12 | 8 | 2 | 55% |
+| Networking | 35 | 34 | 20 | 14 | 1 | 57% |
+| Security | 19 | 22 | 6 | 12 | 1 | 32% |
+| Storage | 17 | 17 | 3 | 13 | 1 | 18% |
+| Web and Mobile | 22 | 22 | 6 | 16 | 0 | 27% |
+| **Total** | **348** | **364** | **144** | **183** | **21** | **41%** |
+
+**Three things this table says that the percentages alone do not:**
+
+1. **41% is the honest headline** — 144 of 348 enumerated services have a collector. Measured only
+   against services that *can* be collected (excluding the 21 ⛔), it is **44%**.
+2. **16 portal services are not yet enumerated here.** The gap is concentrated in DevOps (5),
+   Security (3), General (2), Monitor (2) and AI (4 — where several portal entries are folded into
+   one Scout collector row). Finishing this is DQ5.
+3. **Two categories exceed the portal count.** *Identity* (19 vs 18) and *Networking* (35 vs 34)
+   each keep one row Microsoft has merged — `Front Doors (classic)` is held separate because
+   Scout's only Front Door collector targets the classic type and merging it would hide the
+   2027-03-31 retirement finding. Nothing was padded.
+
+**What "Have" does and does not mean.** A ✅ means *a collector targets this service*. It does not
+mean the collector returns rows, that it returns the right fields, or that any rule reads them. 12
+collectors under a ✅ are **provably broken** (§9 note 3), and 0 of 174 have ever been verified
+against real Azure (§5.5). Read §7 immediately after this section — a large share of what a
+customer actually asks about is not a "service" at all and can never appear in this table.
+
+**Not every ✅ is an ARM query.** Whole blocks come from non-ARM surfaces: Identity's from Microsoft
+Graph (`entra/…` pseudo-types), DevOps' from the Azure DevOps REST API (`devops/…`), and Security's
+Defender rows plus most of Management and governance's from synthetic `AZSC/…` collectors reading
+REST sweeps. Those need permissions §9 grants through entirely different systems.
+### Notes on the portal categories
+
+- **AVD (`Microsoft.DesktopVirtualization`) is under Compute** — it is not a separate category, and
+  proposing "Virtual Desktop" as a new one was wrong.
+- **Logic Apps is under Integration** — Scout's thinnest category by far.
+- **Networking (34) and Management and governance (34) are the largest**; **Migration (5) is the
+  smallest** and Scout collects none of it.
+- The portal list is per-tenant and reflects what is available to that tenant — counts may differ
+  slightly elsewhere, but the **category names and structure are Microsoft's**.
+
+---
+
+## 7. The gaps the service list cannot show
+
+**Read this straight after §6.** The portal's All services page lists *services*. A large share of what
+Scout is missing is **not a service** — it is a child resource, a tenant-level construct, or
+configuration attached to something else. None of it appears on any service list, in this document
+or in the portal, so a per-service table marks the parent ✅ and the gap disappears.
+
+These are the ones that matter most, because they are where the actual findings live.
+
+### Child resources — the parent is collected, the contents are not
+
+| Missing | Lives under | Consequence |
+|---|---|---|
+| **Backup protected items** | Recovery Services vaults ✅ | **"Which VMs have no backup" is unanswerable.** Scout reports vaults and policies but never what is actually protected. |
+| **Key Vault keys, secrets, certificates** | Key vaults ✅ | **Expiring secrets and certificates — the actual finding — are invisible.** Scout reports that 12 vaults exist. |
+| **Blob containers** | Storage accounts ✅ | **Public-container exposure cannot be detected.** |
+| **File shares** | Storage accounts ✅ | No share inventory or quota reporting. |
+| **Lifecycle / management policies** | Storage accounts ✅ | No lifecycle or tiering findings. |
+| **Compute galleries, images, snapshots, disk encryption sets, restore points, dedicated hosts, PPGs, capacity reservations** | Virtual machines ✅ | **Orphaned-snapshot spend — a routine consulting finding — cannot be produced.** |
+| **AKS node pools** | Kubernetes services ✅ | Cluster-level only; per-pool sizing and version invisible. |
+| **Deployment slots** | App Services ✅ | Slot configuration drift undetectable. |
+| **SQL failover groups** | Azure SQL ✅ | HA posture unreportable. |
+| **Virtual WAN hubs, VPN gateways, ExpressRoute gateways** | Virtual WANs ✅ | The WAN topology is unreadable. |
+
+### Configuration attached to resources — never a "service"
+
+| Missing | What it answers | Status |
+|---|---|---|
+| **RBAC role assignments** | **"Who has Owner"** — table stakes for any assessment | **Already collected by `Import-Governance`, never rendered** |
+| **Resource locks** | What is protected from deletion | **Already collected, never rendered** |
+| **Policy assignments** | Which policies are actually applied, and where | **Already collected, never rendered** |
+| **Budgets** | Cost guardrails in place | **Already collected, never rendered** |
+| **Diagnostic settings** | Whether logging is configured | Collector exists but targets a type ARG does not index |
+| **NSG flow logs, connection monitors** | Network observability config | Not collected |
+
+> **Four of these are already in memory on every run.** The data is fetched, shaped, and then no
+> collector writes it to a sheet. Rendering them is the cheapest coverage work in this document.
+
+### Tenant-level constructs — above the subscription, so never a "service"
+
+| Missing | Status |
+|---|---|
+| **Management groups** | Collector exists — **gated behind `-IncludeTenantWideResources`, a switch with no production caller** |
+| **Custom role definitions** | Same dead switch |
+| **Policy definitions / set definitions** | Same dead switch |
+| **Subscriptions** | Enrichment metadata only, not a first-class inventory row |
+| **Resource groups** | Not collected as rows — no empty/untagged RG analysis |
+
+### Cross-resource questions nothing collects
+
+These need two datasets correlated. Neither side is complete today:
+
+- **Which VMs have no backup** — needs VMs ✅ + protected items ❌
+- **Which subnets have no NSG** — needs subnets ✅ + NSG associations (partial)
+- **Which PaaS services lack a private endpoint** — needs both ✅, but no rule joins them
+- **Which secrets expire in 30 days** — needs Key Vault children ❌
+- **Which resources are orphaned** — disks/NICs/PIPs partially collected, snapshots not
+
+### Why this section exists
+
+§6 marks a service ✅ when *any* collector targets it. That is the correct answer to "does Scout
+know this service exists" and the **wrong** answer to "can Scout tell me anything useful about it."
+Every row above sits underneath a ✅.
+
+---
+
+## 8. Assessment coverage — the CAF/WAF/compliance menu
 
 ### Table 1 — WAF pillars as candidate assessments
 
@@ -422,7 +1178,7 @@ Places where Microsoft's guidance has moved and Scout would now score against st
 
 ---
 
-## 3c. Minimum permissions to read and collect
+## 9. Permissions — the least-privilege grant list
 
 **The short answer: `Reader` at the root management group covers every ARM resource provider Scout
 collects — all 152 of them.** Azure's `Reader` role is defined as `*/read`, a single wildcard over
@@ -467,8 +1223,8 @@ These are the ones worth stating explicitly, because they're the usual reason so
 | Policy compliance state | `Microsoft.PolicyInsights/policyStates/queryResults/read`, `summarize/read` | ✅ **Yes** | Both `/read` and `/action` variants exist; the `/read` ones are covered by `Reader`. The `/action` variants belong to writer roles. |
 | Advisor recommendations and score | `Microsoft.Advisor/*/read` | ✅ **Yes** | Subset of `*/read`. |
 | VM quotas, SKUs | `Microsoft.Compute/locations/{usages,skus}/read` | ✅ **Yes** | Subset of `*/read`. |
-| Patch data (Update Manager) | ARG tables `patchassessmentresources`, `patchinstallationresources` | ✅ **Yes** | Since the assessPatches fix. **Previously required a mutating `/action`** — see §3.4. |
-| Management groups | `Microsoft.Management/managementGroups/read` | ⚠️ **Unconfirmed** | Reader must be assigned **at management-group scope**, not subscription scope. Whether that alone suffices, or **Management Group Reader** is genuinely additional, is untested — and currently confounded by a separate defect (§3.5). |
+| Patch data (Update Manager) | ARG tables `patchassessmentresources`, `patchinstallationresources` | ✅ **Yes** | Since the assessPatches fix. **Previously required a mutating `/action`** — see §5.4. |
+| Management groups | `Microsoft.Management/managementGroups/read` | ⚠️ **Unconfirmed** | Reader must be assigned **at management-group scope**, not subscription scope. Whether that alone suffices, or **Management Group Reader** is genuinely additional, is untested — and currently confounded by a separate defect (§5.5). |
 
 ### These are FIVE separate permission systems
 
@@ -509,13 +1265,41 @@ and Purview — vastly more than Scout needs).
 
 | Role | Privileged? | Covers | Scout data it unlocks |
 |---|---|---|---|
-| **`Directory Readers`** | **No** | Basic directory: users, groups, applications, service principals, org details | Users, Groups, Apps, ServicePrincipals, Organization, Domains |
-| **`Security Reader`** *(Entra)* | Yes | ID Protection, PIM, Conditional Access, sign-in/audit logs | RiskyUsers, PIMAssignments, DirectoryRoles, ConditionalAccess, SecurityPolicies. **Required** — `Directory Readers` cannot read Conditional Access at all. NamedLocations is uncertain, see below. |
+| **`Directory Readers`** | **No** | Basic directory: users, groups, applications, service principals, org details, **directory roles** | Users, Groups, Apps, ServicePrincipals, ManagedIdentities, Organization, Domains, AdminUnits, Licensing, **DirectoryRoles** |
+| **`Security Reader`** *(Entra)* | Yes | ID Protection, PIM, Conditional Access, named locations, policies | RiskyUsers, PIMAssignments, ConditionalAccess, NamedLocations, SecurityPolicies. **Required** — `Directory Readers` has zero Conditional Access actions. |
 | `Reports Reader` | No | Sign-in and audit reports only | *Nothing Scout uses* — see `AuditLog.Read.All` below |
 | ~~`Global Reader`~~ | **Yes** | Everything above **plus all of M365** | Works, but far more than required |
 
-**Recommendation: `Directory Readers` + Entra `Security Reader`, not `Global Reader`.**
-`Directory Readers` alone is enough if you skip risky-users and PIM data.
+**Minimum: `Directory Readers` + Entra `Security Reader`.**
+`Directory Readers` alone is enough if you skip risky-users, PIM and Conditional Access.
+
+> #### ⚠️ `CrossTenantAccess` is NOT covered at minimum privilege — corrected 2026-07-31
+>
+> An earlier draft claimed these two roles cover every Entra collector. **They do not.** Scout calls
+> `/v1.0/policies/crossTenantAccessPolicy/partners` — the live partner configuration.
+>
+> - `Directory Readers` — no `crossTenantAccessPolicy` action of any kind.
+> - Entra `Security Reader` — only two, and both are for **templates**
+>   (`.../partners/templates/multiTenantOrganization*/standard/read`), not the live policy.
+>
+> `microsoft.directory/crossTenantAccessPolicy/partners/standard/read` **does** exist — a second
+> earlier claim that it did not was also wrong. But it is held only by **Global Administrator,
+> Global Reader, Security Administrator, Teams Administrator and Tenant Governance Administrator** —
+> **every one of them a privileged or administrative role. None qualifies as a minimum-privilege
+> grant.**
+>
+> **Therefore: at minimum privilege, the CrossTenantAccess worksheet will be empty.** That is the
+> honest position — do not resolve it by recommending a privileged role.
+>
+> **Two acceptable paths, both of which stay least-privilege:**
+> 1. **Service principal instead of a user** — the Graph application permission `Policy.Read.All`
+>    covers cross-tenant access policy without any directory role. **Untested for this endpoint.**
+> 2. **Accept the gap** — treat CrossTenantAccess as out of scope for the minimum grant, and let
+>    the product documentation describe the privileged roles that would enable it for customers who
+>    want it.
+>
+> Source: <https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference>
+> (complete `Directory Readers` and `Security Reader` definitions).
 
 **Running as a service principal instead** — Graph *application* permissions, admin-consented:
 `Organization.Read.All`, `User.Read.All`, `Group.Read.All`, `Application.Read.All`,
@@ -633,7 +1417,7 @@ and interpret the failure.
 
 #### Where this connects to the CAF gap
 
-The CAF **"Azure billing and Microsoft Entra tenant"** design area (§3b, ~0% covered) is precisely
+The CAF **"Azure billing and Microsoft Entra tenant"** design area (§8, ~0% covered) is precisely
 this second row — EA/MCA enrollment structure, department and invoice-section hierarchy, MFA on
 subscription creators, billing RBAC assignments. Closing that gap is the one piece of work that
 *would* require billing-scope read access. Worth knowing before scoping it.
@@ -646,7 +1430,7 @@ a `Reader`-only principal to confirm every collector still returns data.
 The reasoning is sound and now Microsoft-doc-backed, but the honest position is: **probable, not
 proven.** The test that settles it — a live run with a Reader-only service principal, comparing
 per-collector row counts against a full-role run — is roughly half a day, and depends on the
-per-collector row-count work (§6 item 9) existing first.
+per-collector row-count work (§16 item 9) existing first.
 
 ---
 
@@ -656,7 +1440,7 @@ per-collector row-count work (§6 item 9) existing first.
 
 The 174 collectors in `manifests/collectors/<Category>/*.psd1` **do not call Azure**. They are pure transforms over an in-memory `$Resources` bag. Every Azure call is made by ~13 functions in `src/collect/`. A collector's permission requirement is therefore the requirement of *the collect-layer function that produces the resource type it consumes*.
 
-Access classes A–K are carried over from `docs/audits/AB6445-least-privilege-permissions-audit.md` §2.1:
+Access classes A–K are carried over from `docs/audits/AB6445-least-privilege-permissions-audit.md` §12.1:
 
 | Class | Producer (`src/collect/`) | API surface |
 |---|---|---|
@@ -833,7 +1617,7 @@ Where several rows share one provider page the same reference repeats — that i
 | MariaDB | `microsoft.dbformariadb/servers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforMariaDB/servers/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftdbformariadb` |
 | MySQL | `microsoft.dbformysql/servers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforMySQL/servers/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftdbformysql` |
 | MySQLflexible | `Microsoft.DBforMySQL/flexibleServers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforMySQL/flexibleServers/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftdbformysql` |
-| **POSTGRE** ⚠️ | `microsoft.dbforpostgresql/servers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforPostgreSQL/servers/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §4) | **NOT FOUND** ⚠️ `permissions/databases#microsoftdbforpostgresql` lists **only `flexibleServers/read`** — there is no `servers` type. Single Server is retired; the collector targets a type that no longer exists. |
+| **POSTGRE** ⚠️ | `microsoft.dbforpostgresql/servers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforPostgreSQL/servers/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6) | **NOT FOUND** ⚠️ `permissions/databases#microsoftdbforpostgresql` lists **only `flexibleServers/read`** — there is no `servers` type. Single Server is retired; the collector targets a type that no longer exists. |
 | POSTGREFlexible | `Microsoft.DBforPostgreSQL/flexibleServers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.DBforPostgreSQL/flexibleServers/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftdbforpostgresql` |
 | RedisCache | `microsoft.cache/redis` + `microsoft.cache/redisenterprise` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Cache/redis/read`, `Microsoft.Cache/redisEnterprise/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftcache` |
 | SQLDB | `microsoft.sql/servers/databases` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Sql/servers/databases/read` | Azure RBAC **Reader** | Doc | `permissions/databases#microsoftsql` |
@@ -854,7 +1638,7 @@ Where several rows share one provider page the same reference repeats — that i
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.ResourceConnector/appliances/read` | Azure RBAC **Reader** | Doc | `permissions/hybrid-multicloud#microsoftresourceconnector` |
 | **ArcServerOperationalData** | `microsoft.hybridcompute/machines` **+** `AZSC/Operational/ArcServerOperationalData` | `Get-ScoutRawInventory` (ARG `patchassessmentresources`, `patchinstallationresources`) → shaped by `Get-ScoutOperationalCollectorEnrichment` | A | `Microsoft.HybridCompute/machines/read` + ARG read of the patch tables | Azure RBAC **Reader** | Doc — `assessPatches` POST removed this session | `permissions/hybrid-multicloud#microsofthybridcompute` |
 | **ARCServers** | `microsoft.hybridcompute/machines` **+** `AZSC/Operational/ARCServers` | `Get-ScoutRawInventory` **+** `Get-ScoutOperationalCollectorEnrichment` (**POST** `policyStates/latest/queryResults`, **POST** `CostManagement/query`) | A + H | `Microsoft.HybridCompute/machines/read`, `Microsoft.PolicyInsights/policyStates/queryResults/read`, `Microsoft.CostManagement/query/read` | Azure RBAC **Reader** | Doc for the type read; **Untested** for the two POSTs authorizing on `/read` | `permissions/hybrid-multicloud#microsofthybridcompute`, `permissions/management-and-governance#microsoftpolicyinsights`, `permissions/management-and-governance#microsoftcostmanagement` |
-| **ArcSites** ⚠️ | `microsoft.azurestackhci/sites` + `microsoft.edgeconfig/sites` + `microsoft.hybridcompute/sites` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/sites/read`, `Microsoft.EdgeConfig/sites/read`, `Microsoft.HybridCompute/sites/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §4) | **NOT FOUND — all three** ⚠️ `AzureStackHCI` and `HybridCompute` are documented at `permissions/hybrid-multicloud` but **neither lists a `sites` type**; `Microsoft.EdgeConfig` appears on **no** provider page. Corroborates AB#6444. |
+| **ArcSites** ⚠️ | `microsoft.azurestackhci/sites` + `microsoft.edgeconfig/sites` + `microsoft.hybridcompute/sites` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/sites/read`, `Microsoft.EdgeConfig/sites/read`, `Microsoft.HybridCompute/sites/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6) | **NOT FOUND — all three** ⚠️ `AzureStackHCI` and `HybridCompute` are documented at `permissions/hybrid-multicloud` but **neither lists a `sites` type**; `Microsoft.EdgeConfig` appears on **no** provider page. Corroborates AB#6444. |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureArcData/sqlManagedInstances/read` | Azure RBAC **Reader** | Doc | **NOT FOUND** — same cause as `ArcDataControllers` |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureArcData/sqlServerInstances/read` | Azure RBAC **Reader** | Doc | `built-in-roles/databases#azure-connected-sql-server-onboarding` — **not on any `permissions/` provider page** |
 | Clusters | `microsoft.azurestackhci/clusters` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/clusters/read` | Azure RBAC **Reader** | Doc | `permissions/hybrid-multicloud#microsoftazurestackhci` |
@@ -862,7 +1646,7 @@ Where several rows share one provider page the same reference repeats — that i
 | LogicalNetworks | `microsoft.azurestackhci/logicalnetworks` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/logicalNetworks/read` | Azure RBAC **Reader** | Doc | `permissions/hybrid-multicloud#microsoftazurestackhci` |
 | MarketplaceGalleryImages | `microsoft.azurestackhci/marketplacegalleryimages` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/marketplaceGalleryImages/read` | Azure RBAC **Reader** | Doc | `permissions/hybrid-multicloud#microsoftazurestackhci` |
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/storageContainers/read` | Azure RBAC **Reader** | Doc | `permissions/hybrid-multicloud#microsoftazurestackhci` |
-| **VirtualMachines** ⚠️ | `microsoft.azurestackhci/virtualmachineinstances` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/virtualMachineInstances/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §4) | `permissions/hybrid-multicloud#microsoftazurestackhci` |
+| **VirtualMachines** ⚠️ | `microsoft.azurestackhci/virtualmachineinstances` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AzureStackHCI/virtualMachineInstances/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6) | `permissions/hybrid-multicloud#microsoftazurestackhci` |
 
 #### Identity — the ARM one (1)
 
@@ -890,12 +1674,12 @@ Where several rows share one provider page the same reference repeats — that i
 | AllSubscriptions | `AZSC/Management/SubscriptionEnrichment` | `Get-ScoutOperationalCollectorEnrichment` over ARG `resourcecontainers` mgChain | F | `Microsoft.Resources/subscriptions/read`, `Microsoft.Management/managementGroups/read` | Azure RBAC **Reader** — **must be assigned at MG scope** for the mgChain to resolve | Untested | `permissions/management-and-governance#microsoftresources` + `permissions/management-and-governance#microsoftmanagement` |
 | AutomationAccounts | `microsoft.automation/automationaccounts` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Automation/automationAccounts/read` | Azure RBAC **Reader** | Doc | n/a |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | `Get-ScoutRawInventory` (ARG `recoveryservicesresources`) | A | `Microsoft.RecoveryServices/vaults/backupPolicies/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftrecoveryservices` |
-| **CustomRoleDefinitions** ⚠️ | `AZSC/Management/RoleDefinition` | `Get-ScoutTenantWideResource` — `Get-AzRoleDefinition -Custom` | E | `Microsoft.Authorization/roleDefinitions/read` | Azure RBAC **Reader** at MG scope | **BROKEN** — gated on `-IncludeTenantWideResources`, a switch with no production caller (AB#6444 §4). Permission answer is moot until wired. | `permissions/management-and-governance#microsoftauthorization` |
-| **LighthouseDelegations** ⚠️ | `Microsoft.ManagedServices/registrationDefinitions` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.ManagedServices/registrationDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §4) | `permissions/management-and-governance#microsoftmanagedservices` |
+| **CustomRoleDefinitions** ⚠️ | `AZSC/Management/RoleDefinition` | `Get-ScoutTenantWideResource` — `Get-AzRoleDefinition -Custom` | E | `Microsoft.Authorization/roleDefinitions/read` | Azure RBAC **Reader** at MG scope | **BROKEN** — gated on `-IncludeTenantWideResources`, a switch with no production caller (AB#6444 §6). Permission answer is moot until wired. | `permissions/management-and-governance#microsoftauthorization` |
+| **LighthouseDelegations** ⚠️ | `Microsoft.ManagedServices/registrationDefinitions` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.ManagedServices/registrationDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6) | `permissions/management-and-governance#microsoftmanagedservices` |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Maintenance/maintenanceConfigurations/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftmaintenance` |
 | **ManagementGroups** ⚠️ | `AZSC/Management/ManagementGroup` | `Get-ScoutTenantWideResource` — `Get-AzManagementGroup -Expand -Recurse` | E | `Microsoft.Management/managementGroups/read` | Azure RBAC **Reader assigned at MG scope**; whether **Management Group Reader** is additionally required is **unresolved** | **BROKEN** — same `-IncludeTenantWideResources` gate. The permission question is confounded by the defect: no run has ever exercised this path in production. | `permissions/management-and-governance#microsoftmanagement` |
 | PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` | `Get-ScoutSubscriptionSecurityPolicySweep` — `Get-AzPolicyState` | B | `Microsoft.PolicyInsights/policyStates/queryResults/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftpolicyinsights` |
-| **PolicyDefinitions** ⚠️ | `AZSC/Management/PolicyDefinition` | `Get-ScoutTenantWideResource` (E); `Get-ScoutApiResources` also GETs `Microsoft.Authorization/policyDefinitions?api-version=2023-04-01` (D) | E / D | `Microsoft.Authorization/policyDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — the collector consumes the class-E type, which the ungated switch never produces (AB#6444 §4) | `permissions/management-and-governance#microsoftauthorization` |
+| **PolicyDefinitions** ⚠️ | `AZSC/Management/PolicyDefinition` | `Get-ScoutTenantWideResource` (E); `Get-ScoutApiResources` also GETs `Microsoft.Authorization/policyDefinitions?api-version=2023-04-01` (D) | E / D | `Microsoft.Authorization/policyDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — the collector consumes the class-E type, which the ungated switch never produces (AB#6444 §6) | `permissions/management-and-governance#microsoftauthorization` |
 | **PolicySetDefinitions** ⚠️ | `AZSC/Management/PolicySetDefinition` | `Get-ScoutTenantWideResource` (E); `Get-ScoutApiResources` also GETs `Microsoft.Authorization/policySetDefinitions` (D) | E / D | `Microsoft.Authorization/policySetDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — same cause | `permissions/management-and-governance#microsoftauthorization` |
 | RecoveryVault | `microsoft.recoveryservices/vaults` | `Get-ScoutRawInventory` (ARG `recoveryservicesresources`) | A | `Microsoft.RecoveryServices/vaults/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftrecoveryservices` |
 | ReservationRecom | `Microsoft.Consumption/reservationRecommendations` | `Get-ScoutApiResources` — GET `/providers/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01` | D | `Microsoft.Consumption/reservationRecommendations/read` | Azure RBAC **Reader** | Doc — **but gated by the EA/MCA billing setting; see note below** | `permissions/management-and-governance#microsoftconsumption` |
@@ -923,8 +1707,8 @@ Where several rows share one provider page the same reference repeats — that i
 | MonitorMetricsIngestion | `microsoft.operationalinsights/workspaces` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.OperationalInsights/workspaces/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftoperationalinsights` |
 | MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/privateLinkScopes/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
 | MonitorWorkbooks | `microsoft.insights/workbooks` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/workbooks/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
-| **Outages** ⚠️ | `AZSC/Monitor/Outage` | `Get-ScoutApiResources` — GET `/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01` → `Get-ScoutOutageResource` | D | `Microsoft.ResourceHealth/events/read` | Azure RBAC **Reader** | **BROKEN** — `Get-ScoutOutageResource` runs *before* the API merge, so it never sees the events (AB#6444 §4) | `permissions/management-and-governance#microsoftresourcehealth` |
-| **ResourceDiagnosticSettings** ⚠️ | `microsoft.insights/diagnosticsettings` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §4). Note: `diagnosticSettings` is an extension resource and is not returned by the ARG `resources` table. | `permissions/monitor#microsoftinsights` |
+| **Outages** ⚠️ | `AZSC/Monitor/Outage` | `Get-ScoutApiResources` — GET `/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01` → `Get-ScoutOutageResource` | D | `Microsoft.ResourceHealth/events/read` | Azure RBAC **Reader** | **BROKEN** — `Get-ScoutOutageResource` runs *before* the API merge, so it never sees the events (AB#6444 §6) | `permissions/management-and-governance#microsoftresourcehealth` |
+| **ResourceDiagnosticSettings** ⚠️ | `microsoft.insights/diagnosticsettings` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6). Note: `diagnosticSettings` is an extension resource and is not returned by the ARG `resources` table. | `permissions/monitor#microsoftinsights` |
 | ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/scheduledQueryRules/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AlertsManagement/smartDetectorAlertRules/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftalertsmanagement` |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` | `Get-ScoutSubscriptionSecurityPolicySweep` — `Get-AzDiagnosticSetting` | B | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
@@ -1103,7 +1887,43 @@ AB#6444 traced these to defects in code. They emit zero rows **in every tenant, 
 | Monitor/**AppInsightsContinuousExport** | No producer — Azure retired the endpoint. Permanently empty by design. |
 | Monitor/**AppInsightsWorkItems** | No producer — endpoint retired. Permanently empty by design. |
 
-**The `-IncludeTenantWideResources` switch has no production caller.** The string appears in exactly four places in the repo: the doc comment, the parameter declaration, the `if`, and one Pester test. Neither `Start-ScoutGraphExtraction.ps1:69-82` nor `Invoke-Collect.ps1:707` sets it. There is no operator flag that turns these four collectors on.
+**The `-IncludeTenantWideResources` switch has no production caller.** The string appears in exactly four places in the repo: the doc comment, the parameter declaration, the `if`, and one Pester test. Neither `Start-ScoutGraphExtraction.ps1:69-83` nor `Invoke-Collect.ps1:707` sets it. There is no operator flag that turns these four collectors on.
+
+##### Why it is dead — root cause
+
+This is Scout's own defect, not an Azure limitation, and it is a one-line fix at each of two call sites.
+
+`src/collect/Get-ScoutTenantWideResource.ps1` says so in its own header (lines 31-33):
+
+> *Isolated collect-phase implementation for AB#5933 (Epic AB#5917). Invoke-Collect does not call this function yet; old collectors remain the live path until definitions are ready.*
+
+The switch was a **temporary gate**, added deliberately so half-finished tenant-wide collection could land without disturbing the then-live collectors. The declarative definitions it was waiting on **shipped** — all four manifests (`manifests/collectors/Management/{ManagementGroups,CustomRoleDefinitions,PolicyDefinitions,PolicySetDefinitions}.psd1`) now filter on exactly the four envelope types this function emits. The consumer end of the migration was completed. The producer end was never switched on. **The gate outlived its reason.**
+
+**Why nothing caught it — three independent reasons, all worth fixing:**
+
+1. **The function is built to degrade silently.** Its header states the contract: *"Every envelope is returned even when its properties array is empty."* Downstream, an empty envelope renders an empty worksheet. There is no error, no warning, no non-zero exit — a blank sheet is indistinguishable from a tenant that genuinely has no custom roles.
+2. **The test suite passes the switch explicitly.** `tests/Collect.RawInventory.Tests.ps1:162` calls `Get-ScoutRawInventory -IncludeTenantWideResources`. The code path is covered and green; the production path that omits it is not asserted anywhere. This is the exact defect class the 1787-test suite is structurally unable to see — a test proving code *works when called* says nothing about whether anything calls it.
+3. **A permission theory absorbed the blame.** The `ManagementGroups` failure was attributed to missing Management Group Reader (see note 4 above). That theory was never falsifiable, because the producer had never executed.
+
+**Second-order consequence — the REST pass is dead too.** `Get-ScoutApiResources` is invoked from exactly one place on the live path: `Get-ScoutRawInventory.ps1:603`, **inside this block**. Its only other caller, `Start-AZTIExtractionOrchestration.ps1:84`, is classified `DEAD` by `scripts/Test-StrictModeGuard.ps1:84`. So with the switch off, Scout's entire ARM REST collection pass never runs. This also means turning the switch on is **not free**: it adds one REST pass per subscription to every run. Measure it before defaulting it on.
+
+##### The fix
+
+Two call sites. Both are needed — fixing only the first leaves every assessment still starved.
+
+| # | File | Line | Change | Unblocks |
+|---|---|---|---|---|
+| 1 | `src/collect/Start-ScoutGraphExtraction.ps1` | 69-83 | Add `IncludeTenantWideResources = $true` to the `$RawArgs` splat, alongside the ten `Include*` switches already there | The four Management **worksheets** (inventory path) |
+| 2 | `src/collect/Invoke-Collect.ps1` | 707 | `$rawArgs = @{ IncludeTags = $true }` → add `IncludeTenantWideResources = $true` | **Assessments #2 Landing Zone, #7 AVS Landing Zone, #8 Cloud Governance, #13 CASA** |
+
+Call site 2 is the important one and the easier one to miss. Its surrounding comment explains that the raw pass is deliberately kept minimal because the `-Include*` tables "feed inventory REPORT collectors, not assessment scalars" — a judgement that was correct when written and is now wrong for this switch specifically: management groups, custom roles, and policy definitions **are** assessment inputs. Four CAF/ALZ assessments cannot be scored without them.
+
+Then, in order:
+
+1. Wire both call sites; assert in a test that the production splat sets the switch (not merely that the function honours it).
+2. Re-run the Management Group Reader question from note 4 — it is only answerable once the producer executes.
+3. Measure the added REST cost per subscription. If it is material, gate it on `-Scope`/assessment selection rather than reverting to a switch nobody sets.
+4. Delete the switch once both call sites set it unconditionally. A parameter with no `$false` caller is dead weight that invites this failure again.
 
 #### 4. Management groups — scope, and an unresolved question
 
@@ -1187,357 +2007,115 @@ For the **Cost** assessment, add a **non-role** prerequisite: EA **"AO view char
 
 ---
 
-## 4. Category coverage — Microsoft's services vs Scout's
-
-### 1. General
-
-**Scout has no category for General. Scout collects 1 of 8 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Marketplace add-ons / support plans | Microsoft.Addons | ❌ | — | P3? |
-| Reservations and capacity | Microsoft.Capacity | ❌ | — | P2? |
-| Commerce usage aggregates | Microsoft.Commerce | ❌ | — | P3? |
-| Azure Marketplace | Microsoft.Marketplace | ❌ | — | P3? |
-| Marketplace ordering / agreements | Microsoft.MarketplaceOrdering | ❌ | — | P3? |
-| Azure Quotas | Microsoft.Quota | ❌ | — | P2? |
-| Subscriptions | Microsoft.Subscription | ❌ | — | P3? |
-| Azure Support | Microsoft.Support | ✅ | Management/SupportTickets | — |
-
-> Note: `Management/AllSubscriptions` looks like subscription coverage but declares the synthetic type `AZSC/Management/SubscriptionEnrichment`, not `Microsoft.Subscription` — it enriches subscription metadata rather than reading the provider. `Microsoft.Capacity` is the reservation *purchase* surface; Scout's `Management/ReservationRecom` reads `Microsoft.Consumption/reservationRecommendations` instead, which is recommendations only, not what is actually owned.
-
-### 2. Compute
-
-**Scout collects 4 of 12 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Container Apps | microsoft.app | ✅ | Containers/ContainerApp, Containers/ContainerAppEnv | — |
-| Azure Spring Apps | Microsoft.AppPlatform | ❌ | — | P2 |
-| Azure VMware Solution | Microsoft.AVS | ✅ | Compute/VMWare | — |
-| Azure Compute Fleet | Microsoft.AzureFleet | ❌ | — | P3? |
-| Azure Batch | Microsoft.Batch | ❌ | — | P1 |
-| Virtual Machines / Scale Sets | Microsoft.Compute | ✅ | Compute/VirtualMachine, Compute/VirtualMachineScaleSet, Compute/VMDisk +2 more | — |
-| Compute limits | Microsoft.ComputeLimit | ❌ | — | P3? |
-| Compute scheduling | Microsoft.ComputeSchedule | ❌ | — | P3? |
-| Azure Arc-enabled VMware vSphere | microsoft.connectedvmwarevsphere | ❌ | — | P2? |
-| Azure Virtual Desktop | Microsoft.DesktopVirtualization | ✅ | Compute/AVD, Compute/AVDSessionHosts, Compute/AVDWorkspaces +2 more | — |
-| Azure Quantum | Microsoft.Quantum | ❌ | — | P3 |
-| Service Fabric | Microsoft.ServiceFabric | ❌ | — | P2 |
-
-> Note: `microsoft.app` (Container Apps) is a **Compute** provider in Microsoft's taxonomy but sits under Scout's `Containers/` folder — a defensible split, but it means Scout's Compute category is thinner than its manifest count suggests. `Microsoft.Compute` coverage is VM/VMSS/disk/availability-set only: galleries, images, snapshots, disk encryption sets, dedicated hosts, PPGs and capacity reservations are all uncollected (P2). Scout additionally collects `microsoft.classiccompute/domainnames` (`Compute/CloudServices`), a provider Microsoft no longer lists in this directory. Seven of Scout's 14 Compute manifests are AVD.
-
-### 3. Networking
-
-**Scout collects 1 of 2 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Content Delivery Network / Front Door Std+Premium | Microsoft.Cdn | ❌ | — | P1 |
-| Virtual Network, Load Balancer, Firewall, ExpressRoute, DNS, Bastion, VPN, … | Microsoft.Network | ✅ | Networking/VirtualNetwork, Networking/NetworkSecurityGroup, Networking/LoadBalancer +18 more | — |
-
-> Note: 50% provider coverage badly overstates the position, because Microsoft folds ~20 distinct services into `Microsoft.Network`. Scout covers 20 types under it but misses firewall policies (P1 — the report template already prints "Not collected"), WAF policies (P1), Virtual WAN children (hubs/gateways, P2), DDoS plans, Virtual Network Manager, Private Link services, ASGs and flow logs (all P2). **Retirement flag:** Scout's only Front Door coverage is `microsoft.network/frontdoors` — Front Door **classic, retiring 2027-03-31**. Every modern AFD deployment (`Microsoft.Cdn/profiles`) is invisible.
-
-### 4. Storage
-
-**Scout collects 2 of 6 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Data Share | Microsoft.DataShare | ❌ | — | P3 |
-| Azure Elastic SAN | Microsoft.ElasticSan | ❌ | — | P2 |
-| Azure NetApp Files | Microsoft.NetApp | ✅ | Storage/NetApp | — |
-| Azure Storage | Microsoft.Storage | ✅ | Storage/StorageAccounts | — |
-| Azure HPC Cache / Managed Lustre | Microsoft.StorageCache | ❌ | — | P2 |
-| Azure File Sync | Microsoft.StorageSync | ❌ | — | P1 |
-
-> Note: the thinnest category in Scout relative to real-world estate size. `Storage/NetApp` collects only `Microsoft.NetApp/netAppAccounts/capacityPools/volumes` — accounts and pools are not their own rows, so pool utilisation is invisible (P2). Under `Microsoft.Storage` only the account is read: blob containers and their public-access level, file shares, and lifecycle management policies are all uncollected (P1 each). Managed disks are collected but filed under `Compute/VMDisk`; AB6446 flags reclassifying them here as a judgement call.
-
-### 5. Web and Mobile
-
-**Scout collects 1 of 5 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| App Service Certificates | Microsoft.CertificateRegistration | ❌ | — | P2 |
-| App Service domains | Microsoft.DomainRegistration | ❌ | — | P3 |
-| Azure Maps | Microsoft.Maps | ❌ | — | P3 |
-| Azure SignalR Service / Web PubSub | Microsoft.SignalRService | ❌ | — | P2 |
-| App Service / Azure Functions | microsoft.web | ✅ | Web/APPServices, Web/APPServicePlan | — |
-
-> Note: Function Apps and Logic Apps (Standard) **are** collected — they are `microsoft.web/sites` rows distinguished by `kind` — but there is no Function-App-specific projection (no runtime stack, no plan tier, no always-on). Missing under `microsoft.web` itself: App Service Environments, Static Web Apps and deployment slots (P1 each). App Configuration (`Microsoft.AppConfiguration`, P1) is a Web-adjacent gap that Microsoft files under Integration.
-
-### 6. Containers
-
-**Scout collects 4 of 4 providers in this category — the only category at 100%.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Container Instances | Microsoft.ContainerInstance | ✅ | Containers/ContainerGroups | — |
-| Container Registry | Microsoft.ContainerRegistry | ✅ | Containers/ContainerRegistries | — |
-| Azure Kubernetes Service | Microsoft.ContainerService | ✅ | Containers/AKS | — |
-| Azure Red Hat OpenShift | Microsoft.RedHatOpenShift | ✅ | Containers/ARO | — |
-
-> Note: provider coverage is complete but type coverage is not — AKS node pools (`.../managedClusters/agentPools`, P1), Container Apps jobs (`Microsoft.App/jobs`, P2) and AKS Fleet Manager (`.../fleets`, P2) are missing. Scout also files `microsoft.app` (Microsoft's Compute category) and Arc-enabled Kubernetes (`Microsoft.Kubernetes`, Microsoft's Hybrid category) elsewhere.
-
-### 7. Databases
-
-**Scout collects 7 of 8 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Cache for Redis / Managed Redis | Microsoft.Cache | ✅ | Databases/RedisCache | — |
-| Azure Database for MariaDB | Microsoft.DBforMariaDB | ✅ | Databases/MariaDB | — |
-| Azure Database for MySQL | Microsoft.DBforMySQL | ✅ | Databases/MySQL, Databases/MySQLflexible | — |
-| Azure Database for PostgreSQL | Microsoft.DBforPostgreSQL | ✅ | Databases/POSTGRE, Databases/POSTGREFlexible | — |
-| Azure Cosmos DB | Microsoft.DocumentDB | ✅ | Databases/CosmosDB | — |
-| Inference Service | Microsoft.InferenceService | ❌ | — | P3? |
-| Azure SQL Database / Managed Instance | Microsoft.Sql | ✅ | Databases/SQLSERVER, Databases/SQLDB, Databases/SQLMI +2 more | — |
-| SQL Server on Azure VMs | Microsoft.SqlVirtualMachine | ✅ | Databases/SQLVM | — |
-
-> Note: the strongest category after Containers. **Retirement flags:** `microsoft.cache/redisenterprise` (collected by `Databases/RedisCache` alongside `microsoft.cache/redis`) covers Enterprise/Enterprise Flash tiers, which **retire 2027-03-31** in favour of Azure Managed Redis — AB6446 recommends a retirement flag rather than a new collector. Azure Database for MariaDB is likewise end-of-life; `Databases/MariaDB` should be treated as a migration finding. Missing types: SQL failover groups, Cosmos DB for PostgreSQL and Mongo vCore (P2 each).
-
-### 8. Analytics
-
-**Scout collects 4 of 11 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Analysis Services | Microsoft.AnalysisServices | ❌ | — | P2 |
-| Azure Databricks | Microsoft.Databricks | ✅ | Analytics/Databricks | — |
-| Data Factory | Microsoft.DataFactory | ❌ | — | P1 |
-| Data Lake Analytics | Microsoft.DataLakeAnalytics | ❌ | — | P3 |
-| Azure Data Lake Storage Gen1 | Microsoft.DataLakeStore | ❌ | — | P3 |
-| Microsoft Fabric | Microsoft.Fabric | ❌ | — | P1 |
-| HDInsight | Microsoft.HDInsight | ❌ | — | P2 |
-| Azure Data Explorer | Microsoft.Kusto | ✅ | Analytics/DataExplorerCluster | — |
-| Power BI Embedded | Microsoft.PowerBIDedicated | ❌ | — | P2 |
-| Microsoft Purview | Microsoft.Purview | ✅ | Analytics/Purview | — |
-| Azure Synapse Analytics | Microsoft.Synapse | ✅ | Analytics/Synapse | — |
-
-> Note: Scout's `Analytics/` folder also holds two collectors Microsoft classifies elsewhere — `Analytics/EvtHub` (`Microsoft.EventHub` → Integration; AB6446 recommends moving it) and `Analytics/Streamanalytics` (`Microsoft.StreamAnalytics` → Internet of Things). **Retirement flags:** Data Lake Storage/Analytics Gen1 retired 2024-02. Data Factory and Fabric are the two largest omissions in the data estate.
-
-### 9. AI + machine learning
-
-**Scout collects 4 of 6 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Bot Service | Microsoft.BotService | ✅ | AI/BotServices | — |
-| Azure AI services (Cognitive Services) | Microsoft.CognitiveServices | ✅ | AI/AzureAI, AI/OpenAIAccounts, AI/ComputerVision +11 more | — |
-| Azure AI Health Bot | Microsoft.HealthBot | ❌ | — | P3? |
-| Azure Machine Learning | Microsoft.MachineLearningServices | ✅ | AI/MachineLearning, AI/AIFoundryHubs, AI/AIFoundryProjects | — |
-| Azure AI Search | Microsoft.Search | ✅ | AI/SearchServices | — |
-| Azure AI Video Indexer | Microsoft.VideoIndexer | ❌ | — | P3? |
-
-> Note: AI's 27 manifests are the most misleading count in Scout. Fourteen of them are the *same* resource type — `microsoft.cognitiveservices/accounts` — split by `kind`, and three more share `microsoft.machinelearningservices/workspaces`. AI spans **four providers**, not 27 services. Eight further AI manifests are `AZSC/ARMChild/*` synthetic child collectors (ML models, datasets, endpoints, OpenAI deployments, search indexes) that read from an already-fetched parent rather than a provider of their own.
-
-### 10. Internet of Things
-
-**Scout collects 2 of 11 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Sphere | Microsoft.AzureSphere | ❌ | — | P3 |
-| Device Registry | Microsoft.DeviceRegistry | ❌ | — | P2 |
-| IoT Hub / Device Provisioning Service | Microsoft.Devices | ✅ | IoT/IOTHubs | — |
-| Device Update for IoT Hub | Microsoft.DeviceUpdate | ❌ | — | P2 |
-| Azure Digital Twins | Microsoft.DigitalTwins | ❌ | — | P2 |
-| Azure Edge | Microsoft.Edge | ❌ | — | P3? |
-| Edge Marketplace | Microsoft.EdgeMarketPlace | ❌ | — | P3? |
-| IoT Central | Microsoft.IoTCentral | ❌ | — | P2 |
-| Defender for IoT (firmware) | Microsoft.IoTFirmwareDefense | ❌ | — | P3? |
-| IoT security | Microsoft.IoTSecurity | ❌ | — | P3? |
-| Stream Analytics | Microsoft.StreamAnalytics | ✅ | Analytics/Streamanalytics | — |
-
-> Note: Scout's own `IoT/` folder contains exactly **one** manifest — IoT Hub. The second ✅ in this table, Stream Analytics, lives under `Analytics/`, which is a defensible placement but means Microsoft's IoT category is served by a single Scout IoT collector. `Microsoft.Devices` is collected at the hub level only; Device Provisioning Service (`.../provisioningServices`) is a P1 gap — IoT Hub without DPS is half the story. Azure IoT Operations (`Microsoft.IoTOperations`, P2) is the strongest fit given Scout's Arc/Azure Local depth. **Retirement flag:** Time Series Insights retired 2025-07 (P3, do not build).
-
-### 11. Integration
-
-**Scout collects 3 of 15 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure API Center | Microsoft.ApiCenter | ❌ | — | P3? |
-| API Management | Microsoft.ApiManagement | ✅ | Integration/APIM | — |
-| Azure App Configuration | Microsoft.AppConfiguration | ❌ | — | P1 |
-| Azure Communication Services | Microsoft.Communication | ❌ | — | P2 |
-| Durable Functions / Durable Task | Microsoft.DurableTask | ❌ | — | P3? |
-| Event Grid | Microsoft.EventGrid | ❌ | — | P1 |
-| Event Hubs | Microsoft.EventHub | ✅ | Analytics/EvtHub | — |
-| Azure API for FHIR | Microsoft.HealthcareApis | ❌ | — | P3 |
-| Azure Health Data Services | Microsoft.HealthDataAIServices | ❌ | — | P3? |
-| Logic Apps | Microsoft.Logic | ❌ | — | P1 |
-| Notification Hubs | Microsoft.NotificationHubs | ❌ | — | P2 |
-| Azure Relay | Microsoft.Relay | ❌ | — | P2 |
-| Event Grid resource notifications | Microsoft.ResourceNotifications | ❌ | — | P3? |
-| Service Bus | Microsoft.ServiceBus | ✅ | Integration/ServiceBUS | — |
-| Services Hub | Microsoft.ServicesHub | ❌ | — | P3? |
-
-> Note: **Logic Apps is the one true *collection* gap in the whole product** — `microsoft.logic/workflows` is explicitly excluded by the `!in` clause in the unfiltered ARG query (`src/collect/Get-ScoutRawInventory.ps1`), so unlike every other ❌ in this document it cannot be fixed by adding a manifest alone. Event Hubs is collected but filed under `Analytics/`; AB6446 recommends moving it here so the messaging story reads as one. Both collected providers are namespace/service-level only — no APIM APIs or products, no Service Bus queues or topics (P2).
-
-### 12. Identity
-
-**Scout collects 1 of 5 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Microsoft Entra Domain Services | Microsoft.AAD | ❌ | — | P2 |
-| Entra IAM (aadiam) | microsoft.aadiam | ❌ | — | P3? |
-| Microsoft Entra Connect Health | Microsoft.ADHybridHealthService | ❌ | — | P3? |
-| Azure AD B2C | Microsoft.AzureActiveDirectory | ❌ | — | P2 |
-| Managed identities | Microsoft.ManagedIdentity | ✅ | Identity/ManagedIds | — |
-
-> Note: this table understates Scout badly and it is important not to read it as "Identity is broken". Scout has **16 Identity collectors**, but 15 of them declare `entra/…` pseudo-types (users, groups, service principals, conditional access, PIM assignments, risky users, licensing, …) and read Microsoft Graph, not ARM. Graph is outside this ARM-provider taxonomy entirely, so it cannot score here. Only `Identity/ManagedIds` is a real ARM type. The genuine ARM gap in this category is `Microsoft.Authorization/roleAssignments` (P1) — which Microsoft files under Management and governance, and which Scout already *ingests* for rule evaluation but never renders to a worksheet. Note also that `Identity/ManagedIds` (ARM) and `Identity/ManagedIdentities` (Graph) are two different collectors; AB6446 flags them for overlap verification.
-
-### 13. Security
-
-**Scout collects 1 of 6 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| App Compliance Automation | Microsoft.AppComplianceAutomation | ❌ | — | P3? |
-| Azure Attestation | Microsoft.Attestation | ❌ | — | P3 |
-| Azure Backup vaults / Data Protection | Microsoft.DataProtection | ❌ | — | P1 |
-| Key Vault | Microsoft.KeyVault | ✅ | Security/Vault | — |
-| Microsoft Defender for Cloud | Microsoft.Security | ❌ | — | P1 |
-| Microsoft Sentinel | Microsoft.SecurityInsights | ❌ | — | P1 |
-
-> Note: the ❌ on `Microsoft.Security` needs qualifying. Scout has four Defender collectors — `Security/DefenderAlerts`, `DefenderAssessments`, `DefenderPricing`, `DefenderSecureScore` — but all four declare the **synthetic** type `AZSC/Subscription/SecurityPolicySweep` and read from a REST sweep envelope, not from `Microsoft.Security/*` via ARG. So Defender data does reach the report; the provider is not queried as a first-class ARM type, and AB6446 rates promoting `Microsoft.Security/pricings` to a real sheet as P1. Of Scout's 5 Security manifests, exactly one (`Security/Vault`) is a real ARM resource type. Key Vault itself is collected at the vault level only — keys, secrets and certificates, and therefore expiry (the actual finding), are not (P1). WAF policies in all three flavours are P1 and span this category and Networking.
-
-### 14. DevOps
-
-**Scout has no category for DevOps. Scout collects 0 of 7 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Chaos Studio | Microsoft.Chaos | ❌ | — | P3 |
-| Azure Deployment Environments / Dev Box | Microsoft.DevCenter | ❌ | — | P2 |
-| Managed DevOps Pools | Microsoft.DevOpsInfrastructure | ❌ | — | P2 |
-| Azure DevTest Labs | Microsoft.DevTestLab | ❌ | — | P3 |
-| Azure Lab Services | Microsoft.LabServices | ❌ | — | P3 |
-| Azure Load Testing | Microsoft.LoadTestService | ❌ | — | P3 |
-| Azure DevOps | Microsoft.VisualStudio | ❌ | — | P3? |
-
-> **Note — this category is nearly free to create.** Scout already ships **five DevOps collectors misfiled under `Management/`**: `Management/DevOpsProjects`, `Management/DevOpsPipelines`, `Management/DevOpsRepositories`, `Management/DevOpsAgentPools` and `Management/DevOpsServiceConnections`. They declare `devops/…` pseudo-types (`devops/projects`, `devops/pipelines`, `devops/repositories`, `devops/agentpools`, `devops/serviceconnections`), read the Azure DevOps REST API rather than ARM, and are already gated behind `-IncludeDevOps`. They score ❌ against `Microsoft.VisualStudio` because that ARM provider is not what they query — but promoting them to a real `DevOps/` category costs a directory move plus a category-alias decision, not new collection work. The ARM-side additions worth building on top are Managed DevOps Pools and Dev Center (P2 each).
-
-### 15. Migration
-
-**Scout has no category for Migration, and no collector anywhere touches it. Scout collects 0 of 5 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Data Box | Microsoft.DataBox | ❌ | — | P2 |
-| Azure Stack Edge | Microsoft.DataBoxEdge | ❌ | — | P2 |
-| Azure Database Migration Service | Microsoft.DataMigration | ❌ | — | P2 |
-| Azure Migrate | Microsoft.Migrate | ❌ | — | P1 |
-| Azure Migrate (discovery / OffAzure) | Microsoft.OffAzure | ❌ | — | P1 |
-
-> Note: total zero — this is the only Microsoft top-level category with no coverage of any kind, not even a synthetic or REST-based collector. It is also the most surprising absence for a hybrid/Azure Local consultancy, where migration assessment is a core motion. `src/pipeline/diagram/Start-ScoutDiagramSubscription.ps1` names `microsoft.migrate/*` in its icon map — those are **diagram symbols only, with no query behind them**, and must not be read as coverage.
-
-### 16. Monitor
-
-**Scout collects 4 of 6 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Monitor alerts | Microsoft.AlertsManagement | ✅ | Monitor/SmartDetectorAlertRules | — |
-| Azure Managed Grafana | Microsoft.Dashboard | ❌ | — | P2 |
-| Azure Monitor / Application Insights | Microsoft.Insights | ✅ | Monitor/AppInsights, Monitor/MetricAlertRules, Monitor/DataCollectionRules +8 more | — |
-| Azure Monitor workspace (Prometheus) | microsoft.monitor | ❌ | — | P1 |
-| Log Analytics | Microsoft.OperationalInsights | ✅ | Monitor/Workspaces, Monitor/MonitorMetricsIngestion | — |
-| Azure Monitor solutions | Microsoft.OperationsManagement | ✅ | Monitor/LAWorkspaceSolutions | — |
-
-> Note: Scout's largest category by manifest count (24), of which 6 are `AZSC/ARMChild/*` synthetic child collectors (App Insights continuous export, proactive detection, work items; LA linked services and saved searches). `Microsoft.AlertsManagement` is collected for smart-detector rules only — Prometheus rule groups and alert processing rules are P2 gaps. AB6446 flags a likely duplicate here: `Monitor/AppInsightsWebTests` and `Monitor/AppInsightsAvailabilityTests` both target `microsoft.insights/webtests`, and only the former filters on `kind`.
-
-### 17. Management and governance
-
-**Scout collects 6 of 25 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Advisor | Microsoft.Advisor | ✅ | Management/AdvisorScore | — |
-| Azure Policy / RBAC / ARM authorization | Microsoft.Authorization | ❌ | — | P1 |
-| Azure Automation | Microsoft.Automation | ✅ | Management/AutomationAccounts | — |
-| Cost Management + Billing | Microsoft.Billing | ❌ | — | P3? |
-| Azure savings plans | Microsoft.BillingBenefits | ❌ | — | P3? |
-| Azure Blueprints | Microsoft.Blueprint | ❌ | — | P3? |
-| Azure carbon optimization | Microsoft.Carbon | ❌ | — | P3? |
-| Consumption / budgets | Microsoft.Consumption | ✅ | Management/ReservationRecom | — |
-| Cost Management | Microsoft.CostManagement | ❌ | — | P2? |
-| Customer Lockbox | Microsoft.CustomerLockbox | ❌ | — | P3? |
-| ARM feature flags | Microsoft.Features | ❌ | — | P3? |
-| Guest Configuration | Microsoft.GuestConfiguration | ❌ | — | P3? |
-| Microsoft Intune | Microsoft.Intune | ❌ | — | P3? |
-| Azure Maintenance / Update Manager | Microsoft.Maintenance | ✅ | Management/MaintenanceConfigurations | — |
-| Managed operations | Microsoft.ManagedOps | ❌ | — | P3? |
-| Azure Lighthouse | Microsoft.ManagedServices | ✅ | Management/LighthouseDelegations | — |
-| Management Groups | Microsoft.Management | ❌ | — | P2? |
-| Azure Policy insights | Microsoft.PolicyInsights | ❌ | — | P2? |
-| Azure portal (dashboards) | Microsoft.Portal | ❌ | — | P3? |
-| Site Recovery / Recovery Services | Microsoft.RecoveryServices | ✅ | Management/RecoveryVault, Management/Backup | — |
-| Azure Resource Graph | Microsoft.ResourceGraph | ❌ | — | P3? |
-| Azure Service Health | Microsoft.ResourceHealth | ❌ | — | P2? |
-| Azure Resource Manager (resources, RGs) | Microsoft.Resources | ❌ | — | P2 |
-| Azure Managed Applications | Microsoft.Solutions | ❌ | — | P2 |
-| SAP on Azure | Microsoft.Workloads | ❌ | — | P2 |
-
-> Note: four ❌ rows here are covered by **synthetic** collectors rather than ARM provider queries, and should not be read as untouched. `Microsoft.Management` → `Management/ManagementGroups` (`AZSC/Management/ManagementGroup`); `Microsoft.Authorization` → `Management/PolicyDefinitions`, `Management/PolicySetDefinitions`, `Management/CustomRoleDefinitions` (all `AZSC/Management/*`); `Microsoft.PolicyInsights` → `Management/PolicyComplianceStates` (`AZSC/Subscription/SecurityPolicySweep`); `Microsoft.ResourceHealth` → `Monitor/Outages` (`AZSC/Monitor/Outage`). The real `Microsoft.Authorization` P1 gap is the *assignment* side — role assignments, resource locks and policy assignments are already ingested by `src/ingest/Import-Governance.ps1` to feed rules but never reach a worksheet, so they are near-free to surface. Same pattern for `Microsoft.Consumption/budgets`: ingested, never rendered. `Microsoft.ResourceGraph` is the query engine Scout runs on rather than an inventory target. **Retirement flag:** Azure Blueprints is deprecated in favour of Template Specs and deployment stacks — do not build.
-
-### 18. Hybrid + multicloud
-
-**Scout collects 4 of 10 providers in this category.**
-
-| Azure service | Resource provider | Collected? | Scout collector | Priority |
-|---|---|---|---|---|
-| Azure Stack | Microsoft.AzureStack | ❌ | — | P3? |
-| Azure Local (Azure Stack HCI) | Microsoft.AzureStackHCI | ✅ | Hybrid/Clusters, Hybrid/VirtualMachines, Hybrid/LogicalNetworks +4 more | — |
-| Custom locations | Microsoft.ExtendedLocation | ❌ | — | P2? |
-| Azure Arc-enabled servers | Microsoft.HybridCompute | ✅ | Hybrid/ARCServers, Hybrid/ArcExtensions, Hybrid/ArcGateways +2 more | — |
-| Arc hybrid connectivity | Microsoft.HybridConnectivity | ❌ | — | P2? |
-| AKS enabled by Arc / on Azure Local | Microsoft.HybridContainerService | ❌ | — | P2? |
-| Azure Arc-enabled Kubernetes | Microsoft.Kubernetes | ✅ | Hybrid/ArcKubernetes | — |
-| Arc Kubernetes configuration (GitOps/Flux) | Microsoft.KubernetesConfiguration | ❌ | — | P2? |
-| Arc resource bridge | Microsoft.ResourceConnector | ✅ | Hybrid/ArcResourceBridge | — |
-| Arc-enabled SCVMM | Microsoft.SCVMM | ❌ | — | P3? |
-
-> Note: by depth rather than provider count this is Scout's strongest category — 16 manifests over 18 distinct types, and the Azure Stack HCI provider alone is covered by seven collectors (clusters, VM instances, logical networks, storage containers, gallery and marketplace images, sites). Scout additionally collects two providers Microsoft does not list in this directory at all: `microsoft.azurearcdata` (`Hybrid/ArcDataControllers`, `Hybrid/ArcSQLManagedInstances`, `Hybrid/ArcSQLServers`) and `microsoft.edgeconfig` (`Hybrid/ArcSites`). `Hybrid/ArcSites` is a single collector spanning three providers — `microsoft.hybridcompute/sites`, `microsoft.azurestackhci/sites` and `microsoft.edgeconfig/sites`. The remaining ❌ rows are all natural extensions of work Scout already does well, which is why they are graded P2? rather than P3?.
+## 10. Architecture — collect once
+
+**Design (decision-table row 12):** one collection engine. Inventory's collector is the only thing
+that pulls from Azure. Assessment reuses what it collected and fetches only what ARG cannot index.
+
+**Verdict: the direction is correct and most of it is already built.** Four defects stand between
+the current code and the design.
+
+### Already true
+
+- **`Get-ScoutRawInventory` is the single ARG engine.** `Start-AZSCGraphExtraction` contains no
+  query text at all — it is a parameter-translation shim onto it
+  (`src/collect/Start-ScoutGraphExtraction.ps1:1-33`, `:69-90`). The assessment collector calls the
+  same function (`src/collect/Invoke-Collect.ps1:690-709`). The two callers differ only in which
+  tables they request — inventory asks for eleven extra, assessment asks for three plus tags. That
+  is the correct shape for a shared engine.
+- **AB#5648 covered the assessment half.** `ConvertFrom-ScoutInventory` shapes **34 of 35** collect
+  datasets from raw rows; the skip logic at `Invoke-Collect.ps1:768` issues no Azure call for
+  anything already shaped. Only `sqlDefenderPricing` is not derivable, because it reads
+  `SecurityResources` rather than `resources` (`Invoke-Collect.ps1:364-368`, rationale `:681-686`).
+- **`-Assessment` alone correctly does *not* run the full inventory pass**
+  (`src/Invoke-AzureScout.ps1:565`, `:595`).
+- **Collect-once for the combined run is implemented** — `$ExtractionData` is handed to
+  `Invoke-ScoutAssessmentCore -FromInventory` (`Invoke-AzureScout.ps1:842-843`,
+  `Invoke-Collect.ps1:725-727`).
+
+### Defect 1 — `ArgQueryPack` re-queries six datasets and overwrites the good copies with worse ones
+
+`src/Invoke-ScoutAssessmentCore.ps1:124-139` runs the manifest's `Ingest` list after
+`Invoke-Collect` returns, **with no awareness of whether the data was already collected** —
+including when `-FromInventory` was supplied.
+
+| ArgQueryPack query | Already collected by |
+|---|---|
+| `subnetIpUsage` (`Invoke-ArgQueryPack.ps1:20`) | `subnets` (`Invoke-Collect.ps1:239`) |
+| `orphanedDisks` (:30) | `orphanedDisks` (`:316`) |
+| `orphanedPips` (:35) | `orphanedPips` (`:320`) |
+| `diagCoverage` (:40) | `diagnosticCoverage` (`:324`) |
+| `publicExposure` (:46) | `nsgPublicInbound` (`:288`) |
+| `nonZonalVms` (:55) | `virtualMachines.zoneRedundant` (`:297`) |
+
+**It is destructive, not merely wasteful.** `Invoke-ArgQueryPack.ps1:87-95` writes over the
+collector's results with `Add-Member -Force`, and its copies are strictly worse:
+
+- `subnetIpUsage` (:28) computes a percentage with **no divide-by-zero guard**. The collector has
+  one — `iff(total > 0, ..., todouble(0))` (`Invoke-Collect.ps1:247`). A `/31` or `/32` subnet
+  makes `total` zero or negative.
+- `diagCoverage` (:44) — same missing guard; the collector's has it (`:328`).
+- `orphanedDisks` (:33) projects `sku`/`sizeGb` untyped; the collector casts (`:318`).
+- **`nonZonalVms` is queried and never merged into `$Collect` at all** — a pure wasted round-trip on
+  every run of the 15 assessments declaring `ArgQueryPack`.
+
+A comment at `:79-83` records that a previous `-Force` replace **already caused a live incident** —
+wiped `networking`, false-failed `CAF-SEC-03`/`CAF-SEC-06`. The same hazard remains for the four
+properties it still replaces.
+
+### Defect 2 — the combined run is unreachable from the command line
+
+`$wizardRunBoth` (`Invoke-AzureScout.ps1:594`) is set from exactly one source: `:557`, from
+`$wizard.RunBoth` (`Start-AZSCWizard.ps1:280`). **No parameter sets it.**
+
+So `Invoke-AzureScout -Assessment LandingZone -OutputFormat All` does not produce an inventory
+report — CI and scripted callers cannot reach the collect-once path at all.
+
+### Defect 3 — the collect-once handoff silently loses tags
+
+`Invoke-Collect` forces `IncludeTags = $true` on its own raw pass and documents why
+(`Invoke-Collect.ps1:700-707`: without it the canonical `tags` key is silently empty). The
+inventory pass sets `IncludeTags = [bool]$IncludeTags` (`Start-ScoutGraphExtraction.ps1:81`),
+defaulting to **false**.
+
+**A wizard "both" run without `-IncludeTags` hands the assessment rows with no `tags` column**, and
+`ConvertFrom-ScoutInventory.ps1:135` reads `tags` off the container row — producing an empty
+`collect.tags` aggregation. The assessment-only path gets tags; the collect-once path does not.
+
+### Defect 4 — `AdvisorScores` duplicates inventory data and leaks Az context
+
+`src/ingest/Import-AdvisorScores.ps1:16-24` enumerates subscriptions and calls
+`Get-AzAdvisorRecommendation` per subscription. Inventory already collects Advisor rows from the
+`advisorresources` ARG table (`Start-ScoutGraphExtraction.ps1:76,94` → `$ExtractionData.Advisories`).
+In a combined run this re-fetches data already in memory, via a slower API.
+
+Separately: `:21` calls `Set-AzContext` inside the loop and **never restores the caller's original
+context**. Anything running after an assessment in the same session inherits whichever subscription
+happened to be last.
+
+### Where the carve-out actually falls
+
+Drawn by **API surface — what ARG cannot index** — not by product surface:
+
+| Ingest source | Verdict |
+|---|---|
+| `ArgQueryPack` | **All six are duplicates.** Retire it. |
+| `Governance` — `policyresources`, `authorizationresources` | **Legitimately assessment-only** — different ARG tables the raw pass does not read. |
+| `Governance` — budgets, resource locks (`Import-Governance.ps1:114-116`) | **Legitimately non-inventory** — not ARG-indexed at all. These are the correct examples of the carve-out. |
+| `Governance` — management groups | *Nearly* a duplicate; the raw pass reads `resourcecontainers` but filters to subscriptions/RGs. |
+| `AdvisorScores` | **Duplicate** of `$ExtractionData.Advisories` in a combined run. |
+| Azure Policy compliance state | **Already inventory** — `policyStates/latest/summarize`. Not a carve-out example. |
 
 ---
 
-### Summary
-
-| Category | Providers | Collected | Coverage % |
-|---|---:|---:|---:|
-| 1. General | 8 | 1 | 13% |
-| 2. Compute | 12 | 4 | 33% |
-| 3. Networking | 2 | 1 | 50% |
-| 4. Storage | 6 | 2 | 33% |
-| 5. Web and Mobile | 5 | 1 | 20% |
-| 6. Containers | 4 | 4 | 100% |
-| 7. Databases | 8 | 7 | 88% |
-| 8. Analytics | 11 | 4 | 36% |
-| 9. AI + machine learning | 6 | 4 | 67% |
-| 10. Internet of Things | 11 | 2 | 18% |
-| 11. Integration | 15 | 3 | 20% |
-| 12. Identity | 5 | 1 | 20% |
-| 13. Security | 6 | 1 | 17% |
-| 14. DevOps | 7 | 0 | 0% |
-| 15. Migration | 5 | 0 | 0% |
-| 16. Monitor | 6 | 4 | 67% |
-| 17. Management and governance | 25 | 6 | 24% |
-| 18. Hybrid + multicloud | 10 | 4 | 40% |
-| **Total** | **152** | **49** | **32%** |
-
-> Three providers Scout collects do not appear in Microsoft's 18-category directory and so score nowhere above: `microsoft.azurearcdata`, `microsoft.classiccompute` and `microsoft.edgeconfig`. Adding them gives the 52-provider figure quoted in AB#6446. The denominator here (152) is Microsoft's role-based-access-control provider directory, which is narrower than the ~130–200 provider counts quoted elsewhere; the ratio, not the absolute number, is the comparable figure.
 
 ---
 
-## 5. The four audits, summarised
+## 11. The four source audits, summarised
 
 ### AB#6444 — Collector verification
 **Verdict: 0 of 174 verified against real Azure; 12 provably always-empty.**
-Detail in §3.5. Proposes a four-layer verification approach: a static resource-type existence gate
+Detail in §5.5. Proposes a four-layer verification approach: a static resource-type existence gate
 (~1 day, would have caught 11 of the 12 defects), retained per-collector row counts (~1 day, turns
 every future run into evidence), running the 174 against the existing-but-unused real anonymised
 capture (~2-3 days), and — explicitly *not* recommended at full scope — a canary subscription.
@@ -1561,7 +2139,7 @@ zero pre-flight coverage.
 
 ### AB#6446 — Service coverage gaps
 **Verdict: 52 of ~130 providers ≈ 40% coverage; the taxonomy should grow.**
-Detail in §3.1 and §4. Notable specifics: AI's 27 collectors are inflated (11 are the same resource
+Detail in §5.1 and §6. Notable specifics: AI's 27 collectors are inflated (11 are the same resource
 type split by `kind`); Storage's 2 is genuinely thin; Data Factory, modern Front Door
 (`Microsoft.Cdn/profiles`), and backup *protected items* are absent — meaning **"which VMs have no
 backup" is unanswerable today**. RBAC role assignments, resource locks, policy assignments and
@@ -1571,7 +2149,7 @@ Recommends *against* building Media Services, Blockchain, and Mixed Reality (all
 
 ### AB#6447 — CAF/WAF coverage
 **Verdict: ~10% of CAF, ~15% of WAF.**
-Root-caused the wizard path bug (§3.2). Found that **32% of all rules (47 of 148) are `manual: true`**
+Root-caused the wizard path bug (§5.2). Found that **32% of all rules (47 of 148) are `manual: true`**
 — they assert nothing and produce no verdict. Found that **Azure Policy compliance state is
 collected through three separate code paths and never scored by any rule** — the most valuable
 governance signal in Azure, paid for in query time and discarded. Found **two false-pass rules**
@@ -1581,45 +2159,501 @@ whether an assignment has a parameters block.
 
 ---
 
-## 6. Work plan
+---
 
-**Wrong right now** — defects, not enhancements:
+## Part III — Decisions
+
+---
+
+## 12. Decisions already taken
+
+These are settled. They are recorded here so nobody relitigates them, and so the plan in Part IV
+has something to stand on. **Decided ≠ implemented** — the "Where it stands" column is the truth.
+
+Legend: ✅ done · 🟡 agreed, not built
+
+| # | Decision | Status | Decided by | Rationale | Where it stands |
+|---|---|---|---|---|---|
+| 1 | **Stop triggering patch assessments.** Read Azure Update Manager's Resource Graph tables instead of POSTing `assessPatches` per machine. | ✅ | Owner | *"To do a patch assessment is worthless cause that can take hours to run."* It was also an ARM **write** action, making a read-only tool mutate customer machines. | Implemented + 30/30 tests pass. Regression lock proven non-vacuous. **Uncommitted.** Not yet live-verified. |
+| 2 | **Dump ALL raw collected data to a file**, regardless of whether a collector exists to display it. | 🟡 | Owner | *"Shouldn't all the data that is collected no matter what be dumped into a .json or some other file?"* Better than the audit's proposal (a summary of skipped types) — eliminates silent data loss entirely instead of reporting on it. | Agreed. Not built. |
+| 3 | **Ship v3.0.9 without the diagram→PDF rasterisation fix.** | ✅ | Owner | Needs a new dependency (headless renderer) or a multi-week custom rasteriser. Not a point-release fix. | v3.0.9 shipped. **AB#6737 left open** with the scoping analysis recorded on it. |
+| 4 | **Fix the wizard manifest path bug.** | ✅ **Decided — do it** | Owner | One line. Unlocks 21 menu entries. `src/Start-AZSCWizard.ps1:238` climbs three directory levels to find `manifests/assessments.psd1`; the file lives in `src/` so it needs one. It resolves outside the repo, `Test-Path` returns false, and it silently falls back to a hardcoded `@('LandingZone')`. | **Decision: change the three `Split-Path` calls to one.**<br><br>From:<br>`$manifestPath = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) 'manifests/assessments.psd1'`<br><br>To:<br>`$manifestPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'manifests/assessments.psd1'`<br><br>Not yet applied. See §3.2. |
+| 5 | **Drop the redundant roles** from the required role set. | ✅ **Answered — it is THREE roles, not two** | Owner asked *"are you 100&#37; sure?"*; researched against Microsoft Learn | Azure `Reader` is `Actions: */read`, `NotActions: none` — a single wildcard over every control-plane read. Every action these three grant that Scout uses is inside it. | **Drop all three:**<br><br>**1. Security Reader** *(Azure RBAC — **not** the Entra role of the same name)* — strict subset of `*/read`.<br>**2. Monitoring Reader** — strict subset, **and** grants `Microsoft.Support/*` = ticket *creation*, a write Scout never uses.<br>**3. Cost Management Reader** — **newly found redundant.** Microsoft's role-behaviour table shows `Reader` = "Read only" on Cost Analysis / Forecast / **Query** / Cost Details API, and `Microsoft.CostManagement/query/read` exists.<br><br>⚠️ **Entra `Security Reader` is a different role and IS required** — `Directory Readers` has zero Conditional Access actions.<br><br>Not applied to code. See §3c. |
+| 6 | **Fix the readiness verdict** so a denied permission that empties a collector degrades the result. | ✅ **Decided — Option 2** | Owner | `Invoke-AZTIPermissionAudit.ps1:418` hardcodes only 4 of 9 Graph checks as critical, so a denied `IdentityRiskyUser.Read.All` still printed **"READY — Full ARM + Entra ID scan supported"** while the RiskyUsers worksheet rendered empty. Empty and "none found" are indistinguishable in a security report. | **Decision: replace the READY/PARTIAL verdict with a per-collector impact table.**<br><br>Not *"READY"*, but *"142 of 174 collectors will produce data. These 32 will be empty: RiskyUsers (needs `IdentityRiskyUser.Read.All`), ConditionalAccess (needs `Policy.Read.All`), …"*<br><br>**Why not the smaller fix:** deleting the hardcoded `$isCritical` list and deriving criticality from collector consumption fixes *this* instance, but keeps one word standing in for 174 outcomes — the same bug class returns the next time a collector is added. A list of what you will actually get cannot lie; a verdict word can. Roughly a day versus an hour.<br><br>**Should land with it:** stop swallowing Graph 403s into a coloured `Write-Host "SKIP"` that never reaches the warning stream, so the run's own error count can see them.<br><br>**Not implemented.** See §3c and AB#6445 §6.4. |
+| 11 | **`Estate` is inventory, not an assessment — get it out of the assessment registry.** | ✅ **Decided — fix it** | Owner | `manifests/assessments.psd1:37-46` declares `Estate` with **`Rules = @()`**. It scores nothing. It is a full-estate inventory pull sitting in the list the wizard presents as *"Assessments to run"*. Inventory and assessment are different products; the registry conflates them. | **Decision: separate them.** An operator choosing from an assessment menu cannot tell that one entry performs no assessment. Options: move `Estate` out of `assessments.psd1` entirely (it duplicates what `Invoke-AzureScout` does without `-Assessment`), or keep it but have the wizard present inventory and assessment as distinct prompts rather than one list.<br><br>**Related naming collision, same root cause:** the 15 per-category assessment entries carry **the same names as the 15 inventory categories** (Compute, Storage, Networking…). One filters what is *collected*, the other filters what is *scored*. Same words, different meaning, one menu.<br><br>**Not implemented.** |
+| 12 | **One collection engine; collect once.** Inventory's collector is the *only* mechanism that pulls from Azure. Assessment reuses what inventory collected and fetches only what ARG genuinely cannot index. | ✅ **Decided — this is the design** | Owner | Running inventory + assessment must not pay for the same Azure queries twice. Assessment has no separate collection path. | **Direction confirmed correct, and mostly already built** — `Get-ScoutRawInventory` is already the single ARG engine for both paths, and AB#5648 shaped 34 of 35 assessment datasets from raw rows. **Four defects block it — see §3d.**<br><br>**Correction to the design as originally stated:** policy compliance state was named as the "genuinely not inventory" example. It is the opposite — inventory already fetches `policyStates/latest/summarize` and the assessment ignores it. **Draw the carve-out by API surface (what ARG cannot index), not by product surface.** Budgets and resource locks are the real examples.<br><br>**Not implemented.** |
+
+---
+
+
+### Implementation status of the decided items
+
+Six of the eight decisions above are **decided but not written**. This is the single largest risk
+in the document — a decision log that outruns the code produces exactly the drift this audit was
+commissioned to find.
+
+| Decision | Decided | In code? | Where it lands in the plan |
+|---|---|---|---|
+| 1 — patch assessment → read-only | ✅ | ✅ **Written, 30/30 tests, uncommitted** | Commit it. Release 0. |
+| 2 — dump all raw collected data | 🟡 | 🔲 | Release 1 |
+| 4 — wizard manifest path | ✅ | 🔲 *(one line)* | Release 0 |
+| 5 — drop three redundant roles | ✅ | 🔲 *(docs + pre-flight)* | Release 1 |
+| 6 — replace READY verdict with per-collector impact | ✅ | 🔲 | Release 1 |
+| 11 — `Estate` out of the assessment registry | ✅ | 🔲 | Release 2 |
+| 12 — one collection engine, collect once | ✅ | ⚠️ **Mostly built, 4 defects** | Release 1 (see §10) |
+
+---
+
+## 13. The remaining decisions — taken
+
+These were open when this document was written. **All twelve are now decided.** Each was
+resolved on the evidence already in this document; none is a preference call that needed
+relitigating, and none is left waiting.
+
+Three (DQ10-DQ12) were not on the original list at all — they surfaced when this section was swept against the rest of the document, each hiding inside a row that already read as decided. That is worth noting: **a decision log finds its own gaps only when something forces a sweep.**
+
+The rule applied: **where the evidence in Parts I-II determines an answer, take it.** Only DQ7
+depends on something outside the repo, and even there the decision is *yes* — what is outstanding
+is a prerequisite, not a choice.
+
+Legend: ✅ decided · ⚠️ decided, with a dependency
+
+| # | Question | ✅ Decision | Why this and not the alternative | Lands in |
+|---|---|---|---|---|
+| **DQ1** | What does the wizard menu list, and what is pre-checked, after the path fix? | ✅ **The menu lists only assessments Scout can actually run. `LandingZone` is pre-checked — because today it is the only real one.** | **The 22 entries the path fix exposes are not the 14 chosen assessments.** 15 are category filters over the same rule set (retired by DQ11), 4 are sub-bundles (DQ2), 1 is `Estate`, which scores nothing (DQ10). After DQ2/DQ10/DQ11 the menu honestly collapses to **`LandingZone` + `Cost`** — and that is the correct state to ship, because it is the truth. Each of §14's 14 targets joins the menu **as it is built**, not before. **An unbuilt assessment must never appear as a menu entry**: a customer selects it, it runs, it returns nothing, and they read that as "no findings" — the same false negative DQ9 retires broken collectors to avoid. `LandingZone` stays pre-checked because it is the roll-up containing every `caf.*` and `waf.*` rule, so pressing Enter yields strictly more than today and nobody's behaviour regresses. **Revisit the default when Release 3 splits it** — the right default for a per-pillar menu is a genuinely different question. | Release 0; menu grows through Releases 2-7 |
+| **DQ2** | De-duplicate the assessment registry | ✅ **Delete `Policy`. Keep `UpdateManager` and `Monitoring`, renamed to show the subset.** | `Governance` and `Policy` are byte-identical — same `Category`, `Collect`, `Ingest`, `Rules`. Two menu entries that do the same thing is a bug, and the fix is deletion, not documentation. `UpdateManager` and `Monitoring` are *strict subsets* of `Management` and `Monitor`, which is a different thing: a narrow slice is useful **if it is labelled as one**. Rename to `Management — Update Manager only` and `Monitor — operational excellence only` so the relationship is visible in the menu. Keep `Governance` over `Policy` as the survivor: it matches the CAF design-area name. | Release 2 |
+| **DQ3** | Add Backup & Recovery, Cost & Optimisation, Virtual Desktop as categories? | ✅ **No. Hold to Microsoft's 18.** | These are *opinion* — consulting-driven splits — and each is already somewhere real: **AVD sits under Compute** (confirmed from the portal; proposing it as its own category was my error), Backup under Management and governance, Cost under General. The single property that makes §2 and §6 auditable is that they map 1:1 to something Microsoft publishes; the moment Scout invents a category, no one can check its coverage claim against anything. **Serve the same need with report views, not taxonomy** — a "Backup posture" view can draw from Management, Compute and Storage without fracturing the category model. This is also why DevOps, Migration and General *are* being added: those are objective gaps against Microsoft's list, not opinions. | Release 3 |
+| **DQ4** | `-IncludeTenantWideResources`: always on, or gated? | ✅ **Wire it on unconditionally. Measure. Only then consider gating.** | The four assessments it blocks (#2, #7, #8, #13) are worth more than the round-trips. The cost is real — it pulls `Get-ScoutApiResources` onto the live path, one ARM REST pass per subscription — but it is *unmeasured*, and gating on an unmeasured cost is how this defect happened in the first place. **If the measurement does hurt, gate on assessment selection, never back on a default-off switch.** Then delete the parameter: one with no `$false` caller is dead weight that invites the same failure again. | Release 0 |
+| **DQ5** | Finish §6's 16 unenumerated services? | ✅ **Yes.** | §6's entire value is that it is *complete*. A 95% list cannot answer "is X covered?" without also opening the portal, which defeats the purpose of having it. It is an afternoon of work against a list that already exists in §2. | Release 1 |
+| **DQ6** | Correct the eight fact-check defects in §9? | ✅ **Yes — before §9 goes to anyone outside this repo.** | `docs/audits/_verification-report.md` found eight wrong claims in my own permission research: the CrossTenantAccess coverage claim, the Cost Management citation, three "strict subset" claims, the DirectoryRoles attribution, and the MCA Billing Profile Owner role name. **A permission table with known-wrong rows is worse than no table** — its purpose is to be handed to a customer's security team as a grant request, so a wrong row becomes either a failed scan or an over-grant. Documentation fix, no code. | Release 0 |
+| **DQ7** | Run the Reader-only live test? | ⚠️ **Yes — decided. Prerequisites: build item 1.3, plus a tenant and a service principal.** | Every claim in §9 is *documented*; none is *tested*. One run with a Reader-only SP, compared against a run with the full role stack, simultaneously settles the Management Group Reader question, whether partial ARG access is detectable at all, and the EA/MCA billing gate's failure signature. Nothing else in this document resolves three open questions at once. **This is not an open decision — it is scheduled work with a dependency.** It cannot run before 1.3 (per-collector row counts) exists, because there would be nothing to compare. | Release 1 |
+| **DQ8** | Three-state compliance reporting? | ✅ **Yes: `Pass` / `Fail` / `Not assessed`. Non-negotiable.** | Apart from MCSB, a regulatory initiative returns data only where it has been *assigned*. Unassigned yields **no data — not a zero score**. Collapsing "not assessed" into "fail" produces alarm about controls nobody chose to evaluate; collapsing it into "pass" produces a compliance report that certifies nothing as compliant. That distinction is the entire difference between a trustworthy compliance product and a dangerous one. **Decided now because it constrains the §14 MCSB work** — retrofitting a third state after the renderer exists is far more expensive than designing for it. | Release 2 |
+| **DQ9** | The permanently-broken collectors | ✅ **Retire `POSTGRE`, `AppInsightsContinuousExport`, `AppInsightsWorkItems`. Re-source `ResourceDiagnosticSettings` via ARM REST.** | The three retirements target endpoints or types Azure has removed — no permission, no fix, and no future in which they return rows. **An empty worksheet is a false negative**: a customer reads "no diagnostic settings" as "we have none", which is the opposite of the truth. Deleting a collector is honest; shipping a permanently blank one is not. `ResourceDiagnosticSettings` is different — the data exists, it is simply not ARG-indexed, so it is re-sourced rather than retired. | Release 1 |
+
+**Two more surfaced during the final sweep of this document.** Both were forks left open *inside* a
+row of §12 that reads as decided, which is exactly how a decision goes missing. Both are now taken:
+
+| # | Question | ✅ Decision | Why this and not the alternative | Lands in |
+|---|---|---|---|---|
+| **DQ10** | `Estate` — §12 row 11 decided to *"separate them"* but left the how open: move `Estate` out of `assessments.psd1` entirely, or keep it and have the wizard present inventory and assessment as separate prompts? | ✅ **Move it out entirely.** | `Estate` has `Rules = @()` — it scores nothing. It is a full-estate inventory pull that already exists as `Invoke-AzureScout` without `-Assessment`, so keeping it means maintaining two entry points to identical output, which is the split-product failure Scout was unified to escape. **Separate wizard prompts for inventory and assessment should happen anyway** — that is a UX fix worth doing on its own merits, and it is not a reason to keep a duplicate registry entry alive. | Release 2 |
+| **DQ11** | The 15 per-category assessment entries carry **the same names as the 15 inventory categories** (`Compute`, `Storage`, `Networking`…). One filters what is *collected*, the other what is *scored*. §12 row 11 flags this and proposes nothing. | ✅ **Retire them in Release 3; prefix with `Assess:` until then.** | Renaming alone treats a symptom. Release 3 splits `LandingZone` into per-WAF-pillar and per-CAF-design-area assessments, and **once those exist the 15 category slices are redundant** — an operator wanting Compute findings picks the pillars, not a category filter over the same rule set. So the end state is retirement, not a better name. In the meantime the collision is live and confusing in a menu that is about to grow from 1 visible entry to 21, so ship the `Assess:` prefix with the wizard fix in Release 0 as a stopgap. | Release 0 (prefix) → Release 3 (retire) |
+
+**A third gap, found by asking whether the 14 targets are actually design-ready. They are not.**
+
+| # | Question | ✅ Decision | Why this and not the alternative | Lands in |
+|---|---|---|---|---|
+| **DQ12** | Do the 14 target assessments have their source structure documented — the pillars, design areas, or question sets they score against? | ✅ **Only 2 of 14 do. Enumerating the other 12 is a prerequisite task in its own release phase, before any rule file is written.** | §8 enumerates **WAF's 5 pillars (59 checklist items)** and **CAF's 8 design areas (~394 recommendations)** with Scout's per-area coverage. That makes **#1 Azure Well-Architected Review** and **#2 Azure Landing Zone Review** design-ready, and **#12 WAF Maturity Model** derivative of #1. **The other eleven have no enumerated source in this document**: the four workload reviews (#3 Azure Local, #4 AI, #5 AVD, #6 AVS) each have a published Microsoft checklist that nobody has extracted; #7 AVS Landing Zone, #8 Cloud Governance, #9 FinOps, #10 DevOps Capability, #13 CASA and #14 SMART have published question sets, none enumerated. **Writing rules against a framework you have not enumerated is how `waf.storage.yaml` happened** — a rule file scoring a WAF pillar that does not exist. The enumeration is cheap (reading and tabulating published Microsoft content) and it is the only thing that makes a coverage percentage meaningful. ⚠️ **It also carries a shelf life**: §8's currency warnings record that Microsoft is actively rewriting CAF design-area pages away from the `Design recommendations` structure, so every enumeration must be **date-stamped with its verification method**, and any published coverage percentage must name the version it was measured against. | **New phase, before Release 3** — one enumeration per target, each gating its own rule file |
+
+### What is actually outstanding
+
+**Nothing.** This document is an audit. Implementation has not started, every decision is taken,
+every item of work is specified, and nothing is blocked on anybody.
+
+DQ7's Reader-only verification run is **documented here as a prerequisite, not scheduled as a task
+in this document**. Whoever performs that run supplies their own environment. What this audit owes
+them is the specification, and it is recorded in §17:
+
+| Prerequisite | Detail |
+|---|---|
+| **Test principal** | A service principal holding **only** Azure RBAC `Reader`, assigned at **root management group** scope — no Entra directory role, no additional Azure RBAC role |
+| **Rights needed to establish it** | Creating the principal is an Entra app registration; assigning Reader at root MG requires **Owner or User Access Administrator** at that scope |
+| **Comparison baseline** | A second run with the full role stack, in the same tenant, against the same estate |
+| **Build dependency** | Build item 1.3 — per-collector row counts, retained per run. Without it there is nothing to compare |
+| **What it settles** | Whether Management Group Reader is genuinely additional · whether partially-scoped ARG access is detectable at all · the EA/MCA billing gate's failure signature |
+
+Everything else in this document is either finished research or specified work that can start
+without another word from anybody.
+
+### Questions deliberately NOT asked
+
+Recorded so they are not re-raised:
+
+- **"Should assessment reuse inventory's collector?"** — answered (decision 12). It is the design,
+  and it is mostly built.
+- **"Should we split web and PowerShell features?"** — no. Parity, always.
+- **"Should Scout have its own category taxonomy?"** — no, see DQ3.
+- **"Is `LandingZone` really only one assessment?"** — yes, verified by reading the registry. See §5.
+
+---
+
+---
+
+## Part IV — The plan
+
+---
+
+## 14. The assessment programme — 14 targets
+### 🎯 DECIDED — the assessments Scout will implement
+
+Owner decision, 2026-07-31. These are the targets for the next few releases, taken from
+Microsoft's published catalogue above.
+
+| # | Assessment | Why | Scout's starting position |
+|---|---|---|---|
+| 1 | **Azure Well-Architected Review** | The canonical WAF assessment — ~60 questions across the five pillars | `waf.*` rule files exist and are already tagged by pillar. **~15% solid coverage.** |
+| 2 | **Azure Landing Zone Review** | The canonical CAF landing-zone assessment | `LandingZone` already aims at this. **~10% of CAF's ~394 recommendations.** |
+| 3 | **Azure Local \| Well-Architected Review** | **Strongest differentiator** — 16 Hybrid collectors, Scout's deepest coverage area | `caf.hybrid` (6 rules) + Azure Local collectors. No WAF-shaped output yet. |
+| 4 | **Azure Well-Architected AI workload** | AI is 19 of 22 services collected — near-complete inventory already | `caf.ai` (5 rules). Inventory strong, rules thin. |
+| 5 | **Azure Well-Architected Azure Virtual Desktop workload** | 7 AVD collectors already exist | No AVD-specific rule file. |
+| 6 | **Azure Well-Architected Azure VMware Solution workload** | AVS collected (`Compute/VMWare`) | No AVS rule file. |
+| 7 | **Azure VMware Solution Landing Zone Assessment Review** | Pairs with #6 — platform readiness rather than workload | Same starting point. |
+| 8 | **Cloud Governance** | Policy data already collected | **Policy compliance state is collected and scored by nothing** — see §10. |
+| 9 | **FinOps Review** | Cost surface exists | `waf.cost` (6 rules) + `caf.billing` (misnamed, holds cost rules). |
+| 10 | **DevOps Capability Assessment** | 5 DevOps collectors exist via the ADO REST API | `caf.platformauto` (6 rules, ~8% coverage). |
+
+| 11 | **Microsoft Cloud Security Benchmark (MCSB)** | **Not on Microsoft's assessment page — it is an Azure Policy initiative** — but the cheapest high-value assessment available. 223 policies, Defender for Cloud's *default* initiative so assigned in essentially every subscription, and **Scout already collects the compliance state without scoring it.** A rendering job, not rule authoring. See §8 Table 4. | Compliance state collected via three code paths, read by no rule. |
+| 12 | **Azure Well-Architected Framework Maturity Model** | Same rules as #1, different output shape — "level 2 of 5" lands better with customers than a list of failures. | Nothing extra needed beyond #1. |
+| 13 | **Cloud Adoption Security Assessment (CASA)** | Aligned to the CAF **Secure** methodology, which Scout does not model at all. Pairs with #2. | `caf.security` (7 rules). No Secure-methodology structure. |
+| 14 | **Strategic Migration Assessment (SMART)** | **Only after the Migration category is built** — currently **zero collectors** (§6 group D7). | Blocked on D7. |
+
+### Deliberately excluded
+
+Partner-enablement guides, skills assessments and industry-vertical readiness guides are training
+material, not tooling. Scout cannot produce them and should not try.
+
+### What this implies
+
+**Fourteen assessments where Scout has one.** The work splits three ways:
+
+1. **Restructuring** — #1 and #2 are largely re-registering rules that already exist, split by
+   pillar and design area rather than lumped into `LandingZone`. Hours, not weeks.
+2. **New rule files** — #3 through #7 need workload-specific rule sets. The *inventory* is already
+   there for Azure Local, AI, AVD and AVS; only the scoring is missing.
+3. **Depth** — #1, #2, #8, #9, #10 all need their existing rule files taken from ~10-15% coverage
+   toward something defensible. This is the largest body of work in the document.
+
+**Prerequisite:** the wizard path bug (decision row 4) must be fixed first, or none of these will
+be reachable from the guided experience.
+
+---
+
+### The ones that matter for Scout
+
+Of the 56, these are the **workload/platform assessments** in Scout's problem space — the rest are
+partner-enablement, skills, or industry-vertical guides:
+
+| Assessment | Why it matters |
+|---|---|
+| **Azure Well-Architected Review** | The canonical WAF assessment — ~60 questions across the five pillars |
+| **Azure Landing Zone Review** | The canonical CAF landing-zone assessment |
+| **Azure Well-Architected Framework Maturity Model** | Maturity scoring rather than pass/fail |
+| **Go-Live**, **Mission Critical**, **Sustainability** WAF Reviews | Narrower WAF lenses |
+| **Per-workload WAF reviews** — AI, AVD, AVS, Oracle IaaS, SaaS, Azure Local, SAP, Azure ML | WAF applied to a specific workload type |
+| **Cloud Adoption Security Assessment (CASA)** | Aligned to the CAF **Secure** methodology |
+| **Cloud Governance**, **Cloud Adoption Strategy Evaluator**, **Cloud Journey Tracker** | CAF methodology assessments |
+| **FinOps Review** | Cost/FinOps — overlaps Scout's cost surface |
+| **DevOps Capability**, **Platform Engineering** | CAF platform-automation design area |
+| **Strategic Migration Assessment (SMART)** | CAF Migrate |
+
+**Scout implements one thing today: `LandingZone`**, a rule set drawing on both WAF pillars and CAF
+design areas. Microsoft ships **at least 13** distinct workload/platform assessments in that space
+plus **5 CAF methodology assessments**.
+
+---
+
+### Which collectors each target assessment depends on
+
+The ten assessments in §3, mapped to the collectors they need. **A collector is not optional if an
+assessment depends on it** — this is what turns the build list above into a release order.
+
+Legend: ✅ have · ⚠️ partial · 🔲 need *(build-list ref)*
+
+| Assessment | Collectors it depends on | Blocking gaps |
+|---|---|---|
+| **1. Azure Well-Architected Review** | VMs ✅ · disks ✅ · storage ✅ · SQL ✅ · networking ✅ · backup ⚠️ · monitor ✅ · cost ⚠️ | **C1** backup protected items *(Reliability pillar cannot score without it)* · **B4** budgets *(Cost pillar)* · **C8** snapshots *(Cost)* |
+| **2. Azure Landing Zone Review** | management groups ⚠️ · policy defs ⚠️ · policy assignments 🔲 · RBAC 🔲 · locks 🔲 · subscriptions ⚠️ · networking ✅ · Entra ✅ | **A1-A4** the dead switch *(4 collectors that can never run)* · **B1-B3** RBAC, locks, policy assignments · **D15** resource groups |
+| **3. Azure Local \| WAF Review** | Azure Local clusters ✅ · logical networks ✅ · storage containers ✅ · gallery images ✅ · Arc servers ✅ · Arc extensions ✅ | **A8** ArcSites *(fake types)* · **A9** azurestackhci VM instances *(not ARG-indexed)* — **both currently return nothing** |
+| **4. WAF AI workload** | Cognitive Services ✅ · ML workspaces ✅ · ML computes/endpoints/models ✅ · AI Search ✅ · Key Vault ⚠️ · private endpoints ✅ | **C2-C4** Key Vault children *(AI workloads score on secret handling)* |
+| **5. WAF Azure Virtual Desktop workload** | AVD host pools ✅ · session hosts ✅ · workspaces ✅ · app groups ✅ · scaling plans ✅ · VMs ✅ · storage ⚠️ | **C6** file shares *(FSLogix profile containers)* · **C1** backup protected items |
+| **6. WAF Azure VMware Solution workload** | AVS private clouds ✅ · networking ✅ · ExpressRoute ✅ | **C16** Virtual WAN hubs/gateways *(AVS connectivity)* |
+| **7. AVS Landing Zone Review** | Same as #6 + management groups ⚠️ · policy ⚠️ | **A1-A4** dead switch · **C16** |
+| **8. Cloud Governance** | policy defs ⚠️ · policy assignments 🔲 · policy **compliance state** 🔲 · RBAC 🔲 · locks 🔲 · management groups ⚠️ · budgets 🔲 | **A1-A4** · **B1-B4** — **this assessment is almost entirely blocked**, and every blocker is already-collected data that nothing renders |
+| **9. FinOps Review** | cost data ⚠️ · reservations ⚠️ · advisor ✅ · orphaned disks ✅ · orphaned PIPs ✅ · snapshots 🔲 · budgets 🔲 | **B4** budgets · **C8** snapshots *(orphaned spend)* · owned reservations *(recommendations only today)* |
+| **10. DevOps Capability Assessment** | ADO orgs/projects/pipelines/repos/service connections ✅ *(REST)* · deployments ✅ | **D-new** Managed DevOps Pools, Dev centers, Load Testing — none collected |
+| **11. MCSB** | policy **compliance state** 🔲 · policy set definitions ⚠️ | **B3-adjacent** — the compliance state is already collected and read by nothing. **No new Azure calls required.** Also **A3-A4** to detect which initiatives are assigned. |
+| **12. WAF Maturity Model** | Identical to #1 | Same blockers as #1 — no additional collectors |
+| **13. CASA** | Defender ✅ · Key Vault ⚠️ · policy ⚠️ · RBAC 🔲 · Entra ✅ · networking ✅ | **B1** RBAC assignments · **C2-C4** Key Vault children · **A1-A4** |
+| **14. SMART** | Azure Migrate 🔲 · DMS 🔲 · Data Box 🔲 · Stack Edge 🔲 · VMs ✅ | **D7 — the entire Migration category is at zero.** Blocked until built. |
+
+### What this ordering tells you
+
+**Group A (the 12 fixes) blocks four assessments.** The dead `-IncludeTenantWideResources` switch
+alone blocks #2, #7, #8 and #13 — because management groups, policy definitions, policy set
+definitions and custom role definitions can never run. **This is Scout's own defect and it is two
+lines of code** — a temporary AB#5933 migration gate whose consumers shipped without anyone
+removing it. Root cause, both call sites, and the follow-on work are in **§9 note 3**. That single
+wiring fix is the highest-leverage item in the entire document.
+
+**Group B (the 4 free renders) blocks two assessments outright.** #8 Cloud Governance is
+*almost entirely* blocked by data Scout already has in memory and never writes down. #2 Landing
+Zone Review is heavily degraded by the same four.
+
+**#3 Azure Local is the differentiator and it is broken.** Two of its collectors return nothing in
+every tenant (`ArcSites`, `azurestackhci/virtualmachineinstances`). The strongest competitive
+position in the product currently has a hole in it.
+
+**Only #4, #5, #6 and #10 are mostly ready.** Their inventory exists; they need rule files, not
+collectors.
+
+## 15. The collector build list
+### The collector build list
+
+Every gap above, with the resource type to build against and whether a collector already exists.
+**This is the work list.**
+
+#### A. Collector exists — fix it, don't build it
+
+| # | Collector | Problem | Fix |
+|---|---|---|---|
+| A1 | `Management/ManagementGroups` | Gated on `-IncludeTenantWideResources`, a temporary AB#5933 migration gate that was never removed after its consumers shipped | Set the switch at **both** call sites — `Start-ScoutGraphExtraction.ps1:69-83` (worksheets) **and** `Invoke-Collect.ps1:707` (assessments). Root cause and full fix: §9 note 3 |
+| A2 | `Management/CustomRoleDefinitions` | Same dead switch | Same fix — both call sites |
+| A3 | `Management/PolicyDefinitions` | Same dead switch | Same fix — both call sites |
+| A4 | `Management/PolicySetDefinitions` | Same dead switch | Same fix — both call sites |
+| A5 | `Monitor/Outages` | Runs before the data it reads is merged | Move `Get-ScoutOutageResource` after the API merge |
+| A6 | `Management/LighthouseDelegations` | Queries `managedserviceresources`, a table Scout never reads | Add that table pass |
+| A7 | `Monitor/ResourceDiagnosticSettings` | `microsoft.insights/diagnosticsettings` is not ARG-indexed | Re-source via per-resource ARM REST |
+| A8 | `Hybrid/ArcSites` | Declares 3 provider/type pairs that do not exist | Correct to `Microsoft.Edge/sites` — **verify it is ARG-indexed first** |
+| A9 | `Hybrid/VirtualMachines` | `azurestackhci/virtualmachineinstances` is an extension resource, not ARG-indexed | Re-source; also unblocks `Compute/AVDAzureLocal` |
+| A10 | `Databases/POSTGRE` | Targets retired `dbforpostgresql/servers` | Retire the collector |
+| A11 | `Monitor/AppInsightsContinuousExport` | Producer removed — Azure retired the endpoint | Retire the collector |
+| A12 | `Monitor/AppInsightsWorkItems` | Same | Retire the collector |
+
+#### B. Data already collected — build the collector to render it
+
+**Cheapest work in this document.** No new Azure calls; the data is in memory every run.
+
+| # | Build | Source | Answers |
+|---|---|---|---|
+| B1 | `Identity/RoleAssignments` | `Import-Governance` | **"Who has Owner"** |
+| B2 | `Management/ResourceLocks` | `Import-Governance` | What is protected from deletion |
+| B3 | `Management/PolicyAssignments` | `Import-Governance` | Which policies apply, and where |
+| B4 | `Cost/Budgets` | `Import-Governance` | Cost guardrails in place |
+
+#### C. Child resources — new collectors, high value
+
+| # | Build | Resource type | Answers |
+|---|---|---|---|
+| C1 | `Management/BackupProtectedItems` | `microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems` | **Which VMs have no backup** |
+| C2 | `Security/KeyVaultSecrets` | `microsoft.keyvault/vaults/secrets` | **Which secrets expire soon** |
+| C3 | `Security/KeyVaultCertificates` | `.../vaults/certificates` | Certificate expiry |
+| C4 | `Security/KeyVaultKeys` | `.../vaults/keys` | Key rotation posture |
+| C5 | `Storage/BlobContainers` | `microsoft.storage/storageaccounts/blobservices/containers` | **Public container exposure** |
+| C6 | `Storage/FileShares` | `.../storageaccounts/fileservices/shares` | Share inventory and quotas |
+| C7 | `Storage/LifecyclePolicies` | `.../storageaccounts/managementpolicies` | Tiering and lifecycle findings |
+| C8 | `Compute/Snapshots` | `microsoft.compute/snapshots` | **Orphaned snapshot spend** |
+| C9 | `Compute/Galleries` + images + versions | `microsoft.compute/galleries*` | Image estate |
+| C10 | `Compute/DiskEncryptionSets` | `microsoft.compute/diskencryptionsets` | CMK coverage |
+| C11 | `Compute/RestorePointCollections` | `microsoft.compute/restorepointcollections` | Restore posture |
+| C12 | `Compute/HostGroups` · `ProximityPlacementGroups` · `CapacityReservationGroups` | `microsoft.compute/*` | Dedicated capacity |
+| C13 | `Containers/AKSNodePools` | `.../managedclusters/agentpools` | Per-pool sizing and version |
+| C14 | `Web/DeploymentSlots` | `microsoft.web/sites/slots` | Slot config drift |
+| C15 | `Databases/SQLFailoverGroups` | `microsoft.sql/servers/failovergroups` | SQL HA posture |
+| C16 | `Networking/VirtualWANHubs` + gateways | `microsoft.network/virtualhubs`, `/vpngateways`, `/expressroutegateways` | WAN topology |
+
+#### D. Missing services — new collectors
+
+| # | Build | Resource type | Note |
+|---|---|---|---|
+| D1 | `Integration/LogicApps` | `microsoft.logic/workflows` | **Must remove the ARG query exclusion first** |
+| D2 | `Networking/WAFPolicies` | `.../frontdoorwebapplicationfirewallpolicies`, `.../applicationgatewaywebapplicationfirewallpolicies` | Whether a WAF is attached |
+| D3 | `Networking/FirewallPolicies` | `microsoft.network/firewallpolicies` | React template already says "not collected" |
+| D4 | `Networking/FrontDoorCDN` | `microsoft.cdn/profiles` | Modern AFD — classic retires 2027-03-31 |
+| D5 | `Analytics/DataFactory` | `microsoft.datafactory/factories` | Largest data-estate omission |
+| D6 | `Security/Sentinel` | `microsoft.securityinsights/*` | Whether Sentinel is onboarded |
+| D7 | `Migration/*` — Azure Migrate, DMS, Data Box, Stack Edge | `microsoft.migrate/*`, `microsoft.offazure/*`, `microsoft.datamigration/*`, `microsoft.databox*` | **Entire category at zero** |
+| D8 | `Storage/FileSync` | `microsoft.storagesync/storagesyncservices` | |
+| D9 | `Storage/ElasticSAN` | `microsoft.elasticsan/elasticsans` | |
+| D10 | `Web/AppServiceEnvironments` | `microsoft.web/hostingenvironments` | High-value ASE footprint |
+| D11 | `Web/StaticWebApps` | `microsoft.web/staticsites` | |
+| D12 | `Integration/EventGrid` | `microsoft.eventgrid/topics`, `/systemtopics`, `/domains` | |
+| D13 | `Compute/Batch` | `microsoft.batch/batchaccounts` | |
+| D14 | `Management/BackupVaults` | `microsoft.dataprotection/backupvaults` | Current-generation vault type |
+| D15 | `Management/ResourceGroups` | `microsoft.resources/subscriptions/resourcegroups` | Empty/untagged RG analysis |
+| D16 | `Monitor/AzureMonitorWorkspaces` | `microsoft.monitor/accounts` | |
+| D17 | `Monitor/ManagedGrafana` | `microsoft.dashboard/grafana` | |
+| D18 | `Identity/EntraDomainServices` | `microsoft.aad/domainservices` | |
+| D19 | `Security/ManagedHSM` | `microsoft.keyvault/managedhsms` | |
+| D20 | `Networking/DDoSProtectionPlans` | `microsoft.network/ddosprotectionplans` | |
+
+#### E. Cross-resource rules — need two datasets joined
+
+Not collectors. Assessment rules that depend on the above.
+
+| # | Question | Depends on |
+|---|---|---|
+| E1 | Which VMs have no backup | VMs ✅ + C1 |
+| E2 | Which secrets expire in 30 days | C2 |
+| E3 | Which subnets have no NSG | subnets ✅ + NSG associations |
+| E4 | Which PaaS services lack a private endpoint | both ✅ — **rule missing, not data** |
+| E5 | Which resources are orphaned | disks/NICs/PIPs ✅ + C8 |
+
+---
+
+**Totals: 12 to fix, 4 free renders, 16 child collectors, 20 new services, 5 rules.**
+Group B is the cheapest and Group C carries the most consulting value.
+
+---
+
+## 16. The release plan
+
+Everything in Parts II-IV, sequenced. Three rules govern the order:
+
+1. **Defects before features.** A broken collector that ships an empty worksheet is a false
+   negative; a missing collector is an honest gap. Fix the lies first.
+2. **Unblock before build.** Items that unblock several downstream things run early even when they
+   are small — the dead switch is two lines and unblocks four assessments.
+3. **Nothing ships unverified.** Every release below has an exit check in §17.
+
+Effort is engineering time, not calendar time.
+
+---
+
+### Release 0 — Land what is already decided *(days)*
+
+Nothing here is new work. It is the backlog of decisions that outran the code.
 
 | # | Work | Effort | Source |
 |---|---|---|---|
-| 1 | ✅ Patch assessment → read-only | **Done** | §3.4 |
-| 2 | Fix the wizard manifest path | 15 min | §3.2 |
-| 3 | Raw data dump for everything collected | Small | §3.3 |
-| 4 | Wire `-IncludeTenantWideResources`; fix `Monitor/Outages` call ordering | 1-2 d | AB#6444 |
-| 5 | Static resource-type existence gate | 1 d | AB#6444 |
-| 6 | Per-collector row-count artifact, retained | 1 d | AB#6444 |
-| 7 | Fix the readiness verdict; drop the two redundant roles | 1-2 d | AB#6445 |
-| 8 | Fix the two false-pass rules; score the policy data already collected | Days | AB#6447 |
-| 9 | Correct/retire the 5 bad resource-type strings | 2-3 d | AB#6444 |
-| 10 | Un-exclude Logic Apps from the ARG query | Minutes | §3.3 |
+| 0.1 | **Commit the patch-assessment read-only fix.** Written, 30/30 tests, regression lock proven non-vacuous, sitting uncommitted. | Minutes | §5.4, decision 1 |
+| 0.2 | **Fix the wizard manifest path** — three `Split-Path` calls to one. Unlocks 21 menu entries. | 15 min | §5.2, decision 4 |
+| 0.3 | **Wire `-IncludeTenantWideResources` at both call sites** — `Start-ScoutGraphExtraction.ps1:69-83` and `Invoke-Collect.ps1:707`. Assert the **production splat** sets it, not just that the function honours it. | Hours | §9 note 3, DQ4 |
+| 0.4 | **Correct the eight fact-check defects in §9** before that table goes to any customer. | Hours | DQ6 |
 
-**Additive** — new capability:
+**Why these four together:** 0.1 makes Scout read-only in shipped code rather than in the working
+tree. 0.2 and 0.3 are the two smallest fixes in the document and between them unblock 21 menu
+entries and four assessments. 0.4 stops a known-wrong table being used as a grant request.
+
+---
+
+### Release 1 — Stop lying *(1-2 weeks)*
+
+Every item is a case where Scout currently reports something untrue: an empty sheet that reads as
+"none found", a green banner over a failed scan, or data collected and silently dropped.
+
+| # | Work | Effort | Source |
+|---|---|---|---|
+| 1.1 | **Dump ALL raw collected data** to JSON regardless of whether a collector renders it. Eliminates the ~40% silent discard outright. | Small | §5.3, decision 2 |
+| 1.2 | **Replace the READY/PARTIAL verdict with a per-collector impact table.** *"142 of 174 collectors will produce data. These 32 will be empty, and why."* Stop swallowing Graph 403s into a `Write-Host "SKIP"` that never reaches the warning stream. | 1-2 d | §9, decision 6 |
+| 1.3 | **Per-collector row-count artifact, retained per run.** Prerequisite for DQ7 and for any regression detection at all. | 1 d | AB#6444 |
+| 1.4 | **Retire or re-source the broken collectors** — retire `POSTGRE`, `AppInsightsContinuousExport`, `AppInsightsWorkItems`; re-source `ResourceDiagnosticSettings` via ARM REST; fix `Monitor/Outages` call ordering; add the `managedserviceresources` pass for `LighthouseDelegations`. | 2-3 d | §9 note 3, DQ9, build list A5-A12 |
+| 1.5 | **Static resource-type existence gate** in CI — a manifest declaring a type Azure does not have must fail the build, not ship an empty sheet. | 1 d | AB#6444 |
+| 1.6 | **Fix the four collect-once defects** — retire `ArgQueryPack`, expose the combined run as a parameter, fix the tags loss in the handoff, feed `AdvisorScores` from `$ExtractionData.Advisories`. | 2-3 d | §10 |
+| 1.7 | **Drop the three redundant roles** from docs, pre-flight, and the customer grant list. | Hours | §9, decision 5 |
+| 1.8 | **Build the four free renders** — `Identity/RoleAssignments`, `Management/ResourceLocks`, `Management/PolicyAssignments`, `Cost/Budgets`. No new Azure calls; the data is in memory every run. Answers *"who has Owner"*. | 2-3 d | Build list B1-B4 |
+| 1.9 | **Finish §6's enumeration** — the 16 portal services not yet listed. | Half a day | DQ5 |
+| 1.10 | **Un-exclude Logic Apps** from the ARG query. | Minutes | §5.3 |
+
+**Exit criterion:** a run produces no worksheet that is empty for a reason the run itself did not
+report.
+
+---
+
+### Release 2 — Compliance, the cheapest new capability *(1 week)*
+
+| # | Work | Effort | Source |
+|---|---|---|---|
+| 2.1 | **Score the Microsoft Cloud Security Benchmark** from the policy compliance state Scout **already collects and no rule reads.** 223 policies, Defender for Cloud's *default* initiative, therefore assigned in essentially every subscription. | Days | §8 Table 4, target #11 |
+| 2.2 | **Three-state reporting: `Pass` / `Fail` / `Not assessed`.** Non-negotiable, and it constrains 2.1 — decide DQ8 before starting, not after. | Included in 2.1 | DQ8 |
+| 2.3 | **Detect which other regulatory initiatives are assigned** and expose each as its own assessment — CIS, ISO 27001, NIST 800-53, NIST CSF, PCI-DSS. Rendering, not rule-authoring. | 1 wk | §8 Table 4 |
+| 2.4 | **Move `Estate` out of the assessment registry**; de-duplicate per DQ2. | Small | Decisions 11, DQ2 |
+
+**Why this is second:** it is the highest ratio of new customer-visible capability to engineering
+effort anywhere in this document. Azure has already done the control evaluation. Scout already
+collects the answer. Nothing reads it.
+
+---
+
+### Release 3 — Restructure the assessments *(2-3 weeks)*
+
+| # | Work | Effort | Source |
+|---|---|---|---|
+| 3.1 | **Split `LandingZone` into per-WAF-pillar and per-CAF-design-area assessments.** This is the real assessment gap and it survives every other fix. | 1-2 wks | §8 Tables 1-2, targets #1, #2 |
+| 3.2 | **Fix the two false-pass rules**; retire or reclassify `waf.storage.yaml`, which is not a WAF pillar. | Days | AB#6447 |
+| 3.3 | **Rename `caf.billing.yaml`** — it contains cost rules, not billing-tenant rules. | Small | §8 |
+| 3.4 | **WAF Maturity Model** — falls out of 3.1 for free, same rules, different output shape. | Small | Target #12 |
+| 3.5 | Update the retired-guidance rules: five CAF governance disciplines are gone, two new default management groups exist, CAF states AI does **not** need its own landing zone. | Days | §8 currency warnings |
+
+---
+
+### Release 4 — Differentiate on Azure Local *(1-2 weeks)*
 
 | # | Work | Effort |
 |---|---|---|
-| 11 | Create DevOps + Migration categories (DevOps is mostly a directory move) | Days |
-| 12 | Build out the thin categories — Storage, Web, Integration, IoT, Security | ~1-2 wks |
-| 13 | Surface already-ingested data: RBAC assignments, locks, policy assignments, budgets | Days |
-| 14 | Deeper CAF/WAF rules toward real coverage | Weeks |
-| 15 | **Score the Microsoft Cloud Security Benchmark** from policy compliance state Scout already collects — see §3b Table 4 | **Days, not weeks** |
-| 16 | Detect which other regulatory initiatives are assigned; expose each as its own assessment (CIS, ISO 27001, NIST, PCI-DSS…) | Weeks |
-| 17 | Per-WAF-pillar and per-CAF-area assessments | Weeks |
+| 4.1 | **Fix `Hybrid/ArcSites`** — correct to `Microsoft.Edge/sites`, verify it is ARG-indexed first. | Days |
+| 4.2 | **Re-source `azurestackhci/virtualmachineinstances`** — an extension resource, not ARG-indexed. Also unblocks `Compute/AVDAzureLocal`. | Days |
+| 4.3 | **Azure Local rule file** → target #3, Azure Local WAF Review. | 1 wk |
 
-> **The highest-value item on this list may be #15.** Azure ships regulatory-compliance policy
-> initiatives with the control evaluation already done — MCSB alone is 223 policies, is Defender for
-> Cloud's *default* initiative, and is therefore assigned in essentially every subscription. Scout
-> **already collects the compliance state** and no rule reads it. That turns "compliance
-> assessment" from a rule-authoring project into a rendering job.
->
-> **The hard constraint that comes with it:** apart from MCSB, an initiative only returns data
-> where it has been *assigned*. Unassigned yields no data — not a zero score. Scout must report
-> "never assessed" as a coverage gap, never as a pass or a fail. That distinction is the whole
-> difference between a trustworthy compliance report and a dangerous one.
+**Why it rates its own release:** Azure Local is the strongest competitive position in the product
+and two of its collectors return nothing in every tenant today.
+
+---
+
+### Release 5 — Workload assessments *(3-4 weeks)*
+
+Targets #4 AI, #5 AVD, #6 AVS, #7 AVS Landing Zone, #13 CASA. Rule files plus the Key Vault child
+collectors (C2-C4) and the remaining workload types. #4/#5/#6 are the closest to ready in the
+whole programme — their inventory already exists.
+
+### Release 6 — Cost, FinOps and DevOps *(2-3 weeks)*
+
+Targets #9 FinOps, #10 DevOps Capability. Snapshot and owned-reservation collectors, the DevOps
+service collectors, and the DevOps category itself — which is *mostly a directory move*, since
+five collectors already exist misfiled under Management.
+
+### Release 7 — Migration from zero *(2-3 weeks)*
+
+The only category at 0% coverage. Azure Migrate, Database Migration Services, Data Box, Stack Edge.
+Unlocks target #14 SMART, which is blocked outright until this exists.
+
+### Release 8 — Depth *(ongoing)*
+
+Build out the thin categories — Storage, Web, Integration, IoT, Security — and push CAF/WAF rule
+depth toward real coverage. This is the long tail and it does not end.
+
+---
+
+### The whole programme, at a glance
+
+| Release | Theme | Effort | Unlocks |
+|---|---|---|---|
+| **0** | Land what is decided | Days | 21 menu entries · assessments #2, #7, #8, #13 |
+| **1** | Stop lying | 1-2 wks | Trustworthy output; **prerequisite for everything** |
+| **2** | Compliance | 1 wk | #11 MCSB + CIS/ISO/NIST/PCI as rendering |
+| **3** | Restructure | 2-3 wks | #1, #2 in Microsoft-recognised shape; #12 free |
+| **4** | Azure Local | 1-2 wks | #3 — the differentiator |
+| **5** | Workloads | 3-4 wks | #4, #5, #6, #7, #13 |
+| **6** | Cost & DevOps | 2-3 wks | #9, #10 · DevOps category |
+| **7** | Migration | 2-3 wks | #14 · the 0% category |
+| **8** | Depth | Ongoing | Real CAF/WAF coverage |
+
+**Releases 0-2 are ~3 weeks and deliver most of the value in this document**: Scout becomes
+read-only in shipped code, stops reporting empty as "none found", exposes 21 hidden assessments,
+unblocks four more, and gains a compliance capability from data it already has.
+
+---
+
+## 17. How we will know it worked
+
+An audit that produces no exit criteria produces another audit. Each release above has one.
+
+| Release | Exit check | How it is proven |
+|---|---|---|
+| **0** | The four Management collectors return rows | Per-collector row count > 0 in a live run against the demo tenant |
+| **0** | The wizard shows 21 entries | Screenshot / transcript of the menu |
+| **1** | No worksheet is silently empty | Every empty sheet has a matching line in the run's impact table |
+| **1** | Reader-only is sufficient, or we know exactly where it is not | **DQ7 — the Reader-only live run.** Compare per-collector row counts against the full role stack |
+| **1** | The Management Group Reader question is settled | Re-test after 0.3; it is unanswerable before then |
+| **2** | MCSB scores against a real subscription | Compliance percentage matches the Defender for Cloud blade |
+| **2** | "Not assessed" never renders as a pass | Test with a deliberately unassigned initiative |
+| **3** | Per-pillar scores are defensible | Spot-check against Microsoft's own WAF review questions |
+| **4** | Azure Local returns rows | Live run against an Azure Local tenant |
+| **All** | Fixtures are not vacuous | Reintroduce the defect; the test must fail |
+
+**The standing verification gap:** test fixtures are *generated from the collectors' own
+definitions*, so a collector that declares a resource type Azure does not have produces a fixture
+that agrees with it. **The suite cannot catch this class of defect** — item 1.5 (the static
+existence gate) is the structural fix, and DQ7 is the empirical one. Until both land, "1787 tests
+pass" is not evidence that Scout collects anything.
 
 ---
 
