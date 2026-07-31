@@ -326,9 +326,9 @@ $vmnic = foreach ($netinterface in $nic)
                             $PublicIpId     = Get-AZSCCollectedValue -InputObject (Get-AZSCCollectedValue -InputObject $IpConfigProps -Name 'publicIPAddress') -Name 'id' | Select-Object -First 1
                             $SubnetId       = Get-AZSCCollectedValue -InputObject (Get-AZSCCollectedValue -InputObject $IpConfigProps -Name 'subnet') -Name 'id' | Select-Object -First 1
 
-                            $PIP = if(![string]::IsNullOrEmpty($PublicIpId)){$PublicIpId.split('/')[8]}else{''}
-                            $VNET = if(![string]::IsNullOrEmpty($SubnetId)){$SubnetId.split('/')[8]}else{''}
-                            $Subnet = if(![string]::IsNullOrEmpty($SubnetId)){$SubnetId.split('/')[10]} else {''}
+                            $PIP = if(![string]::IsNullOrEmpty($PublicIpId)){(Get-AZSCIdSegment -Id $PublicIpId -Index 8)}else{''}
+                            $VNET = if(![string]::IsNullOrEmpty($SubnetId)){(Get-AZSCIdSegment -Id $SubnetId -Index 8)}else{''}
+                            $Subnet = if(![string]::IsNullOrEmpty($SubnetId)){(Get-AZSCIdSegment -Id $SubnetId -Index 10)} else {''}
                             $vmnet = foreach ($VMVnet in $VirtualNetwork)
                                 {
                                     if ((Get-AZSCCollectedValue -InputObject (Get-AZSCSafeProperty -InputObject $VMVnet -Path 'subnets') -Name 'id') -eq $SubnetId) { $VMVnet }
@@ -371,11 +371,11 @@ $vmnic = foreach ($netinterface in $nic)
                             $SubnetNsgId = Get-AZSCSafeProperty -InputObject $vmnetsubnet -Path 'properties.networksecuritygroup.id'
                             if(![string]::IsNullOrEmpty($NicNsgId))
                                 {
-                                    $vmnsg = $NicNsgId.split('/')[8]
+                                    $vmnsg = (Get-AZSCIdSegment -Id $NicNsgId -Index 8)
                                 }
                             elseif(![string]::IsNullOrEmpty($SubnetNsgId))
                                 {
-                                    $vmnsg = ('Subnet: ('+$SubnetNsgId.split('/')[8]+')')
+                                    $vmnsg = ('Subnet: ('+(Get-AZSCIdSegment -Id $SubnetNsgId -Index 8)+')')
                                 }
                             else
                                 {

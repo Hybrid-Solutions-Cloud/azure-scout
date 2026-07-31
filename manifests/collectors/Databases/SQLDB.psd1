@@ -21,8 +21,8 @@
 $ResUCount = 1
                 $sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
                 $data = $1.PROPERTIES
-                $DBServer = $1.id.split("/")[8]
-                $PoolId = if(![string]::IsNullOrEmpty($data.elasticPoolId)){$data.elasticPoolId.split('/')[8]}else{$null}
+                $DBServer = (Get-AZSCIdSegment -Id $1.id -Index 8)
+                $PoolId = if(![string]::IsNullOrEmpty($data.elasticPoolId)){(Get-AZSCIdSegment -Id $data.elasticPoolId -Index 8)}else{$null}
                 if(![string]::IsNullOrEmpty($data.earliestrestoredate))
                     {
                         $RestorePoint = [string](get-date($data.earliestrestoredate))

@@ -49,7 +49,7 @@ $ResUCount = 1
                         $RetiringDate = $null
                     }
                 $PrivateEndpointConnections = Get-AZSCSafeProperty -InputObject $data -Path 'privateEndpointConnections'
-                $pvteps = if(!($PrivateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$PrivateEndpointConnections | Select-Object @{Name="id";Expression={(Get-AZSCSafeProperty -InputObject $_ -Path 'id').split("/")[10]}}}
+                $pvteps = if(!($PrivateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$PrivateEndpointConnections | Select-Object @{Name="id";Expression={(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $_ -Path 'id') -Index 10)}}}
 '@
 
     AdditionalRowLoops = @(
@@ -77,7 +77,7 @@ $ResUCount = 1
         }
         @{
             Name = 'MI parent'
-            Expression = '$1.id.split("/")[8]'
+            Expression = '(Get-AZSCIdSegment -Id $1.id -Index 8)'
         }
         @{
             Name = 'Name'

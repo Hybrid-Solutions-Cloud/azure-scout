@@ -95,10 +95,21 @@ mechanically, not asserted.
   identically, and **all 236 golden records are byte-unchanged**, so it alters no existing output.
   `tests/Collector.SparsePayload.Tests.ps1` builds its estate by *removing* properties, which is
   the one shape the fixture generator can never produce.
-- `Integration/APIM` guarded its VNet lookup on `virtualNetworkType -eq 'None'`, but an instance
-  that is not VNet-injected omits `virtualNetworkType` entirely, so it took the else branch and
-  called `.split()` on `$null`. **AB#6844** tracks the ~53 remaining sites of that second class
-  across 50 definitions; they need a per-expression guard and no StrictMode setting prevents them.
+- **AB#6844 — 75 unguarded string-method calls on payload values.** A collector that called
+  `….subnetResourceId.split('/')[8]` threw *"You cannot call a method on a null-valued
+  expression"* whenever Azure omitted the property, taking the whole worksheet with it. This is a
+  null *method call* rather than a property read, so AB#6839's fix does not prevent it. 75 sites
+  across 46 definitions now route through the existing `Get-AZSCIdSegment` helper, which returns
+  `$null` for an absent id or an out-of-range index and the identical segment otherwise.
+  `Integration/APIM` also guarded its VNet lookup, which tested `virtualNetworkType -eq 'None'`
+  when an instance that is not VNet-injected omits the key entirely.
+- Two further sparse-payload failures the extended test exposed, both pre-existing and both
+  estate-visible: `Analytics/Databricks` cast `[datetime]$null` on a workspace whose deployment
+  never completed, and `Networking/NetworkSecurityGroup` assigned `$FinalNICs`/`$FinalSubs` only
+  inside conditional branches, so an NSG associated with neither a NIC nor a subnet hit
+  StrictMode's uninitialised-variable check. Both took the whole worksheet down.
+- **All 236 golden records are byte-unchanged across every one of these fixes**, so nothing that
+  works today renders differently.
 
 ### Changed
 

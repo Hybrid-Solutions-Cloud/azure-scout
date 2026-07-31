@@ -48,7 +48,7 @@ $ResUCount = 1
                     }
                 $Tags = if(!!($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 
-                $pvteps = if(!($1.privateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$1.privateEndpointConnections | Select-Object @{Name="id";Expression={$_.id.split("/")[8]}}}
+                $pvteps = if(!($1.privateEndpointConnections)) {[pscustomobject]@{id = 'NONE'}} else {$1.privateEndpointConnections | Select-Object @{Name="id";Expression={(Get-AZSCIdSegment -Id $_.id -Index 8)}}}
 '@
 
     AdditionalRowLoops = @(

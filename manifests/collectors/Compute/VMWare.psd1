@@ -46,7 +46,7 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $ER = $data.circuit.expressRouteID.split('/')[8]
+                $ER = (Get-AZSCIdSegment -Id $data.circuit.expressRouteID -Index 8)
                 $externalCloud = @($data.externalCloudLinks).count
                 $identitySources = @($data.identitySources).count
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}

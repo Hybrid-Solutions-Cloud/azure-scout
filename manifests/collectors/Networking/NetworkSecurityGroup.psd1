@@ -69,12 +69,20 @@ $ResUCount = 1
             $FlowLogRetentionDays = Get-AZSCSafeProperty -InputObject $NSGFlows -Path 'properties.retentionPolicy.days'
             $FlowLogsRetention = if (![string]::IsNullOrEmpty($FlowLogRetentionDays)) { $FlowLogRetentionDays }else { 'Not Enabled' }
             $FlowLogStorageId = Get-AZSCSafeProperty -InputObject $NSGFlows -Path 'properties.storageId'
-            $FlowLogsStorage = if (![string]::IsNullOrEmpty($FlowLogStorageId)) { $FlowLogStorageId.split('/')[8] }else { 'Not Enabled' }
+            $FlowLogsStorage = if (![string]::IsNullOrEmpty($FlowLogStorageId)) { (Get-AZSCIdSegment -Id $FlowLogStorageId -Index 8) }else { 'Not Enabled' }
             $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties }else { '0' }
             $NetworkInterfaceIds = Get-AZSCSafeProperty -InputObject $data -Path 'networkInterfaces.id' -Enumerate
             $SubnetIds = Get-AZSCSafeProperty -InputObject $data -Path 'subnets.id' -Enumerate
             $RelatedNics = @()
             $RelatedSubs = @()
+            # AB#6844: $FinalNICs and $FinalSubs are assigned only INSIDE the two `if
+            # (![string]::IsNullOrEmpty(...))` blocks below. An NSG associated with neither a NIC
+            # nor a subnet -- a freshly created one, or one left behind after a teardown -- reached
+            # the field expressions with the variables never set, and StrictMode's
+            # uninitialised-variable check took the whole worksheet down. Declaring them here is
+            # the fix; the branches still overwrite them whenever there is something to report.
+            $FinalNICs = ''
+            $FinalSubs = ''
 
             if (![string]::IsNullOrEmpty($NetworkInterfaceIds))
                 {
@@ -88,7 +96,7 @@ $ResUCount = 1
                                 }
                             elseif ($NICID -like '*microsoft.compute/virtualmachinescalesets*')
                                 {
-                                    $RelatedNics += $NICID.split('/')[12]
+                                    $RelatedNics += (Get-AZSCIdSegment -Id $NICID -Index 12)
                                 }
                             
                         }
@@ -112,7 +120,7 @@ $ResUCount = 1
                     foreach ($VM in $VMSSs)
                         {
                             $SUBID = Get-AZSCSafeProperty -InputObject $VM -Path 'properties.virtualmachineprofile.networkprofile.networkinterfaceconfigurations.properties.ipconfigurations.properties.subnet.id' -Enumerate
-                            $RelatedSubs += ($SUBID.Split('/')[8] + ' ('+ $SUBID.Split('/')[10] + ')')
+                            $RelatedSubs += ((Get-AZSCIdSegment -Id $SUBID -Index 8) + ' ('+ (Get-AZSCIdSegment -Id $SUBID -Index 10) + ')')
                         }
                     $FinalSUBs = if ($RelatedSubs.count -gt 1) { $RelatedSubs | ForEach-Object { $_ + ' ,' } }else { $RelatedSubs }
                     $FinalSUBs = [string]$FinalSUBs

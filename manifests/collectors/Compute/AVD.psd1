@@ -80,7 +80,7 @@ $ResUCount = 1
             Variable = '2'
             Source = '$sessionhosts'
             Preamble = @'
-$domain = $2.name.replace(($2.name.split(".")[0]),'')
+$domain = if([string]::IsNullOrEmpty($2.name)){''}else{([string]$2.name).replace(((([string]$2.name).split("."))[0]),'')}
                     $sessionHostResourceId = Get-AZSCSafeProperty -InputObject $2 -Path 'properties.resourceId'
                     $vmsessionhosts = $VM | Where-Object { $_.ID -eq $sessionHostResourceId }
 '@

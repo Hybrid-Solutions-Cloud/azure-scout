@@ -83,7 +83,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Peering VNet'
-            Expression = '$4.properties.remoteVirtualNetwork.id.split(''/'')[8]'
+            Expression = '(Get-AZSCIdSegment -Id $4.properties.remoteVirtualNetwork.id -Index 8)'
         }
         @{
             Name = 'Peering State'

@@ -57,7 +57,7 @@ $ResUCount = 1
                 # 'None' test is kept so behaviour is unchanged for instances that do report it.
                 # Hand-patched, not regenerated: the source collector this was lifted from was
                 # retired in v3.0.0, so there is nothing left to regenerate from.
-                if ($data.virtualNetworkType -eq 'None' -or [string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetResourceId)) { $NetType = '' } else { $NetType = [string]$data.virtualNetworkConfiguration.subnetResourceId.split("/")[8] }
+                if ($data.virtualNetworkType -eq 'None' -or [string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetResourceId)) { $NetType = '' } else { $NetType = [string](Get-AZSCIdSegment -Id $data.virtualNetworkConfiguration.subnetResourceId -Index 8) }
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 

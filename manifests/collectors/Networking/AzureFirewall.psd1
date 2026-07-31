@@ -73,7 +73,7 @@ $ResUCount = $null
                     Foreach($2 in $data.ipConfigurations)
                         {
                             $PIPs += $2.name
-                            $VNETs += if(![string]::IsNullOrEmpty($2.properties.subnet.id)){$2.properties.subnet.id.split('/')[8]}else{$null}
+                            $VNETs += if(![string]::IsNullOrEmpty($2.properties.subnet.id)){(Get-AZSCIdSegment -Id $2.properties.subnet.id -Index 8)}else{$null}
                             $PrivIPs += $2.properties.privateIPAddress
                         }
                     

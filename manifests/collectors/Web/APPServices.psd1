@@ -51,8 +51,8 @@ $ResUCount = 1
                     }
                 if([string]::IsNullOrEmpty($data.siteConfig.ftpsState)){$FTPS = $false}else{$FTPS = $data.siteConfig.ftpsState}
                 if([string]::IsNullOrEmpty($data.Properties.SiteConfig.acrUseManagedIdentityCreds)){$MGMID = $false}else{$MGMID = $true}
-                $VNET = if(![string]::IsNullOrEmpty($data.virtualNetworkSubnetId)){$data.virtualNetworkSubnetId.split("/")[8]}else{$null}
-                $SUBNET = if(![string]::IsNullOrEmpty($data.virtualNetworkSubnetId)){$data.virtualNetworkSubnetId.split("/")[10]}else{$null}
+                $VNET = if(![string]::IsNullOrEmpty($data.virtualNetworkSubnetId)){(Get-AZSCIdSegment -Id $data.virtualNetworkSubnetId -Index 8)}else{$null}
+                $SUBNET = if(![string]::IsNullOrEmpty($data.virtualNetworkSubnetId)){(Get-AZSCIdSegment -Id $data.virtualNetworkSubnetId -Index 10)}else{$null}
                 $Stack = if(![string]::IsNullOrEmpty($data.SiteConfig.linuxFxVersion)){$data.SiteConfig.linuxFxVersion}else{$data.SiteConfig.windowsFxVersion}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@

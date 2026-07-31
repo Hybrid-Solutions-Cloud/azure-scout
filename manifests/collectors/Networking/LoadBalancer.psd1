@@ -57,9 +57,9 @@ $ResUCount = 1
                             {
                                 $tmps = [pscustomobject]@{
                                     Name             = $2.name
-                                    Fronttarget      = $2.properties.subnet.id.split('/')[8]
+                                    Fronttarget      = (Get-AZSCIdSegment -Id $2.properties.subnet.id -Index 8)
                                     FrontType        = 'VNET'
-                                    frontsub         = $2.properties.subnet.id.split('/')[10]
+                                    frontsub         = (Get-AZSCIdSegment -Id $2.properties.subnet.id -Index 10)
                                 }
                                 $tmps
                             }
@@ -67,7 +67,7 @@ $ResUCount = 1
                             {
                                 $tmps = [pscustomobject]@{
                                     Name              = $2.name
-                                    Fronttarget       = $2.properties.publicIPAddress.id.split('/')[8]
+                                    Fronttarget       = (Get-AZSCIdSegment -Id $2.properties.publicIPAddress.id -Index 8)
                                     FrontType         = 'Public IP'
                                     frontsub          = $null
                                 }

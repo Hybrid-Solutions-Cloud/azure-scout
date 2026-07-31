@@ -33,7 +33,7 @@ $ResUCount = 1
                 $data = $1.PROPERTIES
 
                 $vnlks = ($VNETLinks | Where-Object {$_.id -like ($1.id + '*')})
-                $vnlks = if (!$vnlks) {[pscustomobject]@{id = 'none'}} else {$vnlks | Select-Object @{Name="id";Expression={$_.properties.virtualNetwork.id.split("/")[8]}}}
+                $vnlks = if (!$vnlks) {[pscustomobject]@{id = 'none'}} else {$vnlks | Select-Object @{Name="id";Expression={(Get-AZSCIdSegment -Id $_.properties.virtualNetwork.id -Index 8)}}}
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
                 if ($Retired) 
                     {

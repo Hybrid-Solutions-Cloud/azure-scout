@@ -46,7 +46,7 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                if(!$data.privateEndpointConnections){$PVTENDP = $false}else{$PVTENDP = $data.privateEndpointConnections.Id.split("/")[8]}
+                if(!$data.privateEndpointConnections){$PVTENDP = $false}else{$PVTENDP = (Get-AZSCIdSegment -Id $data.privateEndpointConnections.Id -Index 8)}
                 $sku = $1.SKU
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@

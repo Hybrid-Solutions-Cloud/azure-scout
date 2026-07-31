@@ -50,7 +50,7 @@ $ResUCount = 1
             Preamble = @'
 $ProtectedItemProperties = Get-AZSCSafeProperty -InputObject $ProtectedItem -Path 'properties'
                         $VaultId = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'vaultid'
-                        $VaultResource = if(![string]::IsNullOrEmpty($VaultId)){$VaultId.split('/')[8]}else{''}
+                        $VaultResource = if(![string]::IsNullOrEmpty($VaultId)){(Get-AZSCIdSegment -Id $VaultId -Index 8)}else{''}
                         $LastBackupTime = Get-AZSCSafeProperty -InputObject $ProtectedItemProperties -Path 'lastbackuptime'
                         if(![string]::IsNullOrEmpty($LastBackupTime))
                             {

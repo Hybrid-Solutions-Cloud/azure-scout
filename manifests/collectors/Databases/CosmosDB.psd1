@@ -49,10 +49,10 @@ $ResUCount = 1
                 $VNETs = @()
                 foreach ($VNET in $data.virtualNetworkRules.id)
                     {
-                        $VNETs += $VNET.split('/')[8]
+                        $VNETs += (Get-AZSCIdSegment -Id $VNET -Index 8)
                     }
                 $VNETs = $VNETs | Select-Object -Unique
-                if(!$data.privateEndpointConnections){$PVTENDP = $false}else{$PVTENDP = $data.privateEndpointConnections.Id.split("/")[8]}
+                if(!$data.privateEndpointConnections){$PVTENDP = $false}else{$PVTENDP = (Get-AZSCIdSegment -Id $data.privateEndpointConnections.Id -Index 8)}
                 $GeoReplicate = if(@($data.failoverPolicies).count -gt 1){'Enabled'}else{'Disabled'}
                 $Mongo = if([string]::IsNullOrEmpty($data.mongoEndpoint)){$data.documentEndpoint}else{$data.mongoEndpoint}
                 $FreeTier = if($data.enableFreeTier -eq $true){'Opted In'}else{'Opted Out'}

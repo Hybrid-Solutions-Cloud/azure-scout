@@ -47,7 +47,7 @@ $ResUCount = 1
                             $RetiringFeature = $null
                             $RetiringDate = $null
                         }
-                    if([string]::IsNullOrEmpty($data.frontendendpoints.properties.webApplicationFirewallPolicyLink.id)){$WAF = $false} else {$WAF = $data.frontendendpoints.properties.webApplicationFirewallPolicyLink.id.split('/')[8]}
+                    if([string]::IsNullOrEmpty($data.frontendendpoints.properties.webApplicationFirewallPolicyLink.id)){$WAF = $false} else {$WAF = (Get-AZSCIdSegment -Id $data.frontendendpoints.properties.webApplicationFirewallPolicyLink.id -Index 8)}
                     $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 

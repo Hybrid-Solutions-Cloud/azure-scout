@@ -51,8 +51,8 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $StorageAcc = if(![string]::IsNullOrEmpty($data.managedResources.storageAccount)){$data.managedResources.storageAccount.split('/')[8]}else{$null}
-                $eventHubNamespace = if(![string]::IsNullOrEmpty($data.managedResources.eventHubNamespace)){($data.managedResources.eventHubNamespace.split('/')[8])}else{$null}
+                $StorageAcc = if(![string]::IsNullOrEmpty($data.managedResources.storageAccount)){(Get-AZSCIdSegment -Id $data.managedResources.storageAccount -Index 8)}else{$null}
+                $eventHubNamespace = if(![string]::IsNullOrEmpty($data.managedResources.eventHubNamespace)){((Get-AZSCIdSegment -Id $data.managedResources.eventHubNamespace -Index 8))}else{$null}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 

@@ -65,12 +65,12 @@ $t_pip_addresses = ''
                                         $t_pip_prefixes = ''
 
                                         if ($data.publicipaddresses) {
-                                            $t_pip_addresses = [string]$data.publicipaddresses.id.split("/")[8]
+                                            $t_pip_addresses = [string](Get-AZSCIdSegment -Id $data.publicipaddresses.id -Index 8)
                                         }
 
                                         
                                         if ($data.publicipprefixes) {
-                                            $t_pip_prefixes = [string]$data.publicipprefixes.id.split("/")[8]
+                                            $t_pip_prefixes = [string](Get-AZSCIdSegment -Id $data.publicipprefixes.id -Index 8)
                                         }
 '@
     }
@@ -122,11 +122,11 @@ $t_pip_addresses = ''
         }
         @{
             Name = 'VNET'
-            Expression = '[string]$2.id.split("/")[8]'
+            Expression = '[string](Get-AZSCIdSegment -Id $2.id -Index 8)'
         }
         @{
             Name = 'Subnet'
-            Expression = '[string]$2.id.split("/")[10]'
+            Expression = '[string](Get-AZSCIdSegment -Id $2.id -Index 10)'
         }
         @{
             Name = 'Resource U'

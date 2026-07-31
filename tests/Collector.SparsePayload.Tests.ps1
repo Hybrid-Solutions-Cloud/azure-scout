@@ -85,6 +85,22 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     @{ Category = 'Security'; Name = 'WafPolicies'; Type = 'microsoft.network/applicationgatewaywebapplicationfirewallpolicies'
        Properties = @{ provisioningState = 'Succeeded' }
        Because = 'a policy with no custom rules has no customRules key' }
+
+    # AB#6844 — the second class: a string method called on a payload value that is absent. These
+    # four each held an unguarded `.split('/')[N]` and threw "You cannot call a method on a
+    # null-valued expression" before those 75 sites were routed through Get-AZSCIdSegment.
+    @{ Category = 'Analytics'; Name = 'Databricks'; Type = 'microsoft.databricks/workspaces'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'split the managed resource group id, which a failed deployment does not have' }
+    @{ Category = 'Databases'; Name = 'SQLSERVER'; Type = 'microsoft.sql/servers'
+       Properties = @{ version = '12.0' }
+       Because = 'split a private endpoint connection id on a server that has no private endpoints' }
+    # Containers/AKS is deliberately NOT here. It emits one row per agent pool, so a cluster with
+    # no agentPoolProfiles correctly produces zero rows — that is the collector's contract, not a
+    # sparse-payload failure, and asserting otherwise would encode a wrong expectation.
+    @{ Category = 'Networking'; Name = 'NetworkSecurityGroup'; Type = 'microsoft.network/networksecuritygroups'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'split associated subnet ids on an NSG associated with nothing' }
 ) {
     It '<Category>/<Name> still emits its row' {
         $Row = New-SparseArgRow -Type $Type -Name 'res-one' -Properties $Properties

@@ -162,11 +162,11 @@ $ResUCount = 1
         }
         @{
             Name = 'Gateway Public IP'
-            Expression = '[string]$data.ipConfigurations.properties.publicIPAddress.id.split("/")[8]'
+            Expression = '[string](Get-AZSCIdSegment -Id $data.ipConfigurations.properties.publicIPAddress.id -Index 8)'
         }
         @{
             Name = 'Gateway Subnet Name'
-            Expression = '[string]$data.ipConfigurations.properties.subnet.id.split("/")[8]'
+            Expression = '[string](Get-AZSCIdSegment -Id $data.ipConfigurations.properties.subnet.id -Index 8)'
         }
         @{
             Name = 'P2S Address Pool'

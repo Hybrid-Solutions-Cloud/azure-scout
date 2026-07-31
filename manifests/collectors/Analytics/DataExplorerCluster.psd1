@@ -47,10 +47,10 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $VNET = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetid)){$data.virtualNetworkConfiguration.subnetid.split('/')[8]}else{$null}
-                $Subnet = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetid)){$data.virtualNetworkConfiguration.subnetid.split('/')[10]}else{$null}
-                $DataPIP = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.dataManagementPublicIpId)){$data.virtualNetworkConfiguration.dataManagementPublicIpId.split('/')[8]}else{$null}
-                $EnginePIP = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.enginePublicIpId)){$data.virtualNetworkConfiguration.enginePublicIpId.split('/')[8]}else{$null}
+                $VNET = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetid)){(Get-AZSCIdSegment -Id $data.virtualNetworkConfiguration.subnetid -Index 8)}else{$null}
+                $Subnet = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetid)){(Get-AZSCIdSegment -Id $data.virtualNetworkConfiguration.subnetid -Index 10)}else{$null}
+                $DataPIP = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.dataManagementPublicIpId)){(Get-AZSCIdSegment -Id $data.virtualNetworkConfiguration.dataManagementPublicIpId -Index 8)}else{$null}
+                $EnginePIP = if(![string]::IsNullOrEmpty($data.virtualNetworkConfiguration.enginePublicIpId)){(Get-AZSCIdSegment -Id $data.virtualNetworkConfiguration.enginePublicIpId -Index 8)}else{$null}
                 $TenantPerm = if($data.trustedExternalTenants.value -eq '*'){'All Tenants'}else{$data.trustedExternalTenants.value}
                 $AutoScale = if($data.optimizedAutoscale.isEnabled -eq 'true'){'Enabled'}else{'Disabled'}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}

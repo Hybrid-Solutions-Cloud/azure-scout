@@ -936,10 +936,19 @@ customer actually asks about is not a "service" at all and can never appear in t
 > is proven non-vacuous: the same probe threw for four collectors before the change and returns
 > rows for all four after.
 >
-> **AB#6844 — the second class, still open.** ~53 sites across 50 definitions call a string method
+> **AB#6844 — the second class, also fixed.** 75 sites across 46 definitions called a string method
 > directly on a payload value (`….subnetResourceId.split("/")[8]`). That is a null *method call* on
-> the `$null` the fix above now produces, and no StrictMode setting prevents it; each site needs a
-> per-expression guard. `Integration/APIM` was guarded in the same pass because the test pins it.
+> the `$null` the fix above produces, and no StrictMode setting prevents it. All 75 now route
+> through the existing `Get-AZSCIdSegment` helper, which returns `$null` for an absent id or an
+> out-of-range index and the identical segment otherwise — **all 236 goldens byte-unchanged**.
+>
+> Extending the sparse-payload suite to cover the guarded collectors then exposed **two more
+> pre-existing failures of the same family**: `Analytics/Databricks` cast `[datetime]$null` on a
+> workspace whose deployment never completed, and `Networking/NetworkSecurityGroup` assigned
+> `$FinalNICs`/`$FinalSubs` only inside conditional branches, so an NSG associated with neither a
+> NIC nor a subnet tripped StrictMode's uninitialised-variable check. Both lost the whole
+> worksheet; both fixed. **Every one of these was found by widening the test, not by reading the
+> code** — which is the argument for AB#6840.
 >
 > **No test in this repository could have caught either**, which is why they survived. The fixture
 > generator derives its estate *from the collector's own expressions*, so every path a collector

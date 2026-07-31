@@ -19,7 +19,7 @@
 
     Preamble = @'
 $ResUCount = 1
-                $SubId = $1.id.split('/')[2]
+                $SubId = (Get-AZSCIdSegment -Id $1.id -Index 2)
                 $sub1 = $SUB | Where-Object { $_.id -eq $SubId }
                 $data = $1.PROPERTIES
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}

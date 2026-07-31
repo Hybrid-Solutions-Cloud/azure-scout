@@ -61,7 +61,7 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                if([string]::IsNullOrEmpty($data.addonProfiles.omsagent.config.logAnalyticsWorkspaceResourceID)){$Insights = $false}else{$Insights = $data.addonProfiles.omsagent.config.logAnalyticsWorkspaceResourceID.split('/')[8]}
+                if([string]::IsNullOrEmpty($data.addonProfiles.omsagent.config.logAnalyticsWorkspaceResourceID)){$Insights = $false}else{$Insights = (Get-AZSCIdSegment -Id $data.addonProfiles.omsagent.config.logAnalyticsWorkspaceResourceID -Index 8)}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
                 $NetworkPlugin = if($data.networkprofile.networkplugin -eq 'azure'){'Azure CNI'}else{$data.networkprofile.networkplugin}
                 $LocalAccounts = if($data.disablelocalaccounts -eq $true){$false}else{$true}
@@ -71,7 +71,7 @@ $ResUCount = 1
                 $UpgradeChannel = if([string]::IsNullOrEmpty($data.autoUpgradeProfile.upgradeChannel)){'Disabled'}else{$data.autoUpgradeProfile.upgradeChannel}
                 $NetPolicy = if(![string]::IsNullOrEmpty($data.networkProfile.networkPolicy)){$data.networkProfile.networkPolicy}else{'None'}
                 $PubliAccess = if([string]::IsNullOrEmpty($data.publicNetworkAccess)){'Enabled'}else{if($data.publicNetworkAccess -eq 'Disabled'){'Disabled'}else{'Enabled'}}
-                $Identity = if(![string]::IsNullOrEmpty($data.identityprofile.kubeletidentity.resourceid)){$data.identityprofile.kubeletidentity.resourceid.split('/')[8]}else{''}
+                $Identity = if(![string]::IsNullOrEmpty($data.identityprofile.kubeletidentity.resourceid)){(Get-AZSCIdSegment -Id $data.identityprofile.kubeletidentity.resourceid -Index 8)}else{''}
                 $Ingress = if([string]::IsNullOrEmpty($data.addonProfiles.ingressApplicationGateway.config.applicationGatewayName)){'Not enabled'}else{$data.addonProfiles.ingressApplicationGateway.config.applicationGatewayName}
                 $PrivateCluster = if([string]::IsNullOrEmpty($data.apiServerAccessProfile.enablePrivateCluster)){$false}else{$data.apiServerAccessProfile.enablePrivateCluster}
 '@
@@ -318,11 +318,11 @@ $AutoScale = if([string]::IsNullOrEmpty($2.enableAutoScaling)){$false}else{if($2
         }
         @{
             Name = 'Virtual Network'
-            Expression = 'if($2.vnetSubnetID){$2.vnetSubnetID.split(''/'')[8]}else{$false}'
+            Expression = 'if($2.vnetSubnetID){(Get-AZSCIdSegment -Id $2.vnetSubnetID -Index 8)}else{$false}'
         }
         @{
             Name = 'Subnet'
-            Expression = 'if($2.vnetSubnetID){$2.vnetSubnetID.split(''/'')[10]}else{$false}'
+            Expression = 'if($2.vnetSubnetID){(Get-AZSCIdSegment -Id $2.vnetSubnetID -Index 10)}else{$false}'
         }
         @{
             Name = 'Enable Node Public IP'

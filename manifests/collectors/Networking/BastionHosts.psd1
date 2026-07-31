@@ -46,8 +46,8 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $BastVNET = if(![string]::IsNullOrEmpty($data.ipConfigurations.properties.subnet.id)){$data.ipConfigurations.properties.subnet.id.split("/")[8]}else{$null}
-                $BastPIP = if(![string]::IsNullOrEmpty($data.ipConfigurations.properties.publicIPAddress.id)){$data.ipConfigurations.properties.publicIPAddress.id.split("/")[8]}else{$null}
+                $BastVNET = if(![string]::IsNullOrEmpty($data.ipConfigurations.properties.subnet.id)){(Get-AZSCIdSegment -Id $data.ipConfigurations.properties.subnet.id -Index 8)}else{$null}
+                $BastPIP = if(![string]::IsNullOrEmpty($data.ipConfigurations.properties.publicIPAddress.id)){(Get-AZSCIdSegment -Id $data.ipConfigurations.properties.publicIPAddress.id -Index 8)}else{$null}
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 

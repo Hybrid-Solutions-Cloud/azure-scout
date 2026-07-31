@@ -25,8 +25,11 @@ $ResUCount = 1
                 $RetDate = ''
                 $RetFeature = '' 
                 $timecreated = $data.createdDateTime
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
+                # AB#6844: `[datetime]$null` throws PSInvalidCastException, and the throw took the
+                # whole Databricks worksheet with it. A workspace whose deployment never completed
+                # has no createdDateTime. Third class of sparse-payload failure, alongside the
+                # absent-property read (AB#6839) and the null method call.
+                $timecreated = if([string]::IsNullOrEmpty($timecreated)){''}else{([datetime]$timecreated).ToString("yyyy-MM-dd HH:mm")}
                 $Retired = Foreach ($Retirement in $Retirements)
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
@@ -56,7 +59,7 @@ $ResUCount = 1
                         $RetiringDate = $null
                     }
                 $PIP = if($data.parameters.enableNoPublicIp.value -eq 'False'){$true}else{$false}
-                $VNET = $data.parameters.customVirtualNetworkId.value.split('/')[8]
+                $VNET = (Get-AZSCIdSegment -Id $data.parameters.customVirtualNetworkId.value -Index 8)
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 
@@ -103,7 +106,7 @@ $ResUCount = 1
         }
         @{
             Name = 'Managed Resource Group'
-            Expression = '$data.managedResourceGroupId.split(''/'')[4]'
+            Expression = '(Get-AZSCIdSegment -Id $data.managedResourceGroupId -Index 4)'
         }
         @{
             Name = 'Storage Account'

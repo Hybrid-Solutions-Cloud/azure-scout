@@ -62,7 +62,7 @@ $ResUCount = 1
         @{
             Variable = 'pv'
             Source = '$pvt'
-            Preamble = '$priv = $pv.split(''/'')[8]'
+            Preamble = '$priv = (Get-AZSCIdSegment -Id $pv -Index 8)'
         }
     )
 

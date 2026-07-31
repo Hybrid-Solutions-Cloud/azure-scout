@@ -69,7 +69,7 @@ $ResUCount = 1
 
             # Network interfaces
             $NICs = if ($data.networkProfile.networkInterfaces) {
-                ($data.networkProfile.networkInterfaces | ForEach-Object { $_.id.split("/")[-1] }) -join ', '
+                ($data.networkProfile.networkInterfaces | ForEach-Object { (([string]$_.id) -split '/')[-1] }) -join ', '
             } else { $null }
 
             # Status

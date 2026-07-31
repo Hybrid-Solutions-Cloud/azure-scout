@@ -53,10 +53,10 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                $StorageAcc = $data.storageAccount.split('/')[8]
-                $KeyVault = $data.keyVault.split('/')[8]
-                $Insight = $data.applicationInsights.split('/')[8]
-                $containerRegistry = $data.containerRegistry.split('/')[8]
+                $StorageAcc = (Get-AZSCIdSegment -Id $data.storageAccount -Index 8)
+                $KeyVault = (Get-AZSCIdSegment -Id $data.keyVault -Index 8)
+                $Insight = (Get-AZSCIdSegment -Id $data.applicationInsights -Index 8)
+                $containerRegistry = (Get-AZSCIdSegment -Id $data.containerRegistry -Index 8)
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 
