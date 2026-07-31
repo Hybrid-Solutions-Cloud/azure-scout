@@ -42,7 +42,14 @@
 param(
     [string] $Organization = 'https://dev.azure.com/hybridcloudsolutions',
     [string] $ProjectId    = '85b6e47e-a666-4a38-8c43-de87dd21aa56',
-    [string] $Repository   = 'thisismydemo/azure-scout'
+    [string] $Repository   = 'thisismydemo/azure-scout',
+
+    # An Azure DevOps PAT, used in preference to the az CLI when supplied. Also read from
+    # $env:ADO_PAT so a caller can export it once. Added because `az account get-access-token`
+    # now fails with AADSTS50076 (MFA required) on this tenant, which made a committed
+    # conformance gate unrunnable without an interactive login -- and a gate nobody can run is a
+    # gate nobody runs. The HCS Governance MCP mints a suitable PAT non-interactively.
+    [string] $Pat = $env:ADO_PAT
 )
 
 Set-StrictMode -Version Latest
@@ -51,8 +58,16 @@ $ErrorActionPreference = 'Stop'
 $org  = $Organization
 $proj = $ProjectId
 $repo = $Repository
-$tok  = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
-$hdr  = @{ Authorization = "Bearer $tok"; 'Content-Type' = 'application/json' }
+$hdr  = if (-not [string]::IsNullOrWhiteSpace($Pat)) {
+    @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(':' + $Pat))
+       'Content-Type' = 'application/json' }
+} else {
+    $tok = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+    if ([string]::IsNullOrWhiteSpace($tok)) {
+        throw 'Could not obtain an Azure DevOps token. Pass -Pat, or set $env:ADO_PAT, or run `az login`.'
+    }
+    @{ Authorization = "Bearer $tok"; 'Content-Type' = 'application/json' }
+}
 
 $vocab = @(
     'platform','azurelocal','thisismydemo','hybridcloudsolutions','tierpoint','cross-repo','azure-scout',
