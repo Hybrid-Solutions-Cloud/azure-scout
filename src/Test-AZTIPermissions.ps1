@@ -27,9 +27,10 @@
 
 .OUTPUTS
     [PSCustomObject] with properties:
-        ArmAccess   [bool]   — $true if core ARM checks passed
-        GraphAccess [bool]   — $true if core Graph checks passed
-        Details     [array]  — Per-check objects: Check, Status (Pass/Warn/Fail), Message, Remediation
+        ArmAccess        [bool]   — $true if core ARM checks passed
+        GraphAccess      [bool]   — $true if core Graph checks passed
+        Details          [array]  — Per-check objects: Check, Status (Pass/Warn/Fail), Message, Remediation
+        OverallReadiness [string] — 'FullARM', 'FullARMAndEntra', 'Partial', 'Insufficient' (see Invoke-AZSCPermissionAudit)
 
 .EXAMPLE
     $result = Test-AZSCPermissions -TenantID '00000000-0000-0000-0000-000000000000'
@@ -107,8 +108,9 @@ function Test-AZSCPermissions {
     }
 
     return [PSCustomObject]@{
-        ArmAccess   = $auditResult.ArmAccess
-        GraphAccess = if ($Scope -eq 'ArmOnly') { $null } else { $auditResult.GraphAccess }
-        Details     = $allDetails.ToArray()
+        ArmAccess        = $auditResult.ArmAccess
+        GraphAccess      = if ($Scope -eq 'ArmOnly') { $null } else { $auditResult.GraphAccess }
+        Details          = $allDetails.ToArray()
+        OverallReadiness = $auditResult.OverallReadiness
     }
 }

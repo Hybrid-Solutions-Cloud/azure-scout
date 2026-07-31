@@ -102,6 +102,14 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     continue
                 }
 
+                # A null-reference here is a known Az.Security client-side symptom of Defender for
+                # Cloud not being fully provisioned/onboarded on this subscription -- not a Scout
+                # defect, and not the transient-HTTP pattern retries above target. Surface a clearer
+                # hint instead of the bare CLR exception text.
+                if ($message -match '(?i)Object reference not set to an instance of an object') {
+                    $message = "$message (commonly indicates Microsoft Defender for Cloud is not fully provisioned/onboarded on this subscription)"
+                }
+
                 Write-Warning "Get-ScoutSubscriptionSecurityPolicySweep: '$Dataset' failed for subscription '$SubscriptionName' after $attempt attempt(s): $message"
                 return [pscustomobject]@{
                     Data   = @()

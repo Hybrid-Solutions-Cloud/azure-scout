@@ -93,6 +93,12 @@ Describe 'Test-AZSCPermissions' {
             $result = Test-AZSCPermissions -TenantID '00000000-0000-0000-0000-000000000000'
             $result.Details.Count | Should -BeGreaterThan 0
         }
+
+        It 'Surfaces OverallReadiness from the underlying audit -- callers (e.g. the wizard) need this to know Scope All is safe to recommend' {
+            $result = Test-AZSCPermissions -TenantID '00000000-0000-0000-0000-000000000000'
+            $result.PSObject.Properties.Name | Should -Contain 'OverallReadiness'
+            $result.OverallReadiness | Should -Be 'FullARMAndEntra'
+        }
     }
 
     # ── ARM Checks — All Pass ─────────────────────────────────────────

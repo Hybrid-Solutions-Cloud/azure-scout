@@ -113,7 +113,7 @@ function Export-AZSCJsonReport {
 
         $CacheData = $ParsedCache[$Section.CacheFileName]
         $CacheProperty = $CacheData.PSObject.Properties[$Section.CacheKey]
-        $Resources = if ($CacheProperty) { @($CacheProperty.Value) } else { @() }
+        $Resources = @(if ($CacheProperty) { $CacheProperty.Value })
         if ($Resources.Count -eq 0) { continue }
 
         $JsonKey = $Section.Name.Substring(0, 1).ToLowerInvariant() + $Section.Name.Substring(1)

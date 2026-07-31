@@ -28,6 +28,10 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.0.9** | 2026-07-30 | ✅ | **Live-run hardening** — fixed two fatal crashes (JSON report export `.Count`-on-null under StrictMode; SupportTickets null-date collector), isolated each report format behind its own try/catch, removed a permanently-broken Arc CPU metrics call, added retry/backoff to the operational-enrichment ARM helper (429/409), quieted an expected ReplicationEligibility 404, closed the wizard's Scope/Entra silent-default gap, added a Cost Data module pre-flight check, and clarified a DefenderAlerts null-reference message. Found live against a real 8-subscription tenant. | **Epic AB#6731** |
+| **3.0.8** | 2026-07-29 | ✅ | Suppress Az module breaking-change warnings in non-debug output. | **AB#5410** |
+| **3.0.7** | 2026-07-29 | ✅ | Avoid a StrictMode `VariableIsUndefined` error on common parameters (e.g. `-Debug`). | **AB#5410** |
+| **3.0.6** | 2026-07-28 | ✅ | Resilience and logging improvements for the Excel report build and ARC-enabled server collection. | **AB#6483** |
 | **3.0.5** | 2026-07-28 | ✅ | **VM cost-row regression correction** — makes production VM reporting resilient to Cost Management's nested result rows. Clean Gallery 3.0.5 `ArmOnly` live verification completed 2026-07-29: 174 collectors, 0 failures, 1,121 Excel rows. | **Epic AB#5638** / **AB#6152** |
 | **3.0.4** | 2026-07-28 | 🟡 | **VM runtime regression correction** — makes production VM reporting resilient to repeated Compute SKU capability values. Package and live verification in progress. | **Epic AB#5638** / **AB#6152** |
 | **3.0.3** | 2026-07-28 | 🟡 | **Production runtime collection** — enables the runtime collector paths in normal extraction. Package and live verification in progress. | **Epic AB#5638** / **AB#6152–6158** |

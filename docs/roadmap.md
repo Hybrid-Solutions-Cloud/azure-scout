@@ -41,7 +41,31 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.0.5 — VM cost-row regression correction
+## Current Release — v3.0.9 — Live-run hardening
+
+Released 30 July 2026. A live run against a real 8-subscription tenant surfaced two fatal
+crashes (JSON report export, SupportTickets collector) plus six further defects: no
+retry/backoff in the operational-enrichment ARM helper, a permanently-broken Arc CPU metrics
+call, an expected-but-noisy ReplicationEligibility 404, a wizard Scope/Entra silent-default gap
+that caused zero Entra ID data to be collected despite full permissions, a missing Cost Data
+module pre-flight check, and an unclear DefenderAlerts null-reference message. See **Epic
+AB#6731** for the full defect list and fixes.
+
+## v3.0.8 — Az breaking-change warning suppression
+
+Released 29 July 2026. Suppresses Az module breaking-change warnings in non-debug output.
+
+## v3.0.7 — StrictMode common-parameter fix
+
+Released 29 July 2026. Avoids a StrictMode `VariableIsUndefined` error when common parameters
+such as `-Debug` are supplied to `Invoke-AzureScout`.
+
+## v3.0.6 — Excel and ARC resilience
+
+Released 28 July 2026. Resilience and logging improvements for the Excel report build and
+ARC-enabled server collection.
+
+## v3.0.5 — VM cost-row regression correction
 
 Released 28 July 2026. This patch keeps production VM reporting running when Cost Management
 returns the amount and currency as a nested row. Clean Gallery v3.0.5 live verification completed

@@ -14,6 +14,10 @@ AzureScout follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form
 
 | Version | Highlights |
 |---------|------------|
+| **v3.0.9** (2026-07-30) | **Live-run hardening.** Fixed two fatal crashes found live against a real 8-subscription tenant (JSON report export `.Count`-on-null under StrictMode; SupportTickets null-date collector), isolated each report format behind its own try/catch, removed a permanently-broken Arc CPU metrics call, added retry/backoff to the operational-enrichment ARM helper, quieted an expected ReplicationEligibility 404, closed the wizard's Scope/Entra silent-default gap, added a Cost Data module pre-flight check, and clarified a DefenderAlerts null-reference message. See Epic AB#6731. |
+| **v3.0.8** (2026-07-29) | Suppress Az module breaking-change warnings in non-debug output. |
+| **v3.0.7** (2026-07-29) | Avoid a StrictMode `VariableIsUndefined` error on common parameters (e.g. `-Debug`). |
+| **v3.0.6** (2026-07-28) | Resilience and logging improvements for the Excel report build and ARC-enabled server collection. |
 | **v3.0.5** (2026-07-28) | **VM cost-row regression correction.** Cost Management nested result rows no longer skip the production VM collector. See [v3.0.5](v3.0.5.md). |
 | **v3.0.4** (2026-07-28) | **VM runtime regression correction.** Repeated Compute SKU `MemoryGB` values no longer skip the production VM collector. See [v3.0.4](v3.0.4.md). |
 | **v3.0.3** (2026-07-28) | **Production runtime collection.** Hardened ARM-child, storage, and security/policy collectors now run in the standard extraction path. See [v3.0.3](v3.0.3.md). |

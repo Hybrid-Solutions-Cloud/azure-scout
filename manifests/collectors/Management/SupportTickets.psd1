@@ -21,17 +21,9 @@
 $ResUCount = 1
                 $data = $1.PROPERTIES
 
-                $timecreated = $data.createdDate
-                $timecreated = [datetime]$timecreated
-                $timecreated = $timecreated.ToString("yyyy-MM-dd HH:mm")
-
-                $ProblemDate = $data.problemStartTime
-                $ProblemDate = [datetime]$ProblemDate
-                $ProblemDate = $ProblemDate.ToString("yyyy-MM-dd HH:mm")
-
-                $ModDate = $data.modifiedDate
-                $ModDate = [datetime]$ModDate
-                $ModDate = $ModDate.ToString("yyyy-MM-dd HH:mm")
+                $timecreated = if ($data.createdDate) { ([datetime]$data.createdDate).ToString("yyyy-MM-dd HH:mm") } else { '' }
+                $ProblemDate = if ($data.problemStartTime) { ([datetime]$data.problemStartTime).ToString("yyyy-MM-dd HH:mm") } else { '' }
+                $ModDate = if ($data.modifiedDate) { ([datetime]$data.modifiedDate).ToString("yyyy-MM-dd HH:mm") } else { '' }
 '@
 
     AdditionalRowLoops = @()

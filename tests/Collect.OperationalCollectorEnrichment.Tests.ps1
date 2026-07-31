@@ -66,4 +66,44 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $Rows | Should -BeNullOrEmpty
         $script:Calls.Count | Should -Be 0
     }
+    It 'never calls the ARM metrics API for Arc-enabled servers CPU (unsupported for this resource type)' {
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
+        ($script:Calls -join "`n") | Should -Not -Match 'arc-1/providers/microsoft.insights/metrics'
+        ($Rows | Where-Object type -eq 'AZSC/Operational/ARCServers').properties.CpuMetrics.__AZSCStatus | Should -Be 'NotSupportedForArc'
+    }
+    It 'retries a 429 with backoff and eventually succeeds instead of failing immediately' {
+        $script:AttemptCount = 0
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -lt 2) { return [pscustomobject]@{StatusCode=429;Content='{}'} }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
+        $script:AttemptCount | Should -BeGreaterOrEqual 2
+        $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
+        $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+    }
+    It 'treats a persistent 409 on PatchAssessment as a distinct in-progress status, not a generic error' {
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'assessPatches') { return [pscustomobject]@{StatusCode=409;Content='{}'} }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}) -WarningAction SilentlyContinue)
+        ($Rows | Where-Object type -eq 'AZSC/Operational/VMOperationalData').properties.PatchAssessment.__AZSCStatus | Should -Be 'OperationInProgress'
+        ($Rows | Where-Object type -eq 'AZSC/Operational/ArcServerOperationalData').properties.PatchAssessment.__AZSCStatus | Should -Be 'OperationInProgress'
+    }
+    It 'does not warn when ReplicationEligibility 404s -- an expected "ASR never evaluated this VM" state' {
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'replicationEligibilityResults') { return [pscustomobject]@{StatusCode=404;Content='{}'} }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}) -WarningVariable Warnings)
+        ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.ReplicationEligibility.__AZSCStatus | Should -Be 'NotConfigured'
+        ($Warnings -join "`n") | Should -Not -Match 'ReplicationEligibility'
+    }
 }

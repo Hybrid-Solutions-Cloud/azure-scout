@@ -49,28 +49,55 @@ function Get-ScoutOperationalCollectorEnrichment {
             [Parameter(Mandatory)][string]$ParentId,
             [Parameter(Mandatory)][string]$Path,
             [ValidateSet('GET', 'POST')][string]$Method = 'GET',
-            [AllowNull()]$Payload
+            [AllowNull()]$Payload,
+            [ValidateRange(1, 5)][int]$MaxAttempts = 3,
+            # 404 on this dataset is an expected "not configured" state, not a failure -- do not warn.
+            [switch]$QuietNotFound
         )
 
-        try {
-            $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
-            if ($null -ne $Payload) { $Arguments['Payload'] = $Payload }
-            $Response = Invoke-AzRestMethod @Arguments
-            if ($null -eq $Response) { throw 'ARM returned no response.' }
-            $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
-            if ($null -ne $Status -and ([int]$Status -lt 200 -or [int]$Status -ge 300)) {
-                throw "ARM returned status $Status."
+        for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
+            try {
+                $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
+                if ($null -ne $Payload) { $Arguments['Payload'] = $Payload }
+                $Response = Invoke-AzRestMethod @Arguments
+                if ($null -eq $Response) { throw 'ARM returned no response.' }
+                $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
+                if ($null -ne $Status -and ([int]$Status -lt 200 -or [int]$Status -ge 300)) {
+                    throw "ARM returned status $Status."
+                }
+                $Content = Get-ScoutValue -InputObject $Response -Name @('Content')
+                if ($Content -is [string]) {
+                    if ([string]::IsNullOrWhiteSpace($Content)) { return $null }
+                    return ($Content | ConvertFrom-Json)
+                }
+                return $Content
             }
-            $Content = Get-ScoutValue -InputObject $Response -Name @('Content')
-            if ($Content -is [string]) {
-                if ([string]::IsNullOrWhiteSpace($Content)) { return $null }
-                return ($Content | ConvertFrom-Json)
+            catch {
+                $Message = $_.Exception.Message
+                $StatusMatch = [regex]::Match($Message, 'ARM returned status (\d+)')
+                $StatusCode = if ($StatusMatch.Success) { [int]$StatusMatch.Groups[1].Value } else { $null }
+
+                if ($StatusCode -eq 404 -and $QuietNotFound) {
+                    return [PSCustomObject]@{ __AZSCStatus = 'NotConfigured' }
+                }
+
+                # 429 (rate limit), 409 (operation already in-flight/too-recent), and transient 5xx
+                # all warrant a retry with backoff rather than an immediate hard failure.
+                $Retryable = ($StatusCode -in 429, 409, 500, 502, 503, 504) -or
+                    ($Message -match '(?i)InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests')
+                if ($Retryable -and $Attempt -lt $MaxAttempts) {
+                    Start-Sleep -Milliseconds (500 * $Attempt)
+                    continue
+                }
+
+                if ($StatusCode -eq 409) {
+                    Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset for '$ParentId' still in progress (409) after $Attempt attempt(s)."
+                    return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
+                }
+
+                Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
+                return [PSCustomObject]@{ __AZSCError = $Message }
             }
-            return $Content
-        }
-        catch {
-            Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $($_.Exception.Message)"
-            return [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
         }
     }
 
@@ -104,7 +131,8 @@ function Get-ScoutOperationalCollectorEnrichment {
         # unfiltered `{}` query is not equivalent and can report a subscription total.
         $SubscriptionId = [string](Get-ScoutValue $Vm @('subscriptionId'))
         $VmName = [string](Get-ScoutValue $Vm @('name', 'NAME'))
-        $Eligibility = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationEligibility' -ParentId $Id -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/replicationEligibilityResults/${VmName}?api-version=2022-10-01"
+        # 404 here means ASR has never evaluated this VM -- expected for most VMs, not a defect.
+        $Eligibility = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationEligibility' -ParentId $Id -QuietNotFound -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/replicationEligibilityResults/${VmName}?api-version=2022-10-01"
         $Vaults = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationVaults' -ParentId $Id -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/vaults?api-version=2023-04-01"
         $ProtectedItems = @()
         if ($null -eq (Get-ScoutValue $Vaults @('__AZSCError'))) {
@@ -150,11 +178,15 @@ function Get-ScoutOperationalCollectorEnrichment {
         $Patch = Invoke-ScoutOperationalArm -Dataset 'ArcServerOperationalData.PatchAssessment' -ParentId $Id -Method POST -Path "$Id/assessPatches?api-version=2023-06-20-preview"
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ArcServerOperationalData' -Parent $Arc -Properties @{ PatchAssessment = $Patch }
 
-        $Now = (Get-Date).ToUniversalTime().ToString('o')
-        $Start = (Get-Date).AddDays(-7).ToUniversalTime().ToString('o')
         $SubId = [string](Get-ScoutValue $Arc @('subscriptionId'))
         $Policy = Invoke-ScoutOperationalArm -Dataset 'ARCServers.PolicyCompliance' -ParentId $Id -Method POST -Path "/subscriptions/$SubId/providers/Microsoft.PolicyInsights/policyStates/latest/queryResults?api-version=2019-10-01&`$filter=resourceId eq '$Id'&`$top=100" -Payload '{}'
-        $Cpu = Invoke-ScoutOperationalArm -Dataset 'ARCServers.CpuMetrics' -ParentId $Id -Path "$Id/providers/microsoft.insights/metrics?api-version=2019-07-01&metricnames=cpu_usage_active&timespan=$Start/$Now&interval=P1D&aggregation=Average"
+        # Arc-enabled servers (Microsoft.HybridCompute/machines) do not publish guest-OS metrics
+        # through the ARM Insights metrics API at all -- that endpoint only ever exposes host-level
+        # platform metrics, and Arc has no Azure-managed host layer. Guest CPU/memory for Arc is only
+        # available via Azure Monitor Agent -> Log Analytics (VM Insights Perf table), a different
+        # data source. Calling microsoft.insights/metrics here 400s for every machine, always -- do
+        # not call it. See ADO Bug 6733.
+        $Cpu = [PSCustomObject]@{ __AZSCStatus = 'NotSupportedForArc' }
         $ArcCostPayload = @{ type = 'Usage'; timeframe = 'MonthToDate'; dataset = @{ granularity = 'None'; filter = @{ dimensions = @{ name = 'ResourceId'; operator = 'In'; values = @($Id) } }; aggregation = @{ totalCost = @{ name = 'PreTaxCost'; function = 'Sum' } } } } | ConvertTo-Json -Depth 10
         $Cost = Invoke-ScoutOperationalArm -Dataset 'ARCServers.EstimatedCost' -ParentId $Id -Method POST -Path "/subscriptions/$SubId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" -Payload $ArcCostPayload
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ARCServers' -Parent $Arc -Properties @{ PolicyCompliance = $Policy; CpuMetrics = $Cpu; EstimatedCost = $Cost }

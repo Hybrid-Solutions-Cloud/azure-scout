@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.9] - 2026-07-30
+
+### Fixed
+
+- `Export-AZSCJsonReport` crashed every run at the final report-export step with "The property
+  'Count' cannot be found on this object" under StrictMode. A cache-section lookup wrapped a
+  possibly-`$null` value in an `if/else` that produced a bare scalar instead of a real array in
+  one path; it now always wraps through `@(...)`.
+- The `SupportTickets` declarative collector crashed with "Cannot convert null to type
+  System.DateTime" whenever a ticket's `createdDate`, `problemStartTime`, or `modifiedDate` was
+  absent. All three now null-guard before the cast.
+- Each report-format export (Excel/JSON/Markdown/AsciiDoc/PowerBI) is now individually wrapped in
+  its own try/catch, so one failing format can no longer abort every other format in the same run.
+- `ARCServers.CpuMetrics` queried an ARM Insights metric that Arc-enabled servers cannot ever
+  serve (guest-OS metrics are not exposed through that API for `Microsoft.HybridCompute/machines`)
+  and failed 400 for every Arc machine, every run. The call is removed in favor of a clear
+  "not supported for Arc" status.
+- `Invoke-ScoutOperationalArm` (the VM/Arc/storage operational-enrichment helper) had no
+  retry/backoff at all. A 429 (rate limit) or transient 5xx now retries up to 3 times with
+  backoff instead of failing immediately; a 409 (operation already in progress, e.g. patch
+  assessment) is now recorded as a distinct in-progress status rather than a generic error.
+- `VirtualMachine.ReplicationEligibility` logged a failure-looking warning on a 404, which is the
+  expected state for any VM Azure Site Recovery has never evaluated. It's now recognized as
+  "not configured" and no longer warns.
+- The guided wizard's own Step 2 permission audit could report full Entra ID readiness while the
+  wizard never asked about `-Scope`, silently defaulting the run to `ArmOnly` and collecting zero
+  Entra ID data. `Test-AZSCPermissions` now surfaces `OverallReadiness`, and the wizard asks
+  whether to include Entra ID data when the account is fully permissioned for it.
+- The wizard's "Cost data" option offered no warning if `Az.CostManagement` wasn't installed,
+  silently producing empty cost data discovered only deep into a run. The wizard now detects this
+  and offers an explicit, user-confirmed install at the point of choice.
+- A `Get-AzSecurityAlert` null-reference exception (typically Defender for Cloud not fully
+  provisioned on the subscription) now surfaces a clearer hint instead of the bare CLR message.
+
+## [3.0.8] - 2026-07-29
+
+### Fixed
+
+- Suppressed Az module breaking-change warnings so they no longer clutter non-debug output.
+
+## [3.0.7] - 2026-07-29
+
+### Fixed
+
+- Avoided a StrictMode `VariableIsUndefined` error when common parameters such as `-Debug` were
+  supplied to `Invoke-AzureScout`.
+
+## [3.0.6] - 2026-07-28
+
+### Fixed
+
+- Enhanced resilience and logging for the Excel report build and ARC-enabled server collection.
+
 ## [3.0.5] - 2026-07-28
 
 ### Fixed

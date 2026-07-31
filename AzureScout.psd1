@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.0.8'
+ModuleVersion = '3.0.9'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.0.8 - Hotfix: suppress Az module breaking change warnings in non-debug mode.'
+        ReleaseNotes = 'v3.0.9 - Live-run hardening found against a real 8-subscription tenant. Fixed two fatal crashes: JSON report export ".Count cannot be found" under StrictMode, and the SupportTickets collector crashing on a null date. Each report format (Excel/JSON/Markdown/AsciiDoc/PowerBI) now fails independently instead of aborting the whole run. Removed an ARM Insights metrics call that always 400s for Arc-enabled servers (guest-OS metrics are not exposed that way for Arc). Added retry/backoff to the operational-enrichment ARM helper for 429/409/5xx. Quieted an expected ReplicationEligibility 404. Closed a guided-wizard gap where full Entra ID permissions were detected but never offered, silently defaulting every run to ArmOnly. Added a Cost Data module pre-flight check to the wizard. Clarified a DefenderAlerts null-reference message. v3.0.6-3.0.8 (previously unlisted): Excel/ARC resilience and logging, a StrictMode common-parameter fix, and suppressed Az breaking-change warnings.'
 
         # Prerelease string of this module
         # Prerelease = ''

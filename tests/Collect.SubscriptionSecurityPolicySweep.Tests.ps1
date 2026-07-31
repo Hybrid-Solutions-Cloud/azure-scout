@@ -203,6 +203,26 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $results[0].properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
     }
 
+    It 'enriches a DefenderAlerts null-reference failure with a Defender-not-provisioned hint' {
+        function global:Get-AzSecurityAlert {
+            param($ErrorAction) $null = $ErrorAction
+            throw [System.NullReferenceException]::new('Object reference not set to an instance of an object.')
+        }
+
+        $results = @(
+            Get-ScoutSubscriptionSecurityPolicySweep `
+                -Subscriptions @($script:subscriptions[0]) `
+                -WarningVariable warnings `
+                -WarningAction SilentlyContinue
+        )
+
+        @($results[0].properties.DefenderAlerts).Count | Should -Be 0
+        $results[0].properties.CollectionStatus.DefenderAlerts | Should -Be 'Unavailable'
+        $alertError = $results[0].properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts'
+        $alertError.Message | Should -Match 'Defender for Cloud is not fully provisioned'
+        ($warnings -join "`n") | Should -Match 'Defender for Cloud is not fully provisioned'
+    }
+
     It 'treats an unregistered Microsoft.Security pricing provider as unavailable, not an error' {
         $script:unregisteredPricingSubscription = 'sub-2'
 

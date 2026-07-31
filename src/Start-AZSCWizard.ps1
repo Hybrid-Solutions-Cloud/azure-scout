@@ -136,6 +136,7 @@ function Start-AZSCWizard {
     Write-Host ''
 
     $blocked = $false
+    $perm = $null
     try {
         $perm = Test-AZSCPermissions -TenantID $tenantId -Scope 'All'
         foreach ($detail in $perm.Details) {
@@ -159,6 +160,18 @@ function Start-AZSCWizard {
         if (-not (Read-AZSCWizardConfirm -Prompt 'Continue anyway?' -Default $false)) { return $null }
     }
 
+    # The audit above always checks Entra ID (-Scope 'All'), but the actual run defaults to
+    # ArmOnly unless told otherwise. Without this, a fully-permissioned account silently gets
+    # zero Entra ID data because nothing here ever carried the audit's own recommendation
+    # forward into the assembled command. See ADO Bug 6736.
+    $scopeAnswer = 'ArmOnly'
+    if ($perm -and $perm.OverallReadiness -eq 'FullARMAndEntra') {
+        Write-Host '  This account has full Microsoft Graph / Entra ID permissions.' -ForegroundColor DarkGray
+        if (Read-AZSCWizardConfirm -Prompt 'Also collect Entra ID data (users, groups, conditional access, etc.)?' -Default $true) {
+            $scopeAnswer = 'All'
+        }
+    }
+
     # ── Step 3: what to run ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 3 -Total 5 -Title 'What to run'
 
@@ -170,6 +183,7 @@ function Start-AZSCWizard {
     if ($null -eq $mode) { return $null }
 
     $answers = @{ TenantID = $tenantId }
+    if ($scopeAnswer -eq 'All') { $answers.Scope = 'All' }
     $runBoth = ($mode -eq 'Both')
     $wantsInventory = ($mode -in @('Inventory', 'Both'))
     $wantsAssessment = ($mode -in @('Assessment', 'Both'))
@@ -189,7 +203,32 @@ function Start-AZSCWizard {
         if ($null -eq $extras) { return $null }
         if ($extras -contains 'Resource tags')             { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
-        if ($extras -contains 'Cost data')                 { $answers.IncludeCosts = [switch]$true }
+        if ($extras -contains 'Cost data') {
+            # Cost data silently comes back empty later in the run if Az.CostManagement isn't
+            # installed -- catch that here, at the point of choice, instead. Scout never installs
+            # Az modules automatically (a past Az.Accounts version conflict bricked module import),
+            # so any install is an explicit, user-confirmed action. See ADO Task 6738.
+            if (-not (Get-Module -ListAvailable -Name Az.CostManagement)) {
+                Write-Host ''
+                Write-Host '  Cost data requires the Az.CostManagement module, which is not installed.' -ForegroundColor Yellow
+                if (Read-AZSCWizardConfirm -Prompt 'Install Az.CostManagement now (CurrentUser scope)?' -Default $true) {
+                    try {
+                        Install-Module -Name Az.CostManagement -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+                        Write-Host '  Installed Az.CostManagement.' -ForegroundColor Green
+                        $answers.IncludeCosts = [switch]$true
+                    }
+                    catch {
+                        Write-Host "  Install failed: $_ -- continuing without cost data." -ForegroundColor Red
+                    }
+                }
+                else {
+                    Write-Host '  Continuing without cost data.' -ForegroundColor DarkGray
+                }
+            }
+            else {
+                $answers.IncludeCosts = [switch]$true
+            }
+        }
         if ($extras -contains 'Quota usage')               { $answers.QuotaUsage = [switch]$true }
         if ($extras -notcontains 'Network diagrams')       { $answers.SkipDiagram = [switch]$true }
     }
