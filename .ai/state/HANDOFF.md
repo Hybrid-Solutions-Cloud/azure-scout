@@ -17,6 +17,7 @@ re-running.
 | `37557e8` | 6773, 6774–6777 | The four collect-once defects: ArgQueryPack deleted, `-InventoryAndAssessment` added, tags loss in the handoff fixed, AdvisorScores fed from `$ExtractionData.Advisories` + Az context restored in a `finally`. |
 | `636d65d` | 6764, 6765, 6766 | `raw-inventory.json` (everything collected, before any manifest filters), `collector-rowcounts.json` (three verdicts — Rows / Empty / Failed), and a per-collector impact table replacing the READY verdict. Graph failures now reach the warning stream from **both** the pre-flight and the extraction. |
 | `d18c7ab` | 6842, 6772, 6767, 6768 | Resource-type existence gate against ground truth read from ARM. Six collectors retired, three corrected. 242 → 236. |
+| `f7d6f2f` | 6755 *(correction)* | **Tenant-wide collection is now UNCONDITIONAL.** The first pass removed the dead gate and put `-not $SkipAPIs` in its place — the same trap, and factually wrong besides: only the policy definitions come from the REST sweep, while management groups and custom roles come from Az cmdlets. Parameter deleted; `-SkipAPIs` degrades only the sweep, in its own `try` block. |
 
 ### The gate is the notable result
 
