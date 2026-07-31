@@ -79,7 +79,7 @@ output — cross-domain references included (e.g. `waf.security` needs
 Passing `-Categories '*'` (or an empty list, or omitting `-Category`/leaving
 an assessment's own `Collect` list at `@('*')` — `LandingZone` and `Estate`
 both do this) runs every query, same as before. The practical effect:
-`-Assessment Security` now collects a materially smaller set of resource
+`-Assessment 'Assess: Security'` now collects a materially smaller set of resource
 types than `-Assessment LandingZone` (see the run below) — this is a
 different mechanism from `Invoke-AzureScout`'s module-loading-level
 [Category Filtering](category-filtering.md), but for the assessment platform
@@ -89,7 +89,7 @@ scored.
 ```powershell
 # Pulls only Security-relevant resource types (Key Vaults, NSGs, private
 # endpoints/DNS zones, SQL servers, ...) instead of the full ~25-query set.
-Invoke-AzureScout -Assessment Security -OutputFormat Json
+Invoke-AzureScout -Assessment 'Assess: Security' -OutputFormat Json
 ```
 :::
 
@@ -119,13 +119,13 @@ Invoke-AzureScout -Assessment LandingZone -OutputFormat All
 ### Single category
 
 ```powershell
-Invoke-AzureScout -Assessment Security -OutputFormat Html
+Invoke-AzureScout -Assessment 'Assess: Security' -OutputFormat Html
 ```
 
 ### Multiple assessments in one run
 
 ```powershell
-Invoke-AzureScout -Assessment Networking,Security -OutputFormat Html
+Invoke-AzureScout -Assessment 'Assess: Networking','Assess: Security' -OutputFormat Html
 ```
 
 Findings from both are combined into one `findings.json` and one set of
@@ -255,7 +255,7 @@ that cmdlet for Entra ID inventory.
 ### `-Category` override
 
 ```powershell
-Invoke-AzureScout -Assessment Compute -Category Compute,Storage
+Invoke-AzureScout -Assessment 'Assess: Compute' -Category Compute,Storage
 ```
 
 `-Category` replaces the categories recorded for the run — and, per the note
@@ -393,7 +393,7 @@ subscription than its template declares.
 The Collect layer's IoT queries (`Invoke-Collect`, AB#330) now go beyond IoT
 Hub device registries to include **Device Provisioning Service** (DPS) and
 **Azure Digital Twins** instances, scored by the `caf.iot` rule file — so
-`-Assessment IoT` (and `LandingZone`) picks up DPS/Digital Twins findings
+`-Assessment 'Assess: IoT'` (and `LandingZone`) picks up DPS/Digital Twins findings
 without any extra configuration.
 
 ## Assessment config load/save

@@ -48,91 +48,106 @@
     }
 
     # ---- per-category assessments (Epic AB#5056) ----
-    Management = @{
+    #
+    # The `Assess: ` prefix is AB#6762, and it is a stopgap with a known end date.
+    #
+    # These fifteen entries carried the same names as Scout's fifteen INVENTORY categories --
+    # Compute, Storage, Networking and so on. One filters what is collected; the other filters
+    # what is scored. Same words, different meaning, and once the wizard menu was fixed to show
+    # the registry at all (AB#6754) they would have appeared side by side in one list.
+    #
+    # Renaming treats the symptom. The end state is retirement: when Release 3 splits LandingZone
+    # into per-WAF-pillar and per-CAF-design-area assessments, an operator wanting Compute
+    # findings picks the pillars, not a category filter over the same rule set. The prefix buys
+    # a legible menu until then.
+    #
+    # Legacy names still work. Resolve-ScoutAssessmentName maps `Compute` to `Assess: Compute`
+    # and warns, so scripted `-Assessment Compute` callers are not broken by a cosmetic change.
+    'Assess: Management' = @{
         Description = 'Governance, policy, cost, backup, automation, update manager'
         Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance', 'ArgQueryPack', 'AdvisorScores')
         Rules = @('caf.governance', 'caf.management', 'caf.billing'); Frameworks = @('CAF: Governance', 'CAF: Management', 'CAF: Billing', 'WAF: Operational', 'WAF: Cost')
         Tags = @('caf', 'governance', 'management'); Reporters = @('Html', 'Excel')
     }
-    Monitor = @{
+    'Assess: Monitor' = @{
         Description = 'Monitoring, alerting, diagnostics coverage'
         Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @('ArgQueryPack')
         Rules = @('caf.management', 'waf.operational'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('waf', 'monitor'); Reporters = @('Html', 'Excel')
     }
-    Networking = @{
+    'Assess: Networking' = @{
         Description = 'Network topology, firewall, DDoS, exposure, private link'
         Category    = 'Networking'; Collect = @('Networking'); Ingest = @('ArgQueryPack')
         Rules = @('caf.network'); Frameworks = @('CAF: Network topology & connectivity', 'WAF: Security')
         Tags = @('caf', 'networking'); Reporters = @('Html', 'Excel')
     }
-    Identity = @{
+    'Assess: Identity' = @{
         Description = 'Identity & access — PIM, Conditional Access, RBAC'
         Category    = 'Identity'; Collect = @('Identity', 'Security'); Ingest = @('Governance')
         Rules = @('caf.identity'); Frameworks = @('CAF: Identity & access management', 'WAF: Security')
         Tags = @('caf', 'identity'); Reporters = @('Html', 'Excel')
     }
-    Security = @{
+    'Assess: Security' = @{
         Description = 'Defender, Key Vault, secure score, exposure'
         Category    = 'Security'; Collect = @('Security'); Ingest = @('AdvisorScores', 'ArgQueryPack')
         Rules = @('caf.security', 'waf.security'); Frameworks = @('CAF: Security', 'WAF: Security')
         Tags = @('caf', 'waf', 'security'); Reporters = @('Html', 'Excel')
     }
-    Compute = @{
+    'Assess: Compute' = @{
         Description = 'VM resilience, zones, backup, right-size, orphans'
         Category    = 'Compute'; Collect = @('Compute'); Ingest = @('ArgQueryPack', 'AdvisorScores')
         Rules = @('waf.reliability', 'waf.cost', 'waf.performance'); Frameworks = @('WAF: Reliability', 'WAF: Cost', 'WAF: Performance efficiency')
         Tags = @('waf', 'compute'); Reporters = @('Html', 'Excel')
     }
-    Storage = @{
+    'Assess: Storage' = @{
         Description = 'Storage public access, TLS, encryption, redundancy'
         Category    = 'Storage'; Collect = @('Storage'); Ingest = @('ArgQueryPack')
         Rules = @('caf.storage', 'waf.storage'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'waf', 'storage'); Reporters = @('Html', 'Excel')
     }
-    Databases = @{
+    'Assess: Databases' = @{
         Description = 'SQL/DB private access, TDE, zone redundancy'
         Category    = 'Databases'; Collect = @('Databases'); Ingest = @('ArgQueryPack')
         Rules = @('caf.databases'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'databases'); Reporters = @('Html', 'Excel')
     }
-    Containers = @{
+    'Assess: Containers' = @{
         Description = 'AKS private clusters, RBAC, registry hardening'
         Category    = 'Containers'; Collect = @('Containers'); Ingest = @('ArgQueryPack')
         Rules = @('caf.containers'); Frameworks = @('CAF: Security', 'WAF: Reliability')
         Tags = @('caf', 'containers'); Reporters = @('Html', 'Excel')
     }
-    Web = @{
+    'Assess: Web' = @{
         Description = 'App Service HTTPS-only, TLS, managed identity'
         Category    = 'Web'; Collect = @('Web'); Ingest = @('ArgQueryPack')
         Rules = @('caf.web'); Frameworks = @('CAF: Security', 'WAF: Security')
         Tags = @('caf', 'web'); Reporters = @('Html', 'Excel')
     }
-    Analytics = @{
+    'Assess: Analytics' = @{
         Description = 'Analytics data governance and network isolation'
         Category    = 'Analytics'; Collect = @('Analytics'); Ingest = @('ArgQueryPack')
         Rules = @('caf.analytics'); Frameworks = @('CAF: Governance', 'WAF: Security')
         Tags = @('caf', 'analytics'); Reporters = @('Html', 'Excel')
     }
-    AI = @{
+    'Assess: AI' = @{
         Description = 'AI/Cognitive private access and responsible-AI posture'
         Category    = 'AI'; Collect = @('AI'); Ingest = @('ArgQueryPack')
         Rules = @('caf.ai'); Frameworks = @('CAF: Governance', 'WAF: Security')
         Tags = @('caf', 'ai'); Reporters = @('Html', 'Excel')
     }
-    Integration = @{
+    'Assess: Integration' = @{
         Description = 'Messaging redundancy and APIM network isolation'
         Category    = 'Integration'; Collect = @('Integration'); Ingest = @('ArgQueryPack')
         Rules = @('caf.integration'); Frameworks = @('CAF: Network topology & connectivity', 'WAF: Reliability')
         Tags = @('caf', 'integration'); Reporters = @('Html', 'Excel')
     }
-    Hybrid = @{
+    'Assess: Hybrid' = @{
         Description = 'Arc onboarding, agent currency, Azure Local'
         Category    = 'Hybrid'; Collect = @('Hybrid'); Ingest = @('ArgQueryPack')
         Rules = @('caf.hybrid'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('caf', 'hybrid'); Reporters = @('Html', 'Excel')
     }
-    IoT = @{
+    'Assess: IoT' = @{
         Description = 'IoT Hub/DPS network isolation and device auth'
         Category    = 'IoT'; Collect = @('IoT'); Ingest = @('ArgQueryPack')
         Rules = @('caf.iot'); Frameworks = @('CAF: Security', 'WAF: Security')

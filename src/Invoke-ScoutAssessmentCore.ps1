@@ -21,8 +21,8 @@ $ErrorActionPreference = 'Stop'
     Invoke-AzureScout -Assessment LandingZone -OutputFormat Html,Pptx
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment Management        # governance/policy/update-manager, scored
-    Invoke-AzureScout -Assessment Monitor -OutputFormat Html
+    Invoke-AzureScout -Assessment 'Assess: Management'   # governance/policy/update-manager, scored
+    Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat Html
 
 .EXAMPLE
     Invoke-AzureScout -Assessment LandingZone -CollectOnly
@@ -94,6 +94,11 @@ function Invoke-ScoutAssessmentCore {
 
     $manifest = Import-PowerShellDataFile "$PSScriptRoot/../manifests/assessments.psd1"
     if ($Assessment -contains 'All') { $Assessment = @($manifest.Keys) }
+    # AB#6762 -- fifteen entries were renamed with an `Assess: ` prefix to stop the wizard menu
+    # colliding with the fifteen identically-named inventory categories. A scripted
+    # `-Assessment Compute` predates that rename and must keep working, so the legacy name is
+    # mapped here (with a warning naming the new value) before anything indexes the manifest.
+    $Assessment = @(Resolve-ScoutAssessmentName -Name $Assessment -Manifest $manifest)
 
     if ($PermissionAudit) {
         return Test-ScoutPermission -Assessment $Assessment -Manifest $manifest

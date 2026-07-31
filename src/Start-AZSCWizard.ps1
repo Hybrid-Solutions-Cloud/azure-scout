@@ -250,9 +250,25 @@ function Start-AZSCWizard {
         if (Test-Path $manifestPath) {
             try {
                 $assessmentManifest = Import-PowerShellDataFile $manifestPath
-                $assessmentNames = @($assessmentManifest.Keys | Sort-Object)
+                # AB#6763 -- the menu lists only what Scout can actually run. Exposing the whole
+                # registry would put `Estate` (Rules = @(), scores nothing) in front of a
+                # customer, and an entry that runs and returns nothing reads as "no findings".
+                $assessmentNames = @(Get-ScoutAvailableAssessment -Manifest $assessmentManifest)
+                if ($assessmentNames.Count -eq 0) {
+                    Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering LandingZone only.'
+                    $assessmentNames = @('LandingZone')
+                }
             }
             catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to LandingZone: $_" }
+        }
+        else {
+            # AB#6754 -- this used to be reached on every run, because the path climbed three
+            # directory levels to a file one level up. Test-Path returned false, the fallback
+            # ran, and the wizard offered a hard-coded list of one. It was silent, so nobody
+            # noticed for several releases. It is a warning now: reaching it means the module
+            # layout is wrong, and the operator should see a short menu explained rather than a
+            # short menu asserted.
+            Write-Warning "Start-AZSCWizard: the assessment registry was not found at '$manifestPath' — offering LandingZone only. This is a packaging fault, not an empty catalogue."
         }
 
         # An assessment declaring RequiresData is hidden until the data it scores actually exists

@@ -72,7 +72,7 @@ $ErrorActionPreference = 'Stop'
     Full unattended landing-zone run, every reporter tier, scoped to a management group.
 
 .EXAMPLE
-    Invoke-ScoutPipeline -Assessment Security, Networking -OutputFormat Html, Excel -SkipPermissionAudit
+    Invoke-ScoutPipeline -Assessment 'Assess: Security', 'Assess: Networking' -OutputFormat Html, Excel -SkipPermissionAudit
 
     A CI job that already validated permissions upstream and only wants two
     per-category assessments rendered to two tiers.
