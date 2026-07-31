@@ -18,7 +18,7 @@ AzureScout is **one command**, `Invoke-AzureScout`, with two modes. By default i
 
 | Feature | Description |
 |---------|-------------|
-| **ARM Resource Discovery** | 154 resource modules across 15 Microsoft Azure categories (AI + machine learning, Analytics, Compute, Containers, Databases, Hybrid + multicloud, Identity, Integration, IoT, Management and governance, Monitor, Networking, Security, Storage, Web) |
+| **ARM Resource Discovery** | 236 collector definitions across 18 Microsoft Azure categories (AI + machine learning, Analytics, Compute, Containers, Databases, DevOps, General, Hybrid + multicloud, Identity, Integration, IoT, Management and governance, Migration, Monitor, Networking, Security, Storage, Web) |
 | **Entra ID Inventory** | 17 identity modules — Users, Groups, Applications, Service Principals, Conditional Access, PIM, Administrative Units, Named Locations, Domains, Identity Providers, Security Defaults, and more |
 | **Excel Reports** | Rich multi-worksheet workbooks with charts, pivot tables, and conditional formatting |
 | **JSON Output** | Machine-readable normalized output for automation pipelines |
@@ -76,6 +76,6 @@ If you're already logged in via `Connect-AzAccount`, AzureScout uses your existi
 | [Contributing](contributing.md) | How to add new inventory modules |
 | [Credits](credits.md) | Attribution and acknowledgments |
 | [Changelog](changelog.md) | Version history |
-| [Assessment Platform](assessment.md) | CAF/WAF landing-zone assessment — architecture, run modes, all 22 assessments |
+| [Assessment Platform](assessment.md) | CAF/WAF landing-zone assessment — architecture, run modes, and the assessment registry |
 | [Assessment Prerequisites](assessment-prerequisites.md) | Software, module, and .NET SDK prerequisites specific to assessment mode (`-Assessment`) |
 | [Assessment Permissions](assessment-permissions.md) | Minimum RBAC and Graph permissions per assessment, and `-PermissionAudit` |

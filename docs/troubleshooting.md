@@ -16,7 +16,9 @@ description: Common errors and solutions when running AzureScout.
 | `Connect-AzAccount: interactive login failed` | Running in a non-interactive session (CI/CD, SSH) | Use `-DeviceLogin`, SPN with secret, or SPN with certificate. See [Authentication](authentication.md). |
 | `Token acquisition failed for MSGraph` | Az.Accounts version too old or tenant configuration issue | Update `Az.Accounts` to latest: `Update-Module Az.Accounts -Force` |
 | `Export-Excel: file is locked` | Excel report file is open in another application | Close the file and re-run. |
-| Management Groups worksheet is empty, no error | Identity has no tenant-root role | Assign `Management Group Reader` at the tenant root. Since v2.3.0 the login summary reports the visible count and prints this tip, so you find out at sign-in rather than after the run. |
+| Management Groups / Custom Role Definitions / Policy Definitions / Policy Set Definitions worksheets are empty | First check: is `Reader` assigned at the **tenant-root management group**, not just at individual subscriptions? Subscription-scoped `Reader` silently returns an empty hierarchy — no error. | Assign `Reader` at the tenant-root MG. Since v2.3.0 the login summary reports the visible management-group count at sign-in. If root-MG `Reader` is already in place and the sheet is still empty, that's worth reporting — whether `Management Group Reader` is genuinely additional beyond `Reader` is currently unresolved; see [Permissions](permissions.md#arm-permissions). Do not reach for a broader role first. |
+| A Graph-backed collector (e.g. `IdentityProviders`) is empty and nothing seems wrong with permissions | Some Graph queries are issued but consumed by no collector — Scout still probes them so the pre-flight can tell you they're unnecessary | Expected. The pre-flight prints `Warn ... queried but NO collector reads the result. Do not grant it.` for these — check `-PermissionAudit` / `Test-AZSCPermissions` output rather than granting more access. See [Permissions](permissions.md#microsoft-graph-permissions). |
+| Cost data is empty despite `Reader` (and even `Cost Management Reader`) being assigned | Cost visibility is gated on a **billing setting**, not a role: EA "AO view charges" or MCA "Azure charges" | Have a billing administrator (Enterprise Administrator for EA, **Billing Profile Owner** for MCA) enable the setting. No Azure RBAC role change fixes this. See [Permissions](permissions.md#arm-permissions). |
 | Reports are not where a previous version left them | Run isolation (v2.3.0) | Each run now writes to its own folder under the base path. Use `-Force` for the old overwrite-in-place behaviour, or `-RunName` to control the folder name. See [Output Files & Formats](output.md#run-isolation). |
 | Output folders accumulating on disk | One folder per run, by design | `Clear-AZSCCacheFolder -OlderThan 30` prunes runs not written to in the last 30 days. |
 | `No Azure DevOps organizations could be discovered` | Service principals have no profile to enumerate | Pass `-DevOpsOrganization 'contoso','fabrikam'`. See [Azure DevOps](azure-devops.md). |
@@ -110,7 +112,13 @@ $result = Test-AZSCPermissions -TenantID '00000000-...' -Scope All
 $result | Format-List
 ```
 
-The `Details` array contains per-check results with remediation guidance for any failures.
+The `Details` array contains per-check results with remediation guidance for any failures. The
+output is a per-collector impact table, not a bare READY/PARTIAL/INSUFFICIENT verdict — a denied
+permission names the exact collectors that will come back empty rather than a generic warning. A
+denied Microsoft Graph permission also reaches PowerShell's warning stream, so a scripted caller
+(a pipeline step, a scheduled Automation Account run) can detect it with `-WarningVariable` or by
+capturing stream 3, not only a human watching coloured console output. See
+[Permissions](permissions.md#pre-flight-validation).
 
 ## Complete Removal (Uninstall)
 

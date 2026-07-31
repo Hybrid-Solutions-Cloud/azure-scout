@@ -24,7 +24,7 @@ azure-scout/
 │   │   └── config.ts                   #   Nav, sidebar, site config
 │   ├── design/                         #   Architecture decisions, master plan, assessment registry
 │   │   ├── decisions/                  #     Individual ADRs (e.g. PPTX renderer choice)
-│   │   ├── assessment-registry.md      #     All 22 assessments: Collect/Ingest/Rules/report tiers
+│   │   ├── assessment-registry.md      #     The assessment registry: Collect/Ingest/Rules/report tiers
 │   │   ├── master-plan.md              #     Consolidated architecture + work-item index
 │   │   ├── enhancement-spec.md         #     Original v2 assessment-platform spec
 │   │   └── task-list.md                #     Delivery task tracking
@@ -115,9 +115,14 @@ azure-scout/
 │   ├── Invoke-ScoutPipeline.ps1        #   Unattended collect->assess->report pipeline (v2.1.0, AB#5050)
 │   └── Write-ScoutProgress.ps1         #   Live collection progress output (v2.2.0, AB#405)
 ├── manifests/
-│   └── assessments.psd1                # Registry of all 22 assessments (Collect/Ingest/Rules/report tiers)
-├── tests/                              # Pester test suites (34 files, offline/mock-driven)
+│   └── assessments.psd1                # The assessment registry (Collect/Ingest/Rules/report tiers)
+├── tests/                              # Pester test suites (80 files, offline/mock-driven — 2,243
+│   │                                   #   tests: 2,236 passing, 3 skipped, 4 known cross-file
+│   │                                   #   flakes that fail only in a full-suite run and pass in
+│   │                                   #   isolation. Verified 2026-07-31)
 │   ├── datadump/                       #   Synthetic fixture data for offline report rendering tests
+│   ├── ResourceTypeExistence.Tests.ps1 #   Every declared resource type checked against real Azure
+│   │                                   #   provider/type pairs (AB#6842) — see docs/testing.md
 │   ├── Assessment.Engine.Tests.ps1     #   Assessment engine (Resolve-JsonPath, Invoke-Rule, Get-Score)
 │   ├── Test-ExcelFromDataDump.ps1      #   Renders Excel evidence tier from datadump fixtures
 │   ├── Test-PowerBIFromDataDump.ps1    #   Renders Power BI CSV bundle from datadump fixtures

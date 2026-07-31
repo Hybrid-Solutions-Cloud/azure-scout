@@ -42,6 +42,8 @@ See [Authentication](authentication.md) for detailed examples of each method.
 | `-SkipVMDetails` | Skip extra VM detail collection (extensions, boot diagnostics status) |
 | `-SkipDiagram` | Skip network diagram generation |
 | `-SkipPermissionCheck` | Skip the pre-flight permission validation |
+| `-PermissionAudit` | Standalone permission audit — connects, checks ARM/RBAC (and Graph, with `-IncludeEntraPermissions`) then exits without collecting. Aliases: `-AuditPermissions`, `-CheckPermissions`. Prints an overall readiness verdict plus a per-collector impact table naming every collector a missing permission will leave empty and which permission fixes it — the verdict word alone used to be the only answer, which could read READY over worksheets that were about to come back empty |
+| `-IncludeEntraPermissions` | With `-PermissionAudit`, also audit Microsoft Graph / Entra ID access. Alias: `-EntraAudit` |
 
 ### Output
 
@@ -108,7 +110,8 @@ run-mode examples: [Assessment guide](assessment.md#run-modes).
 
 | Parameter | Description |
 |-----------|-------------|
-| `-Assessment` | One, several, or `All` assessment names from `manifests/assessments.psd1`. Supplying it is what selects assessment mode; omit it for an inventory run. Alias `-Assess`. See the [Assessment Registry](design/assessment-registry.md) for all 22. |
+| `-Assessment` | One, several, or `All` assessment names from `manifests/assessments.psd1`. Supplying it is what selects assessment mode; omit it for an inventory run. Alias `-Assess`. Fifteen of the twenty-four entries score a single inventory category and are named `'Assess: <Category>'` — e.g. `'Assess: Compute'`, not `Compute` — because that name previously collided with the inventory `-Category` value of the same name. The colon and space mean the value must be quoted. Legacy unprefixed names (`Compute`, `Storage`, ...) still resolve, with a warning naming the new value. Those fifteen are a stopgap — they are category-scoped filters over the same CAF/WAF rule set `LandingZone` runs in full, and they are due to be retired once per-pillar assessments exist. See the [Assessment Registry](design/assessment-registry.md). |
+| `-InventoryAndAssessment` | Switch, alias `-Both`. Runs the inventory pass and the `-Assessment` pass from **one** collection instead of two — the assessment is handed the inventory's already-collected rows rather than re-querying Azure. Without it, `-Assessment` alone returns the assessment only; getting both previously meant invoking the command twice (and collecting from Azure twice) or answering the wizard's "run both?" prompt, which no script or CI pipeline could reach. See [Overview: running both](overview.md#running-both). |
 | `-Scope` | `ArmOnly` or `All` — both run the ARM/Resource Graph collect. `EntraOnly` throws, because the assessment Collect layer has no Entra/Graph path; use an inventory run with `-Scope EntraOnly` for Entra ID. |
 | `-Category` | Filters which Resource Graph queries the Collect layer runs, narrowing the collect below the assessment's manifest default. |
 | `-OutputFormat` | `Html` (default), `Pptx`, `PowerBI`, `Excel`, `Json`, `JsonEvidence`, `React`, `Word`, `EChartsDashboard`, `Pdf`, or `All` — accepts an array, e.g. `-OutputFormat Html,Pptx`. Inventory-only formats (`Markdown`, `AsciiDoc`) are rejected here with a message naming the valid set. `React` renders a self-contained `report-react.html` with client-side filter/sort/search and a cross-run Drift tab; `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](assessment.md#report-tiers). |

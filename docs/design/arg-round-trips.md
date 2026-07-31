@@ -2,6 +2,20 @@
 
 Tracks ADO AB#5648 (Epic AB#5638).
 
+::: warning Partly stale — written mid-rewrite, `Modules/` is now deleted
+This document was written during the AB#5648 inversion, while the collector tree still had a
+live `Modules/Private/...` shim layer alongside the new `src/collect/` functions. As of v3.0.0
+that shim layer — every `Modules/Private/...` path named below — **no longer exists in the
+repository**; the retired collector-script tree and imperative fallback were deleted outright
+(see [`docs/changelog.md`](../changelog.md) v3.0.0, and [`docs/ari-differences.md`](../ari-differences.md#engine-rewrite-ari-shipped-none-of-this)).
+The query counts and call-site *purposes* below are still the right mental model — the
+`src/collect/` half of every row is current — but any `Modules/Private/...` path is historical,
+not a file you can open today. **`src/ingest/Invoke-ArgQueryPack.ps1`, listed as a call site
+below, was also deleted** — AB#6774 (2026-07-31) retired it outright once its six queries were
+confirmed to duplicate data `Invoke-Collect` already collects. Treat this page as an explanation
+of *why* the numbers are what they are, not as a current file map.
+:::
+
 This is the map of **every** Azure Resource Graph and ARM REST call the product issues, where it
 is issued from, and what changed when `src/collect` became the single source of the raw data.
 It was derived by reading each call site, not from an earlier estimate.
@@ -21,7 +35,7 @@ Every `Search-AzGraph` call site in the shipped module:
 | `Modules/Private/Extraction/Get-AZTIManagementGroups.ps1` | expand a management group into its subscriptions | 1, only when `-ManagementGroup` is supplied |
 | `manifests/collectors/Management/AllSubscriptions.ps1` | one inventory collector's own lookup | 1, during processing |
 | `src/ingest/Import-Governance.ps1` | governance ingestor | per its own query pack, only for assessments whose manifest lists `Ingest = 'Governance'` |
-| `src/ingest/Invoke-ArgQueryPack.ps1` | opt-in ARG query pack ingestor | per its own pack, only when the manifest lists it |
+| ~~`src/ingest/Invoke-ArgQueryPack.ps1`~~ | *(deleted, AB#6774)* — opt-in ARG query pack ingestor | All six of its queries duplicated data `Invoke-Collect` already collected, and it overwrote the collector's results with `Add-Member -Force`. A manifest that still names the ingest is ignored with a verbose line rather than erroring |
 | `scripts/Export-ScoutFixture.ps1` | developer fixture capture | not part of a product run |
 
 `Modules/Private/Extraction/Start-AZTIGraphExtraction.ps1` and

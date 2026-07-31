@@ -63,20 +63,30 @@ telling you which switch you actually wanted, rather than quietly producing noth
 ## Running both
 
 An assessment scores your estate, so it needs to know what's in it. To get the raw inventory
-*and* the scored analysis from a single run, pick **Both** in the wizard — or run the two
-modes back to back:
+*and* the scored analysis from a single run — and a single collection from Azure — add
+`-InventoryAndAssessment` (alias `-Both`) alongside `-Assessment`:
 
 ```powershell
-Invoke-AzureScout -ReportDir ./scout                          # inventory
-Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment
+Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment -ReportDir ./scout
 ```
 
+The wizard's **Both** choice sets the same switch behind the scenes. Before this switch
+existed, the collect-once path was reachable only by answering that wizard prompt — a script
+or CI pipeline had no equivalent, and had to invoke the command twice back to back:
+
+```powershell
+Invoke-AzureScout -ReportDir ./scout                          # inventory — collects from Azure
+Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment — collects again
+```
+
+That still works, but it pays for two collections against Azure instead of one.
+
 ::: tip One collection pass
-Since v2.5.0 a combined run collects from Azure **once**. The inventory pass already fetches the
-full property bag for every resource, and the assessment shapes its scores from those rows
-instead of re-querying the same resource types. Exactly one Resource Graph query still runs in a
-combined pass — the Defender for SQL pricing lookup, which reads a table the inventory does not
-collect. An assessment-only run is unchanged and still issues the full query pack.
+The inventory pass already fetches the full property bag for every resource, and the
+assessment shapes its scores from those rows instead of re-querying the same resource types.
+Exactly one Resource Graph query still runs in a combined pass — the Defender for SQL pricing
+lookup, which reads a table the inventory does not collect. An assessment-only run is
+unchanged and still issues the full query pack.
 :::
 
 ## Requirements

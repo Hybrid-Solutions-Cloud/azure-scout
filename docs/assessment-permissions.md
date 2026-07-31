@@ -34,7 +34,7 @@ longer a default requirement for any assessment.
 | **ARM `Reader` at the tenant-root management group** | **Every assessment, with no exception** — including the 5 governance-data assessments, now served by the native `Import-Governance` collector. |
 | **Microsoft Graph app permissions** (`User.Read.All`, `Group.Read.All`, `Application.Read.All`, `PrivilegedAccess.Read.AzureResources`) | **Only** if you opt an assessment into the legacy `AzGovViz` ingestor instead of the native `Governance` default. Not required by any assessment out of the box. |
 
-All 22 assessments in [the registry](design/assessment-registry.md) need
+Every entry in [the registry](design/assessment-registry.md) needs
 **ARM Reader only** by default. No Graph permission, delegated or
 application, is required unless you deliberately switch an assessment's
 `Ingest` back to `AzGovViz`.
@@ -63,6 +63,30 @@ A `Reader` assignment scoped only to individual subscriptions will **fail**
 this specific check (`Test-ScoutPermission` does not walk down to
 subscription-level assignments as a fallback). Assign `Reader` at the root
 management group so every subscription under it inherits read access.
+
+::: warning Whether Reader at root MG alone is enough is unresolved — do not add Management Group Reader on spec
+Reader assigned at the tenant-root management group is confirmed necessary. Whether it is also
+**sufficient** for the `ManagementGroups` and `CustomRoleDefinitions` data, or whether
+`Management Group Reader` is genuinely additional, has not been settled by a live test. If those
+worksheets come back empty with root-MG `Reader` in place, treat it as worth investigating rather
+than assuming the fix is a bigger role grant. See [Permissions](permissions.md).
+:::
+
+::: danger Three Azure RBAC roles were dropped from the ask — do not grant them for assessment mode either
+`Security Reader`, `Monitoring Reader`, and `Cost Management Reader` (the **Azure RBAC** roles,
+not the Entra role of the same name) grant nothing an assessment collector calls that `Reader`
+does not already grant, and two of them additionally carry `Microsoft.Support/*` — including
+support-ticket **creation**. See [Permissions](permissions.md#arm-permissions) for the full
+reasoning. It applies here too: an assessment is rule evaluation over data its collectors already
+gathered, so it never needs a permission the underlying collectors don't already need — and none
+of them need these three.
+:::
+
+The **`Cost`** assessment has one additional, non-role prerequisite: EA **"AO view charges"** or
+MCA **"Azure charges"** must be enabled by a billing administrator (an Enterprise Administrator
+for EA, a **Billing Profile Owner** for MCA — not a subscription or resource owner). No Azure
+RBAC role, including `Reader` or `Cost Management Reader`, substitutes for this setting. With it
+disabled, `Microsoft.CostManagement/query` returns empty regardless of role assignment.
 
 ## Per-assessment matrix
 
@@ -194,9 +218,15 @@ run — omitting it there logs `Import-AzGovViz: no -ManagementGroupId
 supplied; skipping AzGovViz ingest` and that ingestor's data is skipped, same
 behavior as before this default changed.
 
+::: warning Verification status
+The permission claims on this page are documentation analysis, not a tested result — no run has
+been performed against a `Reader`-only principal to confirm every assessment still scores
+correctly. Treat this page as probable, not proven, until a live comparison run exists.
+:::
+
 ## Next steps
 
 - [Assessment guide — run modes and examples](assessment.md)
-- [Assessment Registry — all 22 assessments](design/assessment-registry.md)
+- [Assessment Registry — the full registry](design/assessment-registry.md)
 - [Assessment prerequisites](assessment-prerequisites.md)
 - Inventory mode's separate model: [Permissions](permissions.md), [Authentication](authentication.md)

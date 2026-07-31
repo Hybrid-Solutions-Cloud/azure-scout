@@ -63,6 +63,69 @@ plane and all within Reader. The SMART migration-readiness assessment ships with
 framework enumerated and date-stamped first, including an explicit record of what could not be
 enumerated. See **Epic AB#6741**.
 
+## CAF/WAF assessment programme
+
+**Planned, from the Epic AB#6731 audit. Scout ships one real assessment
+today: `LandingZone`.** Everything else in
+`manifests/assessments.psd1` is either a filtered slice of that same rule set
+(the 15 per-category entries, prefixed `Assess: ` as of this release — see the
+[Assessment Registry](design/assessment-registry.md)), a sub-bundle, or
+`Cost`. Microsoft's own [assessment catalogue](https://learn.microsoft.com/assessments/browse/)
+lists 56 published assessments; of those, an owner-decided set of **14** are
+Scout's build targets for the next several releases — chosen because Scout
+already collects data for most of them, or is uniquely positioned to score
+them (Azure Local, in particular — see below).
+
+| # | Target | Scout's starting position |
+|---|---|---|
+| 1 | Azure Well-Architected Review | `waf.*` rule files exist, tagged by pillar — **~15% solid coverage** against the WAF checklist's ~26 machine-assessable items |
+| 2 | Azure Landing Zone Review | `LandingZone` already aims at this — **~10%** of CAF's ~365 verified design-area recommendations |
+| 3 | Azure Local \| Well-Architected Review | **Scout's strongest differentiator** — 16 Hybrid collectors, no WAF-shaped rule output yet |
+| 4 | WAF AI workload | AI is Scout's best-inventoried category; rules are thin (`caf.ai`, 5 rules) |
+| 5 | WAF Azure Virtual Desktop workload | 7 AVD collectors exist; no AVD-specific rule file |
+| 6 | WAF Azure VMware Solution workload | AVS collected; no AVS rule file |
+| 7 | AVS Landing Zone Review | Pairs with #6 — platform readiness rather than workload |
+| 8 | Cloud Governance | Policy compliance state is already collected and scored by nothing |
+| 9 | FinOps Review | `waf.cost` (6 rules) + a misnamed `caf.billing.yaml` that actually holds cost-optimization rules |
+| 10 | DevOps Capability Assessment | 5 DevOps collectors exist via the Azure DevOps REST API |
+| 11 | Microsoft Cloud Security Benchmark (MCSB) | Not on Microsoft's assessment catalogue — it's an Azure Policy initiative (223 policies, assigned by default in Defender for Cloud). The compliance state is already collected via three code paths and read by no rule — **cheapest assessment on this list, no new Azure calls** |
+| 12 | WAF Maturity Model | Same rules as #1, different output shape ("level 2 of 5" vs. a fail list) |
+| 13 | Cloud Adoption Security Assessment (CASA) | Aligned to the CAF **Secure** methodology, which Scout does not model at all today |
+| 14 | Strategic Migration Assessment (SMART) | Blocked until the Migration category has collectors — **shipped in v3.1.0**; `smart.migration.yaml` is scored against the enumerated source in [SMART's framework page](frameworks/smart-question-set.md) |
+
+::: warning Only 2 of 14 are design-ready
+Writing a rule file against a framework nobody enumerated is how
+`waf.storage.yaml` happened — a rule file that scores a WAF pillar (Storage)
+that doesn't exist; WAF has exactly five pillars. Only **#1 Azure
+Well-Architected Review** (the 5-pillar checklist) and **#2 Azure Landing
+Zone Review** (the 8 CAF design areas) have their source structure enumerated
+and coverage-measured today — both in the audit document, §8. **#14 SMART**
+now has its source enumerated too (linked above). The remaining eleven each
+need their own enumeration — a published Microsoft checklist or question set,
+read and tabulated — as a prerequisite task before any rule file is written
+against them, because Microsoft is actively rewriting several of these pages
+and a coverage number without a verification date and method will silently
+go stale.
+:::
+
+**What blocks the most assessments is Scout's own defect, not new
+collectors.** `-IncludeTenantWideResources` used to gate management groups,
+custom role definitions, policy definitions and policy set definitions
+behind a switch no production caller ever set — fixed in this release (see
+[v3.1.0](#current-release-v3-1-0-eighteen-category-service-coverage) history
+below) — and that single fix unblocks #2, #7, #8 and #13. A second
+near-free win: role assignments, resource locks, policy assignments and
+budgets are already collected into memory and rendered by nothing, which is
+most of what blocks #8 Cloud Governance outright.
+
+**Deliberately excluded:** partner-enablement guides, skills assessments, and
+industry-vertical readiness guides from Microsoft's catalogue. Those are
+training material, not something a scanning tool can produce.
+
+Full detail, the release-order dependency map, and the underlying evidence:
+`docs/audits/AZURE-SCOUT-AUDIT.md` §8, §13 (decisions DQ1/DQ2/DQ10-DQ12), and
+§14.
+
 ## v3.0.9 — Live-run hardening
 
 Released 30 July 2026. A live run against a real 8-subscription tenant surfaced two fatal

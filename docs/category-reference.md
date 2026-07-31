@@ -23,26 +23,47 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 |---|---|---|---|
 | AI + machine learning | `AI` | `manifests/collectors/AI/` | 27 |
 | Analytics | `Analytics` | `manifests/collectors/Analytics/` | 6 |
-| Compute | `Compute` | `manifests/collectors/Compute/` | 14 |
+| Compute | `Compute` | `manifests/collectors/Compute/` | 13 |
 | Containers | `Containers` | `manifests/collectors/Containers/` | 6 |
-| Databases | `Databases` | `manifests/collectors/Databases/` | 13 |
+| Databases | `Databases` | `manifests/collectors/Databases/` | 12 |
 | DevOps | `DevOps` | `manifests/collectors/DevOps/` | 12 |
 | General | `General` | `manifests/collectors/General/` | 4 |
-| Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 16 |
+| Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 15 |
 | Identity | `Identity` | `manifests/collectors/Identity/` | 16 |
 | Integration | `Integration` | `manifests/collectors/Integration/` | 9 |
 | Internet of Things | `IoT` | `manifests/collectors/IoT/` | 7 |
 | Management and governance | `Management` | `manifests/collectors/Management/` | 18 |
 | Migration | `Migration` | `manifests/collectors/Migration/` | 6 |
-| Monitor | `Monitor` | `manifests/collectors/Monitor/` | 24 |
+| Monitor | `Monitor` | `manifests/collectors/Monitor/` | 22 |
 | Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
 | Security | `Security` | `manifests/collectors/Security/` | 17 |
-| Storage | `Storage` | `manifests/collectors/Storage/` | 12 |
+| Storage | `Storage` | `manifests/collectors/Storage/` | 11 |
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
 **236 declarative collector definitions across all 18 of Microsoft's published service
 categories.** Counts are the `.psd1` file count in each category directory; one definition
 generally maps to one worksheet in the Excel report.
+
+Six collectors were retired on 2026-07-31 (Epic AB#6731, AB#6842) because the resource type(s)
+they declared do not exist in Azure at any permission level, so they could never return a row in
+any tenant: `Hybrid/ArcSites` (three fabricated type strings), `Compute/CloudServices`
+(`microsoft.classiccompute` now lists zero types — classic/ASM is gone), `Storage/DataLakeStoreGen1`
+(Data Lake Gen1 retired 2024-02-29), `Databases/POSTGRE` (PostgreSQL Single Server is end of life),
+and `Monitor/AppInsightsContinuousExport` / `Monitor/AppInsightsWorkItems` (Azure removed both
+endpoints). That took the count from 242 to 236: Compute, Databases, Hybrid, Monitor and Storage
+each lost one collector except Monitor, which lost two.
+
+Three more collectors were **corrected** rather than retired in the same pass — each declared a
+renamed or retired resource type alongside a live one, so each was half-collecting silently:
+`Migration/AzureMigrateProjects`, `Security/CloudHSM`, `Security/ConfidentialLedger`. The dead type
+string was dropped from each spec; the collector itself still exists and its module count is
+unchanged.
+
+Every declared resource type is now checked against a committed catalogue of real Azure
+provider/type pairs by `tests/ResourceTypeExistence.Tests.ps1` — see
+[Testing: the resource-type existence gate](testing.md#the-resource-type-existence-gate). It is
+what caught this batch, and it runs on every pull request so a collector for a type Azure does not
+have can no longer ship.
 
 `DevOps`, `General` and `Migration` are new in v3.1.0 (AB#6741). Before it Scout modelled fifteen
 categories and had no home at all for Azure Migrate, Data Box, Chaos Studio, Dev Box, Reservations
@@ -111,7 +132,7 @@ and the documented behaviour never once occurred.
 | `Monitor` | Action groups, alert rules, Application Insights and its deep-data modules, data collection rules, diagnostic settings, Log Analytics |
 | `Networking` | VNets, NSGs, load balancers, application gateways, Front Door, Azure Firewall, Bastion, ExpressRoute, VPN connections |
 | `Security` | Microsoft Defender for Cloud alerts, assessments, pricing, secure score; Key Vault plus its secret/key/certificate expiry; Sentinel, Managed HSM, Cloud HSM, application security groups, WAF policies, DDoS protection plans, Confidential Ledger, artifact signing, Entra Domain Services, App Compliance Automation |
-| `Storage` | Storage accounts plus their blob containers, file shares and lifecycle policies; NetApp Files, snapshots, disk encryption sets, Elastic SAN, Storage Sync, Edge Hardware Center, Data Lake Gen1, partner storage (Pure, Qumulo) |
+| `Storage` | Storage accounts plus their blob containers, file shares and lifecycle policies; NetApp Files, snapshots, disk encryption sets, Elastic SAN, Storage Sync, Edge Hardware Center, partner storage (Pure, Qumulo) |
 | `Web` | App Services and plans, Function Apps, deployment slots, App Service Environments, Static Web Apps, certificates and domains, SignalR, Web PubSub, Communication Services, Notification Hubs, Fluid Relay, Spring Apps |
 
 ## Filtering examples

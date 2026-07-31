@@ -118,4 +118,4 @@ applies even though it doesn't score anything.
 
 - [Auth & permissions per scan type](assessment-permissions.md)
 - [Assessment guide — run modes and examples](assessment.md)
-- [Assessment Registry — all 22 assessments](design/assessment-registry.md)
+- [Assessment Registry — all 24 registry entries](design/assessment-registry.md)

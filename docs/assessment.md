@@ -1,5 +1,5 @@
 ---
-description: Run a read-only CAF/WAF assessment with AzureScout — architecture, every run mode, all 22 assessments, and minimum auth per scan type.
+description: Run a read-only CAF/WAF assessment with AzureScout — architecture, every run mode, the assessment registry, and minimum auth per scan type.
 ---
 
 # CAF/WAF Assessment Platform
@@ -10,6 +10,16 @@ Framework (WAF)** pillars — not just inventory it. The assessment is
 **read-only** end to end (ARM Reader at the management-group root, plus
 read-only Graph app permissions for a subset of scans — see
 [Auth & permissions per scan type](assessment-permissions.md)).
+
+::: info Inventory and assessment are different questions
+**Inventory** answers *"what is there?"* — a list of resources and their
+properties, no opinion attached. **Assessment** answers *"is what is there any
+good?"* — findings, a Pass/Fail/Partial verdict per rule, and a score, measured
+against CAF/WAF. Assessment always *consumes* inventory (you cannot score what
+has not been discovered); inventory stands alone and needs no assessment to be
+useful. This page is about assessment. For the resources themselves, run
+`Invoke-AzureScout` without `-Assessment` — see [Overview](overview.md).
+:::
 
 ::: tip PowerShell 7 required
 **PowerShell 7 on PowerShell Core** — for the whole module, not just this mode.
@@ -39,7 +49,7 @@ re-scanning.
 | Layer | What it does |
 |-------|--------------|
 | **Collect** | Read-only Azure Resource Graph queries produce a normalized `collect.json`, including a per-domain `domains.*` namespace. |
-| **Ingest** | Folds governance data (natively collected by default — see below), an ARG query pack, and Azure Advisor into the same `collect.json`. |
+| **Ingest** | Folds governance data (natively collected by default — see below) and Azure Advisor into the same `collect.json`. |
 | **Assess** | A declarative rule engine grades the collected data — **139 rules across 8 CAF design areas + 5 WAF pillars** — producing scored `findings.json` with a prioritized gap list. |
 | **Report** | Renders `findings.json` into tiered deliverables. |
 
@@ -66,6 +76,18 @@ the scan. Two datasets are intentionally always empty: `classicAdministrators`
 compliant) and `pimEligibility` (needs an Entra ID P2 license plus
 `PrivilegedAccess.Read.AzureResources`, which only the opt-in AzGovViz path
 ever requests).
+:::
+
+::: info `ArgQueryPack` is retired
+The `ArgQueryPack` ingestor is gone. It re-ran six Resource Graph queries that
+`Invoke-Collect` had already gathered, and it **overwrote** the collector's
+results with worse copies — two of its six queries had no divide-by-zero
+guard where the collector's had one, and a `-Force` replace from this
+ingestor had already caused a live incident (a false `CAF-SEC-03`/`CAF-SEC-06`
+fail from wiped networking data). If a manifest entry still names
+`ArgQueryPack` in its `Ingest` list, it is now silently ignored (with a
+verbose message) rather than run — no assessment depended on data that
+`ArgQueryPack` alone provided.
 :::
 
 ::: info Collect is now actually scoped by category
@@ -138,7 +160,23 @@ Invoke-AzureScout -Assessment All -OutputFormat All
 ```
 
 `-Assessment All` expands to every key in `manifests/assessments.psd1` —
-currently **22** assessments (see the [full registry](design/assessment-registry.md)).
+currently **24 registry entries**. Most are not distinct assessments — see
+[the registry entries section below](#all-24-registry-entries-and-what-the-wizard-actually-offers)
+and the [full registry](design/assessment-registry.md) for what that number
+actually breaks down into.
+
+### Inventory + assessment in one collect (`-InventoryAndAssessment` / `-Both`)
+
+```powershell
+Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment -OutputFormat All
+```
+
+Runs the full inventory pass and the assessment from **one** Azure collection —
+the assessment is handed the inventory's already-collected rows instead of
+re-querying. Previously this collect-once path was reachable only by
+answering "both" in the interactive wizard; `-InventoryAndAssessment`
+(alias `-Both`) reaches it from a script or CI without going through the
+wizard at all.
 
 ### Unattended, one-command run (`Invoke-ScoutPipeline`)
 
@@ -299,13 +337,57 @@ Invoke-AzureScout -Assessment LandingZone -OutputPath 'D:\Reports\Scout'
 
 Each run writes into a timestamped subfolder (`<OutputPath>/yyyyMMdd_HHmmss/`).
 
-## All 22 assessments
+## All 24 registry entries — and what the wizard actually offers
 
 The full catalogue — description, `Collect`/`Ingest`, CAF areas / WAF
 pillars, and default report tiers, generated from
 `manifests/assessments.psd1` — lives in the
 **[Assessment Registry](design/assessment-registry.md)**. Minimum auth per
 assessment lives in **[Auth & permissions per scan type](assessment-permissions.md)**.
+
+::: warning 24 registry entries is not 24 assessments
+`manifests/assessments.psd1` has **24 keys**, but that is a count of registry
+*entries*, not of distinct things Scout scores. **`LandingZone` is the one
+real roll-up assessment** — it pulls in every CAF design-area and WAF-pillar
+rule file. Most of the other 23 entries are narrower *views* over that same
+rule set, not separate assessments:
+
+- **15 are the `Assess: ` category slices** (`Assess: Compute`, `Assess:
+  Security`, …) — a category filter over `LandingZone`'s rule set, one per
+  Scout inventory category. They collided with Scout's fifteen **inventory**
+  category names — `Compute` filters what gets *collected*, `Assess: Compute`
+  filters what gets *scored* — so they're now prefixed `Assess: ` to stop the
+  two different things sitting side by side under one label
+  (`-Assessment 'Assess: Compute'`, quoted — the name has a colon and a
+  space). **The old unprefixed name still works**: `Resolve-ScoutAssessmentName`
+  maps it to the prefixed one and prints a warning telling you what to
+  change. This is a stopgap, not the end state — a future release retires
+  these fifteen once genuine per-pillar and per-design-area assessments exist
+  to replace them (see [Roadmap](roadmap.md#caf-waf-assessment-programme)).
+- **4 are sub-bundles** narrower still than a category (`Governance`,
+  `Policy`, `UpdateManager`, `Monitoring`). `Governance` and `Policy` are
+  presently byte-identical — same `Category`/`Collect`/`Ingest`/`Rules` — a
+  known duplicate, not two different assessments.
+- **`Estate` is not an assessment at all.** Its `Rules` list is empty, so it
+  scores nothing — it is a full inventory pull that happens to sit in the
+  assessment registry.
+
+What's left after subtracting those: `LandingZone` (the roll-up), `Cost` (a
+targeted cost/TCO pull), `CrossResource` (findings that need two datasets
+correlated), and `SMART` (the migration-readiness assessment, scored against
+its own enumerated source — see [SMART's framework page](frameworks/smart-question-set.md)).
+**Four genuinely distinct things, not 24.**
+
+**The interactive wizard does not list `Estate`**, and does not list any
+entry whose declared rule-file glob matches no file on disk — an entry that
+would run and silently return zero findings reads as "nothing wrong" rather
+than "nothing was checked," so it is left off rather than shown. You can
+still run `Estate` directly — `-Assessment Estate` — since the wizard's
+filtering is a menu courtesy, not an authorization check. Every other entry
+has at least one matching rule file, so the wizard's rule-file filter admits
+**23 of the 24**; `SMART` is then further gated separately, at the wizard
+level, on whether the current estate actually has migration data to score.
+:::
 
 ## Scoring
 

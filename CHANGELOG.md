@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Hardening pass over real-world collection and reporting failures. See **Epic AB#6731**. Suite:
+2,243 tests — 2,236 passing, 3 skipped, 4 known cross-file flakes (VM quota context restore,
+Excel retired-registration, two `Test-AZSCPermissions` scoping tests) that fail only in a
+full-suite run and pass in isolation.
+
+### Added
+
+- **`-InventoryAndAssessment` (alias `-Both`)** on `Invoke-AzureScout`. The collect-once path —
+  inventory and a scored assessment from one Resource Graph collection — used to be reachable
+  only by answering the wizard's "run both?" prompt, which no script or CI pipeline could reach;
+  they had to invoke the command twice and collect from Azure twice (AB#6773–6777).
+- **Two evidence artifacts, written to every run folder:** `raw-inventory.json` (everything the
+  Resource Graph pass collected, before any manifest filtered it down to a worksheet — roughly
+  40% of collected data never reached a report) and `collector-rowcounts.json` (per-collector
+  Rows / Empty / Failed verdicts, so a `Rows: 0` line can be told apart from a broken collector).
+  Neither lives in `ReportCache`, so neither is removed by end-of-run cache cleanup (AB#6764–6766).
+- **A per-collector permission-impact table** in the `-PermissionAudit` pre-flight, replacing a
+  bare READY/PARTIAL verdict as the whole answer. It names every collector a denied permission
+  will leave empty and which permission fixes it — a verdict word could read READY over
+  worksheets that were about to come back empty; a list cannot lie the same way (AB#6765).
+- **Tenant-wide collection, unconditional.** Management groups, custom role definitions, policy
+  definitions and policy set definitions are now always collected — a dead `-IncludeTenantWideResources`
+  migration gate that no production caller ever set had been silently discarding all four
+  (AB#6755–6759).
+- **A resource-type existence gate** (`manifests/azure-provider-types.json`, 316 providers, 4,661
+  type pairs) checks every declared collector resource type against Azure at build time. Its
+  first run found eight real defects; **six collectors were retired and three corrected** as a
+  result, taking the collector count from 242 to **236** (AB#6842, 6772, 6767, 6768).
+
+### Changed
+
+- **Fifteen per-category assessment names are now prefixed `Assess: `** — e.g. `'Assess: Compute'`
+  instead of `Compute` — because they collided with the inventory `-Category` value of the same
+  name (one filters what is *collected*, the other what is *scored*). Legacy unprefixed names
+  still resolve, with a warning naming the new value. The `Estate` entry (inventory with no
+  scoring rules) no longer appears in the wizard's assessment menu (AB#6754, 6762, 6763).
+- **Three Azure RBAC roles dropped from the ask** — Security Reader, Monitoring Reader and Cost
+  Management Reader — from the pre-flight, `docs/automation.md` and the customer grant list. They
+  are redundant: every read they grant is already inside `Reader`'s `*/read`. Two are worse than
+  redundant — Monitoring Reader and Cost Management Reader both carry `Microsoft.Support/*`, which
+  includes support-ticket *creation*, a write, in a tool sold as read-only. Cost data was never
+  gated on Cost Management Reader either; it is gated on the EA/MCA billing setting, which no RBAC
+  role can grant (AB#6761, 6778).
+- **Two Graph permissions dropped from the pre-flight** for a different reason — `AuditLog.Read.All`
+  and `IdentityProvider.Read.All` are consumed by no collector at all. The pre-flight now reports
+  any such permission as "queried but unused — do not grant" rather than probing it every run
+  (AB#6765).
+
+### Fixed
+
+- **A combined run collected from Azure twice.** `-InventoryAndAssessment`/wizard-both now defers
+  the assessment until after the inventory pass and hands it the inventory's already-collected
+  rows instead of re-querying the same resource types (part of AB#6773–6777, alongside a tags-loss
+  regression in the handoff and `AdvisorScores` not being fed from `$ExtractionData.Advisories`).
+- **Tenant-wide collection was still conditional after the first attempt to fix it.** The dead
+  gate above was initially replaced with `-not $SkipAPIs` — the same trap, and factually wrong: only
+  policy definitions come from the REST sweep, while management groups and custom roles come from
+  Az cmdlets that `-SkipAPIs` has no business touching. The parameter was deleted; `-SkipAPIs` now
+  only degrades the REST sweep, in its own `try` block (AB#6755, correction).
+
+See [`.ai/state/HANDOFF.md`](https://github.com/thisismydemo/azure-scout/blob/main/.ai/state/HANDOFF.md)
+for the full session account, including what this epic left open (governance-data rendering,
+`ResourceDiagnosticSettings` re-sourcing, `LighthouseDelegations`, network-diagram rasterization,
+and 40 remaining child-loop collectors that can still drop their parent resource on a sparse
+payload).
+
 ## [3.1.0] - 2026-07-31
 
 Service coverage across Microsoft's eighteen published categories. See **Epic AB#6741**.

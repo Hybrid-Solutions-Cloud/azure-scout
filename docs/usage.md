@@ -82,6 +82,12 @@ Invoke-AzureScout -ReportDir 'D:\Reports' -Force
 Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`, is in
 [Output Files & Formats](output.md#run-isolation).
 
+Every run also writes two evidence artifacts to the run folder, not the report cache, so they
+survive cache cleanup: `raw-inventory.json` (everything the Resource Graph pass collected,
+before any manifest filtered it down to a worksheet) and `collector-rowcounts.json`
+(per-collector Rows / Empty / Failed verdicts). See
+[Output Files & Formats — evidence artifacts](output.md#evidence-artifacts).
+
 ## Content Toggles
 
 Switch parameters to include/exclude specific content:

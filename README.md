@@ -41,9 +41,12 @@ Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 - Excel and JSON output
 - Scoped execution (ARM-only, Entra-only, or both)
 - Streamlined authentication
-- Permission checker
+- Permission checker — names every collector a missing permission will leave empty
 - Network diagrams
 - Run isolation — a rescan never overwrites the previous run's data
+- Evidence artifacts — `raw-inventory.json` (everything collected, before any worksheet
+  filtering) and `collector-rowcounts.json` (per-collector Rows/Empty/Failed) written for
+  every run
 - Unattended execution via Azure Automation Account or GitHub Actions
 - Cross-platform (Windows, Linux, Mac)
 
@@ -74,6 +77,9 @@ Invoke-AzureScout
 # Scored CAF/WAF assessment (same command, different mode)
 Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
 
+# Inventory AND assessment from one collection against Azure (alias -Both)
+Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment
+
 # Full inventory (ARM + Entra ID)
 Invoke-AzureScout -TenantID <your-tenant-id>
 
@@ -102,23 +108,28 @@ names; Microsoft's portal long names are accepted as aliases.
 |---|---|---|---|
 | `AI` | AI + machine learning | `AI + machine learning`, `Machine Learning` | 27 |
 | `Analytics` | Analytics | — | 6 |
-| `Compute` | Compute | — | 14 |
+| `Compute` | Compute | — | 13 |
 | `Containers` | Containers | — | 6 |
-| `Databases` | Databases | — | 13 |
-| `Hybrid` | Hybrid + multicloud | `Hybrid + multicloud` | 16 |
-| `Identity` | Identity | — | 18 |
-| `Integration` | Integration | — | 2 |
-| `IoT` | Internet of Things | `Internet of Things` | 1 |
-| `Management` | Management and governance | `Management and governance`, `DevOps`, `Migration` | 19 |
-| `Monitor` | Monitor | `Monitoring` | 24 |
+| `Databases` | Databases | — | 12 |
+| `DevOps` | DevOps | — | 12 |
+| `General` | General | — | 4 |
+| `Hybrid` | Hybrid + multicloud | `Hybrid + multicloud` | 15 |
+| `Identity` | Identity | — | 16 |
+| `Integration` | Integration | — | 9 |
+| `IoT` | Internet of Things | `Internet of Things` | 7 |
+| `Management` | Management and governance | `Management and governance` | 18 |
+| `Migration` | Migration | — | 6 |
+| `Monitor` | Monitor | `Monitoring` | 22 |
 | `Networking` | Networking | `Networking + CDN` | 21 |
-| `Security` | Security | — | 5 |
-| `Storage` | Storage | — | 2 |
-| `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 2 |
+| `Security` | Security | — | 17 |
+| `Storage` | Storage | — | 11 |
+| `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 14 |
 
-Note that `Monitor` is canonical, not `Monitoring`. Matching is case-insensitive. The
-complete mapping — every alias, manifest definition, and the resource types behind each
-heading — is in the [Category Reference](docs/category-reference.md).
+18 categories, 236 collector definitions in total. Note that `Monitor` is canonical, not
+`Monitoring`, and that `DevOps` and `Migration` are canonical categories in their own right as
+of v3.1.0 — they no longer alias to `Management`. Matching is case-insensitive. The complete
+mapping — every alias, manifest definition, and the resource types behind each heading — is in
+the [Category Reference](docs/category-reference.md).
 
 ## Documentation
 

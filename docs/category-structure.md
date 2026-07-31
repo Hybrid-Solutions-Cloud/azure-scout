@@ -15,16 +15,23 @@ This page maps the `-Category` parameter values to Microsoft's official Azure po
 | `Compute` | Compute | `manifests/collectors/Compute/` |
 | `Containers` | Containers | `manifests/collectors/Containers/` |
 | `Databases` | Databases | `manifests/collectors/Databases/` |
+| `DevOps` | DevOps | `manifests/collectors/DevOps/` |
+| `General` | General | `manifests/collectors/General/` |
 | `Hybrid` | Hybrid + multicloud | `manifests/collectors/Hybrid/` |
 | `Identity` | Identity | `manifests/collectors/Identity/` |
 | `Integration` | Integration | `manifests/collectors/Integration/` |
 | `IoT` | Internet of Things | `manifests/collectors/IoT/` |
 | `Management` | Management and governance | `manifests/collectors/Management/` |
+| `Migration` | Migration | `manifests/collectors/Migration/` |
 | `Monitor` | Monitor | `manifests/collectors/Monitor/` |
 | `Networking` | Networking | `manifests/collectors/Networking/` |
 | `Security` | Security | `manifests/collectors/Security/` |
 | `Storage` | Storage | `manifests/collectors/Storage/` |
 | `Web` | Web & Mobile | `manifests/collectors/Web/` |
+
+`DevOps`, `General` and `Migration` are canonical categories as of v3.1.0 (AB#6741), each with its
+own manifest folder, `[ValidateSet]` entry and report heading. They are **not** aliases for
+anything — see the warning below.
 
 ## Accepted Aliases
 
@@ -39,8 +46,6 @@ The following long-form names (as shown in the Azure portal) are automatically n
 | `Monitoring` | `Monitor` |
 | `Management and governance` | `Management` |
 | `Management & governance` | `Management` |
-| `DevOps` | `Management` |
-| `Migration` | `Management` |
 | `Web & Mobile` | `Web` |
 | `Web and mobile` | `Web` |
 | `Mobile` | `Web` |
@@ -48,6 +53,14 @@ The following long-form names (as shown in the Azure portal) are automatically n
 | `Hybrid+multicloud` | `Hybrid` |
 | `Networking + CDN` | `Networking` |
 | `Networking+CDN` | `Networking` |
+
+::: warning `DevOps` and `Migration` are not aliases
+Both used to be listed here resolving to `Management`. They are **canonical categories** as of
+v3.1.0, each with its own manifest directory, so folding either into `Management` would silently
+run the wrong collectors. The old alias entries were also unreachable even before the removal —
+neither string was in the `-Category` `[ValidateSet]`, so parameter binding rejected them before
+the alias map was ever consulted.
+:::
 
 See the [Category Reference](category-reference.md) for the full mapping of report section headings to categories, collector folders, and module counts.
 

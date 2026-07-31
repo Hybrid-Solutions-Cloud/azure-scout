@@ -35,25 +35,40 @@ The `Start-AZSCEntraExtraction` function calls `Invoke-AZSCGraphRequest` for eac
 
 ## Module Catalog
 
-| Module | Graph Endpoint | Description |
-|--------|----------------|-------------|
-| AdminUnits | `/administrativeUnits` | Administrative units for delegated management |
-| AppRegistrations | `/applications` | Application registrations (app IDs, credentials, API permissions) |
-| ConditionalAccess | `/identity/conditionalAccess/policies` | Conditional Access policies (requires `Policy.Read.ConditionalAccess`) |
-| CrossTenantAccess | `/policies/crossTenantAccessPolicy/partners` | B2B cross-tenant access settings |
-| DirectoryRoles | `/directoryRoles` | Activated directory roles and their members |
-| Domains | `/domains` | Verified and unverified domains |
-| Groups | `/groups` | Security groups, Microsoft 365 groups, distribution lists |
-| IdentityProviders | `/identity/identityProviders` | Configured external/social identity providers |
-| Licensing | `/subscribedSkus` | License SKUs and service plan assignments |
-| ManagedIdentities | `/servicePrincipals` (filtered) | Managed identities (system and user-assigned), as seen from the Entra service-principal object |
-| NamedLocations | `/identity/conditionalAccess/namedLocations` | Trusted locations for conditional access |
-| PIMAssignments | `/roleManagement/directory/roleAssignments` | Privileged Identity Management (PIM) role assignments |
-| RiskyUsers | `/identityProtection/riskyUsers` | Users flagged by Identity Protection |
-| SecurityDefaults | `/policies/identitySecurityDefaultsEnforcementPolicy` | Tenant-wide security defaults enforcement state |
-| SecurityPolicies | `/policies/authorizationPolicy` | Tenant authorization policy |
-| ServicePrincipals | `/servicePrincipals` | Enterprise applications and service principals |
-| Users | `/users` | All user accounts (members and guests) |
+`Get-ScoutEntraQueryCatalog` (`src/collect/Get-ScoutEntraQueryCatalog.ps1`) is the single source
+of truth for these 17 queries — `Start-AZSCEntraExtraction` runs exactly this list, and the
+`-PermissionAudit` impact table is built by joining the same list against the collector
+manifests, so the two can no longer drift the way a hand-maintained second copy could.
+
+| Module | Graph Endpoint | Permission | Description |
+|--------|----------------|------------|-------------|
+| Users | `/users` | `User.Read.All` | All user accounts (members and guests) |
+| Groups | `/groups` | `Group.Read.All` | Security groups, Microsoft 365 groups, distribution lists |
+| Applications | `/applications` | `Application.Read.All` | Application registrations (app IDs, credentials, API permissions) |
+| Service Principals | `/servicePrincipals` | `Application.Read.All` | Enterprise applications and service principals |
+| Managed Identities | `/servicePrincipals` (filtered to `servicePrincipalType eq 'ManagedIdentity'`) | `Application.Read.All` | Managed identities (system and user-assigned), as seen from the Entra service-principal object |
+| Directory Roles | `/directoryRoles` | `RoleManagement.Read.Directory` | Activated directory roles and their members |
+| PIM Assignments | `/roleManagement/directory/roleAssignments` | `RoleManagement.Read.Directory` | Privileged Identity Management (PIM) role assignments |
+| Conditional Access Policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | Conditional Access policies |
+| Named Locations | `/identity/conditionalAccess/namedLocations` | `Policy.Read.All` | Trusted locations for conditional access |
+| Administrative Units | `/directory/administrativeUnits` | `AdministrativeUnit.Read.All` | Administrative units for delegated management |
+| Domains | `/domains` | `Domain.Read.All` | Verified and unverified domains |
+| Subscribed SKUs | `/subscribedSkus` | `Organization.Read.All` | License SKUs and service plan assignments |
+| Cross-Tenant Access | `/policies/crossTenantAccessPolicy/partners` | `Policy.Read.All` | B2B cross-tenant access settings |
+| Security Policies | `/policies/authorizationPolicy` | `Policy.Read.All` | Tenant authorization policy |
+| Risky Users | `/identityProtection/riskyUsers` | `IdentityRiskyUser.Read.All` | Users flagged by Identity Protection (requires Entra ID P2) |
+| Identity Providers ⚠️ | `/identity/identityProviders` | `IdentityProvider.Read.All` | Configured external/social identity providers |
+| Security Defaults ⚠️ | `/policies/identitySecurityDefaultsEnforcementPolicy` | `Policy.Read.All` | Tenant-wide security defaults enforcement state |
+
+::: warning ⚠️ Collected, normalized, and read by nothing
+`Identity Providers` and `Security Defaults` are queried and land in `EntraResources` like every
+other row here, but no collector consumes either `entra/identityproviders` or
+`entra/securitydefaults` type. The catalog keeps them rather than dropping them so the
+`-PermissionAudit` impact table can say so explicitly — a permission Scout asks for and does not
+need belongs in the report, not in a comment nobody reads. `AuditLog.Read.All` used to be
+requested with the same problem (no collector ever consumed `auditLogs/*`); it has been removed
+from the ask entirely rather than kept as a fourth unconsumed entry.
+:::
 
 ## Required Microsoft Graph Permissions
 
@@ -68,14 +83,28 @@ The `Start-AZSCEntraExtraction` function calls `Invoke-AZSCGraphRequest` for eac
 
 To read every module above, the signed-in identity needs these **delegated** Microsoft
 Graph permissions consented for the Azure CLI app (or your own app if you authenticate
-with one):
+with one) — see the Permission column in the [Module Catalog](#module-catalog) above for
+which permission unlocks which module:
 
 | Permission | Unlocks |
 |---|---|
-| `Directory.Read.All` | Users, Groups, Service Principals, App Registrations, Directory Roles, Admin Units, Domains, Licensing |
-| `Policy.Read.All` | Conditional Access, Named Locations, Security Defaults, Authorization Policy, Cross-Tenant Access |
-| `RoleManagement.Read.Directory` | PIM / directory role assignments |
+| `User.Read.All` | Users |
+| `Group.Read.All` | Groups |
+| `Application.Read.All` | Applications, Service Principals, Managed Identities |
+| `RoleManagement.Read.Directory` | Directory Roles, PIM Assignments |
+| `Policy.Read.All` | Conditional Access Policies, Named Locations, Security Policies, Cross-Tenant Access, Security Defaults ⚠️ |
+| `AdministrativeUnit.Read.All` | Administrative Units |
+| `Domain.Read.All` | Domains |
+| `Organization.Read.All` | Subscribed SKUs |
 | `IdentityRiskyUser.Read.All` | Risky Users (Identity Protection — also requires Entra ID P2) |
+| `IdentityProvider.Read.All` ⚠️ | Identity Providers |
+
+⚠️ marks the two permissions behind the unconsumed queries — granting them satisfies the
+pre-flight but adds nothing to any report; see the warning above.
+
+A broad `Directory.Read.All` grant also satisfies `User.Read.All`, `Group.Read.All` and
+`Application.Read.All` in practice, since it is a superset scope, but the table above is the
+minimum each query actually needs.
 
 Grant/consent once (tenant admin), e.g.:
 

@@ -16,9 +16,15 @@ Connections**, **ADO Repositories**, and **ADO Agent Pools**.
 
 ## Why it is opt-in
 
-Azure DevOps is a separate service with its own authorization model. An inventory run
-should not stall or fail on it by default, so collection only happens when you ask for it.
-The rest of the scan is unaffected either way.
+Azure DevOps is a separate service with its own authorization model — a fourth permission
+system, unrelated to both Azure RBAC and Entra directory roles. An identity with Owner on every
+Azure subscription and Global Administrator in Entra still gets zero rows here without Azure
+DevOps org/project membership. An inventory run should not stall or fail on it by default, so
+collection only happens when you ask for it. The rest of the scan is unaffected either way.
+
+Read-only **project-level** access — no organization administrator role — is sufficient. See
+[Permissions](permissions.md) for how this fits alongside the ARM and Entra grants when you're
+assembling a full access request.
 
 ## Authentication
 

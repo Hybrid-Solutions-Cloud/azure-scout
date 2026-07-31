@@ -135,10 +135,10 @@ The `Verdict` field says which.
 {
   "Schema": "azure-scout/collector-rowcounts/v1",
   "GeneratedAt": "2026-07-31T18:04:14.0000000Z",
-  "Totals": { "Collectors": 242, "WithRows": 118, "Empty": 123, "Failed": 1, "Rows": 6104 },
+  "Totals": { "Collectors": 236, "WithRows": 118, "Empty": 117, "Failed": 1, "Rows": 6104 },
   "Collectors": [
     { "Category": "Compute", "Collector": "VirtualMachine", "Rows": 214, "Verdict": "Rows",   "Error": null },
-    { "Category": "Hybrid",  "Collector": "ArcSites",       "Rows": 0,   "Verdict": "Empty",  "Error": null }
+    { "Category": "IoT",     "Collector": "IoTCentral",     "Rows": 0,   "Verdict": "Empty",  "Error": null }
   ]
 }
 ```

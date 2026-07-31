@@ -119,8 +119,19 @@ does not have that gap.
 
 What differs between the modes is the **authorization** model, not the
 authentication mechanism: the identity needs ARM `Reader` at the tenant-root
-management group for every assessment, plus Microsoft Graph application
-permissions for 5 specific assessments. See
+management group for every assessment. Microsoft Graph app permissions are
+**not** a default requirement for any assessment — the 5 governance-data
+assessments collect natively via ARM/Resource Graph now; Graph only applies
+if you explicitly opt one back into the legacy `AzGovViz` ingestor. See
 [Auth & permissions per scan type](assessment-permissions.md) for the full
 breakdown and [Assessment Prerequisites](assessment-prerequisites.md) for the
 software/module prerequisites.
+
+::: tip Azure RBAC, Entra directory roles, and Graph app permissions are separate systems
+An identity's Azure RBAC role assignments say nothing about what it can read in Entra ID, and
+vice versa — an Owner on every subscription in the tenant still reads zero directory data. If
+you're running `-Scope All`/`EntraOnly` as a signed-in **user**, grant the Entra directory roles
+`Directory Readers` + `Security Reader`. If you're running as a **service principal**, grant the
+equivalent Microsoft Graph application permissions instead. See
+[Permissions](permissions.md#microsoft-graph-permissions) for both lists.
+:::

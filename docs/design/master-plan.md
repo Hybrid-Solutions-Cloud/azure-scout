@@ -15,6 +15,17 @@ description: Master design and delivery plan for Azure Scout — the single sour
 - **Governance:** HCS split source-of-truth — ADO masters Epic→Feature→Story→Task; GitHub masters Bug/Feature-request intake.
 - **Last updated:** 2026-07-23 (AB#5041/#5050/#5053 delivered — native governance collector, unattended pipeline, React report + drift; §5/§6/§8 corrected)
 
+::: warning Superseded — this document's own change log stops at 2026-07-23
+Eight releases (v2.6.0 through v3.1.0) and the AB#6731 hardening epic have shipped since this
+page was last updated: the engine rewrite (declarative collectors, single-collection-pass
+inversion, background jobs removed), the 18-category service-coverage expansion, and the
+2026-07-31 permissions/architecture audit. Counts and claims below — assessment/manifest
+entries, category counts, ADO item totals, architecture described in terms of the pre-rewrite
+job/`Modules/` pipeline — are **historical**, not current. For current state, read
+[`docs/audits/AZURE-SCOUT-AUDIT.md`](../audits/AZURE-SCOUT-AUDIT.md) (2026-07-31), which is now
+the authoritative source this page has not been reconciled against.
+:::
+
 ### Companion documents (source of record)
 
 | Document | Purpose |

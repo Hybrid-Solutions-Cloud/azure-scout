@@ -20,9 +20,18 @@ The following core capabilities come directly from the original project:
 | **ARM Resource Extraction** | The fundamental pattern of using Azure Resource Graph and ARM APIs to enumerate resources across subscriptions. |
 | **Draw.io Diagram Engine** | All network topology diagram generation — VNets, subnets, peerings, NSGs, load balancers, and resource layout logic. |
 | **Excel Report Pipeline** | The ImportExcel-based pipeline that turns resource data into formatted `.xlsx` workbooks with conditional formatting. |
-| **154 ARM Resource Modules** | Every ARM inventory module in `manifests/collectors/` (the module count excludes the 17 Entra ID modules, cataloged separately — see [Entra ID Inventory](#entra-id-inventory-17-modules) below) descends from ARI's original module set. AzureScout has added new modules and enhanced existing ones, but the pattern and many files trace back to ARI. |
+| **154 ARM Resource Modules (at fork)** | AzureScout forked ARI v3.6.11 with 154 ARM inventory modules. That is a historical count, not a current one — see [current numbers](#current-numbers-not-the-ari-fork-count) below. The pattern (one module per resource type, ARM/Resource Graph enumeration) and much of the original module logic trace back to ARI even where the files have since been rewritten. |
 | **Orchestration Pattern** | The extraction → processing → reporting three-phase orchestration that powers the main pipeline. |
-| **Automation Account Mode** | The concept of running inside an Azure Automation Account with a Managed Identity (though AzureScout has not yet documented or validated this path — see [roadmap](roadmap.md)). |
+| **Automation Account Mode** | The concept of running inside an Azure Automation Account with a Managed Identity. This path is now documented and validated — see [Azure Automation Account](automation.md). |
+
+### Current numbers, not the ARI fork count
+
+The 154-module figure above describes the fork in v1.0.0, not today. As of v3.1.0 the ARM side
+is **236 declarative collector definitions** across **18** Microsoft Azure service categories —
+see [Category Reference](category-reference.md) — plus the **17** Entra ID modules cataloged
+separately in [Entra ID Inventory](entra-modules.md). Collector logic also no longer executes as
+the PowerShell ARI originally shipped: see [Engine rewrite](#engine-rewrite-ari-shipped-none-of-this)
+below.
 
 ## Renamed Identifiers
 
@@ -143,24 +152,45 @@ AzureScout auto-installs missing dependencies on first import:
 
 ### Folder Reorganization
 
-ARI's `Modules/Private/` uses numbered folders (`1.ExtractionFunctions/`, `2.ProcessingFunctions/`, etc.).
-AzureScout replaces these with descriptive names:
+ARI's `Modules/Private/` uses numbered folders (`1.ExtractionFunctions/`, `2.ProcessingFunctions/`,
+etc.). AzureScout's early releases replaced these with descriptively-named folders under the same
+`Modules/Private/` tree — but that intermediate layout is **also gone**. There is no `Modules/`
+directory in the repository any more.
 
-| ARI Path | AzureScout Path |
+| ARI Path (original) | Where that logic lives today |
 |----------|-----------------|
-| `Modules/Private/1.ExtractionFunctions/` | `Modules/Private/Extraction/` |
-| `Modules/Private/2.ProcessingFunctions/` | `Modules/Private/Processing/` |
+| `Modules/Private/1.ExtractionFunctions/` | `src/collect/` (declarative collection, single Resource Graph pass) |
+| `Modules/Private/2.ProcessingFunctions/` | The manifest interpreter in `src/pipeline/` reading `manifests/collectors/**/*.psd1` |
 | `Modules/Private/3.ReportingFunctions/` | `src/report/renderers/inventory/` (+ `.../style/`) |
 | `Modules/Private/3.ReportingFunctions/StyleFunctions/` | `src/report/renderers/inventory/style/` |
-| `Modules/Private/4.RAMPFunctions/` | *(removed)* |
+| `Modules/Private/4.RAMPFunctions/` | *(removed — see [Removed from ARI](#removed-from-ari))* |
 
-The reporting tier no longer lives under `Modules/` at all. AB#5662 moved all of it to
-`src/report/renderers/inventory/`, onto the same renderer layer the assessment reports use, and
-renamed every file so it matches the function it defines — ARI's `AZTI`-file / `AZSC`-function
-mismatch is gone. AB#5665 deleted `Build-AZTIExcelComObject.ps1` outright: chart and shape
-styling now runs on EPPlus/ImportExcel through `Build-AZSCExcelChartStyle`, so no local Excel
-install is required (ARI's COM path fails with `0x80040154 REGDB_E_CLASSNOTREG` on any machine
-or CI runner without Excel).
+AB#5662 moved reporting out from under `Modules/` to `src/report/renderers/inventory/` and renamed
+every file to match the function it defines — ARI's `AZTI`-file / `AZSC`-function mismatch is
+gone there. AB#5665 deleted `Build-AZTIExcelComObject.ps1` outright: chart and shape styling runs
+on EPPlus/ImportExcel through `Build-AZSCExcelChartStyle`, so no local Excel install is required
+(ARI's COM path fails with `0x80040154 REGDB_E_CLASSNOTREG` on any machine or CI runner without
+Excel).
+
+### Engine rewrite — ARI shipped none of this
+
+Everything above describes the fork boundary and the folders AzureScout used immediately after
+it. It does not describe how collection runs today. Epic AB#5638 (v2.6.0 → v3.0.0, all shipped
+2026-07-25/26/28) rewrote the collection and reporting engine end to end:
+
+- Collectors are **declarative `.psd1` definitions** under `manifests/collectors/`, read by an
+  interpreter in `src/pipeline/`, not the imperative `.ps1` files ARI shipped or that AzureScout's
+  own early releases carried forward. The retired collector-script tree is gone; there is no
+  per-collector PowerShell fallback.
+- Collection runs **in-process, in a fixed order**, with no `Start-Job`/runspace-per-collector
+  coordination — ARI's (and AzureScout's own, through v2.5.x) job-based extraction is gone.
+- A single Resource Graph pass feeds both the inventory report and, when `-InventoryAndAssessment`
+  is used, the CAF/WAF assessment — see [Overview: running both](overview.md#running-both).
+
+`src/` still contains files with an `AZTI`-prefixed name and an `AZSC`-prefixed function (an
+artifact of the ARI→AzureScout rename tracked as tech debt, above) — but the *logic* inside those
+files, and the pipeline that calls them, is a rewrite, not an inherited ARI implementation. See
+`docs/changelog.md` v2.6.0 through v3.0.0 for the six-release account of that rewrite.
 
 ## Removed from ARI
 
@@ -175,14 +205,15 @@ The following ARI features were intentionally removed:
 
 ## Not Yet in AzureScout
 
-These ARI features or ecosystem elements have not been ported or replicated:
+This table used to list GitHub Actions CI, PSGallery publishing, and Automation Account docs as
+gaps. All three now exist — `.github/workflows/ci.yml`, `azure-inventory.yml` and
+`documentation.yml`; the module is published to the PowerShell Gallery (`Install-Module
+AzureScout`); and [Azure Automation Account](automation.md) documents the setup (Issue #32,
+closed). Only one ARI/ecosystem gap remains open:
 
 | Feature | Status |
 |---------|--------|
-| **GitHub Actions CI** | ARI has CI workflows for automated testing and publishing. AzureScout does not yet have CI — tracked in the project roadmap. |
-| **PSGallery Publishing** | ARI is published to the PowerShell Gallery. AzureScout is GitHub-only for now. |
-| **Automation Account Documentation** | ARI has an 8-step guide for running in Azure Automation. AzureScout has the plumbing but no docs — tracked as [Issue #32](https://github.com/thisismydemo/azure-scout/issues/32). |
-| **Containerized Execution** | ARI documents Docker-based execution. AzureScout has not validated container support. |
+| **Containerized Execution** | ARI documents Docker-based execution. AzureScout has no Dockerfile and has not validated container support. |
 
 ## Version Lineage
 

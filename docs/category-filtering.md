@@ -19,19 +19,27 @@ Category filtering can reduce run time by 70-90% for large tenants when you only
 |-------------------|--------------------|--------------------|
 | `AI` | AI + Machine Learning | Cognitive Services, OpenAI, ML Workspaces, Bot Services, AI Foundry |
 | `Analytics` | Analytics | Synapse, Databricks, Data Factory, Event Hub, Purview |
-| `Compute` | Compute | Virtual Machines, VMSS, Managed Disks, AVD, Cloud Services |
+| `Compute` | Compute | Virtual Machines, VMSS, Managed Disks, AVD |
 | `Containers` | Containers | AKS, ARO, Container Apps, Container Registry |
-| `Databases` | Databases | SQL Server, PostgreSQL, MySQL, Cosmos DB, Redis Cache |
+| `Databases` | Databases | SQL Server, PostgreSQL flexible server, MySQL, Cosmos DB, Redis Cache |
+| `DevOps` | DevOps | Chaos Studio, Dev Box, Dev centers, DevTest Labs, Load Testing, App Configuration |
+| `General` | General | Support tickets, reservations and recommendations, VM quotas |
 | `Hybrid` | Hybrid + multicloud | Arc Servers, Arc Kubernetes, Azure Local Clusters, Arc Gateways |
 | `Identity` | Identity | Users, Groups, App Registrations, PIM, Conditional Access |
 | `Integration` | Integration | API Management, Service Bus, Event Hubs, Logic Apps |
 | `IoT` | Internet of Things | IoT Hub, IoT DPS |
 | `Management` | Management and governance | Subscriptions, Policy, Backup, Automation, Recovery Vault |
+| `Migration` | Migration | Azure Migrate projects/assessments, Database Migration Service, Data Box, Azure Stack Edge |
 | `Monitor` | Monitor | App Insights, DCRs, Action Groups, Alert Rules, Log Analytics |
 | `Networking` | Networking | VNets, NSGs, Load Balancers, VPN Gateways, Azure Firewall, Front Door |
 | `Security` | Security | Defender Assessments, Alerts, Secure Score, Key Vault |
 | `Storage` | Storage | Storage Accounts, Azure NetApp Files |
 | `Web` | Web & Mobile | App Service Plans, App Services, Function Apps |
+
+`Compute/CloudServices` (classic/ASM cloud services) and `Storage/DataLakeStoreGen1` were retired
+2026-07-31 — both targeted resource types Azure no longer has. `Databases/POSTGRE` (PostgreSQL
+Single Server) was retired the same day; only the flexible-server type remains, and it is already
+covered above.
 
 ## Alias Support
 

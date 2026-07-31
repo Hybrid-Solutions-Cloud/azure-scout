@@ -4,8 +4,7 @@ description: How to run and write Pester tests for AzureScout.
 
 # Testing
 
-AzureScout maintains **100 % test coverage** across all 280 PowerShell scripts.
-The test suite uses [Pester 5](https://pester.dev) and runs entirely offline — no Azure credentials or live API calls required.
+The test suite uses [Pester 5](https://pester.dev) and runs entirely offline — no Azure credentials or live API calls required. As of 2026-07-31 it is **80 test files, 2,243 tests**: 2,236 passing, 3 skipped, and 4 known cross-file flakes — a VM-quota context restore, an Excel retired-registration check, and two `Test-AZSCPermissions` scoping tests — that fail only when the whole suite shares one temp directory, and pass in isolation.
 
 ## Prerequisites
 
@@ -22,13 +21,13 @@ Import-Module Pester -RequiredVersion 5.3.2 -Force
 Invoke-Pester -Path .\tests\ -Output Detailed
 ```
 
-This runs all 55 test files (1,612 tests) and typically completes in seven to eight minutes.
+This runs all 80 test files (2,243 tests: 2,236 passed, 3 skipped, 4 known cross-file flakes).
 
 ## Running a Single Test File
 
 ```powershell
-# Run only the Compute module tests
-Invoke-Pester -Path .\tests\Compute.Module.Tests.ps1 -Output Detailed
+# Run only the declarative collector golden tests (all 236 collectors)
+Invoke-Pester -Path .\tests\DeclarativeCollectorGolden.Tests.ps1 -Output Detailed
 
 # Run only the private main-function tests
 Invoke-Pester -Path .\tests\Private.Main.Tests.ps1 -Output Detailed
@@ -36,30 +35,37 @@ Invoke-Pester -Path .\tests\Private.Main.Tests.ps1 -Output Detailed
 
 ## Test File Overview
 
-The `tests/` directory contains 55 Pester files organized by area:
+The `tests/` directory contains 80 Pester files. There is no longer one test file per collector
+category — the old `<Category>.Module.Tests.ps1` files (`Compute.Module.Tests.ps1`,
+`Databases.Module.Tests.ps1`, and so on) tested imperative `.ps1` collectors under
+`Modules/Public/InventoryModules/`, and were retired when every collector was rewritten as a
+declarative `.psd1` definition (Epic AB#5638, AB#5659). All 236 collectors are now tested by the
+files below instead.
 
-### Inventory Module Tests (15 files)
+### Collector Tests
 
-Each category of Azure resource modules has a dedicated test file that validates both the **Processing** phase (data extraction/transformation) and the **Reporting** phase (Excel output).
+| Test File | What it proves |
+|-----------|-----------------|
+| `DeclarativeCollectorGolden.Tests.ps1` | For every `.psd1` under `manifests/collectors/**`, the interpreter reproduces a **committed golden output** — same rows, order, keys, values, null/array shape, and the same Excel worksheet columns/cells under both tag states. This is the primary correctness proof and does not read any collector `.ps1` (there are none left). |
+| `ResourceTypeExistence.Tests.ps1` | Every resource type a collector declares exists in Azure — see [the resource-type existence gate](#the-resource-type-existence-gate) below. |
+| `DeclarativeCollectorCutover.Tests.ps1` | The declarative interpreter path is actually what runs in production — not a parallel path nobody calls. |
+| `CollectorDefinitionSchema.Tests.ps1` | Every `.psd1` definition is structurally valid (required keys present, correct types) before the interpreter ever sees it. |
+| `ManifestCategory.Tests.ps1` | Every collector's folder matches a `-Category` `[ValidateSet]` entry, and every `[ValidateSet]` entry has a folder. |
+| `ManifestCollectorRuntime.Tests.ps1` | Collectors execute end-to-end through `Invoke-ScoutCollector` against mock resources. |
+| `Collector.SparsePayload.Tests.ps1` | Collectors survive a payload missing properties they normally read, instead of dropping a whole worksheet — AB#6839/AB#6844. |
+| `Collect.ArmChildResources.Tests.ps1` | Child-loop collectors (agent pools, backup items, etc.) render the parent resource even when children are absent — AB#6845. |
+| `ServiceCoverage.Tests.ps1` | Category/collector counts documented in `docs/` (arm-modules.md, coverage-table.md) match the manifests on disk. |
 
-| Test File | Modules | Category |
-|-----------|---------|----------|
-| `AI.Module.Tests.ps1` | 27 | AI & Machine Learning |
-| `Analytics.Module.Tests.ps1` | 6 | Analytics |
-| `Compute.Module.Tests.ps1` | 14 | Compute & AVD |
-| `Containers.Module.Tests.ps1` | 6 | Containers |
-| `Databases.Module.Tests.ps1` | 13 | Databases |
-| `Hybrid.Module.Tests.ps1` | 16 | Hybrid & Arc |
-| `Identity.Module.Tests.ps1` | 18 | Identity & Entra ID |
-| `Integration.Module.Tests.ps1` | 2 | Integration |
-| `IoT.Module.Tests.ps1` | 1 | IoT |
-| `Management.Module.Tests.ps1` | 14 | Management & Governance |
-| `DevOps.Module.Tests.ps1` | 5 | Azure DevOps (in the Management folder) |
-| `Monitor.Module.Tests.ps1` | 24 | Monitoring |
-| `Networking.Module.Tests.ps1` | 21 | Networking |
-| `Security.Module.Tests.ps1` | 5 | Security |
-| `Storage.Module.Tests.ps1` | 2 | Storage |
-| `Web.Module.Tests.ps1` | 2 | Web |
+### Fixture Generation
+
+Golden tests need fixtures that reach every field expression a collector reads, or the proof is
+vacuous — a fixture with an empty `properties` bag makes any broken expression and any working one
+both emit nulls and compare equal. `scripts/New-ScoutCollectorFixture.ps1` derives the fixture from
+the collector's **own** `.psd1` definition: it walks the AST of the lifted preamble and field
+expressions, finds every property path reached from the row variable, and synthesises a resource
+with exactly those paths populated. A hand-written fixture tends to under-populate; a
+derived one cannot, because every path the collector reads is present by construction. What it
+cannot do is invent realistic *values* — see the script's own `Honest limits` notes.
 
 ### Private Module Tests (4 files)
 
@@ -87,33 +93,25 @@ These validate internal helper scripts — file existence, syntax (via `Parser::
 | `OutputFormat.Tests.ps1` | Output format routing |
 | `CategoryFiltering.Tests.ps1` | Category filter validation |
 
-## How Inventory Module Tests Work
+## How the declarative collector golden tests work
 
-Each inventory module test follows this pattern:
+Every `.psd1` under `manifests/collectors/**` is proved the same way, driven entirely by the
+definition file — there is no per-collector test code to write:
 
-1. **Discovery** — A `$ResourceModules` array lists every module with its file path, Azure resource type, and Excel worksheet name.
-2. **Mock Resources** — `BeforeAll` creates in-memory mock Azure resources (hashtables) that match the shapes each module expects.
-3. **Processing Phase** — The module script is loaded as a `ScriptBlock` and invoked with `Task = 'Processing'`, mock resources, and a temp directory. The test asserts the function returns non-null data.
-4. **Reporting Phase** — The same script is invoked with `Task = 'Reporting'` and the processed data. The test asserts the call completes without throwing.
+1. **Discovery** — `DeclarativeCollectorGolden.Tests.ps1` enumerates every category folder and
+   every `.psd1` inside it; each becomes one Pester test case.
+2. **Fixture** — `scripts/New-ScoutCollectorFixture.ps1` derives a synthetic resource for that
+   collector from its own field expressions (see [Fixture Generation](#fixture-generation) above),
+   or a shared fixture is used for collectors that share an input shape (e.g. `Databases`).
+3. **Run** — `src/pipeline/Invoke-ScoutDeclarativeCollector.ps1` runs the definition against the
+   fixture for both the Processing and Reporting tasks, under both tag states.
+4. **Compare** — The result is compared field-for-field against a **committed golden record** in
+   `tests/fixtures/collector-golden/<Category>/<Name>.json` — rows, order, keys, values, and
+   null/array shape must match exactly, and the rendered Excel worksheet's columns and cells must
+   match too.
 
-```powershell
-# Simplified example from Compute.Module.Tests.ps1
-$content = Get-Content -Path $module.File -Raw
-$sb = [ScriptBlock]::Create($content)
-
-# Processing phase
-$result = Invoke-Command -ScriptBlock $sb -ArgumentList @(
-    $TempDir, $null, $null, $MockResources, $null,
-    'Processing', $null, $null, 'Medium', $null
-)
-$result | Should -Not -BeNullOrEmpty
-
-# Reporting phase
-{ Invoke-Command -ScriptBlock $sb -ArgumentList @(
-    $TempDir, $null, $null, $MockResources, $null,
-    'Reporting', $ExcelFile, $result, 'Medium', $null
-) } | Should -Not -Throw
-```
+Golden records are updated only through a reviewed, documented behavior change — never
+regenerated to make a failing test pass.
 
 ## How Private Module Tests Work
 
@@ -124,18 +122,23 @@ Private module tests validate scripts that are not directly invoked by users:
 - **Function definitions** — Verifies each script defines the expected function name via regex search of the file content.
 - **Unit tests** — For simple utilities (e.g., `Clear-AZSCMemory`, `Set-AZSCFolder`), the function is dot-sourced and invoked with mocked dependencies.
 
-## Writing Tests for a New Module
+## Writing Tests for a New Collector
 
-When you add a new inventory module:
+When you add a new `.psd1` collector definition under `manifests/collectors/<Category>/`:
 
-1. Identify which category test file it belongs to (e.g., `Compute.Module.Tests.ps1`).
-2. Add an entry to the `$ResourceModules` array with `Name`, `File`, `Type`, and `Worksheet`.
-3. Add a mock resource hashtable to the `$MockResources` array that matches the module's expected resource type.
-4. Run the test file and verify both Processing and Reporting phases pass.
+1. Run `scripts/New-ScoutCollectorFixture.ps1` for the category (or add to the shared fixture) to
+   generate a fixture that reaches every field expression the definition declares.
+2. Run `DeclarativeCollectorGolden.Tests.ps1` once with no committed golden record — it will show
+   you the produced output.
+3. Review that output by hand, then commit it as the golden record under
+   `tests/fixtures/collector-golden/<Category>/<Name>.json`.
+4. Re-run the test file and verify it passes against the committed record.
+5. Confirm every resource type you declared is real — `ResourceTypeExistence.Tests.ps1` checks
+   this automatically, but see [the gate section](#the-resource-type-existence-gate) below for how
+   to add a provider newer than the committed catalogue.
 
-::: tip
-Use the `Module-template.tpl` in `manifests/collectors/` as the starting point for both the module and its corresponding test entry.
-:::
+See `docs/design/decisions/declarative-collectors.md` for the full `.psd1` schema and
+[Contributing](contributing.md) for the rest of the PR workflow.
 
 ## The resource-type existence gate
 
