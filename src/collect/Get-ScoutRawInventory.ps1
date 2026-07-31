@@ -99,6 +99,21 @@ $ErrorActionPreference = 'Stop'
     Also collect the custom-role, management-group, policy-definition, and policy-set
     envelopes and append them to `Resources`. Off by default.
 
+    This switch also drives the ARM REST API sweep (`Get-ScoutApiResources`), whose per-
+    subscription results are returned on the `ApiResources` field so that a caller which
+    needs them for its own reasons -- the v1 inventory orchestration does -- reuses this
+    pass instead of issuing a second identical one (AB#6755).
+
+.PARAMETER SkipPolicy
+    Suppress the three policy REST calls inside the ARM API sweep. Only meaningful alongside
+    -IncludeTenantWideResources. Mirrors `Get-ScoutApiResources -SkipPolicy`; with it set the
+    policy-definition and policy-set envelopes come back empty by construction.
+
+.PARAMETER TenantWideDefinitionsOnly
+    Narrow the ARM API sweep to the two calls the tenant-wide envelopes actually consume.
+    Set by callers that want the envelopes but never read `ApiResources` themselves -- the
+    assessment collect pass. Cuts the sweep from seven paced calls per subscription to two.
+
 .PARAMETER IncludeOperationalCollectorEnrichment
     Also collect the parent-scoped ARM/Az-cmdlet envelopes consumed by the remaining live-access
     inventory collectors (VM, Arc, storage, and subscription enrichment), appending them to
@@ -232,6 +247,8 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeArmChildResources,
         [switch]   $IncludeSubscriptionSecurityPolicy,
         [switch]   $IncludeTenantWideResources,
+        [switch]   $SkipPolicy,
+        [switch]   $TenantWideDefinitionsOnly,
 
         [switch]   $IncludeOperationalCollectorEnrichment,
         [string]   $RetirementQueryPath,
@@ -597,6 +614,11 @@ function Get-ScoutRawInventory {
         }
     }
 
+    # Returned on the envelope so the v1 inventory orchestration can consume this sweep rather
+    # than issuing its own identical one after the raw pass returns (AB#6755). Empty whenever
+    # tenant-wide collection is off, which is the only state that existed before.
+    $collectedApiResources = @()
+
     if ($IncludeTenantWideResources) {
         $tenantHelpersAvailable =
             (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1') -and
@@ -606,7 +628,8 @@ function Get-ScoutRawInventory {
             try {
                 # Tenant-wide policy envelopes consume the API result rather than duplicating
                 # any policy call in their own helper.
-                $apiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment)
+                $apiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
+                $collectedApiResources = $apiResources
                 foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $apiResources)) {
                     if ($null -ne $row) { $resources.Add($row) }
                 }
@@ -628,5 +651,6 @@ function Get-ScoutRawInventory {
         Advisories         = @($advisories)
         Security           = @($security)
         Retirements        = @($retirements)
+        ApiResources       = @($collectedApiResources)
     }
 }

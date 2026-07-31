@@ -61,16 +61,21 @@ function Start-AZSCExtractionOrchestration {
     $PolicySetDef = $null
     $Costs = $null
     $VMQuotas = $null
+    $PreCollectedAPIResults = @()
 
     # ── ARM Extraction (skip when Scope = EntraOnly) ──
     if ($Scope -ne 'EntraOnly') {
-        $GraphData = Start-AZSCGraphExtraction -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -AzureEnvironment $AzureEnvironment
+        $GraphData = Start-AZSCGraphExtraction -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -AzureEnvironment $AzureEnvironment -SkipAPIs $SkipAPIs -SkipPolicy $SkipPolicy
 
         $Resources = $GraphData.Resources
         $ResourceContainers = $GraphData.ResourceContainers
         $Advisories = $GraphData.Advisories
         $Security = $GraphData.Security
         $Retirements = $GraphData.Retirements
+        # AB#6755 -- the tenant-wide pass inside the raw extraction already ran the ARM REST
+        # API sweep. Carry it out of $GraphData before that variable is dropped so the block
+        # below reuses it instead of issuing the identical per-subscription calls a second time.
+        $PreCollectedAPIResults = $GraphData.ApiResources
 
         Remove-Variable -Name GraphData -ErrorAction SilentlyContinue
 
@@ -81,7 +86,17 @@ function Start-AZSCExtractionOrchestration {
                 # The v3 collector implementation owns the ARM REST contract directly.  Do
                 # not route this through a legacy Modules shim: src/collect is now the single
                 # implementation and its field names are consumed below.
-                $APIResults = Get-ScoutApiResources -Subscriptions $Subscriptions -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy
+                #
+                # AB#6755: prefer the sweep the raw extraction already ran. Falling back to a
+                # fresh call keeps this correct if the tenant-wide pass was skipped or its
+                # helpers could not be loaded -- it must never be the reason the four legacy
+                # API datasets below go missing.
+                $APIResults = if (@($PreCollectedAPIResults).Count -gt 0) {
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Reusing the API sweep from the raw extraction pass (AB#6755).')
+                    @($PreCollectedAPIResults)
+                } else {
+                    Get-ScoutApiResources -Subscriptions $Subscriptions -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy
+                }
                 # Read element-wise, NOT via member enumeration ($APIResults.ReservationRecomen).
                 # The module runs under Set-StrictMode -Version Latest (every src/*.ps1 sets it at
                 # file scope and the .psm1 dot-sources them), and member enumeration throws

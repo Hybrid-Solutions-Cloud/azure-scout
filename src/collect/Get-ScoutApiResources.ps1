@@ -71,8 +71,20 @@ function Get-ScoutApiResources {
         [Parameter(Mandatory)] [object[]] $Subscriptions,
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string] $AzureEnvironment = 'AzureCloud',
-        [switch] $SkipPolicy
+        [switch] $SkipPolicy,
+        # AB#6755. The assessment collect pass needs this function for exactly two of its seven
+        # calls -- the policy and policy-set DEFINITIONS that Get-ScoutTenantWideResource turns
+        # into envelopes. The other five (resource health, managed identities, advisor score,
+        # reservation recommendations, and the policyStates summarize POST) feed inventory
+        # report collectors that an assessment run never renders, so paying for them there
+        # would be five wasted round-trips and a second of pacing sleep per subscription.
+        # Mutually exclusive with -SkipPolicy, which suppresses the very calls this keeps.
+        [switch] $DefinitionsOnly
     )
+
+    if ($DefinitionsOnly -and $SkipPolicy) {
+        throw 'Get-ScoutApiResources: -DefinitionsOnly and -SkipPolicy cannot be combined -- together they would issue no calls at all.'
+    }
 
     $managementHost = switch ($AzureEnvironment) {
         'AzureCloud'         { 'management.azure.com' }
@@ -124,32 +136,51 @@ function Get-ScoutApiResources {
         # large tenant it is minutes of apparent silence. The legacy function printed this
         # exact line per subscription and AB#5648 preserves it rather than making the run look
         # hung. It is the only Write-Host under src/.
-        Write-Host 'Running API Inventory at: ' -NoNewline
-        Write-Host $subName -ForegroundColor Cyan
+        #
+        # AB#6755: a -DefinitionsOnly sweep is two fast GETs, not seven paced calls, and it runs
+        # inside an assessment collect that prints its own progress. Announcing it per
+        # subscription would be new console noise for a pass that is not slow enough to need it.
+        if ($DefinitionsOnly) {
+            Write-Verbose "Get-ScoutApiResources: reading policy definitions for subscription '$subName'."
+        }
+        else {
+            Write-Host 'Running API Inventory at: ' -NoNewline
+            Write-Host $subName -ForegroundColor Cyan
+        }
 
-        $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
-            -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
-        Start-Sleep -Milliseconds 200
+        $resourceHealth             = $null
+        $managedIdentities          = $null
+        $advisorScore               = $null
+        $reservationRecommendations = $null
+        if (-not $DefinitionsOnly) {
+            $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
+            Start-Sleep -Milliseconds 200
 
-        $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
-            -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
-        Start-Sleep -Milliseconds 200
+            $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
+            Start-Sleep -Milliseconds 200
 
-        $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
-            -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01"
-        Start-Sleep -Milliseconds 200
+            $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01"
+            Start-Sleep -Milliseconds 200
 
-        $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
-            -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"
-        Start-Sleep -Milliseconds 200
+            $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"
+            Start-Sleep -Milliseconds 200
+        }
 
         $policyAssignments   = $null
         $policyDefinitions   = $null
         $policySetDefinitions = $null
         if (-not $SkipPolicy) {
-            $policyAssignments = Invoke-ScoutApiCall -Method 'POST' -FieldName 'PolicyAssignments' -SubscriptionName $subName `
-                -Uri "$base/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
-            Start-Sleep -Milliseconds 200
+            # The policyStates summarize POST is an inventory-report input, not a definition, so
+            # -DefinitionsOnly skips it alongside the four above.
+            if (-not $DefinitionsOnly) {
+                $policyAssignments = Invoke-ScoutApiCall -Method 'POST' -FieldName 'PolicyAssignments' -SubscriptionName $subName `
+                    -Uri "$base/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
+                Start-Sleep -Milliseconds 200
+            }
             $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Authorization/policySetDefinitions?api-version=2023-04-01"
             Start-Sleep -Milliseconds 200

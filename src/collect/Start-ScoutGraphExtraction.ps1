@@ -33,7 +33,7 @@ This powershell Module is part of Azure Scout (AZSC)
 Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola, 15th Oct 2024.
 #>
 Function Start-AZSCGraphExtraction {
-    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment)
+    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment, $SkipAPIs, $SkipPolicy)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Starting Extractor function (src/collect single-pass, AB#5648)')
 
@@ -78,6 +78,19 @@ Function Start-AZSCGraphExtraction {
         IncludeArmChildResources     = $true
         IncludeOperationalCollectorEnrichment = $true
         IncludeSubscriptionSecurityPolicy = $true
+        # AB#6755. This switch was added by AB#5933 as a temporary migration gate and no
+        # production caller ever set it, so management groups, custom role definitions, policy
+        # definitions and policy set definitions were collected by nothing -- four worksheets
+        # empty on every run since. It is now on for every inventory run except an explicit
+        # -SkipAPIs, because it is ARM REST work and -SkipAPIs is the operator's existing way
+        # of saying "Resource Graph only".
+        #
+        # It costs this path no extra round-trips: the sweep it drives is the same
+        # Get-ScoutApiResources sweep Start-AZSCExtractionOrchestration used to run AFTER this
+        # function returned. The results come back on $Raw.ApiResources and are handed up for
+        # that caller to reuse.
+        IncludeTenantWideResources   = (-not [bool]$SkipAPIs)
+        SkipPolicy                   = [bool]$SkipPolicy
         IncludeTags                  = [bool]$IncludeTags
         AzureEnvironment             = $AzureEnvironment
     }
@@ -118,5 +131,8 @@ Function Start-AZSCGraphExtraction {
         Advisories         = $Advisories
         Security           = $Security
         Retirements        = $ResourceRetirements
+        # AB#6755 -- the ARM REST sweep the tenant-wide pass just ran, handed up so the
+        # orchestration reuses it rather than repeating it.
+        ApiResources       = @(if ($Raw.PSObject.Properties['ApiResources']) { $Raw.ApiResources })
     }
 }
