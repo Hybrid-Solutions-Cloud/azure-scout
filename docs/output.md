@@ -84,6 +84,72 @@ isolation has no lasting effect there — blob storage is the durable copy. See
 | `AzureScout_Diagram_<timestamp>.drawio` | Draw.io | Network topology diagram (skip with `-SkipDiagram`) |
 | `scout-run.log` | Log | Structured run log — phases, elapsed times, counts, warnings, and full error detail on failure. Written for every run, including failed ones. See [Troubleshooting](troubleshooting.md#run-logs) |
 | `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
+| `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
+| `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |
+
+## Evidence artifacts
+
+These two files exist to make a run auditable. Neither is written to `ReportCache`, so neither is
+removed by the cache cleanup that runs at the end of every scan — both survive for as long as the
+run folder does.
+
+### `raw-inventory.json`
+
+AzureScout's Resource Graph pass is unfiltered: it pulls **every** resource type in the estate.
+The collector manifests then decide which types reach a worksheet, and historically everything
+else was discarded without being written anywhere — so a resource type no manifest claims left no
+trace it had ever been seen. This artifact is written **before** the processing phase, so it
+contains rows no report shows.
+
+```json
+{
+  "Schema": "azure-scout/raw-inventory/v1",
+  "GeneratedAt": "2026-07-31T18:04:14.0000000Z",
+  "Counts": { "Resources": 4812, "ResourceContainers": 37, "EntraResources": 1204, "...": 0 },
+  "ResourceTypes": [
+    { "Type": "microsoft.compute/virtualmachines", "Rows": 214 },
+    { "Type": "microsoft.madeup/thingies",          "Rows": 3   }
+  ],
+  "Resources": [ /* full rows, properties bag intact */ ],
+  "ResourceContainers": [], "Advisories": [], "Security": [], "Retirements": [],
+  "EntraResources": [], "Quotas": [], "PolicyAssign": [], "PolicyDef": [], "PolicySetDef": []
+}
+```
+
+`ResourceTypes` is the quickest answer to *"what did the estate contain that no worksheet
+showed?"* — compare it against the types listed in [the category reference](category-reference.md).
+
+### `collector-rowcounts.json`
+
+One row per collector, with **three** verdicts rather than two. `Rows: 0` on its own is ambiguous:
+it can mean the collector is broken, or that the tenant genuinely has none of that resource type.
+The `Verdict` field says which.
+
+| Verdict | Meaning |
+|---|---|
+| `Rows` | The collector ran and produced data |
+| `Empty` | The collector ran cleanly and produced nothing — the estate has none of this type |
+| `Failed` | The collector threw. `Error` carries the message, and the empty worksheet is explained |
+
+```json
+{
+  "Schema": "azure-scout/collector-rowcounts/v1",
+  "GeneratedAt": "2026-07-31T18:04:14.0000000Z",
+  "Totals": { "Collectors": 242, "WithRows": 118, "Empty": 123, "Failed": 1, "Rows": 6104 },
+  "Collectors": [
+    { "Category": "Compute", "Collector": "VirtualMachine", "Rows": 214, "Verdict": "Rows",   "Error": null },
+    { "Category": "Hybrid",  "Collector": "ArcSites",       "Rows": 0,   "Verdict": "Empty",  "Error": null }
+  ]
+}
+```
+
+Rows are sorted by category then collector, so two runs diff cleanly:
+
+```powershell
+$a = (Get-Content .\run-a\collector-rowcounts.json -Raw | ConvertFrom-Json).Collectors
+$b = (Get-Content .\run-b\collector-rowcounts.json -Raw | ConvertFrom-Json).Collectors
+Compare-Object $a $b -Property Category, Collector, Rows, Verdict
+```
 
 ## JSON Structure
 

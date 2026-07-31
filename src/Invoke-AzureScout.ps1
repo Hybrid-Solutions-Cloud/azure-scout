@@ -865,6 +865,13 @@ Function Invoke-AzureScout {
 
     $ExtractionRuntime.Stop()
 
+    # AB#6764 — dump everything that was collected, before any manifest gets to decide what is
+    # worth rendering. Roughly 40% of what the unfiltered Resource Graph pass returns reaches no
+    # worksheet, and until now it was discarded without being written anywhere. This runs here,
+    # ahead of the processing phase, precisely so "before any filtering" is a property of the
+    # call site rather than a claim in a comment.
+    $RawDumpPath = Export-ScoutRawInventoryDump -ExtractionData $ExtractionData -DefaultPath $DefaultPath
+
     # AB#5543 — the wizard asked for both modes. The inventory pass above has now fetched the
     # resource rows, so hand them to the assessment instead of letting it collect from Azure a
     # second time over the same resource types.
@@ -899,6 +906,7 @@ Function Invoke-AzureScout {
         'Security findings'  = @($Security).Count
         'Retirements'        = @($Retirements).Count
         'Entra objects'      = @($EntraResources).Count
+        'Raw dump'           = $RawDumpPath
         'Quotas'             = @($Quotas).Count
         'Policy assignments' = @($PolicyAssign).Count
         'Policy definitions' = @($PolicyDef).Count

@@ -77,113 +77,13 @@ function Start-AZSCEntraExtraction {
         }
     }
 
-    # ── Define the 15 Entra resource type queries ──
-    $entraQueries = @(
-        @{
-            Name         = 'Users'
-            Uri          = '/v1.0/users?$select=id,displayName,userPrincipalName,userType,accountEnabled,createdDateTime,assignedLicenses,onPremisesSyncEnabled,department,jobTitle,mail,lastPasswordChangeDateTime'
-            Type         = 'entra/users'
-            NameProperty = 'userPrincipalName'
-        },
-        @{
-            Name         = 'Groups'
-            Uri          = '/v1.0/groups?$select=id,displayName,groupTypes,securityEnabled,mailEnabled,isAssignableToRole,membershipRule,onPremisesSyncEnabled,description'
-            Type         = 'entra/groups'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Applications'
-            Uri          = '/v1.0/applications?$select=id,displayName,appId,signInAudience,keyCredentials,passwordCredentials,requiredResourceAccess,publisherDomain,createdDateTime'
-            Type         = 'entra/applications'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Service Principals'
-            Uri          = '/v1.0/servicePrincipals?$select=id,displayName,appId,servicePrincipalType,accountEnabled,appOwnerOrganizationId,keyCredentials,passwordCredentials,tags'
-            Type         = 'entra/serviceprincipals'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Managed Identities'
-            Uri          = '/v1.0/servicePrincipals?$filter=servicePrincipalType eq ''ManagedIdentity''&$select=id,displayName,appId,servicePrincipalType,alternativeNames'
-            Type         = 'entra/managedidentities'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Directory Roles'
-            Uri          = '/v1.0/directoryRoles?$select=id,displayName,roleTemplateId,description'
-            Type         = 'entra/directoryroles'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'PIM Assignments'
-            Uri          = '/v1.0/roleManagement/directory/roleAssignments?$expand=principal($select=id,displayName),roleDefinition($select=id,displayName)'
-            Type         = 'entra/pimassignments'
-            NameProperty = 'principalId'
-        },
-        @{
-            Name         = 'Conditional Access Policies'
-            Uri          = '/v1.0/identity/conditionalAccess/policies'
-            Type         = 'entra/conditionalaccesspolicies'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Named Locations'
-            Uri          = '/v1.0/identity/conditionalAccess/namedLocations'
-            Type         = 'entra/namedlocations'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Administrative Units'
-            Uri          = '/v1.0/directory/administrativeUnits?$select=id,displayName,description,membershipType,membershipRule'
-            Type         = 'entra/administrativeunits'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Domains'
-            Uri          = '/v1.0/domains'
-            Type         = 'entra/domains'
-            NameProperty = 'id'
-        },
-        @{
-            Name         = 'Subscribed SKUs'
-            Uri          = '/v1.0/subscribedSkus'
-            Type         = 'entra/subscribedskus'
-            NameProperty = 'skuPartNumber'
-        },
-        @{
-            Name         = 'Cross-Tenant Access'
-            Uri          = '/v1.0/policies/crossTenantAccessPolicy/partners'
-            Type         = 'entra/crosstenantaccess'
-            NameProperty = 'tenantId'
-        },
-        @{
-            Name         = 'Security Policies'
-            Uri          = '/v1.0/policies/authorizationPolicy'
-            Type         = 'entra/securitypolicies'
-            NameProperty = 'displayName'
-            SingleObject = $true
-        },
-        @{
-            Name         = 'Risky Users'
-            Uri          = '/v1.0/identityProtection/riskyUsers'
-            Type         = 'entra/riskyusers'
-            NameProperty = 'userPrincipalName'
-        },
-        @{
-            Name         = 'Identity Providers'
-            Uri          = '/v1.0/identity/identityProviders'
-            Type         = 'entra/identityproviders'
-            NameProperty = 'displayName'
-        },
-        @{
-            Name         = 'Security Defaults'
-            Uri          = '/v1.0/policies/identitySecurityDefaultsEnforcementPolicy'
-            Type         = 'entra/securitydefaults'
-            NameProperty = 'displayName'
-            SingleObject = $true
-        }
-    )
+    # ── The Graph query catalog ──
+    # AB#6765 -- this was a 17-entry literal here. It now lives in
+    # Get-ScoutEntraQueryCatalog.ps1 so the pre-flight impact table reads the SAME list this
+    # loop executes. The pre-flight used to keep its own hardcoded four-entry idea of what
+    # mattered, which is why a denied permission outside those four still printed a green
+    # READY banner over a scan that would render its worksheet empty.
+    $entraQueries = @(Get-ScoutEntraQueryCatalog)
 
     # ── Execute each query with graceful degradation ──
     $queryIndex = 0
@@ -235,12 +135,20 @@ function Start-AZSCEntraExtraction {
             }
         }
         catch {
-            # Graceful degradation — log the error but continue with remaining resource types
+            # Graceful degradation — continue with the remaining resource types.
             Write-Host "  [" -NoNewline
             Write-Host "SKIP" -ForegroundColor Yellow -NoNewline
             Write-Host "] $($query.Name): " -NoNewline
             Write-Host "$($_.Exception.Message)" -ForegroundColor Yellow
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Entra: FAILED $($query.Name) — $($_.Exception.Message)")
+            # AB#6765. The three lines above are ALL this used to do. A denied Graph permission
+            # was swallowed into a coloured Write-Host that reaches no stream a caller can
+            # capture, is invisible in a transcript-less automation run, and never reached the
+            # run's error count -- so the report shipped a worksheet that was empty for a reason
+            # the run itself had not reported. That is the exact failure this Feature exists to
+            # end. The console line stays, because it is the readable one; the warning is what
+            # makes it detectable.
+            Write-Warning "[AzureScout] Entra collection for '$($query.Name)' failed — the collectors reading '$($query.Type)' will be EMPTY. Permission required: $($query.Permission). Error: $($_.Exception.Message)"
         }
     }
 

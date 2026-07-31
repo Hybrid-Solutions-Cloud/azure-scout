@@ -124,6 +124,9 @@ function Invoke-AZSCPermissionAudit {
     $providerResults = [System.Collections.Generic.List[PSCustomObject]]::new()
     $graphDetails    = [System.Collections.Generic.List[PSCustomObject]]::new()
     $recommendations = [System.Collections.Generic.List[string]]::new()
+    # AB#6765 -- declared here, not inside the Graph branch, because the summary reads it
+    # unconditionally and StrictMode makes an unset variable a terminating error.
+    $emptyCollectors = [System.Collections.Generic.List[PSCustomObject]]::new()
     $armAccess       = $true
     $graphAccess     = $false   # stays false unless -IncludeEntraPermissions and tests pass
 
@@ -400,34 +403,69 @@ function Invoke-AZSCPermissionAudit {
         }
 
         if ($graphToken) {
-            $graphChecks = [ordered]@{
-                'Graph: Organization Read'       = @{ Uri = '/v1.0/organization';                    Permission = 'Organization.Read.All'; Purpose = 'Basic tenant metadata' }
-                'Graph: Users Read'              = @{ Uri = '/v1.0/users?$top=1';                   Permission = 'User.Read.All';          Purpose = 'User inventory' }
-                'Graph: Groups Read'             = @{ Uri = '/v1.0/groups?$top=1';                  Permission = 'Group.Read.All';         Purpose = 'Group inventory' }
-                'Graph: Applications Read'       = @{ Uri = '/v1.0/applications?$top=1';            Permission = 'Application.Read.All';   Purpose = 'App Registration inventory' }
-                'Graph: Service Principals Read' = @{ Uri = '/v1.0/servicePrincipals?$top=1';      Permission = 'Application.Read.All';   Purpose = 'Service Principal inventory' }
-                'Graph: Directory Roles Read'    = @{ Uri = '/v1.0/directoryRoles';                Permission = 'RoleManagement.Read.Directory'; Purpose = 'Directory role inventory' }
-                'Graph: Conditional Access Read' = @{ Uri = '/v1.0/identity/conditionalAccess/policies?$top=1'; Permission = 'Policy.Read.All'; Purpose = 'Conditional Access policy inventory' }
-                'Graph: Risky Users Read'        = @{ Uri = '/v1.0/identityProtection/riskyUsers?$top=1'; Permission = 'IdentityRiskyUser.Read.All'; Purpose = 'Identity Protection — risky users' }
-                'Graph: Audit Logs Read'         = @{ Uri = '/v1.0/auditLogs/signIns?$top=1';      Permission = 'AuditLog.Read.All';      Purpose = 'Sign-in and audit log access (optional)' }
+            # AB#6765 -- the checks are DERIVED from the query catalog Scout actually runs and
+            # from the collector manifests that consume it, not from a second hand-maintained
+            # list. The old list had nine entries and a hardcoded four of them were "critical";
+            # a denial outside those four left the run reporting READY with an empty worksheet
+            # behind it, and 'Graph: Audit Logs Read' was checked at all despite no collector
+            # reading sign-in logs.
+            #
+            # Loaded defensively, for the same reason the context restore below is written
+            # inline rather than through the shared helper: this file is dot-sourced standalone
+            # by tests and by callers that do not import the whole module, so it must not
+            # assume a sibling has already been loaded.
+            if (-not (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'collect/Get-ScoutEntraQueryCatalog.ps1')
+            }
+            if (-not (Get-Command Get-ScoutGraphPermissionImpact -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'Get-ScoutGraphPermissionImpact.ps1')
             }
 
+            $graphImpact = @(Get-ScoutGraphPermissionImpact)
+
             $graphAccess = $true
-            foreach ($checkName in $graphChecks.Keys) {
-                $check = $graphChecks[$checkName]
+
+            foreach ($impact in $graphImpact) {
+                $checkName  = "Graph: $($impact.Permission)"
+                $probe      = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.Permission -eq $impact.Permission })[0]
+                $purpose    = ($impact.Queries -join ', ')
+
+                if (-not $impact.IsConsumed) {
+                    # A permission no collector consumes is not worth failing, warning, or even
+                    # asking for. Say so rather than quietly probing it every run.
+                    $r = New-CheckResult $checkName 'Warn' `
+                        "$($impact.Permission) — queried ($purpose) but NO collector reads the result. Do not grant it." `
+                        "Remove '$($impact.Permission)' from the access request — nothing consumes it."
+                    Write-AuditLine -Status Warn -Text "$checkName — queried but unused by every collector"
+                    $graphDetails.Add($r)
+                    continue
+                }
+
                 try {
-                    $null = Invoke-AZSCGraphRequest -Uri $check.Uri -SinglePage
-                    $r = New-CheckResult $checkName 'Pass' "$($check.Permission)  — $($check.Purpose)"
-                    Write-AuditLine -Status Pass -Text "$checkName  [$($check.Permission)]"
+                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage
+                    $r = New-CheckResult $checkName 'Pass' "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
+                    Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
-                    $isCritical = $checkName -in 'Graph: Organization Read', 'Graph: Users Read', 'Graph: Groups Read', 'Graph: Applications Read'
-                    $status = if ($isCritical) { 'Fail'; $graphAccess = $false } else { 'Warn' }
-                    $r = New-CheckResult $checkName $status `
-                        "DENIED — $($check.Permission)  ($($check.Purpose))" `
-                        "Grant '$($check.Permission)' in Entra ID > Enterprise Applications > API Permissions"
-                    Write-AuditLine -Status $status -Text "$checkName  [$($check.Permission)] — DENIED"
-                    $recommendations.Add("Grant Graph permission '$($check.Permission)' for: $($check.Purpose)")
+                    # Criticality is derived: this permission has consumers, so denying it
+                    # empties worksheets, so the run is not READY. There is no list to edit.
+                    $graphAccess = $false
+                    foreach ($c in $impact.Collectors) {
+                        $emptyCollectors.Add([PSCustomObject]@{
+                            Collector  = $c
+                            Reason     = 'Graph permission denied'
+                            Permission = $impact.Permission
+                        })
+                    }
+                    $r = New-CheckResult $checkName 'Fail' `
+                        "DENIED — $($impact.Permission) ($purpose). $($impact.CollectorCount) collectors will be empty: $($impact.Collectors -join ', ')" `
+                        "Grant '$($impact.Permission)' in Entra ID > Enterprise Applications > API Permissions"
+                    Write-AuditLine -Status Fail -Text "$checkName — DENIED; $($impact.CollectorCount) collectors will be empty"
+                    # AB#6765 -- this used to be a coloured Write-Host and nothing else, so a
+                    # denied permission never reached the warning stream and never reached the
+                    # run's error count. An automated caller could not tell.
+                    Write-Warning "[AzureScout] Graph permission '$($impact.Permission)' is DENIED. These collectors will produce no data: $($impact.Collectors -join ', ')."
+                    $recommendations.Add("Grant Graph permission '$($impact.Permission)' — without it these collectors are empty: $($impact.Collectors -join ', ')")
                 }
                 $graphDetails.Add($r)
             }
@@ -472,6 +510,24 @@ function Invoke-AZSCPermissionAudit {
     Write-Host $readinessText -ForegroundColor $readinessColor
     Write-Host ''
 
+    # ── AB#6765: the impact table ─────────────────────────────────────────────
+    # The verdict word above is kept because scripts read $result.OverallReadiness, but it is no
+    # longer the answer. This table is: it names every collector that will produce no data and
+    # the permission each one needs. A word can be wrong in a way a list cannot -- "READY"
+    # printed over four empty worksheets is exactly the failure this replaces.
+    if ($emptyCollectors -and $emptyCollectors.Count -gt 0) {
+        Write-Host "  Collectors that will produce NO data ($($emptyCollectors.Count)):" -ForegroundColor Yellow
+        Write-Host ''
+        foreach ($row in ($emptyCollectors | Sort-Object Collector)) {
+            Write-Host ('    {0,-40} {1} — needs {2}' -f $row.Collector, $row.Reason, $row.Permission) -ForegroundColor Yellow
+        }
+        Write-Host ''
+    }
+    elseif ($null -ne $graphAccess) {
+        Write-Host '  Every Entra collector has the permission it needs.' -ForegroundColor Green
+        Write-Host ''
+    }
+
     # @() guard: when $recommendations is empty, piping it through Sort-Object -Unique
     # emits nothing at all, so the expression evaluates to $null — and $null.Count
     # throws under strict mode on every PowerShell edition/version, not just 5.1.
@@ -506,6 +562,9 @@ function Invoke-AZSCPermissionAudit {
         ProviderResults  = $providerResults.ToArray()
         GraphDetails     = $graphDetails.ToArray()
         Recommendations  = ($recommendations | Sort-Object -Unique)
+        # AB#6765 -- the per-collector impact, so an automated caller gets the same answer the
+        # console table shows instead of having to interpret OverallReadiness.
+        EmptyCollectors  = @($emptyCollectors | Sort-Object Collector)
         OverallReadiness = $overallReadiness
         AuditTimestamp   = (Get-Date -Format 'o')
     }

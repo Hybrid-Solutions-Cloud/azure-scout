@@ -129,6 +129,9 @@ function Invoke-ScoutProcessing {
             Skipped          = @()
             Categories       = @()
             CacheFiles       = @()
+            CollectorRows    = @()
+            RowCountPath     = $null
+            EmptyCount       = 0
             Duration         = (Get-Date) - $Started
         }
     }
@@ -149,6 +152,12 @@ function Invoke-ScoutProcessing {
     }
 
     $CachePath  = Join-Path $DefaultPath 'ReportCache'
+    # AB#6766 -- the per-collector row counts, retained. Before this, the only evidence of what
+    # each collector produced was the ReportCache, and Invoke-AzureScout runs
+    # Clear-AZSCCacheFolder unconditionally at the end of every run, so nothing survived to
+    # compare one run against another. This list is written to the RUN folder, one level above
+    # the cache, which that function does not touch.
+    $RowCounts  = [System.Collections.Generic.List[object]]::new()
     $Failures   = [System.Collections.Generic.List[object]]::new()
     $Skipped    = [System.Collections.Generic.List[object]]::new()
     $CacheFiles = [System.Collections.Generic.List[object]]::new()
@@ -184,6 +193,21 @@ function Invoke-ScoutProcessing {
                 })
             }
 
+            # AB#6766. Three verdicts, never two. "0 rows" on its own is the ambiguity the whole
+            # audit is about: it can mean the collector broke, or that the tenant genuinely has
+            # none of that resource type. A collector that threw is 'Failed' and its zero is
+            # explained; one that returned cleanly with no rows is 'Empty', which is a real
+            # finding rather than an absence of one.
+            $rowCount = @($Result.Rows).Count
+            $verdict  = if (-not $Result.Success) { 'Failed' } elseif ($rowCount -gt 0) { 'Rows' } else { 'Empty' }
+            $RowCounts.Add([PSCustomObject]@{
+                Category  = $Result.FolderCategory
+                Collector = $Result.Name
+                Rows      = $rowCount
+                Verdict   = $verdict
+                Error     = if (-not $Result.Success) { [string] $Result.Error.Exception.Message } else { $null }
+            })
+
             $Bucket[$Result.Name] = $Result.Rows
             $Done++
         }
@@ -201,6 +225,33 @@ function Invoke-ScoutProcessing {
 
     Write-Progress -Id 1 -Activity 'Processing inventory' -Status '100% Complete.' -Completed
 
+    # AB#6766 -- write the row-count artifact before anything can clear the cache. Sorted by
+    # category then collector so two runs diff cleanly; a hash-ordered file would show every
+    # line as changed. Failing to write it must not cost the caller their report, so it is
+    # contained.
+    $RowCountPath = Join-Path $DefaultPath 'collector-rowcounts.json'
+    $OrderedCounts = @($RowCounts | Sort-Object Category, Collector)
+    if ($PSCmdlet.ShouldProcess($RowCountPath, 'Write collector row counts')) {
+        try {
+            [PSCustomObject]@{
+                Schema     = 'azure-scout/collector-rowcounts/v1'
+                GeneratedAt = $Started.ToString('o')
+                Totals     = [PSCustomObject]@{
+                    Collectors = $Total
+                    WithRows   = @($OrderedCounts | Where-Object Verdict -eq 'Rows').Count
+                    Empty      = @($OrderedCounts | Where-Object Verdict -eq 'Empty').Count
+                    Failed     = @($OrderedCounts | Where-Object Verdict -eq 'Failed').Count
+                    Rows       = (@($OrderedCounts | ForEach-Object { $_.Rows }) | Measure-Object -Sum).Sum
+                }
+                Collectors = $OrderedCounts
+            } | ConvertTo-Json -Depth 6 | Out-File -LiteralPath $RowCountPath -Encoding utf8
+        }
+        catch {
+            Write-Warning "[AzureScout] Could not write the collector row-count artifact to '$RowCountPath': $($_.Exception.Message)"
+            $RowCountPath = $null
+        }
+    }
+
     $Summary = [PSCustomObject]@{
         CollectorCount   = $Total
         DeclarativeCount = $Declarative
@@ -210,6 +261,10 @@ function Invoke-ScoutProcessing {
         Skipped          = @($Skipped)
         Categories       = @($Groups | ForEach-Object { $_.Name })
         CacheFiles       = @($CacheFiles)
+        # AB#6766
+        CollectorRows    = $OrderedCounts
+        RowCountPath     = $RowCountPath
+        EmptyCount       = @($OrderedCounts | Where-Object Verdict -eq 'Empty').Count
         Duration         = (Get-Date) - $Started
     }
 
@@ -226,6 +281,9 @@ function Invoke-ScoutProcessing {
                 'Collectors declarative' = $Summary.DeclarativeCount
                 'Collectors failed' = $Summary.FailureCount
                 'Collectors skipped' = $Summary.SkippedCount
+                # AB#6766 -- an empty collector is a reportable outcome, not a silent one.
+                'Collectors empty'  = $Summary.EmptyCount
+                'Row counts'        = $Summary.RowCountPath
                 'Categories cached' = @($CacheFiles | Where-Object { $_.Written }).Count
                 'Rows cached'       = (@($CacheFiles | ForEach-Object { $_.RowCount }) | Measure-Object -Sum).Sum
             }
