@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "DefenderSecureScore",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "013d485fce3ba9334cc48fd0069146cdcce076b209b39e328ea450e0118e3c17",
+  "FixtureSha256": "f6d62e0e7358688f3cbd2b3ef11e3eb82821ecea0db668135ab42d42028a834f",
   "Rows": [
     "Current Score=j:0|Healthy Resources=j:0|ID=s:res-value|Max Score=j:0|Not Applicable Resources=j:0|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/SecureScore|Resource U=j:1|Score Percentage=s:0%|Secure Score Name=s:res-value|Subscription=s:sub-fixture-01|Unhealthy Resources=j:0|Weight=s:res-value",
     "Current Score=j:0|Healthy Resources=j:0|ID=s:res-value|Max Score=j:0|Not Applicable Resources=j:0|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/SecureScore|Resource U=j:1|Score Percentage=s:0%|Secure Score Name=s:res-value|Subscription=s:sub-fixture-01|Unhealthy Resources=j:0|Weight=s:res-value",

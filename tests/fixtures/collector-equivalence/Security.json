@@ -258,6 +258,30 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1e-1/KeyVaultKeys/keyvaultkeys-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1f-1/KeyVaultKeys/keyvaultkeys-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1f-1/KeyVaultKeys/keyvaultkeys-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1e-1/KeyVaultSecrets/keyvaultsecrets-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1f-1/KeyVaultSecrets/keyvaultsecrets-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1f-1/KeyVaultSecrets/keyvaultsecrets-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -279,7 +303,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -300,7 +324,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -321,7 +345,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -343,7 +367,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -365,7 +389,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -384,7 +408,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -403,7 +427,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -424,7 +448,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -445,7 +469,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -466,7 +490,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -487,7 +511,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -508,7 +532,7 @@
           "PROPERTIES": {
             "provisioningState": "res-value",
             "status": "res-value",
-            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "triggerTime": "2026-01-15T10:30:00Z",
             "timeZone": "res-value",
             "resources": [
               "res-item-0",
@@ -2484,6 +2508,306 @@
           "NAME": "entradomainservices-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.aad/domainservices"
+        }
+      ]
+    },
+    "KeyVaultKeys": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultkeys-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1a-1/KeyVaultKeys/keyvaultkeys-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultkeys-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1b-1/KeyVaultKeys/keyvaultkeys-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultkeys-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1c-1/KeyVaultKeys/keyvaultkeys-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "keyvaultkeys-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1d-1/KeyVaultKeys/keyvaultkeys-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultkeys-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1e-1/KeyVaultKeys/keyvaultkeys-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "attributes": {
+              "exp": 1024,
+              "enabled": "res-value"
+            },
+            "kty": "res-value",
+            "keySize": "res-value",
+            "curveName": "res-value",
+            "rotationPolicy": {
+              "lifetimeActions": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultkeys-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1f-1/KeyVaultKeys/keyvaultkeys-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultKeys",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "KeyVaultSecrets": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultsecrets-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1a-1/KeyVaultSecrets/keyvaultsecrets-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultsecrets-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1b-1/KeyVaultSecrets/keyvaultsecrets-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultsecrets-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1c-1/KeyVaultSecrets/keyvaultsecrets-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "keyvaultsecrets-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1d-1/KeyVaultSecrets/keyvaultsecrets-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultsecrets-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1e-1/KeyVaultSecrets/keyvaultsecrets-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "contentType": "res-value",
+            "attributes": {
+              "exp": 1024,
+              "nbf": 1024,
+              "created": 1024,
+              "updated": 1024,
+              "enabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "keyvaultsecrets-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultsecrets-t1f-1/KeyVaultSecrets/keyvaultsecrets-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/KeyVaultSecrets",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

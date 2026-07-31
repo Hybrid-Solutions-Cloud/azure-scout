@@ -923,6 +923,197 @@ $SentinelWorkspace = if(![string]::IsNullOrEmpty($data.sentinelWorkspaceResource
         }
 
         # ---------------------------------------------------------------------------------------
+        # Child resources (AB#6833 / AB#6834 / AB#6751).
+        #
+        # `Get-ScoutArmChildResource` COLLECTS these; without a collector to render them the data
+        # is fetched on every run and thrown away, which is precisely the collect-versus-display
+        # defect §5.3 of the audit is about. Their rows are synthetic `AZSC/ARMChild/*` envelopes,
+        # so each declares its own Identity: there is no `tags` column, no retirement record and
+        # no subscription join off `$1.subscriptionId` alone.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Security'
+            Name = 'KeyVaultSecrets'
+            Worksheet = 'Key Vault Secrets'
+            ResourceTypes = @('AZSC/ARMChild/KeyVaultSecrets')
+            Identity = @(
+                @{ Name = 'ID';             Expression = '$1.id' }
+                @{ Name = 'Subscription';   Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group'; Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Key Vault';      Expression = '$1.PARENTNAME' }
+                @{ Name = 'Secret';         Expression = '$SecretName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Content Type';   Expression = '$data.contentType' }
+                @{ Name = 'Kind';           Expression = '$Kind' }
+                @{ Name = 'Enabled';        Expression = '[string]$data.attributes.enabled' }
+                @{ Name = 'Expires';        Expression = '$Expires' }
+                @{ Name = 'Days To Expiry'; Expression = '[string]$DaysToExpiry' }
+                @{ Name = 'Expiry Status';  Expression = '$ExpiryStatus' }
+                @{ Name = 'Not Before';     Expression = '$NotBefore' }
+                @{ Name = 'Created';        Expression = '$Created' }
+                @{ Name = 'Updated';        Expression = '$Updated' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$SecretName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+$Kind = if($data.contentType -match 'x-pkcs12|x-pem-file'){'Certificate'}else{'Secret'}
+$Expires = if($null -eq $data.attributes.exp){''}else{[string]([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.exp).ToString('yyyy-MM-dd')}
+$DaysToExpiry = if($null -eq $data.attributes.exp){$null}else{[math]::Floor(((([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.exp)) - $ScoutRunTime).TotalDays)}
+$ExpiryStatus = if($null -eq $DaysToExpiry){'No expiry set'}elseif($DaysToExpiry -lt 0){'EXPIRED'}elseif($DaysToExpiry -le 30){'Expires within 30 days'}elseif($DaysToExpiry -le 90){'Expires within 90 days'}else{'OK'}
+$NotBefore = if($null -eq $data.attributes.nbf){''}else{[string]([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.nbf).ToString('yyyy-MM-dd')}
+$Created = if($null -eq $data.attributes.created){''}else{[string]([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.created).ToString('yyyy-MM-dd')}
+$Updated = if($null -eq $data.attributes.updated){''}else{[string]([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.updated).ToString('yyyy-MM-dd')}
+'@
+        }
+        @{
+            Category = 'Security'
+            Name = 'KeyVaultKeys'
+            Worksheet = 'Key Vault Keys'
+            ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+            Identity = @(
+                @{ Name = 'ID';             Expression = '$1.id' }
+                @{ Name = 'Subscription';   Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group'; Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Key Vault';      Expression = '$1.PARENTNAME' }
+                @{ Name = 'Key';            Expression = '$KeyName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Key Type';       Expression = '$data.kty' }
+                @{ Name = 'Key Size';       Expression = '[string]$data.keySize' }
+                @{ Name = 'Curve';          Expression = '$data.curveName' }
+                @{ Name = 'Enabled';        Expression = '[string]$data.attributes.enabled' }
+                @{ Name = 'Expires';        Expression = '$Expires' }
+                @{ Name = 'Days To Expiry'; Expression = '[string]$DaysToExpiry' }
+                @{ Name = 'Expiry Status';  Expression = '$ExpiryStatus' }
+                @{ Name = 'Rotation Policy'; Expression = '[string]$data.rotationPolicy.lifetimeActions.Count' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$KeyName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+$Expires = if($null -eq $data.attributes.exp){''}else{[string]([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.exp).ToString('yyyy-MM-dd')}
+$DaysToExpiry = if($null -eq $data.attributes.exp){$null}else{[math]::Floor(((([datetime]'1970-01-01Z').AddSeconds([double]$data.attributes.exp)) - $ScoutRunTime).TotalDays)}
+$ExpiryStatus = if($null -eq $DaysToExpiry){'No expiry set'}elseif($DaysToExpiry -lt 0){'EXPIRED'}elseif($DaysToExpiry -le 30){'Expires within 30 days'}elseif($DaysToExpiry -le 90){'Expires within 90 days'}else{'OK'}
+'@
+        }
+        @{
+            Category = 'Storage'
+            Name = 'BlobContainers'
+            Worksheet = 'Blob Containers'
+            ResourceTypes = @('AZSC/ARMChild/StorageBlobContainers')
+            Identity = @(
+                @{ Name = 'ID';              Expression = '$1.id' }
+                @{ Name = 'Subscription';    Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group';  Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Storage Account'; Expression = '$1.PARENTNAME' }
+                @{ Name = 'Container';       Expression = '$ContainerName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                # 'Public Access' and the exposure verdict are the reason this collector exists: a
+                # storage-account list cannot say whether anything inside it is anonymously
+                # reachable, and that is the highest-severity finding in most Azure estates.
+                @{ Name = 'Public Access';        Expression = '$PublicAccess' }
+                @{ Name = 'Anonymous Access';     Expression = '$AnonymousAccess' }
+                @{ Name = 'Lease State';          Expression = '$data.leaseState' }
+                @{ Name = 'Lease Status';         Expression = '$data.leaseStatus' }
+                @{ Name = 'Immutability Policy';  Expression = '[string]$data.hasImmutabilityPolicy' }
+                @{ Name = 'Legal Hold';           Expression = '[string]$data.hasLegalHold' }
+                @{ Name = 'Version Level WORM';   Expression = '[string]$data.isVersionLevelWormEnabled' }
+                @{ Name = 'Last Modified';        Expression = '[string]$data.lastModifiedTime' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$ContainerName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+$PublicAccess = if([string]::IsNullOrEmpty($data.publicAccess)){'None'}else{[string]$data.publicAccess}
+$AnonymousAccess = if($PublicAccess -eq 'Container'){'YES - full anonymous read of blobs AND container listing'}elseif($PublicAccess -eq 'Blob'){'YES - anonymous read of blobs'}else{'No'}
+'@
+        }
+        @{
+            Category = 'Storage'
+            Name = 'FileShares'
+            Worksheet = 'File Shares'
+            ResourceTypes = @('AZSC/ARMChild/StorageFileShares')
+            Identity = @(
+                @{ Name = 'ID';              Expression = '$1.id' }
+                @{ Name = 'Subscription';    Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group';  Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Storage Account'; Expression = '$1.PARENTNAME' }
+                @{ Name = 'Share';           Expression = '$ShareName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Quota (GiB)';      Expression = '[string]$data.shareQuota' }
+                @{ Name = 'Access Tier';      Expression = '$data.accessTier' }
+                @{ Name = 'Protocols';        Expression = '$data.enabledProtocols' }
+                @{ Name = 'Root Squash';      Expression = '$data.rootSquash' }
+                @{ Name = 'Snapshot Count';   Expression = '[string]$data.snapshotCount' }
+                @{ Name = 'Last Modified';    Expression = '[string]$data.lastModifiedTime' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$ShareName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+'@
+        }
+        @{
+            Category = 'Storage'
+            Name = 'LifecyclePolicies'
+            Worksheet = 'Storage Lifecycle Policies'
+            ResourceTypes = @('AZSC/ARMChild/StorageLifecyclePolicies')
+            Identity = @(
+                @{ Name = 'ID';              Expression = '$1.id' }
+                @{ Name = 'Subscription';    Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group';  Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Storage Account'; Expression = '$1.PARENTNAME' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Rule Count';      Expression = '[string]$RuleCount' }
+                @{ Name = 'Enabled Rules';   Expression = '[string]$EnabledRules' }
+                @{ Name = 'Rule Names';      Expression = '$RuleNames' }
+                @{ Name = 'Last Modified';   Expression = '[string]$data.lastModifiedTime' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$LifecycleRules = @($data.policy.rules)
+$RuleCount = $LifecycleRules.Count
+$EnabledRules = @($LifecycleRules | Where-Object { $_.enabled -ne $false }).Count
+$RuleNames = [string](@($LifecycleRules | ForEach-Object { $_.name }) -join ', ')
+'@
+        }
+        @{
+            Category = 'Management'
+            Name = 'BackupInstances'
+            Worksheet = 'Backup Instances'
+            ResourceTypes = @('AZSC/ARMChild/BackupInstances')
+            Identity = @(
+                @{ Name = 'ID';             Expression = '$1.id' }
+                @{ Name = 'Subscription';   Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group'; Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Backup Vault';   Expression = '$1.PARENTNAME' }
+                @{ Name = 'Instance';       Expression = '$InstanceName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Friendly Name';      Expression = '$data.friendlyName' }
+                @{ Name = 'Datasource Type';    Expression = '$data.dataSourceInfo.datasourceType' }
+                @{ Name = 'Protected Resource'; Expression = '$ProtectedResource' }
+                @{ Name = 'Protection State';   Expression = '$data.currentProtectionState' }
+                @{ Name = 'Protection Status';  Expression = '$data.protectionStatus.status' }
+                @{ Name = 'Policy';             Expression = '$PolicyName' }
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$InstanceName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+$ProtectedResource = if([string]::IsNullOrEmpty($data.dataSourceInfo.resourceID)){$null}else{(Get-AZSCIdSegment -Id $data.dataSourceInfo.resourceID -Index 8)}
+$PolicyName = if([string]::IsNullOrEmpty($data.policyInfo.policyId)){$null}else{(Get-AZSCIdSegment -Id $data.policyInfo.policyId -Index 10)}
+'@
+        }
+
+        # ---------------------------------------------------------------------------------------
         # Security — 6 of 22, and the most damaging gap: a security-posture tool that sees a third
         # of the security services (AB#6837).
         # ---------------------------------------------------------------------------------------

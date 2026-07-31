@@ -912,7 +912,7 @@ rather than quietly smoothed over.
 
 **What "Have" does and does not mean.** A ✅ means *a collector targets this service*. It does not
 mean the collector returns rows, that it returns the right fields, or that any rule reads them. 12
-collectors under a ✅ are **provably broken** (§9 note 3), and none of the 236 has ever been verified
+collectors under a ✅ are **provably broken** (§9 note 3), and none of the 242 has ever been verified
 against real Azure (§5.5) — **including all 62 added by AB#6741**, whose resource-type strings were
 taken from the ARM template reference and pinned by `tests/ServiceCollectorTypes`-style assertions
 in `tests/ServiceCoverage.Tests.ps1`, but which no live run has yet confirmed return rows. Read §7
@@ -931,7 +931,7 @@ customer actually asks about is not a "service" at all and can never appear in t
 > **AB#6839 — fixed.** The row, filter and setup scopes now run at `Set-StrictMode -Version 1.0`,
 > which still errors on an uninitialised variable (the protection AB#5671/5672 bought) but reads a
 > missing property as `$null`. One change in `Invoke-ScoutDeclarativeCollector`, uniform across all
-> 236 collectors, and **all 236 golden records are byte-unchanged** — the fix alters no existing
+> 242 collectors, and **all 242 golden records are byte-unchanged** — the fix alters no existing
 > output. `tests/Collector.SparsePayload.Tests.ps1` builds its estate by *removing* properties and
 > is proven non-vacuous: the same probe threw for four collectors before the change and returns
 > rows for all four after.

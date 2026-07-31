@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "EdgeHardwareCenter",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "38e5c56d5e78265323f591c95fabb42398cc678754d39463bb3db0a40abfa5fd",
+  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
   "Rows": [
     "Address State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1a-1|Location=s:res-value|Name=s:edgehardwarecenter-t1a|Order Stage=s:res-value|Product Family=j:[\"res-value\",\"res-value\"]|Product Line=j:[\"res-value\",\"res-value\"]|Quantity=s:2|Resource Group=s:res-value|Resource Kind=s:microsoft.edgeorder/orders|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Address State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2a-1|Location=s:res-value|Name=s:edgehardwarecenter-t2a|Order Stage=s:res-value|Product Family=j:[\"res-value\",\"res-value\"]|Product Line=j:[\"res-value\",\"res-value\"]|Quantity=s:2|Resource Group=s:res-value|Resource Kind=s:microsoft.edgeorder/orderitems|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

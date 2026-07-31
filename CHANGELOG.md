@@ -42,6 +42,13 @@ mechanically, not asserted.
   - *Security* (6 → 18 of 19): Sentinel, Managed HSM, Cloud HSM, application security groups, WAF
     policies, DDoS protection plans, Confidential Ledger, artifact signing, Entra Domain Services,
     App Compliance Automation.
+- **Six collectors that render the child resources** — `Security/KeyVaultSecrets` and
+  `KeyVaultKeys` (with computed days-to-expiry and an expiry status, and certificate-backed
+  secrets classified as such), `Storage/BlobContainers` (with an explicit anonymous-access
+  verdict per container), `Storage/FileShares`, `Storage/LifecyclePolicies` and
+  `Management/BackupInstances`. Collecting the data without a collector to render it would have
+  repeated the collect-versus-display defect §5.3 of the audit is about — fetched every run and
+  thrown away.
 - **Child-resource collection** (AB#6833, AB#6834). Six new `Get-ScoutArmChildResource` datasets:
   Key Vault secrets and keys, storage blob containers, file shares and lifecycle policies, and
   Backup vault instances. All control plane — **no secret value and no blob content is ever
@@ -91,8 +98,8 @@ mechanically, not asserted.
   `virtualNetworkType` exactly as the new `Integration/LogicApps` failed on `integrationAccount`.
   The row, filter and setup scopes now run at `Set-StrictMode -Version 1.0`, which still errors on
   an uninitialised variable — the protection that matters and that a fixture *can* exercise — while
-  reading a missing property as `$null`. One change in the interpreter covers all 236 collectors
-  identically, and **all 236 golden records are byte-unchanged**, so it alters no existing output.
+  reading a missing property as `$null`. One change in the interpreter covers all 242 collectors
+  identically, and **all 242 golden records are byte-unchanged**, so it alters no existing output.
   `tests/Collector.SparsePayload.Tests.ps1` builds its estate by *removing* properties, which is
   the one shape the fixture generator can never produce.
 - **AB#6844 — 75 unguarded string-method calls on payload values.** A collector that called
@@ -116,7 +123,7 @@ mechanically, not asserted.
   because it is the only one that does not throw. **43 collectors have a child row loop and 41
   never set that key**; the remaining 40 need a per-collector reading, since the answer turns on
   whether the parent has meaning without its children.
-- **All 236 golden records are byte-unchanged across every one of these fixes**, so nothing that
+- **All 242 golden records are byte-unchanged across every one of these fixes**, so nothing that
   works today renders differently.
 
 ### Changed

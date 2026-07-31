@@ -27,14 +27,14 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Identity | 16 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 7 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
-| Management | 17 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
+| Management | 18 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
 | Monitor | 24 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 21 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
-| Security | 15 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
-| Storage | 9 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
+| Security | 17 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
+| Storage | 12 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **236** | across all 18 of Microsoft's published service categories |
+| **Total** | **242** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (27 modules)
 
@@ -221,7 +221,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | IOTHubs | `microsoft.devices/iothubs` | IOTHubs |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` | Azure Maps |
 
-## Management Category (17 modules)
+## Management Category (18 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -229,6 +229,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AllSubscriptions | `AZSC/Management/SubscriptionEnrichment` | All Subscriptions |
 | AutomationAccounts | `microsoft.automation/automationaccounts` | Runbooks |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | Backup |
+| BackupInstances | `AZSC/ARMChild/BackupInstances` | Backup Instances |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` | Custom Roles |
 | DevOpsAgentPools | `devops/agentpools` | ADO Agent Pools |
 | DevOpsPipelines | `devops/pipelines` | ADO Pipelines |
@@ -309,7 +310,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | VirtualWAN | `microsoft.network/virtualwans` | Virtual WAN |
 | vNETPeering | `microsoft.network/virtualnetworks` | Peering |
 
-## Security Category (15 modules)
+## Security Category (17 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -324,19 +325,24 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` | Defender Pricing |
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` | Defender Secure Score |
 | EntraDomainServices | `microsoft.aad/domainservices` | Entra Domain Services |
+| KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` | Key Vault Keys |
+| KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` | Key Vault Secrets |
 | ManagedHSM | `microsoft.keyvault/managedhsms` | Managed HSM |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` | Sentinel |
 | Vault | `microsoft.keyvault/vaults` | Key Vaults |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` | WAF Policies |
 
-## Storage Category (9 modules)
+## Storage Category (12 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
+| BlobContainers | `AZSC/ARMChild/StorageBlobContainers` | Blob Containers |
 | DataLakeStoreGen1 | `microsoft.datalakestore/accounts` | Data Lake Store Gen1 |
 | DiskEncryptionSets | `microsoft.compute/diskencryptionsets` | Disk Encryption Sets |
 | EdgeHardwareCenter | `microsoft.edgeorder/orders` · `microsoft.edgeorder/orderitems` · `microsoft.edgeorder/addresses` | Edge Hardware Center |
 | ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` | Elastic SAN |
+| FileShares | `AZSC/ARMChild/StorageFileShares` | File Shares |
+| LifecyclePolicies | `AZSC/ARMChild/StorageLifecyclePolicies` | Storage Lifecycle Policies |
 | NetApp | `Microsoft.NetApp/netAppAccounts/capacityPools/volumes` | NetApp |
 | PartnerStorage | `purestorage.block/storagepools` · `purestorage.block/reservations` · `qumulo.storage/filesystems` | Partner Storage Services |
 | Snapshots | `microsoft.compute/snapshots` | Snapshots |

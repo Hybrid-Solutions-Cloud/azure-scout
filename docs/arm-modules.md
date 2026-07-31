@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **236 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **242 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -239,7 +239,7 @@ IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defe
 | IOTHubs | `microsoft.devices/iothubs` |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
 
-### Management (17 modules)
+### Management (18 modules)
 
 Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.
 
@@ -249,6 +249,7 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 | AllSubscriptions | `AZSC/Management/SubscriptionEnrichment` |
 | AutomationAccounts | `microsoft.automation/automationaccounts` |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` |
+| BackupInstances | `AZSC/ARMChild/BackupInstances` |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
 | DevOpsAgentPools | `devops/agentpools` |
 | DevOpsPipelines | `devops/pipelines` |
@@ -335,7 +336,7 @@ Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion,
 | VirtualWAN | `microsoft.network/virtualwans` |
 | vNETPeering | `microsoft.network/virtualnetworks` *(filtered)* |
 
-### Security (15 modules)
+### Security (17 modules)
 
 Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
 
@@ -352,21 +353,26 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` |
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` |
 | EntraDomainServices | `microsoft.aad/domainservices` |
+| KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` |
+| KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` |
 | ManagedHSM | `microsoft.keyvault/managedhsms` |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` *(filtered)* |
 | Vault | `microsoft.keyvault/vaults` |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` |
 
-### Storage (9 modules)
+### Storage (12 modules)
 
 Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.
 
 | Module | Resource Type |
 |--------|---------------|
+| BlobContainers | `AZSC/ARMChild/StorageBlobContainers` |
 | DataLakeStoreGen1 | `microsoft.datalakestore/accounts` |
 | DiskEncryptionSets | `microsoft.compute/diskencryptionsets` |
 | EdgeHardwareCenter | `microsoft.edgeorder/orders` · `microsoft.edgeorder/orderitems` · `microsoft.edgeorder/addresses` |
 | ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` |
+| FileShares | `AZSC/ARMChild/StorageFileShares` |
+| LifecyclePolicies | `AZSC/ARMChild/StorageLifecyclePolicies` |
 | NetApp | `Microsoft.NetApp/netAppAccounts/capacityPools/volumes` |
 | PartnerStorage | `purestorage.block/storagepools` · `purestorage.block/reservations` · `qumulo.storage/filesystems` |
 | Snapshots | `microsoft.compute/snapshots` |

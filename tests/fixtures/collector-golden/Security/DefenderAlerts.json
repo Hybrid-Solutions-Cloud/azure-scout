@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "DefenderAlerts",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "013d485fce3ba9334cc48fd0069146cdcce076b209b39e328ea450e0118e3c17",
+  "FixtureSha256": "f6d62e0e7358688f3cbd2b3ef11e3eb82821ecea0db668135ab42d42028a834f",
   "Rows": [
     "Affected Resources=s:N/A|Alert Name=<null>|Alert Type=<null>|Confidence Level=s:res-value|Description=s:See Azure Portal|ID=s:res-value|Intent=s:Unknown|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/0|Remediation Steps=s:See Azure Portal for recommended actions|Resource Group=s:N/A|Resource U=j:1|Severity=<null>|Status=<null>|Subscription=s:sub-fixture-01|Tactics (MITRE ATT&CK)=s:N/A|Time Generated (UTC)=s:N/A",
     "Affected Resources=s:N/A|Alert Name=<null>|Alert Type=<null>|Confidence Level=s:res-value|Description=s:See Azure Portal|ID=s:res-value|Intent=s:Unknown|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/0|Remediation Steps=s:See Azure Portal for recommended actions|Resource Group=s:N/A|Resource U=j:1|Severity=<null>|Status=<null>|Subscription=s:sub-fixture-01|Tactics (MITRE ATT&CK)=s:N/A|Time Generated (UTC)=s:N/A",

@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "DataLakeStoreGen1",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "38e5c56d5e78265323f591c95fabb42398cc678754d39463bb3db0a40abfa5fd",
+  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
   "Rows": [
     "Encryption State=s:res-value|Endpoint=s:res-value|Firewall State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1a-1|Location=s:res-value|Name=s:datalakestoregen1-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retired=s:Azure Data Lake Storage Gen1 was retired 2024-02-29|Retiring Date=<null>|Retiring Feature=<null>|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Encryption State=s:res-value|Endpoint=s:res-value|Firewall State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1b-1|Location=s:res-value|Name=s:datalakestoregen1-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retired=s:Azure Data Lake Storage Gen1 was retired 2024-02-29|Retiring Date=<null>|Retiring Feature=<null>|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

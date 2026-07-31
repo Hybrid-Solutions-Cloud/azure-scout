@@ -198,6 +198,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3f-1/registeredservers/storagesync-t3f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1e-1/StorageBlobContainers/blobcontainers-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1f-1/StorageBlobContainers/blobcontainers-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1f-1/StorageBlobContainers/blobcontainers-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1e-1/StorageFileShares/fileshares-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1f-1/StorageFileShares/fileshares-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1f-1/StorageFileShares/fileshares-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1e-1/StorageLifecyclePolicies/lifecyclepolicies-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1f-1/StorageLifecyclePolicies/lifecyclepolicies-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1f-1/StorageLifecyclePolicies/lifecyclepolicies-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -213,6 +249,135 @@
     }
   ],
   "collectors": {
+    "BlobContainers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "blobcontainers-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1a-1/StorageBlobContainers/blobcontainers-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "blobcontainers-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1b-1/StorageBlobContainers/blobcontainers-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "blobcontainers-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1c-1/StorageBlobContainers/blobcontainers-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "blobcontainers-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1d-1/StorageBlobContainers/blobcontainers-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "blobcontainers-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1e-1/StorageBlobContainers/blobcontainers-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "publicAccess": "res-value",
+            "leaseState": "res-value",
+            "leaseStatus": "res-value",
+            "hasImmutabilityPolicy": "res-value",
+            "hasLegalHold": "res-value",
+            "isVersionLevelWormEnabled": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "blobcontainers-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/blobcontainers-t1f-1/StorageBlobContainers/blobcontainers-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageBlobContainers",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "DataLakeStoreGen1": {
       "resources": [
         {
@@ -1260,6 +1425,294 @@
         }
       ]
     },
+    "FileShares": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "fileshares-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1a-1/StorageFileShares/fileshares-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "fileshares-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1b-1/StorageFileShares/fileshares-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "fileshares-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1c-1/StorageFileShares/fileshares-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "fileshares-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1d-1/StorageFileShares/fileshares-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "fileshares-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1e-1/StorageFileShares/fileshares-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "shareQuota": "res-value",
+            "accessTier": "res-value",
+            "enabledProtocols": "res-value",
+            "rootSquash": "res-value",
+            "snapshotCount": "res-value",
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "fileshares-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/fileshares-t1f-1/StorageFileShares/fileshares-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageFileShares",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "LifecyclePolicies": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1a-1/StorageLifecyclePolicies/lifecyclepolicies-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1a",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1b-1/StorageLifecyclePolicies/lifecyclepolicies-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1b",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1c-1/StorageLifecyclePolicies/lifecyclepolicies-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1c",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1d-1/StorageLifecyclePolicies/lifecyclepolicies-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1d",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1e-1/StorageLifecyclePolicies/lifecyclepolicies-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1e",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policy": {
+              "rules": [
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                },
+                {
+                  "enabled": "res-value",
+                  "name": "res-value"
+                }
+              ]
+            },
+            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1f-1/StorageLifecyclePolicies/lifecyclepolicies-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "NAME": "lifecyclepolicies-t1f",
+          "TYPE": "AZSC/ARMChild/StorageLifecyclePolicies",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "NetApp": {
       "resources": [
         {
@@ -1802,7 +2255,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"
@@ -1828,7 +2281,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"
@@ -1855,7 +2308,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"
@@ -1879,7 +2332,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"
@@ -1905,7 +2358,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"
@@ -1931,7 +2384,7 @@
             "diskState": "res-value",
             "diskSizeGB": "res-value",
             "incremental": "res-value",
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "osType": "res-value",
             "networkAccessPolicy": "res-value",
             "publicNetworkAccess": "res-value"

@@ -69,7 +69,7 @@ If you're already logged in via `Connect-AzAccount`, AzureScout uses your existi
 | [Azure Automation Account](automation.md) | Scheduled unattended runs from a runbook, writing to blob storage |
 | [GitHub Actions](github-actions.md) | Generate inventory from a CI pipeline with the composite action |
 | [Azure DevOps](azure-devops.md) | Inventory projects, pipelines, service connections, repos, and agent pools |
-| [ARM Modules](arm-modules.md) | 236 collector definitions across all 18 Azure service categories |
+| [ARM Modules](arm-modules.md) | 242 collector definitions across all 18 Azure service categories |
 | [Entra Modules](entra-modules.md) | 17 Entra ID identity modules |
 | [Validation Matrix](validation-matrix.md) | Per-check automated vs live-tenant verification coverage |
 | [Repository Structure](folder-structure.md) | Directory layout and module loading |

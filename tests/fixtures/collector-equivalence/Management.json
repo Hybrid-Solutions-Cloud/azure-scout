@@ -234,6 +234,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1e-1/BackupInstances/backupinstances-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1229,6 +1241,171 @@
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
           "tags": {}
+        }
+      ]
+    },
+    "BackupInstances": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "backupinstances-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1a-1/BackupInstances/backupinstances-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "backupinstances-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1b-1/BackupInstances/backupinstances-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "backupinstances-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1c-1/BackupInstances/backupinstances-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "backupinstances-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1d-1/BackupInstances/backupinstances-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "backupinstances-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1e-1/BackupInstances/backupinstances-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "dataSourceInfo": {
+              "resourceID": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "datasourceType": "res-value"
+            },
+            "policyInfo": {
+              "policyId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "friendlyName": "res-value",
+            "currentProtectionState": "res-value",
+            "protectionStatus": {
+              "status": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "backupinstances-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/BackupInstances",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

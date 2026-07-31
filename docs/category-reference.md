@@ -32,15 +32,15 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Identity | `Identity` | `manifests/collectors/Identity/` | 16 |
 | Integration | `Integration` | `manifests/collectors/Integration/` | 9 |
 | Internet of Things | `IoT` | `manifests/collectors/IoT/` | 7 |
-| Management and governance | `Management` | `manifests/collectors/Management/` | 17 |
+| Management and governance | `Management` | `manifests/collectors/Management/` | 18 |
 | Migration | `Migration` | `manifests/collectors/Migration/` | 6 |
 | Monitor | `Monitor` | `manifests/collectors/Monitor/` | 24 |
 | Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
-| Security | `Security` | `manifests/collectors/Security/` | 15 |
-| Storage | `Storage` | `manifests/collectors/Storage/` | 9 |
+| Security | `Security` | `manifests/collectors/Security/` | 17 |
+| Storage | `Storage` | `manifests/collectors/Storage/` | 12 |
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
-**236 declarative collector definitions across all 18 of Microsoft's published service
+**242 declarative collector definitions across all 18 of Microsoft's published service
 categories.** Counts are the `.psd1` file count in each category directory; one definition
 generally maps to one worksheet in the Excel report.
 

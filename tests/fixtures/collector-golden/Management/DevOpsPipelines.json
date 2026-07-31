@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "DevOpsPipelines",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "3012272d3182332881d89b07222558229cae9a12de6be7a876d0e35b74a0f9b1",
+  "FixtureSha256": "8f9281d27b72ff02a4da777bb25b62617727b6d67b767333d480fd8e5e9f1ad3",
   "Rows": [
     "Configuration Type=s:res-value|Folder=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1a-1|Organization=s:res-value|Pipeline ID=s:res-value|Pipeline Name=s:devopspipelines-t1a|Project=s:res-value|Resource U=j:1|Revision=s:res-value|URL=s:res-value|YAML Path=s:res-value",
     "Configuration Type=s:res-value|Folder=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1b-1|Organization=s:res-value|Pipeline ID=s:res-value|Pipeline Name=s:devopspipelines-t1b|Project=s:res-value|Resource U=j:1|Revision=s:res-value|URL=s:res-value|YAML Path=s:res-value",

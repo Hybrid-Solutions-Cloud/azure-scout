@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "PartnerStorage",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "38e5c56d5e78265323f591c95fabb42398cc678754d39463bb3db0a40abfa5fd",
+  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1a-1|Location=s:res-value|Marketplace Plan=s:res-value|Name=s:partnerstorage-t1a|Offer=s:res-value|Provisioning State=s:res-value|Publisher=s:res-value|Resource Group=s:res-value|Resource Kind=s:purestorage.block/storagepools|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2a-1|Location=s:res-value|Marketplace Plan=s:res-value|Name=s:partnerstorage-t2a|Offer=s:res-value|Provisioning State=s:res-value|Publisher=s:res-value|Resource Group=s:res-value|Resource Kind=s:purestorage.block/reservations|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
