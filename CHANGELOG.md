@@ -84,17 +84,21 @@ mechanically, not asserted.
 - `-Category DevOps` and `-Category Migration` were documented as aliases for `Management` but
   were absent from the `[ValidateSet]`, so parameter binding rejected them before the alias map
   was consulted. Both are now real categories.
-
-### Known issues found, not fixed
-
-- **AB#6839 — a collector loses its whole worksheet when Azure omits an optional property.** Found
-  by probing collectors against a realistic sparse Resource Graph row. It is estate-wide and
-  pre-existing: `Integration/APIM`, shipped since v1, fails on `virtualNetworkType` exactly as the
-  new `Integration/LogicApps` fails on `integrationAccount`. This release neither introduced nor
-  fixed it. No test in the repository can catch it — the fixture generator derives each estate
-  from the collector's own expressions, so every path a collector reads is present by
-  construction. Recorded in §6 of the audit and raised under the hardening Epic rather than
-  patched inconsistently across 62 of 236 collectors.
+- **AB#6839 — a collector lost its whole worksheet when Azure omitted an optional property.**
+  Reading a `properties` key the payload does not carry throws under `Set-StrictMode -Version
+  Latest`, and because the row script is one statement the run lost every row that collector would
+  have produced. Estate-wide and pre-existing — `Integration/APIM`, shipped since v1, failed on
+  `virtualNetworkType` exactly as the new `Integration/LogicApps` failed on `integrationAccount`.
+  The row, filter and setup scopes now run at `Set-StrictMode -Version 1.0`, which still errors on
+  an uninitialised variable — the protection that matters and that a fixture *can* exercise — while
+  reading a missing property as `$null`. One change in the interpreter covers all 236 collectors
+  identically, and **all 236 golden records are byte-unchanged**, so it alters no existing output.
+  `tests/Collector.SparsePayload.Tests.ps1` builds its estate by *removing* properties, which is
+  the one shape the fixture generator can never produce.
+- `Integration/APIM` guarded its VNet lookup on `virtualNetworkType -eq 'None'`, but an instance
+  that is not VNet-injected omits `virtualNetworkType` entirely, so it took the else branch and
+  called `.split()` on `$null`. **AB#6844** tracks the ~53 remaining sites of that second class
+  across 50 definitions; they need a per-expression guard and no StrictMode setting prevents them.
 
 ### Changed
 

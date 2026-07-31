@@ -179,7 +179,44 @@ function Build-ScoutDeclarativeRowScript {
         }
     }
 
+    # --- StrictMode 1.0 for the row scope ONLY (AB#6839) -----------------------------------------
+    #
+    # THE DEFECT. Under `Set-StrictMode -Version Latest`, reading a property an object does not
+    # carry throws PropertyNotFoundException. A collector preamble reads its service's fields
+    # straight off the payload -- `$data.virtualNetworkType`, `$data.integrationAccount.id` -- and
+    # Azure omits an optional property whenever it has no value: a Data Box job that was never
+    # cancelled has no `cancellationReason`, a Logic App with no integration account has no
+    # `integrationAccount`. The row script is ONE statement, so the throw unwound the whole
+    # collector and its ENTIRE worksheet was lost for that run. Not one row -- all of them.
+    #
+    # It was estate-wide, not new: `Integration/APIM` (shipped since v1) failed on
+    # `virtualNetworkType` exactly as the newly added `Integration/LogicApps` failed on
+    # `integrationAccount`. And no test could catch it, because
+    # `scripts/New-ScoutCollectorFixture.ps1` derives each collector's estate FROM THAT COLLECTOR'S
+    # OWN EXPRESSIONS -- every path a collector reads is present in its fixture by construction.
+    #
+    # WHY 1.0 AND NOT 'OFF'. Version 1.0 still errors on an UNINITIALISED VARIABLE, which is the
+    # protection that actually matters here and the one AB#5671/5672 bought: a mistyped variable
+    # name in a lifted preamble must not silently read $null. What 1.0 drops is precisely the
+    # property check, which is a statement about the DATA rather than about the code, and which no
+    # fixture can exercise. Trading it away is what makes a collector survive real Azure.
+    #
+    # WHY HERE AND NOT IN 236 MANIFESTS. Routing every property read through Get-AZSCSafeProperty
+    # would touch every definition, churn every golden record, and leave the estate with two
+    # conventions and no way to tell which one a given file follows. One line in the interpreter
+    # fixes every collector, present and future, identically.
+    #
+    # THE COST, STATED. A genuine typo in a field expression (`$data.provisoningState`) now yields a
+    # blank column instead of a loud failure. That is a real loss and it is the reason
+    # `Export.Columns` is checked against declared field NAMES by the structural gate, and the
+    # reason AB#6840's live row-count verification matters.
+    #
+    # SCOPE. `Set-StrictMode` applies to the current scope and its children and is undone when the
+    # scope exits, so this relaxes nothing outside the row script -- verified, not assumed.
+    $StrictPrologue = "Set-StrictMode -Version 1.0"
+
     $Body = @"
+$StrictPrologue
 $PreambleText
 $($SubscriptionFallbacks -join "`n")
 
@@ -191,7 +228,8 @@ $FieldLines
 $CloseLoops
 "@
     if ([string]::IsNullOrWhiteSpace($Definition.RowCondition)) { return $Body }
-    return "if ($($Definition.RowCondition)) {`n$Body`n}"
+    # The RowCondition is evaluated by the same relaxed scope: it reads the payload too.
+    return "$StrictPrologue`nif ($($Definition.RowCondition)) {`n$Body`n}"
 }
 
 function Invoke-ScoutDeclarativeProcessing {
@@ -269,7 +307,11 @@ function Invoke-ScoutDeclarativeProcessing {
         } else {
             "$($Definition.FilterPreamble)`n$($Definition.AdditionalFilter)"
         }
-        $ExtraFilter = [scriptblock]::Create($FilterText)
+        # Same StrictMode 1.0 scope as the row script (AB#6839, reasoned at length in
+        # Build-ScoutDeclarativeRowScript). The filter reads the payload too -- `$_.KIND` is $null
+        # on most resource types and absent on some -- and a filter that throws loses the whole
+        # collector before a single row is built.
+        $ExtraFilter = [scriptblock]::Create("Set-StrictMode -Version 1.0`n$FilterText")
         $Matched = @($Matched | Where-Object $ExtraFilter)
     }
 
@@ -293,7 +335,9 @@ function Invoke-ScoutDeclarativeProcessing {
         $Harvest = (@($Definition.SetupVariables) | ForEach-Object {
             "Get-Variable -Name '$($_ -replace "'", "''")' -ErrorAction Ignore"
         }) -join "`n"
-        $SetupScript = [scriptblock]::Create("$($Definition.SetupPreamble)`n$Harvest")
+        # StrictMode 1.0 here too (AB#6839): a SetupPreamble is a second pass over $Resources for a
+        # different type, and it reads that type's payload exactly as the row preamble does.
+        $SetupScript = [scriptblock]::Create("Set-StrictMode -Version 1.0`n$($Definition.SetupPreamble)`n$Harvest")
 
         $SetupContext = [System.Collections.Generic.List[psvariable]]::new()
         $SetupContext.Add([psvariable]::new('Resources', $Resources))

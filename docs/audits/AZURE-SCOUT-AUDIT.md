@@ -919,22 +919,33 @@ in `tests/ServiceCoverage.Tests.ps1`, but which no live run has yet confirmed re
 immediately after this section — a large share of what a
 customer actually asks about is not a "service" at all and can never appear in this table.
 
-> **⚠️ Found 2026-07-31 while building AB#6741, and it applies to the whole estate, not just the
-> new collectors.** A collector preamble that reads a `properties` key Azure did not return
-> **throws** under `Set-StrictMode -Version Latest` and the run log loses that collector's entire
-> output, not one row. Probed against a realistic sparse Resource Graph row — every projected
-> column present, most `$null`, `properties` holding only the keys that resource actually has —
-> `Integration/APIM` (shipped since v1) fails on `virtualNetworkType` exactly as
-> `Integration/LogicApps` (new) fails on `integrationAccount`. **New and old behave identically**;
-> AB#6741 did not introduce this and did not fix it.
+> **⚠️ Found and FIXED 2026-07-31 while building AB#6741 — it applied to the whole estate, not
+> just the new collectors.** A collector preamble that read a `properties` key Azure did not return
+> **threw** under `Set-StrictMode -Version Latest`, and because the row script is one statement the
+> run lost that collector's entire output — not one row, all of them. Probed against a realistic
+> sparse Resource Graph row (every projected column present, most `$null`, `properties` holding
+> only the keys that resource actually has), `Integration/APIM` — shipped since v1 — failed on
+> `virtualNetworkType` exactly as the newly added `Integration/LogicApps` failed on
+> `integrationAccount`.
 >
-> **No test in this repository can catch it**, which is why it has survived. The fixture generator
-> derives its estate *from the collector's own expressions*, so every path a collector reads is
-> present in its fixture by construction — the same structural blindness §5.5 and AB#6444 describe
-> for fabricated resource types, extended from "the type does not exist" to "the payload is
-> sparse". Only a live run against a real tenant, or a fixture deliberately built by *removing*
-> properties, would find it. **Tracked as AB#6839** under the hardening Epic AB#6731 — it is a
-> hardening defect, not a coverage one.
+> **AB#6839 — fixed.** The row, filter and setup scopes now run at `Set-StrictMode -Version 1.0`,
+> which still errors on an uninitialised variable (the protection AB#5671/5672 bought) but reads a
+> missing property as `$null`. One change in `Invoke-ScoutDeclarativeCollector`, uniform across all
+> 236 collectors, and **all 236 golden records are byte-unchanged** — the fix alters no existing
+> output. `tests/Collector.SparsePayload.Tests.ps1` builds its estate by *removing* properties and
+> is proven non-vacuous: the same probe threw for four collectors before the change and returns
+> rows for all four after.
+>
+> **AB#6844 — the second class, still open.** ~53 sites across 50 definitions call a string method
+> directly on a payload value (`….subnetResourceId.split("/")[8]`). That is a null *method call* on
+> the `$null` the fix above now produces, and no StrictMode setting prevents it; each site needs a
+> per-expression guard. `Integration/APIM` was guarded in the same pass because the test pins it.
+>
+> **No test in this repository could have caught either**, which is why they survived. The fixture
+> generator derives its estate *from the collector's own expressions*, so every path a collector
+> reads is present by construction — the same structural blindness §5.5 and AB#6444 describe for
+> fabricated resource types, extended from "the type does not exist" to "the payload is sparse".
+> That blindness is what **Feature AB#6840** exists to close.
 
 **Not every ✅ is an ARM query.** Whole blocks come from non-ARM surfaces: Identity's from Microsoft
 Graph (`entra/…` pseudo-types), DevOps' from the Azure DevOps REST API (`devops/…`), and Security's

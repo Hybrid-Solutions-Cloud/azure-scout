@@ -49,7 +49,15 @@ $ResUCount = 1
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
-                if ($data.virtualNetworkType -eq 'None') { $NetType = '' } else { $NetType = [string]$data.virtualNetworkConfiguration.subnetResourceId.split("/")[8] }
+                # AB#6839: the original guarded only on virtualNetworkType -eq 'None'. An APIM
+                # instance that is not VNet-injected omits `virtualNetworkType` ENTIRELY rather
+                # than reporting 'None', so this took the else branch and called .split() on $null
+                # -- "You cannot call a method on a null-valued expression" -- and the whole APIM
+                # worksheet was lost. Guarding on the value actually being read is the fix; the
+                # 'None' test is kept so behaviour is unchanged for instances that do report it.
+                # Hand-patched, not regenerated: the source collector this was lifted from was
+                # retired in v3.0.0, so there is nothing left to regenerate from.
+                if ($data.virtualNetworkType -eq 'None' -or [string]::IsNullOrEmpty($data.virtualNetworkConfiguration.subnetResourceId)) { $NetType = '' } else { $NetType = [string]$data.virtualNetworkConfiguration.subnetResourceId.split("/")[8] }
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
 '@
 
