@@ -60,9 +60,13 @@ function Start-AZSCWizard {
         [string]$PlatOS
     )
 
+    # Microsoft's eighteen published service categories (AB#6741). Kept in the same order and
+    # spelling as Invoke-AzureScout's -Category ValidateSet so the wizard cannot offer a value the
+    # command would then reject.
     $inventoryCategories = @(
-        'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'Hybrid', 'Identity',
-        'Integration', 'IoT', 'Management', 'Monitor', 'Networking', 'Security', 'Storage', 'Web'
+        'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid',
+        'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking',
+        'Security', 'Storage', 'Web'
     )
     $inventoryFormats = @('Excel', 'Json', 'Markdown', 'AsciiDoc', 'PowerBI')
     $assessmentFormats = @('Html', 'PowerBI', 'Excel', 'Json', 'React', 'Pptx', 'Word', 'Pdf')
@@ -235,11 +239,56 @@ function Start-AZSCWizard {
 
     if ($wantsAssessment) {
         Write-Host ''
-        $manifestPath = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) 'manifests/assessments.psd1'
+        # $PSScriptRoot is <module>/src, so the manifest is ONE level up. It used to climb three,
+        # which lands outside the repository entirely -- the path never existed, the try block
+        # never ran, and the wizard silently offered a hard-coded list of one assessment on every
+        # release. Found while adding the SMART entry below (AB#6832).
+        $moduleRoot = Split-Path $PSScriptRoot -Parent
+        $manifestPath = Join-Path $moduleRoot 'manifests/assessments.psd1'
         $assessmentNames = @('LandingZone')
+        $assessmentManifest = $null
         if (Test-Path $manifestPath) {
-            try { $assessmentNames = @((Import-PowerShellDataFile $manifestPath).Keys | Sort-Object) }
+            try {
+                $assessmentManifest = Import-PowerShellDataFile $manifestPath
+                $assessmentNames = @($assessmentManifest.Keys | Sort-Object)
+            }
             catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to LandingZone: $_" }
+        }
+
+        # An assessment declaring RequiresData is hidden until the data it scores actually exists
+        # (AB#6832). SMART is the case that forced this: an estate with no Azure Migrate project
+        # has nothing for it to read, and offering it there invites a score built on nothing.
+        # The check reads the most recent collect.json this machine produced; with none, the entry
+        # stays hidden, which is the safe direction. `Invoke-Assessment` enforces the same
+        # prerequisite independently, so a user naming -Assessment SMART explicitly still gets an
+        # honest Unknown rather than a fabricated pass.
+        if ($assessmentManifest) {
+            $latestCollect = $null
+            try {
+                $latestCollect = Get-ChildItem -Path (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'AzureScout') `
+                    -Filter 'collect.json' -Recurse -File -ErrorAction SilentlyContinue |
+                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            }
+            catch { $latestCollect = $null }
+
+            $collectObject = $null
+            if ($latestCollect) {
+                try { $collectObject = Get-Content -LiteralPath $latestCollect.FullName -Raw | ConvertFrom-Json }
+                catch { $collectObject = $null }
+            }
+
+            $assessmentNames = @($assessmentNames | Where-Object {
+                $entry = $assessmentManifest[$_]
+                if ($null -eq $entry -or -not $entry.ContainsKey('RequiresData')) { return $true }
+                if ($null -eq $collectObject) { return $false }
+                foreach ($path in @($entry.RequiresData)) {
+                    # Not wrapped in @() — Resolve-JsonPath returns via Write-Output -NoEnumerate,
+                    # so @() would count the wrapper and every gate would read as satisfied.
+                    try { $rows = Resolve-JsonPath -InputObject $collectObject -Path $path; if ($null -ne $rows -and $rows.Count -gt 0) { return $true } }
+                    catch { }
+                }
+                return $false
+            })
         }
         $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Items $assessmentNames -DefaultSelected @('LandingZone')
         if ($null -eq $chosen) { return $null }

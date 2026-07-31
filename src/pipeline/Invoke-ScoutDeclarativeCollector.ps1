@@ -211,6 +211,21 @@ function Invoke-ScoutDeclarativeProcessing {
     $Retirements  = $Context['Retirements']
     $Unsupported  = $Context['Unsupported']
 
+    # ONE clock for the whole collector, bound into every row scope as $ScoutRunTime (AB#6741).
+    #
+    # A definition that needs "now" -- Management/Backup computing days since the last backup -- used
+    # to call `get-date` inside its own preamble. Two consequences, both real:
+    #
+    #   * the committed golden record for that collector changed VALUE every calendar day, so
+    #     `tests/DeclarativeCollectorGolden.Tests.ps1` failed on any day but the one it was recorded
+    #     on -- and it was failing when this work started;
+    #   * within a single production run each row read a slightly different instant, which is the
+    #     same class of non-determinism AB#5629 was about.
+    #
+    # A caller (the golden recorder and its test) may pin it through Context['RunTime']. Production
+    # passes nothing and gets the run's start time, once.
+    $ScoutRunTime = if ($Context.Contains('RunTime') -and $null -ne $Context['RunTime']) { [datetime]$Context['RunTime'] } else { Get-Date }
+
     # ROW ORDER IS THE SHEET'S ORDER, and how a multi-type collector builds its resource set decides
     # it. There are two shapes in the estate and they are NOT interchangeable:
     #
@@ -285,6 +300,7 @@ function Invoke-ScoutDeclarativeProcessing {
         $SetupContext.Add([psvariable]::new('SUB', $Sub))
         $SetupContext.Add([psvariable]::new('Retirements', $Retirements))
         $SetupContext.Add([psvariable]::new('Unsupported', $Unsupported))
+        $SetupContext.Add([psvariable]::new('ScoutRunTime', $ScoutRunTime))
 
         $Produced = @($SetupScript.InvokeWithContext($null, $SetupContext))
         $ByName = @{}
@@ -323,6 +339,7 @@ function Invoke-ScoutDeclarativeProcessing {
         # does its three sub-resource joins INSIDE the row loop rather than hoisting them, and lifting
         # those statements without $Resources in scope produced three empty columns.
         $Variables.Add([psvariable]::new('Resources', $Resources))
+        $Variables.Add([psvariable]::new('ScoutRunTime', $ScoutRunTime))
         foreach ($Binding in $SetupBindings) { $Variables.Add($Binding) }
 
         try {

@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "PolicyDefinitions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "23e783ac13f45f95d3abcf8e0aba579312649ebc98bb6c3aa8145d4648571b72",
+  "FixtureSha256": "3012272d3182332881d89b07222558229cae9a12de6be7a876d0e35b74a0f9b1",
   "Rows": [
     "Category=s:Uncategorized|Description=<null>|Display Name=<null>|Effect=s:Unknown|ID=<null>|Management Group=<null>|Mode=<null>|Name=<null>|Parameters=s:None|Policy Type=<null>|Resource U=j:1|Subscription=<null>|Version=s:N/A",
     "Category=s:Uncategorized|Description=<null>|Display Name=<null>|Effect=s:Unknown|ID=<null>|Management Group=<null>|Mode=<null>|Name=<null>|Parameters=s:None|Policy Type=<null>|Resource U=j:1|Subscription=<null>|Version=s:N/A",
@@ -13,7 +13,11 @@
     "Category=s:Uncategorized|Description=<null>|Display Name=<null>|Effect=s:Unknown|ID=<null>|Management Group=<null>|Mode=<null>|Name=<null>|Parameters=s:None|Policy Type=<null>|Resource U=j:1|Subscription=<null>|Version=s:N/A"
   ],
   "Workbook": {
-    "WithoutTags": "Name\tDisplay Name\tDescription\tPolicy Type\tMode\tCategory\tVersion\tEffect\tParameters\tManagement Group\tSubscription\tResource U\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1",
-    "WithTags": "Name\tDisplay Name\tDescription\tPolicy Type\tMode\tCategory\tVersion\tEffect\tParameters\tManagement Group\tSubscription\tResource U\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1"
+    "WithoutTags": [
+      "Name\tDisplay Name\tDescription\tPolicy Type\tMode\tCategory\tVersion\tEffect\tParameters\tManagement Group\tSubscription\tResource U\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1"
+    ],
+    "WithTags": [
+      "Name\tDisplay Name\tDescription\tPolicy Type\tMode\tCategory\tVersion\tEffect\tParameters\tManagement Group\tSubscription\tResource U\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1\n\t\t\t\t\tUncategorized\tN/A\tUnknown\tNone\t\t\t1"
+    ]
   }
 }

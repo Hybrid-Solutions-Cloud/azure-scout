@@ -26,22 +26,34 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Compute | `Compute` | `manifests/collectors/Compute/` | 14 |
 | Containers | `Containers` | `manifests/collectors/Containers/` | 6 |
 | Databases | `Databases` | `manifests/collectors/Databases/` | 13 |
+| DevOps | `DevOps` | `manifests/collectors/DevOps/` | 12 |
+| General | `General` | `manifests/collectors/General/` | 4 |
 | Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 16 |
-| Identity | `Identity` | `manifests/collectors/Identity/` | 18 |
-| Integration | `Integration` | `manifests/collectors/Integration/` | 2 |
-| Internet of Things | `IoT` | `manifests/collectors/IoT/` | 1 |
-| Management and governance | `Management` | `manifests/collectors/Management/` | 19 |
+| Identity | `Identity` | `manifests/collectors/Identity/` | 16 |
+| Integration | `Integration` | `manifests/collectors/Integration/` | 9 |
+| Internet of Things | `IoT` | `manifests/collectors/IoT/` | 7 |
+| Management and governance | `Management` | `manifests/collectors/Management/` | 17 |
+| Migration | `Migration` | `manifests/collectors/Migration/` | 6 |
 | Monitor | `Monitor` | `manifests/collectors/Monitor/` | 24 |
 | Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
-| Security | `Security` | `manifests/collectors/Security/` | 5 |
-| Storage | `Storage` | `manifests/collectors/Storage/` | 2 |
-| Web and mobile | `Web` | `manifests/collectors/Web/` | 2 |
+| Security | `Security` | `manifests/collectors/Security/` | 15 |
+| Storage | `Storage` | `manifests/collectors/Storage/` | 9 |
+| Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
-**174 declarative collector definitions across 15 categories.** Counts are the `.psd1` file count
-in each category directory; one definition generally maps to one worksheet in the Excel report.
+**236 declarative collector definitions across all 18 of Microsoft's published service
+categories.** Counts are the `.psd1` file count in each category directory; one definition
+generally maps to one worksheet in the Excel report.
 
-The five Azure DevOps collectors sit under `Management`, which is why that count jumped in
-v2.3.0. They only run when `-IncludeDevOps` is supplied — see [Azure DevOps](azure-devops.md).
+`DevOps`, `General` and `Migration` are new in v3.1.0 (AB#6741). Before it Scout modelled fifteen
+categories and had no home at all for Azure Migrate, Data Box, Chaos Studio, Dev Box, Reservations
+or Quotas. `SupportTickets` and `ReservationRecom` moved from `Management` to `General` in the same
+release, unchanged — their rows are byte-identical, which the golden records prove.
+
+The five Azure DevOps *organisation* collectors (ADO Projects, Pipelines, Repositories, Service
+Connections, Agent Pools) still sit under `Management` and still require `-IncludeDevOps` — see
+[Azure DevOps](azure-devops.md). They read the Azure DevOps REST API, not ARM, and are a different
+thing from the `DevOps` service category, which holds ARM resources such as Chaos Studio and Dev
+Box. The names collide because Microsoft's do.
 
 ## Accepted aliases
 
@@ -58,8 +70,6 @@ value — `[ValidateSet]` rejects unknown input at parameter-binding time.
 | `Monitoring` | `Monitor` |
 | `Management and governance` | `Management` |
 | `Management & governance` | `Management` |
-| `DevOps` | `Management` |
-| `Migration` | `Management` |
 | `Web & Mobile` | `Web` |
 | `Web and mobile` | `Web` |
 | `Mobile` | `Web` |
@@ -74,9 +84,12 @@ the report heading, and the `[ValidateSet]` entry are all `Monitor`. Scripts sho
 the canonical value.
 :::
 
-`DevOps` and `Migration` resolve to `Management` because those resource types are
-collected by modules that live in the `Management` folder — there is no separate DevOps
-or Migration manifest directory to filter to.
+::: warning `DevOps` and `Migration` are no longer aliases
+Both used to be listed as aliases resolving to `Management`. They are **canonical categories** as
+of v3.1.0, each with its own manifest directory. The alias entries were also unreachable — neither
+string was in the `[ValidateSet]`, so parameter binding rejected them before the map was consulted,
+and the documented behaviour never once occurred.
+:::
 
 ## What each category covers
 
@@ -89,14 +102,17 @@ or Migration manifest directory to filter to.
 | `Databases` | SQL, Cosmos DB, MySQL and flexible server, PostgreSQL and flexible server, MariaDB, Redis |
 | `Hybrid` | Arc-enabled servers, Kubernetes, data controllers, SQL Server, extensions, gateways, resource bridge, Azure Local |
 | `Identity` | Entra ID users, groups, app registrations, Conditional Access, PIM, directory roles, administrative units, domains |
-| `Integration` | API Management, Service Bus |
-| `IoT` | IoT Hubs |
+| `DevOps` | Chaos Studio, Dev centers and projects, Dev Box pools, network connections, deployment environments, DevTest Labs, Lab Services, Load Testing, Managed DevOps Pools, Playwright workspaces, App Configuration, API Connections |
+| `General` | Support tickets, owned reservations and reservation recommendations, VM quotas |
+| `Integration` | Logic Apps, integration accounts and custom connectors, Event Grid, Event Hubs clusters, Relays, Health Data Services (FHIR/DICOM), API Management, Service Bus |
+| `IoT` | IoT Hubs, Device Provisioning Service, IoT Central, Device Update, Digital Twins, Azure Maps, Defender for IoT |
+| `Migration` | Azure Migrate projects, assessment projects and discovery sites; Database Migration Services, Data Box, Azure Stack Edge |
 | `Management` | Subscriptions, management groups, policy, custom role definitions, Automation Accounts, Backup, Advisor score, Lighthouse delegations, plus the five Azure DevOps collectors (projects, pipelines, service connections, repositories, agent pools) gated behind `-IncludeDevOps` |
 | `Monitor` | Action groups, alert rules, Application Insights and its deep-data modules, data collection rules, diagnostic settings, Log Analytics |
 | `Networking` | VNets, NSGs, load balancers, application gateways, Front Door, Azure Firewall, Bastion, ExpressRoute, VPN connections |
-| `Security` | Microsoft Defender for Cloud alerts, assessments, pricing, secure score; Key Vault |
-| `Storage` | Storage accounts, NetApp Files |
-| `Web` | App Services, App Service plans |
+| `Security` | Microsoft Defender for Cloud alerts, assessments, pricing, secure score; Key Vault plus its secret/key/certificate expiry; Sentinel, Managed HSM, Cloud HSM, application security groups, WAF policies, DDoS protection plans, Confidential Ledger, artifact signing, Entra Domain Services, App Compliance Automation |
+| `Storage` | Storage accounts plus their blob containers, file shares and lifecycle policies; NetApp Files, snapshots, disk encryption sets, Elastic SAN, Storage Sync, Edge Hardware Center, Data Lake Gen1, partner storage (Pure, Qumulo) |
+| `Web` | App Services and plans, Function Apps, deployment slots, App Service Environments, Static Web Apps, certificates and domains, SignalR, Web PubSub, Communication Services, Notification Hubs, Fluid Relay, Spring Apps |
 
 ## Filtering examples
 

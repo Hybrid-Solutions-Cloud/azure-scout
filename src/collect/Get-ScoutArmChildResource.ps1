@@ -67,7 +67,13 @@ function Get-ScoutArmChildResource {
             'AVDApplications',
             'AppInsightsProactiveDetection',
             'LAWorkspaceLinkedServices',
-            'LAWorkspaceSavedSearches'
+            'LAWorkspaceSavedSearches',
+            'KeyVaultSecrets',
+            'KeyVaultKeys',
+            'StorageBlobContainers',
+            'StorageFileShares',
+            'StorageLifecyclePolicies',
+            'BackupInstances'
         )]
         [string[]]$Dataset = @('All')
     )
@@ -84,7 +90,13 @@ function Get-ScoutArmChildResource {
         'AVDApplications',
         'AppInsightsProactiveDetection',
         'LAWorkspaceLinkedServices',
-        'LAWorkspaceSavedSearches'
+        'LAWorkspaceSavedSearches',
+        'KeyVaultSecrets',
+        'KeyVaultKeys',
+        'StorageBlobContainers',
+        'StorageFileShares',
+        'StorageLifecyclePolicies',
+        'BackupInstances'
     )
 
     $Selected = if ($Dataset -contains 'All') {
@@ -226,6 +238,15 @@ function Get-ScoutArmChildResource {
     })
     $LogAnalyticsParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.operationalinsights/workspaces'
+    })
+    $KeyVaultParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.keyvault/vaults'
+    })
+    $StorageAccountParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts'
+    })
+    $BackupVaultParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.dataprotection/backupvaults'
     })
 
     foreach ($DatasetName in $Selected) {
@@ -376,6 +397,107 @@ function Get-ScoutArmChildResource {
                 foreach ($Parent in $LogAnalyticsParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/savedSearches?api-version=2020-08-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Key Vault children (AB#6837 / Feature AB#6751) ------------------------------------
+            #
+            # THESE ARE CONTROL-PLANE CALLS AND THEY RETURN NO SECRET VALUES.
+            # `Microsoft.KeyVault/vaults/secrets` and `/keys` are ARM resources: the list returns
+            # metadata only -- id, contentType, and the `attributes` block carrying `enabled`, `exp`
+            # and `nbf`. Reading a secret's VALUE is a data-plane operation against
+            # `<vault>.vault.azure.net` and needs a Key Vault access policy or a Key Vault data
+            # role; Scout does neither and must not. Reader on the vault is sufficient for these.
+            #
+            # Certificates have no ARM list endpoint of their own. A Key Vault certificate is
+            # materialised as a secret whose `contentType` is `application/x-pkcs12` or
+            # `application/x-pem-file`, and that secret's `attributes.exp` IS the certificate's
+            # expiry -- so certificate expiry does come back here, under the secrets dataset, with
+            # the content type identifying it. That is the honest control-plane answer; a separate
+            # 'KeyVaultCertificates' dataset would have to go data-plane to add anything.
+            'KeyVaultSecrets' {
+                foreach ($Parent in $KeyVaultParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/secrets?api-version=2023-07-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'KeyVaultKeys' {
+                foreach ($Parent in $KeyVaultParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/keys?api-version=2023-07-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Storage children (AB#6834) --------------------------------------------------------
+            #
+            # Also control plane. `blobServices/default/containers` returns each container's
+            # `publicAccess` level -- the property that answers "is anything in this account
+            # anonymously reachable", which a storage-account list cannot. Listing containers is
+            # `Microsoft.Storage/storageAccounts/blobServices/containers/read`, held by Reader.
+            # Nothing here reads a blob, a file, or an account key.
+            'StorageBlobContainers' {
+                foreach ($Parent in $StorageAccountParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/blobServices/default/containers?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'StorageFileShares' {
+                foreach ($Parent in $StorageAccountParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/fileServices/default/shares?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'StorageLifecyclePolicies' {
+                foreach ($Parent in $StorageAccountParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    # Singleton, not a list: an account with no policy returns 404, which
+                    # Get-ArmChildContent already degrades to a warning and $null. The absence IS
+                    # the finding, and the cross-resource rules read it as such.
+                    $Content = Get-ArmChildContent -Path "$Base/managementPolicies/default?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Backup vault instances (AB#6833) --------------------------------------------------
+            #
+            # Recovery Services vault protected items already arrive through Resource Graph's
+            # `recoveryservicesresources` table (see Get-ScoutRawInventory's -IncludeBackupResources).
+            # Backup vaults -- the newer `Microsoft.DataProtection` service that protects disks, blobs,
+            # PostgreSQL and AKS -- are NOT in that table, so "which VMs have no backup" was wrong for
+            # any estate using them. This closes that half.
+            'BackupInstances' {
+                foreach ($Parent in $BackupVaultParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/backupInstances?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {

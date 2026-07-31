@@ -1,0 +1,111 @@
+area: "Cross-resource posture"
+framework: XR
+weight: 1.0
+# The findings a consultant hand-writes AFTER reading Scout's output, because each one needs two
+# datasets correlated and Scout collected both halves while joining none of them (AB#6835).
+#
+# HOW TO ADD ONE. Declare a `join` block instead of a `query`; everything else -- severity,
+# assert, remediation -- is unchanged. No engine change is needed, ever:
+#
+#   left / right                 JSONPaths into collect.json, each yielding a row set
+#   leftKey / rightKey           the property on each side to compare (case-insensitive, trimmed)
+#   rightKeySuffixTrim           optional: strip a fixed suffix from the right key before matching
+#   mode                         leftOnly  | leftMatched | rightOnly
+#   leftLabel / rightLabel       what a report calls each side, so findings read as English
+#
+# `mode: leftOnly` means "left rows with NO match" -- the absence is the finding. `rightOnly` is
+# the mirror (a dangling reference). `leftMatched` reports the pairing itself.
+#
+# Rows on either side whose key is missing are SKIPPED, not counted as unmatched: an unprojected
+# id is a defect in the collect query, and reporting it as "this VM has no backup" would turn a
+# tooling gap into a customer finding. See src/assess/engine/Resolve-RuleJoin.ps1.
+rules:
+  - id: XR-BKP-01
+    title: "Every virtual machine has a backup protected item"
+    severity: high
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed virtual machine has no protected item in any Recovery Services or Backup vault in scope. Add it to a backup policy, or record an explicit exception if the workload is genuinely stateless."
+    manual: false
+
+  - id: XR-BKP-02
+    title: "No protected item points at a resource that no longer exists"
+    severity: medium
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: rightOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed protected item references a virtual machine that is not in the collected estate — the VM was deleted while its backup item was retained, or it lives outside the scanned scope. Stop protection and delete the data, or widen the scan scope."
+    manual: false
+
+  - id: XR-STO-01
+    title: "Storage accounts are reachable through a private endpoint"
+    severity: high
+    join:
+      left: "$.domains.storage.storageAccounts[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "storage account"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed storage account has no private endpoint targeting it, so its data is reached over its public endpoint. Add a private endpoint and set the account's network default action to Deny."
+    manual: false
+
+  - id: XR-KV-01
+    title: "Key vaults are reachable through a private endpoint"
+    severity: high
+    join:
+      left: "$.domains.security.keyVaults[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "key vault"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed key vault has no private endpoint targeting it. Secrets are retrievable from the public endpoint by anything holding a data-plane role; add a private endpoint and restrict public network access."
+    manual: false
+
+  - id: XR-SNP-01
+    title: "No snapshot outlives the disk it was taken from"
+    severity: low
+    join:
+      left: "$.domains.storage.managedDisks[*]"
+      leftKey: "id"
+      right: "$.domains.storage.snapshots[*]"
+      rightKey: "sourceDiskId"
+      mode: rightOnly
+      leftLabel: "managed disk"
+      rightLabel: "snapshot"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed snapshot's source disk is not in the collected estate, so it is billed storage nobody is tracking. Confirm it is not a deliberate long-term restore point, then delete it."
+    manual: false
+
+  - id: XR-DES-01
+    title: "Every disk encryption set's key vault has purge protection"
+    severity: high
+    join:
+      left: "$.domains.storage.diskEncryptionSets[*]"
+      leftKey: "keyVaultId"
+      right: "$.domains.security.keyVaults[?(@.purgeProtection == true)]"
+      rightKey: "id"
+      mode: leftOnly
+      leftLabel: "disk encryption set"
+      rightLabel: "purge-protected key vault"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each listed disk encryption set holds its key in a vault without purge protection. Purging that vault permanently destroys the key and every disk encrypted with it becomes unreadable — Azure cannot recover it. Enable purge protection on the vault."
+    manual: false

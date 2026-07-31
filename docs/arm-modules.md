@@ -1,16 +1,18 @@
 ---
-description: Complete catalog of AzureScout Azure Resource Manager inventory modules across 15 categories.
+description: Complete catalog of AzureScout inventory collectors across all 18 of Microsoft's published service categories.
 ---
 
 # ARM Inventory Modules
 
 ## Overview
 
-AzureScout includes **159 ARM inventory modules** organized into **15 categories**
-(the `Identity` category folder also holds AzureScout's 17 Entra ID modules — those
-are cataloged separately on the [Entra ID Modules](entra-modules.md) page, since they
-query Microsoft Graph rather than ARM).
-Each module extracts data for a specific Azure resource type using the Azure Resource Manager APIs.
+AzureScout ships **236 collector definitions** across **18 categories** — Microsoft's
+eighteen published service categories, as listed on the Azure portal's All services page.
+The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
+cataloged on the [Entra ID Modules](entra-modules.md) page.
+
+Each definition targets one or more Azure resource types and generally produces one worksheet
+in the Excel report.
 
 Run ARM-only extraction with:
 
@@ -21,12 +23,11 @@ Invoke-AzureScout -Scope ArmOnly
 `ArmOnly` is the **default** `-Scope` value for `Invoke-AzureScout` — running the
 cmdlet with no `-Scope` flag already does this.
 
-::: tip Source of truth
-Counts on this page are generated from the module files under
-`manifests/collectors/` and the `-Category` `[ValidateSet]` in
-`Invoke-AzureScout.ps1`. See the [Coverage Table](coverage-table.md) for a per-category
-summary that includes the Entra split, and [Category Structure](category-structure.md)
-for the full `-Category` alias mapping.
+::: tip This page is generated
+Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`. The counts and the rows come from
+`manifests/collectors/`; `tests/DocsArmCatalog.Tests.ps1` fails the build if the committed page
+and a fresh regeneration disagree. Do not hand-edit it — the previous, hand-maintained version
+claimed to be generated and was 15 collectors out of date.
 :::
 
 ## Module Catalog
@@ -37,272 +38,371 @@ Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, an
 
 | Module | Resource Type |
 |--------|---------------|
-| AIFoundryHubs | `Microsoft.MachineLearningServices/workspaces` (kind=Hub) |
-| AIFoundryProjects | `Microsoft.MachineLearningServices/workspaces` (kind=Project) |
-| AppliedAIServices | `Microsoft.CognitiveServices/accounts` (Applied AI) |
-| AzureAI | `Microsoft.CognitiveServices/accounts` |
-| BotServices | `Microsoft.BotService/botServices` |
-| ComputerVision | `Microsoft.CognitiveServices/accounts` (ComputerVision) |
-| ContentModerator | `Microsoft.CognitiveServices/accounts` (ContentModerator) |
-| ContentSafety | `Microsoft.CognitiveServices/accounts` (ContentSafety) |
-| CustomVision | `Microsoft.CognitiveServices/accounts` (CustomVision) |
-| FaceAPI | `Microsoft.CognitiveServices/accounts` (Face) |
-| FormRecognizer | `Microsoft.CognitiveServices/accounts` (FormRecognizer) |
-| HealthInsights | `Microsoft.CognitiveServices/accounts` (HealthInsights) |
-| ImmersiveReader | `Microsoft.CognitiveServices/accounts` (ImmersiveReader) |
-| MachineLearning | `Microsoft.MachineLearningServices/workspaces` |
-| MLComputes | `Microsoft.MachineLearningServices/workspaces` (computes) |
-| MLDatasets | `Microsoft.MachineLearningServices/workspaces` (datasets) |
-| MLDatastores | `Microsoft.MachineLearningServices/workspaces` (datastores) |
-| MLEndpoints | `Microsoft.MachineLearningServices/workspaces` (online endpoints) |
-| MLModels | `Microsoft.MachineLearningServices/workspaces` (models) |
-| MLPipelines | `Microsoft.MachineLearningServices/workspaces` (pipeline jobs) |
-| OpenAIAccounts | `Microsoft.CognitiveServices/accounts` (OpenAI) |
-| OpenAIDeployments | `Microsoft.CognitiveServices/accounts` (OpenAI deployments) |
-| SearchIndexes | `Microsoft.Search/searchServices` (indexes) |
-| SearchServices | `Microsoft.Search/searchServices` |
-| SpeechService | `Microsoft.CognitiveServices/accounts` (SpeechServices) |
-| TextAnalytics | `Microsoft.CognitiveServices/accounts` (TextAnalytics) |
-| Translator | `Microsoft.CognitiveServices/accounts` (TextTranslation) |
+| AIFoundryHubs | `microsoft.machinelearningservices/workspaces` *(filtered)* |
+| AIFoundryProjects | `microsoft.machinelearningservices/workspaces` *(filtered)* |
+| AppliedAIServices | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| AzureAI | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| BotServices | `microsoft.botservice/botservices` |
+| ComputerVision | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| ContentModerator | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| ContentSafety | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| CustomVision | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| FaceAPI | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| FormRecognizer | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| HealthInsights | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| ImmersiveReader | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| MachineLearning | `microsoft.machinelearningservices/workspaces` |
+| MLComputes | `AZSC/ARMChild/MLComputes` |
+| MLDatasets | `AZSC/ARMChild/MLDatasets` |
+| MLDatastores | `AZSC/ARMChild/MLDatastores` |
+| MLEndpoints | `AZSC/ARMChild/MLEndpoints` |
+| MLModels | `AZSC/ARMChild/MLModels` |
+| MLPipelines | `AZSC/ARMChild/MLPipelines` |
+| OpenAIAccounts | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| OpenAIDeployments | `AZSC/ARMChild/OpenAIDeployments` |
+| SearchIndexes | `AZSC/ARMChild/SearchIndexes` |
+| SearchServices | `microsoft.search/searchservices` |
+| SpeechService | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| TextAnalytics | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| Translator | `microsoft.cognitiveservices/accounts` *(filtered)* |
 
 ### Analytics (6 modules)
 
-Big data, streaming, and data governance resources.
+Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview.
 
 | Module | Resource Type |
 |--------|---------------|
-| DataExplorerCluster | `Microsoft.Kusto/clusters` |
-| Databricks | `Microsoft.Databricks/workspaces` |
-| EvtHub | `Microsoft.EventHub/namespaces` |
-| Purview | `Microsoft.Purview/accounts` |
-| Streamanalytics | `Microsoft.StreamAnalytics/clusters` |
-| Synapse | `Microsoft.Synapse/workspaces` |
+| Databricks | `microsoft.databricks/workspaces` |
+| DataExplorerCluster | `microsoft.kusto/clusters` |
+| EvtHub | `microsoft.eventhub/namespaces` |
+| Purview | `microsoft.purview/accounts` |
+| Streamanalytics | `microsoft.streamanalytics/streamingjobs` |
+| Synapse | `microsoft.synapse/workspaces` |
 
 ### Compute (14 modules)
 
-Virtual machines, scale sets, Azure Virtual Desktop, and VMware.
+Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate.
 
 | Module | Resource Type |
 |--------|---------------|
-| AVD | `Microsoft.DesktopVirtualization/hostpools` |
-| AVDApplicationGroups | `Microsoft.DesktopVirtualization/applicationgroups` |
-| AVDApplications | `Microsoft.DesktopVirtualization/applicationgroups` (applications) |
-| AVDAzureLocal | AVD session hosts running on Arc-enabled / Azure Local machines |
-| AVDScalingPlans | `Microsoft.DesktopVirtualization/scalingplans` |
-| AVDSessionHosts | `Microsoft.DesktopVirtualization/hostpools/sessionhosts` |
-| AVDWorkspaces | `Microsoft.DesktopVirtualization/workspaces` |
-| AvailabilitySets | `Microsoft.Compute/availabilitySets` |
-| CloudServices | `Microsoft.Compute/cloudServices` |
-| VMDisk | `Microsoft.Compute/disks` |
-| VMOperationalData | VM operational enrichment (metrics, backup, DR, cost) |
+| AvailabilitySets | `microsoft.compute/availabilitysets` |
+| AVD | `microsoft.desktopvirtualization/hostpools` |
+| AVDApplicationGroups | `microsoft.desktopvirtualization/applicationgroups` |
+| AVDApplications | `AZSC/ARMChild/AVDApplications` |
+| AVDAzureLocal | `AZSC/AVD/AzureLocalSessionHost` |
+| AVDScalingPlans | `microsoft.desktopvirtualization/scalingplans` |
+| AVDSessionHosts | `microsoft.desktopvirtualization/hostpools/sessionhosts` |
+| AVDWorkspaces | `microsoft.desktopvirtualization/workspaces` |
+| CloudServices | `microsoft.classiccompute/domainnames` |
+| VirtualMachine | `microsoft.compute/virtualmachines` |
+| VirtualMachineScaleSet | `microsoft.compute/virtualmachinescalesets` |
+| VMDisk | `microsoft.compute/disks` |
+| VMOperationalData | `microsoft.compute/virtualmachines` |
 | VMWare | `Microsoft.AVS/privateClouds` |
-| VirtualMachine | `Microsoft.Compute/virtualMachines` |
-| VirtualMachineScaleSet | `Microsoft.Compute/virtualMachineScaleSets` |
 
 ### Containers (6 modules)
 
-Kubernetes, container apps, and container registries.
+AKS, ARO, Container Apps, container instances, and container registries.
 
 | Module | Resource Type |
 |--------|---------------|
-| AKS | `Microsoft.ContainerService/managedClusters` |
-| ARO | `Microsoft.RedHatOpenShift/openShiftClusters` |
-| ContainerApp | `Microsoft.App/containerApps` |
-| ContainerAppEnv | `Microsoft.App/managedEnvironments` |
-| ContainerGroups | `Microsoft.ContainerInstance/containerGroups` |
-| ContainerRegistries | `Microsoft.ContainerRegistry/registries` |
+| AKS | `microsoft.containerservice/managedclusters` |
+| ARO | `microsoft.redhatopenshift/openshiftclusters` |
+| ContainerApp | `microsoft.app/containerapps` |
+| ContainerAppEnv | `microsoft.app/managedenvironments` |
+| ContainerGroups | `microsoft.containerinstance/containergroups` |
+| ContainerRegistries | `microsoft.containerregistry/registries` |
 
 ### Databases (13 modules)
 
-Relational, NoSQL, and cache database services.
+Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 
 | Module | Resource Type |
 |--------|---------------|
-| CosmosDB | `Microsoft.DocumentDB/databaseAccounts` |
-| MariaDB | `Microsoft.DBforMariaDB/servers` |
-| MySQL | `Microsoft.DBforMySQL/servers` |
+| CosmosDB | `microsoft.documentdb/databaseaccounts` |
+| MariaDB | `microsoft.dbformariadb/servers` |
+| MySQL | `microsoft.dbformysql/servers` |
 | MySQLflexible | `Microsoft.DBforMySQL/flexibleServers` |
-| POSTGRE | `Microsoft.DBforPostgreSQL/servers` |
+| POSTGRE | `microsoft.dbforpostgresql/servers` |
 | POSTGREFlexible | `Microsoft.DBforPostgreSQL/flexibleServers` |
-| RedisCache | `Microsoft.Cache/redis` |
-| SQLDB | `Microsoft.Sql/servers/databases` |
-| SQLMI | `Microsoft.Sql/managedInstances` |
-| SQLMIDB | `Microsoft.Sql/managedInstances/databases` |
-| SQLPOOL | `Microsoft.Sql/servers/elasticPools` |
-| SQLSERVER | `Microsoft.Sql/servers` |
-| SQLVM | `Microsoft.SqlVirtualMachine/sqlVirtualMachines` |
+| RedisCache | `microsoft.cache/redis` · `microsoft.cache/redisenterprise` |
+| SQLDB | `microsoft.sql/servers/databases` *(filtered)* |
+| SQLMI | `microsoft.sql/managedInstances` |
+| SQLMIDB | `microsoft.sql/managedinstances/databases` |
+| SQLPOOL | `microsoft.sql/servers/elasticPools` |
+| SQLSERVER | `microsoft.sql/servers` |
+| SQLVM | `microsoft.sqlvirtualmachine/sqlvirtualmachines` |
+
+### DevOps (12 modules)
+
+Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces.
+
+| Module | Resource Type |
+|--------|---------------|
+| ApiConnections | `microsoft.web/connections` |
+| AppConfiguration | `microsoft.appconfiguration/configurationstores` |
+| ChaosStudio | `microsoft.chaos/experiments` · `microsoft.chaos/targets` |
+| DeploymentEnvironments | `microsoft.devcenter/devcenters/environmenttypes` · `microsoft.devcenter/projects/environmenttypes` · `microsoft.devcenter/devcenters/catalogs` · `microsoft.devcenter/projects/catalogs` |
+| DevBoxPools | `microsoft.devcenter/projects/pools` |
+| DevCenterNetworkConnections | `microsoft.devcenter/networkconnections` |
+| DevCenters | `microsoft.devcenter/devcenters` · `microsoft.devcenter/projects` |
+| DevTestLabs | `microsoft.devtestlab/labs` · `microsoft.devtestlab/schedules` |
+| LabServices | `microsoft.labservices/labs` · `microsoft.labservices/labplans` |
+| LoadTesting | `microsoft.loadtestservice/loadtests` |
+| ManagedDevOpsPools | `microsoft.devopsinfrastructure/pools` |
+| PlaywrightTesting | `microsoft.azureplaywrightservice/accounts` |
+
+### General (4 modules)
+
+Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family.
+
+| Module | Resource Type |
+|--------|---------------|
+| Quotas | `AZSC/VM/Quotas` |
+| ReservationRecom | `Microsoft.Consumption/reservationRecommendations` |
+| Reservations | `microsoft.capacity/reservationorders` · `microsoft.capacity/reservationorders/reservations` |
+| SupportTickets | `Microsoft.Support/supportTickets` |
 
 ### Hybrid (16 modules)
 
-Azure Arc and Azure Local (Azure Stack HCI) resource management.
+Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 
 | Module | Resource Type |
 |--------|---------------|
-| ARCServers | `Microsoft.HybridCompute/machines` |
-| ArcDataControllers | `Microsoft.AzureArcData/dataControllers` |
-| ArcExtensions | `Microsoft.HybridCompute/machines/extensions` |
-| ArcGateways | `Microsoft.HybridCompute/gateways` |
-| ArcKubernetes | `Microsoft.Kubernetes/connectedClusters` |
-| ArcResourceBridge | `Microsoft.ResourceConnector/appliances` |
-| ArcServerOperationalData | Arc server operational enrichment (metrics, backup, DR, cost, policy) |
-| ArcSites | `Microsoft.AzureStackHCI/sites` |
-| ArcSQLManagedInstances | `Microsoft.AzureArcData/sqlManagedInstances` |
-| ArcSQLServers | `Microsoft.AzureArcData/sqlServerInstances` |
-| Clusters | `Microsoft.AzureStackHCI/clusters` |
-| GalleryImages | `Microsoft.AzureStackHCI/galleryImages` |
-| LogicalNetworks | `Microsoft.AzureStackHCI/logicalNetworks` |
-| MarketplaceGalleryImages | `Microsoft.AzureStackHCI/marketplaceGalleryImages` |
-| StorageContainers | `Microsoft.AzureStackHCI/storageContainers` |
-| VirtualMachines | `Microsoft.AzureStackHCI/virtualMachineInstances` |
+| ArcDataControllers | `microsoft.azurearcdata/datacontrollers` |
+| ArcExtensions | `microsoft.hybridcompute/machines/extensions` |
+| ArcGateways | `microsoft.hybridcompute/gateways` |
+| ArcKubernetes | `microsoft.kubernetes/connectedclusters` |
+| ArcResourceBridge | `microsoft.resourceconnector/appliances` |
+| ArcServerOperationalData | `microsoft.hybridcompute/machines` |
+| ARCServers | `microsoft.hybridcompute/machines` |
+| ArcSites | `microsoft.azurestackhci/sites` · `microsoft.edgeconfig/sites` · `microsoft.hybridcompute/sites` |
+| ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` |
+| ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` |
+| Clusters | `microsoft.azurestackhci/clusters` |
+| GalleryImages | `microsoft.azurestackhci/galleryimages` |
+| LogicalNetworks | `microsoft.azurestackhci/logicalnetworks` |
+| MarketplaceGalleryImages | `microsoft.azurestackhci/marketplacegalleryimages` |
+| StorageContainers | `microsoft.azurestackhci/storagecontainers` |
+| VirtualMachines | `microsoft.azurestackhci/virtualmachineinstances` |
 
-### Identity (1 ARM module)
+### Identity (16 modules)
 
-The `Identity` category folder is shared: this is the **only** ARM-based module in it.
-The other 17 files in `manifests/collectors/Identity/` are Microsoft
-Graph-based and cataloged on the [Entra ID Modules](entra-modules.md) page.
+Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.
 
 | Module | Resource Type |
 |--------|---------------|
+| AdminUnits | `entra/administrativeunits` |
+| AppRegistrations | `entra/applications` |
+| ConditionalAccess | `entra/conditionalaccesspolicies` |
+| CrossTenantAccess | `entra/crosstenantaccess` |
+| DirectoryRoles | `entra/directoryroles` |
+| Domains | `entra/domains` |
+| Groups | `entra/groups` |
+| Licensing | `entra/subscribedskus` |
+| ManagedIdentities | `entra/managedidentities` |
 | ManagedIds | `Microsoft.ManagedIdentity/userAssignedIdentities` |
+| NamedLocations | `entra/namedlocations` |
+| PIMAssignments | `entra/pimassignments` |
+| RiskyUsers | `entra/riskyusers` |
+| SecurityPolicies | `entra/securitypolicies` |
+| ServicePrincipals | `entra/serviceprincipals` |
+| Users | `entra/users` |
 
-### Integration (2 modules)
+### Integration (9 modules)
 
-API management and messaging services.
-
-| Module | Resource Type |
-|--------|---------------|
-| APIM | `Microsoft.ApiManagement/service` |
-| ServiceBUS | `Microsoft.ServiceBus/namespaces` |
-
-### IoT (1 module)
-
-Internet of Things platform resources.
+Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus.
 
 | Module | Resource Type |
 |--------|---------------|
-| IOTHubs | `Microsoft.Devices/IotHubs` |
+| APIM | `microsoft.apimanagement/service` |
+| EventGrid | `microsoft.eventgrid/topics` · `microsoft.eventgrid/systemtopics` · `microsoft.eventgrid/domains` · `microsoft.eventgrid/partnertopics` · `microsoft.eventgrid/namespaces` |
+| EventHubClusters | `microsoft.eventhub/clusters` |
+| HealthDataServices | `microsoft.healthcareapis/services` · `microsoft.healthcareapis/workspaces` · `microsoft.healthcareapis/workspaces/fhirservices` · `microsoft.healthcareapis/workspaces/dicomservices` · `microsoft.healthcareapis/workspaces/iotconnectors` |
+| IntegrationAccounts | `microsoft.logic/integrationaccounts` · `microsoft.logic/integrationserviceenvironments` |
+| LogicApps | `microsoft.logic/workflows` |
+| LogicAppsCustomConnectors | `microsoft.web/customapis` |
+| Relays | `microsoft.relay/namespaces` · `microsoft.relay/namespaces/hybridconnections` · `microsoft.relay/namespaces/wcfrelays` |
+| ServiceBUS | `microsoft.servicebus/namespaces` |
 
-### Management (14 modules)
+### IoT (7 modules)
 
-Governance, policy, automation, backup, and support resources.
+IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT.
+
+| Module | Resource Type |
+|--------|---------------|
+| DefenderForIoT | `microsoft.iotsecurity/defendersettings` · `microsoft.iotsecurity/sites` · `microsoft.iotsecurity/sensors` · `microsoft.iotsecurity/onpremisesensors` |
+| DeviceProvisioningServices | `microsoft.devices/provisioningservices` |
+| DeviceUpdate | `microsoft.deviceupdate/accounts` · `microsoft.deviceupdate/accounts/instances` |
+| DigitalTwins | `microsoft.digitaltwins/digitaltwinsinstances` · `microsoft.digitaltwins/digitaltwinsinstances/endpoints` · `microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections` |
+| IoTCentral | `microsoft.iotcentral/iotapps` |
+| IOTHubs | `microsoft.devices/iothubs` |
+| Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
+
+### Management (17 modules)
+
+Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.
 
 | Module | Resource Type |
 |--------|---------------|
 | AdvisorScore | `Microsoft.Advisor/advisorScore` |
-| AllSubscriptions | `Microsoft.Resources/subscriptions` (all, including empty/disabled) |
-| AutomationAccounts | `Microsoft.Automation/automationAccounts` (runbooks) |
-| Backup | `Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems` |
-| CustomRoleDefinitions | `Get-AzRoleDefinition -Custom` (custom RBAC role definitions) |
+| AllSubscriptions | `AZSC/Management/SubscriptionEnrichment` |
+| AutomationAccounts | `microsoft.automation/automationaccounts` |
+| Backup | `microsoft.recoveryservices/vaults/backuppolicies` |
+| CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
+| DevOpsAgentPools | `devops/agentpools` |
+| DevOpsPipelines | `devops/pipelines` |
+| DevOpsProjects | `devops/projects` |
+| DevOpsRepositories | `devops/repositories` |
+| DevOpsServiceConnections | `devops/serviceconnections` |
 | LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` |
-| MaintenanceConfigurations | `Microsoft.Maintenance/maintenanceConfigurations` |
-| ManagementGroups | `Get-AzManagementGroup` (full MG hierarchy) |
-| PolicyComplianceStates | `Get-AzPolicyState` (per-subscription compliance) |
-| PolicyDefinitions | `Get-AzPolicyDefinition -Custom` |
-| PolicySetDefinitions | `Get-AzPolicySetDefinition -Custom` |
-| RecoveryVault | `Microsoft.RecoveryServices/vaults` |
-| ReservationRecom | `Microsoft.Consumption/reservationRecommendations` |
-| SupportTickets | `Microsoft.Support/supportTickets` |
+| MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` |
+| ManagementGroups | `AZSC/Management/ManagementGroup` |
+| PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` |
+| PolicyDefinitions | `AZSC/Management/PolicyDefinition` |
+| PolicySetDefinitions | `AZSC/Management/PolicySetDefinition` |
+| RecoveryVault | `microsoft.recoveryservices/vaults` |
+
+### Migration (6 modules)
+
+Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge.
+
+| Module | Resource Type |
+|--------|---------------|
+| AzureMigrateAssessments | `microsoft.migrate/assessmentprojects` |
+| AzureMigrateDiscoverySites | `microsoft.offazure/vmwaresites` · `microsoft.offazure/hypervsites` · `microsoft.offazure/serversites` · `microsoft.offazure/mastersites` |
+| AzureMigrateProjects | `microsoft.migrate/migrateprojects` · `microsoft.migrate/projects` |
+| DatabaseMigrationServices | `microsoft.datamigration/services` · `microsoft.datamigration/sqlmigrationservices` |
+| DataBox | `microsoft.databox/jobs` |
+| StackEdge | `microsoft.databoxedge/databoxedgedevices` |
 
 ### Monitor (24 modules)
 
-Observability, alerting, and logging resources.
+Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.
 
 | Module | Resource Type |
 |--------|---------------|
-| ActionGroups | `Microsoft.Insights/actionGroups` |
-| ActivityLogAlertRules | `Microsoft.Insights/activityLogAlerts` |
-| AppInsights | `Microsoft.Insights/components` |
-| AppInsightsAvailabilityTests | `Microsoft.Insights/webtests` |
-| AppInsightsContinuousExport | `Microsoft.Insights/components` (continuous export config) |
-| AppInsightsProactiveDetection | `Microsoft.Insights/components` (proactive detection config) |
-| AppInsightsWebTests | `Microsoft.Insights/webtests` |
-| AppInsightsWorkItems | `Microsoft.Insights/components` (work item config) |
-| AutoscaleSettings | `Microsoft.Insights/autoscalesettings` |
-| DataCollectionEndpoints | `Microsoft.Insights/dataCollectionEndpoints` |
-| DataCollectionRules | `Microsoft.Insights/dataCollectionRules` |
-| LAWorkspaceLinkedServices | `Microsoft.OperationalInsights/workspaces` (linked services) |
-| LAWorkspaceSavedSearches | `Microsoft.OperationalInsights/workspaces` (saved searches) |
-| LAWorkspaceSolutions | `Microsoft.OperationsManagement/solutions` |
-| MetricAlertRules | `Microsoft.Insights/metricAlerts` |
-| MonitorMetricsIngestion | `Microsoft.OperationalInsights/workspaces` (metrics ingestion) |
-| MonitorPrivateLinkScopes | `Microsoft.Insights/privateLinkScopes` |
-| MonitorWorkbooks | `Microsoft.Insights/workbooks` |
-| Outages | `Microsoft.ResourceHealth/events` |
-| ResourceDiagnosticSettings | `Microsoft.Insights/diagnosticSettings` |
-| ScheduledQueryRules | `Microsoft.Insights/scheduledQueryRules` |
-| SmartDetectorAlertRules | `Microsoft.AlertsManagement/smartDetectorAlertRules` |
-| SubscriptionDiagnosticSettings | Subscription-level diagnostic settings |
-| Workspaces | `Microsoft.OperationalInsights/workspaces` |
+| ActionGroups | `microsoft.insights/actiongroups` |
+| ActivityLogAlertRules | `microsoft.insights/activitylogalerts` |
+| AppInsights | `microsoft.insights/components` |
+| AppInsightsAvailabilityTests | `microsoft.insights/webtests` |
+| AppInsightsContinuousExport | `AZSC/ARMChild/AppInsightsContinuousExport` |
+| AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` |
+| AppInsightsWebTests | `microsoft.insights/webtests` *(filtered)* |
+| AppInsightsWorkItems | `AZSC/ARMChild/AppInsightsWorkItems` |
+| AutoscaleSettings | `microsoft.insights/autoscalesettings` |
+| DataCollectionEndpoints | `microsoft.insights/datacollectionendpoints` |
+| DataCollectionRules | `microsoft.insights/datacollectionrules` |
+| LAWorkspaceLinkedServices | `AZSC/ARMChild/LAWorkspaceLinkedServices` |
+| LAWorkspaceSavedSearches | `AZSC/ARMChild/LAWorkspaceSavedSearches` *(filtered)* |
+| LAWorkspaceSolutions | `microsoft.operationsmanagement/solutions` |
+| MetricAlertRules | `microsoft.insights/metricalerts` |
+| MonitorMetricsIngestion | `microsoft.operationalinsights/workspaces` |
+| MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` |
+| MonitorWorkbooks | `microsoft.insights/workbooks` |
+| Outages | `AZSC/Monitor/Outage` |
+| ResourceDiagnosticSettings | `microsoft.insights/diagnosticsettings` |
+| ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` |
+| SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` |
+| SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` |
+| Workspaces | `microsoft.operationalinsights/workspaces` |
 
 ### Networking (21 modules)
 
-Virtual networking, firewalls, load balancers, and DNS.
+Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute.
 
 | Module | Resource Type |
 |--------|---------------|
-| ApplicationGateways | `Microsoft.Network/applicationGateways` |
-| AzureFirewall | `Microsoft.Network/azureFirewalls` |
-| BastionHosts | `Microsoft.Network/bastionHosts` |
-| Connections | `Microsoft.Network/connections` |
-| ExpressRoute | `Microsoft.Network/expressRouteCircuits` |
-| Frontdoor | `Microsoft.Network/frontDoors` |
-| LoadBalancer | `Microsoft.Network/loadBalancers` |
-| NATGateway | `Microsoft.Network/natGateways` |
-| NetworkInterface | `Microsoft.Network/networkInterfaces` |
-| NetworkSecurityGroup | `Microsoft.Network/networkSecurityGroups` |
-| NetworkWatchers | `Microsoft.Network/networkWatchers` |
-| PrivateDNS | `Microsoft.Network/privateDnsZones` |
-| PrivateEndpoint | `Microsoft.Network/privateEndpoints` |
-| PublicDNS | `Microsoft.Network/dnsZones` |
-| PublicIP | `Microsoft.Network/publicIPAddresses` |
-| RouteTables | `Microsoft.Network/routeTables` |
-| TrafficManager | `Microsoft.Network/trafficManagerProfiles` |
-| VirtualNetwork | `Microsoft.Network/virtualNetworks` |
-| VirtualNetworkGateways | `Microsoft.Network/virtualNetworkGateways` |
-| VirtualWAN | `Microsoft.Network/virtualWans` |
-| vNETPeering | `Microsoft.Network/virtualNetworks/virtualNetworkPeerings` |
+| ApplicationGateways | `microsoft.network/applicationgateways` |
+| AzureFirewall | `microsoft.network/azurefirewalls` |
+| BastionHosts | `microsoft.network/bastionhosts` |
+| Connections | `microsoft.network/connections` |
+| ExpressRoute | `microsoft.network/expressroutecircuits` |
+| Frontdoor | `microsoft.network/frontdoors` |
+| LoadBalancer | `microsoft.network/loadbalancers` |
+| NATGateway | `microsoft.network/natgateways` |
+| NetworkInterface | `microsoft.network/networkinterfaces` |
+| NetworkSecurityGroup | `microsoft.network/networksecuritygroups` |
+| NetworkWatchers | `microsoft.network/networkwatchers` |
+| PrivateDNS | `microsoft.network/privatednszones` |
+| PrivateEndpoint | `microsoft.network/privateendpoints` |
+| PublicDNS | `microsoft.network/dnszones` |
+| PublicIP | `microsoft.network/publicipaddresses` |
+| RouteTables | `microsoft.network/routetables` |
+| TrafficManager | `microsoft.network/trafficmanagerprofiles` |
+| VirtualNetwork | `microsoft.network/virtualnetworks` |
+| VirtualNetworkGateways | `microsoft.network/virtualnetworkgateways` |
+| VirtualWAN | `microsoft.network/virtualwans` |
+| vNETPeering | `microsoft.network/virtualnetworks` *(filtered)* |
 
-### Security (5 modules)
+### Security (15 modules)
 
-Microsoft Defender for Cloud and Key Vault.
-
-| Module | Resource Type |
-|--------|---------------|
-| DefenderAlerts | Microsoft Defender for Cloud security alerts |
-| DefenderAssessments | Microsoft Defender for Cloud security assessments |
-| DefenderPricing | Microsoft Defender for Cloud pricing plans |
-| DefenderSecureScore | Microsoft Defender for Cloud secure score |
-| Vault | `Microsoft.KeyVault/vaults` |
-
-### Storage (2 modules)
-
-Block, file, and object storage services.
+Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
 
 | Module | Resource Type |
 |--------|---------------|
+| AppComplianceAutomation | `microsoft.appcomplianceautomation/reports` · `microsoft.appcomplianceautomation/reports/snapshots` |
+| ApplicationSecurityGroups | `microsoft.network/applicationsecuritygroups` |
+| ArtifactSigning | `microsoft.codesigning/codesigningaccounts` |
+| CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` · `microsoft.hardwaresecuritymodules/dedicatedhsms` |
+| ConfidentialLedger | `microsoft.confidentialledger/ledgers` · `microsoft.confidentialledger/managedccfs` |
+| DdosProtectionPlans | `microsoft.network/ddosprotectionplans` |
+| DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` |
+| EntraDomainServices | `microsoft.aad/domainservices` |
+| ManagedHSM | `microsoft.keyvault/managedhsms` |
+| Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` *(filtered)* |
+| Vault | `microsoft.keyvault/vaults` |
+| WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` |
+
+### Storage (9 modules)
+
+Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.
+
+| Module | Resource Type |
+|--------|---------------|
+| DataLakeStoreGen1 | `microsoft.datalakestore/accounts` |
+| DiskEncryptionSets | `microsoft.compute/diskencryptionsets` |
+| EdgeHardwareCenter | `microsoft.edgeorder/orders` · `microsoft.edgeorder/orderitems` · `microsoft.edgeorder/addresses` |
+| ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` |
 | NetApp | `Microsoft.NetApp/netAppAccounts/capacityPools/volumes` |
-| StorageAccounts | `Microsoft.Storage/storageAccounts` |
+| PartnerStorage | `purestorage.block/storagepools` · `purestorage.block/reservations` · `qumulo.storage/filesystems` |
+| Snapshots | `microsoft.compute/snapshots` |
+| StorageAccounts | `microsoft.storage/storageaccounts` |
+| StorageSync | `microsoft.storagesync/storagesyncservices` · `microsoft.storagesync/storagesyncservices/syncgroups` · `microsoft.storagesync/storagesyncservices/registeredservers` |
 
-### Web (2 modules)
+### Web (14 modules)
 
-App Service hosting and web applications.
+App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services.
 
 | Module | Resource Type |
 |--------|---------------|
-| APPServicePlan | `Microsoft.Web/serverfarms` |
-| APPServices | `Microsoft.Web/sites` |
+| AppServiceCertificates | `microsoft.certificateregistration/certificateorders` · `microsoft.web/certificates` |
+| AppServiceDomains | `microsoft.domainregistration/domains` |
+| AppServiceEnvironments | `microsoft.web/hostingenvironments` |
+| APPServicePlan | `microsoft.web/serverfarms` |
+| APPServices | `microsoft.web/sites` |
+| CommunicationServices | `microsoft.communication/communicationservices` · `microsoft.communication/emailservices` · `microsoft.communication/emailservices/domains` |
+| DeploymentSlots | `microsoft.web/sites/slots` |
+| FluidRelay | `microsoft.fluidrelay/fluidrelayservers` |
+| FunctionApps | `microsoft.web/sites` *(filtered)* |
+| NotificationHubs | `microsoft.notificationhubs/namespaces` · `microsoft.notificationhubs/namespaces/notificationhubs` |
+| SignalR | `microsoft.signalrservice/signalr` |
+| SpringApps | `microsoft.appplatform/spring` · `microsoft.appplatform/spring/apps` |
+| StaticWebApps | `microsoft.web/staticsites` |
+| WebPubSub | `microsoft.signalrservice/webpubsub` |
 
 ## Valid `-Category` filter values
 
-The module groupings above (and on the [Coverage Table](coverage-table.md)) are catalog
-labels for browsing this page — they are **not** all necessarily valid `-Category`
-values to pass to `Invoke-AzureScout`. The actual `[ValidateSet]` for `-Category` is:
+Every category above is a valid `-Category` value. The full `[ValidateSet]` is:
 
 ```
-All, AI, Analytics, Compute, Containers, Databases, Hybrid, Identity, Integration,
-IoT, Management, Monitor, Networking, Security, Storage, Web
+All, AI, Analytics, Compute, Containers, Databases, DevOps, General, Hybrid, Identity, Integration, IoT, Management, Migration, Monitor, Networking, Security, Storage, Web
 ```
 
-`Identity` runs **both** the ARM module above and all 17 Entra modules (subject to
-`-Scope`). See [Category Filtering](category-filtering.md) for alias support (e.g.
-`-Category 'AI + machine learning'` is normalized to `-Category AI`).
+`Identity` runs the Entra collectors subject to `-Scope`. See
+[Category Reference](category-reference.md) for the accepted long-form aliases (e.g.
+`-Category 'AI + machine learning'` normalises to `-Category AI`).
+

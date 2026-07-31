@@ -211,8 +211,11 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
     }
 
     It 'makes no ARM calls when no matching parents exist' {
+        # This used to use a storage account, which became a MATCHING parent when AB#6834 added
+        # the blob-container, file-share and lifecycle-policy datasets. A virtual network is a
+        # type no dataset claims, so the assertion still tests what it says it does.
         $Rows = @(Get-ScoutArmChildResource -Resources @(
-            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-one'
+            Get-TestParent -Type 'microsoft.network/virtualnetworks' -Name 'vnet-one'
         ))
 
         $Rows | Should -BeNullOrEmpty

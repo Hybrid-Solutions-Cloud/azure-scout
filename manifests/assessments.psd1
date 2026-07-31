@@ -28,9 +28,11 @@
         # Containers/Analytics/AI/Integration/Hybrid/IoT/Compute/Cost rules of data.
         Collect     = @('*')
         Ingest      = @('Governance', 'ArgQueryPack', 'AdvisorScores')
-        Rules       = @('caf.*', 'waf.*')
-        Frameworks  = @('CAF: all 8 design areas', 'WAF: all 5 pillars')
-        Tags        = @('caf', 'waf', 'landing-zone')
+        # 'xr.*' pulls in the cross-resource rules (AB#6835). A landing-zone audit that could not
+        # say which VMs have no backup was answering a narrower question than its name claims.
+        Rules       = @('caf.*', 'waf.*', 'xr.*')
+        Frameworks  = @('CAF: all 8 design areas', 'WAF: all 5 pillars', 'XR: Cross-resource posture')
+        Tags        = @('caf', 'waf', 'landing-zone', 'cross-resource')
         Benchmark   = 'alz-reference.json'
         Reporters   = @('PowerBi', 'Html', 'Pptx', 'React')
     }
@@ -157,6 +159,43 @@
         Description = 'Monitor sub-bundle — diagnostic settings coverage'
         Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @('ArgQueryPack')
         Rules = @('waf.operational'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'monitoring', 'sub-bundle'); Reporters = @('Html')
+    }
+
+    # ---- migration readiness (AB#6832) ----
+    # RequiresData is what keeps this out of the wizard's menu until the Migration collectors
+    # actually return rows: the wizard resolves these paths against the most recent collect.json
+    # and hides the entry when none of them has data. The rule file carries the same prerequisite
+    # (`requires:`), so a direct -Assessment SMART run on an empty estate reports Unknown rather
+    # than a manufactured pass. Both halves are needed -- the menu gate is a courtesy, the rule
+    # gate is the correctness guarantee.
+    SMART = @{
+        Description  = 'Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md)'
+        Category     = 'Migration'
+        Collect      = @('Migration', 'Management', 'Security', 'Compute')
+        Ingest       = @('Governance')
+        Rules        = @('smart.*')
+        Frameworks   = @('CAF: Migrate', 'SMART: readiness')
+        Tags         = @('caf', 'migration', 'smart')
+        RequiresData = @(
+            '$.domains.migration.migrateProjects[*]'
+            '$.domains.migration.discoverySites[*]'
+            '$.domains.migration.migrationServices[*]'
+        )
+        Reporters    = @('Html', 'Excel')
+    }
+
+    # ---- cross-resource correlation (AB#6835) ----
+    # Every rule here spans TWO datasets, so Collect must gather both halves or a rule silently
+    # passes on an empty right-hand side. Both categories of every pair are listed deliberately.
+    CrossResource = @{
+        Description = 'Findings that require two collected datasets correlated'
+        Category    = '*'
+        Collect     = @('Compute', 'Storage', 'Security', 'Networking', 'Management')
+        Ingest      = @('ArgQueryPack')
+        Rules       = @('xr.*')
+        Frameworks  = @('XR: Cross-resource posture')
+        Tags        = @('cross-resource', 'waf', 'caf')
+        Reporters   = @('Html', 'Excel')
     }
 
     # ---- targeted cost pull ----

@@ -30,6 +30,210 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/appservices-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3e-1/domains/communicationservices-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3f-1/domains/communicationservices-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3f-1/domains/communicationservices-t3f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1e-1/slots/deploymentslots-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1f-1/slots/deploymentslots-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1f-1/slots/deploymentslots-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2e-1/notificationhubs/notificationhubs-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2f-1/notificationhubs/notificationhubs-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2f-1/notificationhubs/notificationhubs-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2e-1/apps/springapps-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2f-1/apps/springapps-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2f-1/apps/springapps-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -45,6 +249,518 @@
     }
   ],
   "collectors": {
+    "AppServiceCertificates": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.certificateregistration/certificateorders/appservicecertificates-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.certificateregistration/certificateorders"
+        },
+        {
+          "PROPERTIES": {
+            "expirationDate": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "keyVaultId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "status": "res-value",
+            "subjectName": "res-value",
+            "issuer": "res-value",
+            "issueDate": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/certificates/appservicecertificates-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicecertificates-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/certificates"
+        }
+      ]
+    },
+    "AppServiceDomains": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        },
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        },
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        },
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        },
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        },
+        {
+          "PROPERTIES": {
+            "registrationStatus": "res-value",
+            "provisioningState": "res-value",
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "expirationTime": "2026-01-15T10:30:00.0000000Z",
+            "autoRenew": "res-value",
+            "privacy": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.domainregistration/domains/appservicedomains-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appservicedomains-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.domainregistration/domains"
+        }
+      ]
+    },
+    "AppServiceEnvironments": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1a",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1b",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1c",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1d",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1e",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "virtualNetwork": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "subnet": "res-value"
+            },
+            "status": "res-value",
+            "provisioningState": "res-value",
+            "internalLoadBalancingMode": "res-value",
+            "dedicatedHostCount": "res-value",
+            "zoneRedundant": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/hostingenvironments/appserviceenvironments-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appserviceenvironments-t1f",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/hostingenvironments"
+        }
+      ]
+    },
     "APPServicePlan": {
       "resources": [
         {
@@ -588,6 +1304,1727 @@
           "KIND": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.web/sites"
+        }
+      ]
+    },
+    "CommunicationServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3a-1/domains/communicationservices-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3b-1/domains/communicationservices-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3c-1/domains/communicationservices-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3d-1/domains/communicationservices-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3e-1/domains/communicationservices-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/communicationservices/communicationservices-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/communicationservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "dataLocation": "res-value",
+            "hostName": "res-value",
+            "domainManagement": "res-value",
+            "verificationStates": {
+              "Domain": {
+                "status": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.communication/emailservices/communicationservices-t3f-1/domains/communicationservices-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "communicationservices-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.communication/emailservices/domains"
+        }
+      ]
+    },
+    "DeploymentSlots": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1a-1/slots/deploymentslots-t1a-2",
+          "NAME": "deploymentslots-t1a",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1b-1/slots/deploymentslots-t1b-2",
+          "NAME": "deploymentslots-t1b",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1c-1/slots/deploymentslots-t1c-2",
+          "NAME": "deploymentslots-t1c",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1d-1/slots/deploymentslots-t1d-2",
+          "NAME": "deploymentslots-t1d",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1e-1/slots/deploymentslots-t1e-2",
+          "NAME": "deploymentslots-t1e",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/deploymentslots-t1f-1/slots/deploymentslots-t1f-2",
+          "NAME": "deploymentslots-t1f",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.web/sites/slots"
+        }
+      ]
+    },
+    "FluidRelay": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storagesku": "res-value",
+            "frsTenantId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fluidrelay/fluidrelayservers/fluidrelay-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fluidrelay-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.fluidrelay/fluidrelayservers"
+        }
+      ]
+    },
+    "FunctionApps": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1a",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1b",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1c",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1d",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1e",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        },
+        {
+          "PROPERTIES": {
+            "serverFarmId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "virtualNetworkSubnetId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "state": "res-value",
+            "defaultHostName": "res-value",
+            "httpsOnly": "res-value",
+            "clientCertEnabled": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/sites/functionapps-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "functionapps-t1f",
+          "LOCATION": "res-value",
+          "KIND": "*functionapp*",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.web/sites"
+        }
+      ]
+    },
+    "NotificationHubs": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2a-1/notificationhubs/notificationhubs-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2b-1/notificationhubs/notificationhubs-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2c-1/notificationhubs/notificationhubs-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2d-1/notificationhubs/notificationhubs-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2e-1/notificationhubs/notificationhubs-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "namespaceType": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.notificationhubs/namespaces/notificationhubs-t2f-1/notificationhubs/notificationhubs-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "notificationhubs-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.notificationhubs/namespaces/notificationhubs",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        }
+      ]
+    },
+    "SignalR": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "tls": {
+              "clientCertEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/signalr/signalr-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "signalr-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/signalr"
+        }
+      ]
+    },
+    "SpringApps": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2a-1/apps/springapps-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2b-1/apps/springapps-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2c-1/apps/springapps-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2d-1/apps/springapps-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2e-1/apps/springapps-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceId": "res-value",
+            "zoneRedundant": "res-value",
+            "public": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appplatform/spring/springapps-t2f-1/apps/springapps-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "springapps-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appplatform/spring/apps",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        }
+      ]
+    },
+    "StaticWebApps": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        },
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        },
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        },
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        },
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        },
+        {
+          "PROPERTIES": {
+            "defaultHostname": "res-value",
+            "repositoryUrl": "res-value",
+            "branch": "res-value",
+            "provider": "res-value",
+            "stagingEnvironmentPolicy": "res-value",
+            "allowConfigFileUpdates": "res-value",
+            "customDomains": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/staticsites/staticwebapps-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "staticwebapps-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.web/staticsites"
+        }
+      ]
+    },
+    "WebPubSub": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.signalrservice/webpubsub/webpubsub-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "webpubsub-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.signalrservice/webpubsub"
         }
       ]
     }

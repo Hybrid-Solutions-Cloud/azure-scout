@@ -66,6 +66,198 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/vaults/vault-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2e-1/snapshots/appcomplianceautomation-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2f-1/snapshots/appcomplianceautomation-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2f-1/snapshots/appcomplianceautomation-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -81,6 +273,1065 @@
     }
   ],
   "collectors": {
+    "AppComplianceAutomation": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2a-1/snapshots/appcomplianceautomation-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2b-1/snapshots/appcomplianceautomation-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2c-1/snapshots/appcomplianceautomation-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2d-1/snapshots/appcomplianceautomation-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2e-1/snapshots/appcomplianceautomation-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "status": "res-value",
+            "triggerTime": "2026-01-15T10:30:00.0000000Z",
+            "timeZone": "res-value",
+            "resources": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appcomplianceautomation/reports/appcomplianceautomation-t2f-1/snapshots/appcomplianceautomation-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appcomplianceautomation-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.appcomplianceautomation/reports/snapshots"
+        }
+      ]
+    },
+    "ApplicationSecurityGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationsecuritygroups/applicationsecuritygroups-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "applicationsecuritygroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationsecuritygroups"
+        }
+      ]
+    },
+    "ArtifactSigning": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": {
+              "name": "res-value"
+            },
+            "provisioningState": "res-value",
+            "accountUri": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.codesigning/codesigningaccounts/artifactsigning-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "artifactsigning-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.codesigning/codesigningaccounts"
+        }
+      ]
+    },
+    "CloudHSM": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/cloudhsmclusters/cloudhsm-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/cloudhsmclusters",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value",
+            "stampId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hardwaresecuritymodules/dedicatedhsms/cloudhsm-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "cloudhsm-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hardwaresecuritymodules/dedicatedhsms",
+          "sku": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
+    "ConfidentialLedger": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/ledgers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "ledgerType": "res-value",
+            "ledgerUri": "res-value",
+            "identityServiceUri": "res-value",
+            "runningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/managedccfs/confidentialledger-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "confidentialledger-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.confidentialledger/managedccfs"
+        }
+      ]
+    },
+    "DdosProtectionPlans": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "virtualNetworks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicIPAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "resourceGuid": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ddosprotectionplans/ddosprotectionplans-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ddosprotectionplans-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/ddosprotectionplans"
+        }
+      ]
+    },
     "DefenderAlerts": {
       "resources": [
         {
@@ -695,7 +1946,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -733,7 +1984,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -772,7 +2023,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -808,7 +2059,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -846,7 +2097,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -884,7 +2135,7 @@
           "PROPERTIES": {
             "DefenderPricing": [
               {
-                "FreeTrialRemainingTime": "2026-01-15T10:30:00.0000000Z"
+                "FreeTrialRemainingTime": "2026-01-15T10:30:00Z"
               }
             ]
           },
@@ -1077,6 +2328,548 @@
         }
       ]
     },
+    "EntraDomainServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        },
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        },
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        },
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        },
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        },
+        {
+          "PROPERTIES": {
+            "domainName": "res-value",
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "syncScope": "res-value",
+            "domainSecuritySettings": {
+              "tlsV1": "res-value",
+              "ntlmV1": "res-value",
+              "kerberosRc4Encryption": "res-value"
+            },
+            "ldapsSettings": {
+              "ldaps": "res-value",
+              "externalAccess": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.aad/domainservices/entradomainservices-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "entradomainservices-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.aad/domainservices"
+        }
+      ]
+    },
+    "ManagedHSM": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hsmUri": "res-value",
+            "publicNetworkAccess": "res-value",
+            "enablePurgeProtection": "res-value",
+            "softDeleteRetentionInDays": "res-value",
+            "securityDomainProperties": {
+              "activationStatus": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.keyvault/managedhsms/managedhsm-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedhsm-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "family": "res-value"
+          },
+          "TYPE": "microsoft.keyvault/managedhsms"
+        }
+      ]
+    },
+    "Sentinel": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/sentinel-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationsmanagement/solutions",
+          "plan": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "workspaceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "customerManagedKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sentinel-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.securityinsights/onboardingstates",
+          "plan": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
     "Vault": {
       "resources": [
         {
@@ -1221,6 +3014,1051 @@
           "NAME": "vault-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.keyvault/vaults"
+        }
+      ]
+    },
+    "WafPolicies": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/wafpolicies-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/frontdoorwebapplicationfirewallpolicies/wafpolicies-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "policySettings": {
+              "mode": "res-value",
+              "enabledState": "res-value",
+              "state": "res-value"
+            },
+            "customRules": [
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              {
+                "rules": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              }
+            ],
+            "applicationGateways": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "httpListeners": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "pathBasedRules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontendEndpointLinks": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value",
+            "managedRules": {
+              "managedRuleSets": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cdn/cdnwebapplicationfirewallpolicies/wafpolicies-t3f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "wafpolicies-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.cdn/cdnwebapplicationfirewallpolicies",
+          "sku": {
+            "name": "res-value"
+          }
         }
       ]
     }

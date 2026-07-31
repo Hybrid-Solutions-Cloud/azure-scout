@@ -457,7 +457,7 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Azure Synapse Analytics (private link hubs) | — | 🔲 Need |
 | Data Shares · Data Share accounts | — | 🔲 Need |
 | Data Lake Analytics | — | 🔲 Need *(service retired)* |
-| Data Lake Storage Gen1 | — | 🔲 Need *(service retired)* |
+| Data Lake Storage Gen1 | Storage/DataLakeStoreGen1 | ✅ Have *(AB#6837 — service retired)* |
 | Microsoft Graph Data Connect | — | 🔲 Need |
 | Apache Kafka / Flink on Confluent | — | 🔲 Need *(marketplace ISV)* |
 | Informatica IDMC | — | 🔲 Need *(marketplace ISV)* |
@@ -490,11 +490,11 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | SSH keys | — | 🔲 Need |
 | Compute Fleet | — | 🔲 Need |
 | Batch accounts | — | 🔲 Need |
-| Azure Spring Apps | — | 🔲 Need *(retiring 2028)* |
+| Azure Spring Apps | Web/SpringApps | ✅ Have *(AB#6836 — retiring 2028)* |
 | Virtual instances for SAP solutions | — | 🔲 Need |
 | BareMetal Instances | — | 🔲 Need |
-| Lab accounts | — | 🔲 Need |
-| Function App | — | 🔲 Need — collected as `microsoft.web/sites`, not split out by kind |
+| Lab accounts | DevOps/LabServices | ✅ Have *(AB#6741)* |
+| Function App | Web/FunctionApps | ✅ Have *(AB#6836)* |
 | Kubernetes services – Automatic | — | 🔲 Need — same ARM type as AKS, differs by config |
 | SAP PubSub on Azure | — | 🔲 Need |
 | Compute infrastructure | — | ⛔ Not collectable — portal view, not a resource |
@@ -514,7 +514,7 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Container Apps Jobs | — | 🔲 Need |
 | Service Fabric clusters | — | 🔲 Need |
 | Service Fabric managed clusters | — | 🔲 Need |
-| App Configuration | — | 🔲 Need |
+| App Configuration | DevOps/AppConfiguration | ✅ Have *(AB#6741)* |
 | Kubernetes services – Automatic | — | 🔲 Need |
 
 ### Databases (18)
@@ -546,19 +546,19 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Application Insights | Monitor/AppInsights | ✅ Have |
 | Monitor | Monitor/* | ✅ Have |
 | API Management services | Integration/APIM | ✅ Have |
-| Chaos Studio | — | 🔲 Need |
-| Azure Deployment Environments | — | 🔲 Need |
-| Dev centers | — | 🔲 Need |
-| Projects | — | 🔲 Need |
-| Microsoft Dev Box | — | 🔲 Need |
-| Network connections | — | 🔲 Need |
-| DevTest Labs | — | 🔲 Need |
-| Azure Lab Services | — | 🔲 Need |
-| Azure Load Testing | — | 🔲 Need |
-| Managed DevOps Pools | — | 🔲 Need |
-| Playwright Testing (Classic) | — | 🔲 Need |
-| API Connections | — | 🔲 Need |
-| App Configuration | — | 🔲 Need |
+| Chaos Studio | DevOps/ChaosStudio | ✅ Have *(AB#6741)* |
+| Azure Deployment Environments | DevOps/DeploymentEnvironments | ✅ Have *(AB#6741)* |
+| Dev centers | DevOps/DevCenters | ✅ Have *(AB#6741)* |
+| Projects | DevOps/DevCenters | ✅ Have *(AB#6741)* |
+| Microsoft Dev Box | DevOps/DevBoxPools | ✅ Have *(AB#6741)* |
+| Network connections | DevOps/DevCenterNetworkConnections | ✅ Have *(AB#6741)* |
+| DevTest Labs | DevOps/DevTestLabs | ✅ Have *(AB#6741)* |
+| Azure Lab Services | DevOps/LabServices | ✅ Have *(AB#6741)* |
+| Azure Load Testing | DevOps/LoadTesting | ✅ Have *(AB#6741)* |
+| Managed DevOps Pools | DevOps/ManagedDevOpsPools | ✅ Have *(AB#6741)* |
+| Playwright Testing (Classic) | DevOps/PlaywrightTesting | ✅ Have *(AB#6741)* |
+| API Connections | DevOps/ApiConnections | ✅ Have *(AB#6741)* |
+| App Configuration | DevOps/AppConfiguration | ✅ Have *(AB#6741)* |
 | Azure Native LambdaTest · Elastic · Plastic Cloud · New Relic | — | 🔲 Need *(marketplace ISV)* |
 | GitHub | Management/DevOps* *(via ADO REST, not ARM)* | ⛔ Not collectable as an ARM resource |
 
@@ -566,11 +566,11 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 
 | Service | Scout collector | Status |
 |---|---|---|
-| Help + support | Management/SupportTickets | ✅ Have |
-| Reservations | Management/ReservationRecom *(recommendations only)* | 🔲 Need — owned reservations not collected |
-| Quotas | — | 🔲 Need |
+| Help + support | General/SupportTickets *(relocated from Management, AB#6838)* | ✅ Have |
+| Reservations | General/Reservations *(owned)* + General/ReservationRecom *(recommendations)* | ✅ Have *(AB#6838)* |
+| Quotas | General/Quotas | ✅ Have *(AB#6838)* — renders the `AZSC/VM/Quotas` envelope Scout has always fetched and never displayed |
+| Subscriptions | Management/AllSubscriptions | ✅ Have |
 | Cost Management + Billing | — | 🔲 Need — see §9 billing gates |
-| Subscriptions | — | 🔲 Need — enrichment only today |
 | Resources · Resource Manager | — | ⛔ Not collectable — the platform itself |
 | Operations center · Preview features · Quickstart Center · Pass services | — | ⛔ Not collectable — portal views |
 | Service Health | — | ⛔ Not collectable — a data plane, not a resource |
@@ -629,16 +629,16 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | API Management services | Integration/APIM | ✅ Have |
 | Service Bus | Integration/ServiceBUS | ✅ Have |
 | Event Hubs | Analytics/EvtHub | ✅ Have |
-| **Logic apps** | — | 🔲 Need — **also actively excluded from the ARG query; the exclusion must be removed first** |
-| Integration accounts | — | 🔲 Need |
-| Logic Apps Custom Connector | — | 🔲 Need |
-| API Connections | — | 🔲 Need |
-| Event Grid | — | 🔲 Need |
-| Event Hubs Clusters | — | 🔲 Need |
-| Relays | — | 🔲 Need |
-| App Configuration | — | 🔲 Need |
-| Azure API for FHIR | — | 🔲 Need |
-| FHIR service | — | 🔲 Need |
+| **Logic apps** | Integration/LogicApps | ✅ Have *(AB#6836 — the `microsoft.logic/workflows` exclusion was removed from the ARG query)* |
+| Integration accounts | Integration/IntegrationAccounts | ✅ Have *(AB#6836)* |
+| Logic Apps Custom Connector | Integration/LogicAppsCustomConnectors | ✅ Have *(AB#6836)* |
+| API Connections | DevOps/ApiConnections | ✅ Have *(AB#6741)* |
+| Event Grid | Integration/EventGrid | ✅ Have *(AB#6836)* |
+| Event Hubs Clusters | Integration/EventHubClusters | ✅ Have *(AB#6836)* |
+| Relays | Integration/Relays | ✅ Have *(AB#6836)* |
+| App Configuration | DevOps/AppConfiguration | ✅ Have *(AB#6741)* |
+| Azure API for FHIR | Integration/HealthDataServices | ✅ Have *(AB#6836)* |
+| FHIR service | Integration/HealthDataServices | ✅ Have *(AB#6836)* |
 | Mobile Data Services workspaces | — | 🔲 Need |
 | Apache Kafka / Flink on Confluent | — | 🔲 Need *(marketplace ISV)* |
 
@@ -654,16 +654,16 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Azure Synapse Analytics | Analytics/Synapse | ✅ Have |
 | Azure Machine Learning | AI/MachineLearning | ✅ Have |
 | Storage accounts | Storage/StorageAccounts | ✅ Have |
-| Azure IoT Hub Device Provisioning Service | — | 🔲 Need |
-| IoT Central Applications | — | 🔲 Need |
-| Device Update for IoT Hubs | — | 🔲 Need |
-| Azure Digital Twins | — | 🔲 Need |
-| Microsoft Defender for IoT | — | 🔲 Need |
-| Azure Maps Accounts | — | 🔲 Need |
-| Azure Maps Creator Resources | — | 🔲 Need |
-| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
-| Function App | — | 🔲 Need |
-| Logic apps | — | 🔲 Need *(excluded from query)* |
+| Azure IoT Hub Device Provisioning Service | IoT/DeviceProvisioningServices | ✅ Have *(AB#6837)* |
+| IoT Central Applications | IoT/IoTCentral | ✅ Have *(AB#6837)* |
+| Device Update for IoT Hubs | IoT/DeviceUpdate | ✅ Have *(AB#6837)* |
+| Azure Digital Twins | IoT/DigitalTwins | ✅ Have *(AB#6837)* |
+| Microsoft Defender for IoT | IoT/DefenderForIoT | ✅ Have *(AB#6837)* |
+| Azure Maps Accounts | IoT/Maps | ✅ Have *(AB#6837)* |
+| Azure Maps Creator Resources | IoT/Maps | ✅ Have *(AB#6837)* |
+| Azure Stack Edge / Data Box Gateway | Migration/StackEdge | ✅ Have *(AB#6831)* |
+| Function App | Web/FunctionApps | ✅ Have *(AB#6836)* |
+| Logic apps | Integration/LogicApps | ✅ Have *(AB#6836)* |
 | Power Platform | — | ⛔ Not collectable — Power Platform admin API, not ARM |
 
 ### Management and governance (34)
@@ -709,10 +709,10 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Service | Scout collector | Status |
 |---|---|---|
 | Recovery Services vaults | Management/RecoveryVault | ✅ Have |
-| Azure Migrate | — | 🔲 Need |
-| Azure Database Migration Services | — | 🔲 Need |
-| Azure Data Box | — | 🔲 Need |
-| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
+| Azure Migrate | Migration/AzureMigrateProjects, AzureMigrateAssessments, AzureMigrateDiscoverySites | ✅ Have *(AB#6830)* |
+| Azure Database Migration Services | Migration/DatabaseMigrationServices | ✅ Have *(AB#6831)* |
+| Azure Data Box | Migration/DataBox | ✅ Have *(AB#6831)* |
+| Azure Stack Edge / Data Box Gateway | Migration/StackEdge | ✅ Have *(AB#6831)* |
 
 ### Monitor (24)
 
@@ -765,10 +765,10 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Network Watcher | Networking/NetworkWatchers | ✅ Have |
 | Front Doors | Networking/Frontdoor | ✅ Have — **classic only; modern `microsoft.cdn/profiles` missing** |
 | *(Traffic Manager)* | Networking/TrafficManager | ✅ Have |
-| **Web Application Firewall policies (WAF)** | — | 🔲 Need |
+| **Web Application Firewall policies (WAF)** | Security/WafPolicies | ✅ Have *(AB#6837 — Application Gateway, Front Door and CDN policy types)* |
 | **Firewall Policy** | — | 🔲 Need |
 | **Front Door and CDN profiles** *(modern)* | — | 🔲 Need |
-| DDoS protection plans | — | 🔲 Need |
+| DDoS protection plans | Security/DdosProtectionPlans | ✅ Have *(AB#6837)* |
 | Network managers | — | 🔲 Need |
 | IP Groups | — | 🔲 Need |
 | Custom IP Prefixes | — | 🔲 Need |
@@ -777,7 +777,7 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Local network gateways | — | 🔲 Need |
 | ExpressRoute traffic collectors | — | 🔲 Need |
 | Peerings · Peering Service | — | 🔲 Need |
-| Application security groups | — | 🔲 Need |
+| Application security groups | Security/ApplicationSecurityGroups | ✅ Have *(AB#6837)* |
 | Microsoft Connected Cache | — | 🔲 Need |
 | Networking monitoring and management · Monitor · NSGWatch | — | ⛔ Not collectable — portal views |
 
@@ -785,24 +785,24 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 
 | Service | Scout collector | Status |
 |---|---|---|
-| Key vaults | Security/Vault | ✅ Have — **keys/secrets/certificates not collected** |
+| Key vaults | Security/Vault | ✅ Have |
 | Microsoft Defender for Cloud | Security/DefenderAlerts, DefenderAssessments, DefenderPricing, DefenderSecureScore | ✅ Have |
 | Firewalls | Networking/AzureFirewall | ✅ Have |
 | Application gateways | Networking/ApplicationGateways | ✅ Have |
 | Log Analytics workspaces | Monitor/Workspaces | ✅ Have |
 | Microsoft Entra ID · ID Security · PIM | Identity/* | ✅ Have *(Graph)* |
-| **Microsoft Sentinel** | — | 🔲 Need |
-| **Key Vault keys / secrets / certificates** | — | 🔲 Need |
-| Azure Key Vault Managed HSM | — | 🔲 Need |
-| Azure Cloud HSM | — | 🔲 Need |
-| Application security groups | — | 🔲 Need |
-| Web Application Firewall policies (WAF) | — | 🔲 Need |
-| DDoS protection plans | — | 🔲 Need |
-| Confidential Ledgers | — | 🔲 Need |
-| Artifact Signing Accounts | — | 🔲 Need |
-| Microsoft Defender for IoT | — | 🔲 Need |
-| Microsoft Entra Domain Services | — | 🔲 Need |
-| App Compliance Automation Tool | — | 🔲 Need |
+| **Microsoft Sentinel** | Security/Sentinel | ✅ Have *(AB#6837)* |
+| **Key Vault keys / secrets / certificates** | `Get-ScoutArmChildResource` datasets `KeyVaultSecrets`, `KeyVaultKeys` | ✅ Have *(AB#6837)* — **control plane only: metadata and `attributes.exp`, never a secret value. Certificate expiry arrives under secrets, identified by `contentType`; there is no ARM list endpoint for certificates** |
+| Azure Key Vault Managed HSM | Security/ManagedHSM | ✅ Have *(AB#6837)* |
+| Azure Cloud HSM | Security/CloudHSM | ✅ Have *(AB#6837)* |
+| Application security groups | Security/ApplicationSecurityGroups | ✅ Have *(AB#6837)* |
+| Web Application Firewall policies (WAF) | Security/WafPolicies | ✅ Have *(AB#6837)* |
+| DDoS protection plans | Security/DdosProtectionPlans | ✅ Have *(AB#6837)* |
+| Confidential Ledgers | Security/ConfidentialLedger | ✅ Have *(AB#6837)* |
+| Artifact Signing Accounts | Security/ArtifactSigning | ✅ Have *(AB#6837)* |
+| Microsoft Defender for IoT | IoT/DefenderForIoT | ✅ Have *(AB#6837)* |
+| Microsoft Entra Domain Services | Security/EntraDomainServices | ✅ Have *(AB#6837)* |
+| App Compliance Automation Tool | Security/AppComplianceAutomation | ✅ Have *(AB#6837)* |
 | Multifactor authentication | — | ⛔ Not collectable — Entra config, not an inventoried resource |
 
 ### Storage (17)
@@ -812,18 +812,18 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | Storage accounts | Storage/StorageAccounts | ✅ Have |
 | Disks | Compute/VMDisk | ✅ Have |
 | Azure NetApp Files | Storage/NetApp | ✅ Have |
-| **Blob containers** *(child)* | — | 🔲 Need |
-| **File shares** *(child)* | — | 🔲 Need |
-| **Lifecycle / management policies** *(child)* | — | 🔲 Need |
-| Snapshots | — | 🔲 Need |
-| Disk Encryption Sets | — | 🔲 Need |
-| Elastic SANs | — | 🔲 Need |
-| Storage Sync Services *(File Sync)* | — | 🔲 Need |
-| Azure Data Box | — | 🔲 Need |
-| Azure Stack Edge / Data Box Gateway | — | 🔲 Need |
-| Azure Edge Hardware Center | — | 🔲 Need |
-| Data Lake Storage Gen1 | — | 🔲 Need *(retired)* |
-| Azure Native Pure Storage · Qumulo | — | 🔲 Need *(marketplace ISV)* |
+| **Blob containers** *(child)* | `Get-ScoutArmChildResource` dataset `StorageBlobContainers` | ✅ Have *(AB#6834)* — carries `publicAccess`, which is what makes anonymous exposure detectable |
+| **File shares** *(child)* | `Get-ScoutArmChildResource` dataset `StorageFileShares` | ✅ Have *(AB#6834)* |
+| **Lifecycle / management policies** *(child)* | `Get-ScoutArmChildResource` dataset `StorageLifecyclePolicies` | ✅ Have *(AB#6834)* |
+| Snapshots | Storage/Snapshots | ✅ Have *(AB#6837)* |
+| Disk Encryption Sets | Storage/DiskEncryptionSets | ✅ Have *(AB#6837)* |
+| Elastic SANs | Storage/ElasticSan | ✅ Have *(AB#6837)* |
+| Storage Sync Services *(File Sync)* | Storage/StorageSync | ✅ Have *(AB#6837)* |
+| Azure Data Box | Migration/DataBox | ✅ Have *(AB#6831)* |
+| Azure Stack Edge / Data Box Gateway | Migration/StackEdge | ✅ Have *(AB#6831)* |
+| Azure Edge Hardware Center | Storage/EdgeHardwareCenter | ✅ Have *(AB#6837)* |
+| Data Lake Storage Gen1 | Storage/DataLakeStoreGen1 | ✅ Have *(AB#6837 — service retired 2024-02-29; collected so a lingering account is visible)* |
+| Azure Native Pure Storage · Qumulo | Storage/PartnerStorage | ✅ Have *(AB#6837)* |
 | Azure Storage Locker | — | 🔲 Need |
 | Storage browser · Data Accesses · Data resources | — | ⛔ Not collectable — portal views |
 
@@ -837,22 +837,22 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | API Management services | Integration/APIM | ✅ Have |
 | Container Apps | Containers/ContainerApp | ✅ Have |
 | AI Search | AI/SearchServices | ✅ Have |
-| **App Service Environments** | — | 🔲 Need |
-| **Static Web Apps** | — | 🔲 Need |
-| **Function App** | — | 🔲 Need — same ARM type as App Services, not split by kind |
-| **Deployment slots** | — | 🔲 Need |
-| App Service Certificates | — | 🔲 Need |
-| App Service Domains | — | 🔲 Need |
-| App Configuration | — | 🔲 Need |
-| API Connections | — | 🔲 Need |
-| SignalR | — | 🔲 Need |
-| Web PubSub Service · Web PubSub for Socket.IO | — | 🔲 Need |
-| Communication Services | — | 🔲 Need |
-| Email Communication Services | — | 🔲 Need |
-| Notification Hubs | — | 🔲 Need |
-| Fluid Relay | — | 🔲 Need |
-| Azure Spring Apps | — | 🔲 Need *(retiring 2028)* |
-| Logic apps | — | 🔲 Need *(excluded from query)* |
+| **App Service Environments** | Web/AppServiceEnvironments | ✅ Have *(AB#6836)* |
+| **Static Web Apps** | Web/StaticWebApps | ✅ Have *(AB#6836)* |
+| **Function App** | Web/FunctionApps | ✅ Have *(AB#6836)* — same ARM type as App Services, split by `kind` |
+| **Deployment slots** | Web/DeploymentSlots | ✅ Have *(AB#6836)* |
+| App Service Certificates | Web/AppServiceCertificates | ✅ Have *(AB#6836)* |
+| App Service Domains | Web/AppServiceDomains | ✅ Have *(AB#6836)* |
+| App Configuration | DevOps/AppConfiguration | ✅ Have *(AB#6741)* |
+| API Connections | DevOps/ApiConnections | ✅ Have *(AB#6741)* |
+| SignalR | Web/SignalR | ✅ Have *(AB#6836)* |
+| Web PubSub Service · Web PubSub for Socket.IO | Web/WebPubSub | ✅ Have *(AB#6836)* |
+| Communication Services | Web/CommunicationServices | ✅ Have *(AB#6836)* |
+| Email Communication Services | Web/CommunicationServices | ✅ Have *(AB#6836)* |
+| Notification Hubs | Web/NotificationHubs | ✅ Have *(AB#6836)* |
+| Fluid Relay | Web/FluidRelay | ✅ Have *(AB#6836)* |
+| Azure Spring Apps | Web/SpringApps | ✅ Have *(AB#6836 — retiring 2028)* |
+| Logic apps | Integration/LogicApps | ✅ Have *(AB#6836)* |
 
 ---
 
@@ -862,32 +862,41 @@ Counted from the tables above, not from a separate source. "Listed" is how many 
 section enumerates; "Portal" is Microsoft's own count from §12. Where they differ, this section is
 **incomplete** — see DQ5.
 
-| Category | Listed | Portal | ✅ Have | 🔲 Need | ⛔ Not collectable | Have % |
-|---|---:|---:|---:|---:|---:|---:|
-| AI + machine learning | 17 | 21 | 16 | 1 | 0 | 94% |
-| Analytics | 20 | 20 | 7 | 12 | 1 | 35% |
-| Compute | 32 | 32 | 9 | 21 | 2 | 28% |
-| Containers | 12 | 12 | 6 | 6 | 0 | 50% |
-| Databases | 17 | 18 | 12 | 5 | 0 | 71% |
-| DevOps | 18 | 23 | 3 | 14 | 1 | 17% |
-| General | 8 | 10 | 1 | 4 | 3 | 13% |
-| Hybrid + multicloud | 18 | 18 | 12 | 6 | 0 | 67% |
-| Identity | 19 | 18 | 9 | 6 | 4 | 47% |
-| Integration | 15 | 15 | 3 | 12 | 0 | 20% |
-| Internet of Things | 19 | 19 | 8 | 10 | 1 | 42% |
-| Management and governance | 33 | 34 | 10 | 19 | 4 | 30% |
-| Migration | 5 | 5 | 1 | 4 | 0 | 20% |
-| Monitor | 22 | 24 | 12 | 8 | 2 | 55% |
-| Networking | 35 | 34 | 20 | 14 | 1 | 57% |
-| Security | 19 | 22 | 6 | 12 | 1 | 32% |
-| Storage | 17 | 17 | 3 | 13 | 1 | 18% |
-| Web and Mobile | 22 | 22 | 6 | 16 | 0 | 27% |
-| **Total** | **348** | **364** | **144** | **183** | **21** | **41%** |
+**Recounted 2026-07-31 after Epic AB#6741**, mechanically from the tables above (count of ✅/🔲/⛔
+rows per section) rather than by hand. The "was" column is the figure this section carried before
+the Epic, so the movement is visible rather than asserted.
+
+| Category | Listed | Portal | ✅ Have | 🔲 Need | ⛔ Not collectable | Have % | *(was)* |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| AI + machine learning | 18 | 21 | 16 | 2 | 0 | 89% | 94% |
+| Analytics | 20 | 20 | 8 | 11 | 1 | 40% | 35% |
+| Compute | 32 | 32 | 12 | 18 | 2 | 38% | 28% |
+| Containers | 12 | 12 | 7 | 5 | 0 | 58% | 50% |
+| Databases | 17 | 18 | 12 | 5 | 0 | 71% | 71% |
+| DevOps | 18 | 23 | 16 | 1 | 1 | 89% | 17% |
+| General | 8 | 10 | 4 | 1 | 3 | 50% | 13% |
+| Hybrid + multicloud | 18 | 18 | 12 | 6 | 0 | 67% | 67% |
+| Identity | 19 | 18 | 9 | 6 | 4 | 47% | 47% |
+| Integration | 15 | 15 | 13 | 2 | 0 | 87% | 20% |
+| Internet of Things | 19 | 19 | 18 | 0 | 1 | 95% | 42% |
+| Management and governance | 33 | 34 | 10 | 19 | 4 | 30% | 30% |
+| Migration | 5 | 5 | 5 | 0 | 0 | 100% | 20% |
+| Monitor | 22 | 24 | 12 | 8 | 2 | 55% | 55% |
+| Networking | 35 | 34 | 23 | 11 | 1 | 66% | 57% |
+| Security | 19 | 22 | 18 | 0 | 1 | 95% | 32% |
+| Storage | 17 | 17 | 15 | 1 | 1 | 88% | 18% |
+| Web and Mobile | 22 | 22 | 22 | 0 | 0 | 100% | 27% |
+| **Total** | **349** | **364** | **232** | **96** | **21** | **66%** | **41%** |
+
+**AI moved DOWN, from 94% to 89%, and nothing about it got worse.** The category gained a row --
+`Personalizers`, added when DQ5 was closed -- so the denominator grew by one while the numerator did
+not. It is the only category whose percentage fell, and it is an arithmetic artefact, recorded here
+rather than quietly smoothed over.
 
 **Three things this table says that the percentages alone do not:**
 
-1. **41% is the honest headline** — 144 of 348 enumerated services have a collector. Measured only
-   against services that *can* be collected (excluding the 21 ⛔), it is **44%**.
+1. **66% is the honest headline** — 232 of 349 enumerated services have a collector. Measured only
+   against services that *can* be collected (excluding the 21 ⛔), it is **71%**.
 2. **The "Listed" and "Portal" columns differ for an arithmetic reason, not a coverage one.**
    A single row here often carries several portal services — `Microsoft Entra ID · ID Security ·
    PIM` is one row and three portal entries; the four Azure Native ISV services (LambdaTest,
@@ -903,9 +912,29 @@ section enumerates; "Portal" is Microsoft's own count from §12. Where they diff
 
 **What "Have" does and does not mean.** A ✅ means *a collector targets this service*. It does not
 mean the collector returns rows, that it returns the right fields, or that any rule reads them. 12
-collectors under a ✅ are **provably broken** (§9 note 3), and 0 of 174 have ever been verified
-against real Azure (§5.5). Read §7 immediately after this section — a large share of what a
+collectors under a ✅ are **provably broken** (§9 note 3), and none of the 236 has ever been verified
+against real Azure (§5.5) — **including all 62 added by AB#6741**, whose resource-type strings were
+taken from the ARM template reference and pinned by `tests/ServiceCollectorTypes`-style assertions
+in `tests/ServiceCoverage.Tests.ps1`, but which no live run has yet confirmed return rows. Read §7
+immediately after this section — a large share of what a
 customer actually asks about is not a "service" at all and can never appear in this table.
+
+> **⚠️ Found 2026-07-31 while building AB#6741, and it applies to the whole estate, not just the
+> new collectors.** A collector preamble that reads a `properties` key Azure did not return
+> **throws** under `Set-StrictMode -Version Latest` and the run log loses that collector's entire
+> output, not one row. Probed against a realistic sparse Resource Graph row — every projected
+> column present, most `$null`, `properties` holding only the keys that resource actually has —
+> `Integration/APIM` (shipped since v1) fails on `virtualNetworkType` exactly as
+> `Integration/LogicApps` (new) fails on `integrationAccount`. **New and old behave identically**;
+> AB#6741 did not introduce this and did not fix it.
+>
+> **No test in this repository can catch it**, which is why it has survived. The fixture generator
+> derives its estate *from the collector's own expressions*, so every path a collector reads is
+> present in its fixture by construction — the same structural blindness §5.5 and AB#6444 describe
+> for fabricated resource types, extended from "the type does not exist" to "the payload is
+> sparse". Only a live run against a real tenant, or a fixture deliberately built by *removing*
+> properties, would find it. **Tracked as AB#6839** under the hardening Epic AB#6731 — it is a
+> hardening defect, not a coverage one.
 
 **Not every ✅ is an ARM query.** Whole blocks come from non-ARM surfaces: Identity's from Microsoft
 Graph (`entra/…` pseudo-types), DevOps' from the Azure DevOps REST API (`devops/…`), and Security's
@@ -936,12 +965,12 @@ These are the ones that matter most, because they are where the actual findings 
 
 | Missing | Lives under | Consequence |
 |---|---|---|
-| **Backup protected items** | Recovery Services vaults ✅ | **"Which VMs have no backup" is unanswerable.** Scout reports vaults and policies but never what is actually protected. |
-| **Key Vault keys, secrets, certificates** | Key vaults ✅ | **Expiring secrets and certificates — the actual finding — are invisible.** Scout reports that 12 vaults exist. |
-| **Blob containers** | Storage accounts ✅ | **Public-container exposure cannot be detected.** |
-| **File shares** | Storage accounts ✅ | No share inventory or quota reporting. |
-| **Lifecycle / management policies** | Storage accounts ✅ | No lifecycle or tiering findings. |
-| **Compute galleries, images, snapshots, disk encryption sets, restore points, dedicated hosts, PPGs, capacity reservations** | Virtual machines ✅ | **Orphaned-snapshot spend — a routine consulting finding — cannot be produced.** |
+| ~~**Backup protected items**~~ | Recovery Services vaults ✅ | **CLOSED (AB#6833).** Recovery Services protected items come from the `recoveryservicesresources` ARG table; Backup vault instances from the new `BackupInstances` ARM-child dataset. `XR-BKP-01` answers "which VMs have no backup" directly. |
+| ~~**Key Vault keys, secrets, certificates**~~ | Key vaults ✅ | **CLOSED (AB#6837)** — control plane only. `attributes.exp` gives expiry for secrets and keys; certificate expiry arrives on the certificate's backing secret, identified by `contentType`. No secret VALUE is ever read. |
+| ~~**Blob containers**~~ | Storage accounts ✅ | **CLOSED (AB#6834)** — `StorageBlobContainers` carries `publicAccess`, so anonymous exposure is detectable. |
+| ~~**File shares**~~ | Storage accounts ✅ | **CLOSED (AB#6834)** — `StorageFileShares`. |
+| ~~**Lifecycle / management policies**~~ | Storage accounts ✅ | **CLOSED (AB#6834)** — `StorageLifecyclePolicies`. An account with no policy 404s, and the absence is the finding. |
+| **Compute galleries, images, restore points, dedicated hosts, PPGs, capacity reservations** | Virtual machines ✅ | Still missing. **Snapshots and disk encryption sets are now collected** (AB#6837), and `XR-SNP-01` produces the orphaned-snapshot finding; the rest of this row is untouched. |
 | **AKS node pools** | Kubernetes services ✅ | Cluster-level only; per-pool sizing and version invisible. |
 | **Deployment slots** | App Services ✅ | Slot configuration drift undetectable. |
 | **SQL failover groups** | Azure SQL ✅ | HA posture unreportable. |
@@ -973,13 +1002,20 @@ These are the ones that matter most, because they are where the actual findings 
 
 ### Cross-resource questions nothing collects
 
-These need two datasets correlated. Neither side is complete today:
+These need two datasets correlated. **The engine could not express a two-dataset condition at all
+until AB#6835**; it now can, as declared rule data (`join:` in place of `query:`), so adding the
+next such rule needs no engine change. `src/assess/rules/xr.crossresource.yaml` ships six.
 
-- **Which VMs have no backup** — needs VMs ✅ + protected items ❌
-- **Which subnets have no NSG** — needs subnets ✅ + NSG associations (partial)
-- **Which PaaS services lack a private endpoint** — needs both ✅, but no rule joins them
-- **Which secrets expire in 30 days** — needs Key Vault children ❌
-- **Which resources are orphaned** — disks/NICs/PIPs partially collected, snapshots not
+- ~~**Which VMs have no backup**~~ — **CLOSED**: `XR-BKP-01` (and `XR-BKP-02` for the mirror case,
+  a protected item whose VM is gone)
+- ~~**Which PaaS services lack a private endpoint**~~ — **CLOSED** for storage and key vaults:
+  `XR-STO-01`, `XR-KV-01`. Other PaaS targets are a rule each, no code
+- ~~**Which resources are orphaned**~~ — snapshots **CLOSED** by `XR-SNP-01`; disks/NICs/PIPs were
+  already single-dataset queries
+- **Which subnets have no NSG** — still open: needs subnets ✅ + NSG associations (partial). The
+  join mechanism exists; the NSG-association half of the projection does not yet
+- **Which secrets expire in 30 days** — the DATA is now collected (`KeyVaultSecrets`, AB#6837).
+  A rule reading `attributes.exp` against a date threshold is not yet written
 
 ### Why this section exists
 

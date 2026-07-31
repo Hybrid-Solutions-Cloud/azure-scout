@@ -109,6 +109,12 @@ BeforeAll {
             SmaResources  = $SmaResources
             TableStyle    = 'Light20'
             Unsupported   = $Fixture.unsupported
+            # MUST match scripts/New-ScoutCollectorGolden.ps1's $GoldenRunTime. A collector that
+            # reads "now" (Management/Backup computes days since the last backup) otherwise
+            # produces a different value every calendar day, and this suite fails on every day but
+            # the one the record was captured on -- which is exactly how it was failing before
+            # AB#6741 pinned the clock.
+            RunTime       = [datetime]::Parse('2026-07-01T00:00:00Z').ToUniversalTime()
         }
     }
 

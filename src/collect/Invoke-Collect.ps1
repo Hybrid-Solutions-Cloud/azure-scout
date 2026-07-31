@@ -310,7 +310,9 @@ resources
     "australiaeast","japaneast","koreacentral","centralindia","canadacentral",
     "brazilsouth","uaenorth","southafricanorth"
   )
-| project name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
+// `id` is projected for the cross-resource joins (AB#6835): "which VMs have no backup"
+// correlates this id against a backup protected item's sourceResourceId.
+| project id, name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
           size = tostring(properties.hardwareProfile.vmSize)
 '@
         orphanedDisks = @'
@@ -341,7 +343,7 @@ resources | where type =~ "microsoft.storage/storageaccounts"
 // properties.networkAcls is on the storage account resource itself (not a
 // sub-resource), so it's safe to project directly — CAF-STO-05 (AB#5057).
 | extend networkDefaultDeny = tostring(properties.networkAcls.defaultAction) =~ "Deny"
-| project name, resourceGroup, sku = tostring(sku.name), publicAccess, httpsOnly, minTls, networkDefaultDeny
+| project id, name, resourceGroup, sku = tostring(sku.name), publicAccess, httpsOnly, minTls, networkDefaultDeny
 '@
         sqlDatabases = @'
 resources | where type =~ "microsoft.sql/servers/databases"
@@ -405,7 +407,72 @@ resources | where type =~ "microsoft.containerregistry/registries"
 resources | where type =~ "microsoft.keyvault/vaults"
 | extend softDelete = tobool(properties.enableSoftDelete)
 | extend purgeProtection = tobool(properties.enablePurgeProtection)
-| project name, resourceGroup, softDelete, purgeProtection
+| project id, name, resourceGroup, softDelete, purgeProtection
+'@
+        # ---- cross-resource join sources (AB#6835) --------------------------------------------
+        # Each of these exists to be the OTHER half of a rule, not to be scored on its own.
+        #
+        # THEY DO NOT COST A ROUND TRIP. Every one is also shaped by ConvertFrom-ScoutInventory
+        # from rows the single raw pass already returned, so on the default (inverted) path these
+        # KQL bodies are never sent. They exist for the `-UseLiveQueries` escape hatch and as the
+        # executable specification the shaper is verified against -- the same arrangement as the
+        # other 34 derivable queries (see the AB#5639 note at the top of this file).
+        #
+        # backupProtectedItems is the answer to "which VMs have no backup". A protected item's
+        # properties.sourceResourceId IS the protected resource's ARM id, which is the join key.
+        backupProtectedItems = @'
+recoveryservicesresources
+| where type =~ "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems"
+| extend sourceResourceId = tostring(properties.sourceResourceId)
+| extend protectionState = tostring(properties.protectionState)
+| extend lastBackupStatus = tostring(properties.lastBackupStatus)
+| extend backupManagementType = tostring(properties.backupManagementType)
+| project id, name, resourceGroup, subscriptionId, sourceResourceId, protectionState,
+          lastBackupStatus, backupManagementType
+'@
+        snapshots = @'
+resources | where type =~ "microsoft.compute/snapshots"
+| extend sourceDiskId = tostring(properties.creationData.sourceResourceId)
+| extend sizeGb = toint(properties.diskSizeGB)
+| extend created = tostring(properties.timeCreated)
+| project id, name, resourceGroup, subscriptionId, sourceDiskId, sizeGb, created,
+          sku = tostring(sku.name)
+'@
+        managedDisks = @'
+resources | where type =~ "microsoft.compute/disks"
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          diskState = tostring(properties.diskState), sizeGb = toint(properties.diskSizeGB)
+'@
+        # ---- Migration domain (AB#6830/AB#6831/AB#6832) ---------------------------------------
+        # The SMART assessment scores migration readiness and cannot run on an estate where none
+        # of this was ever queried. Before this existed the Migration category had zero collectors
+        # and zero assessment inputs, so a SMART score would have been manufactured from nothing.
+        migrateProjects = @'
+resources
+| where type in~ ("microsoft.migrate/migrateprojects", "microsoft.migrate/projects", "microsoft.migrate/assessmentprojects")
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| extend projectStatus = tostring(properties.projectStatus)
+| project id, name, type, resourceGroup, subscriptionId, location, publicNetworkAccess, projectStatus
+'@
+        migrationServices = @'
+resources
+| where type in~ ("microsoft.datamigration/services", "microsoft.datamigration/sqlmigrationservices",
+                  "microsoft.databox/jobs", "microsoft.databoxedge/databoxedgedevices")
+| project id, name, type, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState)
+'@
+        discoverySites = @'
+resources
+| where type startswith "microsoft.offazure/"
+| project id, name, type, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState)
+'@
+        diskEncryptionSets = @'
+resources | where type =~ "microsoft.compute/diskencryptionsets"
+| extend keyVaultId = tostring(properties.activeKey.sourceVault.id)
+| extend encryptionType = tostring(properties.encryptionType)
+| extend autoKeyRotation = tobool(properties.rotationToLatestKeyVersionEnabled)
+| project id, name, resourceGroup, subscriptionId, keyVaultId, encryptionType, autoKeyRotation
 '@
         cognitiveAccounts = @'
 resources | where type =~ "microsoft.cognitiveservices/accounts"
@@ -563,6 +630,16 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         aksClusters         = @('Containers')
         containerRegistries = @('Containers')
         keyVaults           = @('Security')
+        # The cross-resource rule set spans categories by definition, so its sources must be
+        # gathered whenever EITHER side's category was asked for -- a -Category Compute run that
+        # skipped backupProtectedItems would silently Pass "every VM has a backup" (AB#6835).
+        backupProtectedItems = @('Compute', 'Management', 'Security')
+        snapshots           = @('Compute', 'Storage', 'Cost', 'Management')
+        managedDisks        = @('Compute', 'Storage', 'Cost', 'Management')
+        diskEncryptionSets  = @('Compute', 'Storage', 'Security')
+        migrateProjects     = @('Migration')
+        migrationServices   = @('Migration')
+        discoverySites      = @('Migration')
         cognitiveAccounts   = @('AI')
         arcServers          = @('Hybrid')
         arcExtensions       = @('Hybrid')
@@ -704,7 +781,15 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             # path would return `tags = @()` for every estate while the typed path returned the
             # real aggregation -- a silently empty report section, not an error. Found by the
             # path-equivalence test below, not by a live run.
-            $rawArgs = @{ IncludeTags = $true }
+            #
+            # -IncludeBackupResources is the ONE -Include* switch this path does need, added by
+            # AB#6835. Its rationale above -- "the -Include* tables feed inventory REPORT
+            # collectors, not assessment scalars" -- was true when written and is not true for
+            # this one: `recoveryservicesresources` carries the backup protected items that
+            # XR-BKP-01 ("which VMs have no backup") joins virtual machines against, and no other
+            # table can supply them. It is a fifth Resource Graph round-trip on the default
+            # assessment collect, up from four, and it is the only round-trip AB#6741 added.
+            $rawArgs = @{ IncludeTags = $true; IncludeBackupResources = $true }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }
@@ -880,6 +965,9 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         management    = [pscustomobject]@{
             recoveryVaults = @(); deployments = $r.deployments
             logAnalyticsWorkspaces = $r.logAnalyticsWorkspaces
+            # The right-hand side of XR-BKP-01/02 (AB#6835). Filed under management because that
+            # is where the vault lives, not under compute where the protected VM does.
+            backupProtectedItems = $r.backupProtectedItems
         }
         security      = [pscustomobject]@{ defenderPlans = @() }
         governance    = [pscustomobject]@{
@@ -891,7 +979,11 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         # Per-domain resource data (scalar compliance fields) for the per-category
         # assessments in Epic AB#5056.
         domains       = [pscustomobject]@{
-            storage      = [pscustomobject]@{ storageAccounts = $r.storageAccounts }
+            storage      = [pscustomobject]@{
+                storageAccounts = $r.storageAccounts
+                snapshots = $r.snapshots; managedDisks = $r.managedDisks
+                diskEncryptionSets = $r.diskEncryptionSets
+            }
             databases    = [pscustomobject]@{
                 sqlDatabases = $r.sqlDatabases; sqlServers = $r.sqlServers
                 sqlDefenderPricing = $r.sqlDefenderPricing
@@ -911,6 +1003,11 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             iot          = [pscustomobject]@{
                 iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances
                 digitalTwinsInstances = $r.digitalTwinsInstances
+            }
+            migration    = [pscustomobject]@{
+                migrateProjects = $r.migrateProjects
+                migrationServices = $r.migrationServices
+                discoverySites = $r.discoverySites
             }
             analytics    = [pscustomobject]@{
                 synapseWorkspaces = $r.synapseWorkspaces; purviewAccounts = $r.purviewAccounts

@@ -30,6 +30,222 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicebus/namespaces/servicebus-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3e-1/fhirservices/healthdataservices-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4e-1/dicomservices/healthdataservices-t4e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5e-1/iotconnectors/healthdataservices-t5e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3f-1/fhirservices/healthdataservices-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3f-1/fhirservices/healthdataservices-t3f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4f-1/dicomservices/healthdataservices-t4f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4f-1/dicomservices/healthdataservices-t4f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5f-1/iotconnectors/healthdataservices-t5f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5f-1/iotconnectors/healthdataservices-t5f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2e-1/hybridconnections/relays-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3e-1/wcfrelays/relays-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2f-1/hybridconnections/relays-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2f-1/hybridconnections/relays-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3f-1/wcfrelays/relays-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3f-1/wcfrelays/relays-t3f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -246,11 +462,2355 @@
         }
       ]
     },
+    "EventGrid": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/topics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/systemtopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/domains/eventgrid-t3f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/domains",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/partnertopics/eventgrid-t4f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t4f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/partnertopics",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "endpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "disableLocalAuth": "res-value",
+            "topicType": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/namespaces/eventgrid-t5f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventgrid-t5f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.eventgrid/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
+    "EventHubClusters": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "metricId": "res-value",
+            "supportsScaling": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/clusters/eventhubclusters-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "eventhubclusters-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.eventhub/clusters"
+        }
+      ]
+    },
+    "HealthDataServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3a-1/fhirservices/healthdataservices-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4a-1/dicomservices/healthdataservices-t4a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5a-1/iotconnectors/healthdataservices-t5a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3b-1/fhirservices/healthdataservices-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4b-1/dicomservices/healthdataservices-t4b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5b-1/iotconnectors/healthdataservices-t5b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3c-1/fhirservices/healthdataservices-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4c-1/dicomservices/healthdataservices-t4c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5c-1/iotconnectors/healthdataservices-t5c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3d-1/fhirservices/healthdataservices-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4d-1/dicomservices/healthdataservices-t4d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5d-1/iotconnectors/healthdataservices-t5d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3e-1/fhirservices/healthdataservices-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4e-1/dicomservices/healthdataservices-t4e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5e-1/iotconnectors/healthdataservices-t5e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/services/healthdataservices-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/services",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t3f-1/fhirservices/healthdataservices-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/fhirservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t4f-1/dicomservices/healthdataservices-t4f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t4f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/dicomservices",
+          "KIND": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "authenticationConfiguration": {
+              "authority": "res-value",
+              "smartProxyEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthcareapis/workspaces/healthdataservices-t5f-1/iotconnectors/healthdataservices-t5f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthdataservices-t5f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.healthcareapis/workspaces/iotconnectors",
+          "KIND": "res-value"
+        }
+      ]
+    },
+    "IntegrationAccounts": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationaccounts/integrationaccounts-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationaccounts",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/integrationserviceenvironments/integrationaccounts-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "integrationaccounts-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/integrationserviceenvironments",
+          "sku": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
+    "LogicApps": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        },
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        },
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        },
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        },
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        },
+        {
+          "PROPERTIES": {
+            "integrationAccount": {
+              "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "version": "res-value",
+            "accessEndpoint": "res-value",
+            "definition": {
+              "triggers": "res-value",
+              "actions": "res-value"
+            },
+            "createdTime": "2026-01-15T10:30:00.0000000Z",
+            "changedTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicapps-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.logic/workflows"
+        }
+      ]
+    },
+    "LogicAppsCustomConnectors": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        },
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        },
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        },
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        },
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        },
+        {
+          "PROPERTIES": {
+            "displayName": "res-value",
+            "description": "res-value",
+            "backendService": {
+              "serviceUrl": "res-value"
+            },
+            "apiType": "res-value",
+            "connectionParameters": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/customapis/logicappscustomconnectors-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "logicappscustomconnectors-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.web/customapis"
+        }
+      ]
+    },
+    "Relays": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2a-1/hybridconnections/relays-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3a-1/wcfrelays/relays-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2b-1/hybridconnections/relays-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3b-1/wcfrelays/relays-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2c-1/hybridconnections/relays-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3c-1/wcfrelays/relays-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2d-1/hybridconnections/relays-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3d-1/wcfrelays/relays-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2e-1/hybridconnections/relays-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3e-1/wcfrelays/relays-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t2f-1/hybridconnections/relays-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/hybridconnections",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "serviceBusEndpoint": "res-value",
+            "publicNetworkAccess": "res-value",
+            "listenerCount": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3f-1/wcfrelays/relays-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "relays-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.relay/namespaces/wcfrelays",
+          "sku": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
     "ServiceBUS": {
       "resources": [
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"
@@ -271,7 +2831,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"
@@ -293,7 +2853,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"
@@ -312,7 +2872,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"
@@ -333,7 +2893,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"
@@ -354,7 +2914,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "zoneRedundant": "res-value",
             "serviceBusEndpoint": "res-value"

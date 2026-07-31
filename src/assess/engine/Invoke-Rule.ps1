@@ -19,6 +19,14 @@ function Invoke-Rule {
 
     $status = 'Unknown'; $evidenceCount = 0; $evidence = @()
 
+    # A rule carries EITHER a `query` (one dataset, filtered) or a `join` (two datasets,
+    # correlated) -- never both. `join` is read through the same shape-agnostic accessor the rest
+    # of this function uses, because ConvertFrom-Yaml hands back a Hashtable while test fixtures
+    # build a pscustomobject, and dotting a missing key throws under StrictMode (AB#6835).
+    $hasJoin = if ($Rule -is [hashtable]) { $Rule.ContainsKey('join') -and $null -ne $Rule.join }
+               elseif ($Rule -is [System.Collections.IDictionary]) { $Rule.Contains('join') -and $null -ne $Rule['join'] }
+               else { $null -ne $Rule.PSObject.Properties['join'] -and $null -ne $Rule.join }
+
     if ($Rule.manual -or $Rule.assert.type -eq 'manual') {
         # pre-fill with any evidence the scan DID find, then hand to the human
         if ($Rule.query) {
@@ -29,12 +37,22 @@ function Invoke-Rule {
     }
     else {
         try {
-            $matches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+            # Assigned INSIDE each branch, not from the `if` as an expression. `$x = if (...) { @() }`
+            # returns $null, not an empty array -- the if's output stream enumerates and an empty
+            # array enumerates to nothing -- and the very next line reads `.Count`, which then
+            # throws under StrictMode. A join that legitimately found no unmatched rows (the PASS
+            # case, and the common one) hit that on every rule.
+            $matches = $null
+            if ($hasJoin) {
+                $matches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
+            } else {
+                $matches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+            }
         }
         catch {
-            # A query that threw (unsupported/invalid JSONPath) is an Error, never a
-            # silent Pass on countEquals:0 (AB#5083). Surface it so it's visible.
-            Write-Warning "Rule $($Rule.id): query '$($Rule.query)' failed: $_"
+            # A query that threw (unsupported/invalid JSONPath, or a malformed join block) is an
+            # Error, never a silent Pass on countEquals:0 (AB#5083). Surface it so it's visible.
+            Write-Warning "Rule $($Rule.id): $(if ($hasJoin) { 'join' } else { "query '$($Rule.query)'" }) failed: $_"
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
                 Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()

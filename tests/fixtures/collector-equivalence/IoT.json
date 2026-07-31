@@ -18,6 +18,162 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2e-1/instances/deviceupdate-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2f-1/instances/deviceupdate-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2f-1/instances/deviceupdate-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2e-1/endpoints/digitaltwins-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3e-1/timeseriesdatabaseconnections/digitaltwins-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2f-1/endpoints/digitaltwins-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2f-1/endpoints/digitaltwins-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3f-1/timeseriesdatabaseconnections/digitaltwins-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3f-1/timeseriesdatabaseconnections/digitaltwins-t3f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2e-1/creators/maps-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2f-1/creators/maps-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2f-1/creators/maps-t2f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -33,6 +189,1479 @@
     }
   ],
   "collectors": {
+    "DefenderForIoT": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/defendersettings"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sites/defenderforiot-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sites"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/sensors/defenderforiot-t3f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/sensors"
+        },
+        {
+          "PROPERTIES": {
+            "sentinelWorkspaceResourceIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "deviceQuota": "res-value",
+            "onboardingKind": "res-value",
+            "mdeIntegration": {
+              "status": "res-value"
+            },
+            "displayName": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/onpremisesensors/defenderforiot-t4f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderforiot-t4f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.iotsecurity/onpremisesensors"
+        }
+      ]
+    },
+    "DeviceProvisioningServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "provisioningState": "res-value",
+            "serviceOperationsHostName": "res-value",
+            "allocationPolicy": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceprovisioningservices-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.devices/provisioningservices"
+        }
+      ]
+    },
+    "DeviceUpdate": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2a-1/instances/deviceupdate-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2b-1/instances/deviceupdate-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2c-1/instances/deviceupdate-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2d-1/instances/deviceupdate-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2e-1/instances/deviceupdate-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "iotHubs": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2f-1/instances/deviceupdate-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceupdate-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.deviceupdate/accounts/instances"
+        }
+      ]
+    },
+    "DigitalTwins": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2a-1/endpoints/digitaltwins-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3a-1/timeseriesdatabaseconnections/digitaltwins-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2b-1/endpoints/digitaltwins-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3b-1/timeseriesdatabaseconnections/digitaltwins-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2c-1/endpoints/digitaltwins-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3c-1/timeseriesdatabaseconnections/digitaltwins-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2d-1/endpoints/digitaltwins-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3d-1/timeseriesdatabaseconnections/digitaltwins-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2e-1/endpoints/digitaltwins-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3e-1/timeseriesdatabaseconnections/digitaltwins-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t2f-1/endpoints/digitaltwins-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/endpoints",
+          "identity": {
+            "type": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "hostName": "res-value",
+            "publicNetworkAccess": "res-value",
+            "endpointType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.digitaltwins/digitaltwinsinstances/digitaltwins-t3f-1/timeseriesdatabaseconnections/digitaltwins-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "digitaltwins-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections",
+          "identity": {
+            "type": "res-value"
+          }
+        }
+      ]
+    },
+    "IoTCentral": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "applicationId": "res-value",
+            "subdomain": "res-value",
+            "template": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotcentral-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotcentral/iotapps"
+        }
+      ]
+    },
     "IOTHubs": {
       "resources": [
         {
@@ -291,6 +1920,260 @@
           "NAME": "iothubs-t1f",
           "TYPE": "microsoft.devices/iothubs",
           "LOCATION": "eastus"
+        }
+      ]
+    },
+    "Maps": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2a-1/creators/maps-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2b-1/creators/maps-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2c-1/creators/maps-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2d-1/creators/maps-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2e-1/creators/maps-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "uniqueId": "res-value",
+            "disableLocalAuth": "res-value",
+            "storageUnits": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2f-1/creators/maps-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "maps-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maps/accounts/creators",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          }
         }
       ]
     }

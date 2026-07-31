@@ -296,6 +296,9 @@ function ConvertFrom-ScoutInventory {
         Select-ByType 'microsoft.compute/virtualmachines' | ForEach-Object {
             $zoneCount = Measure-ScoutArray (Get-ScoutProp $_ 'zones')
             [pscustomobject]@{
+                # `id` is the join key for the cross-resource rules (AB#6835) and must be shaped
+                # here, not fetched: a separate query for it would undo AB#5648's collect-once.
+                id             = [string] (Get-ScoutProp $_ 'id')
                 name           = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
@@ -352,6 +355,7 @@ function ConvertFrom-ScoutInventory {
     $result['storageAccounts'] = @(
         Select-ByType 'microsoft.storage/storageaccounts' | ForEach-Object {
             [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
                 name               = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
                 sku                = [string] (Get-ScoutProp $_ 'sku.name')
@@ -435,10 +439,133 @@ function ConvertFrom-ScoutInventory {
     $result['keyVaults'] = @(
         Select-ByType 'microsoft.keyvault/vaults' | ForEach-Object {
             [pscustomobject]@{
+                id              = [string] (Get-ScoutProp $_ 'id')
                 name            = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup   = [string] (Get-ScoutProp $_ 'resourceGroup')
                 softDelete      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableSoftDelete')
                 purgeProtection = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enablePurgeProtection')
+            }
+        }
+    )
+
+    # ---- cross-resource join sources and the Migration domain (AB#6835 / AB#6832) ----------------
+    # Every one of these is shaped from rows the SAME raw pass already returned. Adding them as
+    # live `$q` queries instead would have taken the default assessment collect from four Resource
+    # Graph round-trips to eleven, silently undoing AB#5648.
+    $result['snapshots'] = @(
+        Select-ByType 'microsoft.compute/snapshots' | ForEach-Object {
+            $sizeRaw = Get-ScoutProp $_ 'properties.diskSizeGB'
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                sourceDiskId   = [string] (Get-ScoutProp $_ 'properties.creationData.sourceResourceId')
+                sizeGb         = if ($null -eq $sizeRaw) { $null } else { [int] $sizeRaw }
+                created        = [string] (Get-ScoutProp $_ 'properties.timeCreated')
+                sku            = [string] (Get-ScoutProp $_ 'sku.name')
+            }
+        }
+    )
+
+    # ALL managed disks, not just the unattached ones `orphanedDisks` keeps: XR-SNP-01 asks whether
+    # a snapshot's source disk still exists, and an attached disk answers "yes".
+    $result['managedDisks'] = @(
+        Select-ByType 'microsoft.compute/disks' | ForEach-Object {
+            $sizeRaw = Get-ScoutProp $_ 'properties.diskSizeGB'
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+                sku            = [string] (Get-ScoutProp $_ 'sku.name')
+                diskState      = [string] (Get-ScoutProp $_ 'properties.diskState')
+                sizeGb         = if ($null -eq $sizeRaw) { $null } else { [int] $sizeRaw }
+            }
+        }
+    )
+
+    $result['diskEncryptionSets'] = @(
+        Select-ByType 'microsoft.compute/diskencryptionsets' | ForEach-Object {
+            [pscustomobject]@{
+                id              = [string] (Get-ScoutProp $_ 'id')
+                name            = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup   = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId  = [string] (Get-ScoutProp $_ 'subscriptionId')
+                keyVaultId      = [string] (Get-ScoutProp $_ 'properties.activeKey.sourceVault.id')
+                encryptionType  = [string] (Get-ScoutProp $_ 'properties.encryptionType')
+                autoKeyRotation = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.rotationToLatestKeyVersionEnabled')
+            }
+        }
+    )
+
+    $migrationTypes = @(
+        'microsoft.migrate/migrateprojects', 'microsoft.migrate/projects', 'microsoft.migrate/assessmentprojects'
+    )
+    $result['migrateProjects'] = @(
+        $rows | Where-Object { $migrationTypes -contains ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant() } | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                type                = ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant()
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                projectStatus       = [string] (Get-ScoutProp $_ 'properties.projectStatus')
+            }
+        }
+    )
+
+    $migrationServiceTypes = @(
+        'microsoft.datamigration/services', 'microsoft.datamigration/sqlmigrationservices',
+        'microsoft.databox/jobs', 'microsoft.databoxedge/databoxedgedevices'
+    )
+    $result['migrationServices'] = @(
+        $rows | Where-Object { $migrationServiceTypes -contains ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant() } | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                type              = ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant()
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
+    $result['discoverySites'] = @(
+        $rows | Where-Object { ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant().StartsWith('microsoft.offazure/') } | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                type              = ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant()
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
+    # `recoveryservicesresources` is a DIFFERENT Resource Graph table, so unlike everything above
+    # this one cannot be shaped from the `resources` rows -- the raw pass now asks for it, which is
+    # a fifth round-trip on the default assessment collect and the only one AB#6741 added. It buys
+    # XR-BKP-01, "which VMs have no backup", which was the single most-requested finding in the
+    # audit's §7. Recorded in tests/Collect.SinglePassInversion.Tests.ps1 rather than absorbed.
+    $result['backupProtectedItems'] = @(
+        Select-ByType 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' | ForEach-Object {
+            [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                sourceResourceId     = [string] (Get-ScoutProp $_ 'properties.sourceResourceId')
+                protectionState      = [string] (Get-ScoutProp $_ 'properties.protectionState')
+                lastBackupStatus     = [string] (Get-ScoutProp $_ 'properties.lastBackupStatus')
+                backupManagementType = [string] (Get-ScoutProp $_ 'properties.backupManagementType')
             }
         }
     )

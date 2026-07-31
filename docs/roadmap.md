@@ -23,9 +23,9 @@ Measured on `main` as of 26 July 2026:
 | Acceptance criterion | Target | Actual |
 |---|---|---|
 | Retired collector source tree | absent | **removed** |
-| Declarative collector catalog | 174 definitions | **174** (`manifests/collectors/*.psd1`) |
-| Strict declarative processing | all collectors | **174/174 verified** |
-| Golden report contract | rows + two worksheet modes | **174 rows / 348 worksheet cases verified** |
+| Declarative collector catalog | every collector | **236** (`manifests/collectors/*.psd1`) — 174 at v3.0.9, +62 in v3.1.0 |
+| Strict declarative processing | all collectors | **236/236 verified** |
+| Golden report contract | rows + two worksheet modes | **236 rows / 472 worksheet cases verified** |
 | Inventory and assessment share one reporting layer | cut over | **declarative reporting path** |
 | Three consecutive runs on an unchanged estate are identical | yes | **yes** (v2.6.0) |
 
@@ -41,7 +41,29 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.0.9 — Live-run hardening
+## Current Release — v3.1.0 — Eighteen-category service coverage
+
+Released 31 July 2026. Scout modelled fifteen of Microsoft's eighteen published service
+categories; it now models all eighteen. `Migration` went from zero collectors to all five of its
+services, and `General` and `DevOps` exist for the first time. 62 collectors were added, taking
+measured service coverage from **41% to 66%** of the 349 services the audit enumerates — recounted
+mechanically from the per-service table, not asserted.
+
+Four things this release fixed that had shipped in every prior one: Logic Apps were excluded from
+the Resource Graph query outright; the golden collector suite failed on any day but the one it was
+recorded on; the wizard resolved its assessment manifest to a path outside the repository and so
+never listed more than one assessment; and `-Category DevOps`/`Migration` were documented aliases
+that parameter binding rejected.
+
+New capability rather than new collectors: the rule engine can now express a condition spanning
+two collected datasets, declared as rule data, so "which VMs have no backup" is answerable — six
+such rules ship. Key Vault secret and key expiry, blob-container public access, file shares,
+lifecycle policies and Backup vault instances are collected for the first time, all on the control
+plane and all within Reader. The SMART migration-readiness assessment ships with its source
+framework enumerated and date-stamped first, including an explicit record of what could not be
+enumerated. See **Epic AB#6741**.
+
+## v3.0.9 — Live-run hardening
 
 Released 30 July 2026. A live run against a real 8-subscription tenant surfaced two fatal
 crashes (JSON report export, SupportTickets collector) plus six further defects: no
@@ -728,7 +750,7 @@ Pull requests are welcome — see [Contributing](contributing.md) for guidelines
 ## Fork Attribution
 
 ::: info Fork Attribution
-**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 159 ARM + 17 Entra ID = 176 inventory modules — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
+**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 236 collector definitions across all 18 Azure service categories — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
 
 See [Credits & Attribution](credits.md) for full details, or [Differences from ARI](ari-differences.md) for what has changed.
 :::

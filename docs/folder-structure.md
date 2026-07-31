@@ -42,7 +42,7 @@ azure-scout/
 │   ├── assessment.md                   #   CAF/WAF assessment platform guide
 │   ├── assessment-prerequisites.md     #   Assessment-specific prerequisites (PS7, .NET SDK)
 │   ├── assessment-permissions.md       #   Assessment RBAC/Graph permission matrix
-│   ├── arm-modules.md                  #   ARM module catalog (154 modules / 15 categories)
+│   ├── arm-modules.md                  #   Generated collector catalog (236 / 18 categories)
 │   ├── entra-modules.md                #   Entra ID module catalog (17 modules)
 │   ├── coverage-table.md               #   Full per-category coverage table
 │   ├── category-structure.md           #   Category-to-folder mapping

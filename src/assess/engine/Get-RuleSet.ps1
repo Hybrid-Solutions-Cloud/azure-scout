@@ -68,6 +68,12 @@ function Get-RuleSet {
             Area      = if ($doc.ContainsKey('area'))      { $doc.area }      else { $null }
             Framework = if ($doc.ContainsKey('framework')) { $doc.framework } else { $null }
             Weight    = [double]($(if ($doc.ContainsKey('weight')) { $doc.weight } else { $null }) ?? 1.0)
+            # Optional per-file data prerequisite (AB#6832). When declared and none of the paths
+            # resolve to rows, Invoke-Assessment reports the whole set Unknown instead of scoring
+            # it. Without this a rule set whose inputs were never collected reads as a clean Pass:
+            # "0 migrate projects with public access" and "no migrate project exists" are the same
+            # count and opposite findings.
+            Requires  = @(if ($doc.ContainsKey('requires') -and $doc.requires) { $doc.requires } else { @() })
             Rules     = $rules
         }
     }

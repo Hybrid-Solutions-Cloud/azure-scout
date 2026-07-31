@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "CustomRoleDefinitions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "23e783ac13f45f95d3abcf8e0aba579312649ebc98bb6c3aa8145d4648571b72",
+  "FixtureSha256": "3012272d3182332881d89b07222558229cae9a12de6be7a876d0e35b74a0f9b1",
   "Rows": [
     "Actions=s:None|Assignable Scopes=s:None|Created By=<null>|Created On=<null>|Data Actions=s:None|Description=<null>|ID=<null>|Is Custom=<null>|Not Actions=s:None|Not Data Actions=s:None|Resource U=j:1|Role Name=<null>|Role Type=<null>|Updated By=<null>|Updated On=<null>",
     "Actions=s:None|Assignable Scopes=s:None|Created By=<null>|Created On=<null>|Data Actions=s:None|Description=<null>|ID=<null>|Is Custom=<null>|Not Actions=s:None|Not Data Actions=s:None|Resource U=j:1|Role Name=<null>|Role Type=<null>|Updated By=<null>|Updated On=<null>",
@@ -13,7 +13,11 @@
     "Actions=s:None|Assignable Scopes=s:None|Created By=<null>|Created On=<null>|Data Actions=s:None|Description=<null>|ID=<null>|Is Custom=<null>|Not Actions=s:None|Not Data Actions=s:None|Resource U=j:1|Role Name=<null>|Role Type=<null>|Updated By=<null>|Updated On=<null>"
   ],
   "Workbook": {
-    "WithoutTags": "Role Name\tDescription\tRole Type\tIs Custom\tAssignable Scopes\tActions\tNot Actions\tData Actions\tNot Data Actions\tCreated On\tUpdated On\tCreated By\tUpdated By\tResource U\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1",
-    "WithTags": "Role Name\tDescription\tRole Type\tIs Custom\tAssignable Scopes\tActions\tNot Actions\tData Actions\tNot Data Actions\tCreated On\tUpdated On\tCreated By\tUpdated By\tResource U\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1"
+    "WithoutTags": [
+      "Role Name\tDescription\tRole Type\tIs Custom\tAssignable Scopes\tActions\tNot Actions\tData Actions\tNot Data Actions\tCreated On\tUpdated On\tCreated By\tUpdated By\tResource U\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1"
+    ],
+    "WithTags": [
+      "Role Name\tDescription\tRole Type\tIs Custom\tAssignable Scopes\tActions\tNot Actions\tData Actions\tNot Data Actions\tCreated On\tUpdated On\tCreated By\tUpdated By\tResource U\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1\n\t\t\t\tNone\tNone\tNone\tNone\tNone\t\t\t\t\t1"
+    ]
   }
 }

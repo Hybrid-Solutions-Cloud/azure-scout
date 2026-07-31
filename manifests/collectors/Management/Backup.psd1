@@ -55,7 +55,7 @@ $ProtectedItemProperties = Get-AZSCSafeProperty -InputObject $ProtectedItem -Pat
                         if(![string]::IsNullOrEmpty($LastBackupTime))
                             {
                                 $LastBackup = [string](get-date($LastBackupTime))
-                                $Currenttime = get-date
+                                $Currenttime = $ScoutRunTime
                                 $OldTime = get-date($LastBackupTime)
                                 $DaysSinceBKP = New-TimeSpan -Start $OldTime -End $Currenttime
                             }

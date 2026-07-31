@@ -30,6 +30,174 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storage/storageaccounts/storageaccounts-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2e-1/volumegroups/elasticsan-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2f-1/volumegroups/elasticsan-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2f-1/volumegroups/elasticsan-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2e-1/syncgroups/storagesync-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3e-1/registeredservers/storagesync-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2f-1/syncgroups/storagesync-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2f-1/syncgroups/storagesync-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3f-1/registeredservers/storagesync-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3f-1/registeredservers/storagesync-t3f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -45,6 +213,1053 @@
     }
   ],
   "collectors": {
+    "DataLakeStoreGen1": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "encryptionState": "res-value",
+            "firewallState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datalakestoregen1-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.datalakestore/accounts"
+        }
+      ]
+    },
+    "DiskEncryptionSets": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        },
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        },
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        },
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        },
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        },
+        {
+          "PROPERTIES": {
+            "activeKey": {
+              "sourceVault": {
+                "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+              }
+            },
+            "encryptionType": "res-value",
+            "provisioningState": "res-value",
+            "rotationToLatestKeyVersionEnabled": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "diskencryptionsets-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.compute/diskencryptionsets"
+        }
+      ]
+    },
+    "EdgeHardwareCenter": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orders/edgehardwarecenter-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orders"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/orderitems/edgehardwarecenter-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/orderitems"
+        },
+        {
+          "PROPERTIES": {
+            "orderStageHistory": "res-value",
+            "productDetails": [
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              },
+              {
+                "hierarchyInformation": {
+                  "productFamilyName": "res-value",
+                  "productLineName": "res-value"
+                }
+              }
+            ],
+            "addressValidationStatus": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeorder/addresses/edgehardwarecenter-t3f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "edgehardwarecenter-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.edgeorder/addresses"
+        }
+      ]
+    },
+    "ElasticSan": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2a-1/volumegroups/elasticsan-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2b-1/volumegroups/elasticsan-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2c-1/volumegroups/elasticsan-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2d-1/volumegroups/elasticsan-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2e-1/volumegroups/elasticsan-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans",
+          "sku": {
+            "name": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "baseSizeTiB": "res-value",
+            "extendedCapacitySizeTiB": "res-value",
+            "protocolType": "res-value",
+            "encryption": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2f-1/volumegroups/elasticsan-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "elasticsan-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.elasticsan/elasticsans/volumegroups",
+          "sku": {
+            "name": "res-value"
+          }
+        }
+      ]
+    },
     "NetApp": {
       "resources": [
         {
@@ -234,11 +1449,513 @@
         }
       ]
     },
+    "PartnerStorage": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/storagepools/partnerstorage-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/storagepools",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/purestorage.block/reservations/partnerstorage-t2f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "purestorage.block/reservations",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/qumulo.storage/filesystems/partnerstorage-t3f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnerstorage-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "qumulo.storage/filesystems",
+          "plan": {
+            "name": "res-value",
+            "publisher": "res-value",
+            "product": "res-value"
+          }
+        }
+      ]
+    },
+    "Snapshots": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        },
+        {
+          "PROPERTIES": {
+            "creationData": {
+              "sourceResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "diskState": "res-value",
+            "diskSizeGB": "res-value",
+            "incremental": "res-value",
+            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "osType": "res-value",
+            "networkAccessPolicy": "res-value",
+            "publicNetworkAccess": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "snapshots-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.compute/snapshots"
+        }
+      ]
+    },
     "StorageAccounts": {
       "resources": [
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -320,7 +2037,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -403,7 +2120,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -473,7 +2190,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -555,7 +2272,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -637,7 +2354,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "privateEndpointConnections": {
               "properties": {
                 "privateendpoint": [
@@ -716,6 +2433,349 @@
           "LOCATION": "eastus",
           "PROPERTIES": {},
           "tags": {}
+        }
+      ]
+    },
+    "StorageSync": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2a-1/syncgroups/storagesync-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3a-1/registeredservers/storagesync-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2b-1/syncgroups/storagesync-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3b-1/registeredservers/storagesync-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2c-1/syncgroups/storagesync-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3c-1/registeredservers/storagesync-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2d-1/syncgroups/storagesync-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3d-1/registeredservers/storagesync-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2e-1/syncgroups/storagesync-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3e-1/registeredservers/storagesync-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t2f-1/syncgroups/storagesync-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/syncgroups"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "incomingTrafficPolicy": "res-value",
+            "friendlyName": "res-value",
+            "serverOSVersion": "res-value",
+            "agentVersion": "res-value",
+            "serverManagementErrorCode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagesync/storagesyncservices/storagesync-t3f-1/registeredservers/storagesync-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagesync-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagesync/storagesyncservices/registeredservers"
         }
       ]
     }

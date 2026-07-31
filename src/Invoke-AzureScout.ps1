@@ -89,8 +89,10 @@
     Default is 'All', which processes every category. When one or more specific categories are provided,
     only modules in those folders are executed — speeding up targeted runs.
 
-    Valid values: All, AI, Analytics, Compute, Containers, Databases, Hybrid, Identity, Integration,
-    IoT, Management, Monitor, Networking, Security, Storage, Web.
+    Valid values: All, AI, Analytics, Compute, Containers, Databases, DevOps, General, Hybrid,
+    Identity, Integration, IoT, Management, Migration, Monitor, Networking, Security, Storage, Web.
+
+    These are Microsoft's eighteen published service categories (portal → All services).
 
     Microsoft's official long category names are accepted as aliases and normalised to the short
     value before filtering:
@@ -104,8 +106,6 @@
       Monitoring                      Monitor        Monitor
       Management and governance       Management     Management and governance
       Management & governance         Management     Management and governance
-      DevOps                          Management     Management and governance
-      Migration                       Management     Management and governance
       Web & Mobile                    Web            Web and mobile
       Hybrid + multicloud             Hybrid         Hybrid + multicloud
       Hybrid+multicloud               Hybrid         Hybrid + multicloud
@@ -361,7 +361,7 @@ Function Invoke-AzureScout {
         # opens, and run the default full ARM inventory instead.
         [Alias('NonInteractive')]
         [switch]$NoWizard,
-        [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
+        [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
         [string]$RunName,
         [switch]$Force,
@@ -404,8 +404,10 @@ Function Invoke-AzureScout {
         'Hybrid+multicloud'         = 'Hybrid'
         'Networking + CDN'          = 'Networking'   # documented alias — portal groups CDN under Networking
         'Networking+CDN'            = 'Networking'
-        'DevOps'                    = 'Management'   # DevOps lives under Management folder
-        'Migration'                 = 'Management'   # Migration lives under Management folder
+        # 'DevOps' and 'Migration' used to alias to 'Management'. Both are now real categories of
+        # their own (AB#6741) with their own manifests/collectors folders, so folding them into
+        # Management would silently run the wrong collectors. They were also unreachable before
+        # this change -- neither string was in the ValidateSet, so the map entries never fired.
     }
     $Category = $Category | ForEach-Object {
         if ($_categoryAliasMap.ContainsKey($_)) { $_categoryAliasMap[$_] } else { $_ }

@@ -258,14 +258,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -277,14 +277,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -295,7 +295,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -315,14 +315,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -334,14 +334,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -352,7 +352,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -373,14 +373,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -392,14 +392,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -410,7 +410,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -428,14 +428,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -447,14 +447,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -465,7 +465,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -485,14 +485,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -504,14 +504,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -522,7 +522,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -542,14 +542,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -561,14 +561,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00.0000000Z",
+                    "date": "2026-01-15T10:30:00Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -579,7 +579,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00.0000000Z",
+              "date": "2026-01-15T10:30:00Z",
               "score": "res-value"
             }
           },
@@ -787,7 +787,7 @@
       "resources": [
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -815,7 +815,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -844,7 +844,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -860,7 +860,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -888,7 +888,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -916,7 +916,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -975,9 +975,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1a-1/backuppolicies/backup-t1a-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "lastbackuptime": "2026-01-15T10:30:00Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1028,9 +1028,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1b-1/backuppolicies/backup-t1b-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "lastbackuptime": "2026-01-15T10:30:00Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1103,9 +1103,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1d-1/backuppolicies/backup-t1d-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "lastbackuptime": "2026-01-15T10:30:00Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1155,9 +1155,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "lastbackuptime": "2026-01-15T10:30:00Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1207,9 +1207,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
+            "lastbackuptime": "2026-01-15T10:30:00Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1260,8 +1260,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1299,8 +1299,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1339,8 +1339,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1376,8 +1376,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1415,8 +1415,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1454,8 +1454,8 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
-          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+          "CreatedOn": "2026-01-15T10:30:00Z",
+          "UpdatedOn": "2026-01-15T10:30:00Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
@@ -1474,7 +1474,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1498,7 +1498,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1523,7 +1523,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1545,7 +1545,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1569,7 +1569,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1593,7 +1593,7 @@
         {
           "properties": {
             "isHosted": "res-value",
-            "createdOn": "2026-01-15T10:30:00.0000000Z",
+            "createdOn": "2026-01-15T10:30:00Z",
             "owner": {
               "displayName": "res-value"
             },
@@ -1761,7 +1761,7 @@
       "resources": [
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -1781,7 +1781,7 @@
         },
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -1802,7 +1802,7 @@
         },
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -1820,7 +1820,7 @@
         },
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -1840,7 +1840,7 @@
         },
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -1860,7 +1860,7 @@
         },
         {
           "properties": {
-            "lastUpdateTime": "2026-01-15T10:30:00.0000000Z",
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
             "description": "res-value",
             "state": "res-value",
             "visibility": "res-value",
@@ -2375,7 +2375,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2444,7 +2444,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2514,7 +2514,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2581,7 +2581,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2650,7 +2650,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2719,7 +2719,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00.0000000Z",
+              "startDateTime": "2026-01-15T10:30:00Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2939,7 +2939,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -2964,7 +2964,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -2989,7 +2989,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3014,7 +3014,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -3040,7 +3040,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3065,7 +3065,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -3088,7 +3088,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3113,7 +3113,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -3138,7 +3138,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3163,7 +3163,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -3188,7 +3188,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00.0000000Z",
+          "Timestamp": "2026-01-15T10:30:00Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3213,7 +3213,7 @@
                 "IsCompliant": "res-value",
                 "PolicyDefinitionAction": "res-value",
                 "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00.0000000Z",
+                "Timestamp": "2026-01-15T10:30:00Z",
                 "ManagementGroupIds": "res-value"
               }
             ]
@@ -3728,372 +3728,6 @@
             "tier": "res-value"
           },
           "TYPE": "microsoft.recoveryservices/vaults"
-        }
-      ]
-    },
-    "ReservationRecom": {
-      "resources": [
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1a-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1a",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1b-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1b",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1c-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1c",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {}
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1d-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1d",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {
-            "env": "dev"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1e-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1e",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1f-1",
-          "PROPERTIES": {
-            "resourceType": "res-value",
-            "instanceFlexibilityGroup": "res-value",
-            "normalizedSize": "res-value",
-            "recommendedQuantity": "res-value",
-            "instanceFlexibilityRatio": "res-value",
-            "recommendedQuantityNormalized": "res-value",
-            "costWithNoReservedInstances": "res-value",
-            "totalCostWithReservedInstances": "res-value",
-            "netSavings": "res-value",
-            "term": "res-value",
-            "scope": "res-value"
-          },
-          "SKU": "res-value",
-          "location": "res-value",
-          "NAME": "reservationrecom-t1f",
-          "TYPE": "Microsoft.Consumption/reservationRecommendations",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "tags": {
-            "env": "prod"
-          }
-        }
-      ]
-    },
-    "SupportTickets": {
-      "resources": [
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1a-1",
-          "NAME": "supporttickets-t1a",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1b-1",
-          "NAME": "supporttickets-t1b",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          }
-        },
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1c-1",
-          "NAME": "supporttickets-t1c",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {}
-        },
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1d-1",
-          "NAME": "supporttickets-t1d",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {
-            "env": "dev"
-          }
-        },
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1e-1",
-          "NAME": "supporttickets-t1e",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "problemStartTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDate": "2026-01-15T10:30:00.0000000Z",
-            "supportTicketId": "res-value",
-            "title": "res-value",
-            "supportPlanType": "res-value",
-            "serviceDisplayName": "res-value",
-            "severity": "res-value",
-            "status": "res-value",
-            "require24X7Response": "res-value",
-            "serviceLevelAgreement": {
-              "slaMinutes": "res-value"
-            },
-            "supportEngineer": {
-              "emailAddress": "res-value"
-            },
-            "contactDetails": {
-              "firstName": "res-value",
-              "lastName": "res-value",
-              "primaryEmailAddress": "res-value",
-              "country": "res-value"
-            }
-          },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1f-1",
-          "NAME": "supporttickets-t1f",
-          "TYPE": "Microsoft.Support/supportTickets",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "tags": {
-            "env": "prod"
-          }
         }
       ]
     }

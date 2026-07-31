@@ -247,10 +247,16 @@ function Get-ScoutRawInventory {
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
     $columns = "id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$tagProjection"
 
-    # Same exclusion list as Start-AZTIGraphExtraction's $ExcludedTypes -- these three types
-    # are UI/authoring artifacts (Logic Apps designer workflow defs, portal dashboards,
-    # template-spec versions), not inventory-worthy resources.
-    $excludedTypesClause = "| where type !in ('microsoft.logic/workflows','microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
+    # Inherited from Start-AZTIGraphExtraction's $ExcludedTypes. What remains -- portal dashboards
+    # and template-spec versions -- really are UI/authoring artifacts rather than inventory.
+    #
+    # `microsoft.logic/workflows` WAS on this list and has been removed (AB#6836). Its comment
+    # called it a "Logic Apps designer workflow def"; it is not. It is the Logic App itself, and
+    # excluding it made Integration -- Scout's thinnest category -- miss one of the most common
+    # resources in any Azure estate, with no way for a user to opt back in. Nothing downstream
+    # depended on the absence: no collector, rule or renderer referenced the type, which is why
+    # the gap survived every release. Integration/LogicApps.psd1 now consumes these rows.
+    $excludedTypesClause = "| where type !in ('microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
 
     # ---- legacy row-filter clauses (AB#5648) ----
     # Rendered here, byte for byte, from Start-AZTIGraphExtraction's $RGQueryExtension /

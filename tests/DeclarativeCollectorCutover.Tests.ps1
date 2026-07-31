@@ -13,7 +13,9 @@ Describe 'v3 declarative collector cutover' {
         $Definitions = Join-Path $script:RepoRoot 'manifests/collectors'
         $Collectors = @(Get-ScoutCollector -DefinitionRoot $Definitions)
 
-        $Collectors.Count | Should -Be 174
+        # 174 through v3.0.9; 236 after AB#6741 added 62. The number is pinned rather than derived
+        # so that a collector silently DISAPPEARING is a failure, not an invisible regression.
+        $Collectors.Count | Should -Be 236
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

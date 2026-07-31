@@ -1,0 +1,107 @@
+area: "Migration readiness (SMART)"
+framework: SMART
+weight: 1.0
+# Scores migration readiness against the enumeration in docs/frameworks/smart-question-set.md
+# (AB#6832). EVERY rule below cites a SMART-* item from that file, and that file states plainly
+# what it is: the published CAF Migrate content SMART assesses against, organised under SMART's
+# four stated subject areas. Microsoft does not publish SMART's own question text or numbering --
+# it is delivered only as an interactive assessment -- so the SMART-* identifiers are Scout's.
+# Read the enumeration's "Verification method" section before quoting any coverage figure.
+#
+# WHY THIS FILE REFUSES TO SCORE AN EMPTY ESTATE. `requires` below names the datasets the
+# automatable rules read. When none of them returned rows, every rule in this set is reported
+# Unknown rather than Pass -- because "0 unassessed migrate projects" and "no Azure Migrate project
+# exists" are the same number and opposite findings. The audit's DQ12 is about exactly this class
+# of manufactured answer.
+requires:
+  - path: "$.domains.migration.migrateProjects[*]"
+    description: "Azure Migrate projects (Migration/AzureMigrateProjects)"
+  - path: "$.domains.migration.discoverySites[*]"
+    description: "Azure Migrate discovery sites (Migration/AzureMigrateDiscoverySites)"
+  - path: "$.domains.migration.migrationServices[*]"
+    description: "Database Migration Service, Data Box and Stack Edge (Migration/*)"
+rules:
+  # --- A: business planning (SMART-A1..A4) — organisational, cannot be read from ARM ------------
+  - id: SMART-A1
+    title: "Business goals for the migration are defined and agreed with stakeholders"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A1. Confirm documented, stakeholder-agreed business goals for the migration. No control-plane signal can evidence this — see docs/frameworks/smart-question-set.md."
+    manual: true
+  - id: SMART-A2
+    title: "Each workload has a business driver mapped to one of the 8 R's"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A2. Map every in-scope workload to Retire, Rehost, Replatform, Refactor, Rearchitect, Replace, Rebuild or Retain, and record why."
+    manual: true
+  - id: SMART-A4
+    title: "Migration waves are sequenced lowest-risk first"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A4. Confirm pilot/dev-test workloads are scheduled ahead of production. Azure Migrate assessment groups can evidence the intended sequence; the decision itself is yours."
+    manual: true
+
+  # --- B: people and skills (SMART-B1..B2) -----------------------------------------------------
+  - id: SMART-B1
+    title: "The team's Azure and migration-tooling skills have been evaluated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-B1. Evaluate the team's experience with Azure services, Azure Migrate and cutover, and record the capability gaps found."
+    manual: true
+
+  # --- C: migration process and tooling (SMART-C1..C6) — the automatable core -------------------
+  - id: SMART-C1
+    title: "An Azure Migrate project exists for the estate"
+    severity: high
+    query: "$.domains.migration.migrateProjects[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-C1. No Azure Migrate project was found in scope. Create one before planning waves — assessments, discovery and dependency analysis all hang off it."
+    manual: false
+  - id: SMART-C2
+    title: "Discovery is running — at least one discovery site is registered"
+    severity: high
+    query: "$.domains.migration.discoverySites[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-C2. An Azure Migrate project with no discovery site has nothing to assess. Deploy the appliance and register a VMware, Hyper-V or physical-server site."
+    manual: false
+  - id: SMART-C3
+    title: "Assessments have been created, not just a project"
+    severity: high
+    query: "$.domains.migration.migrateProjects[?(@.type == 'microsoft.migrate/assessmentprojects')]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-C3. No assessment project was found. Right-sizing, cost and readiness output all come from an assessment; a migrate project alone produces none of it."
+    manual: false
+  - id: SMART-C4
+    title: "Database workloads have a migration path"
+    severity: medium
+    query: "$.domains.migration.migrationServices[?(@.type == 'microsoft.datamigration/services' || @.type == 'microsoft.datamigration/sqlmigrationservices')]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-C4. No Database Migration Service instance was found. If databases are in scope, provision one — or record that databases are migrating by another route (backup/restore, replication, or a managed-service cutover)."
+    manual: false
+  - id: SMART-C6
+    title: "Migrate projects are not left open to the public network"
+    severity: medium
+    query: "$.domains.migration.migrateProjects[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "SMART-C6. Each listed Azure Migrate project accepts traffic over its public interface. If private endpoints were the intent, set publicNetworkAccess to Disabled — appliance registration and assessment both work over Private Link."
+    manual: false
+
+  # --- D/F: landing zone and governance readiness of the TARGET ---------------------------------
+  - id: SMART-D2
+    title: "Target subscriptions sit under a management group hierarchy"
+    severity: medium
+    query: "$.governance.managementGroups[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-D2. No management group was returned. Either the hierarchy does not exist — migrate workloads into a landing zone that has one — or the identity running Scout lacks Management Group Reader, in which case this rule cannot answer and the grant should be added."
+    manual: false
+  - id: SMART-F1
+    title: "Policy is applied to the target scope before workloads arrive"
+    severity: medium
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-F1. No policy assignment was found in the target scope. Assign the landing zone's policy set before migrating, so arriving workloads are governed from day one rather than remediated later."
+    manual: false

@@ -63,9 +63,12 @@ Describe 'Category Parameter — Metadata' {
         }
     }
 
-    It 'Category ValidateSet has exactly 16 values (All + 15 categories)' {
+    It 'Category ValidateSet has exactly 19 values (All + Microsoft''s 18 categories)' {
+        # 16 until AB#6741 added DevOps, General and Migration. Scout now models every category
+        # the portal's All services page publishes; tests/ServiceCoverage.Tests.ps1 checks the
+        # NAMES against that list, this checks the count has not drifted from it.
         $vs = $script:Cmd.Parameters['Category'].Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
-        $vs.ValidValues.Count | Should -Be 16
+        $vs.ValidValues.Count | Should -Be 19
     }
 }
 
@@ -122,8 +125,6 @@ Describe 'Category alias resolution logic — unit test of normalization block' 
             'Web & Mobile'              = 'Web'
             'Hybrid + multicloud'       = 'Hybrid'
             'Hybrid+multicloud'         = 'Hybrid'
-            'DevOps'                    = 'Management'
-            'Migration'                 = 'Management'
         }
 
         function Resolve-CategoryAlias {
@@ -139,8 +140,6 @@ Describe 'Category alias resolution logic — unit test of normalization block' 
                 'Web & Mobile'              = 'Web'
                 'Hybrid + multicloud'       = 'Hybrid'
                 'Hybrid+multicloud'         = 'Hybrid'
-                'DevOps'                    = 'Management'
-                'Migration'                 = 'Management'
             }
             $Category = $Category | ForEach-Object {
                 if ($map.ContainsKey($_)) { $map[$_] } else { $_ }
@@ -173,12 +172,13 @@ Describe 'Category alias resolution logic — unit test of normalization block' 
         Resolve-CategoryAlias -Category @('Hybrid + multicloud') | Should -Be 'Hybrid'
     }
 
-    It '"DevOps" resolves to "Management"' {
-        Resolve-CategoryAlias -Category @('DevOps') | Should -Be 'Management'
-    }
-
-    It '"Migration" resolves to "Management"' {
-        Resolve-CategoryAlias -Category @('Migration') | Should -Be 'Management'
+    It 'DevOps and Migration are NOT aliases — they are categories of their own (AB#6741)' {
+        # Both used to map onto Management here. They are canonical categories now, each with its
+        # own collector directory, so folding them into Management would run the wrong collectors
+        # and return the wrong data with no error. The map entries were unreachable anyway:
+        # neither string was in the [ValidateSet], so binding rejected them before the map ran.
+        Resolve-CategoryAlias -Category @('DevOps')    | Should -Be 'DevOps'
+        Resolve-CategoryAlias -Category @('Migration') | Should -Be 'Migration'
     }
 
     It 'Canonical short names pass through unchanged' {
@@ -188,9 +188,10 @@ Describe 'Category alias resolution logic — unit test of normalization block' 
     }
 
     It 'Multiple aliases in one array resolve to unique canonical values' {
-        $result = Resolve-CategoryAlias -Category @('Management and governance', 'DevOps', 'Migration')
-        $result | Should -HaveCount 1
+        $result = Resolve-CategoryAlias -Category @('Management and governance', 'Management & governance', 'Monitoring')
+        $result | Should -HaveCount 2
         $result | Should -Contain 'Management'
+        $result | Should -Contain 'Monitor'
     }
 
     It '"All" passes through unchanged' {

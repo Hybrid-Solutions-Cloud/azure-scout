@@ -7,6 +7,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-07-31
+
+Service coverage across Microsoft's eighteen published categories. See **Epic AB#6741**.
+Measured against the audit's per-service table, coverage rises from **41% to 66%** (144 → 232 of
+349 enumerated services); the table in `docs/audits/AZURE-SCOUT-AUDIT.md` §6 was recounted
+mechanically, not asserted.
+
+### Added
+
+- **Three new categories.** `Migration`, `General` and `DevOps` now exist as first-class
+  categories with their own collector directories, `-Category` values and wizard entries. Scout
+  modelled fifteen of Microsoft's eighteen; it now models all eighteen. Migration went from zero
+  collectors to complete coverage of all five of its services (AB#6830, AB#6831, AB#6838).
+- **62 new collectors**, generated from a reviewable spec (`manifests/specs/service-collectors.psd1`)
+  by `scripts/Build-ScoutServiceCollector.ps1`. Every resource-type string is taken from the ARM
+  template reference and pinned by a test against the spec.
+  - *Migration*: Azure Migrate projects, assessment projects and discovery sites; Database
+    Migration Services; Data Box; Azure Stack Edge.
+  - *General*: owned Reservations; VM Quotas — the `AZSC/VM/Quotas` envelope Scout has always
+    fetched and never displayed.
+  - *DevOps*: Chaos Studio, Dev centers/projects, Dev Box pools, network connections, deployment
+    environments, DevTest Labs, Lab Services, Load Testing, Managed DevOps Pools, Playwright
+    workspaces, App Configuration, API Connections.
+  - *Integration* (3 → 13 of 15): **Logic Apps**, integration accounts, custom connectors, Event
+    Grid, Event Hubs clusters, Relays, Health Data Services.
+  - *Web* (6 → 22 of 22): App Service Environments, Static Web Apps, Function Apps, deployment
+    slots, certificates, domains, SignalR, Web PubSub, Communication Services, Notification Hubs,
+    Fluid Relay, Spring Apps.
+  - *Storage* (3 → 15 of 17): snapshots, disk encryption sets, Elastic SAN, Storage Sync, Edge
+    Hardware Center, Data Lake Gen1, partner storage.
+  - *IoT* (8 → 18 of 19): DPS, IoT Central, Device Update, Digital Twins, Azure Maps, Defender
+    for IoT.
+  - *Security* (6 → 18 of 19): Sentinel, Managed HSM, Cloud HSM, application security groups, WAF
+    policies, DDoS protection plans, Confidential Ledger, artifact signing, Entra Domain Services,
+    App Compliance Automation.
+- **Child-resource collection** (AB#6833, AB#6834). Six new `Get-ScoutArmChildResource` datasets:
+  Key Vault secrets and keys, storage blob containers, file shares and lifecycle policies, and
+  Backup vault instances. All control plane — **no secret value and no blob content is ever
+  read**, and nothing needs more than Reader. Certificate expiry arrives on the certificate's
+  backing secret, identified by `contentType`; Azure publishes no ARM list endpoint for
+  certificates themselves.
+  **Cost, stated up front:** these are per-parent REST calls, so an inventory run now makes two
+  extra calls per key vault, three per storage account and one per Backup vault. Each is
+  independently non-fatal — a failure warns and omits that one child collection. On a large
+  estate this is the most expensive thing in the release; if it proves material, gate it on
+  `-Category` rather than leaving a switch nobody sets (the failure mode
+  `-IncludeTenantWideResources` demonstrated).
+- **Cross-resource rules** (AB#6835). The rule engine can now express a condition spanning two
+  collected datasets, declared as data (`join:` in place of `query:`) — so adding the next such
+  rule needs no engine change. Six ship in `src/assess/rules/xr.crossresource.yaml`, including
+  *which VMs have no backup*, *which storage accounts and key vaults have no private endpoint*,
+  and *which snapshots outlived their source disk*. Every finding names both resources.
+- **SMART migration-readiness assessment** (AB#6832), with its source framework enumerated and
+  date-stamped first in `docs/frameworks/smart-question-set.md` — including an explicit statement
+  of what could NOT be enumerated (Microsoft publishes no SMART question text or numbering). Rules
+  cite enumerated items, and a test fails any rule citing an item the enumeration does not contain.
+- `scripts/New-ScoutCollectorGolden.ps1` — the golden-record writer. The golden suite has always
+  had a reader and no writer, so a new collector could not be added without hand-authoring a file
+  whose format was defined only by the code that read it.
+
+### Fixed
+
+- **Logic Apps were excluded from collection outright.** `microsoft.logic/workflows` sat in the
+  Resource Graph query's `!in` exclusion list, described in a comment as a "designer workflow
+  def" — it is the Logic App itself. One of the most common resources in Azure was invisible in
+  every release, in Scout's thinnest category, with no way for a user to opt back in.
+- **The golden collector suite failed on any day but the one it was recorded on.**
+  `Management/Backup` computed "days since last backup" from `Get-Date` inside its own preamble,
+  so its committed record drifted by one every calendar day. The interpreter now binds a single
+  `$ScoutRunTime` per collector, which the golden harness pins — and which also removes a
+  same-run inconsistency where each row read a slightly different instant.
+- **The wizard never listed the real assessments.** It resolved `manifests/assessments.psd1` by
+  climbing three directories from `src/`, landing outside the repository; the path never existed,
+  so it silently fell back to a hard-coded list of one.
+- `-Category DevOps` and `-Category Migration` were documented as aliases for `Management` but
+  were absent from the `[ValidateSet]`, so parameter binding rejected them before the alias map
+  was consulted. Both are now real categories.
+
+### Known issues found, not fixed
+
+- **AB#6839 — a collector loses its whole worksheet when Azure omits an optional property.** Found
+  by probing collectors against a realistic sparse Resource Graph row. It is estate-wide and
+  pre-existing: `Integration/APIM`, shipped since v1, fails on `virtualNetworkType` exactly as the
+  new `Integration/LogicApps` fails on `integrationAccount`. This release neither introduced nor
+  fixed it. No test in the repository can catch it — the fixture generator derives each estate
+  from the collector's own expressions, so every path a collector reads is present by
+  construction. Recorded in §6 of the audit and raised under the hardening Epic rather than
+  patched inconsistently across 62 of 236 collectors.
+
+### Changed
+
+- `SupportTickets` and `ReservationRecom` moved from `Management` to `General`. Their output is
+  unchanged — the golden records prove the rows are byte-identical.
+- `scripts/New-ScoutCollectorFixture.ps1` gained `-PreserveExisting`. Regenerating a category
+  fixture to add one collector used to re-derive its neighbours' estates with the current
+  generator, silently weakening their proofs (`Security/DefenderAlerts` lost a populated property
+  and a compared column became `N/A`).
+- The assessment collect pass projects `id` on virtual machines, storage accounts and key vaults,
+  and adds backup protected items, snapshots, managed disks, disk encryption sets and the
+  Migration domain — the join sources the cross-resource rules read.
+- A rule file may declare a `requires:` data prerequisite. When none of its paths returns rows the
+  whole set reports **Unknown** instead of scoring: "0 migrate projects with public access" and
+  "no migrate project exists" are the same count and opposite findings.
+
 ## [3.0.9] - 2026-07-30
 
 ### Fixed

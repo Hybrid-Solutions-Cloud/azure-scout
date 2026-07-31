@@ -134,7 +134,11 @@ BeforeAll {
                     total = 251; used = 2; ipUtilizationPct = [Math]::Round((2 / 251) * 100, 1) })
         }
         if ($Query -match 'microsoft\.keyvault/vaults') {
-            return @([pscustomobject]@{ name = 'kv1'; resourceGroup = 'rg-app'; softDelete = $true; purgeProtection = $false })
+            # `id` is projected for the cross-resource joins (AB#6835); the shaped path reads it
+            # off the raw row, so the typed emulation has to return it too or the two paths
+            # legitimately disagree on the key SET.
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/Microsoft.KeyVault/vaults/kv1'
+                    name = 'kv1'; resourceGroup = 'rg-app'; softDelete = $true; purgeProtection = $false })
         }
         if ($Query -match 'coveragePct') {
             # `summarize total = count(), withDiag = countif(hasDiag) by type` over the three
@@ -146,6 +150,15 @@ BeforeAll {
                 [pscustomobject]@{ type = 'microsoft.keyvault/vaults'; total = 1; withDiag = 0; coveragePct = [double] 0 }
                 [pscustomobject]@{ type = 'microsoft.compute/disks'; total = 1; withDiag = 0; coveragePct = [double] 0 }
             )
+        }
+        # managedDisks (AB#6835) and orphanedDisks BOTH mention diskState, so this branch must come
+        # first and match on the filter that distinguishes them -- orphanedDisks is the one that
+        # narrows to Unattached. Ordering these the other way round silently fed the orphan row to
+        # both and the equivalence proof compared the wrong shape.
+        if ($Query -match 'diskState' -and $Query -notmatch 'Unattached') {
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/Microsoft.Compute/disks/disk-orphan'
+                    name = 'disk-orphan'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'
+                    sku = 'Premium_LRS'; diskState = 'Unattached'; sizeGb = 128 })
         }
         if ($Query -match 'diskState') {
             return @([pscustomobject]@{ name = 'disk-orphan'; resourceGroup = 'rg-app'; location = 'eastus'
@@ -181,13 +194,20 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     BeforeEach { New-CountingSearchAzGraph }
 
-    It 'the DEFAULT assessment collect reaches Resource Graph exactly 4 times' {
+    It 'the DEFAULT assessment collect reaches Resource Graph exactly 5 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
-        # Three raw tables + the one query that genuinely cannot be served from inventory.
-        $script:argQueries.Count | Should -Be 4 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources) plus sqlDefenderPricing'
+        # Four raw tables + the one query that genuinely cannot be served from inventory.
+        #
+        # This was 4 until AB#6835. The fourth raw table is `recoveryservicesresources`, added
+        # because backup protected items are the right-hand side of XR-BKP-01 ("which VMs have no
+        # backup") and no other table carries them. It is the ONLY round-trip that epic added:
+        # snapshots, managed disks, disk encryption sets and the entire Migration domain are all
+        # shaped from the `resources` rows the pass already returns. Raising this number is a
+        # deliberate contract change, and a SIXTH would need the same justification in writing.
+        $script:argQueries.Count | Should -Be 5 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources) plus sqlDefenderPricing'
 
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 3
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 4
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
     }
 
@@ -215,7 +235,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         $full = $script:argQueries.Count
 
         $narrow | Should -BeLessOrEqual $full
-        $narrow | Should -BeLessOrEqual 4
+        $narrow | Should -BeLessOrEqual 5
     }
 
     It '-FromInventory still costs exactly 1 (the combined-run path is unchanged)' {
@@ -228,27 +248,37 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         $script:argQueries[0] | Should -Match 'microsoft\.security/pricings'
     }
 
-    It 'the inventory extraction path reaches Resource Graph 8 times, all from one function' {
+    It 'the inventory extraction path reaches Resource Graph 10 times, all from one function' {
         Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$false) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
             3>$null 4>$null 6>$null | Out-Null
 
         # resourcecontainers, resources, networkresources, SupportResources,
-        # recoveryservicesresources, desktopvirtualizationresources, advisorresources,
-        # Retirements. Eight DISTINCT Resource Graph tables -- this number cannot go to 1
-        # without dropping datasets, and is reported as 8 rather than claimed as 1.
-        $script:argQueries.Count | Should -Be 8
+        # recoveryservicesresources, desktopvirtualizationresources, patchassessmentresources,
+        # patchinstallationresources, advisorresources, Retirements. Ten DISTINCT Resource Graph
+        # tables -- this number cannot go to 1 without dropping datasets, and is reported as 10
+        # rather than claimed as 1.
+        #
+        # This assertion said 8 and had been FAILING ON MAIN since v3.0.9 (AB#6731), which
+        # replaced the per-machine `assessPatches` POST with reads of the two Update Manager
+        # tables and did not update the count here. Corrected while running the suite for
+        # AB#6741; the extra two round-trips are that change's, not this Epic's.
+        $script:argQueries.Count | Should -Be 10
     }
 
-    It 'a combined inventory + assessment run costs 9, not 43' {
+    It 'a combined inventory + assessment run costs 11, not 43' {
         $extraction = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$true) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
             3>$null 4>$null 6>$null
         Invoke-Collect -FromInventory $extraction -WarningAction SilentlyContinue | Out-Null
 
-        $script:argQueries.Count | Should -Be 9 -Because 'eight inventory tables plus the one SecurityResources query'
+        # Ten inventory tables plus the one SecurityResources query. The combined run reuses the
+        # extraction's rows, so the assessment adds ONE call, not five -- that is the property
+        # this assertion protects, and it is unchanged by either the Update Manager tables or the
+        # recoveryservicesresources pass AB#6835 added to the standalone assessment path.
+        $script:argQueries.Count | Should -Be 11 -Because 'ten inventory tables plus the one SecurityResources query'
     }
 }
 
