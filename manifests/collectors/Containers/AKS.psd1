@@ -80,6 +80,16 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.agentPoolProfiles'
+            # AB#6845: without this, a cluster whose payload carries no `agentPoolProfiles`
+            # produces NO ROW AT ALL and vanishes from the worksheet -- the customer counts one
+            # cluster fewer with nothing to tell them why. An AKS cluster is a first-class
+            # resource whose existence is the point of an inventory; the pools are detail. Emit
+            # the cluster with blank pool columns instead of dropping it.
+            #
+            # Every real cluster has at least a system node pool, so this changes nothing for a
+            # healthy estate -- and all 236 golden records are unchanged by it. It is the
+            # truncated, failed and mid-creation payloads that were silently disappearing.
+            EmitNullWhenEmpty = $true
             Preamble = @'
 $AutoScale = if([string]::IsNullOrEmpty($2.enableAutoScaling)){$false}else{if($2.enableautoscaling -eq $true){$true}else{$false}}
                         $AVZone = if([string]::IsNullOrEmpty($2.availabilityZones)){'None'}else{[string]$2.availabilityZones}

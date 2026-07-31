@@ -947,8 +947,19 @@ customer actually asks about is not a "service" at all and can never appear in t
 > workspace whose deployment never completed, and `Networking/NetworkSecurityGroup` assigned
 > `$FinalNICs`/`$FinalSubs` only inside conditional branches, so an NSG associated with neither a
 > NIC nor a subnet tripped StrictMode's uninitialised-variable check. Both lost the whole
-> worksheet; both fixed. **Every one of these was found by widening the test, not by reading the
-> code** — which is the argument for AB#6840.
+> worksheet; both fixed.
+>
+> **AB#6845 — a fourth class, and the most dangerous, because it does not throw.** A collector that
+> emits one row per child produces **no row at all** when the child collection is absent, so the
+> parent resource *disappears from the worksheet*: no error, no warning, just a plausible smaller
+> report. **43 collectors have a child row loop and 41 never set `EmitNullWhenEmpty`**, the key
+> that exists to emit the parent anyway. `Containers/AKS` was fixed on the spot — a cluster
+> vanishing from an inventory is indefensible — and the remaining 40 need a per-collector reading,
+> because the answer turns on whether the parent has meaning without its children (an AKS cluster
+> does; a loop over NSG rules does not).
+>
+> **Every one of these was found by widening the test, not by reading the code** — which is the
+> argument for AB#6840.
 >
 > **No test in this repository could have caught either**, which is why they survived. The fixture
 > generator derives its estate *from the collector's own expressions*, so every path a collector

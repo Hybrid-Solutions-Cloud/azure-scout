@@ -108,6 +108,14 @@ mechanically, not asserted.
   never completed, and `Networking/NetworkSecurityGroup` assigned `$FinalNICs`/`$FinalSubs` only
   inside conditional branches, so an NSG associated with neither a NIC nor a subnet hit
   StrictMode's uninitialised-variable check. Both took the whole worksheet down.
+- **AB#6845 — an AKS cluster vanished from the report when its agent pools were absent from the
+  payload.** `Containers/AKS` emits one row per agent pool, so a cluster with no
+  `agentPoolProfiles` produced no row at all and disappeared from the worksheet — no error, no
+  warning, just one cluster fewer. Its loop now sets `EmitNullWhenEmpty`, so the cluster appears
+  with blank pool columns instead. This is the most dangerous of the four sparse-payload classes
+  because it is the only one that does not throw. **43 collectors have a child row loop and 41
+  never set that key**; the remaining 40 need a per-collector reading, since the answer turns on
+  whether the parent has meaning without its children.
 - **All 236 golden records are byte-unchanged across every one of these fixes**, so nothing that
   works today renders differently.
 

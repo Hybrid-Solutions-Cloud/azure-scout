@@ -95,9 +95,14 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     @{ Category = 'Databases'; Name = 'SQLSERVER'; Type = 'microsoft.sql/servers'
        Properties = @{ version = '12.0' }
        Because = 'split a private endpoint connection id on a server that has no private endpoints' }
-    # Containers/AKS is deliberately NOT here. It emits one row per agent pool, so a cluster with
-    # no agentPoolProfiles correctly produces zero rows — that is the collector's contract, not a
-    # sparse-payload failure, and asserting otherwise would encode a wrong expectation.
+    # AB#6845 — the fourth class: the VANISHING PARENT. AKS emits one row per agent pool, so a
+    # cluster whose payload carries no agentPoolProfiles produced NO ROW AT ALL and disappeared
+    # from the worksheet — the customer counts one cluster fewer with nothing to tell them why.
+    # That is not "the collector's contract"; it is a first-class resource silently going missing
+    # from an inventory. Its loop now sets EmitNullWhenEmpty.
+    @{ Category = 'Containers'; Name = 'AKS'; Type = 'microsoft.containerservice/managedclusters'
+       Properties = @{ kubernetesVersion = '1.29.2' }
+       Because = 'a cluster must appear in the inventory even when its agent pools are not in the payload' }
     @{ Category = 'Networking'; Name = 'NetworkSecurityGroup'; Type = 'microsoft.network/networksecuritygroups'
        Properties = @{ provisioningState = 'Succeeded' }
        Because = 'split associated subnet ids on an NSG associated with nothing' }
@@ -119,7 +124,12 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
         # return boundary, and the assertion below would then read "cannot index into a null
         # array" instead of "the collector produced no rows".
         $Rows = @(Invoke-CollectorOnRow -Category $Category -Name $Name -Row $Row)
-        $Rows[0]['Name'] | Should -Be 'res-one'
+        # The column carrying the resource name is NOT called 'Name' everywhere — Containers/AKS
+        # calls its 'Clusters'. Resolve it from the row rather than assuming, so the assertion
+        # cannot quietly read $null off a column that does not exist and be satisfied by it.
+        $NameColumn = @('Name', 'Clusters', 'Cluster Name') | Where-Object { $Rows[0].Contains($_) } | Select-Object -First 1
+        $NameColumn | Should -Not -BeNullOrEmpty -Because "$Category/$Name must have a column naming the resource"
+        $Rows[0][$NameColumn] | Should -Be 'res-one' -Because "$Category/$Name must still identify the resource"
         $Rows[0]['Location'] | Should -Be 'eastus'
     }
 }
