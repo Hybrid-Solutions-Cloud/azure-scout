@@ -71,6 +71,7 @@ Function Start-AZSCGraphExtraction {
         IncludeSupportResources      = ($AzureEnvironment -ne 'AzureUSGovernment')
         IncludeBackupResources       = $true
         IncludeDesktopVirtualization = $true
+        IncludeUpdateManagerResources = $true
         IncludeRetirements           = $true
         IncludeAdvisories            = (-not [bool]$SkipAdvisory)
         IncludeSecurityCenter        = [bool]$SecurityCenter

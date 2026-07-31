@@ -101,6 +101,68 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
     }
 
+    function ConvertTo-ScoutPatchAssessmentSummary {
+        <#
+            Shapes the Azure Update Manager `patchassessmentresources` row for one machine into the
+            same property bag the previous `POST .../assessPatches` response produced, so the
+            VMOperationalData / ArcServerOperationalData collectors need no change.
+
+            Update Manager writes a `<machineId>/patchAssessmentResults/latest` row per assessed
+            machine, whose properties carry `availablePatchCountByClassification` (a bag keyed by
+            OS-vendor classification) rather than the flat `criticalAndSecurityPatchCount` /
+            `otherPatchCount` the action response returned. Windows and Linux name those
+            classifications differently, so both vocabularies are folded here:
+
+              critical/security  Windows 'Critical' + 'Security'   Linux 'Security'
+              other              everything else reported
+
+            A machine Update Manager has not assessed inside its 7-day retention window has no row.
+            That returns a NotAssessed status rather than a zero count -- "no data" and "no pending
+            patches" are different findings and must not render identically.
+        #>
+        param(
+            [Parameter(Mandatory)][string]$MachineId,
+            [AllowEmptyCollection()][object[]]$Resources
+        )
+
+        $Prefix = "$MachineId/patchAssessmentResults/"
+        $Row = @($Resources | Where-Object {
+            $RowId = [string](Get-ScoutValue $_ @('id', 'ID'))
+            $RowType = [string](Get-ScoutValue $_ @('type', 'TYPE'))
+            $RowId -like "$Prefix*" -and $RowType -notlike '*/softwarepatches'
+        } | Select-Object -First 1)
+
+        if ($Row.Count -eq 0) {
+            return [PSCustomObject]@{ __AZSCStatus = 'NotAssessed' }
+        }
+
+        $Props = Get-ScoutValue $Row[0] @('properties', 'PROPERTIES')
+        $ByClass = Get-ScoutValue $Props @('availablePatchCountByClassification')
+
+        $Critical = 0
+        $Other = 0
+        if ($null -ne $ByClass) {
+            foreach ($Entry in $ByClass.PSObject.Properties) {
+                $Count = 0
+                if (-not [int]::TryParse([string]$Entry.Value, [ref]$Count)) { continue }
+                # Windows reports 'Critical'/'Security', Linux reports 'Security' -- match without
+                # regard to case, since the vendor supplies these strings verbatim.
+                if (@('critical', 'security') -contains $Entry.Name.ToLowerInvariant()) { $Critical += $Count }
+                else { $Other += $Count }
+            }
+        }
+
+        [PSCustomObject]@{
+            criticalAndSecurityPatchCount = $Critical
+            otherPatchCount               = $Other
+            startDateTime                 = Get-ScoutValue $Props @('startDateTime')
+            lastModifiedDateTime          = Get-ScoutValue $Props @('lastModifiedDateTime')
+            rebootPending                 = Get-ScoutValue $Props @('rebootPending')
+            patchServiceUsed              = Get-ScoutValue $Props @('patchServiceUsed')
+            osType                        = Get-ScoutValue $Props @('osType')
+        }
+    }
+
     function ConvertTo-ScoutOperationalEnvelope {
         param(
             [Parameter(Mandatory)][string]$Type,
@@ -164,10 +226,15 @@ function Get-ScoutOperationalCollectorEnrichment {
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/VirtualMachine' -Parent $Vm -Properties $Properties
     }
 
+    # Patch data is READ from the Azure Update Manager Resource Graph tables
+    # (`patchassessmentresources` / `patchinstallationresources`) in Get-ScoutRawInventory, not
+    # obtained by commanding each machine to scan itself. The previous implementation POSTed
+    # `{vmId}/assessPatches` here -- an ARM *action*, not a read -- which triggered a fresh
+    # guest-OS scan on every VM in the tenant on every run. See AB#6731.
     foreach ($Vm in $VirtualMachines) {
         $Id = [string](Get-ScoutValue $Vm @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
-        $Patch = Invoke-ScoutOperationalArm -Dataset 'VMOperationalData.PatchAssessment' -ParentId $Id -Method POST -Path "$Id/assessPatches?api-version=2023-03-01"
+        $Patch = ConvertTo-ScoutPatchAssessmentSummary -MachineId $Id -Resources $Resources
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/VMOperationalData' -Parent $Vm -Properties @{ PatchAssessment = $Patch }
     }
 
@@ -175,7 +242,7 @@ function Get-ScoutOperationalCollectorEnrichment {
     foreach ($Arc in $ArcMachines) {
         $Id = [string](Get-ScoutValue $Arc @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
-        $Patch = Invoke-ScoutOperationalArm -Dataset 'ArcServerOperationalData.PatchAssessment' -ParentId $Id -Method POST -Path "$Id/assessPatches?api-version=2023-06-20-preview"
+        $Patch = ConvertTo-ScoutPatchAssessmentSummary -MachineId $Id -Resources $Resources
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ArcServerOperationalData' -Parent $Arc -Properties @{ PatchAssessment = $Patch }
 
         $SubId = [string](Get-ScoutValue $Arc @('subscriptionId'))

@@ -38,19 +38,59 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'uses parent-scoped REST/cmdlet calls and preserves their raw payloads' {
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
         ($script:Calls -join "`n") | Should -Match '/virtualMachines/vm-1/providers/microsoft.insights/metrics'
-        ($script:Calls -join "`n") | Should -Match '/virtualMachines/vm-1/assessPatches'
-        ($script:Calls -join "`n") | Should -Match '/machines/arc-1/assessPatches'
         ($Rows | Where-Object type -eq 'AZSC/Operational/StorageAccount').properties.BlobService.Name | Should -Be 'store-1'
         ($Rows | Where-Object type -eq 'AZSC/Operational/StorageAccount').properties.FileService.Name | Should -Be 'store-1'
         ($script:ContextCalls | Where-Object Subscription -eq 'sub-1').Tenant | Should -Be 'tenant-a'
         ($script:ContextCalls | Where-Object Subscription -eq 'original-sub').Tenant | Should -Be 'tenant-a'
     }
     It 'contains a failed parent request while producing other envelopes' {
-        function global:Invoke-AzRestMethod { param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction; if($Path -match 'vm-1/assessPatches'){throw 'patch denied'}; [pscustomobject]@{StatusCode=200;Content='{}'} }
+        function global:Invoke-AzRestMethod { param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction; if($Path -match 'vm-1/providers/microsoft.insights/metrics'){throw 'metrics denied'}; [pscustomobject]@{StatusCode=200;Content='{}'} }
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() -WarningVariable Warnings)
-        ($Rows | Where-Object type -eq 'AZSC/Operational/VMOperationalData').properties.PatchAssessment.__AZSCError | Should -Be 'patch denied'
+        ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.CpuMetrics.__AZSCError | Should -Be 'metrics denied'
         ($Rows | Where-Object type -eq 'AZSC/Operational/ARCServers') | Should -Not -BeNullOrEmpty
-        ($Warnings -join "`n") | Should -Match 'VMOperationalData.PatchAssessment'
+        ($Warnings -join "`n") | Should -Match 'VirtualMachine.CpuMetrics'
+    }
+
+    # AB#6731 -- Scout must never command a machine to run a patch scan. `assessPatches` is an ARM
+    # *action*, not a read: the previous implementation POSTed it once per VM and once per Arc
+    # machine on every run, triggering guest-OS scans that can take hours, that Reader does not
+    # grant, and that made a tool documented as read-only mutate customer machines. Patch data now
+    # comes from the Azure Update Manager Resource Graph tables, which Update Manager populates on
+    # its own schedule. This test is the regression lock.
+    It 'never calls assessPatches -- patch data is READ from Update Manager, never triggered' {
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
+        ($script:Calls -join "`n") | Should -Not -Match 'assessPatches'
+        $null = $Rows
+    }
+
+    It 'reads pending-patch counts from the Update Manager assessment row, folding Windows and Linux classifications' {
+        $PatchRow = [pscustomobject]@{
+            id   = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-1/patchAssessmentResults/latest'
+            type = 'microsoft.compute/virtualmachines/patchassessmentresults'
+            name = 'latest'
+            properties = [pscustomobject]@{
+                availablePatchCountByClassification = [pscustomobject]@{ Critical = 3; Security = 2; Updates = 7 }
+                startDateTime    = '2026-07-30T01:00:00Z'
+                rebootPending    = $true
+                patchServiceUsed = 'WU-WSUS'
+                osType           = 'Windows'
+            }
+        }
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources ($script:Resources + $PatchRow) -Subscriptions @())
+        $Patch = ($Rows | Where-Object type -eq 'AZSC/Operational/VMOperationalData').properties.PatchAssessment
+        $Patch.criticalAndSecurityPatchCount | Should -Be 5   # Critical 3 + Security 2
+        $Patch.otherPatchCount               | Should -Be 7   # Updates
+        $Patch.rebootPending                 | Should -BeTrue
+        $Patch.patchServiceUsed              | Should -Be 'WU-WSUS'
+    }
+
+    It 'reports NotAssessed rather than zero when Update Manager has no row for the machine' {
+        # "Update Manager has not assessed this machine in 7 days" and "this machine has no pending
+        # patches" are different findings and must not render identically.
+        $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @())
+        $Patch = ($Rows | Where-Object type -eq 'AZSC/Operational/VMOperationalData').properties.PatchAssessment
+        $Patch.__AZSCStatus | Should -Be 'NotAssessed'
+        $Patch.PSObject.Properties['criticalAndSecurityPatchCount'] | Should -BeNullOrEmpty
     }
     It 'does not issue storage service calls in the wrong context when the subscription switch fails' {
         $script:FailStorageContext = $true
@@ -86,15 +126,16 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
         $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
     }
-    It 'treats a persistent 409 on PatchAssessment as a distinct in-progress status, not a generic error' {
+    It 'treats a persistent 409 as a distinct in-progress status, not a generic error' {
+        # The 409 branch of Invoke-ScoutOperationalArm still matters for the remaining query-style
+        # POSTs (Cost Management, Policy Insights) even though assessPatches no longer runs.
         function global:Invoke-AzRestMethod {
             param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
-            if ($Path -match 'assessPatches') { return [pscustomobject]@{StatusCode=409;Content='{}'} }
+            if ($Path -match 'Microsoft.CostManagement/query') { return [pscustomobject]@{StatusCode=409;Content='{}'} }
             [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
         }
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}) -WarningAction SilentlyContinue)
-        ($Rows | Where-Object type -eq 'AZSC/Operational/VMOperationalData').properties.PatchAssessment.__AZSCStatus | Should -Be 'OperationInProgress'
-        ($Rows | Where-Object type -eq 'AZSC/Operational/ArcServerOperationalData').properties.PatchAssessment.__AZSCStatus | Should -Be 'OperationInProgress'
+        ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost.__AZSCStatus | Should -Be 'OperationInProgress'
     }
     It 'does not warn when ReplicationEligibility 404s -- an expected "ASR never evaluated this VM" state' {
         function global:Invoke-AzRestMethod {

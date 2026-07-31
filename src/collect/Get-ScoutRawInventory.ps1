@@ -57,6 +57,13 @@ $ErrorActionPreference = 'Stop'
     Also collect `desktopvirtualizationresources` (AVD host pools, session hosts, workspaces,
     application groups, scaling plans).
 
+.PARAMETER IncludeUpdateManagerResources
+    Also collect `patchassessmentresources` (pending/available updates, 7-day retention) and
+    `patchinstallationresources` (update installation history, 30-day retention) -- the Resource
+    Graph tables Azure Update Manager writes its own results into, for both Azure VMs and
+    Arc-enabled servers. Read-only: this reads what Update Manager already recorded and never
+    asks a machine to run a scan.
+
 .PARAMETER IncludeAdvisories
     Also collect `advisorresources` filtered to Medium/High impact, matching the legacy
     `-SkipAdvisory:$false` default.
@@ -217,6 +224,7 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeSupportResources,
         [switch]   $IncludeBackupResources,
         [switch]   $IncludeDesktopVirtualization,
+        [switch]   $IncludeUpdateManagerResources,
         [switch]   $IncludeAdvisories,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
@@ -438,6 +446,35 @@ function Get-ScoutRawInventory {
     if ($IncludeDesktopVirtualization) {
         # No tag clause: the legacy extractor never applied one to this table.
         foreach ($row in (Invoke-ScoutRawTable -Query "desktopvirtualizationresources $rgClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Virtual Desktop' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    }
+
+    # ---- Azure Update Manager patch data (AB#6731) ----
+    # READ ONLY. Azure Update Manager already pushes every assessment and installation result into
+    # these two Resource Graph tables on its own schedule, so the data is simply there to be read:
+    #
+    #   patchassessmentresources   pending/available updates      retained  7 days
+    #   patchinstallationresources update installation history     retained 30 days
+    #
+    # Both cover microsoft.compute/virtualmachines AND microsoft.hybridcompute/machines, so Azure
+    # VMs and Arc-enabled servers come back from the same query.
+    #
+    # This REPLACES the previous per-machine `POST .../assessPatches` calls. That endpoint is an
+    # ARM *action*, not a read: it commanded every VM and Arc machine in the tenant to run a fresh
+    # guest-OS patch scan on every Scout run -- work that can take hours, that Reader does not
+    # grant, and that made a tool documented as read-only mutate customer machines. The summary
+    # rows below carry the same counts that call returned, and the /softwarepatches child rows
+    # carry per-update detail (KB id, classification, reboot requirement) it never returned at all.
+    #
+    # Retention is the one behavioural difference worth knowing: a machine Update Manager has not
+    # assessed within 7 days has no row here. That is a true statement about the estate -- the old
+    # code manufactured a fresh answer by forcing a scan, which is exactly the behaviour being
+    # removed.
+    if ($IncludeUpdateManagerResources) {
+        $patchAssessQuery = "patchassessmentresources $rgClause $mgJoinClause | order by id asc"
+        foreach ($row in (Invoke-ScoutRawTable -Query $patchAssessQuery -LoopName 'Update Manager: Assessments' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+
+        $patchInstallQuery = "patchinstallationresources $rgClause $mgJoinClause | order by id asc"
+        foreach ($row in (Invoke-ScoutRawTable -Query $patchInstallQuery -LoopName 'Update Manager: Installations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
     $advisories = @()
