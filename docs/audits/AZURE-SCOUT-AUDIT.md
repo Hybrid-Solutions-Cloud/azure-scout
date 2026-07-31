@@ -2054,7 +2054,37 @@ Then, in order:
 
 Azure RBAC `Reader` must be assigned **at management-group scope**, not per-subscription, for management-group and cross-subscription hierarchy data to resolve. Subscription-scoped Reader silently returns an empty or flattened hierarchy — no error.
 
-**Whether Reader at root MG alone is sufficient, or whether `Management Group Reader` is genuinely additional, is UNRESOLVED.** Repo history records that `ManagementGroups` returned no rows until Management Group Reader was granted, and that *both* parameter binding and permissions were implicated. That question is now confounded by defect #3 above: the collector's producer has never run in production, so no observation of it can distinguish "wrong permission" from "code path never executed". **Fix the switch first, then re-test the permission.** Do not grant Management Group Reader on the strength of this table alone.
+> ✅ **RESOLVED 2026-07-31 by a live run — `Management Group Reader` is NOT required.**
+>
+> This note previously read *"whether Reader at root MG alone is sufficient, or whether
+> `Management Group Reader` is genuinely additional, is UNRESOLVED"*, and said the question was
+> confounded by defect #3: the producer had never executed, so no observation could distinguish
+> "wrong permission" from "code path never ran". AB#6755 fixed the switch; the producer now runs;
+> the question was re-tested as note 3 instructed.
+>
+> **Result** — `Get-ScoutRawInventory` against tenant `d6fc73cf` (two subscriptions), with **no**
+> `Management Group Reader` assignment anywhere:
+>
+> | Envelope | Rows |
+> |---|---:|
+> | `AZSC/Management/ManagementGroup` | **1** *(the tenant root MG, correctly resolved)* |
+> | `AZSC/Management/RoleDefinition` | **1** *(a real custom role)* |
+> | `AZSC/Management/PolicyDefinition` | **1000** |
+> | `AZSC/Management/PolicySetDefinition` | **300** |
+>
+> The signed-in identity held `User Access Administrator` at `/` — whose `Actions` include
+> `*/read`, so it is Reader-equivalent for every read Scout makes — plus `Owner` on one
+> subscription. No management-group-specific role was present.
+>
+> **So the repo history that blamed permissions was wrong.** `ManagementGroups` returned no rows
+> because its producer was gated behind a switch nobody set, exactly as defect #3 concluded. This
+> is the third safeguard from that section closing out: a permission theory had absorbed the blame
+> for a code defect, and it survived precisely because it was never falsifiable.
+>
+> ⚠️ Still true, and unchanged: read access must reach **management-group scope**. A principal
+> holding Reader only at subscription scope still gets an empty or flattened hierarchy with no
+> error. What is now disproven is that a *dedicated* `Management Group Reader` role is needed on
+> top of that.
 
 Affected: `ManagementGroups`, `CustomRoleDefinitions`, `AllSubscriptions` (mgChain), and the `Management` / `Governance` / `Policy` assessments.
 
