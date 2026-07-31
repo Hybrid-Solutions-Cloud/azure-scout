@@ -193,11 +193,22 @@ function Invoke-AZSCPermissionAudit {
         Write-Host "  Subscription role summary ($($subs.Count) subscription(s)):" -ForegroundColor White
         Write-Host ''
 
+        # AB#6778. This used to list Security Reader, Monitoring Reader and Cost Management
+        # Reader as optional roles, warn on every subscription that lacked them, and emit a
+        # New-AzRoleAssignment line telling the operator to grant Security Reader. All three
+        # are redundant: Azure `Reader` is `Actions: ["*/read"]` with an empty `NotActions`,
+        # and every action Scout calls through those roles is inside that single wildcard.
+        #
+        # Two of them are worse than merely useless as an ask. Monitoring Reader and Cost
+        # Management Reader both carry `Microsoft.Support/*`, which includes support-ticket
+        # CREATION -- a write, in a tool sold as read-only. Security Reader carries five IoT
+        # Defender `/action` permissions, one of which downloads a password-reset file.
+        #
+        # Cost data in particular was never gated on Cost Management Reader: it is gated on
+        # the EA "AO view charges" / MCA "Azure charges" billing setting, which no RBAC role
+        # can grant. Recommending the role was advice that could not work.
         $requiredRoles = @{
-            'Reader'                   = 'Core inventory (required)'
-            'Security Reader'          = 'Microsoft Defender for Cloud'
-            'Monitoring Reader'        = 'Azure Monitor resources'
-            'Cost Management Reader'   = 'Cost Management / Advisor cost recommendations'
+            'Reader' = 'Core inventory (required)'
         }
 
         # AB#368 — try/finally, not a scriptblock, so the loop body keeps writing to the
@@ -212,9 +223,10 @@ function Invoke-AZSCPermissionAudit {
 
                     $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
                     $missingCritical = $requiredRoles.Keys | Where-Object { $_ -eq 'Reader' -and $_ -notin $foundRoles }
-                    $missingOptional = $requiredRoles.Keys | Where-Object { $_ -ne 'Reader'  -and $_ -notin $foundRoles }
 
-                    $status = if ($missingCritical) { 'Fail' } elseif ($missingOptional) { 'Warn' } else { 'Pass' }
+                    # There is no longer an "optional roles are missing" Warn state: Reader is
+                    # the whole ARM ask (AB#6778), so a subscription either has it or does not.
+                    $status = if ($missingCritical) { 'Fail' } else { 'Pass' }
 
                     $rolesDisplay = ($requiredRoles.Keys | ForEach-Object {
                         $emoji = if ($_ -in $foundRoles) { '✅' } else { if ($_ -eq 'Reader') { '❌' } else { '⚠️' } }
@@ -230,9 +242,6 @@ function Invoke-AZSCPermissionAudit {
                         State            = $sub.State
                         AssignedRoles    = $foundRoles
                         HasReader        = 'Reader' -in $foundRoles
-                        HasSecurityReader     = 'Security Reader' -in $foundRoles
-                        HasMonitoringReader   = 'Monitoring Reader' -in $foundRoles
-                        HasCostMgmtReader     = 'Cost Management Reader' -in $foundRoles
                         Status           = $status
                     }
                     $armDetails.Add([PSCustomObject]@{
@@ -245,9 +254,6 @@ function Invoke-AZSCPermissionAudit {
                     if ($missingCritical) {
                         $armAccess = $false
                         $recommendations.Add("Add Reader role on '$($sub.Name)': New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/subscriptions/$($sub.Id)'")
-                    }
-                    if ('Security Reader' -notin $foundRoles) {
-                        $recommendations.Add("Add Security Reader on '$($sub.Name)' for Defender data: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Security Reader' -Scope '/subscriptions/$($sub.Id)'")
                     }
                 }
                 catch {

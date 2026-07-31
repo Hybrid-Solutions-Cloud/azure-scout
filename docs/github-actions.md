@@ -78,7 +78,7 @@ jobs:
 | `report-dir` | `azure-scout-reports` | Output directory, relative to the workspace |
 | `module-version` | `''` | Pin a PSGallery version; blank installs the latest |
 | `lite` | `true` | Skip Excel chart customization — see the note below |
-| `include-costs` | `false` | Collect cost data; needs Cost Management Reader |
+| `include-costs` | `false` | Collect cost data. Needs `Reader` plus the EA *"AO view charges"* / MCA *"Azure charges"* billing setting — **not** `Cost Management Reader`, which is redundant against `Reader` and cannot unlock the billing gate |
 | `upload-artifact` | `true` | Upload the report directory as an artifact |
 | `artifact-name` | `azure-scout-reports` | Artifact name |
 | `artifact-retention-days` | `30` | Artifact retention |

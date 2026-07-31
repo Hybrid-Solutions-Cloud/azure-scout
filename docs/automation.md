@@ -84,14 +84,28 @@ Optional roles, matching the interactive [permissions](permissions.md) model:
 
 | Role | Enables |
 |---|---|
-| `Security Reader` | Microsoft Defender for Cloud data |
-| `Monitoring Reader` | Azure Monitor resources |
-| `Cost Management Reader` | Cost data (`-IncludeCosts`) |
 | `Management Group Reader` | Management group tree collection |
 
 Without `Management Group Reader` at the tenant root, the run still succeeds — management
 group collection is simply empty. The [management group probe](permissions.md) reports
 this at login.
+
+!!! note "Three roles this page used to list are redundant — do not grant them"
+
+    `Security Reader`, `Monitoring Reader` and `Cost Management Reader` were listed here as
+    optional. **Every read AzureScout makes through them is already covered by `Reader`'s
+    `*/read`**, so they enable nothing and were removed rather than left as a harmless
+    over-ask. Two of them are not harmless:
+
+    - **`Monitoring Reader`** grants `Microsoft.Support/*`, which includes support-ticket
+      **creation** — a write. AzureScout only reads `Microsoft.Support/supportTickets`.
+    - **`Cost Management Reader`** carries the identical `Microsoft.Support/*`.
+    - **`Security Reader`** additionally grants five IoT Defender `/action` permissions,
+      including one that downloads a password-reset file. AzureScout calls none of them.
+
+    Cost data is **not** gated on `Cost Management Reader`. It is gated on a billing
+    setting — EA *"AO view charges"* or MCA *"Azure charges"* — which no RBAC role can
+    grant. See [permissions](permissions.md).
 
 ## Step 3 — Configure the Runtime Environment
 

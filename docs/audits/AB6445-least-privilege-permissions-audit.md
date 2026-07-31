@@ -31,7 +31,7 @@ Azure's **Reader** role is defined as exactly `*/read` — one wildcard action c
 
 | # | Finding | Severity |
 |---|---|---|
-| **F1** | **Security Reader is entirely redundant.** Its action list is a strict subset of Reader's `*/read` for every call Scout makes. The pre-flight nags for it on every subscription. | Over-ask |
+| **F1** | **Security Reader is entirely redundant.** Every *read* it grants is already inside Reader's `*/read`, for every call Scout makes. The pre-flight nags for it on every subscription. *(Corrected — it is not a strict **subset**: it also carries five IoT Defender `/action` permissions outside `*/read`, none of which Scout calls. See `_verification-report.md` E4.)* | Over-ask |
 | **F2** | **Monitoring Reader is entirely redundant** — and grants `Microsoft.Support/*` (ticket **creation**), a write Scout never needs. | Over-ask + over-privilege |
 | **F3** | **`assessPatches` is not a read.** Scout POSTs `Microsoft.Compute/virtualMachines/assessPatches/action` for every VM and `Microsoft.HybridCompute/machines/assessPatches/action` for every Arc machine, by default. Reader does not grant it, the pre-flight never checks it, and it **triggers real work on the target machine**. A "read-only inventory tool" performs a mutating action. | **Under-check + read-only violation** |
 | **F4** | **`AuditLog.Read.All` is requested but never used.** No collector consumes sign-in or audit log data. | Over-ask |
