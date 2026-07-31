@@ -95,24 +95,29 @@ $ErrorActionPreference = 'Stop'
     Also collect one synthetic Defender/diagnostics/policy-compliance envelope per discovered
     subscription and append it to `Resources`. Off by default.
 
-.PARAMETER IncludeTenantWideResources
-    Also collect the custom-role, management-group, policy-definition, and policy-set
-    envelopes and append them to `Resources`. Off by default.
+.PARAMETER SkipApiResourceSweep
+    Suppress the ARM REST API sweep (`Get-ScoutApiResources`). Mirrors the operator's
+    `-SkipAPIs` flag, whose meaning is "Resource Graph only".
 
-    This switch also drives the ARM REST API sweep (`Get-ScoutApiResources`), whose per-
-    subscription results are returned on the `ApiResources` field so that a caller which
-    needs them for its own reasons -- the v1 inventory orchestration does -- reuses this
-    pass instead of issuing a second identical one (AB#6755).
+    It does NOT suppress tenant-wide collection. The custom-role, management-group,
+    policy-definition and policy-set envelopes are collected on every run and there is no
+    parameter that turns them off -- they are what a governance assessment reads, and an
+    assessment scoring against an empty array reports a false pass. Only the policy halves,
+    which genuinely come from this sweep, come back empty (AB#6755).
+
+    The sweep's per-subscription results are returned on the `ApiResources` field so a caller
+    that needs them for its own reasons -- the v1 inventory orchestration does -- reuses this
+    pass rather than issuing a second identical one.
 
 .PARAMETER SkipPolicy
-    Suppress the three policy REST calls inside the ARM API sweep. Only meaningful alongside
-    -IncludeTenantWideResources. Mirrors `Get-ScoutApiResources -SkipPolicy`; with it set the
-    policy-definition and policy-set envelopes come back empty by construction.
+    Suppress the three policy REST calls inside the ARM API sweep. Mirrors
+    `Get-ScoutApiResources -SkipPolicy`; with it set the policy-definition and policy-set
+    envelopes come back empty by construction.
 
 .PARAMETER TenantWideDefinitionsOnly
     Narrow the ARM API sweep to the two calls the tenant-wide envelopes actually consume.
-    Set by callers that want the envelopes but never read `ApiResources` themselves -- the
-    assessment collect pass. Cuts the sweep from seven paced calls per subscription to two.
+    Set by callers that never read `ApiResources` themselves -- the assessment collect pass.
+    Cuts the sweep from seven paced calls per subscription to two.
 
 .PARAMETER IncludeOperationalCollectorEnrichment
     Also collect the parent-scoped ARM/Az-cmdlet envelopes consumed by the remaining live-access
@@ -246,7 +251,7 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeRetirements,
         [switch]   $IncludeArmChildResources,
         [switch]   $IncludeSubscriptionSecurityPolicy,
-        [switch]   $IncludeTenantWideResources,
+        [switch]   $SkipApiResourceSweep,
         [switch]   $SkipPolicy,
         [switch]   $TenantWideDefinitionsOnly,
 
@@ -614,29 +619,59 @@ function Get-ScoutRawInventory {
         }
     }
 
-    # Returned on the envelope so the v1 inventory orchestration can consume this sweep rather
-    # than issuing its own identical one after the raw pass returns (AB#6755). Empty whenever
-    # tenant-wide collection is off, which is the only state that existed before.
+    # ── Tenant-wide collection — UNCONDITIONAL ────────────────────────────────────────────────
+    #
+    # Management groups, custom role definitions, policy definitions and policy set definitions
+    # are what a landing-zone or governance assessment IS. They are not an opt-in extra, and
+    # there is no longer any parameter that turns them off.
+    #
+    # AB#6755 removed the dead `-IncludeTenantWideResources` gate that no production caller ever
+    # set. The first fix replaced it with `-not $SkipAPIs`, which was wrong twice over and the
+    # owner rightly rejected it:
+    #
+    #   1. "A switch that is usually set" is the same trap as "a switch nobody sets". An
+    #      assessment that scores governance against an empty array and reports a pass is worse
+    #      than one that fails loudly, so the inputs to that claim must not be optional.
+    #   2. Only the POLICY definitions come from the ARM REST sweep. Management groups and custom
+    #      role definitions come from Get-AzManagementGroup / Get-AzRoleDefinition -Custom, which
+    #      -SkipAPIs has nothing to do with — so gating the whole block on it silently dropped two
+    #      datasets that flag has no business touching.
+    #
+    # -SkipAPIs now degrades only the half that is genuinely ARM REST work.
+    # Get-ScoutTenantWideResource accepts an empty -ApiResources by design and still returns all
+    # four envelopes, so the management-group and custom-role halves are unaffected.
+    #
+    # $collectedApiResources is returned on the envelope so the v1 inventory orchestration can
+    # consume this sweep rather than issuing its own identical one after the raw pass returns.
     $collectedApiResources = @()
 
-    if ($IncludeTenantWideResources) {
-        $tenantHelpersAvailable =
-            (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1') -and
-            (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutManagementGroupHierarchy' -FileName 'ConvertTo-ScoutManagementGroupHierarchy.ps1') -and
-            (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutTenantWideResource' -FileName 'Get-ScoutTenantWideResource.ps1')
-        if ($tenantHelpersAvailable) {
+    $tenantHelpersAvailable =
+        (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1') -and
+        (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutManagementGroupHierarchy' -FileName 'ConvertTo-ScoutManagementGroupHierarchy.ps1') -and
+        (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutTenantWideResource' -FileName 'Get-ScoutTenantWideResource.ps1')
+    if ($tenantHelpersAvailable) {
+        # The REST sweep is attempted separately from the envelopes it feeds. A sweep that fails
+        # or is skipped must cost the caller the policy definitions and nothing else -- folding
+        # both into one try block is how the management groups got lost in the first place.
+        if (-not $SkipApiResourceSweep) {
             try {
-                # Tenant-wide policy envelopes consume the API result rather than duplicating
-                # any policy call in their own helper.
-                $apiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
-                $collectedApiResources = $apiResources
-                foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $apiResources)) {
-                    if ($null -ne $row) { $resources.Add($row) }
-                }
+                $collectedApiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
             }
             catch {
-                Write-Warning "Get-ScoutRawInventory: tenant-wide collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+                Write-Warning "Get-ScoutRawInventory: the ARM REST sweep failed; policy definitions will be empty, management groups and custom roles are unaffected: $($_.Exception.Message)"
             }
+        }
+        else {
+            Write-Verbose 'Get-ScoutRawInventory: -SkipAPIs was requested, so the policy-definition envelopes will be empty. Management groups and custom role definitions are still collected.'
+        }
+
+        try {
+            foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $collectedApiResources)) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: tenant-wide collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
         }
     }
 

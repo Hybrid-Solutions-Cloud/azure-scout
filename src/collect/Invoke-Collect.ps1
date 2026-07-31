@@ -790,17 +790,18 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             # table can supply them. It is a fifth Resource Graph round-trip on the default
             # assessment collect, up from four, and it is the only round-trip AB#6741 added.
             #
-            # -IncludeTenantWideResources is the AB#6755 half. Management groups, custom role
+            # Tenant-wide collection is the AB#6755 half. Management groups, custom role
             # definitions, policy definitions and policy set definitions are what the Landing
             # Zone, AVS Landing Zone, Cloud Governance and CASA assessments score, and no
             # production caller had ever set the switch that collects them -- so those four
-            # rule sets were reading empty arrays and passing. Unlike the inventory path, this
-            # one has no later ARM REST sweep to reuse, so it pays for its own: -SkipPolicy is
-            # deliberately NOT set, because the policy definitions are the point.
+            # rule sets were reading empty arrays and passing. It is unconditional now and there
+            # is no parameter here to set: Get-ScoutRawInventory always collects it.
+            #
             # -TenantWideDefinitionsOnly keeps the price honest: this path wants the four
             # envelopes, not the five inventory-report datasets the same sweep can return, so
-            # it pays two REST calls per subscription rather than seven.
-            $rawArgs = @{ IncludeTags = $true; IncludeBackupResources = $true; IncludeTenantWideResources = $true; TenantWideDefinitionsOnly = $true }
+            # it pays two REST calls per subscription rather than seven. -SkipApiResourceSweep
+            # is deliberately NOT set, because the policy definitions are the point.
+            $rawArgs = @{ IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }

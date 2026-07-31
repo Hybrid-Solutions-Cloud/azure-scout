@@ -78,18 +78,20 @@ Function Start-AZSCGraphExtraction {
         IncludeArmChildResources     = $true
         IncludeOperationalCollectorEnrichment = $true
         IncludeSubscriptionSecurityPolicy = $true
-        # AB#6755. This switch was added by AB#5933 as a temporary migration gate and no
-        # production caller ever set it, so management groups, custom role definitions, policy
-        # definitions and policy set definitions were collected by nothing -- four worksheets
-        # empty on every run since. It is now on for every inventory run except an explicit
-        # -SkipAPIs, because it is ARM REST work and -SkipAPIs is the operator's existing way
-        # of saying "Resource Graph only".
+        # AB#6755. Tenant-wide collection -- management groups, custom role definitions, policy
+        # definitions and policy set definitions -- is now UNCONDITIONAL and there is no longer
+        # a parameter for it. It was gated by an AB#5933 migration switch no production caller
+        # ever set, so those four worksheets were empty on every run for several releases.
         #
-        # It costs this path no extra round-trips: the sweep it drives is the same
-        # Get-ScoutApiResources sweep Start-AZSCExtractionOrchestration used to run AFTER this
-        # function returned. The results come back on $Raw.ApiResources and are handed up for
-        # that caller to reuse.
-        IncludeTenantWideResources   = (-not [bool]$SkipAPIs)
+        # -SkipAPIs is passed through, but it only suppresses the ARM REST sweep. Management
+        # groups and custom roles come from Az cmdlets and are collected regardless: they are
+        # what a governance assessment reads, and gating them behind a "Resource Graph only"
+        # flag was the second version of the same defect.
+        #
+        # The sweep costs this path no extra round-trips -- it is the same Get-ScoutApiResources
+        # call Start-AZSCExtractionOrchestration used to run AFTER this function returned. The
+        # results come back on $Raw.ApiResources and are handed up for that caller to reuse.
+        SkipApiResourceSweep         = [bool]$SkipAPIs
         SkipPolicy                   = [bool]$SkipPolicy
         IncludeTags                  = [bool]$IncludeTags
         AzureEnvironment             = $AzureEnvironment

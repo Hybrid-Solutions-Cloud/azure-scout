@@ -76,11 +76,9 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'does not invoke optional non-ARG helpers unless their switches are supplied' {
         $script:armChildCalls = 0
         $script:subscriptionSweepCalls = 0
-        $script:tenantWideCalls = 0
         $script:operationalEnrichmentCalls = 0
         function Get-ScoutArmChildResource { $script:armChildCalls++ }
         function Get-ScoutSubscriptionSecurityPolicySweep { $script:subscriptionSweepCalls++ }
-        function Get-ScoutTenantWideResource { $script:tenantWideCalls++ }
         function Get-ScoutOperationalCollectorEnrichment { $script:operationalEnrichmentCalls++ }
         function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
 
@@ -88,8 +86,23 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
 
         $script:armChildCalls | Should -Be 0
         $script:subscriptionSweepCalls | Should -Be 0
-        $script:tenantWideCalls | Should -Be 0
         $script:operationalEnrichmentCalls | Should -Be 0
+    }
+
+    It 'DOES invoke the tenant-wide helper, because it is not optional' {
+        # Deliberately split out of the test above rather than left in it with a flipped number.
+        # Tenant-wide collection used to sit behind a switch and now does not (AB#6755): the four
+        # datasets it produces are what a governance assessment scores, and an assessment reading
+        # an empty array reports a false pass. There is no switch to supply.
+        $script:tenantWideCalls = 0
+        function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $script:tenantWideCalls++ }
+        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+
+        Get-ScoutRawInventory | Out-Null
+
+        $script:tenantWideCalls | Should -Be 1
     }
 }
 
@@ -159,7 +172,11 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
             )
         }
 
-        $result = Get-ScoutRawInventory -IncludeTenantWideResources
+        # No switch: tenant-wide collection is unconditional (AB#6755). This test used to pass
+        # `-IncludeTenantWideResources` explicitly, which is precisely why nothing noticed that
+        # no production caller did -- proving the function HONOURS a switch says nothing about
+        # whether anything sets it.
+        $result = Get-ScoutRawInventory
         $shaped = ConvertFrom-ScoutInventory -Resources $result.Resources -ResourceContainers $result.ResourceContainers
 
         $script:apiSubscriptions.Count | Should -Be 1

@@ -40,13 +40,13 @@ Describe 'AB#6755 — the inventory production splat (Start-AZSCGraphExtraction)
         . "$script:Root/src/collect/Start-ScoutGraphExtraction.ps1"
 
         $script:Splat = $null
-        # Only the two parameters under test are named; everything else the production splat
-        # carries lands in -Rest. Naming them all would make this stub a second copy of the
-        # real signature and it would rot the first time one is added.
+        # Only the parameters under test are named; everything else the production splat carries
+        # lands in -Rest. Naming them all would make this stub a second copy of the real
+        # signature and it would rot the first time one is added.
         function Get-ScoutRawInventory {
             [CmdletBinding()]
             param(
-                $IncludeTenantWideResources,
+                $SkipApiResourceSweep,
                 $SkipPolicy,
                 [Parameter(ValueFromRemainingArguments)] $Rest
             )
@@ -60,19 +60,22 @@ Describe 'AB#6755 — the inventory production splat (Start-AZSCGraphExtraction)
         function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) $Subscriptions }
     }
 
-    It 'sets -IncludeTenantWideResources on an ordinary run' {
+    It 'has no parameter that can turn tenant-wide collection off' {
+        # The whole point of the correction. A switch nobody sets and a switch that is usually
+        # set are the same trap; the only safe shape is no switch at all.
         $null = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'sub-1' }) -AzureEnvironment 'AzureCloud'
 
-        $script:Splat.Keys | Should -Contain 'IncludeTenantWideResources'
-        [bool]$script:Splat['IncludeTenantWideResources'] | Should -BeTrue
+        $script:Splat.Keys | Should -Not -Contain 'IncludeTenantWideResources'
+        (Get-Command Get-ScoutRawInventory).Parameters.Keys | Should -Not -Contain 'IncludeTenantWideResources'
     }
 
-    It 'clears -IncludeTenantWideResources when the operator asked to skip the ARM REST APIs' {
-        # -SkipAPIs is the existing "Resource Graph only" flag. Tenant-wide collection is ARM
-        # REST work, so it belongs on the far side of that switch and nowhere else.
+    It 'passes -SkipAPIs through as the sweep flag only, never as a tenant-wide flag' {
+        # -SkipAPIs means "Resource Graph only". Only the POLICY definitions come from the ARM
+        # REST sweep; management groups and custom roles come from Az cmdlets, so this flag must
+        # not be able to drop them.
         $null = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'sub-1' }) -AzureEnvironment 'AzureCloud' -SkipAPIs $true
 
-        [bool]$script:Splat['IncludeTenantWideResources'] | Should -BeFalse
+        [bool]$script:Splat['SkipApiResourceSweep'] | Should -BeTrue
     }
 
     It 'forwards -SkipPolicy so the sweep it drives matches what the operator asked for' {
@@ -91,13 +94,11 @@ Describe 'AB#6755 — the inventory production splat (Start-AZSCGraphExtraction)
 
 Describe 'AB#6755 — the assessment production splat (Invoke-Collect)' {
 
-    It 'sets -IncludeTenantWideResources on the single-pass raw collection' {
-        # Invoke-Collect is large and its raw-pass block is one branch deep inside it. Reading
-        # the splat out of the source is the assertion that survives refactors of everything
-        # around it, and it fails for exactly the reason the defect existed: the key is absent.
+    It 'does not opt out of the ARM REST sweep, because the policy definitions are the point' {
         $source = Get-Content -Raw "$script:Root/src/collect/Invoke-Collect.ps1"
+        $rawArgsLine = ([regex]'\$rawArgs\s*=\s*@\{[^}]*\}').Match($source).Value
 
-        $source | Should -Match '\$rawArgs\s*=\s*@\{[^}]*IncludeTenantWideResources\s*=\s*\$true'
+        $rawArgsLine | Should -Not -Match 'SkipApiResourceSweep'
     }
 
     It 'does not set -SkipPolicy, because the policy definitions are what it collects for' {
@@ -170,35 +171,66 @@ Describe 'AB#6755 — Get-ScoutRawInventory returns the sweep it ran' {
         function Get-ScoutTenantWideResource { param([object[]] $ApiResources) @() }
     }
 
-    It 'is empty when tenant-wide collection is off — the only state that existed before' {
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'must not be called' }
-
-        $result = Get-ScoutRawInventory
-
-        @($result.ApiResources).Count | Should -Be 0
-    }
-
-    It 'carries the per-subscription results when tenant-wide collection is on' {
+    It 'runs the sweep on an ordinary run, with no switch asked for' {
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy)
+            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
             @([pscustomobject]@{ Subscription = 'sub-1'; SkipPolicyWas = [bool]$SkipPolicy })
         }
 
-        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1') -IncludeTenantWideResources
+        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1')
 
         @($result.ApiResources).Count | Should -Be 1
-        $result.ApiResources[0].Subscription | Should -Be 'sub-1'
+        $result.ApiResources[0].Subscription  | Should -Be 'sub-1'
         $result.ApiResources[0].SkipPolicyWas | Should -BeFalse
     }
 
     It 'forwards -SkipPolicy into the sweep' {
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy)
+            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
             @([pscustomobject]@{ Subscription = 'sub-1'; SkipPolicyWas = [bool]$SkipPolicy })
         }
 
-        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1') -IncludeTenantWideResources -SkipPolicy
+        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1') -SkipPolicy
 
         $result.ApiResources[0].SkipPolicyWas | Should -BeTrue
+    }
+
+    It 'still collects management groups and custom roles under -SkipApiResourceSweep' {
+        # THE regression this correction exists to prevent. -SkipAPIs means "Resource Graph
+        # only", and only the policy definitions come from the REST sweep. Management groups and
+        # custom role definitions come from Az cmdlets, so skipping the sweep must cost the
+        # policy halves and nothing else.
+        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'the sweep must not run under -SkipApiResourceSweep' }
+        $script:TenantWideRan = $false
+        function Get-ScoutTenantWideResource {
+            param([object[]] $ApiResources)
+            $script:TenantWideRan = $true
+            @(
+                [pscustomobject]@{ type = 'AZSC/Management/ManagementGroup'; properties = @('root') }
+                [pscustomobject]@{ type = 'AZSC/Management/RoleDefinition';  properties = @('custom-1') }
+                [pscustomobject]@{ type = 'AZSC/Management/PolicyDefinition'; properties = @($ApiResources) }
+            )
+        }
+
+        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1') -SkipApiResourceSweep
+
+        $script:TenantWideRan | Should -BeTrue
+        @($result.ApiResources).Count | Should -Be 0
+        @($result.Resources | Where-Object type -eq 'AZSC/Management/ManagementGroup').Count | Should -Be 1
+        @($result.Resources | Where-Object type -eq 'AZSC/Management/RoleDefinition').Count  | Should -Be 1
+    }
+
+    It 'still collects management groups and custom roles when the sweep THROWS' {
+        # Same guarantee, arrived at the other way. Folding the sweep and the envelopes into one
+        # try block is how the management groups were lost the first time.
+        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'ARM is having a day' }
+        function Get-ScoutTenantWideResource {
+            param([object[]] $ApiResources)
+            @([pscustomobject]@{ type = 'AZSC/Management/ManagementGroup'; properties = @('root') })
+        }
+
+        $result = Get-ScoutRawInventory -SubscriptionIds @('sub-1') -WarningAction SilentlyContinue
+
+        @($result.Resources | Where-Object type -eq 'AZSC/Management/ManagementGroup').Count | Should -Be 1
     }
 }
