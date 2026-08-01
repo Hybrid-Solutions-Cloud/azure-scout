@@ -54,6 +54,10 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.routes'
+            # AB#6845: an empty route table is a legitimate and frequently deliberate object --
+            # created ahead of its routes, or kept only to disable BGP propagation on a subnet --
+            # and it was absent from the worksheet rather than shown with no routes.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

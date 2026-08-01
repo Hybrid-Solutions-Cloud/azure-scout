@@ -65,6 +65,15 @@ install prompt, fully unattended. It needs only **ARM Reader at the
 management-group root**, same as every other assessment — no additional
 Graph permission.
 
+Since AB#6779, four of those five datasets are collected once by the
+collection pass (`src/collect/Get-ScoutGovernanceDataset.ps1`) rather than
+here: role assignments, policy assignments, resource locks and budgets. That
+is what lets the inventory report render them as worksheets — `Role
+Assignments`, `Policy Assignments`, `Resource Locks` and `Budgets` — without
+a second round trip. `Import-Governance` reuses whatever the collect pass
+hands it and queries only what it is not given, so the call count for an
+assessment run is unchanged. Management groups are still collected here.
+
 The third-party Azure Governance Visualizer remains available as an **opt-in**
 `Ingest` value if you want it specifically, but nothing depends on it by
 default anymore. Live-verified against the HCS tenant: real policy/role

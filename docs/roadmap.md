@@ -813,7 +813,7 @@ Pull requests are welcome — see [Contributing](contributing.md) for guidelines
 ## Fork Attribution
 
 ::: info Fork Attribution
-**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 236 collector definitions across all 18 Azure service categories — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
+**AzureScout is a fork of [Azure Resource Inventory (ARI)](https://github.com/microsoft/ARI)** by Microsoft, originally created by [Claudio Merola](https://github.com/Claudio-Merola) and [Renato Gregio](https://github.com/RenatoGregio). The ARI project provided the entire foundation that AzureScout builds upon — its ARM inventory module set, the draw.io diagram engine, Excel reporting, and more. AzureScout is now at 240 collector definitions across all 18 Azure service categories — see [ARM Modules](arm-modules.md) and [Entra ID Modules](entra-modules.md). We are deeply grateful for their work.
 
 See [Credits & Attribution](credits.md) for full details, or [Differences from ARI](ari-differences.md) for what has changed.
 :::

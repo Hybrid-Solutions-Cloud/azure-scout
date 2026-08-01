@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 <#
 .SYNOPSIS
-    Prefetch ARM child collections consumed by fourteen inventory collectors.
+    Prefetch ARM child collections consumed by the declarative inventory collectors.
 
 .DESCRIPTION
     Moves supported per-parent ARM calls out of collector row loops and into the collect phase.
@@ -73,7 +73,8 @@ function Get-ScoutArmChildResource {
             'StorageBlobContainers',
             'StorageFileShares',
             'StorageLifecyclePolicies',
-            'BackupInstances'
+            'BackupInstances',
+            'ResourceDiagnosticSettings'
         )]
         [string[]]$Dataset = @('All')
     )
@@ -96,7 +97,48 @@ function Get-ScoutArmChildResource {
         'StorageBlobContainers',
         'StorageFileShares',
         'StorageLifecyclePolicies',
-        'BackupInstances'
+        'BackupInstances',
+        'ResourceDiagnosticSettings'
+    )
+
+    # --- Diagnostic-settings parent scope (AB#6769) ---------------------------------------------
+    #
+    # Diagnostic settings can be attached to MOST Azure resource types, so the naive
+    # implementation is one REST call per resource in the estate -- tens of thousands of calls on
+    # a large tenant to fill one worksheet. That is not a trade worth making, so the sweep is
+    # scoped to the types below: the ones whose platform logs are the evidence a security or
+    # governance review actually asks for (who touched the vault, what the firewall allowed, what
+    # the database did), and where the ABSENCE of a diagnostic setting is itself the finding.
+    #
+    # Deliberately NOT in this list, and this is where the saving comes from: virtual machines,
+    # managed disks, network interfaces, public IP addresses, snapshots and VM extensions. They
+    # are the highest-count types in any real estate by an order of magnitude, and a VM's guest
+    # telemetry is configured through the Azure Monitor agent and data collection rules -- which
+    # Scout already collects as their own resource types -- not through a diagnostic setting on
+    # the VM. Including them would multiply this sweep's call count by 10-50x and add no finding.
+    #
+    # Adding a type here costs one ARM GET per instance of it, per run. Weigh it that way.
+    $DiagnosticSettingParentTypes = @(
+        'microsoft.keyvault/vaults'
+        'microsoft.storage/storageaccounts'
+        'microsoft.sql/servers'
+        'microsoft.sql/servers/databases'
+        'microsoft.dbforpostgresql/flexibleservers'
+        'microsoft.dbformysql/flexibleservers'
+        'microsoft.documentdb/databaseaccounts'
+        'microsoft.containerservice/managedclusters'
+        'microsoft.web/sites'
+        'microsoft.network/networksecuritygroups'
+        'microsoft.network/applicationgateways'
+        'microsoft.network/azurefirewalls'
+        'microsoft.network/frontdoors'
+        'microsoft.cdn/profiles'
+        'microsoft.apimanagement/service'
+        'microsoft.eventhub/namespaces'
+        'microsoft.servicebus/namespaces'
+        'microsoft.operationalinsights/workspaces'
+        'microsoft.recoveryservices/vaults'
+        'microsoft.automation/automationaccounts'
     )
 
     $Selected = if ($Dataset -contains 'All') {
@@ -247,6 +289,9 @@ function Get-ScoutArmChildResource {
     })
     $BackupVaultParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.dataprotection/backupvaults'
+    })
+    $DiagnosticSettingParents = @($Resources | Where-Object {
+        $DiagnosticSettingParentTypes -contains [string](Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE'))
     })
 
     foreach ($DatasetName in $Selected) {
@@ -498,6 +543,39 @@ function Get-ScoutArmChildResource {
                 foreach ($Parent in $BackupVaultParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/backupInstances?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Diagnostic settings (AB#6769) -----------------------------------------------------
+            #
+            # WHY THIS IS A REST CALL AND NOT A RESOURCE GRAPH ROW.
+            # `microsoft.insights/diagnosticsettings` is an ARM EXTENSION resource: it has no
+            # existence of its own, only an attachment to another resource's id, and Resource
+            # Graph indexes it in no table. Monitor/ResourceDiagnosticSettings declared that type
+            # and read the `resources` table, so it returned zero rows in every tenant at every
+            # permission level. The only read that exists is per parent:
+            #
+            #   GET {resourceId}/providers/Microsoft.Insights/diagnosticSettings
+            #       ?api-version=2021-05-01-preview
+            #
+            # 2021-05-01-preview is the current version and the one AVM pins; it is the first to
+            # carry `marketplacePartnerId`, which the worksheet's "Destination: Partner" column
+            # reads. Control plane, read-only -- `Microsoft.Insights/diagnosticSettings/read`,
+            # which Reader holds. Nothing here reads a log, only where logs are sent.
+            #
+            # A parent with no diagnostic setting returns an empty `value` array, which produces
+            # no row -- and that absence IS the finding the worksheet exists to show. See
+            # $DiagnosticSettingParentTypes above for exactly which parents are swept and why the
+            # list stops where it does.
+            'ResourceDiagnosticSettings' {
+                foreach ($Parent in $DiagnosticSettingParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {

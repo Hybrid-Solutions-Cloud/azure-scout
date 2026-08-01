@@ -24,17 +24,17 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DevOps | 12 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 4 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
 | Hybrid | 15 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
-| Identity | 16 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
+| Identity | 17 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 7 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
-| Management | 18 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
+| Management | 21 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
 | Monitor | 22 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 21 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
 | Security | 17 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 11 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **236** | across all 18 of Microsoft's published service categories |
+| **Total** | **240** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (27 modules)
 
@@ -171,7 +171,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
 | VirtualMachines | `microsoft.azurestackhci/virtualmachineinstances` | AzLocal VMs |
 
-## Identity Category (16 modules)
+## Identity Category (17 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -188,6 +188,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | NamedLocations | `entra/namedlocations` | Named Locations |
 | PIMAssignments | `entra/pimassignments` | PIM Assignments |
 | RiskyUsers | `entra/riskyusers` | Risky Users |
+| RoleAssignments | `AZSC/Governance/RoleAssignment` | Role Assignments |
 | SecurityPolicies | `entra/securitypolicies` | Security Policies |
 | ServicePrincipals | `entra/serviceprincipals` | Service Principals |
 | Users | `entra/users` | Entra Users |
@@ -218,7 +219,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | IOTHubs | `microsoft.devices/iothubs` | IOTHubs |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` | Azure Maps |
 
-## Management Category (18 modules)
+## Management Category (21 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -227,6 +228,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AutomationAccounts | `microsoft.automation/automationaccounts` | Runbooks |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | Backup |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` | Backup Instances |
+| Budgets | `AZSC/Governance/Budget` | Budgets |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` | Custom Roles |
 | DevOpsAgentPools | `devops/agentpools` | ADO Agent Pools |
 | DevOpsPipelines | `devops/pipelines` | ADO Pipelines |
@@ -236,10 +238,12 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` | Lighthouse Delegations |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` | Maintenance Configs |
 | ManagementGroups | `AZSC/Management/ManagementGroup` | Management Groups |
+| PolicyAssignments | `AZSC/Governance/PolicyAssignment` | Policy Assignments |
 | PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` | Policy Compliance |
 | PolicyDefinitions | `AZSC/Management/PolicyDefinition` | Policy Definitions |
 | PolicySetDefinitions | `AZSC/Management/PolicySetDefinition` | Policy Initiatives |
 | RecoveryVault | `microsoft.recoveryservices/vaults` | Recovery Vaults |
+| ResourceLocks | `AZSC/Governance/ResourceLock` | Resource Locks |
 
 ## Migration Category (6 modules)
 
@@ -273,7 +277,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` | Monitor Private Link Scopes |
 | MonitorWorkbooks | `microsoft.insights/workbooks` | Monitor Workbooks |
 | Outages | `AZSC/Monitor/Outage` | Outages |
-| ResourceDiagnosticSettings | `microsoft.insights/diagnosticsettings` | Resource Diagnostic Settings |
+| ResourceDiagnosticSettings | `AZSC/ARMChild/ResourceDiagnosticSettings` | Resource Diagnostic Settings |
 | ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` | Scheduled Queries |
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` | Smart Detector Alerts |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` | Subscription Diagnostics |

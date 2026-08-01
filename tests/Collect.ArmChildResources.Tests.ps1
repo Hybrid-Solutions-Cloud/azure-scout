@@ -136,8 +136,14 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/AppInsightsProactiveDetection'
             'AZSC/ARMChild/LAWorkspaceLinkedServices'
             'AZSC/ARMChild/LAWorkspaceSavedSearches'
+            # AB#6769. The Log Analytics workspace in $script:Parents is one of the twenty parent
+            # types the diagnostic-settings sweep is scoped to, so it emits here too. This entry
+            # is the canary for that scope: if a type is ever added to
+            # $DiagnosticSettingParentTypes that also appears above, this list grows and the run
+            # got more expensive.
+            'AZSC/ARMChild/ResourceDiagnosticSettings'
         )
-        $Rows.Count | Should -Be 13 -Because 'MLEndpoints emits one online and one batch endpoint'
+        $Rows.Count | Should -Be 14 -Because 'MLEndpoints emits one online and one batch endpoint, and the LA workspace also yields a diagnostic setting'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {

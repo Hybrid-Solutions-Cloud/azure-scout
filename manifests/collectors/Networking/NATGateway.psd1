@@ -53,6 +53,10 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.subnets'
+            # AB#6845: a NAT gateway associated with no subnet is a paid, idle resource and one
+            # of the clearest cost findings the report can surface -- and it was the single case
+            # this loop dropped. It now appears with blank VNET/Subnet cells.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

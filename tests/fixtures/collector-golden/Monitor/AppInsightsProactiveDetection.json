@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "AppInsightsProactiveDetection",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "774e3208935f54173f9a4f3d9901aa375c7e636ba84f7f22ec73920bbb3cb0a2",
+  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
   "Rows": [
     "App Insights Name=s:appinsightsproactivedetection-t1a-parent|Custom Emails=s:res-item-0; res-item-1|Display Name=s:res-value|Enabled=s:Yes|Last Updated=s:2026-01-15|Resource Group=s:rg-fixture-01|Resource U=j:1|Rule Name=s:appinsightsproactivedetection-t1a|Send Email to Sub Owners=s:Yes|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
     "App Insights Name=s:appinsightsproactivedetection-t1b-parent|Custom Emails=s:res-item-0; res-item-1|Display Name=s:res-value|Enabled=s:Yes|Last Updated=s:2026-01-15|Resource Group=s:rg-fixture-01|Resource U=j:1|Rule Name=s:appinsightsproactivedetection-t1b|Send Email to Sub Owners=s:Yes|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",

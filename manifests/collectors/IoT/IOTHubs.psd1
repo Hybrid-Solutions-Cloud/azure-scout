@@ -54,6 +54,11 @@ $ResUCount = 1
         @{
             Variable = 'loc'
             Source = '$data.locations'
+            # AB#6845: `locations` describes the hub's primary/secondary replication roles, and
+            # only the 'Location' and 'Role' columns come from it. Without this, a hub whose
+            # payload omits it lost its SKU, state, retention, host name and tags as well -- the
+            # entire hub disappeared to save two cells.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

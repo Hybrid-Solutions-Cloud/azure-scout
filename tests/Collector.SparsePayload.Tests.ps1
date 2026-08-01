@@ -106,6 +106,55 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     @{ Category = 'Networking'; Name = 'NetworkSecurityGroup'; Type = 'microsoft.network/networksecuritygroups'
        Properties = @{ provisioningState = 'Succeeded' }
        Because = 'split associated subnet ids on an NSG associated with nothing' }
+
+    # AB#6845 CONTINUED — the rest of the vanishing-parent audit, proved the honest way. Every one
+    # of these fans its row out over a child collection, and the payloads below OMIT that
+    # collection exactly as Azure does. Two mechanisms keep the parent: the newly added
+    # `EmitNullWhenEmpty`, and the older sentinel idiom (`$Auths = if(...){...}else{'0'}`) that 26
+    # loops already had. Both are behaviour, not structure, so both are asserted here rather than
+    # inferred — tests/Collector.VanishingParent.Tests.ps1 carries the structural half.
+    @{ Category = 'Compute'; Name = 'AvailabilitySets'; Type = 'microsoft.compute/availabilitysets'
+       Properties = @{ platformFaultDomainCount = 2; platformUpdateDomainCount = 5 }
+       Because = 'an availability set with no VMs is exactly the one the Orphaned column exists to flag, and it was the one being dropped' }
+    @{ Category = 'Containers'; Name = 'ContainerAppEnv'; Type = 'microsoft.app/managedenvironments'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'workloadProfiles is absent on every Consumption-only environment, which is the default plan' }
+    @{ Category = 'Containers'; Name = 'ContainerGroups'; Type = 'microsoft.containerinstance/containergroups'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a failed or mid-creation container group has no containers array' }
+    @{ Category = 'Networking'; Name = 'NATGateway'; Type = 'microsoft.network/natgateways'
+       Properties = @{ idleTimeoutInMinutes = 4 }
+       Because = 'a NAT gateway associated with no subnet is a paid idle resource and a cost finding' }
+    @{ Category = 'Networking'; Name = 'RouteTables'; Type = 'microsoft.network/routetables'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'an empty route table is legitimate — created ahead of its routes, or kept only to disable BGP propagation' }
+    @{ Category = 'Networking'; Name = 'VirtualNetwork'; Type = 'microsoft.network/virtualnetworks'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a VNet with no subnets still has to appear on the only worksheet a VNet appears on' }
+    @{ Category = 'Networking'; Name = 'NetworkInterface'; Type = 'microsoft.network/networkinterfaces'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a NIC detached from a deleted VM has no readable ipConfigurations, and an orphan NIC is a cost finding' }
+    @{ Category = 'Web'; Name = 'APPServices'; Type = 'microsoft.web/sites'
+       Properties = @{ state = 'Running' }
+       Because = 'an app service still provisioning has no hostNameSslStates, and losing three columns must not lose the app' }
+    @{ Category = 'Security'; Name = 'Vault'; Type = 'microsoft.keyvault/vaults'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a key vault on RBAC rather than access policies has no accessPolicies — the sentinel idiom must keep holding' }
+    @{ Category = 'Networking'; Name = 'ExpressRoute'; Type = 'microsoft.network/expressroutecircuits'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a circuit with no authorizations must still be inventoried' }
+    @{ Category = 'Networking'; Name = 'LoadBalancer'; Type = 'microsoft.network/loadbalancers'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a load balancer with no frontend IP configuration must still be inventoried' }
+    @{ Category = 'Networking'; Name = 'AzureFirewall'; Type = 'microsoft.network/azurefirewalls'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a firewall whose policy carries no rule collection groups must still be inventoried' }
+    @{ Category = 'Networking'; Name = 'PrivateDNS'; Type = 'microsoft.network/privatednszones'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a private DNS zone with no virtual network links is an orphan worth reporting, not one to hide' }
+    @{ Category = 'Storage'; Name = 'StorageAccounts'; Type = 'microsoft.storage/storageaccounts'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'an account with no network ACL virtual network rules — the default — must still be inventoried' }
 ) {
     It '<Category>/<Name> still emits its row' {
         $Row = New-SparseArgRow -Type $Type -Name 'res-one' -Properties $Properties
@@ -125,9 +174,10 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
         # array" instead of "the collector produced no rows".
         $Rows = @(Invoke-CollectorOnRow -Category $Category -Name $Name -Row $Row)
         # The column carrying the resource name is NOT called 'Name' everywhere — Containers/AKS
-        # calls its 'Clusters'. Resolve it from the row rather than assuming, so the assertion
-        # cannot quietly read $null off a column that does not exist and be satisfied by it.
-        $NameColumn = @('Name', 'Clusters', 'Cluster Name') | Where-Object { $Rows[0].Contains($_) } | Select-Object -First 1
+        # calls its 'Clusters' and Containers/ContainerGroups its 'Instance Name'. Resolve it from
+        # the row rather than assuming, so the assertion cannot quietly read $null off a column
+        # that does not exist and be satisfied by it.
+        $NameColumn = @('Name', 'Clusters', 'Cluster Name', 'Instance Name') | Where-Object { $Rows[0].Contains($_) } | Select-Object -First 1
         $NameColumn | Should -Not -BeNullOrEmpty -Because "$Category/$Name must have a column naming the resource"
         $Rows[0][$NameColumn] | Should -Be 'res-one' -Because "$Category/$Name must still identify the resource"
         $Rows[0]['Location'] | Should -Be 'eastus'

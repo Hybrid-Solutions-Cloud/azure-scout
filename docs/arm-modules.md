@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **236 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **240 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -183,7 +183,7 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` |
 | VirtualMachines | `microsoft.azurestackhci/virtualmachineinstances` |
 
-### Identity (16 modules)
+### Identity (17 modules)
 
 Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.
 
@@ -202,6 +202,7 @@ Entra ID via Microsoft Graph — users, groups, app registrations, Conditional A
 | NamedLocations | `entra/namedlocations` |
 | PIMAssignments | `entra/pimassignments` |
 | RiskyUsers | `entra/riskyusers` |
+| RoleAssignments | `AZSC/Governance/RoleAssignment` |
 | SecurityPolicies | `entra/securitypolicies` |
 | ServicePrincipals | `entra/serviceprincipals` |
 | Users | `entra/users` |
@@ -236,7 +237,7 @@ IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defe
 | IOTHubs | `microsoft.devices/iothubs` |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
 
-### Management (18 modules)
+### Management (21 modules)
 
 Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.
 
@@ -247,6 +248,7 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 | AutomationAccounts | `microsoft.automation/automationaccounts` |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` |
+| Budgets | `AZSC/Governance/Budget` |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
 | DevOpsAgentPools | `devops/agentpools` |
 | DevOpsPipelines | `devops/pipelines` |
@@ -256,10 +258,12 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 | LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` |
 | ManagementGroups | `AZSC/Management/ManagementGroup` |
+| PolicyAssignments | `AZSC/Governance/PolicyAssignment` |
 | PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` |
 | PolicyDefinitions | `AZSC/Management/PolicyDefinition` |
 | PolicySetDefinitions | `AZSC/Management/PolicySetDefinition` |
 | RecoveryVault | `microsoft.recoveryservices/vaults` |
+| ResourceLocks | `AZSC/Governance/ResourceLock` |
 
 ### Migration (6 modules)
 
@@ -297,7 +301,7 @@ Alert rules, Application Insights, data collection rules, diagnostic settings, a
 | MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` |
 | MonitorWorkbooks | `microsoft.insights/workbooks` |
 | Outages | `AZSC/Monitor/Outage` |
-| ResourceDiagnosticSettings | `microsoft.insights/diagnosticsettings` |
+| ResourceDiagnosticSettings | `AZSC/ARMChild/ResourceDiagnosticSettings` |
 | ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` |
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` |

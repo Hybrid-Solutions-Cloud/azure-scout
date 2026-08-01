@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "PolicySetDefinitions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "8f9281d27b72ff02a4da777bb25b62617727b6d67b767333d480fd8e5e9f1ad3",
+  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
   "Rows": [
     "Category=s:Uncategorized|Description=<null>|Display Name=<null>|ID=<null>|Management Group=<null>|Name=<null>|Parameters=s:None|Policy Count=j:0|Policy Definition Groups=j:0|Policy References=s:None|Policy Type=<null>|Resource U=j:1|Subscription=<null>|Version=s:N/A",
     "Category=s:Uncategorized|Description=<null>|Display Name=<null>|ID=<null>|Management Group=<null>|Name=<null>|Parameters=s:None|Policy Count=j:0|Policy Definition Groups=j:0|Policy References=s:None|Policy Type=<null>|Resource U=j:1|Subscription=<null>|Version=s:N/A",

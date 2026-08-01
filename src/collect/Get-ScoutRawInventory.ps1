@@ -64,6 +64,16 @@ $ErrorActionPreference = 'Stop'
     Arc-enabled servers. Read-only: this reads what Update Manager already recorded and never
     asks a machine to run a scan.
 
+.PARAMETER IncludeLighthouseDelegations
+    Also collect `managedserviceresources` filtered to
+    `microsoft.managedservices/registrationdefinitions` -- the Azure Lighthouse delegation
+    definitions that name the managing tenant and the roles it holds in this one.
+
+    This is its own ARG table for the same reason `recoveryservicesresources` is: the type is
+    NOT in `resources`, so no amount of querying `resources` returns it. Scout declared the type
+    on `Management/LighthouseDelegations` but read no table that carries it, so that worksheet
+    was empty on every run (AB#6771).
+
 .PARAMETER IncludeAdvisories
     Also collect `advisorresources` filtered to Medium/High impact, matching the legacy
     `-SkipAdvisory:$false` default.
@@ -245,6 +255,7 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeBackupResources,
         [switch]   $IncludeDesktopVirtualization,
         [switch]   $IncludeUpdateManagerResources,
+        [switch]   $IncludeLighthouseDelegations,
         [switch]   $IncludeAdvisories,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
@@ -505,6 +516,29 @@ function Get-ScoutRawInventory {
         foreach ($row in (Invoke-ScoutRawTable -Query $patchInstallQuery -LoopName 'Update Manager: Installations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
+    # ---- Azure Lighthouse delegations (AB#6771) ----
+    # `managedserviceresources` carries exactly two types -- registrationassignments (the scope a
+    # delegation is applied to) and registrationdefinitions (the offer: managing tenant id plus
+    # the authorizations it grants). Management/LighthouseDelegations renders the definitions, so
+    # that is what this filters to; pulling the assignments as well would double the row count
+    # with rows no collector consumes.
+    #
+    # NO `| project $columns` here, deliberately, and it is the one thing to be careful about if
+    # this query is ever edited. A `project` naming a column the table does not define fails the
+    # WHOLE query, and this table's schema is not guaranteed to match the resources-table
+    # projection that `$columns` renders (`zones`/`extendedLocation`/`plan` in particular). The
+    # patch* tables above skip the projection for the same reason. Unprojected rows carry every
+    # column the table defines, which is a superset of what the collector reads -- id, name,
+    # subscriptionId, tags and properties.
+    #
+    # The tag clause is omitted to match the other non-`resources` tables; the resource-group and
+    # management-group clauses are applied so a scoped run stays scoped. A delegation is
+    # subscription-scoped, so a -ResourceGroup run legitimately returns none.
+    if ($IncludeLighthouseDelegations) {
+        $lighthouseQuery = "managedserviceresources $rgClause | where type =~ 'microsoft.managedservices/registrationdefinitions' $mgJoinClause | order by id asc"
+        foreach ($row in (Invoke-ScoutRawTable -Query $lighthouseQuery -LoopName 'Lighthouse Delegations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    }
+
     $advisories = @()
     if ($IncludeAdvisories) {
         $advisorQuery = "advisorresources $rgClause $mgJoinClause | where properties.impact in~ ('Medium','High') | order by id asc"
@@ -539,20 +573,8 @@ function Get-ScoutRawInventory {
     # a new top-level contract. The assessment shaper ignores unknown AZSC/* types, so opting
     # into these inventory-only rows cannot alter assessment-shaped output.
     #
-    # Outage description normalisation is deliberately unconditional: it is a pure,
-    # cross-platform transform of Resource Graph rows already in memory, and the collector's
-    # only former dependency was the Windows HTMLFile COM object. The original event rows stay
-    # intact; the typed envelopes are consumed exclusively by Monitor/Outages.
-    if (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutOutageResource' -FileName 'Get-ScoutOutageResource.ps1') {
-        try {
-            foreach ($row in @(Get-ScoutOutageResource -Resources @($resources))) {
-                if ($null -ne $row) { $resources.Add($row) }
-            }
-        }
-        catch {
-            Write-Warning "Get-ScoutRawInventory: outage normalisation failed; continuing with the raw Resource Health events: $($_.Exception.Message)"
-        }
-    }
+    # NOTE: outage normalisation used to sit HERE and has moved below the ARM REST sweep --
+    # see the AB#6770 block near the end of this function for why.
 
     if ($IncludeArmChildResources -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutArmChildResource' -FileName 'Get-ScoutArmChildResource.ps1')) {
         try {
@@ -675,6 +697,81 @@ function Get-ScoutRawInventory {
         }
     }
 
+    # ── Outage narrative normalisation — AB#6770 ──────────────────────────────────────────────
+    #
+    # This block MUST run after the ARM REST sweep above, and it used to run ~120 lines before
+    # it. That ordering is the whole defect: `Microsoft.ResourceHealth/events` is not in the
+    # `resources` or `networkresources` tables this function queries -- Resource Graph exposes
+    # service-health events only through `servicehealthresources`, which Scout does not query,
+    # and the events Scout DOES collect arrive from Get-ScoutApiResources' `ResourceHealth`
+    # field. So the transform ran against a row set that could never contain a single event,
+    # emitted nothing, and Monitor/Outages was empty in every tenant on every run at every
+    # permission level. Nothing threw, because "no matching rows" is a legal outcome here.
+    #
+    # It is still a pure transform -- no Azure request is made in this block -- and it is still
+    # unconditional; only its INPUT changed. The raw events are deliberately NOT appended to
+    # $resources: Start-AZTIExtractionOrchestration already appends them from the same sweep
+    # (via the ApiResources field returned below), and adding them here would duplicate every
+    # event row on the inventory path.
+    $resourceHealthEvents = [System.Collections.Generic.List[object]]::new()
+    foreach ($sweepResult in @($collectedApiResources)) {
+        if ($null -eq $sweepResult) { continue }
+        # Element-wise, never `$collectedApiResources.ResourceHealth`: member enumeration over a
+        # collection whose every element yields an EMPTY value throws under StrictMode, which is
+        # the AB#5633 crash class. A subscription with no events is the normal case here.
+        $healthProperty = $sweepResult.PSObject.Properties['ResourceHealth']
+        if ($null -eq $healthProperty -or $null -eq $healthProperty.Value) { continue }
+        foreach ($healthEvent in @($healthProperty.Value)) {
+            if ($null -ne $healthEvent) { $resourceHealthEvents.Add($healthEvent) }
+        }
+    }
+
+    if (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutOutageResource' -FileName 'Get-ScoutOutageResource.ps1') {
+        try {
+            $outageInput = @(@($resources) + @($resourceHealthEvents))
+            foreach ($row in @(Get-ScoutOutageResource -Resources $outageInput)) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: outage normalisation failed; continuing with the raw Resource Health events: $($_.Exception.Message)"
+        }
+    }
+
+    # ── Governance collection — UNCONDITIONAL, and collected exactly ONCE ─────────────────────
+    #
+    # Role assignments, policy assignments, resource locks and budgets used to be collected by
+    # src/ingest/Import-Governance.ps1 on every assessment run and rendered nowhere: no collector
+    # consumed them, so a run could not answer "who has Owner" while holding the answer in memory
+    # (AB#6779).
+    #
+    # Collecting them HERE rather than there is what makes the four new worksheets free. The two
+    # Resource Graph queries and the two ARM REST reads per subscription MOVED out of
+    # Import-Governance into this pass; Invoke-Collect hands the result straight to
+    # $collect.governance, and Import-Governance now skips whatever is already populated. An
+    # assessment run therefore issues exactly the same number of calls it did before, and the
+    # inventory run gains four worksheets from data it is already paying for.
+    #
+    # Unconditional for the same reason the tenant-wide block above is: an assessment that scores
+    # governance against an empty array and reports a pass is worse than one that fails loudly, so
+    # its inputs must not sit behind a switch.
+    $governance = $null
+    if ((Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutGovernanceDataset' -FileName 'Get-ScoutGovernanceDataset.ps1') -and
+        (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutGovernanceResource' -FileName 'ConvertTo-ScoutGovernanceResource.ps1')) {
+        try {
+            $governanceArgs = @{ Subscriptions = $subscriptionEnvelopes }
+            if ($ManagementGroupId) { $governanceArgs.ManagementGroupId = $ManagementGroupId }
+            $governance = Get-ScoutGovernanceDataset @governanceArgs
+
+            foreach ($row in @(ConvertTo-ScoutGovernanceResource -Governance $governance -Subscriptions $subscriptionEnvelopes)) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: governance collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
     if (@($resources).Count -eq 0 -and @($resourceContainers).Count -eq 0) {
         Write-Warning ('Get-ScoutRawInventory: extraction returned zero resources. Verify the identity has Reader ' +
             'at the target scope (root management group for full coverage) and that -ManagementGroupId/-SubscriptionIds is correct.')
@@ -687,5 +784,8 @@ function Get-ScoutRawInventory {
         Security           = @($security)
         Retirements        = @($retirements)
         ApiResources       = @($collectedApiResources)
+        # AB#6779 -- the governance datasets this pass just collected, handed up so Invoke-Collect
+        # fills $collect.governance from them instead of Import-Governance querying Azure again.
+        Governance         = $governance
     }
 }

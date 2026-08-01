@@ -75,11 +75,20 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '(Get-AZSCSafeProperty -InputObject $data -Path ''template'')'
+            # AB#6845: no field reads $2 at all -- it exists only to reach `template.containers`
+            # below -- so an app whose payload omits `template` (a revision that never deployed,
+            # or a truncated response) contributed nothing but its own disappearance from the
+            # Container Apps worksheet.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
         @{
             Variable = '3'
             Source = '(Get-AZSCSafeProperty -InputObject $2 -Path ''containers'')'
+            # AB#6845: likewise for the containers within the template. The app is the resource
+            # being inventoried; its container images and sizes are detail, and an app with no
+            # readable container list must still appear with those columns blank.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

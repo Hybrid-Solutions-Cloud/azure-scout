@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "ResourceLocks",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
+  "Rows": [
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
+    "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tScope Type\tProtects\tLock Name\tLock Level\tNotes\tResource U\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tScope Type\tProtects\tLock Name\tLock Level\tNotes\tResource U\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1\nSubscription value\tScope Type value\tProtects value\tLock Name value\tLock Level value\tNotes value\t1"
+    ]
+  }
+}

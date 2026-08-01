@@ -44,7 +44,11 @@ $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobje
 '@
 
     AdditionalRowLoops = @(
-        @{ Variable = '2'; Source = '$vhub'; Preamble = '' }
+        # AB#6845: loop 3 was already guarded; loop 2 was not, so a virtual WAN whose hubs are
+        # absent from the collected set -- a WAN created before its first hub, or one whose hubs
+        # sit outside the requested scope -- disappeared from the worksheet even though loop 3
+        # was carefully written to keep it when its VPN sites were missing.
+        @{ Variable = '2'; Source = '$vhub'; EmitNullWhenEmpty = $true; Preamble = '' }
         @{ Variable = '3'; Source = '$vpn'; EmitNullWhenEmpty = $true; Preamble = '' }
     )
     TagLoop = @{ Variable = 'Tag'; Source = '$Tags'; Preamble = '' }

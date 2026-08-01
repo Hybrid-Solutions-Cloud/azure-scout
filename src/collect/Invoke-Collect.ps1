@@ -813,6 +813,31 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         }
     }
 
+    # ---- governance, collected once by the raw pass (AB#6779) ---------------------------------
+    # Role assignments, policy assignments, resource locks and budgets used to be collected by
+    # Import-Governance, which ran AFTER this function and threw the rows away as soon as the
+    # rules had read them -- no collector rendered them, so no worksheet could answer "who has
+    # Owner". Get-ScoutRawInventory now collects them (so the four new inventory collectors have
+    # something to render) and hands them up here; Import-Governance skips whatever it finds
+    # already populated below. The queries MOVED; none was added.
+    #
+    # Empty when no raw pass ran at all (-Source TypedQueries), in which case Import-Governance
+    # collects them exactly as it always did.
+    $rawGovernance = [pscustomobject]@{
+        roleAssignments = @(); policyAssignments = @(); budgets = @(); resourceLocks = @()
+    }
+    if ($rawInventory -and $rawInventory.PSObject.Properties['Governance'] -and $rawInventory.Governance) {
+        $governanceSource = $rawInventory.Governance
+        foreach ($key in @('roleAssignments', 'policyAssignments', 'budgets', 'resourceLocks')) {
+            if ($governanceSource.PSObject.Properties[$key]) {
+                $rawGovernance.$key = @($governanceSource.$key | Where-Object { $_ })
+            }
+        }
+        Write-Verbose ('Invoke-Collect: governance came from the raw pass (AB#6779) -- roleAssignments={0} policyAssignments={1} budgets={2} resourceLocks={3}; Import-Governance will not re-query them.' -f `
+                $rawGovernance.roleAssignments.Count, $rawGovernance.policyAssignments.Count,
+                $rawGovernance.budgets.Count, $rawGovernance.resourceLocks.Count)
+    }
+
     $inventoryShaped = @{}
     if ($rawInventory) {
         if (-not (Get-Command ConvertFrom-ScoutInventory -ErrorAction SilentlyContinue)) {
@@ -983,8 +1008,12 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         }
         security      = [pscustomobject]@{ defenderPlans = @() }
         governance    = [pscustomobject]@{
-            managementGroups = @(); policyAssignments = @(); roleAssignments = @()
-            budgets = @(); resourceLocks = @(); pimEligibility = @(); classicAdministrators = @()
+            managementGroups = @()
+            policyAssignments = $rawGovernance.policyAssignments
+            roleAssignments = $rawGovernance.roleAssignments
+            budgets = $rawGovernance.budgets
+            resourceLocks = $rawGovernance.resourceLocks
+            pimEligibility = @(); classicAdministrators = @()
         }
         costCleanup   = [pscustomobject]@{ orphanedDisks = $r.orphanedDisks; orphanedPips = $r.orphanedPips }
         opsPosture    = [pscustomobject]@{ diagnosticCoverage = $r.diagnosticCoverage }

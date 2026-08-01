@@ -246,6 +246,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1e-1/Budget/budgets-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1e-1/PolicyAssignment/policyassignments-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1e-1/ResourceLock/resourcelocks-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1f-1/ResourceLock/resourcelocks-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1f-1/ResourceLock/resourcelocks-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1403,6 +1439,243 @@
           "PARENTNAME": "res-value",
           "TYPE": "AZSC/ARMChild/BackupInstances",
           "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "Budgets": {
+      "resources": [
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1a",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1a-1/Budget/budgets-t1a-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1b",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1b-1/Budget/budgets-t1b-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1c",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1c-1/Budget/budgets-t1c-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {}
+        },
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1d",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1d-1/Budget/budgets-t1d-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1e",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1e-1/Budget/budgets-t1e-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "NAME": "budgets-t1f",
+          "Category": "res-value",
+          "Amount": "res-value",
+          "Currency": "res-value",
+          "Time Grain": "res-value",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
+          "Current Spend": "res-value",
+          "Forecast Spend": "res-value",
+          "Budget Used %": "res-value",
+          "Alerts Configured": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
+          "TYPE": "AZSC/Governance/Budget",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Name": "Name value",
+              "Category": "Category value",
+              "Amount": "Amount value",
+              "Currency": "Currency value",
+              "Time Grain": "Time Grain value",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
+              "Current Spend": "Current Spend value",
+              "Forecast Spend": "Forecast Spend value",
+              "Budget Used %": "Budget Used % value",
+              "Alerts Configured": "Alerts Configured value",
+              "ID": "ID value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -3098,6 +3371,249 @@
         }
       ]
     },
+    "PolicyAssignments": {
+      "resources": [
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1a-1/PolicyAssignment/policyassignments-t1a-2",
+          "NAME": "policyassignments-t1a",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1b-1/PolicyAssignment/policyassignments-t1b-2",
+          "NAME": "policyassignments-t1b",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1c-1/PolicyAssignment/policyassignments-t1c-2",
+          "NAME": "policyassignments-t1c",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {}
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1d-1/PolicyAssignment/policyassignments-t1d-2",
+          "NAME": "policyassignments-t1d",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1e-1/PolicyAssignment/policyassignments-t1e-2",
+          "NAME": "policyassignments-t1e",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Assignment Name": "res-value",
+          "Display Name": "res-value",
+          "Assigned": "res-value",
+          "Definition": "res-value",
+          "Enforcement Mode": "res-value",
+          "Excluded Scopes": "res-value",
+          "Parameters": "res-value",
+          "Description": "res-value",
+          "Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
+          "NAME": "policyassignments-t1f",
+          "TYPE": "AZSC/Governance/PolicyAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Assignment Name": "Assignment Name value",
+              "Display Name": "Display Name value",
+              "Assigned": "Assigned value",
+              "Definition": "Definition value",
+              "Enforcement Mode": "Enforcement Mode value",
+              "Excluded Scopes": "Excluded Scopes value",
+              "Parameters": "Parameters value",
+              "Description": "Description value",
+              "Definition ID": "Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "PolicyComplianceStates": {
       "resources": [
         {
@@ -3905,6 +4421,177 @@
             "tier": "res-value"
           },
           "TYPE": "microsoft.recoveryservices/vaults"
+        }
+      ]
+    },
+    "ResourceLocks": {
+      "resources": [
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1a-1/ResourceLock/resourcelocks-t1a-2",
+          "NAME": "resourcelocks-t1a",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1b-1/ResourceLock/resourcelocks-t1b-2",
+          "NAME": "resourcelocks-t1b",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1c-1/ResourceLock/resourcelocks-t1c-2",
+          "NAME": "resourcelocks-t1c",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {}
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1d-1/ResourceLock/resourcelocks-t1d-2",
+          "NAME": "resourcelocks-t1d",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1e-1/ResourceLock/resourcelocks-t1e-2",
+          "NAME": "resourcelocks-t1e",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Protects": "res-value",
+          "Lock Name": "res-value",
+          "Lock Level": "res-value",
+          "Notes": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1f-1/ResourceLock/resourcelocks-t1f-2",
+          "NAME": "resourcelocks-t1f",
+          "TYPE": "AZSC/Governance/ResourceLock",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Protects": "Protects value",
+              "Lock Name": "Lock Name value",
+              "Lock Level": "Lock Level value",
+              "Notes": "Notes value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     }

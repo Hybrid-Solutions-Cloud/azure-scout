@@ -88,54 +88,100 @@ resourcecontainers
     }
     catch { Write-Warning "Import-Governance: management-group query failed: $($_.Exception.Message)" }
 
+    # ---- what the collect pass already handed over (AB#6779) ----------------------------------
+    # Four of the six datasets below are now collected by Get-ScoutRawInventory, because the four
+    # inventory collectors that render them (Identity/RoleAssignments, Management/PolicyAssignments,
+    # Management/ResourceLocks, Management/Budgets) run over the raw pass's resource rows, not over
+    # collect.json. Invoke-Collect puts them on $Collect.governance before this function is called.
+    #
+    # Re-querying them here would be four round trips for rows already in memory -- exactly the
+    # duplication AB#6773 spent a release removing -- so each one is skipped when it is already
+    # populated. Nothing is skipped when it is EMPTY: an empty array is indistinguishable from
+    # "the raw pass never ran" (-Source TypedQueries, -FromCollect on an old file), and quietly
+    # reporting zero role assignments would be the worst possible failure mode for a governance
+    # assessment.
+    #
+    # Every return carries the unary comma. A bare `return @()` is pipeline-UNROLLED to zero output
+    # objects, so the caller captures $null and `$policy.Count` is a StrictMode throw rather than 0
+    # -- the same idiom Invoke-Collect's Invoke-CollectQuery already documents.
+    function Get-GovAlreadyCollected([string] $Name) {
+        if (-not $Collect.PSObject.Properties['governance'] -or $null -eq $Collect.governance) { return , @() }
+        if (-not $Collect.governance.PSObject.Properties[$Name]) { return , @() }
+        return , @($Collect.governance.$Name | Where-Object { $_ })
+    }
+
     # 2) policy assignments - keep the nested `properties` object so rule JSONPaths
     #    (@.properties.enforcementMode / .parameters / .displayName) resolve unchanged.
-    $policy = @()
-    try {
-        $policy = Invoke-GovArg @'
+    $policy = Get-GovAlreadyCollected 'policyAssignments'
+    if ($policy.Count -gt 0) {
+        Write-Verbose "Import-Governance: reusing $($policy.Count) policy assignments from the collect pass (AB#6779)."
+    }
+    else {
+        try {
+            $policy = Invoke-GovArg @'
 policyresources
 | where type =~ "microsoft.authorization/policyassignments"
 | project name, id, type, properties
 '@
+        }
+        catch { Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)" }
     }
-    catch { Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)" }
 
     # 3) role assignments - properties.principalType drives CAF-IDN-01/05.
-    $roles = @()
-    try {
-        $roles = Invoke-GovArg @'
+    $roles = Get-GovAlreadyCollected 'roleAssignments'
+    if ($roles.Count -gt 0) {
+        Write-Verbose "Import-Governance: reusing $($roles.Count) role assignments from the collect pass (AB#6779)."
+    }
+    else {
+        try {
+            $roles = Invoke-GovArg @'
 authorizationresources
 | where type =~ "microsoft.authorization/roleassignments"
 | project name, id, type, properties
 '@
+        }
+        catch { Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)" }
     }
-    catch { Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)" }
 
     # 4/5) budgets + resource locks - neither is indexed by Resource Graph, so pull
     #      them per subscription via the ambient ARM token (Invoke-AzRestMethod uses
     #      the current Az context; works headless under an SPN login). Read-only GET.
-    $budgets = @(); $locks = @()
+    $budgets = Get-GovAlreadyCollected 'budgets'
+    $locks = Get-GovAlreadyCollected 'resourceLocks'
     $subIds = @($Collect.subscriptions | ForEach-Object {
             if ($_ -and $_.PSObject.Properties['id']) { $_.id }
         } | Where-Object { $_ })
+    # The two reads share a loop but are skipped INDEPENDENTLY. Skipping only when both are in
+    # hand would be wrong the other way round: appending a second copy of the budgets to a set the
+    # collect pass already supplied would double every budget row.
+    $budgetsReused = $budgets.Count -gt 0
+    $locksReused = $locks.Count -gt 0
+    if ($budgetsReused -or $locksReused) {
+        Write-Verbose "Import-Governance: reusing $($budgets.Count) budgets and $($locks.Count) resource locks from the collect pass (AB#6779)."
+    }
+    if ($budgetsReused -and $locksReused) { $subIds = @() }
     foreach ($sub in $subIds) {
-        try {
-            $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Consumption/budgets?api-version=2023-11-01"
-            if ($resp.StatusCode -eq 200) {
-                $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
-                if ($val) { $budgets += $val }
+        if (-not $budgetsReused) {
+            try {
+                $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Consumption/budgets?api-version=2023-11-01"
+                if ($resp.StatusCode -eq 200) {
+                    $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
+                    if ($val) { $budgets += $val }
+                }
             }
+            catch { Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)" }
         }
-        catch { Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)" }
 
-        try {
-            $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Authorization/locks?api-version=2020-05-01"
-            if ($resp.StatusCode -eq 200) {
-                $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
-                if ($val) { $locks += $val }
+        if (-not $locksReused) {
+            try {
+                $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Authorization/locks?api-version=2020-05-01"
+                if ($resp.StatusCode -eq 200) {
+                    $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
+                    if ($val) { $locks += $val }
+                }
             }
+            catch { Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)" }
         }
-        catch { Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)" }
     }
 
     # Normalize every dataset to a clean array of real objects. The paged ARG

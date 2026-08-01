@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "SubscriptionDiagnosticSettings",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "774e3208935f54173f9a4f3d9901aa375c7e636ba84f7f22ec73920bbb3cb0a2",
+  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
   "Rows": [
     "Categories Enabled=s:0 / 1|Destinations=s:Log Analytics: res-value; Storage: res-value; Event Hub: res-value; Partner: res-value|Diagnostic Setting Name=s:res-value|Enabled Log Categories=s:None|Event Hub=s:res-value|ID=<null>|Log Analytics Workspace=s:res-value|Partner Solution=s:res-value|Resource U=j:1|Storage Account=s:res-value|Subscription=s:res-value",
     "Categories Enabled=s:0 / 1|Destinations=s:Log Analytics: res-value; Storage: res-value; Event Hub: res-value; Partner: res-value|Diagnostic Setting Name=s:res-value|Enabled Log Categories=s:None|Event Hub=s:res-value|ID=<null>|Log Analytics Workspace=s:res-value|Partner Solution=s:res-value|Resource U=j:1|Storage Account=s:res-value|Subscription=s:res-value",

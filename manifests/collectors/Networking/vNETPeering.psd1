@@ -28,16 +28,31 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.addressSpace.addressPrefixes'
+            # AB#6845: this is the LOCAL VNet's address space, not the peering's. A VNet whose
+            # addressSpace is absent from the payload lost every one of its peerings, because
+            # loop 4 is nested inside this one and never ran.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
         @{
             Variable = '4'
             Source = '$data.virtualNetworkPeerings'
+            # AB#6845 -- DELIBERATELY NOT GUARDED. Unlike every other loop fixed under this bug,
+            # the row here IS the child: this worksheet is an inventory of PEERINGS, and a VNet
+            # with none has nothing to say on it. Nor is the VNet lost by staying out -- it has
+            # its own worksheet in Networking/VirtualNetwork, which is where an unpeered VNet
+            # belongs. A parent-only row would put a VNet on the peering sheet with every peering
+            # column blank, which reads as a broken peering rather than an absent one.
             Preamble = ''
         }
         @{
             Variable = '5'
             Source = '$4.properties.remoteAddressSpace.addressPrefixes'
+            # AB#6845: the remote address space is an ATTRIBUTE of a peering that does exist, and
+            # it is genuinely absent whenever the remote VNet uses `ipamPoolPrefixAllocations` or
+            # the peering is still Initiated. Dropping the row lost a real peering -- including
+            # its state, the very column an operator opens this sheet for.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

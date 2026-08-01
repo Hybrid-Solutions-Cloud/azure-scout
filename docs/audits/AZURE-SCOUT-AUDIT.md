@@ -954,9 +954,33 @@ customer actually asks about is not a "service" at all and can never appear in t
 > parent resource *disappears from the worksheet*: no error, no warning, just a plausible smaller
 > report. **43 collectors have a child row loop and 41 never set `EmitNullWhenEmpty`**, the key
 > that exists to emit the parent anyway. `Containers/AKS` was fixed on the spot — a cluster
-> vanishing from an inventory is indefensible — and the remaining 40 need a per-collector reading,
-> because the answer turns on whether the parent has meaning without its children (an AKS cluster
-> does; a loop over NSG rules does not).
+> vanishing from an inventory is indefensible — and the rest were then read one by one, because
+> the answer turns on whether the parent has meaning without its children.
+>
+> **That reading is now done and the class is closed.** Of the 50 child row loops in the estate,
+> **26 never had the defect**: their source variable is assigned through a conditional with a
+> non-empty fallback (`$Auths = if(...){$data.authorizations}else{'0'}`), so the loop always runs at
+> least once. **18 loops across 15 collectors did have it and are fixed.** **Three are deliberately
+> left unguarded**, because there the row IS the child rather than the parent — both `General/Quotas`
+> loops (the parent is a synthetic quota envelope whose every column is read off the loop variable)
+> and `Networking/vNETPeering`'s peering loop (that worksheet inventories peerings; an unpeered VNet
+> belongs on the Virtual Networks sheet, where it already appears).
+>
+> **The initial guess about which collectors mattered was wrong in both directions**, which is the
+> argument for reading rather than sweeping. The NSG loop cited above as an example of one that
+> should NOT emit a parent row turned out to need no change at all — it already had the sentinel
+> idiom. Meanwhile `Containers/ContainerAppEnv` fanned out over `workloadProfiles`, absent on every
+> **Consumption-plan** environment — the default — so this was never an edge case there:
+> those environments were simply missing from the report. `Compute/AvailabilitySets` computed
+> `Orphaned = $true` for a set with no VMs and then dropped the row, making the one condition the
+> collector exists to flag the one condition it could never report.
+>
+> Reaching previously unreachable code exposed two more defects behind it. `Monitor/Outages` and
+> `Management/AdvisorScore` each cast a payload value straight to `[datetime]`, which throws on
+> `$null`; the row had been dropped before the cast was reached. And `Networking/VirtualNetwork`
+> carried a switch whose `Default` branch was a bare `$null` — a harmless no-op in the original
+> imperative collector, but under the interpreter the row script's output stream IS the row set, so
+> it wrote a **phantom null row**. Twelve of them were sitting in its committed golden record.
 >
 > **Every one of these was found by widening the test, not by reading the code** — which is the
 > argument for AB#6840.
@@ -1821,7 +1845,7 @@ Where several rows share one provider page the same reference repeats — that i
 | AutomationAccounts | `microsoft.automation/automationaccounts` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Automation/automationAccounts/read` | Azure RBAC **Reader** | **Uncited** | n/a |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | `Get-ScoutRawInventory` (ARG `recoveryservicesresources`) | A | `Microsoft.RecoveryServices/vaults/backupPolicies/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftrecoveryservices` |
 | **CustomRoleDefinitions** ⚠️ | `AZSC/Management/RoleDefinition` | `Get-ScoutTenantWideResource` — `Get-AzRoleDefinition -Custom` | E | `Microsoft.Authorization/roleDefinitions/read` | Azure RBAC **Reader** at MG scope | **BROKEN** — gated on `-IncludeTenantWideResources`, a switch with no production caller (AB#6444 §6). Permission answer is moot until wired. | `permissions/management-and-governance#microsoftauthorization` |
-| **LighthouseDelegations** ⚠️ | `Microsoft.ManagedServices/registrationDefinitions` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.ManagedServices/registrationDefinitions/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6) | `permissions/management-and-governance#microsoftmanagedservices` |
+| LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` | `Get-ScoutRawInventory` (ARG `managedserviceresources`) | A | `Microsoft.ManagedServices/registrationDefinitions/read` | Azure RBAC **Reader** | Doc — was BROKEN (the type is real but no pass read the one table carrying it); fixed AB#6771 | `permissions/management-and-governance#microsoftmanagedservices` |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Maintenance/maintenanceConfigurations/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftmaintenance` |
 | **ManagementGroups** ⚠️ | `AZSC/Management/ManagementGroup` | `Get-ScoutTenantWideResource` — `Get-AzManagementGroup -Expand -Recurse` | E | `Microsoft.Management/managementGroups/read` | Azure RBAC **Reader assigned at MG scope**; whether **Management Group Reader** is additionally required is **unresolved** | **BROKEN** — same `-IncludeTenantWideResources` gate. The permission question is confounded by the defect: no run has ever exercised this path in production. | `permissions/management-and-governance#microsoftmanagement` |
 | PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` | `Get-ScoutSubscriptionSecurityPolicySweep` — `Get-AzPolicyState` | B | `Microsoft.PolicyInsights/policyStates/queryResults/read` | Azure RBAC **Reader** | Doc | `permissions/management-and-governance#microsoftpolicyinsights` |
@@ -1853,8 +1877,8 @@ Where several rows share one provider page the same reference repeats — that i
 | MonitorMetricsIngestion | `microsoft.operationalinsights/workspaces` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.OperationalInsights/workspaces/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftoperationalinsights` |
 | MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/privateLinkScopes/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
 | MonitorWorkbooks | `microsoft.insights/workbooks` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/workbooks/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
-| **Outages** ⚠️ | `AZSC/Monitor/Outage` | `Get-ScoutApiResources` — GET `/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01` → `Get-ScoutOutageResource` | D | `Microsoft.ResourceHealth/events/read` | Azure RBAC **Reader** | **BROKEN** — `Get-ScoutOutageResource` runs *before* the API merge, so it never sees the events (AB#6444 §6) | `permissions/management-and-governance#microsoftresourcehealth` |
-| **ResourceDiagnosticSettings** ⚠️ | `microsoft.insights/diagnosticsettings` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | **BROKEN** — emits zero rows regardless of permission (AB#6444 §6). Note: `diagnosticSettings` is an extension resource and is not returned by the ARG `resources` table. | `permissions/monitor#microsoftinsights` |
+| Outages | `AZSC/Monitor/Outage` | `Get-ScoutApiResources` — GET `/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01` → `Get-ScoutOutageResource` | D | `Microsoft.ResourceHealth/events/read` | Azure RBAC **Reader** | Doc — was BROKEN (the transform ran *before* the API sweep); fixed AB#6770 | `permissions/management-and-governance#microsoftresourcehealth` |
+| ResourceDiagnosticSettings | `AZSC/ARMChild/ResourceDiagnosticSettings` | `Get-ScoutArmChildResource` — GET `{resourceId}/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview` | B | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | Doc — was BROKEN (`diagnosticSettings` is an extension resource ARG indexes in no table); re-sourced AB#6769, scoped to 20 parent types | `permissions/monitor#microsoftinsights` |
 | ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.Insights/scheduledQueryRules/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` | `Get-ScoutRawInventory` (ARG `resources`) | A | `Microsoft.AlertsManagement/smartDetectorAlertRules/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftalertsmanagement` |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` | `Get-ScoutSubscriptionSecurityPolicySweep` — `Get-AzDiagnosticSetting` | B | `Microsoft.Insights/diagnosticSettings/read` | Azure RBAC **Reader** | Doc | `permissions/monitor#microsoftinsights` |
@@ -2029,9 +2053,9 @@ AB#6444 traced these to defects in code. They emit zero rows **in every tenant, 
 | Monitor/**AppInsightsWorkItems** | No producer — endpoint retired | 🗑️ **Retired** — AB#6768 |
 | Hybrid/**ArcSites** | Declares three type strings that do not exist: `microsoft.azurestackhci/sites`, `microsoft.edgeconfig/sites`, `microsoft.hybridcompute/sites` | 🗑️ **Retired** — AB#6842 |
 | Hybrid/**VirtualMachines** | Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — it passes the AB#6842 existence gate, so this was never the ArcSites failure. Diagnosed 2026-07-31 (AB#6846): the test estate contains **zero** `microsoft.azurestackhci` resources and **zero** `microsoft.hybridcompute` resources, out of 109 resources across 38 types. The verdict is **"no rows because the tenant has none"**, not "broken" | ✅ **Not broken — do not retire** |
-| Management/**LighthouseDelegations** | `Microsoft.ManagedServices/registrationDefinitions` is real, but no pass reads the `managedserviceresources` ARG table that carries it | ⏳ Open — AB#6771 |
-| Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events | ⏳ Open — AB#6770 |
-| Monitor/**ResourceDiagnosticSettings** | `microsoft.insights/diagnosticsettings` is not an ARG-indexed type; it must be re-sourced via ARM REST | ⏳ Open — AB#6769 |
+| Management/**LighthouseDelegations** | `Microsoft.ManagedServices/registrationDefinitions` is real, but no pass reads the `managedserviceresources` ARG table that carries it | ✅ **Fixed** — AB#6771 added the `managedserviceresources` pass, on unconditionally |
+| Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events | ✅ **Fixed** — AB#6770 moved the transform below the ARM REST sweep and feeds it the events |
+| Monitor/**ResourceDiagnosticSettings** | `microsoft.insights/diagnosticsettings` is not an ARG-indexed type; it must be re-sourced via ARM REST | ✅ **Fixed** — AB#6769 re-sourced it as an `AZSC/ARMChild/*` sweep, scoped to 20 parent types |
 
 **Three more were found afterwards, by the gate rather than by reading.** AB#6842 built a
 resource-type existence check against provider metadata read from ARM — ground truth that does not

@@ -53,6 +53,10 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.containers'
+            # AB#6845: a container group whose `containers` array is absent -- a failed or
+            # mid-creation deployment, which is exactly the group an operator is looking for --
+            # produced no row and vanished from the worksheet.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

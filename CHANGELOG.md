@@ -186,11 +186,50 @@ mechanically, not asserted.
   `agentPoolProfiles` produced no row at all and disappeared from the worksheet — no error, no
   warning, just one cluster fewer. Its loop now sets `EmitNullWhenEmpty`, so the cluster appears
   with blank pool columns instead. This is the most dangerous of the four sparse-payload classes
-  because it is the only one that does not throw. **43 collectors have a child row loop and 41
-  never set that key**; the remaining 40 need a per-collector reading, since the answer turns on
-  whether the parent has meaning without its children.
-- **All 242 golden records are byte-unchanged across every one of these fixes**, so nothing that
-  works today renders differently.
+  because it is the only one that does not throw.
+
+  **The other 42 collectors have now had that per-collector reading, and the audit is closed.**
+  Of the 50 child row loops in the estate, 26 never had the defect — their source variable is
+  assigned through a conditional with a non-empty fallback (`$Auths =
+  if(...){$data.authorizations}else{'0'}`), so the loop always runs at least once. **18 more loops
+  across 15 collectors did have it and are fixed**: `Compute/AvailabilitySets`, `Compute/AVD`,
+  `Containers/ContainerApp` (both loops), `Containers/ContainerAppEnv`,
+  `Containers/ContainerGroups`, `IoT/IOTHubs`, `Management/AdvisorScore`, `Monitor/Outages`,
+  `Networking/NATGateway`, `Networking/NetworkInterface`, `Networking/RouteTables`,
+  `Networking/VirtualNetwork`, `Networking/VirtualWAN`, `Networking/vNETPeering` (two of its three
+  loops) and `Web/APPServices`. Three loops are deliberately left unguarded and documented as such,
+  because the row there IS the child: both of `General/Quotas`' loops fan out a synthetic quota
+  envelope whose every column is read off the loop variable, and `Networking/vNETPeering`'s peering
+  loop feeds a worksheet that inventories PEERINGS — an unpeered VNet belongs on the Virtual
+  Networks sheet, where it already appears.
+
+  Some of these were not edge cases at all. `Containers/ContainerAppEnv` fanned out over
+  `workloadProfiles`, which is absent on every **Consumption-plan** environment — the default —
+  so those environments were missing from the report while their dedicated-plan siblings appeared.
+  `Compute/AvailabilitySets` computed `Orphaned = $true` for a set with no VMs and then dropped the
+  row, making the one condition the collector exists to flag the one condition it could never
+  report. `Networking/NATGateway` did the same for the idle-gateway cost finding.
+
+  Two consequences of reaching code that was previously unreachable had to be fixed with it.
+  `Monitor/Outages` and `Management/AdvisorScore` each cast a payload value straight to
+  `[datetime]`, which throws on `$null` and takes the whole worksheet down — previously the row was
+  dropped before the cast was reached, so both casts are now guarded. And
+  `Networking/VirtualNetwork` carried a switch whose `Default` branch was a bare `$null`, lifted
+  verbatim from the original collector where it was a harmless no-op; under the interpreter the row
+  script's output stream IS the row set, so it emitted a **phantom null row**. Its committed golden
+  record contained twelve of them.
+
+  `tests/Collector.VanishingParent.Tests.ps1` now holds the class open for inspection: it empties
+  each child loop against the collector's real fixture and asserts the parent survives, and it
+  requires every child loop in the estate to be one of the three reviewed states — so a collector
+  written next year with an unguarded child loop fails on the day it is added.
+- **239 of the 242 golden records are byte-unchanged across every one of these fixes**, so nothing
+  that works today renders differently. The three that moved are the point of the exercise rather
+  than collateral, and each was read line by line before it was re-recorded: `Compute/AVD` gains
+  the one host pool in its fixture that has no session hosts, `Networking/VirtualWAN` gains the one
+  virtual WAN that has no hub — both previously missing from their worksheets — and
+  `Networking/VirtualNetwork` **loses twelve phantom null rows** that the bare-`$null` switch
+  branch had been writing into the record all along.
 
 ### Changed
 

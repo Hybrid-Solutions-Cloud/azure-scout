@@ -106,6 +106,10 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '(Get-AZSCSafeProperty -InputObject $data -Path ''ipconfigurations'' -Enumerate)'
+            # AB#6845: a NIC with no readable ipConfigurations -- a detached NIC left behind by a
+            # deleted VM is the common one, and an orphan NIC is a cost finding -- produced no row
+            # and vanished from the worksheet. It now appears with the IP columns blank.
+            EmitNullWhenEmpty = $true
             Preamble = @'
 $VNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate) -Index 8)}else{$null}
                             $Subnet = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'properties.subnet.id' -Enumerate) -Index 10)}else{$null}

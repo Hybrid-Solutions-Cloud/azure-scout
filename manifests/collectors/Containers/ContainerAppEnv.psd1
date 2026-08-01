@@ -76,6 +76,10 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '(Get-AZSCSafeProperty -InputObject $data -Path ''workloadProfiles'')'
+            # AB#6845: `workloadProfiles` is absent on every Consumption-only environment, which
+            # is the DEFAULT plan -- so this was not an edge case at all. Those environments were
+            # missing from the worksheet entirely while their dedicated-plan siblings appeared.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

@@ -70,6 +70,12 @@ $ResUCount = 1
         @{
             Variable = 'vmid'
             Source = '$AvSetVMIds'
+            # AB#6845: the sharpest case of the vanishing parent in the estate. The row preamble
+            # computes `$Orphaned = $true` for an availability set with no VMs -- and then this
+            # loop iterated zero times and threw the row away, so the ONE condition the collector
+            # exists to flag was the exact condition it could never report. Emit the set with a
+            # blank 'Virtual Machines' cell and Orphaned = $true.
+            EmitNullWhenEmpty = $true
             Preamble = '$vmIds = Get-AZSCIdSegment -Id $vmid -Index 8'
         }
     )

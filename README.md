@@ -125,7 +125,7 @@ names; Microsoft's portal long names are accepted as aliases.
 | `Storage` | Storage | — | 11 |
 | `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 14 |
 
-18 categories, 236 collector definitions in total. Note that `Monitor` is canonical, not
+18 categories, 240 collector definitions in total. Note that `Monitor` is canonical, not
 `Monitoring`, and that `DevOps` and `Migration` are canonical categories in their own right as
 of v3.1.0 — they no longer alias to `Management`. Matching is case-insensitive. The complete
 mapping — every alias, manifest definition, and the resource types behind each heading — is in

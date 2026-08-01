@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "AppInsightsAvailabilityTests",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "774e3208935f54173f9a4f3d9901aa375c7e636ba84f7f22ec73920bbb3cb0a2",
+  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
   "Rows": [
     "App Insights Resource=s:N/A|Enabled=s:Yes|Frequency (seconds)=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1a-1|Kind=s:res-value|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Success Criteria=s:Retry Enabled|Tag Name=s:env|Tag Value=s:prod|Test Locations=s:res-value; res-value|Test Locations Count=j:2|Test Name=s:appinsightsavailabilitytests-t1a|Test Type=s:Synthetic Monitor|Timeout (seconds)=s:res-value",
     "App Insights Resource=s:N/A|Enabled=s:Yes|Frequency (seconds)=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/webtests/appinsightsavailabilitytests-t1b-1|Kind=s:res-value|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Success Criteria=s:Retry Enabled|Tag Name=s:env|Tag Value=s:prod|Test Locations=s:res-value; res-value|Test Locations Count=j:2|Test Name=s:appinsightsavailabilitytests-t1b|Test Type=s:Synthetic Monitor|Timeout (seconds)=s:res-value",

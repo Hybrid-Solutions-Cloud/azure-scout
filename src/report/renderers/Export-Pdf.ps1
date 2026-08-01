@@ -76,6 +76,26 @@ $ErrorActionPreference = 'Stop'
         (that needs a pixel decoder this renderer intentionally does not
         carry) -- convert to JPEG first.
 
+        AB#6737 (live-run finding): Scout's network-diagram pipeline
+        (Start-AZSCDrawIODiagram, src/pipeline/diagram/*) only ever writes a
+        .drawio (mxfile/XML) document -- confirmed by reading the whole
+        pipeline end to end, there is no rasterization step in it or
+        anywhere else in this module. Producing one would need a headless
+        browser or a drawio-desktop/ImageMagick-class external dependency,
+        which this module deliberately does not carry (see OFFLINE-PDF
+        APPROACH above) -- so the manual diagram.jpg convention documented
+        above is the intended workaround, not a stopgap. Separately: diagram
+        generation is an Inventory-mode-only feature and this PDF renderer is
+        an Assessment-mode-only format (Invoke-AzureScout throws if either is
+        requested from the other mode); even in a wizard "Both" run, the
+        deferred assessment call (and therefore this PDF) executes and
+        returns BEFORE Start-AZSCExtraJobs kicks off the diagram job later in
+        the inventory pass (see src/Invoke-AzureScout.ps1 around the
+        deferred-assessment call vs. the $DDFile/Start-AZSCExtraJobs lines
+        that follow it) -- so no single run can produce a diagram.jpg in time
+        for its own PDF regardless of rasterization. The diagram.jpg drop-in
+        step is always a manual follow-up between runs today.
+
     CULTURE SAFETY: every numeric token written into a PDF content stream or
     object dictionary goes through ScoutPdfNum, which formats with
     [CultureInfo]::InvariantCulture. Plain PowerShell string interpolation of
@@ -691,7 +711,17 @@ function Export-Pdf {
         $diagram = Get-ScoutPdfDiagram -OutputPath $OutputPath
         $diagramNote = $null
         if (-not $diagram) {
-            $diagramNote = 'Architecture diagram not embedded for this run: no diagram.jpg/.jpeg was found in the output folder (or it was not a supported baseline JPEG). Place a JPEG-format diagram export at "<OutputPath>/diagram.jpg" before rendering to include one -- PNG sources must be converted to JPEG first, since this renderer embeds JPEG bytes directly with zero external dependencies and carries no PNG pixel decoder.'
+            # AB#6737 -- widened from a bare "diagram.jpg was not found" message. Scout's own
+            # network-diagram pipeline (Start-AZSCDrawIODiagram, wired up by the wizard's
+            # "Network diagrams" option / Invoke-AzureScout without -SkipDiagram) never produces
+            # a raster image at all -- it only ever writes a .drawio (mxfile/XML) document. There
+            # is no rasterization step anywhere in this codebase (no headless browser, no
+            # drawio-desktop CLI, no ImageMagick), and this module deliberately stays
+            # dependency-light -- see the file header's OFFLINE-PDF APPROACH note -- so adding
+            # one is out of this renderer's scope. Silently dropping the diagram section would
+            # look like a bug; this note explains the real gap and the concrete manual workaround
+            # instead.
+            $diagramNote = 'Architecture diagram not embedded for this run. Scout''s network-diagram pipeline (the wizard''s "Network diagrams" option, or Invoke-AzureScout without -SkipDiagram) produces a .drawio file, not a JPEG -- this module has no diagram-rasterization step (no headless browser or image-conversion dependency is bundled) and cannot convert it automatically. To embed a diagram in this PDF: open the .drawio file at https://app.diagrams.net (or the desktop app), use File > Export as > JPEG, save the result as "diagram.jpg" in this report''s output folder, and re-render.'
         }
 
         # ==== Cover page ====

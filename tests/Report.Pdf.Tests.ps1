@@ -106,6 +106,15 @@ Describe 'Export-Pdf -- basic document structure AB#379/394/395' {
         $script:Text | Should -Not -Match '/DCTDecode'
     }
 
+    It 'explains the .drawio-vs-JPEG gap and gives an actionable manual workaround (AB#6737)' {
+        # AB#6737: the diagram pipeline only ever produces a .drawio file -- no rasterization
+        # step exists anywhere in this dependency-light module. The honest note must say so
+        # concretely (not just "diagram.jpg was not found") and name the manual fix.
+        $script:Text | Should -Match 'drawio'
+        $script:Text | Should -Match 'diagrams\.net'
+        $script:Text | Should -Match 'diagram\.jpg'
+    }
+
     It 'is deterministic -- identical input renders byte-identical output' {
         $repeatDir = Join-Path $script:Root 'tests' 'test-output' 'pdf-repeat'
         if (Test-Path $repeatDir) { Remove-Item $repeatDir -Recurse -Force }

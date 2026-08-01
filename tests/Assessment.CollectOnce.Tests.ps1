@@ -219,3 +219,62 @@ Describe 'AB#6777 — the assessment core hands the inventory advisories over' {
         $source | Should -Match "\`$advisorArgs\.FromInventory = @\(\`$FromInventory\.Advisories\)"
     }
 }
+
+Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the diagram is built' {
+    # A live end-to-end run needs a real Azure connection, so -- matching this file's existing
+    # style for Invoke-AzureScout-level checks (AB#6775/6776 above) -- this pins the ORDERING
+    # the source code commits to, by asserting the relative position of the markers that bound
+    # each phase. A regression that moves the deferred-assessment call back above the diagram
+    # build (or frees $ExtractionData before the call can use it) fails this test even though
+    # nothing here executes the run.
+    BeforeAll {
+        $script:Source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+
+        function Get-ScoutSourceIndex {
+            param([string]$Pattern)
+            $m = [regex]::Match($script:Source, $Pattern)
+            $m.Success | Should -BeTrue -Because "expected to find '$Pattern' in Invoke-AzureScout.ps1"
+            return $m.Index
+        }
+    }
+
+    It 'still builds the diagram inside Start-AZSCExtraJobs before anything unpacks $ExtractionData for it' {
+        # Sanity check on the fixture itself: $DDFile is created, then handed to
+        # Start-AZSCExtraJobs (which builds the diagram synchronously, AB#5649), before the
+        # deferred-assessment call this Describe block is really testing.
+        $ddFileIdx      = Get-ScoutSourceIndex '\$DDFile = Join-Path \$DefaultPath \$DDName'
+        $extraJobsIdx   = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $ddFileIdx | Should -BeLessThan $extraJobsIdx
+    }
+
+    It 'calls Start-AZSCExtraJobs (which builds the diagram) before the deferred assessment call' {
+        # AB#6737 -- this used to be reversed: the deferred assessment (and its PDF, AB#379)
+        # rendered before $DDFile existed at all, so a combined run could never have a diagram
+        # ready in time to embed it.
+        $extraJobsIdx    = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
+        $extraJobsIdx | Should -BeLessThan $deferredCallIdx
+    }
+
+    It 'keeps $ExtractionData alive (does not Remove-Variable it) until after the deferred assessment call' {
+        $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
+        $removeVarIdx    = Get-ScoutSourceIndex 'Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue'
+        $deferredCallIdx | Should -BeLessThan $removeVarIdx
+    }
+
+    It 'unpacks $Resources/$Advisories/etc. from $ExtractionData before the diagram/assessment ordering point, so neither reads stale data' {
+        # The unpack must happen before Start-AZSCExtraJobs (which consumes $Resources/
+        # $Advisories/etc. by value) and, since nothing between the unpack and the deferred call
+        # reassigns those variables, the same values reach both the diagram build and the
+        # (now-later) assessment call unchanged.
+        $unpackIdx    = Get-ScoutSourceIndex '\$Resources = \$ExtractionData\.Resources'
+        $extraJobsIdx = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $unpackIdx | Should -BeLessThan $extraJobsIdx
+    }
+
+    It 'runs the deferred assessment before Start-AZSCProcessOrchestration (kept close to the diagram build, not deferred further than needed)' {
+        $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
+        $processIdx      = Get-ScoutSourceIndex 'Start-AZSCProcessOrchestration -Subscriptions \$Subscriptions'
+        $deferredCallIdx | Should -BeLessThan $processIdx
+    }
+}

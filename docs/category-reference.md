@@ -29,10 +29,10 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | DevOps | `DevOps` | `manifests/collectors/DevOps/` | 12 |
 | General | `General` | `manifests/collectors/General/` | 4 |
 | Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 15 |
-| Identity | `Identity` | `manifests/collectors/Identity/` | 16 |
+| Identity | `Identity` | `manifests/collectors/Identity/` | 17 |
 | Integration | `Integration` | `manifests/collectors/Integration/` | 9 |
 | Internet of Things | `IoT` | `manifests/collectors/IoT/` | 7 |
-| Management and governance | `Management` | `manifests/collectors/Management/` | 18 |
+| Management and governance | `Management` | `manifests/collectors/Management/` | 21 |
 | Migration | `Migration` | `manifests/collectors/Migration/` | 6 |
 | Monitor | `Monitor` | `manifests/collectors/Monitor/` | 22 |
 | Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
@@ -40,7 +40,7 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Storage | `Storage` | `manifests/collectors/Storage/` | 11 |
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
-**236 declarative collector definitions across all 18 of Microsoft's published service
+**240 declarative collector definitions across all 18 of Microsoft's published service
 categories.** Counts are the `.psd1` file count in each category directory; one definition
 generally maps to one worksheet in the Excel report.
 
@@ -58,6 +58,17 @@ renamed or retired resource type alongside a live one, so each was half-collecti
 `Migration/AzureMigrateProjects`, `Security/CloudHSM`, `Security/ConfidentialLedger`. The dead type
 string was dropped from each spec; the collector itself still exists and its module count is
 unchanged.
+
+Four collectors were **added** on 2026-07-31 (AB#6779), taking the count from 236 to 240:
+`Identity/RoleAssignments`, `Management/PolicyAssignments`, `Management/ResourceLocks` and
+`Management/Budgets`. They render data every assessment run was already collecting and throwing
+away — a run held the answer to "who has Owner" in memory and had nowhere to write it. They cost
+no additional Azure call: the two Resource Graph queries and two ARM REST reads behind them moved
+out of the governance ingestor into the collection pass, which now feeds both.
+
+`Management/Budgets` covers what the audit's build list calls `Cost/Budgets`. Cost Management sits
+under "Management and governance" in Microsoft's own service taxonomy, and Scout's category set is
+that published 18 — so the sheet is the one the audit asked for, filed where the taxonomy puts it.
 
 Every declared resource type is now checked against a committed catalogue of real Azure
 provider/type pairs by `tests/ResourceTypeExistence.Tests.ps1` — see

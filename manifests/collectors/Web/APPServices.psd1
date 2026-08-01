@@ -61,6 +61,11 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$data.hostNameSslStates'
+            # AB#6845: `hostNameSslStates` supplies three columns; the app service's plan, state,
+            # runtime, HTTPS-only setting and tags all come from the row itself. An app whose
+            # payload omits it -- a slot, or an app still provisioning -- was dropped from the
+            # worksheet entirely.
+            EmitNullWhenEmpty = $true
             Preamble = ''
         }
     )

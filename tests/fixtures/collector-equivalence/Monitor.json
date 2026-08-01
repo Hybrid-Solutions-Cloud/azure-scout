@@ -4828,10 +4828,12 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1a-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1a-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1a-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1a",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         },
         {
@@ -4879,10 +4881,12 @@
             "env": "prod",
             "owner": "platform"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1b-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1b-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1b-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1b",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         },
         {
@@ -4927,10 +4931,12 @@
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1c-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1c-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1c-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1c",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         },
         {
@@ -4977,10 +4983,12 @@
           "tags": {
             "env": "dev"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1d-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1d-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1d-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1d",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         },
         {
@@ -5027,10 +5035,12 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1e-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1e-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1e-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1e",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         },
         {
@@ -5077,10 +5087,12 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/diagnosticsettings/resourcediagnosticsettings-t1f-1",
+          "PARENTNAME": "res-value",
+          "PARENTTYPE": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1f-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1f-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "resourcediagnosticsettings-t1f",
-          "TYPE": "microsoft.insights/diagnosticsettings",
+          "TYPE": "AZSC/ARMChild/ResourceDiagnosticSettings",
           "LOCATION": "eastus"
         }
       ]

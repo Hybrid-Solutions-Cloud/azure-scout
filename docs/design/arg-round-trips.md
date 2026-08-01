@@ -31,10 +31,11 @@ Every `Search-AzGraph` call site in the shipped module:
 | Call site | Purpose | Queries issued |
 |---|---|---|
 | `src/collect/Get-ScoutRawInventory.ps1` | the single raw pass | 3 tables always; up to 6 more behind `-Include*` switches |
+| `src/collect/Get-ScoutGovernanceDataset.ps1` | governance, collected once for both consumers (AB#6779) | 2 always (`authorizationresources`, `policyresources`), issued from the raw pass |
 | `src/collect/Invoke-Collect.ps1` | typed assessment pack | 1 (`sqlDefenderPricing`) by default; 35 under `-Source TypedQueries` |
 | `Modules/Private/Extraction/Get-AZTIManagementGroups.ps1` | expand a management group into its subscriptions | 1, only when `-ManagementGroup` is supplied |
 | `manifests/collectors/Management/AllSubscriptions.ps1` | one inventory collector's own lookup | 1, during processing |
-| `src/ingest/Import-Governance.ps1` | governance ingestor | per its own query pack, only for assessments whose manifest lists `Ingest = 'Governance'` |
+| `src/ingest/Import-Governance.ps1` | governance ingestor | 1 (management groups), only for assessments whose manifest lists `Ingest = 'Governance'`. Was 3; the other two moved to `Get-ScoutGovernanceDataset` (AB#6779) and are skipped here when the collect pass supplies them |
 | ~~`src/ingest/Invoke-ArgQueryPack.ps1`~~ | *(deleted, AB#6774)* — opt-in ARG query pack ingestor | All six of its queries duplicated data `Invoke-Collect` already collected, and it overwrote the collector's results with `Add-Member -Force`. A manifest that still names the ingest is ignored with a verbose line rather than erroring |
 | `scripts/Export-ScoutFixture.ps1` | developer fixture capture | not part of a product run |
 
@@ -58,6 +59,22 @@ Measured with a counting stub in place of `Search-AzGraph`, and pinned by
 Excluded from those numbers because they are conditional on flags or manifest entries, and
 unchanged by this work: the management-group expansion (1, only with `-ManagementGroup`), the
 `AllSubscriptions` collector (1, during processing), and the two ingestors.
+
+### Governance (AB#6779)
+
+Rendering role assignments, policy assignments, resource locks and budgets as worksheets added no
+round trip. It moved two of them:
+
+| | before AB#6779 | after |
+|---|---|---|
+| `Get-ScoutGovernanceDataset`, inside the raw pass | — | 2 ARG + 2 ARM REST per subscription |
+| `Import-Governance`, on a run the collect pass fed | 3 ARG + 2 ARM REST per subscription | 1 ARG, 0 REST |
+| **Total, assessment run** | **3 ARG + 2/sub REST** | **3 ARG + 2/sub REST** |
+
+The inventory-only run does pay the 2 ARG + 2/sub REST it did not pay before, because it did not
+previously collect governance at all — that is the cost of the four worksheets existing, and it is
+the only place the number moves. Both sides are counted in
+`tests/Collect.Governance.Tests.ps1`.
 
 ## Why the inventory number is 8 and not 1
 

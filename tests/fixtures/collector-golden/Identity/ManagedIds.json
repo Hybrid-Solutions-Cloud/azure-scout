@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "ManagedIds",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "4bba8b241f2b4fe506dad75f4878d42bf12407a4a0e585034dd4b79ac3a4a46d",
+  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
   "Rows": [
     "Client ID=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managedids-t1a-1|Location=s:res-value|Name=s:managedids-t1a|Principal ID=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Client ID=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managedids-t1b-1|Location=s:res-value|Name=s:managedids-t1b|Principal ID=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

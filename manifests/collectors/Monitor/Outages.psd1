@@ -30,16 +30,28 @@ $SourceOutage = $1.properties.SourceResource
         @{
             Variable = 'Sub0'
             Source = '$ImpactedSubs'
+            # AB#6845: the loop exists ONLY to resolve the 'Subscription' column -- every other
+            # column (outage id, title, status, timings, and the five post-incident narrative
+            # sections) comes from the outage itself. An outage whose payload carries no
+            # impactedSubscriptions therefore lost the entire incident record to save one cell.
+            # The collector already emits blank-subscription rows for out-of-scope subscription
+            # ids, so a blank cell here is the shape the sheet already has.
+            EmitNullWhenEmpty = $true
             Preamble = @'
 $sub1 = $SUB | Where-Object { $_.id -eq $Sub0 }
 
-                        $StartTime = $Data.impactStartTime
-                        $StartTime = [datetime]$StartTime
-                        $StartTime = $StartTime.ToString("yyyy-MM-dd HH:mm")
+                        # AB#6845: `[datetime]$null` throws "Cannot convert null to type
+                        # System.DateTime" and takes the whole Outages worksheet with it. An
+                        # ongoing incident legitimately has NO impactMitigationTime -- it has not
+                        # been mitigated yet -- which is the outage a reader most wants to see.
+                        # Before this loop emitted a row for an outage with no impacted
+                        # subscriptions, that outage was dropped silently and the throw was never
+                        # reached; now that it is reached, both casts have to be guarded.
+                        $StartTime = Get-AZSCSafeProperty -InputObject $Data -Path 'impactStartTime'
+                        $StartTime = if ($StartTime) { ([datetime]$StartTime).ToString("yyyy-MM-dd HH:mm") } else { $null }
 
-                        $Mitigation = $Data.impactMitigationTime
-                        $Mitigation = [datetime]$Mitigation
-                        $Mitigation = $Mitigation.ToString("yyyy-MM-dd HH:mm")
+                        $Mitigation = Get-AZSCSafeProperty -InputObject $Data -Path 'impactMitigationTime'
+                        $Mitigation = if ($Mitigation) { ([datetime]$Mitigation).ToString("yyyy-MM-dd HH:mm") } else { $null }
 
                         $ImpactedService = if (@($SourceOutage.properties.impact.impactedService).count -gt 1) { $SourceOutage.properties.impact.impactedService | ForEach-Object { $_ + ' ,' } }else { $SourceOutage.properties.impact.impactedService}
                         $ImpactedService = [string]$ImpactedService

@@ -26,7 +26,7 @@ This runs all 80 test files (2,243 tests: 2,236 passed, 3 skipped, 4 known cross
 ## Running a Single Test File
 
 ```powershell
-# Run only the declarative collector golden tests (all 236 collectors)
+# Run only the declarative collector golden tests (all 240 collectors)
 Invoke-Pester -Path .\tests\DeclarativeCollectorGolden.Tests.ps1 -Output Detailed
 
 # Run only the private main-function tests
@@ -39,7 +39,7 @@ The `tests/` directory contains 80 Pester files. There is no longer one test fil
 category — the old `<Category>.Module.Tests.ps1` files (`Compute.Module.Tests.ps1`,
 `Databases.Module.Tests.ps1`, and so on) tested imperative `.ps1` collectors under
 `Modules/Public/InventoryModules/`, and were retired when every collector was rewritten as a
-declarative `.psd1` definition (Epic AB#5638, AB#5659). All 236 collectors are now tested by the
+declarative `.psd1` definition (Epic AB#5638, AB#5659). All 240 collectors are now tested by the
 files below instead.
 
 ### Collector Tests

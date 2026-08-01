@@ -839,6 +839,32 @@ function New-FixtureResource {
         if ($State.Count -eq 0) { $State['Name'] = 'res-value' }
         $Body[$PropertiesKey][$CollectionName] = @($State)
     }
+    elseif (-not [string]::IsNullOrWhiteSpace($RowSourceExpression) -and
+        $RowSourceExpression -match '(?i)\$\w+\.PROPERTIES\s*\)') {
+        # The OTHER envelope shape: the row source iterates the whole PROPERTIES bag
+        # (`@($envelope.PROPERTIES)`) because the collect layer already flattened the rows --
+        # AZSC/Governance/* (AB#6779) and AZSC/Management/ManagementGroup.
+        #
+        # Without this branch the resource gets `PROPERTIES = {}`, `@({})` yields ONE empty object,
+        # and every field reads a missing key. The rows compare equal because both sides are null,
+        # which is the vacuous pass this generator exists to prevent -- the collector could have
+        # its columns wired to the wrong keys entirely and the golden would not notice.
+        #
+        # The keys are the ones the fields actually read, which for a flattened envelope are the
+        # -Path strings the shape walk has already hung off the row variable as children.
+        $PropertiesKey = Resolve-FixtureKey -Body $Body -Name 'PROPERTIES'
+        $Projected = [ordered]@{}
+        foreach ($Key in @($Shape.Children.Keys)) {
+            $Value = ConvertTo-ShapeValue -Node $Shape.Children[$Key]
+            # A distinguishable value per key, so the golden proves each column reads ITS OWN key
+            # rather than merely reading something non-null. The shape walk cannot know that -- it
+            # returns the same opaque placeholder for every plain string leaf.
+            if ($Value -is [string] -and $Value -eq 'res-value') { $Value = "$Key value" }
+            $Projected[$Key] = $Value
+        }
+        if ($Projected.Count -eq 0) { $Projected['Name'] = 'res-value' }
+        $Body[$PropertiesKey] = @($Projected)
+    }
 
     # RowCondition is evaluated by the declarative interpreter after resource selection.  It is
     # distinct from AdditionalFilter, so the latter's fixture resolver cannot make a resource

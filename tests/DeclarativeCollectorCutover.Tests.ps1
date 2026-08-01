@@ -15,10 +15,11 @@ Describe 'v3 declarative collector cutover' {
 
         # 174 through v3.0.9; 242 after AB#6741 added 68; 236 after AB#6767/AB#6842 retired six
         # that could never return a row -- three whose Azure endpoint no longer exists, and three
-        # declaring resource types the provider metadata does not have. The number is pinned
-        # rather than derived so that a collector silently DISAPPEARING is a failure, not an
-        # invisible regression.
-        $Collectors.Count | Should -Be 236
+        # declaring resource types the provider metadata does not have; 240 after AB#6779 added the
+        # four governance collectors (role assignments, policy assignments, locks, budgets). The
+        # number is pinned rather than derived so that a collector silently DISAPPEARING is a
+        # failure, not an invisible regression.
+        $Collectors.Count | Should -Be 240
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

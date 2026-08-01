@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "AdvisorScore",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "8f9281d27b72ff02a4da777bb25b62617727b6d67b767333d480fd8e5e9f1ad3",
+  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
   "Rows": [
     "Category=s:Cost|Consumption Units=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Advisor/advisorScore/advisorscore-t1a-1|Impacted Resources=s:res-value|Latest Refresh Score=s:2026-01-15|Latest Score (%)=s:res-value|Potential Score Increase=s:res-value|Resource U=j:1|Score=s:res-value|Score Date=s:2026-01-15|Subscription=s:sub-fixture-01",
     "Category=s:Cost|Consumption Units=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Advisor/advisorScore/advisorscore-t1a-1|Impacted Resources=s:res-value|Latest Refresh Score=s:2026-01-15|Latest Score (%)=s:res-value|Potential Score Increase=s:res-value|Resource U=j:0|Score=s:res-value|Score Date=s:2026-01-15|Subscription=s:sub-fixture-01",

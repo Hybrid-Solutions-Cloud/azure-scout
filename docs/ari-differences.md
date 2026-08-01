@@ -27,7 +27,7 @@ The following core capabilities come directly from the original project:
 ### Current numbers, not the ARI fork count
 
 The 154-module figure above describes the fork in v1.0.0, not today. As of v3.1.0 the ARM side
-is **236 declarative collector definitions** across **18** Microsoft Azure service categories —
+is **240 declarative collector definitions** across **18** Microsoft Azure service categories —
 see [Category Reference](category-reference.md) — plus the **17** Entra ID modules cataloged
 separately in [Entra ID Inventory](entra-modules.md). Collector logic also no longer executes as
 the PowerShell ARI originally shipped: see [Engine rewrite](#engine-rewrite-ari-shipped-none-of-this)

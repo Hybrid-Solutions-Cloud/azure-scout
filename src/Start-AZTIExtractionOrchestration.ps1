@@ -62,6 +62,9 @@ function Start-AZSCExtractionOrchestration {
     $Costs = $null
     $VMQuotas = $null
     $PreCollectedAPIResults = @()
+    # Initialised here, not inside the ARM branch: an EntraOnly run never enters that branch and
+    # reading an unassigned variable is a StrictMode throw, not a $null.
+    $Governance = $null
 
     # ── ARM Extraction (skip when Scope = EntraOnly) ──
     if ($Scope -ne 'EntraOnly') {
@@ -76,6 +79,10 @@ function Start-AZSCExtractionOrchestration {
         # API sweep. Carry it out of $GraphData before that variable is dropped so the block
         # below reuses it instead of issuing the identical per-subscription calls a second time.
         $PreCollectedAPIResults = $GraphData.ApiResources
+        # AB#6779 -- same reasoning for the governance datasets: the raw pass collected the role
+        # assignments, policy assignments, locks and budgets once, and a combined run's assessment
+        # half must read them from here rather than collect them again.
+        $Governance = $(if ($GraphData.PSObject.Properties['Governance']) { $GraphData.Governance } else { $null })
 
         Remove-Variable -Name GraphData -ErrorAction SilentlyContinue
 
@@ -217,6 +224,9 @@ function Start-AZSCExtractionOrchestration {
         PolicyAssign       = $PolicyAssign
         PolicyDef          = $PolicyDef
         PolicySetDef       = $PolicySetDef
+        # AB#6779 -- consumed by Invoke-Collect via -FromInventory so a combined run's assessment
+        # half never re-collects role assignments, policy assignments, locks or budgets.
+        Governance         = $Governance
     }
 
     return $ReturnData

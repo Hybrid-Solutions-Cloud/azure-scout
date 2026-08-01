@@ -875,10 +875,17 @@ Function Invoke-AzureScout {
     # AB#5543 — the wizard asked for both modes. The inventory pass above has now fetched the
     # resource rows, so hand them to the assessment instead of letting it collect from Azure a
     # second time over the same resource types.
-    if ($deferredAssessArgs) {
-        Write-Output (Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData)
-    }
-
+    #
+    # AB#6737 -- this call used to fire HERE, before $DDFile even exists (below) and before
+    # Start-AZSCExtraJobs (further below) has built it. In the wizard's "Both" mode -- the only
+    # mode where a diagram and a PDF are both reachable in one run -- the deferred assessment
+    # (and therefore its PDF, AB#379) always rendered before the diagram existed, so there was
+    # never a point in the run where a diagram was even available to embed. The call is moved
+    # past the diagram build below; $ExtractionData is kept alive for it (its
+    # Remove-Variable moved down to match) instead of being freed here. Keeping it alive costs
+    # little: $Resources/$Advisories/etc. below are reference copies of $ExtractionData's own
+    # properties, not deep copies, so the underlying arrays are already held open by those
+    # variables regardless of whether $ExtractionData itself is freed now or later.
     $Resources = $ExtractionData.Resources
     $EntraResources = $ExtractionData.EntraResources
     $Quotas = $ExtractionData.Quotas
@@ -894,8 +901,6 @@ Function Invoke-AzureScout {
     $PolicyAssign = $ExtractionData.PolicyAssign
     $PolicyDef = $ExtractionData.PolicyDef
     $PolicySetDef = $ExtractionData.PolicySetDef
-
-    Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
@@ -943,6 +948,37 @@ Function Invoke-AzureScout {
         # the AB#5629 NotStarted race in four more places, so it is now a plain value handed to
         # Start-AZSCReporOrchestration below. (AB#5649)
         $ExtraData = Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Security $Security -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
+
+        # AB#6737 -- moved here (from immediately after the extraction call above) so the
+        # deferred assessment -- and the PDF it may render -- runs AFTER Start-AZSCExtraJobs has
+        # built $DDFile. Start-AZSCExtraJobs's diagram step (Invoke-AZSCDrawIOJob ->
+        # Start-AZSCDrawIODiagram) is synchronous as of AB#5649 (it Wait-Jobs its own internal
+        # fan-out before returning), so by the time this line runs $DDFile is a complete,
+        # on-disk .drawio document, not a build still in flight. $ExtractionData still holds the
+        # same object graph read below (nothing between its assignment and here reassigns or
+        # mutates $Resources/$Advisories/etc.), so this is a pure reordering, not a data change.
+        #
+        # The stopwatch is PAUSED across this call. It measures the inventory processing phase,
+        # and the assessment is a whole second pipeline -- collect, score, render -- that would
+        # otherwise be counted as processing time and make 'Processing finished' report a number
+        # several times its real value. A run log that overstates a phase is the same class of
+        # defect as a report that overstates coverage, which is what this Epic exists to fix.
+        # Stopwatch.Start() resumes rather than restarting, so the elapsed total stays correct.
+        if ($deferredAssessArgs) {
+            $ProcessingRunTime.Stop()
+            try {
+                $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
+                Write-Output (Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData)
+                $AssessmentRunTime.Stop()
+                Write-AZSCLogPhase -Name 'Deferred assessment finished' -Elapsed $AssessmentRunTime.Elapsed.ToString('dd\:hh\:mm\:ss\:fff') -Detail @{
+                    'Ran after' = 'diagram build (AB#6737)'
+                }
+            }
+            finally {
+                $ProcessingRunTime.Start()
+            }
+        }
+        Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
         Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category
 

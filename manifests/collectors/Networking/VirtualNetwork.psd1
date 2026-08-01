@@ -79,8 +79,15 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '(Get-AZSCSafeProperty -InputObject $data -Path ''subnets'' -Enumerate)'
+            # AB#6845: a VNet with no subnets is a real state -- freshly created, or its address
+            # space reserved ahead of the design -- and this is the only worksheet a VNet appears
+            # on, so it was missing from the report entirely rather than shown with no subnets.
+            EmitNullWhenEmpty = $true
             Preamble = @'
-$ConsumedIPs = [int]@((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.ipConfigurations.id' -Enumerate)).count
+# AB#6845: `@($null).count` is 1, so without the filter a VNet whose subnets are absent
+                        # from the payload -- the case EmitNullWhenEmpty now emits a row for -- reported
+                        # "Consumed IPs = 1" for a subnet that does not exist.
+                        $ConsumedIPs = [int]@((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.ipConfigurations.id' -Enumerate) | Where-Object { $null -ne $_ }).count
                         $Prefixes = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.addressPrefix' -Enumerate))){(Get-AZSCSafeProperty -InputObject $2 -Path 'properties.addressPrefix' -Enumerate)}else{(Get-AZSCSafeProperty -InputObject $2 -Path 'properties.addressPrefixes' -Enumerate)}
                         # This is a CIDR mask, not a resource id: '10.0.0.0/24'.split('/')[1] is '24'.
                         # A subnet with neither addressPrefix nor addressPrefixes leaves $Prefixes
@@ -123,9 +130,17 @@ $ConsumedIPs = [int]@((Get-AZSCSafeProperty -InputObject $2 -Path 'properties.ip
                                 30 {$AvailableIPs = 2 - $ConsumedIPs}
                                 31 {$AvailableIPs = 2 - $ConsumedIPs}
                                 32 {$AvailableIPs = 1 - $ConsumedIPs}
-                                Default 
+                                Default
                                     {
-                                        $null
+                                        # AB#6845: this was a BARE `$null`, lifted verbatim from the
+                                        # original collector where it was a harmless no-op. In the
+                                        # interpreter the row script's output stream IS the row set,
+                                        # so a bare value emits a PHANTOM NULL ROW -- which then
+                                        # crashes any consumer that indexes into it. It fires for
+                                        # any prefix outside 8..32, including a subnet with no
+                                        # addressPrefix at all. An assignment states the same intent
+                                        # ("unknown mask, no IP count") and writes nothing.
+                                        $AvailableIPs = $null
                                     }
                             }
 '@

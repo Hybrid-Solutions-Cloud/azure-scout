@@ -72,6 +72,11 @@ Function Start-AZSCGraphExtraction {
         IncludeBackupResources       = $true
         IncludeDesktopVirtualization = $true
         IncludeUpdateManagerResources = $true
+        # AB#6771. Unconditionally on, like every other inventory table above it. Setting it to
+        # anything a caller could leave unset would recreate the AB#6755 defect verbatim: the
+        # Lighthouse worksheet was blank for releases precisely because nothing read the one ARG
+        # table its type lives in, and a switch nobody sets is indistinguishable from that.
+        IncludeLighthouseDelegations = $true
         IncludeRetirements           = $true
         IncludeAdvisories            = (-not [bool]$SkipAdvisory)
         IncludeSecurityCenter        = [bool]$SecurityCenter
@@ -136,5 +141,8 @@ Function Start-AZSCGraphExtraction {
         # AB#6755 -- the ARM REST sweep the tenant-wide pass just ran, handed up so the
         # orchestration reuses it rather than repeating it.
         ApiResources       = @(if ($Raw.PSObject.Properties['ApiResources']) { $Raw.ApiResources })
+        # AB#6779 -- the role/policy-assignment/lock/budget datasets the raw pass collected, so a
+        # combined run's assessment half reads them instead of collecting them a second time.
+        Governance         = $(if ($Raw.PSObject.Properties['Governance']) { $Raw.Governance } else { $null })
     }
 }

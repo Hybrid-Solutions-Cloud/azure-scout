@@ -35,10 +35,19 @@ $ResUCount = 1
         @{
             Variable = 'Serie'
             Source = '$Series.scoreHistory'
+            # AB#6845: the loop supplies the HISTORY columns, but 'Latest Score (%)' and 'Latest
+            # Refresh Score' -- the numbers the sheet is actually read for -- come from the row
+            # itself. A subscription assessed for the first time has no monthly history yet, and
+            # its current score was being discarded along with the history it does not have.
+            EmitNullWhenEmpty = $true
             Preamble = @'
-$Date = $Serie.date
-                                $Date = [datetime]$Date
-                                $Date = $Date.ToString("yyyy-MM-dd")
+$Date = Get-AZSCSafeProperty -InputObject $Serie -Path 'date'
+                                # AB#6845: with EmitNullWhenEmpty the loop runs once with $Serie
+                                # as $null for a score that has no history, and `[datetime]$null`
+                                # throws "Cannot convert null to type System.DateTime". A history
+                                # row that has no date leaves the cell empty rather than taking
+                                # the whole worksheet down.
+                                $Date = if ($Date) { ([datetime]$Date).ToString("yyyy-MM-dd") } else { $null }
 '@
         }
     )

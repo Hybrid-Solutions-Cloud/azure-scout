@@ -79,6 +79,11 @@ $ResUCount = 1
         @{
             Variable = '2'
             Source = '$sessionhosts'
+            # AB#6845: a host pool with no session hosts is a real and interesting state -- newly
+            # created, drained for maintenance, or scaled to zero -- and without this the pool
+            # produced no row and disappeared from the AVD worksheet altogether. The pool is the
+            # resource being inventoried; the session hosts are detail.
+            EmitNullWhenEmpty = $true
             Preamble = @'
 $domain = if([string]::IsNullOrEmpty($2.name)){''}else{([string]$2.name).replace(((([string]$2.name).split("."))[0]),'')}
                     $sessionHostResourceId = Get-AZSCSafeProperty -InputObject $2 -Path 'properties.resourceId'

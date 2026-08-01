@@ -198,6 +198,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/users/users-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1e-1/RoleAssignment/roleassignments-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1f-1/RoleAssignment/roleassignments-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1f-1/RoleAssignment/roleassignments-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -350,7 +362,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1a-1",
           "tenantId": "res-value",
@@ -381,7 +393,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1b-1",
           "tenantId": "res-value",
@@ -413,7 +425,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1c-1",
           "tenantId": "res-value",
@@ -442,7 +454,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1d-1",
           "tenantId": "res-value",
@@ -473,7 +485,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1e-1",
           "tenantId": "res-value",
@@ -504,7 +516,7 @@
             "appId": "res-value",
             "signInAudience": "res-value",
             "publisherDomain": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1f-1",
           "tenantId": "res-value",
@@ -555,8 +567,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1a-1",
           "tenantId": "res-value",
@@ -603,8 +615,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1b-1",
           "tenantId": "res-value",
@@ -652,8 +664,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1c-1",
           "tenantId": "res-value",
@@ -698,8 +710,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1d-1",
           "tenantId": "res-value",
@@ -746,8 +758,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1e-1",
           "tenantId": "res-value",
@@ -794,8 +806,8 @@
             },
             "displayName": "res-value",
             "state": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/conditionalaccesspolicies/conditionalaccess-t1f-1",
           "tenantId": "res-value",
@@ -1762,8 +1774,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1a-1",
           "tenantId": "res-value",
@@ -1793,8 +1805,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1b-1",
           "tenantId": "res-value",
@@ -1825,8 +1837,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1c-1",
           "tenantId": "res-value",
@@ -1854,8 +1866,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1d-1",
           "tenantId": "res-value",
@@ -1885,8 +1897,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1e-1",
           "tenantId": "res-value",
@@ -1916,8 +1928,8 @@
               "res-item-1"
             ],
             "displayName": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "modifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "modifiedDateTime": "2026-01-15T10:30:00Z"
           },
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/namedlocations/namedlocations-t1f-1",
           "tenantId": "res-value",
@@ -2094,7 +2106,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2116,7 +2128,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2139,7 +2151,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2159,7 +2171,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2181,7 +2193,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2203,7 +2215,7 @@
             "riskLevel": "res-value",
             "riskState": "res-value",
             "riskDetail": "res-value",
-            "riskLastUpdatedDateTime": "2026-01-15T10:30:00.0000000Z",
+            "riskLastUpdatedDateTime": "2026-01-15T10:30:00Z",
             "isDeleted": "res-value",
             "isProcessing": "res-value"
           },
@@ -2214,6 +2226,249 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "RoleAssignments": {
+      "resources": [
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1a-1/RoleAssignment/roleassignments-t1a-2",
+          "NAME": "roleassignments-t1a",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1b-1/RoleAssignment/roleassignments-t1b-2",
+          "NAME": "roleassignments-t1b",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1c-1/RoleAssignment/roleassignments-t1c-2",
+          "NAME": "roleassignments-t1c",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {}
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1d-1/RoleAssignment/roleassignments-t1d-2",
+          "NAME": "roleassignments-t1d",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1e-1/RoleAssignment/roleassignments-t1e-2",
+          "NAME": "roleassignments-t1e",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Subscription": "res-value",
+          "Scope Type": "res-value",
+          "Scope": "res-value",
+          "Role Name": "res-value",
+          "Role Type": "res-value",
+          "Principal ID": "res-value",
+          "Principal Type": "res-value",
+          "Condition": "res-value",
+          "Description": "res-value",
+          "Created On": "res-value",
+          "Assignment Name": "res-value",
+          "Role Definition ID": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1f-1/RoleAssignment/roleassignments-t1f-2",
+          "NAME": "roleassignments-t1f",
+          "TYPE": "AZSC/Governance/RoleAssignment",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": [
+            {
+              "Subscription": "Subscription value",
+              "Scope Type": "Scope Type value",
+              "Scope": "Scope value",
+              "Role Name": "Role Name value",
+              "Role Type": "Role Type value",
+              "Principal ID": "Principal ID value",
+              "Principal Type": "Principal Type value",
+              "Condition": "Condition value",
+              "Description": "Description value",
+              "Created On": "Created On value",
+              "Assignment Name": "Assignment Name value",
+              "Role Definition ID": "Role Definition ID value",
+              "ID": "ID value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -2574,8 +2829,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",
@@ -2602,8 +2857,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",
@@ -2631,8 +2886,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",
@@ -2657,8 +2912,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",
@@ -2685,8 +2940,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",
@@ -2713,8 +2968,8 @@
             "userPrincipalName": "res-value",
             "userType": "res-value",
             "accountEnabled": "res-value",
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
-            "lastPasswordChangeDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
+            "lastPasswordChangeDateTime": "2026-01-15T10:30:00Z",
             "onPremisesSyncEnabled": "res-value",
             "department": "res-value",
             "jobTitle": "res-value",

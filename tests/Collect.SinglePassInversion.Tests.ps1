@@ -248,7 +248,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         $script:argQueries[0] | Should -Match 'microsoft\.security/pricings'
     }
 
-    It 'the inventory extraction path reaches Resource Graph 10 times, all from one function' {
+    It 'the inventory extraction path reaches Resource Graph 11 times, all from one function' {
         Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$false) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
@@ -264,21 +264,39 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # replaced the per-machine `assessPatches` POST with reads of the two Update Manager
         # tables and did not update the count here. Corrected while running the suite for
         # AB#6741; the extra two round-trips are that change's, not this Epic's.
-        $script:argQueries.Count | Should -Be 10
+        #
+        # 10 -> 11 (AB#6771): the `managedserviceresources` table. Management/LighthouseDelegations
+        # declares a REAL resource type, Microsoft.ManagedServices/registrationDefinitions, but no
+        # pass read the one ARG table that carries it, so the worksheet was blank on every run.
+        # One extra round-trip is the honest price of a dataset that was previously empty.
+        #
+        # This budget is deliberately tight and is meant to FAIL when a round-trip is added. That
+        # is how it just proved something else: AB#6779 added four governance collectors
+        # (RoleAssignments, ResourceLocks, PolicyAssignments, Budgets) whose acceptance criterion
+        # was "no additional Azure API call, proven by comparing query counts before and after".
+        # The count moved by exactly one, and that one is attributable to AB#6771 above -- so the
+        # governance renders cost ZERO new queries. This assertion IS that proof.
+        $script:argQueries.Count | Should -Be 11
     }
 
-    It 'a combined inventory + assessment run costs 11, not 43' {
+    It 'a combined inventory + assessment run costs 12, not 43' {
         $extraction = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$true) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
             3>$null 4>$null 6>$null
         Invoke-Collect -FromInventory $extraction -WarningAction SilentlyContinue | Out-Null
 
-        # Ten inventory tables plus the one SecurityResources query. The combined run reuses the
-        # extraction's rows, so the assessment adds ONE call, not five -- that is the property
-        # this assertion protects, and it is unchanged by either the Update Manager tables or the
-        # recoveryservicesresources pass AB#6835 added to the standalone assessment path.
-        $script:argQueries.Count | Should -Be 11 -Because 'ten inventory tables plus the one SecurityResources query'
+        # Eleven inventory tables plus the one SecurityResources query. The combined run reuses
+        # the extraction's rows, so the assessment adds ONE call, not five -- that is the property
+        # this assertion protects, and it is unchanged by the Update Manager tables, by the
+        # recoveryservicesresources pass AB#6835 added to the standalone assessment path, or by
+        # AB#6771's managedserviceresources table (which moved the inventory half from 10 to 11).
+        #
+        # The number that matters here is not 12; it is the DIFFERENCE of one against the
+        # inventory-only assertion above. A combined run costing inventory+1 is the whole
+        # collect-once guarantee. If this ever reads inventory+5, the assessment has stopped
+        # reusing the extraction's rows and is querying Azure a second time.
+        $script:argQueries.Count | Should -Be 12 -Because 'eleven inventory tables plus the one SecurityResources query'
     }
 }
 
