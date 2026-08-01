@@ -1,0 +1,206 @@
+# waf.avd.yaml — Azure Virtual Desktop workload assessment (AB#6819, Feature AB#6748,
+# Epic AB#6454)
+#
+# Written ONLY against docs/frameworks/waf-avd-workload-checklist.md (20 items across the five
+# WAF pillars). Every rule below cites a WAF-AVD-<PILLAR>-NN id from that file in its `title`
+# and `remediation`. Do not add a rule here that cites an id not in that enumeration.
+#
+# SCOPE, exactly as the enumeration states it: this file scores **AVD on Azure Local**, not
+# general Azure Virtual Desktop. The canonical general-AVD WAF checklist URL is link rot (see
+# docs/frameworks/waf-avd-workload-checklist.md, "Source -- and a scope correction made during
+# verification"); the only publishable, retrievable five-pillar checklist found was "Azure
+# Virtual Desktop for Azure Local". A rule here that only makes sense for AVD on native Azure
+# compute (host-pool autoscale tied to Azure VM pricing, Azure Files/NetApp Files for FSLogix)
+# would overclaim coverage this enumeration does not have -- none is written. See the manifest
+# entry's Description for the same scope statement surfaced to the operator.
+#
+# WHY `framework: WAF-AVD`, NOT `framework: WAF`. Although this enumeration happens to be
+# organised by the five real WAF pillars (unlike the AI workload checklist), a SINGLE rule
+# file's `area:` in this repo's schema is one scalar value -- and this file's 20 items span all
+# five pillars in one enumeration. `tests/Assessment.Restructure.Tests.ps1` (AB#6798) requires a
+# `framework: WAF` file's `area:` to be exactly one of the five pillars; a multi-pillar file
+# cannot honestly claim a single one without either lying about scope or fragmenting into five
+# separate files that would then need their rule ids re-partitioned per pillar and re-wired into
+# five different manifest entries for no operational benefit (an operator selecting "Assess:
+# AVD" wants one AVD review, not five pillar reviews that happen to share a Collect list).
+# `WAF-AVD` is Scout's own workload-review axis, the same pattern `WAF-AI`/`SMART`/`XR` use --
+# see waf.ai.yaml's header for the fuller rationale, which applies here identically.
+#
+# COVERAGE. 12 of 20 enumerated items (60%) were rated cleanly automatable by the enumeration --
+# the highest of the four workload checklists in this release, because AVD-on-Azure-Local is
+# infrastructure-heavy. Of those, 6 are scored here with a real, non-vacuous assert (not
+# `manual: true`): WAF-AVD-RE-01 (cluster node count), WAF-AVD-RE-03 (session-host health),
+# WAF-AVD-SE-04 (logical-network existence), WAF-AVD-CO-06 (scaling-plan existence),
+# WAF-AVD-OE-03 (Arc extension existence) and WAF-AVD-OE-04 (Log Analytics workspace existence).
+# The remaining 14 stay `manual: true` -- most with a real `query` attached as evidence -- either
+# because the underlying signal genuinely is not modeled anywhere in `domains`/`compute` yet
+# (Conditional Access, Defender for Cloud pricing/alerts, Monitor alert rules -- all real,
+# pre-existing gaps in this repo's collection, not something invented or fixed by this story) or
+# because the item is a deliberate-choice/process question ("was this type chosen
+# deliberately", "was capacity planned") no boolean ARM property can answer.
+area: "AVD workload (Azure Local)"
+framework: WAF-AVD
+frameworkversion: "WAF Azure Virtual Desktop for Azure Local guidance, docs/frameworks/waf-avd-workload-checklist.md, extracted 2026-08-01 (20 items, AVD-on-Azure-Local scope only)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-avd-workload-checklist.md (internal enumeration of learn.microsoft.com/azure/architecture/hybrid/azure-local-workload-virtual-desktop), verified 2026-08-01"
+rules:
+  # ---- Reliability (WAF-AVD-RE) ------------------------------------------------------------
+  - id: WAF-AVD-RE-01
+    title: "WAF-AVD-RE-01. Implement multiple-machine instances for high availability"
+    severity: high
+    # nodeCount is $null when the cluster agent has not yet reported (never eq 1), so a
+    # not-yet-reporting cluster is silently excluded rather than misreported as single-node --
+    # a real limitation of the underlying data, documented rather than hidden.
+    query: "$.domains.hybrid.azureLocalClusters[?(@.nodeCount == 1)]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AVD-RE-01. The Azure Local cluster(s) named above report a single node. Deploy a multi-node (2/3-node) cluster for AVD host pools that require high availability."
+    manual: false
+  - id: WAF-AVD-RE-02
+    title: "WAF-AVD-RE-02. Plan and regularly test backup and restore procedures"
+    severity: high
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-RE-02. The backup-protected items above are estate-wide, not filtered to AVD session-host VMs or FSLogix profile storage specifically. Confirm AVD session hosts and user-profile storage are covered by a tested backup/restore procedure -- test cadence itself is not a collected property."
+    manual: true
+  - id: WAF-AVD-RE-03
+    title: "WAF-AVD-RE-03. Implement monitoring and alerting for Azure Local and AVD VMs"
+    severity: high
+    # A real, narrower signal than the full item: session-host live health state. Alert-rule /
+    # action-group CONFIGURATION is not modeled in domains.*/compute.* for this rule set --
+    # see the remediation for that caveat.
+    query: "$.compute.avdSessionHosts[?(@.status == 'Unavailable' || @.status == 'Disconnected')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AVD-RE-03. The session host(s) named above are reporting Unavailable or Disconnected. Investigate and confirm metric alert rules and action groups are also configured for the host pool -- alert-rule configuration itself is not yet modeled in this rule set."
+    manual: false
+  - id: WAF-AVD-RE-04
+    title: "WAF-AVD-RE-04. Test failover and disaster recovery regularly"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-RE-04. Confirm failover/DR testing happens on a regular cadence. A test-execution cadence, not an ARM property."
+    manual: true
+
+  # ---- Security (WAF-AVD-SE) ---------------------------------------------------------------
+  - id: WAF-AVD-SE-01
+    title: "WAF-AVD-SE-01. Turn on Microsoft Entra multifactor authentication for AVD access"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-SE-01. Confirm Conditional Access requires MFA for AVD sign-in. Conditional Access policy data is not modeled in domains.* for this rule set; confirm manually via Entra ID."
+    manual: true
+  - id: WAF-AVD-SE-02
+    title: "WAF-AVD-SE-02. Update and patch AVD session hosts regularly (Azure Update Manager)"
+    severity: high
+    # Policy compliance states exist but are not filtered to the Update Manager initiative
+    # here -- attaching the raw evidence honestly rather than fabricating a filter that might
+    # silently match the wrong initiative.
+    query: "$.domains.management.policyComplianceStates[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-SE-02. Policy compliance state above is unfiltered by initiative. Confirm AVD session hosts are enrolled in Azure Update Manager and patch compliance is tracked specifically for them."
+    manual: true
+  - id: WAF-AVD-SE-03
+    title: "WAF-AVD-SE-03. Protect against threats and vulnerabilities (Defender for Cloud)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-SE-03. Confirm Defender for Cloud/Defender for Servers is enabled for AVD session hosts. Defender plan/pricing and alert data (domains.security) is not populated by this collection pass -- a pre-existing gap, not introduced by this story; confirm manually via Defender for Cloud."
+    manual: true
+  - id: WAF-AVD-SE-04
+    title: "WAF-AVD-SE-04. Isolate networks for the workload"
+    severity: medium
+    query: "$.domains.hybrid.logicalNetworks[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AVD-SE-04. No Azure Local logical network was found. Deploy a dedicated logical network/VLAN for the AVD workload rather than sharing the default management network."
+    manual: false
+
+  # ---- Cost Optimization (WAF-AVD-CO) -------------------------------------------------------
+  - id: WAF-AVD-CO-01
+    title: "WAF-AVD-CO-01. Optimize VM sizing for cost efficiency"
+    severity: medium
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-CO-01. The VM SKUs above are evidence for a rightsizing review. Correlate against actual AVD session-host usage/sessions to confirm sizing matches demand -- usage correlation is a rule-authoring task on usage data this collection pass does not gather, not a missing collector."
+    manual: true
+  - id: WAF-AVD-CO-02
+    title: "WAF-AVD-CO-02. Use automatic VM guest OS patching for Azure Local VMs"
+    severity: medium
+    query: "$.domains.management.policyComplianceStates[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-CO-02. Same evidence as WAF-AVD-SE-02: policy compliance state above is unfiltered by initiative. Confirm automatic guest-OS patching is enabled for AVD session-host VMs."
+    manual: true
+  - id: WAF-AVD-CO-03
+    title: "WAF-AVD-CO-03. Choose single-session or multi-session host pools deliberately"
+    severity: low
+    query: "$.compute.avdHostPools[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-CO-03. The host pool type(s) above show what was chosen. Confirm single- vs multi-session was a deliberate cost/density decision, not a default left unreviewed."
+    manual: true
+  - id: WAF-AVD-CO-04
+    title: "WAF-AVD-CO-04. Consolidate cost monitoring"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-CO-04. Confirm Insights and Update Manager cost/compliance monitoring are consolidated into one place the team actually reviews. Monitor workspace linkage to a specific cost-monitoring practice is not modeled for this rule set."
+    manual: true
+  - id: WAF-AVD-CO-05
+    title: "WAF-AVD-CO-05. Plan for initial workload capacity and growth"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-CO-05. Confirm initial capacity and growth were planned (including whether a 2/3-node switchless cluster topology fits). A pre-deployment capacity-planning decision; no ARM property evidences it."
+    manual: true
+  - id: WAF-AVD-CO-06
+    title: "WAF-AVD-CO-06. Implement Azure Virtual Desktop autoscaling"
+    severity: medium
+    query: "$.compute.avdScalingPlans[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AVD-CO-06. No AVD scaling plan was found. Implement autoscaling so session-host capacity tracks demand rather than running fixed capacity around the clock."
+    manual: false
+
+  # ---- Operational Excellence (WAF-AVD-OE) --------------------------------------------------
+  - id: WAF-AVD-OE-01
+    title: "WAF-AVD-OE-01. Use simplified provisioning and management"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-OE-01. Confirm ARM templates (or equivalent IaC) drive AVD/Azure Local provisioning rather than manual portal deployment. A deployment-process choice, not a post-deployment property."
+    manual: true
+  - id: WAF-AVD-OE-02
+    title: "WAF-AVD-OE-02. Create strict change-control procedures"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVD-OE-02. Confirm changes are tested and validated before hitting production. Organisational; no ARM property evidences it."
+    manual: true
+  - id: WAF-AVD-OE-03
+    title: "WAF-AVD-OE-03. Use automation capabilities for VMs (Arc extensions, Update Manager, Azure Automation)"
+    severity: medium
+    # arcExtensions is estate-wide (not joined to specifically-AVD-hosting Arc machines);
+    # existence is still meaningful evidence that the automation surface is in use somewhere.
+    query: "$.domains.hybrid.arcExtensions[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AVD-OE-03. No Arc extension was found anywhere in scope. Confirm Update Manager/Azure Automation extensions are deployed to the Azure Local nodes and AVD session hosts specifically, not just present somewhere in the estate."
+    manual: false
+  - id: WAF-AVD-OE-04
+    title: "WAF-AVD-OE-04. Set up monitoring and logging (Insights for Azure Local and AVD)"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AVD-OE-04. No Log Analytics workspace was found. Deploy one and link Azure Local and AVD Insights to it -- host pool/workspace-to-workspace linkage itself is not yet modeled in this rule set."
+    manual: false
+
+  # ---- Performance Efficiency (WAF-AVD-PE) --------------------------------------------------
+  - id: WAF-AVD-PE-01
+    title: "WAF-AVD-PE-01. Use load balancing for optimal performance"
+    severity: medium
+    query: "$.compute.avdHostPools[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-PE-01. The load-balancer type(s) above show what each host pool uses. Confirm breadth-first vs depth-first was chosen deliberately for the session pattern in use, not left at a default."
+    manual: true
+  - id: WAF-AVD-PE-02
+    title: "WAF-AVD-PE-02. Optimize performance -- high-performance storage, S2D pooling, performance testing"
+    severity: medium
+    query: "$.domains.hybrid.azureLocalClusters[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVD-PE-02. The Azure Local cluster(s) above are the S2D storage pool boundary. Confirm storage tier/performance was reviewed for the AVD workload's IOPS profile, and that performance testing was actually run -- storage tier detail and test execution are not collected."
+    manual: true

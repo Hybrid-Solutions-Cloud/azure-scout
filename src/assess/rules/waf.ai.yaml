@@ -1,0 +1,325 @@
+# waf.ai.yaml — AI workload assessment (AB#6818, Feature AB#6748, Epic AB#6454)
+#
+# Written ONLY against docs/frameworks/waf-ai-workload-checklist.md (34 items across 7 of the
+# 10 AI-workload design areas Microsoft publishes a "Recommendations" table for). Every rule
+# below cites a WAF-AI-<AREA>-NN id from that file in its `title` and `remediation`. Do not add
+# a rule here that cites an id not in that enumeration, and do not re-date this file's
+# `frameworkversion` without re-running the enumeration's verification procedure first
+# (docs/frameworks/README.md).
+#
+# WHY `framework: WAF-AI`, NOT `framework: WAF`. The AI workload guidance is explicitly NOT
+# organised by the five WAF pillars (docs/frameworks/waf-ai-workload-checklist.md, "What this
+# assessment is") -- it is organised into AI-specific design areas that each cut across several
+# pillars. `tests/Assessment.Restructure.Tests.ps1` (AB#6798) requires every `framework: WAF`
+# rule file to declare `area:` as one of the five real pillars; forcing a multi-design-area
+# workload review under one of those five would be exactly the "waf.storage.yaml scored a
+# pillar that does not exist" defect this whole epic exists to remove, just moved to a
+# different framework. `WAF-AI` is Scout's own axis for this workload review -- the same
+# pattern `SMART` and `XR` already use for reviews that are not a CAF design area or a WAF
+# pillar -- and the restructure gate's `default {}` branch already treats any framework value
+# other than the literal strings 'WAF'/'CAF' as out of its scope, so this does not need (and
+# must not invent) a fake pillar name to pass it.
+#
+# WHY SO MANY `manual: true` ROWS. The enumeration's own summary says it plainly: only 6 of 34
+# items (18%) map cleanly to an ARM/ARG-readable property; 17 are genuinely unanswerable
+# process/architecture/data-science-methodology practices Resource Graph cannot see at all. Of
+# the remaining 11 "partial" items, most ask a JUDGEMENT question ("was compliance considered",
+# "is the practice embraced") that no boolean ARM property answers -- Scout can show WHAT exists,
+# not whether the existing thing was used well. Every manual row below still carries a `query`
+# wherever real collected data bears on the question, so the evidence a reviewer needs is
+# pre-filled rather than the row being a bare "go check" with nothing attached (see
+# src/assess/engine/Invoke-Rule.ps1's manual branch, which resolves `query` even when
+# `assert.type` is `manual`). Only the seven items the enumeration marks fully unanswerable
+# (architecture/process patterns with no ARM surface at all) carry `query: null`.
+#
+# TWO items are scored with a real, non-vacuous assert (not manual): WAF-AI-GROUND-02 (AI
+# Search existence, evidencing an externalised grounding index) and WAF-AI-MLOPS-01 (an ML
+# workspace exists, evidencing lifecycle tooling is in place). Both are existence checks, framed
+# the same honest way SMART-C1/SMART-C4 are: a Fail here means "nothing found -- confirm whether
+# this workload needs one", not "this is definitely wrong". The remaining four items the
+# enumeration marks fully "answerable" (WAF-AI-APPD-06, WAF-AI-APPP-03, WAF-AI-APPP-05,
+# WAF-AI-OPS-01) are COMPARATIVE or AGGREGATE judgements ("prioritize X over Y", "deployed in
+# the same region", "monitor all aspects") that this engine's JSONPath-filter-plus-count assert
+# types cannot express without a group-by/aggregation primitive it does not have -- each stays
+# manual, with the comparison data attached as evidence rather than the rule being skipped.
+area: "AI workload"
+framework: WAF-AI
+frameworkversion: "WAF AI workload guidance, docs/frameworks/waf-ai-workload-checklist.md, extracted 2026-08-01 (7 of 10 AI-workload design areas enumerated, 34 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-ai-workload-checklist.md (internal enumeration of learn.microsoft.com/azure/well-architected/ai/*), verified 2026-08-01"
+rules:
+  # ---- Application design (WAF-AI-APPD) ---------------------------------------------------
+  - id: WAF-AI-APPD-01
+    title: "WAF-AI-APPD-01. Prioritize security and Responsible AI controls"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-01. Confirm provider safety systems, input/output filtering and rate limiting are configured on every deployed model. Not ARM-readable -- content-safety configuration lives in the data plane, not a Resource Graph property."
+    manual: true
+  - id: WAF-AI-APPD-02
+    title: "WAF-AI-APPD-02. Keep intelligence away from the client"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-02. Confirm the back-end, not the client, owns rate limiting, failover and AI logic. An application-architecture pattern; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-APPD-03
+    title: "WAF-AI-APPD-03. Block direct access to data stores"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-03. Confirm clients route through an API/data-access abstraction rather than querying data stores directly. A code-level pattern; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-APPD-04
+    title: "WAF-AI-APPD-04. Abstract models and tools behind standardized interfaces"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-04. Confirm model/tool access goes through a standardized interface, not direct SDK calls scattered through the app. A code-level pattern; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-APPD-05
+    title: "WAF-AI-APPD-05. Isolate behaviors and actions across client/intelligence/knowledge/tools layers"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-05. Confirm the four workload layers (client, intelligence, knowledge, tools) are architecturally isolated. An architecture pattern; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-APPD-06
+    title: "WAF-AI-APPD-06. Prioritize prebuilt SaaS/PaaS solutions over custom builds"
+    severity: low
+    # Evidence, not a verdict: mlWorkspaces existing is the custom-build signal. Compare its
+    # count against domains.ai.cognitiveAccounts (the PaaS/SaaS signal, already scored
+    # elsewhere by caf.ai.yaml) to judge whether custom builds were the exception, not the
+    # default -- a comparative judgement this engine's per-array count/percentage asserts
+    # cannot make without a cross-array group-by it does not have.
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-APPD-06. Compare the machine-learning-workspace count above (custom-build indicator) against the Cognitive Services/OpenAI/AI Foundry account count (PaaS/SaaS indicator, see CAF-AI-* findings). Confirm custom builds were a deliberate exception, not the default choice."
+    manual: true
+
+  # ---- Application platform (WAF-AI-APPP) -------------------------------------------------
+  - id: WAF-AI-APPP-01
+    title: "WAF-AI-APPP-01. Reuse existing tools before adopting a new one"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-01. Confirm the team checked for an existing tool before adopting a new one. Organisational; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-APPP-02
+    title: "WAF-AI-APPP-02. Consider compliance requirements for data and deployment regions"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-02. Every AI resource's region is listed in domains.ai (this evidence set). Confirm each region meets the data-residency/compliance requirement for the workload -- the regulatory-fit judgement itself is not automatable."
+    manual: true
+  - id: WAF-AI-APPP-03
+    title: "WAF-AI-APPP-03. Minimize building -- prefer PaaS/SaaS to reduce operational burden"
+    severity: low
+    # Same comparative signal as WAF-AI-APPD-06 -- see that rule's note.
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-03. Same evidence as WAF-AI-APPD-06: compare the machine-learning-workspace count against the Cognitive Services/OpenAI PaaS account count. Minimizing custom builds reduces operational burden; confirm that trade-off was made deliberately."
+    manual: true
+  - id: WAF-AI-APPP-04
+    title: "WAF-AI-APPP-04. Understand quotas and limits for the chosen PaaS/SaaS service"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-04. Confirm quota/limit headroom was reviewed for each PaaS/SaaS AI service in use. Quota values are not exposed via the ARG properties Scout reads."
+    manual: true
+  - id: WAF-AI-APPP-05
+    title: "WAF-AI-APPP-05. Deploy related resources in the same region"
+    severity: low
+    # A true implementation needs a group-by-region across cognitiveAccounts, mlWorkspaces and
+    # searchServices to find the outlier -- Resolve-JsonPath has no aggregation primitive, so
+    # this stays manual with the resource-level evidence a reviewer needs to do that comparison
+    # by hand, rather than a fabricated per-array count that could not actually detect it.
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-05. Compare the regions listed above against domains.ai.mlWorkspaces, domains.ai.searchServices and the workload's networking resources. Confirm related AI resources share a region rather than being scattered, which adds latency and cross-region egress cost."
+    manual: true
+  - id: WAF-AI-APPP-06
+    title: "WAF-AI-APPP-06. Practice safe deployment -- place APIs behind a gateway"
+    severity: medium
+    # Reuses the same private-endpoint-to-Cognitive-Services join CAF-AI-04 already scores,
+    # as evidence a gateway/private-access pattern is in place -- not proof the gateway
+    # practice itself (blue/green, request shaping) is followed.
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.cognitiveservices' && @.targetType == 'accounts')]"
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-06. The private endpoints above show which Cognitive Services/OpenAI accounts sit behind private access. Confirm consuming apps also route through an API gateway (APIM or equivalent) rather than calling the AI service directly."
+    manual: true
+  - id: WAF-AI-APPP-07
+    title: "WAF-AI-APPP-07. Establish performance benchmarks through experimentation"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-APPP-07. Confirm performance benchmarks were established through experimentation before go-live. A benchmarking exercise; no ARM property evidences it."
+    manual: true
+
+  # ---- Training data design (WAF-AI-TRAIN) ------------------------------------------------
+  - id: WAF-AI-TRAIN-01
+    title: "WAF-AI-TRAIN-01. Select data sources based on workload requirements"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TRAIN-01. Confirm data sources were selected for quality, balance and technique fit. A data-science process decision; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-TRAIN-02
+    title: "WAF-AI-TRAIN-02. Conduct exploratory data analysis (EDA) early"
+    severity: low
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-TRAIN-02. The ML workspace(s) above are where EDA tooling would run. Confirm EDA was actually performed early in the training-data design, not just that the tooling exists."
+    manual: true
+  - id: WAF-AI-TRAIN-03
+    title: "WAF-AI-TRAIN-03. Maintain data segmentation where security/technical requirements call for it"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TRAIN-03. Confirm data segmentation is maintained where security or technical requirements call for it. A data-pipeline design choice; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-TRAIN-04
+    title: "WAF-AI-TRAIN-04. Preprocess data to remove noise and standardize formats"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TRAIN-04. Confirm a preprocessing step removes noise and standardizes formats before training. A pipeline implementation detail; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-TRAIN-05
+    title: "WAF-AI-TRAIN-05. Avoid training on stale data -- monitor for drift, define retraining triggers"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-TRAIN-05. The ML workspace(s) above are where a retraining pipeline would run. Confirm drift monitoring and retraining triggers are actually configured -- their configuration is not collected."
+    manual: true
+
+  # ---- Grounding data design (WAF-AI-GROUND) ----------------------------------------------
+  - id: WAF-AI-GROUND-01
+    title: "WAF-AI-GROUND-01. Anticipate user queries when designing the grounding pipeline"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-GROUND-01. Confirm anticipated user query patterns shaped the grounding pipeline design. A design-time decision; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-GROUND-02
+    title: "WAF-AI-GROUND-02. Externalize grounding data to a search index"
+    severity: low
+    # Real existence check, framed like SMART-C1/SMART-C4: absence is a thing to confirm
+    # applies, not necessarily a defect -- not every AI workload does retrieval-augmented
+    # generation.
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AI-GROUND-02. No Azure AI Search resource was found. If this workload performs retrieval-augmented generation (RAG), externalize grounding data to a search index rather than querying the source system directly -- if it does not do RAG, this finding does not apply."
+    manual: false
+  - id: WAF-AI-GROUND-03
+    title: "WAF-AI-GROUND-03. Develop a comprehensive ingestion strategy"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-GROUND-03. Confirm the ingestion strategy dedupes, standardizes and rescopes grounding data. A pipeline implementation detail; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-GROUND-04
+    title: "WAF-AI-GROUND-04. Design the index for maximum relevancy"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-GROUND-04. The Azure AI Search service(s) above are where index schema/field configuration lives. Confirm filtering, sorting and metadata were tuned for relevancy -- relevancy-tuning quality itself is not scorable."
+    manual: true
+
+  # ---- MLOps and GenAIOps (WAF-AI-MLOPS) --------------------------------------------------
+  - id: WAF-AI-MLOPS-01
+    title: "WAF-AI-MLOPS-01. Design an efficient workload operations lifecycle"
+    severity: medium
+    # Real existence check: an ML workspace is a proxy for DataOps/MLOps/GenAIOps tooling
+    # being in place. It cannot confirm the lifecycle stages themselves are efficient, only
+    # that the tooling to run one exists.
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "WAF-AI-MLOPS-01. No machine-learning workspace was found. If this workload trains or fine-tunes its own models, provision one and design an explicit DataOps/MLOps/GenAIOps lifecycle -- if the workload only consumes prebuilt PaaS/SaaS AI services, this finding does not apply."
+    manual: false
+  - id: WAF-AI-MLOPS-02
+    title: "WAF-AI-MLOPS-02. Automate the build/test/validate/deploy cycle"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-MLOPS-02. Confirm the build/test/validate/deploy cycle is automated end to end. CI/CD pipeline configuration is not modeled in domains.* for this rule set; confirm manually."
+    manual: true
+  - id: WAF-AI-MLOPS-03
+    title: "WAF-AI-MLOPS-03. Use deployment pipelines for repeatable infrastructure and model promotion"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-MLOPS-03. Confirm infrastructure and model promotion both go through a repeatable deployment pipeline rather than a manual step. Pipeline configuration is not modeled in domains.* for this rule set; confirm manually."
+    manual: true
+  - id: WAF-AI-MLOPS-04
+    title: "WAF-AI-MLOPS-04. Prevent drift and decay in models via structured maintenance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-MLOPS-04. Confirm a structured maintenance process exists to catch model drift and decay. Model-quality monitoring configuration is not a collected property."
+    manual: true
+
+  # ---- Workload operations (WAF-AI-OPS) ---------------------------------------------------
+  - id: WAF-AI-OPS-01
+    title: "WAF-AI-OPS-01. Monitor all aspects of the workload"
+    severity: medium
+    # opsPosture.diagnosticCoverage is estate-wide (per resource TYPE, not filtered to AI
+    # resources specifically), so it is attached as evidence, not scored pass/fail here --
+    # scoring it would silently answer a broader question than the one this rule asks.
+    query: "$.opsPosture.diagnosticCoverage[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-OPS-01. The diagnostic-settings coverage above is estate-wide, not AI-resource-scoped. Confirm component availability AND output-quality metrics are both monitored for every AI resource in this workload specifically."
+    manual: true
+  - id: WAF-AI-OPS-02
+    title: "WAF-AI-OPS-02. Apply safe deployment practices to AI components"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-OPS-02. Confirm blue-green/canary/side-by-side index-update patterns are used when deploying AI components. A deployment-process practice; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-OPS-03
+    title: "WAF-AI-OPS-03. Embrace DevOps practices -- testing and automation in production"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-OPS-03. Confirm DevOps testing and automation practices are embraced in production. DevOps pipeline data is not modeled in domains.* for this rule set; confirm manually."
+    manual: true
+  - id: WAF-AI-OPS-04
+    title: "WAF-AI-OPS-04. Document progress -- decisions, data sources, training history"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-OPS-04. Confirm decisions, data sources and training history are documented as the workload evolves. Organisational; no ARM property evidences it."
+    manual: true
+
+  # ---- Responsible AI (WAF-AI-RAI) ---------------------------------------------------------
+  - id: WAF-AI-RAI-01
+    title: "WAF-AI-RAI-01. Develop policies enforcing responsible-AI practices at each lifecycle stage"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-RAI-01. Confirm responsible-AI policies exist and are enforced at every lifecycle stage. Organisational; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-RAI-02
+    title: "WAF-AI-RAI-02. Protect user data -- collect only what's necessary, apply technical controls"
+    severity: high
+    # Key Vault presence is infrastructure evidence a secret-handling control exists;
+    # data-minimisation practice is not itself scorable.
+    query: "$.domains.security.keyVaults[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-RAI-02. The Key Vaults above evidence secret-handling infrastructure is in place. Confirm the workload collects only necessary user data and applies technical controls (encryption, minimisation) to what it does collect -- the practice itself is not scorable from ARM alone."
+    manual: true
+  - id: WAF-AI-RAI-03
+    title: "WAF-AI-RAI-03. Keep AI decisions clear and understandable to users"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-RAI-03. Confirm AI-driven decisions are explained to users in a way they can understand. A UX/transparency practice; no ARM property evidences it."
+    manual: true
+  - id: WAF-AI-RAI-04
+    title: "WAF-AI-RAI-04. Implement agentic AI safeguards"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-RAI-04. Confirm auditability, RBAC and circuit-breaker safeguards are implemented for any agentic AI components. Identity/RBAC data (Conditional Access, per-resource role assignments) is not modeled in domains.* for this rule set; confirm manually."
+    manual: true
