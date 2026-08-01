@@ -1,0 +1,45 @@
+area: "Cost Management"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), CM category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-CM-01
+    title: "Cost analysis gives full visibility into cloud costs"
+    severity: medium
+    # No full cost-analysis dataset (Cost Management API cost-by-scope breakdown) is
+    # collected into collect.json -- $.advisor and $.governance.budgets are partial signals
+    # (recommendations and budget thresholds), not a cost-analysis view. Manual rather than
+    # scoring a proxy for "full visibility".
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm Cost Analysis / Cost Management + Billing is used for full cost visibility across the estate, not only the budget and Advisor signals Scout can evidence."
+    manual: true
+
+  - id: CGOV-CM-02
+    title: "Budgets are created that align with the desired cloud investment"
+    severity: high
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Create Azure Budgets at the subscription or resource-group scope with thresholds aligned to planned spend."
+    manual: false
+
+  - id: CGOV-CM-03
+    title: "Cost-optimization recommendations are used to detect idle resources"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost')]"
+    assert: { type: exists }
+    remediation: "Review Advisor Cost recommendations, and the orphaned-disk/orphaned-public-IP findings under $.costCleanup, and act on them (resize, deallocate, or delete)."
+    manual: false
+
+  - id: CGOV-CM-04
+    title: "Cost anomalies and unexpected changes are identified"
+    severity: medium
+    # src/analyze/Get-ScoutCostAnomaly.ps1 implements spike/z-score/IQR anomaly detection
+    # against Get-ScoutCostInventory output, but Invoke-Collect.ps1 never calls it -- the
+    # function exists and is unused, not absent (see
+    # docs/frameworks/cloud-governance-question-set.md CGOV-CM-04). Scoring it as answered
+    # would claim a capability that is implemented but not wired into any run.
+    query: null
+    assert: { type: manual }
+    remediation: "Wire Get-ScoutCostAnomaly.ps1 into the collect pipeline (tracked separately from this reporting feature), or confirm cost-anomaly alerting is configured in Cost Management + Billing directly."
+    manual: true

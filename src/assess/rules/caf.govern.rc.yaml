@@ -1,0 +1,29 @@
+area: "Regulatory Compliance"
+framework: "Cloud Governance"
+# Even weighting across the seven CAF Govern risk categories (AB#6459) -- CAF publishes
+# no relative-importance ordering across Regulatory Compliance/Security/Cost/Operations/
+# Data/Resource Management/AI, so 1/7 each is the only defensible default. See
+# docs/design/governance-domain-maturity-scale.md.
+weight: 0.142857
+# Enumeration source and verification date -- see docs/frameworks/cloud-governance-question-set.md
+# (AB#6811), itself built from the CAF Govern documentation pages named there, verified 2026-08-01.
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), RC category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-RC-01
+    title: "Policy compliance dashboards are used to get compliance data on assigned policies"
+    severity: high
+    query: "$.domains.management.policyComplianceStates[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Collect with -IncludePolicyCompliance (or run the Compliance assessment) so policy compliance state is available to review, not just policy assignment existence."
+    manual: false
+
+  - id: CGOV-RC-02
+    title: "Causes of noncompliance are determined and root-caused, not just observed"
+    severity: medium
+    # collect.json's policyComplianceStates carries the compliance STATE per resource, not a
+    # root-cause narrative -- that is a human review step CAF Govern describes, not a field
+    # Scout can read. Manual rather than a false pass on "compliance data exists".
+    query: null
+    assert: { type: manual }
+    remediation: "For each non-compliant resource, document why it is non-compliant (misconfiguration, exemption pending, policy too broad) rather than only tracking the compliance percentage."
+    manual: true

@@ -1,0 +1,48 @@
+area: "Security"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), SC category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-SC-01
+    title: "Security recommendations are reviewed and secure score is monitored over time"
+    severity: medium
+    # Defender secure score / assessments are collected by the raw v1 collectors
+    # (Security/DefenderSecureScore, Security/DefenderAssessments) but are not wired into
+    # collect.json's domains.security schema the v3 rule engine reads (only
+    # domains.security.keyVaults and the empty security.defenderPlans placeholder are), and
+    # even if they were, a single collect.json is one point in time -- it cannot prove a
+    # trend was "monitored over time" without a retained history Scout does not keep between
+    # runs. Scoring "exists" here would be a proxy for a claim ("monitored over time") the
+    # data cannot support -- manual, not a false pass.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm Defender secure score is reviewed on a recurring cadence (not just point-in-time) and recommendations are actioned or formally risk-accepted."
+    manual: true
+
+  - id: CGOV-SC-02
+    title: "A regulatory-compliance dashboard is checked against common security frameworks (MCSB, CIS, etc.)"
+    severity: high
+    # Same dataset as CGOV-RC-01/CGOV-OP-01 -- policyComplianceStates carries no field
+    # distinguishing which regulatory-compliance initiative (MCSB/CIS/ISO/NIST/...) each
+    # state belongs to, so this can only evidence "some compliance dashboard data exists",
+    # not "MCSB specifically was checked". Existence is still meaningful evidence: a tenant
+    # with zero compliance rows has definitely not done this. See the Compliance assessment
+    # (Assess: Compliance / Get-ScoutComplianceScore.ps1) for the per-initiative breakdown
+    # this rule cannot see.
+    query: "$.domains.management.policyComplianceStates[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Run the 'Assess: Compliance' assessment for a per-initiative (MCSB/CIS/ISO/NIST/PCI-DSS) breakdown rather than relying on this generic existence check."
+    manual: false
+
+  - id: CGOV-SC-03
+    title: "Identity governance monitoring is configured — audit/sign-in/provisioning logs, identity secure score, an identity-governance dashboard"
+    severity: high
+    # Sign-in/audit/provisioning logs are not collected by Scout at all -- confirmed against
+    # collect.json's identity domain, and independently corroborated by the AzGovViz
+    # methodology evaluation (docs/design/azgovviz-methodology-evaluation.md, AB#6448), which
+    # documents that AzGovViz's Entra service-principal/secret-expiry tracking is capability
+    # Scout does not have an equivalent collector for.
+    query: null
+    assert: { type: manual }
+    remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard -- none of this is currently observable from Scout's collected data."
+    manual: true

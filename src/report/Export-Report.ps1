@@ -30,6 +30,9 @@ function Export-Report {
         # AB#333: Word (.docx) via OpenXML. AB#344: self-contained offline ECharts HTML dashboard.
         'Word' { Export-Word -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'EChartsDashboard' { Export-EChartsDashboard -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#6459: consultant-grade Cloud Governance report -- 1-10 domain maturity score
+        # per CAF Govern risk category, radar chart, domain x status heatmap.
+        'GovernanceReport' { Export-GovernanceReport -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         default   { Write-Warning "Unknown renderer '$Renderer' — skipped." }
     }
 }

@@ -1,0 +1,28 @@
+area: "Data"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), DG category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-DG-01
+    title: "Data compliance, management, and usage are monitored (Microsoft Purview)"
+    severity: medium
+    # Correction to docs/frameworks/cloud-governance-question-set.md's "Purview is not
+    # collected by Scout" (CGOV-DG-01): Epic AB#6731 wired a Purview collector into
+    # domains.analytics.purviewAccounts (manifests/collectors/Analytics/Purview.psd1). This
+    # only proves a Purview account is DEPLOYED, not that it is actively monitoring data
+    # compliance -- deployment is necessary-but-not-sufficient evidence, the same
+    # existence-proxy pattern CAF-GOV-01 uses for policy assignments.
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "A Purview account existing is not the same as active data-compliance monitoring -- confirm scans, classifications, and compliance policies are configured within it."
+    manual: false
+
+  - id: CGOV-DG-02
+    title: "Dashboards monitor compliance with data-plane policies"
+    severity: medium
+    # Data-plane policy state (row/column-level access policies, data classification
+    # enforcement) is not collected by Scout -- only control-plane resource policy is.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm a dashboard exists for data-plane policy compliance (row/column-level security, data classification enforcement) -- Scout only evidences control-plane (ARM resource) policy, never data-plane."
+    manual: true

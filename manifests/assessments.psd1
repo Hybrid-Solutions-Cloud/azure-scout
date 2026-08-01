@@ -213,6 +213,29 @@
         Reporters    = @('Html', 'Excel')
     }
 
+    # ---- cloud governance maturity report (Feature AB#6458, Story AB#6459, Epic AB#6454) ----
+    # The seven caf.govern.*.yaml rule files (Regulatory Compliance, Security, Cost
+    # Management, Operations, Data, Resource Management, AI) are CAF Govern's seven risk
+    # categories per docs/frameworks/cloud-governance-question-set.md (AB#6811) -- the
+    # methodology behind the interactive "Cloud Governance" assessment, distinct from
+    # caf.governance.yaml's Governance DESIGN AREA (already scored under 'CAF: Governance'
+    # above). GovernanceReport is the consultant-grade deliverable: a 1-10 domain maturity
+    # score per risk category (Get-GovernanceDomainScore.ps1, deliberately NOT the same
+    # scale as WAF's published 5-level maturity model -- see
+    # docs/design/governance-domain-maturity-scale.md), a radar chart, and a domain x status
+    # heatmap, reusing the vendored offline ECharts library Export-EChartsDashboard.ps1
+    # already carries rather than a second charting mechanism.
+    'Assess: Cloud Governance' = @{
+        Description = 'CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI), radar + heatmap report'
+        Category    = 'Management'
+        Collect     = @('Management')
+        Ingest      = @('Governance', 'AdvisorScores')
+        Rules       = @('caf.govern.*')
+        Frameworks  = @('CAF: Govern')
+        Tags        = @('caf', 'governance', 'maturity')
+        Reporters   = @('GovernanceReport', 'Html', 'Excel')
+    }
+
     # ---- migration readiness (AB#6832) ----
     # RequiresData is what keeps this out of the wizard's menu until the Migration collectors
     # actually return rows: the wizard resolves these paths against the most recent collect.json
