@@ -12,6 +12,14 @@
 # (it has no *rule file*, even though it has plenty to score), so it reuses the mechanism rather
 # than inventing a parallel one.
 #
+# AB#6817 -- the version this assessment reports is NOT fixed at authoring time the way a CAF or
+# WAF rule file's is. Azure ships each regulatory initiative in several versions simultaneously
+# (six CIS initiatives at once), so the version is read per run from the assigned initiative's own
+# `PolicySetDefinitionId` and stamped on each result by Invoke-ScoutComplianceAssessment. This
+# field records that fact rather than a date, so the file satisfies the version-stamping rule
+# honestly instead of asserting a currency it does not have.
+frameworkversion: "Per-run: taken from each assigned initiative's PolicySetDefinitionId, which is version-specific. Not fixed at authoring time -- see Invoke-ScoutComplianceAssessment.ps1"
+#
 # area/framework are read here only as a fallback label if something ever iterates every *.yaml
 # file generically; the real per-initiative Framework name (e.g. "Microsoft cloud security
 # benchmark 3.0.0") is computed at run time from the initiative actually assigned in the scanned
