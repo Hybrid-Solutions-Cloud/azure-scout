@@ -1,5 +1,13 @@
 # SMART — enumerated source for the Strategic Migration Assessment
 
+> **Source:** <https://learn.microsoft.com/assessments/Strategic-Migration-Assessment/>
+> **Framework version:** Not versioned by Microsoft — SMART is a living interactive tool with no
+> published release number. Treat the extraction date below as the version.
+> **Extracted:** 2026-07-31
+> **Verification method:** Manual read of the SMART landing page plus the five CAF pages it draws
+> on (full list in "Verification method" below). No API or transcript exists for SMART's own
+> question text — see the warning below.
+
 **Enumerated 2026-07-31. Verification method and limits are stated below — read them before quoting
 any coverage number from this page.**
 
