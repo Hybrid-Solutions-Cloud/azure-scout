@@ -2028,7 +2028,7 @@ AB#6444 traced these to defects in code. They emit zero rows **in every tenant, 
 | Monitor/**AppInsightsContinuousExport** | No producer — Azure retired the endpoint. Permanently empty by design | 🗑️ **Retired** — AB#6768 |
 | Monitor/**AppInsightsWorkItems** | No producer — endpoint retired | 🗑️ **Retired** — AB#6768 |
 | Hybrid/**ArcSites** | Declares three type strings that do not exist: `microsoft.azurestackhci/sites`, `microsoft.edgeconfig/sites`, `microsoft.hybridcompute/sites` | 🗑️ **Retired** — AB#6842 |
-| Hybrid/**VirtualMachines** | Emits zero rows on every run. Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — so this is not the ArcSites failure and needs its own diagnosis | ⏳ Open |
+| Hybrid/**VirtualMachines** | Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — it passes the AB#6842 existence gate, so this was never the ArcSites failure. Diagnosed 2026-07-31 (AB#6846): the test estate contains **zero** `microsoft.azurestackhci` resources and **zero** `microsoft.hybridcompute` resources, out of 109 resources across 38 types. The verdict is **"no rows because the tenant has none"**, not "broken" | ✅ **Not broken — do not retire** |
 | Management/**LighthouseDelegations** | `Microsoft.ManagedServices/registrationDefinitions` is real, but no pass reads the `managedserviceresources` ARG table that carries it | ⏳ Open — AB#6771 |
 | Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events | ⏳ Open — AB#6770 |
 | Monitor/**ResourceDiagnosticSettings** | `microsoft.insights/diagnosticsettings` is not an ARG-indexed type; it must be re-sourced via ARM REST | ⏳ Open — AB#6769 |
