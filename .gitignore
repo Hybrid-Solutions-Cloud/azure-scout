@@ -105,6 +105,15 @@ azureauth.json
 *credentials*.json
 *secrets*.json
 *connection*.json
+# AB#6822: the blanket patterns above also match legitimate committed test fixtures whose
+# collector NAME happens to contain one of those words -- KeyVaultSecrets.json (golden output),
+# ApiConnections.json / DevCenterNetworkConnections.json (golden output) -- and were silently
+# dropping them from every `git add`. FixtureAnonymity.Tests.ps1 already enforces that nothing
+# under tests/fixtures/collector-golden or tests/fixtures/collector-equivalence carries a real
+# subscription/tenant GUID or secret value, so re-including these two directories does not weaken
+# the credential-hygiene guard; it only stops it from silently eating synthetic fixture data.
+!tests/fixtures/collector-golden/**
+!tests/fixtures/collector-equivalence/**
 
 # Azure CLI and PowerShell Azure Module cache
 .azure/
