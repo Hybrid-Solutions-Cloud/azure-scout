@@ -101,6 +101,14 @@ $ErrorActionPreference = 'Stop'
     synthetic rows are appended to `Resources`. Off by default because this is ARM REST work,
     not part of the Resource Graph pass.
 
+.PARAMETER ArmChildDataset
+    Which ARM child dataset(s) to collect when -IncludeArmChildResources is set -- passed straight
+    through to Get-ScoutArmChildResource's own -Dataset parameter. Defaults to 'All' (every
+    dataset that function supports), matching the pre-AB#6821 behaviour for callers that already
+    set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the two
+    Key Vault child datasets (the assessment collect path, AB#6821) names them explicitly so the
+    ARM REST sweep is not paying for ML/Search/Storage/Backup/diagnostics children nothing reads.
+
 .PARAMETER IncludeSubscriptionSecurityPolicy
     Also collect one synthetic Defender/diagnostics/policy-compliance envelope per discovered
     subscription and append it to `Resources`. Off by default.
@@ -261,6 +269,7 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeTags,
         [switch]   $IncludeRetirements,
         [switch]   $IncludeArmChildResources,
+        [string[]] $ArmChildDataset = @('All'),
         [switch]   $IncludeSubscriptionSecurityPolicy,
         [switch]   $SkipApiResourceSweep,
         [switch]   $SkipPolicy,
@@ -578,7 +587,7 @@ function Get-ScoutRawInventory {
 
     if ($IncludeArmChildResources -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutArmChildResource' -FileName 'Get-ScoutArmChildResource.ps1')) {
         try {
-            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources))) {
+            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }

@@ -26,6 +26,8 @@ $ErrorActionPreference = 'Stop'
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
                      avdSessionHosts[{hostPoolName,status,agentVersion}],
                      avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
+                     privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
+                                     expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
                      logAnalyticsWorkspaces[{retentionInDays}] }
         security   { defenderPlans[] }
@@ -42,6 +44,9 @@ $ErrorActionPreference = 'Stop'
                       ai{cognitiveAccounts[{identityType,cmkEnabled}],
                          mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
                          searchServices[{sku}]},                                           (AB#6818)
+                      security{keyVaults[], keyVaultSecrets[{contentType,enabled,expires}],
+                               keyVaultKeys[{enabled,expires}]},   (AB#6821)
+                      ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[], arcExtensions[{machineId,extensionType}],
                              azureLocalClusters[{connectivityStatus,nodeCount}],            (AB#6819)
                              logicalNetworks[{}]},                                         (AB#6819)
@@ -659,6 +664,32 @@ resources | where type =~ "microsoft.desktopvirtualization/scalingplans"
         logicalNetworks = @'
 resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
 | project name, resourceGroup
+        # ---- Azure VMware Solution (AB#6820, Epic AB#6454) -------------------------------------
+        # Microsoft.AVS/privateClouds IS Resource Graph indexed (it is what the existing
+        # Compute/VMWare.psd1 inventory collector already queries) -- unlike almost everything
+        # else the WAF-AVS-* enumeration cites, the private-cloud resource itself is a normal ARM
+        # resource, not vCenter/NSX-T/vSAN-internal state. Every field below is a documented
+        # top-level property on the AVS PrivateCloud resource (verified against the
+        # Microsoft.AVS/privateClouds ARM template reference before being added):
+        #   availability.strategy / availability.zone  -- WAF-AVS-RE-04 (zonal/stretched-cluster)
+        #   managementCluster.clusterSize               -- WAF-AVS-RE-05 (minimum host count)
+        #   circuit.expressRouteID                       -- AVS-C5 (hub/vWAN connectivity)
+        #   encryption.status                            -- WAF-AVS-SEC-05 (encryption enabled)
+        #   internet                                     -- AVS-C3 (internet egress toggle)
+        #   identitySources / externalCloudLinks          -- array counts only, no credential material
+        privateClouds = @'
+resources | where type =~ "microsoft.avs/privateclouds"
+| extend availabilityStrategy = tostring(properties.availability.strategy)
+| extend availabilityZone = tostring(properties.availability.zone)
+| extend clusterSize = toint(properties.managementCluster.clusterSize)
+| extend expressRouteCircuitId = tostring(properties.circuit.expressRouteID)
+| extend encryptionStatus = tostring(properties.encryption.status)
+| extend internet = tostring(properties.internet)
+| extend identitySourceCount = array_length(properties.identitySources)
+| extend externalCloudLinkCount = array_length(properties.externalCloudLinks)
+| project id, name, resourceGroup, subscriptionId, sku = tostring(sku.name),
+          availabilityStrategy, availabilityZone, clusterSize, expressRouteCircuitId,
+          encryptionStatus, internet, identitySourceCount, externalCloudLinkCount
 '@
     }
 
@@ -727,6 +758,8 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
         avdSessionHosts     = @('Compute', 'Hybrid')
         avdScalingPlans     = @('Compute', 'Hybrid')
         logicalNetworks     = @('Hybrid')
+        # avs.workload (WAF-AVS-*) and caf.avslandingzone (AVS-*) both read this -- AB#6820.
+        privateClouds       = @('Compute')
     }
 
     $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
@@ -891,7 +924,19 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
             # envelopes, not the five inventory-report datasets the same sweep can return, so
             # it pays two REST calls per subscription rather than seven. -SkipApiResourceSweep
             # is deliberately NOT set, because the policy definitions are the point.
-            $rawArgs = @{ IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true }
+            # AB#6821 (Feature AB#6748, Epic AB#6454) -- CASA scores confidentiality/integrity
+            # controls that live on Key Vault CHILD objects (a secret's contentType distinguishes
+            # a certificate from a plain secret; both carry attributes.enabled/exp), which are not
+            # Resource Graph indexed -- only reachable via the vault's own ARM REST child listing.
+            # -ArmChildDataset scopes Get-ScoutArmChildResource to exactly these two datasets
+            # (KeyVaultSecrets, KeyVaultKeys) rather than its full 'All' sweep (ML/Search/Storage/
+            # Backup/diagnostics children an assessment collect has no rule that reads), so the
+            # added cost is bounded to two REST calls per Key Vault in scope, not per-parent across
+            # every dataset the declarative inventory collectors need.
+            $rawArgs = @{
+                IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true
+                IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
+            }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }
@@ -1120,6 +1165,50 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
         $policyInitiatives = @($policyInitiatives | Sort-Object Id -Unique)
     }
 
+    # ---- Key Vault children: secrets and keys (AB#6821, Epic AB#6454) -------------------------
+    # These rows come from Get-ScoutArmChildResource's ARM REST sweep (see the ArmChildDataset
+    # note above) rather than Resource Graph -- $rawInventory.Resources carries them as
+    # AZSC/ARMChild/KeyVaultSecrets and AZSC/ARMChild/KeyVaultKeys rows, one per secret/key
+    # version-less object, with ConvertTo-ArmChildRow's synthetic PARENTNAME/PARENTID/
+    # subscriptionId/RESOURCEGROUP columns identifying which vault each one belongs to. Field
+    # names below (contentType, attributes.enabled/exp/nbf) are the documented Key Vault
+    # GetSecrets/GetKeys list-response shape -- the exact fields
+    # manifests/collectors/Security/KeyVaultSecrets.psd1 / KeyVaultKeys.psd1 already read to
+    # render the Excel worksheet (Content Type, Enabled, Expires), so a rule here and that
+    # worksheet agree on what a given secret/key looks like.
+    function ConvertTo-ScoutKeyVaultChildRow {
+        param([Parameter(Mandatory)] $Row)
+        $attrs = if ($Row.PSObject.Properties['attributes']) { $Row.attributes } else { $null }
+        [pscustomobject]@{
+            id             = if ($Row.PSObject.Properties['id']) { [string]$Row.id } else { $null }
+            keyVaultName   = if ($Row.PSObject.Properties['PARENTNAME']) { [string]$Row.PARENTNAME } else { $null }
+            keyVaultId     = if ($Row.PSObject.Properties['PARENTID']) { [string]$Row.PARENTID } else { $null }
+            subscriptionId = if ($Row.PSObject.Properties['subscriptionId']) { [string]$Row.subscriptionId } else { $null }
+            resourceGroup  = if ($Row.PSObject.Properties['RESOURCEGROUP']) { [string]$Row.RESOURCEGROUP } else { $null }
+            # Certificates are secrets whose contentType is x-pkcs12 (PFX) or x-pem-file (PEM) --
+            # Key Vault has no separate "certificate" list API result shape at this level; see
+            # src/collect/Get-ScoutArmChildResource.ps1 (~line 453) and
+            # manifests/collectors/Security/KeyVaultSecrets.psd1's $Kind derivation.
+            contentType    = if ($Row.PSObject.Properties['contentType']) { [string]$Row.contentType } else { $null }
+            enabled        = ConvertTo-ScoutBool ($(if ($attrs -and $attrs.PSObject.Properties['enabled']) { $attrs.enabled } else { $null }))
+            expires        = if ($attrs -and $attrs.PSObject.Properties['exp']) { $attrs.exp } else { $null }
+        }
+    }
+    $keyVaultSecrets = @()
+    $keyVaultKeys = @()
+    if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
+        $keyVaultSecrets = @(
+            $rawInventory.Resources |
+                Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq 'AZSC/ARMChild/KeyVaultSecrets' } |
+                ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
+        )
+        $keyVaultKeys = @(
+            $rawInventory.Resources |
+                Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq 'AZSC/ARMChild/KeyVaultKeys' } |
+                ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
+        )
+    }
+
     $policyComplianceStates = @()
     if ($IncludePolicyCompliance) {
         try {
@@ -1159,13 +1248,15 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
             privateDnsZones          = $r.privateDnsZones
             nsgPublicInbound         = $r.nsgPublicInbound
         }
-        # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) sit under `compute`, not
-        # `domains`, alongside virtualMachines -- the existing pattern for Compute-category data.
+        # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) and privateClouds (AB#6820) sit
+        # under `compute`, not `domains`, alongside virtualMachines -- the existing pattern for
+        # Compute-category data.
         compute       = [pscustomobject]@{
             virtualMachines = $r.virtualMachines
             avdHostPools    = $r.avdHostPools
             avdSessionHosts = $r.avdSessionHosts
             avdScalingPlans = $r.avdScalingPlans
+            privateClouds   = $r.privateClouds
         }
         management    = [pscustomobject]@{
             recoveryVaults = @(); deployments = $r.deployments
@@ -1199,7 +1290,12 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
             }
             web          = [pscustomobject]@{ webApps = $r.webApps }
             containers   = [pscustomobject]@{ aksClusters = $r.aksClusters; containerRegistries = $r.containerRegistries }
-            security     = [pscustomobject]@{ keyVaults = $r.keyVaults }
+            # keyVaultSecrets/keyVaultKeys (AB#6821) carry the expiry and rotation metadata CASA
+            # scores; they come from the ARM-child sweep, not from the ARG keyVaults row.
+            security     = [pscustomobject]@{
+                keyVaults = $r.keyVaults
+                keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
+            }
             # mlWorkspaces/searchServices (AB#6818) are the custom-build and grounding-pipeline
             # halves of the AI workload assessment that cognitiveAccounts alone doesn't cover.
             ai           = [pscustomobject]@{

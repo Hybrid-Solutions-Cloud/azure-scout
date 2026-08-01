@@ -1,0 +1,302 @@
+area: "Cloud Adoption Security Assessment"
+# AB#6821 (Feature AB#6748, Epic AB#6454). framework: CASA, not CAF -- CASA's seven domains (Teams
+# and roles, Security posture modernization, Incident preparedness and response, Confidentiality,
+# Integrity, Availability, Sustain security posture) ARE, verbatim, the CAF Secure methodology's
+# own checklist steps, but filing this under framework: CAF with area: Security would silently
+# fold it into caf.security.yaml's design-area score even though caf.security.yaml already scores
+# a DIFFERENT, real CAF design area under that exact name. CASA joins SMART/XR/AVS as a
+# Scout-internal scoring axis exempt from the WAF/CAF pillar gate
+# (tests/Assessment.Restructure.Tests.ps1's `default { }` branch) for that reason, not because
+# CASA is unrelated to CAF -- it is built directly from CAF Secure's published content.
+framework: CASA
+frameworkversion: "docs/frameworks/casa-question-set.md, extracted 2026-08-01 (CAF Secure overview + Perform your cloud adoption securely, both fetched in full 2026-08-01)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/casa-question-set.md, 32 items across 7 domains (TR/PM/IR/CO/IN/AV/SS), extracted 2026-08-01. The CASA assessment's own question text/numbers are not published -- the CASA-* identifiers below are Scout's own, built from the CAF Secure checklist's structure, not Microsoft's question numbers. Domain names are Microsoft's, confirmed both on the CAF Secure checklist page and independently in the assessment's own description."
+# CAUTION FOR FUTURE MAINTAINERS reading this file next to docs/frameworks/casa-question-set.md:
+# several items the enumeration marks Partial or fully Answerable turned out, on verification
+# against the actual collect.json contract this rule file has to query, to rest on fields that are
+# either not collected at all (Conditional Access, PIM eligibility, Defender plans/secure score,
+# autoscale settings, chaos experiments, load balancers, automation-account runbooks, blob
+# immutability policy, artifact signing) or are collected but hard-coded EMPTY by Invoke-Collect
+# today (management.deployments' templateHash, management.recoveryVaults) -- a pre-existing gap
+# four other rule files already carry, not introduced here. Citing any of those fields would be
+# exactly the empty-collection false-pass class this epic exists to kill, so those items are
+# `manual: true` below even where the enumeration's own collector column reads (Partial) or (✅).
+# Two items moved the OTHER way: CASA-CO-01 and CASA-CO-04 are automated here because this story
+# (AB#6821) wired domains.security.keyVaultKeys into collect.json for the first time, and because
+# domains.analytics.purviewAccounts (Epic AB#6741) turned out to already be collected even though
+# the enumeration recorded Purview as an uncollected gap.
+rules:
+  # ---- TR: Understand security teams and roles (fully organisational) ----------------------------
+  - id: CASA-TR-01
+    title: "The role of the cloud service provider in the shared-responsibility model is understood"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-01. Organisational -- confirm the shared-responsibility model is understood and documented for the estate."
+    manual: true
+  - id: CASA-TR-02
+    title: "Infrastructure and Platform team roles are defined"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-02. Organisational -- confirm architecture, engineering, and operations roles are defined for the Infrastructure and Platform team."
+    manual: true
+  - id: CASA-TR-03
+    title: "Security architecture, engineering, and posture-management roles are defined"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-03. Organisational -- confirm security architecture/engineering/posture-management team roles are defined."
+    manual: true
+  - id: CASA-TR-04
+    title: "Security Operations (SecOps/SOC) team roles are defined"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-04. Organisational -- confirm SecOps/SOC team roles are defined."
+    manual: true
+  - id: CASA-TR-05
+    title: "Security Governance, Risk, and Compliance (GRC) team roles are defined"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-05. Organisational -- confirm GRC team roles are defined."
+    manual: true
+  - id: CASA-TR-06
+    title: "Security education, awareness, and policy programmes exist"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-TR-06. Organisational -- confirm a security education/awareness programme and written policies exist."
+    manual: true
+
+  # ---- PM: Security posture modernization --------------------------------------------------------
+  - id: CASA-PM-01
+    title: "Identity strengthening is integrated (MFA, Conditional Access, least-privilege, JIT)"
+    severity: high
+    # Conditional Access and PIM eligibility are both organisationally real but not reliably
+    # collected -- governance.pimEligibility needs an Entra ID P2 license and a Graph app
+    # permission Scout's Reader-at-root baseline does not grant, and no Conditional Access field
+    # exists in collect.json at all.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-PM-01. Neither Conditional Access policy nor PIM eligibility is reliably collected in the current contract -- confirm MFA, Conditional Access, least-privilege, and just-in-time access are integrated directly in Entra ID."
+    manual: true
+  - id: CASA-PM-02
+    title: "Network/workload segmentation is implemented"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "CASA-PM-02. Each listed NSG rule allows unrestricted (*/0.0.0.0/0/Internet) inbound from the Internet, undermining workload segmentation. Remove or scope these rules."
+    manual: false
+  - id: CASA-PM-03
+    title: "Threat detection is tuned and enabled via Microsoft Defender for Cloud"
+    severity: high
+    # security.defenderPlans is a hard-coded empty field in collect.json (the same pre-existing
+    # gap CAF-SEC-02 already has) -- there is no honest automated signal for tenant-wide Defender
+    # plan assignment today.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-PM-03. security.defenderPlans is not populated by any current collection path, so Defender for Cloud plan assignment and alert tuning cannot be confirmed automatically here -- verify directly in the Defender for Cloud portal."
+    manual: true
+  - id: CASA-PM-04
+    title: "Secure score is tracked in Microsoft Defender for Cloud"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-PM-04. Secure score is not collected in any form in collect.json (point-in-time or trend) -- confirm secure score is tracked directly in the Defender for Cloud portal."
+    manual: true
+  - id: CASA-PM-05
+    title: "Validation is automated through policy, IaC, and continuous compliance scanning"
+    severity: medium
+    # Policy-assignment existence only -- the IaC/templateHash half of this item is not
+    # automatable (see the file-level note above on management.deployments).
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists }
+    remediation: "CASA-PM-05. No Azure Policy assignment was found in scope. Automate validation through Azure Policy, and separately confirm IaC-based deployment and continuous compliance scanning are in place -- collect.json has no reliable IaC-deployment signal to automate that half."
+    manual: false
+
+  # ---- IR: Incident preparedness and response ------------------------------------------------------
+  - id: CASA-IR-01
+    title: "Incident-lifecycle roles, communication channels, and decision authority are codified"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IR-01. Organisational -- confirm incident-lifecycle roles, communication channels, evidence handling, and decision authority are documented."
+    manual: true
+  - id: CASA-IR-02
+    title: "Telemetry ingestion and alert fidelity are tuned to reduce MTTD"
+    severity: medium
+    # Defender alerts / Sentinel existence are not projected into collect.json for any resource
+    # type.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IR-02. Neither Defender alerts nor Sentinel workspace presence is currently collected -- confirm telemetry ingestion and alert-fidelity tuning directly."
+    manual: true
+  - id: CASA-IR-03
+    title: "Runbooks are refined and tabletop simulations practiced"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IR-03. Organisational practice -- confirm incident-response runbooks are refined and tabletop simulations are run periodically."
+    manual: true
+  - id: CASA-IR-04
+    title: "Automated containment actions run through orchestrated workflows"
+    severity: medium
+    # Automation Account runbook existence is not projected into collect.json for any resource
+    # type, and even if it were, containment-specific intent is not distinguishable from any
+    # other runbook -- same limitation the source enumeration records.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IR-04. Automation Account runbooks are not collected in collect.json -- confirm automated containment actions (isolate hosts, revoke tokens, quarantine storage) run through orchestrated workflows directly."
+    manual: true
+
+  # ---- CO: Confidentiality --------------------------------------------------------------------
+  - id: CASA-CO-01
+    title: "Encryption and key-management controls enforce confidentiality"
+    severity: high
+    # domains.security.keyVaultKeys is wired by this story (AB#6821) -- existence of CMK material
+    # in the tenant, not proof it is applied to every sensitive data store.
+    query: "$.domains.security.keyVaultKeys[*]"
+    assert: { type: exists }
+    remediation: "CASA-CO-01. No Key Vault key was found in scope. Enforce confidentiality with encryption and centralized key management -- key existence alone does not confirm every sensitive data store actually uses it; verify the binding for each store directly."
+    manual: false
+  - id: CASA-CO-02
+    title: "Identity and access policies restrict access to sensitive data"
+    severity: high
+    query: "$.governance.roleAssignments[*]"
+    assert: { type: exists }
+    remediation: "CASA-CO-02. No role assignment was found in scope. Restrict access to sensitive data through identity and access policy -- role-assignment existence alone does not confirm least-privilege scoping to sensitive resources specifically."
+    manual: false
+  - id: CASA-CO-03
+    title: "Network segmentation restricts access to confidential data paths"
+    severity: medium
+    query: "$.networking.privateEndpoints[*]"
+    assert: { type: exists }
+    remediation: "CASA-CO-03. No private endpoint was found in scope. Restrict network paths to confidential data with Private Link/private endpoints rather than public exposure."
+    manual: false
+  - id: CASA-CO-04
+    title: "Data classification and sensitivity labelling controls are applied"
+    severity: medium
+    # The enumeration recorded this as unanswerable ("Microsoft Purview is not collected by
+    # Scout"), which was true when it was written but is not true of this codebase today --
+    # domains.analytics.purviewAccounts (Epic AB#6741) already collects Microsoft.Purview/accounts.
+    # Existence-only signal: a Purview account existing is evidence a classification foundation is
+    # in place, not proof the estate's data is actually catalogued/classified.
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: exists }
+    remediation: "CASA-CO-04. No Microsoft Purview account was found in scope. Deploy Purview and apply data classification/sensitivity labelling -- an account existing does not by itself confirm the estate's data has actually been classified."
+    manual: false
+
+  # ---- IN: Integrity ----------------------------------------------------------------------------
+  - id: CASA-IN-01
+    title: "Hashing and signing preserve data correctness and completeness"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IN-01. No artefact-signing collector output is projected into collect.json -- confirm hashing/signing controls are in place directly."
+    manual: true
+  - id: CASA-IN-02
+    title: "Immutable storage patterns (WORM, legal hold) are applied where required"
+    severity: high
+    # The enumeration marks this fully answerable via Storage/BlobContainers' Immutability
+    # Policy/Legal Hold/Version Level WORM fields -- those fields ARE rendered by the
+    # Storage/BlobContainers inventory worksheet, but domains.storage in collect.json's canonical
+    # contract does not carry blob-container-level data at all (only storageAccounts, snapshots,
+    # managedDisks, diskEncryptionSets). Automating this would need a new collect.json field this
+    # story did not add; downgraded to manual rather than citing a query nothing populates.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IN-02. Blob-container immutability/legal-hold/WORM fields are not in collect.json's canonical contract (they exist only in the Storage/BlobContainers inventory worksheet) -- confirm immutable storage patterns are applied where required directly against that worksheet or the portal."
+    manual: true
+  - id: CASA-IN-03
+    title: "A secure update supply chain is used for deployment artefacts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IN-03. No artefact-signing collector output is projected into collect.json -- confirm a secure update supply chain is used directly."
+    manual: true
+  - id: CASA-IN-04
+    title: "Infrastructure changes go through version control / IaC rather than ad hoc portal edits"
+    severity: medium
+    # Same management.deployments limitation the file-level note records -- the field carries a
+    # resource-group projection with no templateHash to filter on.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-IN-04. collect.json has no reliable IaC-deployment signal today (management.deployments carries no templateHash property) -- confirm infrastructure changes go through version control/IaC directly."
+    manual: true
+
+  # ---- AV: Availability -----------------------------------------------------------------------
+  - id: CASA-AV-01
+    title: "Redundancy design (zone-redundant resources) is applied"
+    severity: high
+    # Same query WAF-RE-05 already uses -- zone-eligible VMs that are not zone-redundant.
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "CASA-AV-01. Each listed virtual machine is in a zone-eligible region/SKU but is not deployed zone-redundantly. Deploy across availability zones for workloads requiring high availability."
+    manual: false
+  - id: CASA-AV-02
+    title: "Backup and disaster-recovery protection cover workloads"
+    severity: high
+    # management.backupProtectedItems (the real, wired backup signal XR-BKP-01 also reads) --
+    # management.recoveryVaults is the dead field the file-level note names; this uses the field
+    # that actually returns rows.
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: exists }
+    remediation: "CASA-AV-02. No backup protected item was found in scope. Cover workloads with backup and disaster-recovery protection -- see the cross-resource rule XR-BKP-01 for which specific virtual machines are missing one."
+    manual: false
+  - id: CASA-AV-03
+    title: "Autoscaling is configured to sustain availability under load"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-AV-03. Autoscale settings are not projected into collect.json for any resource type -- confirm autoscaling is configured directly in Azure Monitor."
+    manual: true
+  - id: CASA-AV-04
+    title: "Resilience is validated through chaos testing"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-AV-04. Azure Chaos Studio experiment existence/history is not projected into collect.json -- confirm chaos testing is performed directly."
+    manual: true
+  - id: CASA-AV-05
+    title: "Health probes and fault-domain isolation are deployed (load balancing)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-AV-05. Load balancer configuration is not projected into collect.json -- confirm health probes and fault-domain isolation are deployed directly."
+    manual: true
+
+  # ---- SS: Sustain security posture ------------------------------------------------------------
+  - id: CASA-SS-01
+    title: "Secure score security controls are tracked to quantify remaining gaps"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-SS-01. Same limitation as CASA-PM-04 -- secure score is not collected in any form. Confirm it is tracked directly in the Defender for Cloud portal."
+    manual: true
+  - id: CASA-SS-02
+    title: "Risk-based metrics are coupled to secure score"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-SS-02. No composite risk metric (exposed high-privilege identities coupled with unencrypted stores) is computed anywhere in Scout -- confirm this coupling is performed directly."
+    manual: true
+  - id: CASA-SS-03
+    title: "Drift detection is automated through policy, configuration baselines, and pipelines"
+    severity: medium
+    # Same false-pass class caf.governance.yaml's CAF-GOV-05 was already fixed for (AB#6798):
+    # "any policy assignment has a parameters block" is true of most built-in Deny/Audit
+    # assignments too and proves nothing about DeployIfNotExists/Modify drift correction.
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-SS-03. collect.json's policyAssignments rows do not carry a resolved policy-definition effect, so DeployIfNotExists/Modify drift-correction coverage cannot be scored without the same false-pass risk CAF-GOV-05 was fixed to avoid. Confirm drift detection is automated through policy, configuration baselines, and deployment pipelines directly."
+    manual: true
+  - id: CASA-SS-04
+    title: "Incident retrospectives and threat intelligence feed backlog refinement"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "CASA-SS-04. Organisational practice -- confirm incident retrospectives and threat intelligence are fed back into backlog refinement."
+    manual: true

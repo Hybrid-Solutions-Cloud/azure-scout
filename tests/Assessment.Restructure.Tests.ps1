@@ -64,6 +64,7 @@ BeforeAll {
         # CAF's eight landing-zone DESIGN AREAS -- a file scoring them cannot declare
         # `framework: CAF` and name a design area, because it is not scoring one. AB#6459.
         'Cloud Governance'
+        'AVS'
     )
 
     function Get-AllRuleDocs {
