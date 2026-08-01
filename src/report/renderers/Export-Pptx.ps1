@@ -1135,7 +1135,6 @@ function New-ScoutTakeawaysSlide {
     $composite = Get-ScoutProp (Get-ScoutProp $Model 'Maturity') 'Composite'
     $focus = @(Get-ScoutProp $Model 'FocusAreas')
     $gaps = @(Get-ScoutProp $Model 'GapRegister')
-    $coverage = Get-ScoutProp $Model 'Coverage'
 
     $current = Get-ScoutProp $composite 'Current'
     $band = Get-ScoutProp $composite 'Band'
