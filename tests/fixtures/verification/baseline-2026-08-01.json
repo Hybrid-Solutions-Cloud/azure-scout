@@ -1,0 +1,1693 @@
+{
+  "Schema": "azure-scout/collector-rowcounts/v1",
+  "GeneratedAt": "2026-08-01T00:08:10.9909127-04:00",
+  "Totals": {
+    "Collectors": 240,
+    "WithRows": 39,
+    "Empty": 201,
+    "Failed": 0,
+    "Rows": 1416.0
+  },
+  "Collectors": [
+    {
+      "Category": "AI",
+      "Collector": "AIFoundryHubs",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "AIFoundryProjects",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "AppliedAIServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "AzureAI",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "BotServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "ComputerVision",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "ContentModerator",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "ContentSafety",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "CustomVision",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "FaceAPI",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "FormRecognizer",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "HealthInsights",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "ImmersiveReader",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MachineLearning",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLComputes",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLDatasets",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLDatastores",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLEndpoints",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLModels",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "MLPipelines",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "OpenAIAccounts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "OpenAIDeployments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "SearchIndexes",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "SearchServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "SpeechService",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "TextAnalytics",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "AI",
+      "Collector": "Translator",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "Databricks",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "DataExplorerCluster",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "EvtHub",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "Purview",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "Streamanalytics",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Analytics",
+      "Collector": "Synapse",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AvailabilitySets",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVD",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDApplicationGroups",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDApplications",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDAzureLocal",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDScalingPlans",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDSessionHosts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "AVDWorkspaces",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "VirtualMachine",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "VirtualMachineScaleSet",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "VMDisk",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "VMOperationalData",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Compute",
+      "Collector": "VMWare",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "AKS",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "ARO",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "ContainerApp",
+      "Rows": 13,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "ContainerAppEnv",
+      "Rows": 5,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "ContainerGroups",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Containers",
+      "Collector": "ContainerRegistries",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "CosmosDB",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "MariaDB",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "MySQL",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "MySQLflexible",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "POSTGREFlexible",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "RedisCache",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLDB",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLMI",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLMIDB",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLPOOL",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLSERVER",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Databases",
+      "Collector": "SQLVM",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "ApiConnections",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "AppConfiguration",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "ChaosStudio",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "DeploymentEnvironments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "DevBoxPools",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "DevCenterNetworkConnections",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "DevCenters",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "DevTestLabs",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "LabServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "LoadTesting",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "ManagedDevOpsPools",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "DevOps",
+      "Collector": "PlaywrightTesting",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "General",
+      "Collector": "Quotas",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "General",
+      "Collector": "ReservationRecom",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "General",
+      "Collector": "Reservations",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "General",
+      "Collector": "SupportTickets",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcDataControllers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcExtensions",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcGateways",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcKubernetes",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcResourceBridge",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcServerOperationalData",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ARCServers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcSQLManagedInstances",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "ArcSQLServers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "Clusters",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "GalleryImages",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "LogicalNetworks",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "MarketplaceGalleryImages",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "StorageContainers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Hybrid",
+      "Collector": "VirtualMachines",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "AdminUnits",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "AppRegistrations",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "ConditionalAccess",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "CrossTenantAccess",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "DirectoryRoles",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "Domains",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "Groups",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "Licensing",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "ManagedIdentities",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "ManagedIds",
+      "Rows": 18,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "NamedLocations",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "PIMAssignments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "RiskyUsers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "RoleAssignments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "SecurityPolicies",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "ServicePrincipals",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Identity",
+      "Collector": "Users",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "APIM",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "EventGrid",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "EventHubClusters",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "HealthDataServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "IntegrationAccounts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "LogicApps",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "LogicAppsCustomConnectors",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "Relays",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Integration",
+      "Collector": "ServiceBUS",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "DefenderForIoT",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "DeviceProvisioningServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "DeviceUpdate",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "DigitalTwins",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "IoTCentral",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "IOTHubs",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "IoT",
+      "Collector": "Maps",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "AdvisorScore",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "AllSubscriptions",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "AutomationAccounts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "Backup",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "BackupInstances",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "Budgets",
+      "Rows": 7,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "CustomRoleDefinitions",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "DevOpsAgentPools",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "DevOpsPipelines",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "DevOpsProjects",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "DevOpsRepositories",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "DevOpsServiceConnections",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "LighthouseDelegations",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "MaintenanceConfigurations",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "ManagementGroups",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "PolicyAssignments",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "PolicyComplianceStates",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "PolicyDefinitions",
+      "Rows": 1000,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "PolicySetDefinitions",
+      "Rows": 300,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "RecoveryVault",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Management",
+      "Collector": "ResourceLocks",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "AzureMigrateAssessments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "AzureMigrateDiscoverySites",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "AzureMigrateProjects",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "DatabaseMigrationServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "DataBox",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Migration",
+      "Collector": "StackEdge",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "ActionGroups",
+      "Rows": 2,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "ActivityLogAlertRules",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "AppInsights",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "AppInsightsAvailabilityTests",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "AppInsightsProactiveDetection",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "AppInsightsWebTests",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "AutoscaleSettings",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "DataCollectionEndpoints",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "DataCollectionRules",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "LAWorkspaceLinkedServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "LAWorkspaceSavedSearches",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "LAWorkspaceSolutions",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "MetricAlertRules",
+      "Rows": 5,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "MonitorMetricsIngestion",
+      "Rows": 6,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "MonitorPrivateLinkScopes",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "MonitorWorkbooks",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "Outages",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "ResourceDiagnosticSettings",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "ScheduledQueryRules",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "SmartDetectorAlertRules",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "SubscriptionDiagnosticSettings",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Monitor",
+      "Collector": "Workspaces",
+      "Rows": 6,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "ApplicationGateways",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "AzureFirewall",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "BastionHosts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "Connections",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "ExpressRoute",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "Frontdoor",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "LoadBalancer",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "NATGateway",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "NetworkInterface",
+      "Rows": 5,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "NetworkSecurityGroup",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "NetworkWatchers",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "PrivateDNS",
+      "Rows": 3,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "PrivateEndpoint",
+      "Rows": 2,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "PublicDNS",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "PublicIP",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "RouteTables",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "TrafficManager",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "VirtualNetwork",
+      "Rows": 5,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "VirtualNetworkGateways",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "VirtualWAN",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Networking",
+      "Collector": "vNETPeering",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "AppComplianceAutomation",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "ApplicationSecurityGroups",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "ArtifactSigning",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "CloudHSM",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "ConfidentialLedger",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "DdosProtectionPlans",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "DefenderAlerts",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "DefenderAssessments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "DefenderPricing",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "DefenderSecureScore",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "EntraDomainServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "KeyVaultKeys",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "KeyVaultSecrets",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "ManagedHSM",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "Sentinel",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "Vault",
+      "Rows": 2,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Security",
+      "Collector": "WafPolicies",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "BlobContainers",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "DiskEncryptionSets",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "EdgeHardwareCenter",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "ElasticSan",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "FileShares",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "LifecyclePolicies",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "NetApp",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "PartnerStorage",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "Snapshots",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "StorageAccounts",
+      "Rows": 4,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Storage",
+      "Collector": "StorageSync",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "AppServiceCertificates",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "AppServiceDomains",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "AppServiceEnvironments",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "APPServicePlan",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "APPServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "CommunicationServices",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "DeploymentSlots",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "FluidRelay",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "FunctionApps",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "NotificationHubs",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "SignalR",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "SpringApps",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "StaticWebApps",
+      "Rows": 1,
+      "Verdict": "Rows",
+      "Error": null
+    },
+    {
+      "Category": "Web",
+      "Collector": "WebPubSub",
+      "Rows": 0,
+      "Verdict": "Empty",
+      "Error": null
+    }
+  ]
+}

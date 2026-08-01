@@ -376,13 +376,43 @@ flags), **zero machines touched**, one tenant-wide query instead of one POST per
 `Reader` becomes sufficient. Machines Update Manager hasn't assessed within 7 days now report
 `NotAssessed` rather than a misleading zero.
 
-### 3.5 Nothing has ever been verified
+### 3.5 Nothing has ever been verified — *superseded 2026-08-01, see the run below*
+
+> ✅ **First per-collector verification run, 2026-08-01 (AB#6843).** All **240** collectors were
+> executed against tenant `d6fc73cf` as the **Reader-only** service principal, and every one of
+> them carries an explicit verdict. The artifact is committed at
+> `tests/fixtures/verification/baseline-2026-08-01.json` so a later run can be diffed against it.
+>
+> | Verdict | Count | Meaning |
+> |---|---:|---|
+> | **Rows** | **39** | Ran and produced data from real Azure |
+> | **Empty** | 201 | Ran cleanly and produced nothing |
+> | **Failed** | **0** | None threw |
+>
+> **Read the 201 correctly — it is not a failure count.** This estate holds 118 resources across
+> 38 types and has **zero** Arc, **zero** Azure Local and **zero** Lighthouse footprint. A
+> collector for a service nobody deployed here *should* return nothing. That is precisely why the
+> row-count artifact carries three verdicts rather than two: this run proves a collector WORKS, but
+> it can never prove one is broken, because absence of rows is only evidence when the resource type
+> is known to be present. **The whole Hybrid category (15 collectors) remains unverifiable in this
+> tenant**, and so does most of Databases, IoT, Analytics and Migration.
+>
+> **The run immediately earned its keep.** `Identity/RoleAssignments` and
+> `Management/ResourceLocks` — two of the four collectors AB#6779 had just added — returned **0
+> rows in a tenant that demonstrably has role assignments**. Their data comes from the ARG
+> `authorizationresources` table, and the inventory pass queries eleven tables of which that is not
+> one. Two of the four new collectors have no producer wired. Nothing in 2,394 passing tests could
+> see that; one live run did. Tracked back on AB#6779.
+>
+> The three collectors fixed under AB#6767 also reported here: `Monitor/Outages` returned a row,
+> confirming the call-ordering fix works against real data.
+
 
 | Evidence class | Count | What it proves |
 |---|---|---|
 | Passes a golden test generated from its own definition | 174 | The interpreter is deterministic. Nothing about Azure. |
 | Declared type observed in a real anonymised capture | 38 | The type string is real. No collector is ever run against that capture. |
-| **Proven to emit correct rows from real Azure** | **0** | — |
+| **Proven to emit correct rows from real Azure** | **39** *(was 0)* | See the verification run below |
 | **Proven to emit ZERO rows, every run, every tenant** | **12** | Traced to specific defects. |
 | Cannot emit on a default run (opt-in switches) | 20 | `entra/*` needs `-Scope All`; `devops/*` needs `-IncludeDevOps`. |
 | Target a retired service | 4 | Dead weight. |
