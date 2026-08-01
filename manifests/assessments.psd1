@@ -236,6 +236,56 @@
         Reporters    = @('Html', 'Excel')
     }
 
+    # ---- Azure VMware Solution (AB#6820, Feature AB#6748, Epic AB#6454) ----
+    # Two assessments, one prerequisite: neither means anything on an estate with no AVS private
+    # cloud, so both gate on the same RequiresData path the AVS.workload.yaml / caf.avslandingzone
+    # rule files' own `requires:` block repeats (AB#6832's pattern) -- the wizard menu hides the
+    # entry, and a direct -Assessment run on an empty estate reports Unknown rather than a
+    # manufactured pass either way.
+    'AVS Workload' = @{
+        Description  = 'Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md)'
+        Category     = '*'
+        Collect      = @('*')
+        Ingest       = @('Governance')
+        Rules        = @('avs.workload')
+        Frameworks   = @('AVS: Reliability, Security, Governance (not full WAF pillar coverage)')
+        Tags         = @('avs', 'reliability', 'security', 'governance')
+        RequiresData = @(
+            '$.compute.privateClouds[*]'
+        )
+        Reporters    = @('Html', 'Excel')
+    }
+    'AVS Landing Zone' = @{
+        Description  = 'Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md)'
+        Category     = '*'
+        Collect      = @('*')
+        Ingest       = @('Governance')
+        Rules        = @('caf.avslandingzone')
+        Frameworks   = @('CAF: Resource organization (service guide)')
+        Tags         = @('caf', 'avs', 'landing-zone')
+        RequiresData = @(
+            '$.compute.privateClouds[*]'
+        )
+        Reporters    = @('Html', 'Excel')
+    }
+
+    # ---- Cloud Adoption Security Assessment (AB#6821, Feature AB#6748, Epic AB#6454) ----
+    # Tenant-wide, unlike the two AVS entries above -- CASA scores general cloud security
+    # maturity, not a specific workload, so it carries no RequiresData gate; an estate with zero
+    # role assignments or zero key vaults is a genuine (if unusual) finding, not a signal the
+    # assessment does not apply. Description says plainly that the question text is inferred, per
+    # docs/frameworks/casa-question-set.md's own header.
+    CASA = @{
+        Description = 'Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout''s own inference from the published CAF Secure checklist, not Microsoft''s numbered CASA questions; see docs/frameworks/casa-question-set.md)'
+        Category    = '*'
+        Collect     = @('*')
+        Ingest      = @('Governance')
+        Rules       = @('casa.*')
+        Frameworks  = @('CASA: 7 CAF Secure domains')
+        Tags        = @('casa', 'security', 'caf-secure')
+        Reporters   = @('Html', 'Excel')
+    }
+
     # ---- cross-resource correlation (AB#6835) ----
     # Every rule here spans TWO datasets, so Collect must gather both halves or a rule silently
     # passes on an empty right-hand side. Both categories of every pair are listed deliberately.

@@ -48,6 +48,17 @@ function Get-ScoutProp {
     <#
     .SYNOPSIS
         StrictMode-safe nested property read. Returns $null for any missing segment.
+
+    .NOTES
+        Callers reading an ARRAY-typed leaf: `return $current` (no leading comma) pipeline-UNROLLS
+        a genuinely present but EMPTY array to zero output objects, so `$v = Get-ScoutProp ...`
+        captures $null, indistinguishable from the property being absent entirely. Every existing
+        caller wraps the result in `Measure-ScoutArray` immediately, whose own null-in/null-out
+        contract happens to make that collapse look intentional, so this function's general
+        contract is left as-is here rather than changed for every caller at once. Use
+        `Get-ScoutPropArray` below instead of this function for a leaf you need to distinguish
+        "empty array" (0) from "absent" (null) on, as `array_length()` does in the KQL this file
+        mirrors (AB#6820).
     #>
     [CmdletBinding()]
     param(
@@ -66,6 +77,34 @@ function Get-ScoutProp {
         $current = $property.Value
     }
     return $current
+}
+
+function Get-ScoutPropArray {
+    <#
+    .SYNOPSIS
+        Same nested-property walk as Get-ScoutProp, for an array-typed leaf, preserving the
+        difference between "the property is absent" ($null) and "the property is present and
+        empty" (a real, zero-length array) -- see Get-ScoutProp's .NOTES for why that function
+        cannot safely do this for every caller at once. AB#6820.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [AllowNull()] $InputObject,
+        [Parameter(Mandatory)] [string] $Path
+    )
+    $current = $InputObject
+    foreach ($segment in $Path.Split('.')) {
+        if ($null -eq $current) { return $null }
+        if ($current -isnot [System.Management.Automation.PSObject] -and $current -isnot [pscustomobject]) {
+            $wrapped = [System.Management.Automation.PSObject]::AsPSObject($current)
+        }
+        else { $wrapped = $current }
+        $property = $wrapped.PSObject.Properties[$segment]
+        if (-not $property) { return $null }
+        $current = $property.Value
+    }
+    if ($null -eq $current) { return $null }
+    return , @($current)
 }
 
 function ConvertTo-ScoutBool {
@@ -305,6 +344,32 @@ function ConvertFrom-ScoutInventory {
                 zoneRedundant  = ($null -ne $zoneCount -and $zoneCount -gt 0)
                 zoneEligible   = $zoneEligibleRegions -contains ([string] (Get-ScoutProp $_ 'location')).ToLowerInvariant()
                 size           = [string] (Get-ScoutProp $_ 'properties.hardwareProfile.vmSize')
+            }
+        }
+    )
+
+    # AB#6820 -- mirrors Invoke-Collect.ps1's `privateClouds` KQL field for field so a combined
+    # inventory + assessment run shapes AVS private clouds from the one raw pass instead of
+    # issuing a second, live ARG round-trip for them.
+    $result['privateClouds'] = @(
+        Select-ByType 'microsoft.avs/privateclouds' | ForEach-Object {
+            $identitySourceCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.identitySources')
+            $externalCloudLinkCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.externalCloudLinks')
+            $clusterSizeRaw = Get-ScoutProp $_ 'properties.managementCluster.clusterSize'
+            [pscustomobject]@{
+                id                      = [string] (Get-ScoutProp $_ 'id')
+                name                    = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup           = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId          = [string] (Get-ScoutProp $_ 'subscriptionId')
+                sku                     = [string] (Get-ScoutProp $_ 'sku.name')
+                availabilityStrategy    = [string] (Get-ScoutProp $_ 'properties.availability.strategy')
+                availabilityZone        = [string] (Get-ScoutProp $_ 'properties.availability.zone')
+                clusterSize             = if ($null -eq $clusterSizeRaw) { $null } else { [int] $clusterSizeRaw }
+                expressRouteCircuitId   = [string] (Get-ScoutProp $_ 'properties.circuit.expressRouteID')
+                encryptionStatus        = [string] (Get-ScoutProp $_ 'properties.encryption.status')
+                internet                = [string] (Get-ScoutProp $_ 'properties.internet')
+                identitySourceCount     = $identitySourceCount
+                externalCloudLinkCount  = $externalCloudLinkCount
             }
         }
     )

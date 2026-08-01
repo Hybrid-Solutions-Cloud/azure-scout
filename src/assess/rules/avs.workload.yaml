@@ -1,0 +1,253 @@
+area: "Azure VMware Solution workload (Reliability, Security, Governance)"
+# AB#6820 (Feature AB#6748, Epic AB#6454). framework: AVS, not WAF -- deliberately. Every rule
+# here cites a WAF-AVS-* item from docs/frameworks/waf-avs-workload-checklist.md, and that file
+# says plainly (read it before touching this one) that no Microsoft-published WAF pillar service
+# guide exists for AVS: the enumeration is built from the Reliability doc series plus a CAF
+# Security/Governance scenario guide, and there is NO Cost Optimization, Operational Excellence,
+# or Performance Efficiency source for this workload at all. Filing these rules under
+# framework: WAF with area: Reliability/Security would claim WAF-pillar coverage this workload
+# does not have, and would violate the restructure gate's "no sixth pillar" rule the same way
+# waf.storage.yaml did (AB#6798) -- three pillars is not five pillars. AVS joins SMART and XR as
+# a Scout-internal scoring axis exempt from the WAF/CAF pillar gate
+# (tests/Assessment.Restructure.Tests.ps1's `default { }` branch), which is the honest framing:
+# "Reliability, Security, and Governance coverage for AVS," not "the AVS Well-Architected Review."
+framework: AVS
+frameworkversion: "docs/frameworks/waf-avs-workload-checklist.md, extracted 2026-08-01 (Reliability in Azure VMware Solution + CAF Security/governance/compliance scenario guide, both fetched in full 2026-08-01)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-avs-workload-checklist.md, 27 items across Reliability (8) / Security (11) / Governance (8), extracted 2026-08-01"
+# This whole framework only applies to an estate that actually runs Azure VMware Solution. Without
+# this gate, every countEquals-0 / notExists-style rule below would report a clean Pass on an
+# estate with ZERO private clouds -- indistinguishable from an estate that runs a fleet of them
+# with every offending property fixed. "no AVS private cloud in scope" and "AVS is deployed and
+# fully compliant" are the same collected row count and opposite findings; smart.migration.yaml
+# established this pattern first (AB#6832) for the same reason.
+requires:
+  - path: "$.compute.privateClouds[*]"
+    description: "Azure VMware Solution private clouds (Compute/VMWare, Microsoft.AVS/privateClouds)"
+rules:
+  # ---- Reliability (WAF-AVS-RE-01..08) ---------------------------------------------------------
+  - id: WAF-AVS-RE-01
+    title: "vSphere HA restarts VMs on healthy hosts after a host failure"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-01. vSphere HA configuration is internal vCenter state, not exposed via ARM/ARG -- confirm HA is enabled and its admission-control policy is sized for the cluster in vCenter directly."
+    manual: true
+  - id: WAF-AVS-RE-02
+    title: "vSAN fault-tolerance policies protect against storage-level transient faults"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-02. vSAN storage-policy configuration lives inside the private cloud and is not ARM-readable -- confirm FTT/RAID policy in vCenter."
+    manual: true
+  - id: WAF-AVS-RE-03
+    title: "Applications handle transient faults with retry/circuit-breaker patterns"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-03. An application-code pattern -- no control-plane signal can evidence it. Review guest workload resiliency patterns directly."
+    manual: true
+  - id: WAF-AVS-RE-04
+    title: "Private cloud uses a zonal or stretched-cluster deployment for AZ resilience"
+    severity: high
+    # properties.availability.strategy (documented AVS PrivateCloud property; SingleZone /
+    # DualZone / None) is an ARM property on the private-cloud resource itself, unlike almost
+    # everything else this checklist cites.
+    query: "$.compute.privateClouds[?(@.availabilityStrategy == 'None' || @.availabilityStrategy == '')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AVS-RE-04. Each listed private cloud has no availability-zone strategy configured (availability.strategy is None/empty). Deploy into a zone-aware or stretched-cluster configuration where the region supports it."
+    manual: false
+  - id: WAF-AVS-RE-05
+    title: "Management cluster meets the Azure-wide minimum host count"
+    severity: medium
+    # This automates only the ABSOLUTE floor every AVS private cloud must meet (a management
+    # cluster below 3 hosts is not a supported configuration at all), not the resiliency-specific
+    # minimum the checklist item actually asks about (e.g. six hosts across two zones for a
+    # stretched cluster) -- that threshold varies by chosen strategy and collect.json has no field
+    # distinguishing which one applies. Manual review closes the rest of the gap; remediation says
+    # so rather than silently downgrading the checklist item's actual claim.
+    query: "$.compute.privateClouds[?(@.clusterSize == null || @.clusterSize < 3)]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AVS-RE-05. Each listed private cloud's management cluster is below the Azure-wide minimum of 3 hosts (or the field was not returned). This is only the absolute floor -- separately confirm the host count matches the resiliency-specific minimum for the chosen availability strategy (e.g. 6 hosts across 2 zones for a Gen 1 stretched cluster)."
+    manual: false
+  - id: WAF-AVS-RE-06
+    title: "Multi-region resilience via separate, deliberately-paired private clouds"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-06. compute.privateClouds[*] can show whether more than one private cloud exists across regions/subscriptions, but not whether they are deliberately paired as a documented DR solution -- confirm the pairing and failover runbook exist where business requirements need multi-region resilience."
+    manual: true
+  - id: WAF-AVS-RE-07
+    title: "Management-component and workload VM backups are both in place"
+    severity: high
+    # WAF-AVS-SEC-08 records the same underlying discrepancy: the checklist's own collector column
+    # names Management/RecoveryVault and Management/BackupInstances, but collect.json's
+    # management.recoveryVaults is a hard-coded empty array (Invoke-Collect.ps1) -- already true of
+    # the two PRE-EXISTING rules that read it (WAF-RE-09, caf.management.yaml) before this story
+    # touched anything, and out of this story's scope to fix. Scoring against a field this codebase
+    # already knows never returns rows would be exactly the empty-collection false-pass class this
+    # epic exists to kill, so this stays manual rather than citing a query that cannot fail.
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-07. Management-component (vCenter Server, NSX Manager, HCX Manager) backup is Microsoft-managed and not customer-configurable to evidence here. Workload VM backup would be visible via Azure Backup Recovery Services vaults, but collect.json's management.recoveryVaults field is not populated by any current collection path -- confirm both backup halves directly in the Backup center / Recovery Services vault."
+    manual: true
+  - id: WAF-AVS-RE-08
+    title: "Maintenance windows configured to reduce production impact"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-RE-08. Maintenance-window configuration is not in the current Compute/VMWare field set -- confirm a maintenance window is scheduled for the private cloud."
+    manual: true
+
+  # ---- Security (WAF-AVS-SEC-01..11) -------------------------------------------------------------
+  - id: WAF-AVS-SEC-01
+    title: "Permanent Contributor access to the AVS resource group is limited"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-01. PIM eligibility data is not reliably collected (governance.pimEligibility requires an Entra ID P2 license and a Graph application permission Scout's Reader-at-root baseline does not grant) -- confirm Contributor access to the AVS resource group is PIM-eligible, time-bound, and justification-based, not standing."
+    manual: true
+  - id: WAF-AVS-SEC-02
+    title: "cloudadmin/network-admin built-in accounts used only in break-glass scenarios"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-02. vCenter/NSX-T-internal RBAC configuration is not ARM-readable -- confirm cloudadmin/network-admin usage is centrally managed and domain-services-sourced accounts are used for routine access."
+    manual: true
+  - id: WAF-AVS-SEC-03
+    title: "Guest VM identity uses centralized AD DS/LDAP integrated with Microsoft Entra ID"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-03. Guest-VM domain-join state inside the private cloud is not collected. Confirm guest VMs authenticate against a centralized AD DS/LDAP source integrated with Microsoft Entra ID."
+    manual: true
+  - id: WAF-AVS-SEC-04
+    title: "Network security controls are implemented for AVS traffic"
+    severity: high
+    # Evidences the Azure-side half only (an Azure Firewall exists somewhere in scope) -- NSX-T
+    # internal micro-segmentation, WAF/OWASP policy attachment, and DDoS protection plan
+    # assignment are not fields Invoke-Collect projects, so this is existence evidence, not a
+    # full control review.
+    query: "$.networking.azureFirewalls[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-SEC-04. No Azure Firewall was found in scope, so there is no Azure-side traffic-inspection control to evidence. This checks Azure-side existence only -- NSX-T-internal filtering, WAF/OWASP compliance, and DDoS protection plan assignment still need direct verification."
+    manual: false
+  - id: WAF-AVS-SEC-05
+    title: "vSAN datastores use customer-managed key (CMK) encryption via Key Vault"
+    severity: medium
+    # Evidences that CMK material exists in the tenant at all -- not that it is bound to this
+    # private cloud's vSAN datastore, which is not an ARM-readable property.
+    query: "$.domains.security.keyVaultKeys[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-SEC-05. No Key Vault key was found in scope, so there is no CMK material to evidence. Finding one does not prove it is bound to this private cloud's vSAN datastore encryption -- confirm the binding directly."
+    manual: false
+  - id: WAF-AVS-SEC-06
+    title: "vCenter Server access is via a dedicated privileged access workstation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-06. An access-pattern practice with no control-plane signal -- confirm vCenter Server administration happens from a dedicated PAW."
+    manual: true
+  - id: WAF-AVS-SEC-07
+    title: "Inbound/outbound guest traffic is logged and monitored"
+    severity: medium
+    # Evidences that log-forwarding infrastructure exists generally -- not that AVS-specific
+    # traffic (NSX-T logs) is actually flowing into it, which collect.json has no field for.
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-SEC-07. No Log Analytics workspace was found in scope, so there is no logging infrastructure to evidence. Finding one does not prove AVS/NSX-T traffic logs are actually forwarded into it or into a SIEM -- confirm the log-forwarding configuration directly."
+    manual: false
+  - id: WAF-AVS-SEC-08
+    title: "Backups are centrally managed with RBAC and soft-delete protection"
+    severity: high
+    # See WAF-AVS-RE-07's note: management.recoveryVaults is a hard-coded empty field in
+    # collect.json, so this cannot be automated without citing a query that can never return rows.
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-08. collect.json does not carry Recovery Services vault soft-delete state or RBAC scoping (management.recoveryVaults is not populated by any current collection path). Confirm backups are centrally managed with RBAC and delayed-delete/soft-delete protection directly in the Backup center."
+    manual: true
+  - id: WAF-AVS-SEC-09
+    title: "Guest VMs use advanced threat detection"
+    severity: medium
+    # Evidences Arc onboarding (a prerequisite for Defender for Servers on non-Azure/guest VMs),
+    # not Defender for Cloud plan assignment itself -- security.defenderPlans is a hard-coded
+    # empty field in collect.json (same pre-existing gap CAF-SEC-02 already has), so plan-level
+    # confirmation stays manual.
+    query: "$.domains.hybrid.arcServers[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-SEC-09. No Arc-onboarded server was found in scope. Arc onboarding is the prerequisite for Defender for Servers coverage on AVS guest VMs -- finding Arc servers is not proof Defender for Cloud's server plan is actually assigned (security.defenderPlans is not populated by any current collection path); confirm plan assignment directly."
+    manual: false
+  - id: WAF-AVS-SEC-10
+    title: "Guest VM OS and database encryption enabled where sensitivity requires it"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-10. Guest-OS-level encryption state is not ARM-readable -- confirm directly against the sensitivity classification of data on each guest VM."
+    manual: true
+  - id: WAF-AVS-SEC-11
+    title: "DevOps workflows for AVS-hosted workloads use modern auth"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-SEC-11. Application/pipeline configuration, not an AVS resource property -- confirm CI/CD workflows targeting AVS-hosted workloads use OAuth/OpenID Connect rather than long-lived credentials."
+    manual: true
+
+  # ---- Governance (WAF-AVS-GOV-01..08) -----------------------------------------------------------
+  - id: WAF-AVS-GOV-01
+    title: "vSAN datastore utilization is monitored with alerts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-GOV-01. Metric alert rules are not projected into collect.json for any resource type -- confirm a Percentage Datastore Disk Used alert is configured directly in Azure Monitor."
+    manual: true
+  - id: WAF-AVS-GOV-02
+    title: "VM templates use thin-provisioned storage policies"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-GOV-02. vSAN storage-policy configuration is not ARM-readable -- confirm templates default to thin- rather than thick-provisioned storage."
+    manual: true
+  - id: WAF-AVS-GOV-03
+    title: "Host quota is sized ahead of growth/DR needs"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-GOV-03. A capacity-planning practice -- confirm host quota headroom is reviewed periodically against forecast growth and DR needs."
+    manual: true
+  - id: WAF-AVS-GOV-04
+    title: "Failure-to-tolerate (FTT) vSAN settings match the cluster size for SLA compliance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-GOV-04. vSAN-internal storage policy, not ARM-readable -- confirm FTT settings match the cluster size for the private cloud's SLA."
+    manual: true
+  - id: WAF-AVS-GOV-05
+    title: "Service Health alerts configured for AVS issues, maintenance, and advisories"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVS-GOV-05. Activity Log alert rules are not projected into collect.json -- confirm a Service Health alert is configured for the AVS resource covering service issues, planned maintenance, and health advisories."
+    manual: true
+  - id: WAF-AVS-GOV-06
+    title: "Cost governance is in place for AVS spend"
+    severity: low
+    # Evidences that budget infrastructure exists generally -- not that it is scoped to the AVS
+    # resource specifically, which collect.json's budgets projection does not distinguish.
+    query: "$.governance.budgets[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-GOV-06. No budget was found in scope, so there is no cost-governance infrastructure to evidence. Finding one does not prove it is scoped to AVS spend specifically -- confirm AVS-node cost allocation and alerting directly."
+    manual: false
+  - id: WAF-AVS-GOV-07
+    title: "Azure PaaS services consumed by AVS workloads use private endpoints"
+    severity: medium
+    query: "$.networking.privateEndpoints[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-GOV-07. No private endpoint was found in scope. Adopt Private Endpoints for PaaS services AVS workloads consume rather than exposing them publicly."
+    manual: false
+  - id: WAF-AVS-GOV-08
+    title: "Workload VMs are onboarded to Azure Arc for policy/update/tag parity"
+    severity: medium
+    query: "$.domains.hybrid.arcServers[*]"
+    assert: { type: exists }
+    remediation: "WAF-AVS-GOV-08. No Arc-onboarded server was found in scope. Onboard AVS workload VMs to Azure Arc so they receive policy, update, and tag management parity with native Azure resources."
+    manual: false
