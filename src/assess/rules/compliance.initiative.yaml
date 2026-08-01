@@ -25,5 +25,9 @@ frameworkversion: "Per-run: taken from each assigned initiative's PolicySetDefin
 # benchmark 3.0.0") is computed at run time from the initiative actually assigned in the scanned
 # scope, because that is not knowable until a collect has run (AB#6794).
 area: "Regulatory compliance"
-framework: "Azure Policy regulatory-compliance initiatives"
+# AB#6798 -- an axis IDENTIFIER, not a description. The human-readable framework name a report
+# shows is built per run by Invoke-ScoutComplianceAssessment from each assigned initiative's own
+# DisplayName and Version ("CIS Microsoft Azure Foundations Benchmark 2.0.0"), so a prose string
+# here named nothing real and was the one file the tightened framework allow-list rejected.
+framework: "COMPLIANCE"
 rules: []

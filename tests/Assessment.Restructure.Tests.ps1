@@ -43,6 +43,25 @@ BeforeAll {
         'Platform automation & DevOps'
     )
 
+    # Scout-internal assessment axes -- deliberately NOT CAF/WAF pillars. A workload review
+    # (AI, AVD, AVS, Azure Local) spans all five pillars at once, so its single `area:` scalar
+    # cannot honestly name one; splitting each into five files would fragment one review into
+    # five disconnected registry entries. SMART and XR were never CAF/WAF to begin with, and
+    # Compliance scores Azure's own policy evaluation rather than a Microsoft checklist.
+    # Every entry here is a decision. Adding one means editing this list.
+    $script:ScoutInternalFrameworks = @(
+        'SMART'
+        'XR'
+        'WAF-AI'
+        'WAF-AVD'
+        'WAF-AVS'
+        'WAF-AZLOCAL'
+        'CASA'
+        'FINOPS'
+        'DEVOPS'
+        'COMPLIANCE'
+    )
+
     function Get-AllRuleDocs {
         Get-ChildItem -LiteralPath $script:RuleDir -Filter '*.yaml' -File | ForEach-Object {
             $doc = ConvertFrom-Yaml (Get-Content $_.FullName -Raw)
@@ -79,11 +98,19 @@ Describe 'AB#6798 — every rule file maps to a real pillar or design area' {
                         $doc.ContainsKey('designAreaRef') -and ($doc.designAreaRef -in $script:CafDesignAreas)
                     if (-not ($isRealArea -or $isServiceGuide)) { $offenders += $r.File }
                 }
-                # SMART / XR are Scout-internal axes, not CAF/WAF pillars -- out of scope for this gate.
-                default { }
+                # Scout-internal axes are legitimate -- a workload review spans all five pillars
+                # and cannot honestly claim one, and SMART/XR are not CAF/WAF at all. But this
+                # branch must be an ALLOW-LIST, not a catch-all. A bare `default { }` accepted any
+                # string at all, so `WAFF` or `waf` or an invented `WAF-Foo` would have passed the
+                # gate silently -- which is precisely the defect class AB#6798 exists to stop, just
+                # one level up: instead of claiming a pillar that does not exist, a file would
+                # claim a FRAMEWORK that does not exist. Adding an axis is a deliberate act and
+                # belongs here, in a diff someone reviews.
+                { $_ -in $script:ScoutInternalFrameworks } { }
+                default { $offenders += $r.File }
             }
         }
-        $offenders | Should -BeNullOrEmpty -Because 'every CAF/WAF rule file must be traceable to a real pillar or design area, directly or via a service-guide ref (AB#6798)'
+        $offenders | Should -BeNullOrEmpty -Because 'every rule file must declare a real CAF/WAF pillar or design area, or one of the registered Scout-internal axes (AB#6798)'
     }
 }
 
