@@ -8,6 +8,22 @@ $ErrorActionPreference = 'Stop'
 
 .NOTES
     Supports the seven assert types. Tracks ADO Story AB#5030.
+
+    AB#6826 (Feature AB#6749, Epic AB#6454) added an eighth, orthogonal concept: an optional
+    `assert.gate` JSONPath. When present, the rule's Status is 'NotAssessed' (and the normal
+    query/assert evaluation never runs) whenever the gate resolves to NO matches at all, OR
+    resolves to a single scalar boolean token whose value is `false` -- for a data source that
+    is gated behind a permission system Scout's ordinary Reader role does not satisfy (the
+    FinOps EA/MCA billing gate, Azure DevOps access not granted), a `countEquals: 0` or
+    `exists` assert cannot tell "the source was blocked" apart from "the source was checked
+    and found clean", and collapsing the two into a Pass or a Fail is exactly the false read
+    AB#6793 already fixed once for Azure Policy compliance state. `gate` is evaluated with the
+    SAME Resolve-JsonPath a rule's own `query` uses -- write it as a plain scalar path to a
+    boolean field the collect pipeline computes (`$.finops.available`, `$.devops.available`),
+    NOT a `[?()]` array filter: Newtonsoft JSONPath's `[?()]` iterates an array's ELEMENTS, and
+    `finops`/`devops` are single objects, not arrays, so `$.finops[?(@.available == true)]`
+    silently matches nothing in EITHER state -- found by this feature's own manual gate test,
+    not by a live run.
 #>
 function Invoke-Rule {
     param(
@@ -18,6 +34,51 @@ function Invoke-Rule {
     )
 
     $status = 'Unknown'; $evidenceCount = 0; $evidence = @()
+
+    # ---- AB#6826: optional gate, checked before manual/query evaluation ----
+    $gatePath = $null
+    if ($Rule.assert -is [hashtable]) {
+        if ($Rule.assert.ContainsKey('gate')) { $gatePath = $Rule.assert.gate }
+    }
+    elseif ($Rule.assert -and $Rule.assert.PSObject.Properties['gate']) {
+        $gatePath = $Rule.assert.gate
+    }
+    if (-not [string]::IsNullOrWhiteSpace($gatePath)) {
+        $gateMatches = $null
+        # NOT wrapped in @(): Resolve-JsonPath already returns its (possibly empty) array via
+        # `Write-Output -NoEnumerate`, exactly like every other Resolve-JsonPath call in this
+        # file. Wrapping it again here nests that array inside a further one-element array, so
+        # `.Count` is never 0 even on a genuinely empty result -- found by this feature's own
+        # gate test, not by a live run.
+        try { $gateMatches = Resolve-JsonPath -InputObject $Collect -Path $gatePath }
+        catch {
+            Write-Warning "Rule $($Rule.id): gate query '$gatePath' failed: $_"
+            return [pscustomobject]@{
+                Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
+                Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
+            }
+        }
+        $gateOpen = $true
+        if (@($gateMatches).Count -eq 0) {
+            $gateOpen = $false
+        }
+        elseif (@($gateMatches).Count -eq 1) {
+            # A single scalar boolean token (the intended shape: `$.finops.available`,
+            # `$.devops.available`) closes the gate when its value is exactly `false`. Any
+            # other single-match shape (a row, a string, ...) is treated as "present" -- the
+            # gate is a data-availability check, not a second assert.
+            try { if ($gateMatches[0].ToObject([bool]) -eq $false) { $gateOpen = $false } }
+            catch { }   # not a boolean token -- presence alone means the gate is open
+        }
+        if (-not $gateOpen) {
+            return [pscustomobject]@{
+                Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
+                Severity = $Rule.severity; Status = 'NotAssessed'; EvidenceCount = 0; Evidence = @()
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
+            }
+        }
+    }
 
     # A rule carries EITHER a `query` (one dataset, filtered) or a `join` (two datasets,
     # correlated) -- never both. `join` is read through the same shape-agnostic accessor the rest

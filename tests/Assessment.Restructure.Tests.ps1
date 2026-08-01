@@ -59,6 +59,10 @@ BeforeAll {
         'CASA'
         'FINOPS'
         'DEVOPS'
+        # devops.capability.yaml declares this exact string (not the 'DEVOPS' placeholder above) --
+        # AB#6827's DevOps Capability Assessment axis, distinct from CAF's "Platform automation
+        # and DevOps" design area.
+        'DevOps Capability'
         'COMPLIANCE'
         # CAF Govern's seven RISK CATEGORIES (RC/SC/CM/OP/DG/RM/AI) are a different axis from
         # CAF's eight landing-zone DESIGN AREAS -- a file scoring them cannot declare
