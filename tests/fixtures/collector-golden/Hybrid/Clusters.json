@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "Clusters",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "2faa14a1c8bf6ab1cb9850aecb31366beadc80f36d885309c22a5d08bc72bf22",
+  "FixtureSha256": "7e26c5858913513ff7562e505cbe9c5a20a2b8e5cc542891999e1893c350e061",
   "Rows": [
     "Cloud Id=s:res-value|Cloud Management=s:res-value|Cluster Version=s:res-value|Connectivity Status=s:res-value|Desired Properties=s:res-value|Diagnostics Level=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/clusters/clusters-t1a-1|Last Billing Sync=s:2026-01-15 10:30|Last Sync=s:2026-01-15 10:30|Location=s:res-value|Name=s:clusters-t1a|Node Count=j:2|OS Version=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Service Endpoint=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Cloud Id=s:res-value|Cloud Management=s:res-value|Cluster Version=s:res-value|Connectivity Status=s:res-value|Desired Properties=s:res-value|Diagnostics Level=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/clusters/clusters-t1b-1|Last Billing Sync=s:2026-01-15 10:30|Last Sync=s:2026-01-15 10:30|Location=s:res-value|Name=s:clusters-t1b|Node Count=j:2|OS Version=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Service Endpoint=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

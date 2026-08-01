@@ -92,39 +92,15 @@
       "ServiceID": "svc-2"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1e-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1e-1/ArcSites/arcsites-t1e-2",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2e-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1f-1/ArcSites/arcsites-t1f-2",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1f-1/ArcSites/arcsites-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -212,15 +188,15 @@
       "ServiceID": "svc-2"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1e-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1e-1/AzureLocalVirtualMachineInstances/virtualmachines-t1e-2",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1f-1/AzureLocalVirtualMachineInstances/virtualmachines-t1f-2",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1f-1/AzureLocalVirtualMachineInstances/virtualmachines-t1f-2",
       "ServiceID": "svc-2"
     }
   ],
@@ -1093,15 +1069,54 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "arcserveroperationaldata-t1a",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1",
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1/extensions/arcserveroperationaldata-t1a-join1",
+          "PROPERTIES": {
+            "type": "res-value"
+          },
+          "NAME": "arcserveroperationaldata-t1a-join1",
+          "TYPE": "microsoft.hybridcompute/machines/extensions",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "resourceMetadata": {
+              "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1"
+            },
+            "category": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1/recommendations/arcserveroperationaldata-t1a-join1",
+          "NAME": "arcserveroperationaldata-t1a-join1",
+          "TYPE": "microsoft.advisor/recommendations",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1/protecteditems/arcserveroperationaldata-t1a-join1",
+          "NAME": "arcserveroperationaldata-t1a-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1a-1/ArcServerOperationalData/arcserveroperationaldata-t1a-join1",
@@ -1130,16 +1145,55 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod",
             "owner": "platform"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "arcserveroperationaldata-t1b",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1",
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1/extensions/arcserveroperationaldata-t1b-join1",
+          "PROPERTIES": {
+            "type": "res-value"
+          },
+          "NAME": "arcserveroperationaldata-t1b-join1",
+          "TYPE": "microsoft.hybridcompute/machines/extensions",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "resourceMetadata": {
+              "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1"
+            },
+            "category": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1/recommendations/arcserveroperationaldata-t1b-join1",
+          "NAME": "arcserveroperationaldata-t1b-join1",
+          "TYPE": "microsoft.advisor/recommendations",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1/protecteditems/arcserveroperationaldata-t1b-join1",
+          "NAME": "arcserveroperationaldata-t1b-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1b-1/ArcServerOperationalData/arcserveroperationaldata-t1b-join1",
@@ -1168,8 +1222,8 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "arcserveroperationaldata-t1c",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1c-1",
           "RESOURCEGROUP": "res-value",
@@ -1193,15 +1247,54 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
             "env": "dev"
           },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "NAME": "arcserveroperationaldata-t1d",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1",
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1/extensions/arcserveroperationaldata-t1d-join1",
+          "PROPERTIES": {
+            "type": "res-value"
+          },
+          "NAME": "arcserveroperationaldata-t1d-join1",
+          "TYPE": "microsoft.hybridcompute/machines/extensions",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "resourceMetadata": {
+              "resourceId": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1"
+            },
+            "category": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1/recommendations/arcserveroperationaldata-t1d-join1",
+          "NAME": "arcserveroperationaldata-t1d-join1",
+          "TYPE": "microsoft.advisor/recommendations",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1/protecteditems/arcserveroperationaldata-t1d-join1",
+          "NAME": "arcserveroperationaldata-t1d-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1d-1/ArcServerOperationalData/arcserveroperationaldata-t1d-join1",
@@ -1230,15 +1323,54 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "arcserveroperationaldata-t1e",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1",
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1/extensions/arcserveroperationaldata-t1e-join1",
+          "PROPERTIES": {
+            "type": "res-value"
+          },
+          "NAME": "arcserveroperationaldata-t1e-join1",
+          "TYPE": "microsoft.hybridcompute/machines/extensions",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "resourceMetadata": {
+              "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1"
+            },
+            "category": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1/recommendations/arcserveroperationaldata-t1e-join1",
+          "NAME": "arcserveroperationaldata-t1e-join1",
+          "TYPE": "microsoft.advisor/recommendations",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1/protecteditems/arcserveroperationaldata-t1e-join1",
+          "NAME": "arcserveroperationaldata-t1e-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1e-1/ArcServerOperationalData/arcserveroperationaldata-t1e-join1",
@@ -1267,15 +1399,54 @@
               }
             ]
           },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
             "env": "prod"
           },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "arcserveroperationaldata-t1f",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1",
           "RESOURCEGROUP": "res-value",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1/extensions/arcserveroperationaldata-t1f-join1",
+          "PROPERTIES": {
+            "type": "res-value"
+          },
+          "NAME": "arcserveroperationaldata-t1f-join1",
+          "TYPE": "microsoft.hybridcompute/machines/extensions",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "resourceMetadata": {
+              "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1"
+            },
+            "category": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1/recommendations/arcserveroperationaldata-t1f-join1",
+          "NAME": "arcserveroperationaldata-t1f-join1",
+          "TYPE": "microsoft.advisor/recommendations",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1/protecteditems/arcserveroperationaldata-t1f-join1",
+          "NAME": "arcserveroperationaldata-t1f-join1",
+          "TYPE": "microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcserveroperationaldata-t1f-1/ArcServerOperationalData/arcserveroperationaldata-t1f-join1",
@@ -1832,324 +2003,146 @@
       "resources": [
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1a-1",
           "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1a-1/ArcSites/arcsites-t1a-2",
           "NAME": "arcsites-t1a",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
           "tags": {
             "env": "prod"
-          },
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2a-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2a",
-          "LOCATION": "res-value"
+          }
         },
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3a-1",
           "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3a",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          },
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1b-1",
-          "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1b-1/ArcSites/arcsites-t1b-2",
           "NAME": "arcsites-t1b",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
           "tags": {
             "env": "prod",
             "owner": "platform"
-          },
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2b-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2b",
-          "LOCATION": "res-value"
+          }
         },
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          },
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3b-1",
           "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3b",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {},
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1c-1",
-          "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1c-1/ArcSites/arcsites-t1c-2",
           "NAME": "arcsites-t1c",
-          "LOCATION": "res-value"
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
+          "tags": {}
         },
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {},
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2c-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2c",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {},
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3c-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3c",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "tags": {
-            "env": "dev"
-          },
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1d-1",
           "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1d-1/ArcSites/arcsites-t1d-2",
           "NAME": "arcsites-t1d",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
           "tags": {
             "env": "dev"
-          },
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2d-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2d",
-          "LOCATION": "res-value"
+          }
         },
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "tags": {
-            "env": "dev"
-          },
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3d-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3d",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1e-1",
           "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1e-1/ArcSites/arcsites-t1e-2",
           "NAME": "arcsites-t1e",
-          "LOCATION": "res-value"
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         },
         {
           "PROPERTIES": {
+            "siteAddress": {
+              "streetAddress1": "res-value",
+              "streetAddress2": "res-value",
+              "city": "res-value",
+              "stateOrProvince": "res-value",
+              "postalCode": "res-value",
+              "country": "res-value"
+            },
+            "labels": "res-value",
             "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
+            "description": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2e-1",
           "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2e",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3e-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3e",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.azurestackhci/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/sites/arcsites-t1f-1",
-          "RESOURCEGROUP": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1f-1/ArcSites/arcsites-t1f-2",
           "NAME": "arcsites-t1f",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "TYPE": "AZSC/ARMChild/ArcSites",
+          "LOCATION": "eastus",
           "tags": {
             "env": "prod"
-          },
-          "TYPE": "microsoft.edgeconfig/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.edgeconfig/sites/arcsites-t2f-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t2f",
-          "LOCATION": "res-value"
-        },
-        {
-          "PROPERTIES": {
-            "displayName": "res-value",
-            "address": "res-value",
-            "country": "res-value",
-            "description": "res-value",
-            "provisioningState": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "tags": {
-            "env": "prod"
-          },
-          "TYPE": "microsoft.hybridcompute/sites",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/sites/arcsites-t3f-1",
-          "RESOURCEGROUP": "res-value",
-          "NAME": "arcsites-t3f",
-          "LOCATION": "res-value"
+          }
         }
       ]
     },
@@ -3834,10 +3827,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
@@ -3846,11 +3839,13 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1a-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1a-1/AzureLocalVirtualMachineInstances/virtualmachines-t1a-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1a",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         },
         {
           "PROPERTIES": {
@@ -3890,10 +3885,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
@@ -3903,11 +3898,13 @@
             "env": "prod",
             "owner": "platform"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1b-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1b-1/AzureLocalVirtualMachineInstances/virtualmachines-t1b-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1b",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         },
         {
           "PROPERTIES": {
@@ -3947,21 +3944,23 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1c-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1c-1/AzureLocalVirtualMachineInstances/virtualmachines-t1c-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1c",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         },
         {
           "PROPERTIES": {
@@ -4001,10 +4000,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
@@ -4013,11 +4012,13 @@
           "tags": {
             "env": "dev"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1d-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1d-1/AzureLocalVirtualMachineInstances/virtualmachines-t1d-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1d",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         },
         {
           "PROPERTIES": {
@@ -4057,10 +4058,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
@@ -4069,11 +4070,13 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1e-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1e-1/AzureLocalVirtualMachineInstances/virtualmachines-t1e-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1e",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         },
         {
           "PROPERTIES": {
@@ -4113,10 +4116,10 @@
             "networkProfile": {
               "networkInterfaces": [
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 },
                 {
-                  "id": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+                  "id": "res-value"
                 }
               ]
             }
@@ -4125,11 +4128,13 @@
           "tags": {
             "env": "prod"
           },
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualmachineinstances/virtualmachines-t1f-1",
+          "PARENTNAME": "res-value",
+          "PARENTLOCATION": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1f-1/AzureLocalVirtualMachineInstances/virtualmachines-t1f-2",
           "RESOURCEGROUP": "res-value",
           "NAME": "virtualmachines-t1f",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.azurestackhci/virtualmachineinstances"
+          "TYPE": "AZSC/ARMChild/AzureLocalVirtualMachineInstances",
+          "LOCATION": "eastus"
         }
       ]
     }

@@ -73,11 +73,17 @@ function ConvertTo-ScoutAvdAzureLocalSessionHost {
             if (-not $NormalizedProperties.Contains($Name)) { $NormalizedProperties[$Name] = $null }
         }
 
+        # AB#6802: an AzureLocalVirtualMachineInstances row is Get-ScoutArmChildResource's
+        # synthetic envelope for a per-machine singleton named literally 'default', so its own
+        # NAME/LOCATION are useless here. PARENTNAME/PARENTLOCATION carry the actual Arc
+        # machine/Azure Local VM's identity and are preferred first; every other source (raw ARG
+        # rows, AVD session-host records) has no PARENTNAME/PARENTLOCATION property, so this is a
+        # no-op fallback to the prior behavior for them.
         [pscustomobject]@{
             TYPE           = 'AZSC/AVD/AzureLocalSessionHost'
-            NAME           = Get-AvdPropertyValue -InputObject $Source -Name @('NAME', 'name')
+            NAME           = Get-AvdPropertyValue -InputObject $Source -Name @('PARENTNAME', 'NAME', 'name')
             RESOURCEGROUP  = Get-AvdPropertyValue -InputObject $Source -Name @('RESOURCEGROUP', 'resourceGroup')
-            LOCATION       = Get-AvdPropertyValue -InputObject $Source -Name @('LOCATION', 'location')
+            LOCATION       = Get-AvdPropertyValue -InputObject $Source -Name @('PARENTLOCATION', 'LOCATION', 'location')
             subscriptionId = Get-AvdPropertyValue -InputObject $Source -Name @('subscriptionId', 'SubscriptionId')
             tags           = Get-AvdPropertyValue -InputObject $Source -Name @('tags', 'TAGS')
             PROPERTIES     = [pscustomobject]$NormalizedProperties
@@ -97,8 +103,13 @@ function ConvertTo-ScoutAvdAzureLocalSessionHost {
         }
     }
 
+    # AB#6802: the declarative-collector conversion originally targeted a Resource Graph row of
+    # type 'microsoft.azurestackhci/virtualmachineinstances' -- a type Resource Graph never
+    # returns, because the resource is an ARM extension resource with no Graph table of its own
+    # (see Get-ScoutArmChildResource.ps1's 'AzureLocalVirtualMachineInstances' dataset). The real
+    # rows now arrive tagged 'AZSC/ARMChild/AzureLocalVirtualMachineInstances'.
     foreach ($Resource in $Resources) {
-        if ((Get-AvdPropertyValue -InputObject $Resource -Name @('TYPE', 'type')) -ieq 'microsoft.azurestackhci/virtualmachineinstances' -and
+        if ((Get-AvdPropertyValue -InputObject $Resource -Name @('TYPE', 'type')) -ieq 'AZSC/ARMChild/AzureLocalVirtualMachineInstances' -and
             (Test-AvdSessionHostTag -Tags (Get-AvdPropertyValue -InputObject $Resource -Name @('tags', 'TAGS')))) {
             New-AvdSessionHostRow -Source $Resource -Platform 'AzureLocal'
         }

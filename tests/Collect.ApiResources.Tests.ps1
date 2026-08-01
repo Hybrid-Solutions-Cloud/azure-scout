@@ -35,6 +35,7 @@ Describe 'Get-ScoutApiResources -- happy path' {
             if ($Uri -match 'ManagedIdentity') { return [pscustomobject]@{ value = @('identity-1') } }
             if ($Uri -match 'advisorScore') { return [pscustomobject]@{ value = @('score-1') } }
             if ($Uri -match 'reservationRecommendations') { return [pscustomobject]@{ value = @('reservation-1') } }
+            if ($Uri -match 'Microsoft.Edge/sites') { return [pscustomobject]@{ value = @('site-1') } }
             if ($Uri -match 'policyStates') { return [pscustomobject]@{ value = @('policy-state-1') } }
             if ($Uri -match 'policySetDefinitions') { return [pscustomobject]@{ value = @('set-def-1') } }
             if ($Uri -match 'policyDefinitions') { return [pscustomobject]@{ value = @('def-1') } }
@@ -47,7 +48,19 @@ Describe 'Get-ScoutApiResources -- happy path' {
         $result[0].ManagedIdentities | Should -Be @('identity-1')
         $result[0].AdvisorScore | Should -Be @('score-1')
         $result[0].ReservationRecommendations | Should -Be @('reservation-1')
+        $result[0].ArcSites | Should -Be @('site-1')
         $result[0].PolicyAssignments | Should -Be @('policy-state-1')
+    }
+
+    It 'calls Microsoft.Edge/sites once per subscription (AB#6801)' {
+        $script:edgeCalls = 0
+        function Invoke-RestMethod {
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            if ($Uri -match 'Microsoft\.Edge/sites\?api-version=2024-02-01-preview') { $script:edgeCalls++ }
+            return [pscustomobject]@{ value = @() }
+        }
+        Get-ScoutApiResources -Subscriptions $script:subs | Out-Null
+        $script:edgeCalls | Should -Be 2
     }
 }
 

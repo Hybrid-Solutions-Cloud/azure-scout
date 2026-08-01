@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "ArcSQLManagedInstances",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "2faa14a1c8bf6ab1cb9850aecb31366beadc80f36d885309c22a5d08bc72bf22",
+  "FixtureSha256": "7e26c5858913513ff7562e505cbe9c5a20a2b8e5cc542891999e1893c350e061",
   "Rows": [
     "Admin Username=s:res-value|Data Controller=s:res-value|Data Storage GB=s:res-value|Endpoint=s:res-value|HA Mode=s:Enabled|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlmanagedinstances/arcsqlmanagedinstances-t1a-1|Location=s:res-value|Logs Storage GB=s:res-value|Name=s:arcsqlmanagedinstances-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Service Tier=s:res-value|SQL Version=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|vCores Limit=s:res-value|vCores Request=s:res-value",
     "Admin Username=s:res-value|Data Controller=s:res-value|Data Storage GB=s:res-value|Endpoint=s:res-value|HA Mode=s:Enabled|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlmanagedinstances/arcsqlmanagedinstances-t1b-1|Location=s:res-value|Logs Storage GB=s:res-value|Name=s:arcsqlmanagedinstances-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Service Tier=s:res-value|SQL Version=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|vCores Limit=s:res-value|vCores Request=s:res-value",

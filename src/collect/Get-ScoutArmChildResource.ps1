@@ -20,6 +20,9 @@ $ErrorActionPreference = 'Stop'
       PARENTID         resource id of the parent
       PARENTTYPE       Resource Graph type of the parent
       PARENTNAME       Resource Graph name of the parent
+      PARENTLOCATION   Resource Graph location of the parent (AB#6802 -- a singleton child
+                       carries no location of its own, and a consumer that needs one, like
+                       Compute/AVDAzureLocal's Azure Local branch, has nowhere else to read it)
       subscriptionId   inherited from the parent
       RESOURCEGROUP    inherited from the parent
       AZSC             metadata object with Dataset, ParentId, ParentType, ParentName,
@@ -74,7 +77,8 @@ function Get-ScoutArmChildResource {
             'StorageFileShares',
             'StorageLifecyclePolicies',
             'BackupInstances',
-            'ResourceDiagnosticSettings'
+            'ResourceDiagnosticSettings',
+            'AzureLocalVirtualMachineInstances'
         )]
         [string[]]$Dataset = @('All')
     )
@@ -98,7 +102,8 @@ function Get-ScoutArmChildResource {
         'StorageFileShares',
         'StorageLifecyclePolicies',
         'BackupInstances',
-        'ResourceDiagnosticSettings'
+        'ResourceDiagnosticSettings',
+        'AzureLocalVirtualMachineInstances'
     )
 
     # --- Diagnostic-settings parent scope (AB#6769) ---------------------------------------------
@@ -213,6 +218,7 @@ function Get-ScoutArmChildResource {
         $ParentId = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
         $ParentType = [string](Get-ArmParentValue -InputObject $Parent -Name @('type', 'TYPE'))
         $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
+        $ParentLocation = Get-ArmParentValue -InputObject $Parent -Name @('location', 'LOCATION')
         $SubscriptionId = Get-ArmParentValue -InputObject $Parent -Name @('subscriptionId', 'SubscriptionId')
         $ResourceGroup = Get-ArmParentValue -InputObject $Parent -Name @('resourceGroup', 'RESOURCEGROUP')
 
@@ -239,6 +245,7 @@ function Get-ScoutArmChildResource {
         $Row['PARENTID'] = $ParentId
         $Row['PARENTTYPE'] = $ParentType
         $Row['PARENTNAME'] = $ParentName
+        $Row['PARENTLOCATION'] = $ParentLocation
         $Row['subscriptionId'] = $SubscriptionId
         $Row['RESOURCEGROUP'] = $ResourceGroup
         $Row['AZSC'] = [PSCustomObject][ordered]@{
@@ -292,6 +299,15 @@ function Get-ScoutArmChildResource {
     })
     $DiagnosticSettingParents = @($Resources | Where-Object {
         $DiagnosticSettingParentTypes -contains [string](Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE'))
+    })
+    # AB#6802. Every Arc-enabled server that is actually an Azure Local guest carries this
+    # extension resource; every other Arc server (a bare-metal or VMware/SCVMM Arc machine) does
+    # not, and the per-machine GET below degrades that absence to a non-fatal 404 -- the same
+    # singleton pattern StorageLifecyclePolicies already uses. No `kind`/`vmId` pre-filter is
+    # applied because Microsoft.HybridCompute/machines does not reliably expose which platform
+    # provisioned it; the ARM response itself is the only trustworthy signal.
+    $HybridComputeMachineParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines'
     })
 
     foreach ($DatasetName in $Selected) {
@@ -576,6 +592,43 @@ function Get-ScoutArmChildResource {
                 foreach ($Parent in $DiagnosticSettingParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Azure Local virtual machine instances (AB#6802 / Feature AB#6747) -----------------
+            #
+            # WHY THIS IS A REST CALL AND NOT A RESOURCE GRAPH ROW.
+            # `Microsoft.AzureStackHCI/virtualMachineInstances` is listed on Microsoft's own
+            # "resource types that extend capabilities of other resources" page
+            # (https://learn.microsoft.com/azure/azure-resource-manager/management/extension-resource-types#microsoftazurestackhci)
+            # -- it is an ARM EXTENSION resource, scoped under a `Microsoft.HybridCompute/machines`
+            # parent, not a standalone resource. Resource Graph's own supported-type reference
+            # (https://learn.microsoft.com/azure/governance/resource-graph/reference/supported-tables-resources)
+            # lists eleven other `microsoft.azurestackhci/*` types it indexes -- including the
+            # confusingly similar `microsoft.azurestackhci/virtualmachines` (no "instances") --
+            # but `virtualmachineinstances` is not one of them. The old declarative collector
+            # queried the `resources` table for that exact type and could not have returned a row
+            # in ANY tenant, deployed or not: it is the same defect class AB#6769 fixed for
+            # ResourceDiagnosticSettings, not the "tenant just has none" verdict AB#6846 recorded
+            # (see docs/audits/AZURE-SCOUT-AUDIT.md's revision of that verdict for the full
+            # reasoning and citations).
+            #
+            # The instance is a SINGLETON named `default` under each machine -- there is no list
+            # endpoint, matching the Bicep/ARM template reference's `name: 'default' (required)`.
+            # A machine that is not an Azure Local guest returns 404, which Get-ArmChildContent
+            # already degrades to a warning and $null, exactly like StorageLifecyclePolicies.
+            #
+            # Control plane, read-only -- `Microsoft.AzureStackHCI/virtualMachineInstances/read`,
+            # which Reader's `*/read` wildcard already covers. No new permission is required.
+            'AzureLocalVirtualMachineInstances' {
+                foreach ($Parent in $HybridComputeMachineParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.AzureStackHCI/virtualMachineInstances/default?api-version=2024-01-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {

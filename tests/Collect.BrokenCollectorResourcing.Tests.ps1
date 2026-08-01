@@ -29,6 +29,7 @@ BeforeAll {
     # in that function's scope and not the caller's -- fine in production, where AzureScout.psm1
     # has already loaded every src/ file, but not something a test should depend on.
     . "$script:Root/src/collect/Get-ScoutOutageResource.ps1"
+    . "$script:Root/src/collect/ConvertTo-ScoutArcSiteResource.ps1"
 }
 
 Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
@@ -347,5 +348,163 @@ Describe 'AB#6769 -- Monitor/ResourceDiagnosticSettings is re-sourced via ARM RE
         $rows[0].PARENTNAME | Should -Be 'kv-good'
         $warnings.Count | Should -Be 1
         $warnings[0].Message | Should -Match 'ResourceDiagnosticSettings'
+    }
+}
+
+Describe 'AB#6802 -- Hybrid/VirtualMachines is re-sourced via ARM REST' {
+
+    BeforeEach {
+        $script:ArmCalls = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            param([string]$Path, [string]$Method, [Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Method, $Rest
+            $script:ArmCalls.Add($Path)
+            [PSCustomObject]@{
+                StatusCode = 200
+                Content    = (@{
+                        id         = "$Path"
+                        name       = 'default'
+                        type       = 'Microsoft.AzureStackHCI/virtualMachineInstances'
+                        properties = @{
+                            hardwareProfile = @{ vmSize = 'Standard_D4s_v3'; processors = 4; memoryMB = 8192 }
+                            osProfile       = @{ osType = 'Windows'; computerName = 'vm-one' }
+                            provisioningState = 'Succeeded'
+                        }
+                    } | ConvertTo-Json -Depth 8 -Compress)
+            }
+        }
+
+        function New-MachineParent {
+            param([string]$Name = 'arc-machine-one')
+            [PSCustomObject]@{
+                id             = "/subscriptions/sub-test/resourceGroups/rg-test/providers/microsoft.hybridcompute/machines/$Name"
+                type           = 'microsoft.hybridcompute/machines'
+                name           = $Name
+                location       = 'eastus'
+                subscriptionId = 'sub-test'
+                resourceGroup  = 'rg-test'
+                properties     = [PSCustomObject]@{}
+            }
+        }
+    }
+
+    AfterEach {
+        Remove-Item -Path 'function:global:Invoke-AzRestMethod' -ErrorAction SilentlyContinue
+    }
+
+    It 'reads the virtualMachineInstances singleton per Arc machine, not the Resource Graph resources table' {
+        $rows = @(Get-ScoutArmChildResource -Resources @(New-MachineParent) -Dataset @('AzureLocalVirtualMachineInstances'))
+
+        $rows.Count | Should -Be 1
+        $rows[0].TYPE | Should -Be 'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
+        $rows[0].PARENTNAME | Should -Be 'arc-machine-one'
+        $rows[0].PARENTTYPE | Should -Be 'microsoft.hybridcompute/machines'
+        $rows[0].PARENTLOCATION | Should -Be 'eastus'
+        $rows[0].properties.hardwareProfile.vmSize | Should -Be 'Standard_D4s_v3'
+
+        $script:ArmCalls.Count | Should -Be 1
+        $script:ArmCalls[0] | Should -Match '/providers/Microsoft\.AzureStackHCI/virtualMachineInstances/default\?api-version=2024-01-01$'
+    }
+
+    It 'is the type the definition declares' {
+        $definition = Import-PowerShellDataFile "$script:Root/manifests/collectors/Hybrid/VirtualMachines.psd1"
+
+        @($definition.ResourceTypes) | Should -Be @('AZSC/ARMChild/AzureLocalVirtualMachineInstances')
+    }
+
+    It 'produces no row for an Arc machine that is not an Azure Local guest, which is the finding' {
+        function global:Invoke-AzRestMethod {
+            param([string]$Path, [string]$Method, [Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Method, $Rest
+            $script:ArmCalls.Add($Path)
+            throw 'ResourceNotFound'
+        }
+
+        $rows = @(Get-ScoutArmChildResource -Resources @(New-MachineParent) -Dataset @('AzureLocalVirtualMachineInstances') -WarningAction SilentlyContinue)
+
+        $rows | Should -BeNullOrEmpty
+        $script:ArmCalls.Count | Should -Be 1
+    }
+
+    It 'feeds Compute/AVDAzureLocal by way of the PARENTNAME/PARENTLOCATION-preferring session-host transform' {
+        . "$script:Root/src/collect/ConvertTo-ScoutAvdAzureLocalSessionHost.ps1"
+
+        $armChildRows = @(Get-ScoutArmChildResource -Resources @(New-MachineParent) -Dataset @('AzureLocalVirtualMachineInstances'))
+        $armChildRows[0] | Add-Member -NotePropertyName tags -NotePropertyValue ([pscustomobject]@{ AvdSessionHost = 'true' }) -Force
+
+        $sessionHosts = @(ConvertTo-ScoutAvdAzureLocalSessionHost -Resources $armChildRows)
+
+        $sessionHosts.Count | Should -Be 1
+        $sessionHosts[0].TYPE | Should -Be 'AZSC/AVD/AzureLocalSessionHost'
+        $sessionHosts[0]._Platform | Should -Be 'AzureLocal'
+        # The child envelope's own NAME is the fixed string 'default' and it carries no LOCATION
+        # at all -- PARENTNAME/PARENTLOCATION must win, or every Azure Local row in the AVD
+        # worksheet reads 'default' where a VM name belongs.
+        $sessionHosts[0].NAME | Should -Be 'arc-machine-one'
+        $sessionHosts[0].LOCATION | Should -Be 'eastus'
+    }
+}
+
+Describe 'AB#6801 -- Hybrid/ArcSites is re-sourced via ARM REST' {
+
+    BeforeEach {
+        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) $null = $Root; @() }
+        function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $null = $ApiResources; @() }
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; @() }
+    }
+
+    It 'is the type the definition declares' {
+        $definition = Import-PowerShellDataFile "$script:Root/manifests/collectors/Hybrid/ArcSites.psd1"
+
+        @($definition.ResourceTypes) | Should -Be @('AZSC/ARMChild/ArcSites')
+    }
+
+    It 'turns the per-subscription Microsoft.Edge/sites sweep into AZSC/ARMChild/ArcSites rows, not a Resource Graph query' {
+        function Get-ScoutApiResources {
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            [pscustomobject]@{
+                Subscription = 'sub-1'
+                ArcSites     = @(
+                    [pscustomobject]@{
+                        id         = '/subscriptions/sub-1/resourceGroups/rg-arc/providers/Microsoft.Edge/sites/site-one'
+                        name       = 'site-one'
+                        type       = 'Microsoft.Edge/sites'
+                        properties = [pscustomobject]@{ displayName = 'Store 42'; description = 'Retail site' }
+                    }
+                )
+            }
+        }
+
+        $result = Get-ScoutRawInventory
+
+        $rows = @($result.Resources | Where-Object { $_.TYPE -eq 'AZSC/ARMChild/ArcSites' })
+        $rows.Count | Should -Be 1
+        $rows[0].name | Should -Be 'site-one'
+        $rows[0].subscriptionId | Should -Be 'sub-1'
+        $rows[0].RESOURCEGROUP | Should -Be 'rg-arc'
+        $rows[0].properties.displayName | Should -Be 'Store 42'
+
+        # No AzureStackHCI/EdgeConfig/HybridCompute 'sites' Resource Graph query was ever issued
+        # -- those three type strings do not exist, which is why the collector was retired rather
+        # than corrected in AB#6842.
+        @($result.Resources | Where-Object { $_.TYPE -match '(?i)sites$' -and $_.TYPE -ne 'AZSC/ARMChild/ArcSites' }) |
+            Should -BeNullOrEmpty
+    }
+
+    It 'survives a subscription whose sweep returned no sites at all' {
+        function Get-ScoutApiResources {
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            @(
+                [pscustomobject]@{ Subscription = 'sub-1'; ArcSites = @() }
+                [pscustomobject]@{ Subscription = 'sub-2' }
+                [pscustomobject]@{ Subscription = 'sub-3'; ArcSites = $null }
+            )
+        }
+
+        { Get-ScoutRawInventory } | Should -Not -Throw
+        @((Get-ScoutRawInventory).Resources | Where-Object { $_.TYPE -eq 'AZSC/ARMChild/ArcSites' }) |
+            Should -BeNullOrEmpty
     }
 }

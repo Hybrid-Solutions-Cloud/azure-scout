@@ -26,6 +26,13 @@ $ErrorActionPreference = 'Stop'
                               feature parity with the legacy per-subscription REST pull the
                               174-collector engine already depends on, not as a second source
                               the assessment platform should ALSO consume.
+        ArcSites              Microsoft.Edge/sites (AB#6801) -- a normal, non-extension ARM
+                              resource that can be created at subscription or resource-group
+                              scope, but Resource Graph's supported-type reference does not list
+                              `microsoft.edge/sites` among the `microsoft.edge/*` types it
+                              indexes. It has no natural per-parent scope the way an extension
+                              resource does, so it is listed once per subscription here rather
+                              than through Get-ScoutArmChildResource.ps1's per-parent sweep.
 
     Every call is independently non-fatal: a single endpoint failing (missing RBAC,
     provider not registered, transient error) degrades that one field to $null for that one
@@ -48,9 +55,9 @@ $ErrorActionPreference = 'Stop'
 
 .OUTPUTS
     One `[pscustomobject]` per subscription: `Subscription` (id), `ResourceHealth`,
-    `ManagedIdentities`, `AdvisorScore`, `ReservationRecommendations`, `PolicyAssignments`,
-    `PolicyDefinitions`, `PolicySetDefinitions`. Any field whose REST call failed is `$null`
-    for that subscription -- callers MUST NOT assume any field is populated.
+    `ManagedIdentities`, `AdvisorScore`, `ReservationRecommendations`, `ArcSites`,
+    `PolicyAssignments`, `PolicyDefinitions`, `PolicySetDefinitions`. Any field whose REST call
+    failed is `$null` for that subscription -- callers MUST NOT assume any field is populated.
 
 .NOTES
     Tracks ADO AB#5639 (Task AB#5645, Epic AB#5638).
@@ -152,6 +159,7 @@ function Get-ScoutApiResources {
         $managedIdentities          = $null
         $advisorScore               = $null
         $reservationRecommendations = $null
+        $arcSites                   = $null
         if (-not $DefinitionsOnly) {
             $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
@@ -167,6 +175,13 @@ function Get-ScoutApiResources {
 
             $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"
+            Start-Sleep -Milliseconds 200
+
+            # AB#6801: Microsoft.Edge/sites -- see the function synopsis for why this is a
+            # per-subscription list rather than a per-parent ARM child sweep. Reader's `*/read`
+            # wildcard covers `Microsoft.Edge/sites/read`; no new permission is required.
+            $arcSites = Invoke-ScoutApiCall -FieldName 'ArcSites' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Edge/sites?api-version=2024-02-01-preview"
             Start-Sleep -Milliseconds 200
         }
 
@@ -198,6 +213,7 @@ function Get-ScoutApiResources {
             ManagedIdentities           = $managedIdentities
             AdvisorScore                = $advisorScore
             ReservationRecommendations  = $reservationRecommendations
+            ArcSites                    = $arcSites
             PolicyAssignments           = $policyAssignments
             PolicyDefinitions           = $policyDefinitions
             PolicySetDefinitions        = $policySetDefinitions

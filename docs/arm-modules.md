@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **240 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **241 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -161,7 +161,7 @@ Support tickets, reservations, and VM quotas — the platform-level surfaces tha
 | Reservations | `microsoft.capacity/reservationorders` · `microsoft.capacity/reservationorders/reservations` |
 | SupportTickets | `Microsoft.Support/supportTickets` |
 
-### Hybrid (15 modules)
+### Hybrid (16 modules)
 
 Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 
@@ -174,6 +174,7 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` |
 | ArcServerOperationalData | `microsoft.hybridcompute/machines` |
 | ARCServers | `microsoft.hybridcompute/machines` |
+| ArcSites | `AZSC/ARMChild/ArcSites` |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` |
 | Clusters | `microsoft.azurestackhci/clusters` |
@@ -181,7 +182,7 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | LogicalNetworks | `microsoft.azurestackhci/logicalnetworks` |
 | MarketplaceGalleryImages | `microsoft.azurestackhci/marketplacegalleryimages` |
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` |
-| VirtualMachines | `microsoft.azurestackhci/virtualmachineinstances` |
+| VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` |
 
 ### Identity (17 modules)
 

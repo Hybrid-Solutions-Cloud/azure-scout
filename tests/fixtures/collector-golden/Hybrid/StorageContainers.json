@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "StorageContainers",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "2faa14a1c8bf6ab1cb9850aecb31366beadc80f36d885309c22a5d08bc72bf22",
+  "FixtureSha256": "7e26c5858913513ff7562e505cbe9c5a20a2b8e5cc542891999e1893c350e061",
   "Rows": [
     "Available Size GB=j:0.0|Container Size GB=j:0.0|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/storagecontainers/storagecontainers-t1a-1|Location=s:res-value|Name=s:storagecontainers-t1a|Path=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Available Size GB=j:0.0|Container Size GB=j:0.0|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/storagecontainers/storagecontainers-t1b-1|Location=s:res-value|Name=s:storagecontainers-t1b|Path=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
