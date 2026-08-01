@@ -664,6 +664,7 @@ resources | where type =~ "microsoft.desktopvirtualization/scalingplans"
         logicalNetworks = @'
 resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
 | project name, resourceGroup
+'@
         # ---- Azure VMware Solution (AB#6820, Epic AB#6454) -------------------------------------
         # Microsoft.AVS/privateClouds IS Resource Graph indexed (it is what the existing
         # Compute/VMWare.psd1 inventory collector already queries) -- unlike almost everything
@@ -1232,6 +1233,24 @@ resources | where type =~ "microsoft.avs/privateclouds"
             Write-Warning "Invoke-Collect: the policy compliance sweep failed; the compliance assessment will report Not assessed rather than a fabricated score: $($_.Exception.Message)"
             $policyComplianceStates = @()
         }
+    }
+
+    # ---- every declared dataset exists, even when nothing populated it ----
+    #
+    # `$r` is a hashtable, and under Set-StrictMode -Version Latest reading a key that was never
+    # assigned THROWS -- it does not return $null. Two collection paths populate it: the typed
+    # query pack sets a key per query it runs, and the inverted single-pass path sets only the
+    # keys ConvertFrom-ScoutInventory shapes. Any dataset present in one path and not the other
+    # therefore blows up the canonical-contract literal below, and because that literal is a
+    # single expression the exception names whichever key it happened to hit first -- which is
+    # why this presented as `privateClouds` when `avdHostPools` was equally unset.
+    #
+    # Seeding every declared query key with an empty array makes "collected nothing" and
+    # "this path does not populate this dataset" both render as an empty collection rather than
+    # a crash. It also means a new dataset added to `$q` alone can never take the shape block
+    # down again, which is the failure this replaces.
+    foreach ($declaredKey in $q.Keys) {
+        if (-not $r.ContainsKey($declaredKey)) { $r[$declaredKey] = @() }
     }
 
     # ---- shape into the canonical contract ----
