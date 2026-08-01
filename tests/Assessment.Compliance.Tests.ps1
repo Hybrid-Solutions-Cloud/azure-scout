@@ -268,3 +268,59 @@ Describe 'AB#6795 — the wizard asks for inventory and assessment separately' {
         $source | Should -Match "Value = 'Both'"
     }
 }
+
+Describe 'AB#6792 — an initiative Scout cannot confirm is Not assessed, never silence' {
+    # Found by a live run against tenant tppoc: policy compliance state and policy set definitions
+    # are two SEPARATE Azure calls, so the definitions sweep can return nothing while the
+    # compliance sweep returns hundreds of rows. The assessment used to emit ZERO findings in that
+    # case -- an empty report reading as "nothing to report" against 469 real compliance rows.
+
+    BeforeAll {
+        . "$script:Root/src/assess/engine/Get-ScoutComplianceScore.ps1"
+        . "$script:Root/src/assess/engine/Resolve-ScoutAssignedInitiative.ps1"
+        . "$script:Root/src/assess/Invoke-ScoutComplianceAssessment.ps1"
+
+        $script:McsbId = '/providers/Microsoft.Authorization/policySetDefinitions/1f3afdf9-d0c9-4c3d-847f-89da613e70a8'
+        function New-ComplianceCollect([object[]] $Definitions) {
+            [pscustomobject]@{
+                domains = [pscustomobject]@{
+                    management = [pscustomobject]@{
+                        policyComplianceStates = @(
+                            [pscustomobject]@{ PolicySetDefinitionId = $script:McsbId; PolicyDefinitionId = 'p1'; ComplianceState = 'Compliant'; ResourceId = 'r1' }
+                            [pscustomobject]@{ PolicySetDefinitionId = $script:McsbId; PolicyDefinitionId = 'p2'; ComplianceState = 'NonCompliant'; ResourceId = 'r2' }
+                        )
+                        policyInitiatives    = @($Definitions)
+                        policySetDefinitions = @($Definitions)
+                    }
+                }
+            }
+        }
+    }
+
+    It 'emits a NotAssessed finding naming the initiative when no definition confirms it built-in' {
+        $findings = @(Invoke-ScoutComplianceAssessment -Collect (New-ComplianceCollect @()) -WarningAction SilentlyContinue)
+
+        $findings.Count | Should -BeGreaterThan 0 -Because 'silence against real compliance rows is the false-negative this fix removes'
+        $notAssessed = @($findings | Where-Object Status -eq 'NotAssessed')
+        $notAssessed.Count | Should -Be 1
+        $notAssessed[0].Title | Should -BeLike "*$($script:McsbId)*" -Because 'the operator has to know WHICH initiative went unevaluated'
+    }
+
+    It 'never scores an unconfirmable initiative as a pass or a fail' {
+        $findings = @(Invoke-ScoutComplianceAssessment -Collect (New-ComplianceCollect @()) -WarningAction SilentlyContinue)
+
+        @($findings | Where-Object Status -in 'Pass', 'Fail').Count | Should -Be 0 -Because 'a custom initiative rendered under a framework name would be actively misleading'
+    }
+
+    It 'scores normally, naming the exact version, once a built-in definition is present' {
+        $def = [pscustomobject]@{
+            Id = $script:McsbId; Name = 'mcsb'; DisplayName = 'Microsoft cloud security benchmark'
+            Version = '57.58.0'; PolicyType = 'BuiltIn'; PolicyCount = 226
+        }
+        $findings = @(Invoke-ScoutComplianceAssessment -Collect (New-ComplianceCollect @($def)))
+
+        @($findings | Where-Object Status -eq 'NotAssessed').Count | Should -Be 0
+        @($findings | Where-Object Status -in 'Pass', 'Fail').Count | Should -BeGreaterThan 0
+        $findings[0].Framework | Should -Be 'Microsoft cloud security benchmark 57.58.0'
+    }
+}

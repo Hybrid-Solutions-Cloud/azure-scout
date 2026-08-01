@@ -41,7 +41,7 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.1.0 — Eighteen-category service coverage
+## Current Release — v3.2.0 — Deep governance and compliance analytics
 
 Released 31 July 2026. Scout modelled fifteen of Microsoft's eighteen published service
 categories; it now models all eighteen. `Migration` went from zero collectors to all five of its

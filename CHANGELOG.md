@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-08-01 — Epic AB#6454: deep governance and compliance analytics
+
+Scout goes from **one real assessment to roughly twenty-eight**, and from **one enumerated source
+framework to all fourteen**. Releases 2 through 6 of the audit plan in `docs/audits/AZURE-SCOUT-AUDIT.md`.
+
+### Assessments added
+
+- Five WAF pillars, eight CAF landing-zone design areas, and the WAF Maturity Model.
+- Microsoft Cloud Security Benchmark plus one assessment per assigned regulatory initiative,
+  scored from policy compliance state Scout already collected and no rule read.
+- Cloud Governance across CAF Govern's seven risk categories, with a 1-10 domain maturity report.
+- Workload reviews: AI, Azure Virtual Desktop, Azure VMware Solution, AVS Landing Zone, CASA,
+  and Azure Local.
+- FinOps Review and DevOps Capability Assessment.
+
+### Correctness
+
+- **Three-state reporting.** `NotAssessed` is a first-class status, excluded from every score
+  denominator by construction and still counted and surfaced. A control nobody chose to evaluate
+  no longer reads as a pass or a fail.
+- **`assert.gate`.** A rule whose data source was blocked returns Not assessed, never Fail. A
+  denied billing API stops rendering as zero spend; `-IncludeDevOps` off stops rendering as "no
+  pipelines".
+- **Two false-pass rules removed** (CAF-GOV-05, CAF-AUT-02). Both asserted only that some policy
+  assignment had a parameters block. The test had been asserting the false pass.
+- **`waf.storage.yaml` retired** — it scored a WAF pillar that WAF does not define — and a gate
+  now fails any rule file claiming a pillar, design area or framework axis that does not exist.
+- **Every rule file carries `frameworkversion`**, and `Get-RuleSet` throws at load without it, so
+  no coverage figure can ship without naming the framework version it was measured against.
+- An assigned initiative Scout cannot confirm is built-in is reported Not assessed and named,
+  rather than producing a silent empty report.
+
+### Collection
+
+- `Hybrid/ArcSites` and `Hybrid/VirtualMachines` re-sourced off Resource Graph, which does not
+  index either type. Verified live: 1 and 7 real rows respectively where Resource Graph returns 0.
+- Orphaned role assignments resolved locally against already-collected Entra principals, with
+  "Graph denied" kept distinct from "principal deleted".
+- Owned-reservation utilization collector; the five Azure DevOps collectors moved into a real
+  DevOps category.
+
+### Fixed
+
+- `.gitignore` credential patterns were silently excluding five generated collector goldens,
+  making the suite green locally and red in every clone.
+- `tests/Report.SectionIndex.Tests.ps1` failed Pester discovery and had never run.
+- The collect-once contract regressed to 11 Resource Graph round-trips while workload datasets
+  were added; restored to 5.
+
+### Documentation
+
+- `docs/frameworks/` now holds all fourteen enumerated source frameworks — 59 WAF checklist items,
+  393 CAF recommendations, and the workload and question sets — each carrying its source URL,
+  framework version, extraction date and verification method.
+
 ### Added — AB#6746 (Epic AB#6454) restructure LandingZone into per-pillar/per-design-area assessments
 
 - **Five WAF pillar assessments** (`WAF: Reliability`, `WAF: Security`, `WAF: Cost Optimization`,
