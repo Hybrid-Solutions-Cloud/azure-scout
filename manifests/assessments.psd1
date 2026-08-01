@@ -384,6 +384,55 @@
         Rules = @('waf.performance'); Frameworks = @('WAF: Performance Efficiency'); Tags = @('waf', 'pillar', 'performance'); Reporters = @('Html', 'Excel')
     }
 
+    # ---- AB#6803 (Feature AB#6747, Epic AB#6454) — Azure Local Well-Architected Review ----
+    #
+    # Every rule cites a WAF-AZLOCAL-* item from docs/frameworks/waf-azure-local-checklist.md (33
+    # items across the five WAF pillars, enumerated 2026-08-01), spread across FIVE rule files
+    # (waf.azurelocal.reliability/security/cost/operational/performance.yaml), one per pillar --
+    # tests/Assessment.Restructure.Tests.ps1's structural gate requires a `framework: WAF` file's
+    # `area` to be exactly one of the five real pillars, with no service-guide exception for WAF
+    # (that escape hatch is CAF-only, see caf.hybrid.yaml/caf.ai.yaml's `kind: service-guide`).
+    # A per-workload review spanning all five pillars therefore gets five small, honestly-scoped
+    # files rather than one file claiming a sixth "workload" area the gate would reject.
+    #
+    # RequiresData is the AC's product-safety gate, not a per-rule data dependency: NEITHER
+    # `Hybrid/ArcSites` nor `Hybrid/VirtualMachines` has ever returned a row in any tenant this
+    # session could reach (AB#6801/AB#6802 -- both were re-sourced off ARM REST because Resource
+    # Graph does not index either type), so this entry stays out of the wizard menu until at
+    # least one of them proves it can. `Get-ScoutAvailableAssessment`'s existing OR-across-paths
+    # semantics (the same the SMART entry above uses) mean either collector returning rows is
+    # enough to surface the entry -- reused exactly as documented, not a parallel gate.
+    # `RequiresAzureLocalArm = $true` is read by Invoke-ScoutAssessmentCore.ps1 to opt this one
+    # assessment's collect into `-IncludeAzureLocalArm` (see Invoke-Collect.ps1), the only way
+    # either dataset is ever populated -- every other assessment's collect leaves both empty by
+    # design, so this flag and this RequiresData gate are two ends of the same fact.
+    #
+    # STATICALLY PROVEN this session: the gate mechanism itself (empty domains.hybrid.arcSites /
+    # domains.hybrid.azureLocalVirtualMachineInstances hides the entry; Pester fixtures with rows
+    # present show it), and that every rule's query resolves against a real, exercised collect.json
+    # shape. NOT provable without a live Azure Local tenant: that -IncludeAzureLocalArm's REST
+    # calls actually return non-empty rows against real Microsoft.Edge/sites and
+    # Microsoft.AzureStackHCI/virtualMachineInstances endpoints -- see AB#6843 (live per-collector
+    # verification) for that half.
+    'WAF: Azure Local' = @{
+        Description  = 'Well-Architected Framework — Azure Local (platform 2311+ and Azure Local VMs) workload review'
+        Category     = '*'
+        Collect      = @('Hybrid', 'Compute')
+        Ingest       = @('Governance')
+        # Five files, not one -- tests/Assessment.Restructure.Tests.ps1's structural gate
+        # requires a framework:WAF file's `area` to be exactly one of the five real pillars, with
+        # no service-guide exception for WAF. See waf.azurelocal.reliability.yaml's header.
+        Rules        = @('waf.azurelocal.*')
+        Frameworks   = @('WAF: Azure Local (service guide, all 5 pillars)')
+        Tags         = @('waf', 'azure-local', 'hci', 'service-guide')
+        RequiresAzureLocalArm = $true
+        RequiresData = @(
+            '$.domains.hybrid.arcSites[*]'
+            '$.domains.hybrid.azureLocalVirtualMachineInstances[*]'
+        )
+        Reporters    = @('Html', 'Excel')
+    }
+
     # ---- AB#6800 (Feature AB#6746, Epic AB#6454) — WAF Maturity Model ----
     #
     # Reuses the exact same five WAF pillar rule files as the five entries above and

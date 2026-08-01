@@ -1,0 +1,86 @@
+area: "Reliability"
+framework: WAF
+frameworkversion: "Azure Local WAF checklist, docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01 (source: learn.microsoft.com/azure/well-architected/service-guides/azure-local)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01"
+# AB#6803 (Feature AB#6747, Epic AB#6454) -- Reliability-pillar rules for the Azure Local
+# Well-Architected Review. Every id below is a WAF-AZLOCAL-RE-* item from
+# docs/frameworks/waf-azure-local-checklist.md; that file is the ONLY source these rules cite.
+#
+# This is one of FIVE separate files (waf.azurelocal.<pillar>.yaml), not one combined file --
+# tests/Assessment.Restructure.Tests.ps1's structural gate requires a `framework: WAF` file's
+# `area` to be one of the five real pillars, with no service-guide exception for WAF (only CAF
+# has that escape hatch). A per-workload review spans all five pillars by definition, so the
+# honest shape is five small pillar-scoped files, each passing the SAME gate every generic WAF
+# pillar file passes, glob-selected together as `waf.azurelocal.*` in
+# manifests/assessments.psd1's 'WAF: Azure Local' entry.
+#
+# `requires` guards the automated rules below against the exact false-pass class this epic
+# exists to kill: RE-03 asserts "zero logical networks missing an address prefix", which is
+# vacuously true on a tenant with ZERO logical networks -- "nothing wrong found" and "nothing to
+# check" are the same count and opposite findings. This requires block asks a narrower question
+# than the assessment-level RequiresData gate in assessments.psd1 (which watches the two
+# STILL-UNPROVEN ARM-REST collectors, arcSites/azureLocalVirtualMachineInstances): it asks "does
+# this tenant have ANY Azure Local estate Scout can see at all", using the three Hybrid datasets
+# these rules actually read, all of which are ordinary Resource-Graph-indexed collectors that
+# already work today.
+requires:
+  - path: "$.domains.hybrid.azureLocalClusters[*]"
+    description: "Azure Local clusters (Hybrid/Clusters)"
+  - path: "$.domains.hybrid.arcServers[*]"
+    description: "Arc-enabled servers (Hybrid/ArcServers)"
+  - path: "$.domains.hybrid.logicalNetworks[*]"
+    description: "Azure Local logical networks (Hybrid/LogicalNetworks)"
+rules:
+  - id: WAF-AZLOCAL-RE-01
+    title: "Workload reliability targets (SLOs) are defined for the platform and workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-RE-01. No ARM property records an intended SLO -- confirm reliability targets are documented and agreed for both the Azure Local platform and the workloads running on it."
+    manual: true
+
+  - id: WAF-AZLOCAL-RE-02
+    title: "Performance and operations choices that affect reliability are reviewed (rightsizing, disk type, firmware currency)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-RE-02. domains.hybrid.azureLocalClusters[].nodeCount and .clusterVersion (added AB#6803) evidence node count and cluster software currency, but firmware/driver currency and disk-type rightsizing are not ARM-readable properties -- review the Solution Builder Extension/OEM firmware baseline and node sizing manually, using nodeCount/clusterVersion as supporting evidence."
+    manual: true
+
+  - id: WAF-AZLOCAL-RE-03
+    title: "Fault tolerance is provided to the instance and its infrastructure dependencies (network topology)"
+    severity: high
+    # AB#6803: microsoft.azurestackhci/logicalnetworks is confirmed ARG-indexed. This asserts
+    # network topology is DEFINED (at least one logical network exists) as the network half of
+    # RE-03; storage resiliency (the other half the checklist names) has no discrete ARM property
+    # on microsoft.azurestackhci/storagecontainers (verified: StorageContainerProperties exposes
+    # only `path`), so that half stays a manual check rather than an invented field.
+    query: "$.domains.hybrid.logicalNetworks[*]"
+    assert: { type: exists }
+    remediation: "WAF-AZLOCAL-RE-03. No Azure Local logical network was found -- network topology for infrastructure fault tolerance is not defined. Storage resiliency (S2D fault-tolerance level) has no discrete Resource Graph property and must be confirmed separately via the cluster's storage configuration."
+    manual: false
+
+  - id: WAF-AZLOCAL-RE-04
+    title: "Redundancy is built across multiple Azure Local instances/sites"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-RE-04. Scout collects one cluster's inventory per collection scope and does not correlate clusters across sites into a single logical deployment -- confirm multi-instance/multi-site redundancy design manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-RE-05
+    title: "Recoverability is planned and tested (RTO/RPO, Azure Site Recovery)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-RE-05. Recovery testing cadence and RTO/RPO attainment are not ARM-readable properties -- confirm DR testing has been performed and documented."
+    manual: true
+
+  - id: WAF-AZLOCAL-RE-06
+    title: "Workload backup and restore procedures are configured and regularly tested"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-RE-06. collect.json's management.recoveryVaults is not yet populated by the assessment collect pipeline (a known gap, distinct from this story's scope) and backupProtectedItems is not scoped to Azure Local resources specifically -- confirm backup coverage and restore-test cadence for Azure Local VMs manually via the portal or Recovery Services vault."
+    manual: true

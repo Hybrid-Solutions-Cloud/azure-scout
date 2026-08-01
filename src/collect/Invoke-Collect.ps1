@@ -48,8 +48,12 @@ $ErrorActionPreference = 'Stop'
                                keyVaultKeys[{enabled,expires}]},   (AB#6821)
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[], arcExtensions[{machineId,extensionType}],
-                             azureLocalClusters[{connectivityStatus,nodeCount}],            (AB#6819)
-                             logicalNetworks[{}]},                                         (AB#6819)
+                             azureLocalClusters[{connectivityStatus,nodeCount,clusterVersion}],            (AB#6819)
+                             logicalNetworks[{vmSwitchName,subnetCount,addressPrefix,vlan}],                (AB#6819)
+                             arcSites[], azureLocalVirtualMachineInstances[{parentName,powerState}]},
+                             (arcSites/azureLocalVirtualMachineInstances are ALWAYS present as
+                             keys but only ever populated when the caller passes
+                             -IncludeAzureLocalArm -- AB#6803, Feature AB#6747)
                       integration{eventHubNamespaces[{autoInflateEnabled}], apiManagement[],
                                   serviceBusNamespaces[{publicAccess}]},
                       iot{iotHubs[{disableLocalAuth}],
@@ -236,7 +240,19 @@ function Invoke-Collect {
         # subscription) is the SAME call an inventory run already makes when -SecurityCenter is
         # requested; every other assessment must not start paying for it on every run. Only
         # Invoke-ScoutAssessmentCore sets this, and only for the 'Assess: Compliance' entry.
-        [switch]   $IncludePolicyCompliance
+        [switch]   $IncludePolicyCompliance,
+
+        # AB#6803 (Feature AB#6747, Epic AB#6454) -- opt-in for the same reason as
+        # -IncludePolicyCompliance above: collecting `arcSites` costs the FULL per-subscription
+        # ARM REST sweep (Get-ScoutApiResources without -DefinitionsOnly -- resource health,
+        # managed identities, advisor score, reservation recommendations, THEN Arc sites, plus
+        # the policy-assignment POST), not the two-call -DefinitionsOnly sweep every other
+        # assessment pays, and collecting `azureLocalVirtualMachineInstances` costs one ARM GET
+        # per Arc-enabled server in the estate (Get-ScoutArmChildResource's per-parent sweep).
+        # Both are real, non-trivial Azure costs that only the 'WAF: Azure Local' assessment
+        # should pay -- Invoke-ScoutAssessmentCore sets this only when that assessment (or
+        # another declaring the same manifest flag) is selected.
+        [switch]   $IncludeAzureLocalArm
     )
     Import-Module Az.ResourceGraph -ErrorAction Stop
 
@@ -605,13 +621,29 @@ resources | where type =~ "microsoft.azurestackhci/clusters"
 // connectivityStatus is the documented cluster-resource health enum
 // (Connected/Disconnected/NotConnectedRecently/PartiallyConnected/
 // NotYetRegistered/NotSpecified) — CAF-HYB-05 (AB#5057).
+// nodeCount/clusterVersion added for AB#6803 (WAF-AZLOCAL-RE-02/RE-03/OE-06) — same
+// agent-reported properties the pre-retirement Hybrid/Clusters collector already read.
 | extend connectivityStatus = tostring(properties.connectivityStatus)
-// nodeCount — WAF-AVD-RE-01 (AB#6819). properties.reportedProperties.nodes is the
-// documented ClusterReportedProperties.nodes array (learn.microsoft.com javascript SDK
-// reference, arm-azurestackhci). A cluster that has not yet reported (nodes absent) yields
-// $null, not 0 -- treated as "not yet known", not "single node", by the rule that reads it.
-| extend nodeCount = array_length(properties.reportedProperties.nodes)
-| project name, resourceGroup, connectivityStatus, nodeCount
+// nodeCount — WAF-AVD-RE-01 (AB#6819) / WAF-AZLOCAL-RE-02 (AB#6803). clusterNodes is the
+// field the pre-retirement Hybrid/Clusters collector and ConvertFrom-ScoutInventory.ps1 both
+// read (properties.reportedProperties.clusterNodes); a cluster that has not yet reported
+// (nodes absent) yields $null, not 0 — treated as "not yet known", not "single node".
+| extend nodeCount = array_length(properties.reportedProperties.clusterNodes)
+| extend clusterVersion = tostring(properties.reportedProperties.clusterVersion)
+| project name, resourceGroup, subscriptionId, connectivityStatus, nodeCount, clusterVersion
+'@
+        # AB#6803 (WAF-AZLOCAL-RE-03/OE-03) — confirmed ARG-indexed
+        # (microsoft.azurestackhci/logicalnetworks, learn.microsoft.com/azure/governance/
+        # resource-graph/reference/supported-tables-resources). First-subnet fields match the
+        # existing Hybrid/LogicalNetworks declarative collector's "primary subnet" convention.
+        logicalNetworks = @'
+resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
+| extend subnetCount = array_length(properties.subnets)
+| extend firstSubnet = properties.subnets[0]
+| extend vmSwitchName = tostring(properties.vmSwitchName)
+| extend addressPrefix = tostring(firstSubnet.properties.addressPrefix)
+| extend vlan = toint(firstSubnet.properties.vlan)
+| project name, resourceGroup, subscriptionId, vmSwitchName, subnetCount, addressPrefix, vlan
 '@
         logAnalyticsWorkspaces = @'
 resources | where type =~ "microsoft.operationalinsights/workspaces"
@@ -741,6 +773,7 @@ resources | where type =~ "microsoft.avs/privateclouds"
         arcServers          = @('Hybrid')
         arcExtensions       = @('Hybrid')
         azureLocalClusters  = @('Hybrid')
+        logicalNetworks     = @('Hybrid')
         eventHubNamespaces  = @('Integration')
         apiManagement       = @('Integration')
         serviceBusNamespaces = @('Integration')
@@ -939,6 +972,17 @@ resources | where type =~ "microsoft.avs/privateclouds"
                 IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
             }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
+            # AB#6803 -- -IncludeAzureLocalArm turns on BOTH switches this needs:
+            # -IncludeArmChildResources (the per-parent AzureLocalVirtualMachineInstances sweep)
+            # and dropping -TenantWideDefinitionsOnly to $false (the fuller ARM REST sweep that
+            # actually issues the Arc-sites call -- see Get-ScoutApiResources, which gates that
+            # call behind `-not $DefinitionsOnly`). The four -DefinitionsOnly envelopes
+            # (management groups, custom roles, policy/policy-set definitions) are still
+            # collected either way; this only adds calls, never removes any.
+            if ($IncludeAzureLocalArm) {
+                $rawArgs.IncludeArmChildResources = $true
+                $rawArgs.TenantWideDefinitionsOnly = $false
+            }
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }
         catch {
@@ -1035,6 +1079,20 @@ resources | where type =~ "microsoft.avs/privateclouds"
         try { Write-ScoutProgress -Activity 'Scout Collect' -Id 1 -Completed }
         catch { Write-Verbose "Invoke-Collect: Write-ScoutProgress completion call failed: $_" }
     }
+
+    # AB#6803 (Feature AB#6747, Epic AB#6454) — `arcSites` and
+    # `azureLocalVirtualMachineInstances` have NO `$q` entry above and never can: both are ARM
+    # REST datasets Resource Graph does not index (AB#6801/AB#6802), so there is no KQL that
+    # could produce them under `-Source TypedQueries`. They exist ONLY when
+    # `-IncludeAzureLocalArm` asked `Get-ScoutRawInventory` to collect them and
+    # `ConvertFrom-ScoutInventory` shaped rows out of the result; every other path (including a
+    # normal default collect with the switch unset) leaves them as the empty array assigned here,
+    # which is the correct, honest answer -- "not asked", not "asked and found none". Assigned
+    # explicitly, outside the `$q.Keys` loop above, because a hashtable key with no `$q` entry is
+    # never visited by that loop and `$r.arcSites` would otherwise be an access to a key that was
+    # never set.
+    $r['arcSites'] = if ($inventoryShaped.ContainsKey('arcSites')) { @($inventoryShaped['arcSites']) } else { @() }
+    $r['azureLocalVirtualMachineInstances'] = if ($inventoryShaped.ContainsKey('azureLocalVirtualMachineInstances')) { @($inventoryShaped['azureLocalVirtualMachineInstances']) } else { @() }
 
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
@@ -1326,7 +1384,18 @@ resources | where type =~ "microsoft.avs/privateclouds"
                 arcServers = $r.arcServers; arcExtensions = $r.arcExtensions
                 azureLocalClusters = $r.azureLocalClusters
                 # logicalNetworks (AB#6819) — WAF-AVD-SE-04 network-isolation evidence.
+                # AB#6803 (Feature AB#6747, Epic AB#6454) — Azure Local WAF review support.
+                # logicalNetworks is ARG-indexed and always populated on a normal collect.
+                # arcSites / azureLocalVirtualMachineInstances are the two collectors AB#6801/
+                # AB#6802 re-sourced off ARM REST (Resource Graph does not index either type) --
+                # they are ONLY populated when the caller opts into -IncludeAzureLocalArm, and are
+                # empty arrays otherwise. `manifests/assessments.psd1`'s 'WAF: Azure Local' entry
+                # gates its own menu visibility on these two paths being non-empty for exactly
+                # that reason: an empty array here can mean "collected, tenant has none" OR
+                # "never asked Azure", and only the caller who set the switch knows which.
                 logicalNetworks = $r.logicalNetworks
+                arcSites = $r.arcSites
+                azureLocalVirtualMachineInstances = $r.azureLocalVirtualMachineInstances
             }
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement

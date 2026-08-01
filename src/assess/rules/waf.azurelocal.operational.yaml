@@ -1,0 +1,77 @@
+area: "Operational Excellence"
+framework: WAF
+frameworkversion: "Azure Local WAF checklist, docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01 (source: learn.microsoft.com/azure/well-architected/service-guides/azure-local)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01"
+# AB#6803 (Feature AB#6747, Epic AB#6454) -- Operational Excellence-pillar rules for the Azure
+# Local Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one
+# of five separate per-pillar files, and for what `requires` guards against here (a Fail-side
+# `countEquals: 0` assertion reads as a vacuous Pass on a tenant with zero Azure Local estate --
+# the same false-pass trap this epic exists to kill).
+requires:
+  - path: "$.domains.hybrid.azureLocalClusters[*]"
+    description: "Azure Local clusters (Hybrid/Clusters)"
+  - path: "$.domains.hybrid.arcServers[*]"
+    description: "Arc-enabled servers (Hybrid/ArcServers)"
+  - path: "$.domains.hybrid.logicalNetworks[*]"
+    description: "Azure Local logical networks (Hybrid/LogicalNetworks)"
+rules:
+  - id: WAF-AZLOCAL-OE-01
+    title: "Supportability is increased (telemetry and diagnostics extension enabled by default)"
+    severity: medium
+    # AzureEdgeTelemetryAndDiagnostics is the documented default extension Azure Local installs;
+    # its presence on domains.hybrid.arcExtensions (existing field) is a direct, real signal.
+    query: "$.domains.hybrid.arcExtensions[?(@.extensionType == 'AzureEdgeTelemetryAndDiagnostics')]"
+    assert: { type: exists }
+    remediation: "WAF-AZLOCAL-OE-01. No Arc extension named AzureEdgeTelemetryAndDiagnostics was found on any Arc-connected server. This extension ships enabled by default on Azure Local -- its absence suggests it was deliberately disabled or the machine is not an Azure Local node; confirm."
+    manual: false
+
+  - id: WAF-AZLOCAL-OE-02
+    title: "Azure services reduce operational complexity (Update Manager, Azure Monitor, Arc, Policy, Defender)"
+    severity: medium
+    # Same Azure Monitor Agent coverage signal CAF-HYB-04 already scores for the general Arc
+    # estate (caf.hybrid.yaml) -- reused here as the ONE automatable slice of a composite item
+    # the checklist itself describes as several collectors together (Policy/Defender/Monitor are
+    # not wired into this assessment's collect scope, see the Security/Cost files' remediation
+    # text for why).
+    query: "$.domains.hybrid.arcExtensions[?(@.extensionType == 'AzureMonitorWindowsAgent' || @.extensionType == 'AzureMonitorLinuxAgent')]"
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.arcServers[*]" }
+    remediation: "WAF-AZLOCAL-OE-02. Fewer than 80% of Arc-connected servers have the Azure Monitor Agent extension. Azure Monitor coverage is the one automatable slice of this composite item -- Update Manager, Defender for Cloud and Azure Policy coverage are not in this assessment's collect scope and must be confirmed separately (see the Security/Cost pillar files)."
+    manual: false
+
+  - id: WAF-AZLOCAL-OE-03
+    title: "IP address network range requirements are planned in advance for workloads"
+    severity: medium
+    # AB#6803: every logical network SHOULD carry a resolved subnet address prefix if IP
+    # planning happened before deployment; a network missing one is the negative signal.
+    query: "$.domains.hybrid.logicalNetworks[?(@.addressPrefix == null || @.addressPrefix == '')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AZLOCAL-OE-03. One or more Azure Local logical networks has no address prefix recorded, suggesting IP range planning was incomplete when the network was created. Named in Evidence by resourceGroup/name."
+    manual: false
+
+  - id: WAF-AZLOCAL-OE-04
+    title: "Monitoring and alerting are enabled for workloads deployed on Azure Local"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-OE-04. Monitor/DataCollectionRules, Monitor/MetricAlertRules and Monitor/ActionGroups are not yet fields in collect.json's canonical contract (only management.logAnalyticsWorkspaces exists, and only at the general/tenant level). Confirm monitoring and alerting coverage for Azure Local workloads manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-OE-05
+    title: "Proper validation techniques are used for a safe deployment (environment checker tool)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-OE-05. A pre-deployment tool run, not a post-deployment ARM property. Confirm the Azure Local environment checker was run before deployment."
+    manual: true
+
+  - id: WAF-AZLOCAL-OE-06
+    title: "Deployments get current and stay current (solution catalog, Update Manager, automatic extension upgrade)"
+    severity: medium
+    # AB#6803: clusterVersion (properties.reportedProperties.clusterVersion) is the agent-reported
+    # build/version string every connected cluster carries; a cluster missing one has either never
+    # reported in or lost connectivity, either of which is itself a currency concern.
+    query: "$.domains.hybrid.azureLocalClusters[?(@.clusterVersion == null || @.clusterVersion == '')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AZLOCAL-OE-06. One or more Azure Local clusters is not reporting a cluster version, so build/solution-catalog currency cannot be confirmed for it. Named in Evidence by resourceGroup/name. Automatic extension upgrade state is not yet a distinct collected field -- confirm separately."
+    manual: false
