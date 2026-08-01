@@ -1,6 +1,7 @@
 area: "Cross-resource posture"
 framework: XR
 weight: 1.0
+verifiedAgainst: "Scout-internal cross-resource correlation rules (not a Microsoft-published framework), verified 2026-08-01"
 # The findings a consultant hand-writes AFTER reading Scout's output, because each one needs two
 # datasets correlated and Scout collected both halves while joining none of them (AB#6835).
 #

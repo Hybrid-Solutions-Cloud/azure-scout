@@ -17,6 +17,14 @@ $ErrorActionPreference = 'Stop'
 function Get-Score {
     param($Findings)
 
+    # AB#6800 -- reuses the pillar rule findings already computed below to attach a WAF maturity
+    # level (Microsoft's published 5-level model) alongside the existing percentage score. This
+    # is a relabeling of the SAME score, not a second evaluation pass, so it costs nothing and
+    # cannot desync from the percentage. Soft dependency: a caller that hasn't dot-sourced
+    # Get-MaturityLevel.ps1 still gets scores exactly as before, just without the MaturityLevel
+    # property being populated (falls back to $null).
+    $maturityAvailable = [bool](Get-Command Get-MaturityLevel -ErrorAction SilentlyContinue)
+
     $statusWeight = @{ Pass = 1.0; Partial = 0.5; Fail = 0.0 }   # Manual/Unknown/Error excluded
 
     $areas = $Findings | Group-Object Framework, Area | ForEach-Object {
@@ -27,11 +35,13 @@ function Get-Score {
         $weight = 1.0
         $wf = $_.Group | Where-Object { $null -ne $_.PSObject.Properties['AreaWeight'] } | Select-Object -First 1
         if ($wf) { $weight = [double]$wf.AreaWeight }
+        $areaScore = if ($den -gt 0) { [math]::Round($num / $den * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
         [pscustomobject]@{
-            Framework = $_.Group[0].Framework
-            Area      = $_.Group[0].Area
-            Weight    = $weight
-            Score     = if ($den -gt 0) { [math]::Round($num / $den * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+            Framework     = $_.Group[0].Framework
+            Area          = $_.Group[0].Area
+            Weight        = $weight
+            Score         = $areaScore
+            MaturityLevel = if ($maturityAvailable) { Get-MaturityLevel -Score $areaScore } else { $null }
             # @(...) wrap is load-bearing: a Where-Object match of zero items collapses
             # to $null, and $null.Count throws PropertyNotFoundException under
             # Set-StrictMode -Version Latest — @() forces a real (possibly empty) array.
@@ -48,11 +58,13 @@ function Get-Score {
         # Weighted average of area scores by AreaWeight (AB#5087).
         $wsum = ($_.Group | ForEach-Object { $_.Weight } | Measure-Object -Sum).Sum
         $wnum = ($_.Group | ForEach-Object { $_.Score * $_.Weight } | Measure-Object -Sum).Sum
+        $fwScore = if ($wsum -gt 0) { [math]::Round($wnum / $wsum, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
         [pscustomobject]@{
-            Framework = $_.Name
-            Score     = if ($wsum -gt 0) { [math]::Round($wnum / $wsum, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
-            Unknown   = ($_.Group | Measure-Object Unknown -Sum).Sum
-            Error     = ($_.Group | Measure-Object Error -Sum).Sum
+            Framework     = $_.Name
+            Score         = $fwScore
+            MaturityLevel = if ($maturityAvailable) { Get-MaturityLevel -Score $fwScore } else { $null }
+            Unknown       = ($_.Group | Measure-Object Unknown -Sum).Sum
+            Error         = ($_.Group | Measure-Object Error -Sum).Sum
         }
     }
 

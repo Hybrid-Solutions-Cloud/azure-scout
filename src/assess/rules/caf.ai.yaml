@@ -1,6 +1,18 @@
 area: "AI governance & security"
 framework: CAF
 weight: 1.0
+# AB#6798: this is a per-service rule file, not one of CAF's eight landing-zone design areas
+# (Table 2 audit). `kind: service-guide` + `designAreaRef` records which real design area its
+# content supports, so the "every rule file maps to a real pillar or design area" gate (AB#6798)
+# passes honestly instead of by inventing a ninth design area. `area`/`framework` are left as-is
+# so this file's findings stay a separate, addressable bucket rather than being silently folded
+# into the design-area score.
+kind: service-guide
+designAreaRef: "Security"
+# AB#6799: CAF explicitly states no dedicated/separate AI landing zone is required -- deploy AI
+# workloads into the existing landing zone architecture. No rule below requires one.
+# learn.microsoft.com/azure/cloud-adoption-framework/ready/enterprise-scale/faq, verified 2026-08-01.
+verifiedAgainst: "CAF AI Ready, learn.microsoft.com/azure/cloud-adoption-framework/ai/ready, verified 2026-08-01"
 rules:
   - id: CAF-AI-01
     title: "Cognitive / OpenAI accounts disable public network access"

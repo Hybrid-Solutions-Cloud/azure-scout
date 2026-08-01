@@ -145,12 +145,19 @@ Describe 'Governance rules score against native collect (unblocks AB#5041)' {
         $byId['CAF-GOV-02'] | Should -Be 'Pass'   # none DoNotEnforce
         $byId['CAF-GOV-03'] | Should -Be 'Pass'   # a resource lock exists
         $byId['CAF-GOV-04'] | Should -Be 'Pass'   # >5 assignments
-        $byId['CAF-GOV-05'] | Should -Be 'Pass'   # assignments carry parameters
+        # AB#6798: CAF-GOV-05 was a false-pass rule -- "any assignment has a parameters block" is
+        # true for nearly every estate and proves nothing about DeployIfNotExists/Modify effect.
+        # It is Manual now, not scored, so it must not report Pass/Fail here.
+        $byId['CAF-GOV-05'] | Should -Be 'Manual'
         $byId['CAF-RES-02'] | Should -Be 'Pass'   # >1 management group
         $byId['CAF-IDN-01'] | Should -Be 'Pass'   # <50 user role assignments
         $byId['CAF-IDN-03'] | Should -Be 'Pass'   # no classic admins
-        $byId['CAF-BIL-01'] | Should -Be 'Pass'   # budgets present
-        $byId['CAF-BIL-05'] | Should -Be 'Pass'   # >1 budget
+        # AB#6798: caf.billing.yaml was rewritten against the real CAF "Azure billing and
+        # Microsoft Entra tenant" design area (EA/MCA/tenant setup); it previously held cost
+        # rules that duplicated waf.cost.yaml (moved there as WAF-CO-08/09). Every rule in the
+        # rewritten file is Manual because Scout collects no billing/tenant-administration data.
+        $byId['CAF-BIL-01'] | Should -Be 'Manual'
+        $byId['CAF-BIL-05'] | Should -Be 'Manual'
     }
 
     It 'flags a DoNotEnforce policy assignment as Fail on CAF-GOV-02' {

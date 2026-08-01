@@ -1,6 +1,8 @@
 area: "Reliability"
 framework: WAF
 weight: 1.0
+# guidance version/date this file was last verified against (AB#6799):
+verifiedAgainst: "WAF Reliability checklist, learn.microsoft.com/azure/well-architected/reliability/checklist, verified 2026-08-01"
 rules:
   - id: WAF-RE-05
     title: "Zone-redundant deployment where supported"
@@ -27,4 +29,39 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm FMA has been performed and documented for critical flows."
+    manual: true
+
+  # ---- AB#6798: redistributed from the retired waf.storage.yaml, which claimed a sixth WAF
+  # pillar ("Storage") that WAF does not define -- storage is a service guide, not a pillar.
+  # Durability/redundancy and recovery-readiness rules belong to Reliability.
+  - id: WAF-RE-11
+    title: "Storage accounts use zone- or geo-redundant SKUs"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.sku == 'Standard_LRS' || @.sku == 'Premium_LRS')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Use ZRS/GRS/GZRS redundancy for workloads requiring durability."
+    manual: false
+
+  - id: WAF-RE-12
+    title: "Advisor high-impact reliability items on storage addressed"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Review Advisor reliability recommendations for storage and confirm remediation."
+    manual: true
+
+  - id: WAF-RE-13
+    title: "Blob soft-delete retention meets minimum recovery window"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm blob soft-delete retention is set to at least the org's minimum recovery window (commonly 7-30 days). collect.json does not yet capture deleteRetentionPolicy.days -- verify via `az storage account blob-service-properties show`."
+    manual: true
+
+  - id: WAF-RE-14
+    title: "GRS/GZRS storage accounts have tested failover readiness"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "For accounts using GRS/GZRS, confirm customer-managed failover has been tested/documented and RPO/RTO expectations are understood. collect.json does not yet capture failover status -- verify via `az storage account show --query failoverInProgress` and DR runbooks."
     manual: true

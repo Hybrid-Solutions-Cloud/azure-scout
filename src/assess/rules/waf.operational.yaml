@@ -1,6 +1,7 @@
 area: "Operational excellence"
 framework: WAF
 weight: 1.0
+verifiedAgainst: "WAF Operational Excellence checklist, learn.microsoft.com/azure/well-architected/operational-excellence/checklist, verified 2026-08-01"
 rules:
   - id: WAF-OE-01
     title: "Diagnostic settings coverage above threshold"

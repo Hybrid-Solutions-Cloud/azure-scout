@@ -1,6 +1,7 @@
 area: "Performance efficiency"
 framework: WAF
 weight: 1.0
+verifiedAgainst: "WAF Performance Efficiency checklist, learn.microsoft.com/azure/well-architected/performance-efficiency/checklist, verified 2026-08-01"
 rules:
   - id: WAF-PE-01
     title: "No subnet near IP exhaustion (headroom for scale)"

@@ -1,6 +1,10 @@
 area: "Integration connectivity & reliability"
 framework: CAF
 weight: 1.0
+# AB#6798: service-guide file, not a CAF design area -- see caf.ai.yaml header for the pattern.
+kind: service-guide
+designAreaRef: "Network topology & connectivity"
+verifiedAgainst: "CAF landing zone design area: Network topology and connectivity, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/network-topology-and-connectivity, verified 2026-08-01"
 rules:
   - id: CAF-INT-01
     title: "Event Hub namespaces disable public network access"

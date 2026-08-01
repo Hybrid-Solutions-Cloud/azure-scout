@@ -1,6 +1,10 @@
 area: "Analytics data governance"
 framework: CAF
 weight: 1.0
+# AB#6798: service-guide file, not a CAF design area -- see caf.ai.yaml header for the pattern.
+kind: service-guide
+designAreaRef: "Governance (policy & compliance)"
+verifiedAgainst: "CAF landing zone design area: Governance, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance, verified 2026-08-01"
 rules:
   - id: CAF-ANL-01
     title: "Synapse workspaces disable public network access"

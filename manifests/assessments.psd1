@@ -219,4 +219,98 @@
         Category    = '*'; Collect = @('Cost', 'Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.cost'); Frameworks = @('WAF: Cost optimization'); Tags = @('waf', 'cost'); Reporters = @('Excel', 'PowerBi')
     }
+
+    # ---- AB#6796 (Feature AB#6746, Epic AB#6454) — WAF split into its five pillars ----
+    #
+    # LandingZone's WAF framework score is a weighted average of these same five area scores
+    # (Get-Score, AB#5087), so it reconciles with the sum of these five assessments by
+    # construction: run LandingZone once, or run all five WAF pillar assessments and combine
+    # them, and the numbers agree because it is the same arithmetic either way.
+    'WAF: Reliability' = @{
+        Description = 'Well-Architected Framework — Reliability pillar only'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.reliability'); Frameworks = @('WAF: Reliability'); Tags = @('waf', 'pillar', 'reliability'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Security' = @{
+        Description = 'Well-Architected Framework — Security pillar only'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.security'); Frameworks = @('WAF: Security'); Tags = @('waf', 'pillar', 'security'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Cost Optimization' = @{
+        Description = 'Well-Architected Framework — Cost Optimization pillar only'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.cost'); Frameworks = @('WAF: Cost Optimization'); Tags = @('waf', 'pillar', 'cost'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Operational Excellence' = @{
+        Description = 'Well-Architected Framework — Operational Excellence pillar only'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.operational'); Frameworks = @('WAF: Operational Excellence'); Tags = @('waf', 'pillar', 'operational'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Performance Efficiency' = @{
+        Description = 'Well-Architected Framework — Performance Efficiency pillar only'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.performance'); Frameworks = @('WAF: Performance Efficiency'); Tags = @('waf', 'pillar', 'performance'); Reporters = @('Html', 'Excel')
+    }
+
+    # ---- AB#6800 (Feature AB#6746, Epic AB#6454) — WAF Maturity Model ----
+    #
+    # Reuses the exact same five WAF pillar rule files as the five entries above and
+    # LandingZone -- no duplicated rule definitions (AC). Get-Score attaches a MaturityLevel
+    # (Microsoft's published 5-level model) alongside each area/framework percentage score
+    # whenever Get-MaturityLevel.ps1 is loaded, which the module does unconditionally
+    # (AzureScout.psm1 loads every src/**/*.ps1). See docs/design/waf-maturity-model-mapping.md.
+    'WAF: Maturity Model' = @{
+        Description = 'Well-Architected Framework — maturity levels per pillar (same rules as the five WAF pillar assessments, different output framing)'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.reliability', 'waf.security', 'waf.cost', 'waf.operational', 'waf.performance')
+        Frameworks = @('WAF: all 5 pillars, presented as maturity levels')
+        Tags = @('waf', 'maturity-model'); Reporters = @('Html', 'Excel')
+    }
+
+    # ---- AB#6797 (Feature AB#6746, Epic AB#6454) — CAF split into its eight design areas ----
+    #
+    # LandingZone's CAF framework score is a weighted average of these eight area scores
+    # (Get-Score, AB#5087, weights documented in docs/design/caf-design-area-weighting.md), so
+    # it reconciles with these eight assessments by construction the same way the WAF split
+    # does above.
+    'CAF: Azure billing and Microsoft Entra tenant' = @{
+        Description = 'CAF landing zone design area — Azure billing and Microsoft Entra ID tenant setup'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.billing'); Frameworks = @('CAF: Azure billing and Microsoft Entra tenant'); Tags = @('caf', 'design-area', 'billing'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Identity and access management' = @{
+        Description = 'CAF landing zone design area — Identity and access management'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.identity'); Frameworks = @('CAF: Identity and access management'); Tags = @('caf', 'design-area', 'identity'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Resource organization' = @{
+        Description = 'CAF landing zone design area — Resource organization (management groups, subscriptions, tags)'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.resourceorg'); Frameworks = @('CAF: Resource organization'); Tags = @('caf', 'design-area', 'resource-organization'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Network topology and connectivity' = @{
+        Description = 'CAF landing zone design area — Network topology and connectivity'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.network'); Frameworks = @('CAF: Network topology and connectivity'); Tags = @('caf', 'design-area', 'network'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Security' = @{
+        Description = 'CAF landing zone design area — Security'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('caf.security'); Frameworks = @('CAF: Security'); Tags = @('caf', 'design-area', 'security'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Management' = @{
+        Description = 'CAF landing zone design area — Management (monitoring, operations baseline)'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.management'); Frameworks = @('CAF: Management'); Tags = @('caf', 'design-area', 'management'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Governance' = @{
+        Description = 'CAF landing zone design area — Governance (policy & compliance)'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.governance'); Frameworks = @('CAF: Governance'); Tags = @('caf', 'design-area', 'governance'); Reporters = @('Html', 'Excel')
+    }
+    'CAF: Platform automation and DevOps' = @{
+        Description = 'CAF landing zone design area — Platform automation and DevOps'
+        Category    = '*'; Collect = @('*'); Ingest = @('Governance')
+        Rules = @('caf.platformauto'); Frameworks = @('CAF: Platform automation and DevOps'); Tags = @('caf', 'design-area', 'platform-automation'); Reporters = @('Html', 'Excel')
+    }
 }

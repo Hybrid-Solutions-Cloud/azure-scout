@@ -1,6 +1,10 @@
 area: "Containers security & reliability"
 framework: CAF
 weight: 1.0
+# AB#6798: service-guide file, not a CAF design area -- see caf.ai.yaml header for the pattern.
+kind: service-guide
+designAreaRef: "Security"
+verifiedAgainst: "CAF landing zone design area: Security, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/security, verified 2026-08-01"
 rules:
   - id: CAF-CON-01
     title: "AKS clusters are private or API-access restricted"

@@ -1,6 +1,9 @@
 area: "Network topology & connectivity"
 framework: CAF
-weight: 1.0
+# AB#6797 design-area weighting -- see docs/design/caf-design-area-weighting.md.
+# 123 (formal recommendation count; ~155 counting numbered task steps) / 45.625 = 2.70.
+weight: 2.70
+verifiedAgainst: "CAF landing zone design area: Network topology and connectivity, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/network-topology-and-connectivity, verified 2026-08-01"
 rules:
   - id: CAF-NET-01
     title: "Hub-spoke or vWAN topology present"

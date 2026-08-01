@@ -1,6 +1,7 @@
 area: "Migration readiness (SMART)"
 framework: SMART
 weight: 1.0
+verifiedAgainst: "docs/frameworks/smart-question-set.md (internal), CAF Migrate methodology, verified 2026-08-01"
 # Scores migration readiness against the enumeration in docs/frameworks/smart-question-set.md
 # (AB#6832). EVERY rule below cites a SMART-* item from that file, and that file states plainly
 # what it is: the published CAF Migrate content SMART assesses against, organised under SMART's

@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — AB#6746 (Epic AB#6454) restructure LandingZone into per-pillar/per-design-area assessments
+
+- **Five WAF pillar assessments** (`WAF: Reliability`, `WAF: Security`, `WAF: Cost Optimization`,
+  `WAF: Operational Excellence`, `WAF: Performance Efficiency`), each scoring only its own pillar's
+  rule file. `LandingZone`'s WAF framework score reconciles with the weighted sum of these five by
+  construction (AB#6796).
+- **Eight CAF landing-zone design-area assessments** (`CAF: Azure billing and Microsoft Entra
+  tenant`, `Identity and access management`, `Resource organization`, `Network topology and
+  connectivity`, `Security`, `Management`, `Governance`, `Platform automation and DevOps`).
+  Design-area weights are proportional to each area's verified Microsoft-published recommendation
+  count (`docs/design/caf-design-area-weighting.md`), not a flat 1.0 (AB#6797).
+- **`WAF: Maturity Model` assessment.** Reuses the same five WAF pillar rule files with zero
+  duplicated rule definitions and reports Microsoft's published 5-level maturity model per pillar
+  (`src/assess/engine/Get-MaturityLevel.ps1`, `docs/design/waf-maturity-model-mapping.md`).
+  `Get-Score` now attaches a `MaturityLevel` to every area/framework score it produces (AB#6800).
+
+### Fixed — AB#6798 false-pass rules and misclassified rule files
+
+- **`CAF-GOV-05` and `CAF-AUT-02`** claimed a Pass whenever any policy assignment had a
+  `parameters` block — true of nearly every estate — without checking whether the assignment was
+  actually a DeployIfNotExists/Modify effect. Both are `manual` now; collect.json does not carry a
+  resolved policy effect to score this automatically without reintroducing the false pass.
+- **`waf.storage.yaml` retired.** "Storage" is not a WAF pillar (WAF has exactly five). Its five
+  rules were redistributed into `waf.reliability.yaml` (durability/redundancy/recovery) and
+  `waf.cost.yaml` (lifecycle/tiering).
+- **`caf.billing.yaml` rewritten.** It previously held cost-optimization rules that duplicated
+  `waf.cost.yaml` under the CAF "Azure billing and Microsoft Entra tenant" design-area name — a
+  mismatch, since that design area is about EA/MCA/tenant setup, not cost telemetry. The two
+  non-duplicate cost rules moved to `waf.cost.yaml` (`WAF-CO-08`, `WAF-CO-09`); the file now holds
+  genuine (manual) billing/tenant rules — break-glass accounts, MFA on subscription creators,
+  billing RBAC review, tenant topology, subscription vending.
+- **New CI-style gate** (`tests/Assessment.Restructure.Tests.ps1`): every `framework: WAF` rule
+  file's `area` must be one of the five pillars; every `framework: CAF` rule file must either be
+  one of the eight design areas or declare `kind: service-guide` with a `designAreaRef` pointing
+  at one. The nine per-service CAF rule files (`ai`, `analytics`, `containers`, `databases`,
+  `hybrid`, `integration`, `iot`, `storage`, `web`) now carry that `kind`/`designAreaRef` pair.
+
+### Updated — AB#6799 retired/changed CAF guidance
+
+- **`CAF-GOV-06`** now names the current default landing-zone management-group set (`Corp`,
+  `Online`, `Local` — added for Azure Local/hybrid clusters — plus `Sandboxes` and
+  `Decommissioned`), not the older `Corp`/`Online`-only pair.
+- **Verified: no rule requires a dedicated AI landing zone.** CAF states explicitly that AI
+  workloads use the existing landing zone architecture; `caf.ai.yaml` was checked and does not
+  require one (pinned by a test).
+- **Verified: no rule tags the five retired CAF governance disciplines** (Cost Management,
+  Security Baseline, Identity Baseline, Resource Consistency, Deployment Acceleration) as a live
+  taxonomy — none did.
+- **Every rule file now records a `verifiedAgainst` guidance version/date** (24 files, all
+  verified 2026-08-01 against the specific Microsoft Learn page(s) it scores against).
+
 Hardening pass over real-world collection and reporting failures. See **Epic AB#6731**. Suite:
 2,243 tests — 2,236 passing, 3 skipped, 4 known cross-file flakes (VM quota context restore,
 Excel retired-registration, two `Test-AZSCPermissions` scoping tests) that fail only in a
