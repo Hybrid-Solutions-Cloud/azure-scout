@@ -2,6 +2,7 @@ area: "Security"
 framework: WAF
 frameworkversion: "WAF pillar guidance, learn.microsoft.com/azure/well-architected, verified 2026-07-31"
 weight: 1.0
+verifiedAgainst: "WAF Security checklist, learn.microsoft.com/azure/well-architected/security/checklist, verified 2026-08-01"
 rules:
   - id: WAF-SE-01
     title: "No unrestricted inbound exposure from the Internet"

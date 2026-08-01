@@ -1,7 +1,9 @@
 area: "Identity & access management"
 framework: CAF
-frameworkversion: "CAF design-area guidance, learn.microsoft.com/azure/cloud-adoption-framework, verified 2026-07-31 (docs/audits/AZURE-SCOUT-AUDIT.md, section 8)"
-weight: 1.0
+# AB#6797 design-area weighting -- see docs/design/caf-design-area-weighting.md.
+# 65 / 45.625 = 1.42.
+weight: 1.42
+frameworkversion: "CAF landing zone design area: Identity and access management, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/identity-access, verified 2026-08-01"
 rules:
   - id: CAF-IDN-01
     title: "Role assignments use groups, not individual users, at scale"

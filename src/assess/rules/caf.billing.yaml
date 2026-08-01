@@ -1,64 +1,69 @@
-area: "Billing & cost management"
+area: "Azure billing and Microsoft Entra tenant"
 framework: CAF
-frameworkversion: "CAF design-area guidance, learn.microsoft.com/azure/cloud-adoption-framework, verified 2026-07-31 (docs/audits/AZURE-SCOUT-AUDIT.md, section 8)"
-weight: 1.0
+# AB#6797 design-area weighting -- see docs/design/caf-design-area-weighting.md for the full
+# rationale. weight = (this area's verified recommendation count) / (mean count across the 8
+# CAF design areas), from docs/audits/AZURE-SCOUT-AUDIT.md §8 Table 2: 42 / 45.625 = 0.92.
+weight: 0.92
+# guidance version/date this file was last verified against (AB#6799/AB#6817):
+frameworkversion: "CAF landing zone design area: Azure billing and Microsoft Entra ID tenant, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/azure-billing-ad-tenant and azure-billing-microsoft-customer-agreement, verified 2026-08-01"
+#
+# AB#6798 -- this file previously held cost-optimization rules (orphaned disks/PIPs, Advisor
+# cost, budgets, reservations) that duplicated waf.cost.yaml. The design area named "Azure
+# billing and Microsoft Entra ID tenant" is about commercial/tenant setup, not cost telemetry:
+# EA/MCA/CSP enrollment, invoice-section hierarchy, subscription vending, MFA on identities that
+# can create subscriptions, billing RBAC hygiene, and tenant topology. The cost rules moved to
+# waf.cost.yaml (WAF-CO-07..09); this file was rewritten from scratch against that design area's
+# actual recommendations. See docs/audits/AZURE-SCOUT-AUDIT.md §8 Table 2 "caf.billing.yaml is
+# misnamed" for the full source citation.
+#
+# Every rule here is manual: Scout's collectors read Resource Manager / Resource Graph, not the
+# Billing (EA/MCA) or tenant-administration APIs, so none of these can be scored from
+# collect.json today without a new collector. Manual-with-a-clear-check beats a false pass.
 rules:
   - id: CAF-BIL-01
-    title: "Cost Management budgets configured"
-    severity: medium
-    query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 0 }
-    remediation: "Create Cost Management budgets with alerts per subscription or MG."
-    manual: false
-
-  - id: CAF-BIL-02
-    title: "No unattached (orphaned) managed disks"
-    severity: low
-    query: "$.costCleanup.orphanedDisks[*]"
-    assert: { type: countEquals, value: 0 }
-    remediation: "Delete or snapshot-and-remove unattached managed disks to reduce spend."
-    manual: false
-
-  - id: CAF-BIL-03
-    title: "No orphaned public IP addresses"
-    severity: low
-    query: "$.costCleanup.orphanedPips[*]"
-    assert: { type: countEquals, value: 0 }
-    remediation: "Release public IPs with no IP configuration."
-    manual: false
-
-  - id: CAF-BIL-04
-    title: "High-impact Advisor cost recommendations remediated"
-    severity: medium
-    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
-    assert: { type: countEquals, value: 0 }
-    remediation: "Act on high-impact Advisor cost recommendations (right-size, shut down idle, buy reservations)."
-    manual: false
-
-  - id: CAF-BIL-05
-    title: "Budget scope granularity beyond a single tenant-wide default"
-    severity: low
-    query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 1 }
-    remediation: "Define budgets per subscription or workload rather than a single tenant-wide budget, so overspend alerts point at an accountable owner."
-    manual: false
-
-  - id: CAF-BIL-06
-    title: "Reserved Instance / Savings Plan coverage reviewed"
-    severity: medium
-    # No collector reads Cost Management reservation recommendations/coverage or
-    # Consumption RI utilization; collect.json has no field for this yet.
+    title: "Break-glass emergency-access accounts excluded from Conditional Access"
+    severity: high
     query: null
     assert: { type: manual }
-    remediation: "Review Reservation/Savings Plan coverage and utilization reports in Cost Management + Billing; purchase or true-up commitments for steady-state compute, database, and App Service workloads."
+    remediation: "Confirm at least two break-glass (emergency-access) accounts exist, are excluded from every Conditional Access policy, use strong non-expiring credentials stored offline, and are monitored for sign-in. No Conditional Access or emergency-access-account collector exists yet."
     manual: true
 
-  - id: CAF-BIL-07
-    title: "Cost anomalies reviewed and root-caused"
-    severity: low
-    # No anomaly-detection ingest exists yet (Cost Management anomaly alerts are not
-    # collected into collect.json).
+  - id: CAF-BIL-02
+    title: "MFA required for every identity that can create subscriptions"
+    severity: high
     query: null
     assert: { type: manual }
-    remediation: "Confirm Cost Management anomaly alerts are reviewed on a regular cadence and unexplained spend spikes are root-caused, not just acknowledged."
+    remediation: "Confirm every identity holding subscription-creation rights on a billing account, billing profile, or invoice section is enrolled in MFA. No Billing RBAC or EA/MCA administration collector exists yet."
+    manual: true
+
+  - id: CAF-BIL-03
+    title: "Billing role assignments reviewed on a regular cadence"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm billing account/profile/invoice-section RBAC role assignments (Billing Administrator, Billing Reader, etc.) are reviewed periodically, not granted once and forgotten."
+    manual: true
+
+  - id: CAF-BIL-04
+    title: "Billing account notification contact configured"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm a notification-contact email is configured on the billing account so invoice, payment-failure, and spend-threshold notices reach an accountable owner."
+    manual: true
+
+  - id: CAF-BIL-05
+    title: "Microsoft Entra tenant topology (single vs. multiple tenants) is a deliberate decision"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm the choice of one Microsoft Entra ID tenant versus several (e.g. for M&A, sovereignty, or strict separation) is documented and deliberate, not an accident of how subscriptions were created."
+    manual: true
+
+  - id: CAF-BIL-06
+    title: "Subscription vending is a repeatable, governed process"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm new subscriptions are provisioned through a repeatable vending process (self-service or ticketed) that applies the landing-zone baseline automatically, rather than ad hoc portal creation outside management-group governance."
     manual: true

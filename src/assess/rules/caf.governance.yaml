@@ -1,7 +1,10 @@
 area: "Governance (policy & compliance)"
 framework: CAF
-frameworkversion: "CAF design-area guidance, learn.microsoft.com/azure/cloud-adoption-framework, verified 2026-07-31 (docs/audits/AZURE-SCOUT-AUDIT.md, section 8)"
-weight: 1.0
+# AB#6797 design-area weighting -- see docs/design/caf-design-area-weighting.md.
+# 10 / 45.625 = 0.22 -- Governance has the fewest verified recommendations of the 8 areas.
+weight: 0.22
+# guidance version/date this file was last verified against (AB#6799/AB#6817):
+frameworkversion: "CAF landing zone design area: Governance, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance; management groups, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/resource-org-management-groups, verified 2026-08-01"
 rules:
   - id: CAF-GOV-01
     title: "Azure Policy assignments present"
@@ -38,10 +41,19 @@ rules:
   - id: CAF-GOV-05
     title: "DeployIfNotExists / Modify assignments enforce configuration drift correction"
     severity: medium
-    query: "$.governance.policyAssignments[?(@.properties.parameters)]"
-    assert: { type: exists }
-    remediation: "Adopt DINE/Modify policy effects so drift from the governed baseline (diagnostics, tags, encryption) is auto-remediated, not just flagged."
-    manual: false
+    # AB#6798 false-pass fix: this rule was `assert: { type: exists }` against
+    # `$.governance.policyAssignments[?(@.properties.parameters)]` -- i.e. "does any policy
+    # assignment have a parameters block" -- which is true of most built-in assignments
+    # (including plain Deny/Audit policies like "Allowed locations") and proves nothing about
+    # DeployIfNotExists/Modify effect. It reported Pass on every estate with any parameterised
+    # assignment, having evaluated nothing about drift correction. collect.json's
+    # policyAssignments rows do not carry a resolved effect (that lives on the policy
+    # definition, which is a separate, not-yet-joined dataset), so this cannot be scored
+    # automatically without a false-pass or false-fail risk -- manual until that join exists.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm DeployIfNotExists/Modify policy assignments are in place to auto-remediate drift from the governed baseline (diagnostics, tags, encryption), not just Deny/Audit. Check each assignment's effective policy definition effect, not merely whether it has a parameters block."
+    manual: true
 
   - id: CAF-GOV-06
     title: "Management group hierarchy conforms to the ALZ landing-zone archetype"
@@ -49,9 +61,15 @@ rules:
     # collect.json's managementGroups[] proves depth exists (see CAF-RES-02) but not
     # that the platform/landing-zones/sandbox separation matches the ALZ archetype —
     # that semantic mapping needs a human to read the MG names/structure.
+    #
+    # AB#6799: the current default Azure landing zone management-group set is Corp, Online,
+    # Local (added for Azure Local / hybrid clusters), Sandboxes, and Decommissioned under
+    # Landing Zones/Platform -- "Local" and "Decommissioned" are not in the prior remediation
+    # text. Verified against learn.microsoft.com/azure/cloud-adoption-framework/ready/
+    # landing-zone/design-area/resource-org-management-groups, 2026-08-01.
     query: null
     assert: { type: manual }
-    remediation: "Confirm the management group hierarchy separates Platform (Management/Identity/Connectivity) from Landing Zones (Corp/Online) and Sandbox per the ALZ archetype, not just a flat depth-2+ tree."
+    remediation: "Confirm the management group hierarchy separates Platform (Management/Identity/Connectivity) from Landing Zones (Corp/Online/Local -- Local hosts Azure Local clusters and hybrid workloads) plus Sandboxes and Decommissioned, per the current ALZ archetype, not just a flat depth-2+ tree."
     manual: true
 
   - id: CAF-GOV-07

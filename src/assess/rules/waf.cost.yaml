@@ -2,6 +2,8 @@ area: "Cost optimization"
 framework: WAF
 frameworkversion: "WAF pillar guidance, learn.microsoft.com/azure/well-architected, verified 2026-07-31"
 weight: 1.0
+# guidance version/date this file was last verified against (AB#6799):
+verifiedAgainst: "WAF Cost Optimization checklist, learn.microsoft.com/azure/well-architected/cost-optimization/checklist, verified 2026-08-01"
 rules:
   - id: WAF-CO-01
     title: "No orphaned disks accumulating cost"
@@ -50,3 +52,33 @@ rules:
     assert: { type: countEquals, value: 0 }
     remediation: "Act on medium-impact Advisor cost recommendations, including VM/database right-sizing and idle-resource guidance."
     manual: false
+
+  # ---- AB#6798: redistributed from the retired waf.storage.yaml -- tiering/lifecycle rules
+  # are a cost concern, not a reliability one.
+  - id: WAF-CO-07
+    title: "Lifecycle management policy configured for storage accounts"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Configure a lifecycle management policy to tier or expire aging blobs and control cost/performance tradeoffs. collect.json does not yet capture lifecycle management policy state -- verify via `az storage account management-policy show`."
+    manual: true
+
+  # ---- AB#6798: caf.billing.yaml was renamed/rewritten because it held these two cost rules
+  # under the CAF "Azure billing and Microsoft Entra tenant" design-area name (a mismatch --
+  # that design area is about EA/MCA/tenant setup, not cost optimization). The other five
+  # CAF-BIL-* rules duplicated WAF-CO-01..06 exactly and were dropped rather than kept twice.
+  - id: WAF-CO-08
+    title: "Budget scope granularity beyond a single tenant-wide default"
+    severity: low
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 1 }
+    remediation: "Define budgets per subscription or workload rather than a single tenant-wide budget, so overspend alerts point at an accountable owner."
+    manual: false
+
+  - id: WAF-CO-09
+    title: "Cost anomalies reviewed and root-caused"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm Cost Management anomaly alerts are reviewed on a regular cadence and unexplained spend spikes are root-caused, not just acknowledged."
+    manual: true

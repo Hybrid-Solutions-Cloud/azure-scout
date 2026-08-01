@@ -2,6 +2,10 @@ area: "IoT security"
 framework: CAF
 frameworkversion: "CAF design-area guidance, learn.microsoft.com/azure/cloud-adoption-framework, verified 2026-07-31 (docs/audits/AZURE-SCOUT-AUDIT.md, section 8)"
 weight: 1.0
+# AB#6798: service-guide file, not a CAF design area -- see caf.ai.yaml header for the pattern.
+kind: service-guide
+designAreaRef: "Security"
+verifiedAgainst: "CAF landing zone design area: Security, learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/security, verified 2026-08-01"
 rules:
   - id: CAF-IOT-01
     title: "IoT Hubs disable public network access"
