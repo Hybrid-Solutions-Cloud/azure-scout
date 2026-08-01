@@ -1517,13 +1517,48 @@ subscription creators, billing RBAC assignments. Closing that gap is the one pie
 
 ### Verification status — read this before quoting the table
 
-Everything above is **documentation analysis, not a tested result**. No run has been performed with
-a `Reader`-only principal to confirm every collector still returns data.
-
-The reasoning is sound and now Microsoft-doc-backed, but the honest position is: **probable, not
-proven.** The test that settles it — a live run with a Reader-only service principal, comparing
-per-collector row counts against a full-role run — is roughly half a day, and depends on the
-per-collector row-count work (§16 item 9) existing first.
+> ✅ **TESTED 2026-07-31 — `Reader` at the root management group is sufficient. Proven, not
+> probable.**
+>
+> This section previously read *"documentation analysis, not a tested result… probable, not
+> proven"*. The test it described has now been run.
+>
+> **Method.** A purpose-made service principal (`azure-scout-leastpriv-test`) was created in
+> tenant `d6fc73cf` holding **exactly one role assignment** — `Reader`, scoped to the root
+> management group. No subscription-scoped grant, no `Management Group Reader`, no Graph
+> permission, nothing else. Verified by enumerating every assignment on the principal: total 1.
+> The identical collection was then run as that principal and as a fully-privileged user
+> (`User Access Administrator` at `/` plus `Owner`), and the results compared.
+>
+> | | Privileged user | **Reader-only SPN** |
+> |---|---:|---:|
+> | `Resources` | 113 | **113** |
+> | `ResourceContainers` | 19 | **19** |
+> | `ApiResources` (ARM REST sweep) | 2 | **2** |
+> | `AZSC/Management/ManagementGroup` | 1 | **1** |
+> | `AZSC/Management/RoleDefinition` | 1 | **1** |
+> | `AZSC/Management/PolicyDefinition` | 1000 | **1000** |
+> | `AZSC/Management/PolicySetDefinition` | 300 | **300** |
+> | Distinct resource types | 42 | **42** |
+>
+> **Identical on every measure.** `Reader` at root MG returned everything the privileged identity
+> did, including the ARM REST policy sweep and the tenant-wide envelopes.
+>
+> ⚠️ **What this does and does not establish.** It confirms the ARM half against *this* estate —
+> 42 resource types across two subscriptions. It cannot speak for a collector whose resource type
+> is absent here, and it says nothing about the Entra or Azure DevOps halves, which are separate
+> permission systems and were not granted to the principal. The `Untested` grades in Tables A–D
+> stay as they are for individual rows; what is now proven is the section's *headline claim*, which
+> is the one customers act on.
+>
+> ⚠️ **A note on how nearly this went wrong.** The first Reader-only run reported 4 resources
+> against the privileged run's 113, which reads exactly like a permission failure and would have
+> been a dramatic (and false) finding. It was a defect in the test harness — a scriptblock
+> parameter-passing mistake, not Azure. The tell was that the 4 "resources" were precisely the 4
+> synthetic tenant-wide envelopes, meaning Resource Graph had returned nothing at all rather than
+> a reduced set. **A permission conclusion drawn from a single run is worth very little**; this
+> section's own history (note 4, where a permission theory absorbed the blame for dead code for
+> several releases) is the reason to re-derive before believing it.
 
 ---
 
@@ -1628,7 +1663,7 @@ The other seven are gaps in Microsoft's own reference, not in Scout. `Microsoft.
 <https://learn.microsoft.com/azure/role-based-access-control/permissions/compute#microsoftcompute>). Entra anchors are relative to `https://learn.microsoft.com/` (`entra/permissions-reference#...` →
 <https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#security-reader>). Azure DevOps anchors are relative to `https://learn.microsoft.com/azure/` (`devops/...`).
 
-Where several rows share one provider page the same reference repeats — that is expected. **The `Source` column is the evidence for the `Verified: Doc` claim; it does not upgrade `Untested` rows.** Nothing here has been run against a `Reader`-only principal.
+Where several rows share one provider page the same reference repeats — that is expected. **The `Source` column is the evidence for the `Verified: Doc` claim; it does not upgrade `Untested` rows.** No individual row here has been proven against a `Reader`-only principal — but the section's headline claim has: a Reader-only run on 2026-07-31 returned results identical to a fully-privileged one across 42 resource types. See the verification-status callout above for the method and its limits.
 
 ---
 
