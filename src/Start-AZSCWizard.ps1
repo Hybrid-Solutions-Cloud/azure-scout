@@ -250,9 +250,12 @@ function Start-AZSCWizard {
         if (Test-Path $manifestPath) {
             try {
                 $assessmentManifest = Import-PowerShellDataFile $manifestPath
-                # AB#6763 -- the menu lists only what Scout can actually run. Exposing the whole
-                # registry would put `Estate` (Rules = @(), scores nothing) in front of a
-                # customer, and an entry that runs and returns nothing reads as "no findings".
+                # AB#6763 -- the menu lists only what Scout can actually run: an entry with no
+                # rule file behind it runs and returns nothing, which reads as "no findings".
+                # ('Estate' used to be the example that motivated this — it declared Rules = @()
+                # and scored nothing. AB#6795 removed it from the registry entirely rather than
+                # leaving it to this gate to hide, because a full-inventory pull is a different
+                # product from an assessment, not a broken one.)
                 $assessmentNames = @(Get-ScoutAvailableAssessment -Manifest $assessmentManifest)
                 if ($assessmentNames.Count -eq 0) {
                     Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering LandingZone only.'

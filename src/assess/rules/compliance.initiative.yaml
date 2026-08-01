@@ -1,0 +1,21 @@
+# Marker file for AB#6792/#6793/#6794 (Feature AB#6744, Epic AB#6454).
+#
+# This is NOT consumed by Get-RuleSet / Invoke-Rule. The 'Assess: Compliance' entry in
+# manifests/assessments.psd1 carries `Compliance = $true`, which routes it through
+# src/assess/Invoke-ScoutComplianceAssessment.ps1 (reads Azure Policy compliance state Scout
+# already collects) instead of the YAML rule engine.
+#
+# The file exists purely so Get-ScoutAvailableAssessment's evidence-based menu gate (AB#6763) —
+# "an entry is only offered when a file backs its Rules glob" — has something to match. That
+# gate was built to stop an entry with no rule file from silently reading as "no findings"; a
+# compliance entry with no marker file would trip the exact same gate for a different reason
+# (it has no *rule file*, even though it has plenty to score), so it reuses the mechanism rather
+# than inventing a parallel one.
+#
+# area/framework are read here only as a fallback label if something ever iterates every *.yaml
+# file generically; the real per-initiative Framework name (e.g. "Microsoft cloud security
+# benchmark 3.0.0") is computed at run time from the initiative actually assigned in the scanned
+# scope, because that is not knowable until a collect has run (AB#6794).
+area: "Regulatory compliance"
+framework: "Azure Policy regulatory-compliance initiatives"
+rules: []

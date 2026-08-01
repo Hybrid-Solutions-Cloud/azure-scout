@@ -250,8 +250,18 @@ function Export-Excel {
             # Module-qualified for the same reason as Add-ScoutExcelPivotDashboard's
             # ImportExcel\Export-Excel calls above (AB#322) -- a bare call can
             # recurse into this file's own Export-Excel depending on dot-source scope.
+            # AB#6793 -- the three compliance states (Pass/Fail/NotAssessed) must be visually
+            # distinguishable, not just distinguishable in the underlying data. Applies to every
+            # assessment's evidence sheet, not only compliance ones: a YAML rule set never emits
+            # 'NotAssessed' today, so this is a no-op there and a genuine three-colour distinction
+            # on a compliance sheet.
+            $statusConditions = @(
+                New-ConditionalText -Text 'Pass' -Range 'D:D' -ConditionalType ContainsText -BackgroundColor LightGreen
+                New-ConditionalText -Text 'Fail' -Range 'D:D' -ConditionalType ContainsText -BackgroundColor LightPink
+                New-ConditionalText -Text 'NotAssessed' -Range 'D:D' -ConditionalType ContainsText -BackgroundColor LightBlue
+            )
             $_.Group | Select-Object Id, Framework, Severity, Status, EvidenceCount, Title, Remediation |
-                ImportExcel\Export-Excel -Path $xlsx -WorksheetName $sheet -AutoSize -Append
+                ImportExcel\Export-Excel -Path $xlsx -WorksheetName $sheet -AutoSize -Append -ConditionalText $statusConditions
         }
     }
     else {

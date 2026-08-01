@@ -36,16 +36,13 @@
         Benchmark   = 'alz-reference.json'
         Reporters   = @('PowerBi', 'Html', 'Pptx', 'React')
     }
-    Estate = @{
-        Description = 'Full digital estate inventory (no scoring)'
-        Category    = '*'
-        Collect     = @('*')
-        Ingest      = @()
-        Rules       = @()
-        Frameworks  = @()
-        Tags        = @('inventory')
-        Reporters   = @('Excel', 'PowerBi')
-    }
+    # 'Estate' (full digital-estate inventory, Rules = @()) was removed entirely by AB#6845/#6795.
+    # It scored nothing -- a menu entry that runs and returns nothing reads as "no findings", the
+    # same false negative the provably-broken collectors were retired for (AB#6763 already hid it
+    # from the wizard on exactly that evidence). Inventory is a different product from an
+    # assessment: run it with `Invoke-AzureScout` (no `-Assessment`), which every code path in
+    # this repo already treats as the non-assessment mode. Nothing here replaces that capability;
+    # this only removes the assessment-registry entry that duplicated and mis-scoped it.
 
     # ---- per-category assessments (Epic AB#5056) ----
     #
@@ -155,25 +152,65 @@
     }
 
     # ---- finer sub-bundles inside a category ----
+    # 'Policy' used to sit here too, byte-identical to 'Governance' (same Category, Collect,
+    # Ingest, Rules, Frameworks — literally the same assessment under two names). Removed by
+    # AB#6795; script an explicit -Assessment Governance instead of -Assessment Policy.
     Governance = @{
         Description = 'Management sub-bundle — policy assignments, locks, budgets'
         Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance')
         Rules = @('caf.governance'); Frameworks = @('CAF: Governance'); Tags = @('caf', 'governance', 'sub-bundle'); Reporters = @('Html')
     }
-    Policy = @{
-        Description = 'Management sub-bundle — Azure Policy assignment/enforcement'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance')
-        Rules = @('caf.governance'); Frameworks = @('CAF: Governance'); Tags = @('caf', 'policy', 'sub-bundle'); Reporters = @('Html')
-    }
+    # UpdateManager and Monitoring are each a STRICT SUBSET of a broader entry above
+    # ('Assess: Management' and 'Assess: Monitor' respectively) -- same rule file, same Category,
+    # same Collect list, just offered again under a narrower name. AB#6795 requires a subset to
+    # say so; the description now names the entry it is a subset of rather than leaving that
+    # implicit in the rule-file overlap.
     UpdateManager = @{
-        Description = 'Management sub-bundle — patch/update compliance'
+        Description = 'Management sub-bundle (subset of "Assess: Management") — patch/update compliance only'
         Category    = 'Management'; Collect = @('Management'); Ingest = @()
         Rules = @('caf.management'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'update-manager', 'sub-bundle'); Reporters = @('Html')
     }
     Monitoring = @{
-        Description = 'Monitor sub-bundle — diagnostic settings coverage'
+        Description = 'Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only'
         Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
         Rules = @('waf.operational'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'monitoring', 'sub-bundle'); Reporters = @('Html')
+    }
+
+    # ---- regulatory / benchmark compliance (Epic AB#6454, Feature AB#6744) ----
+    # Reads compliance state Azure Policy already evaluated (Scout already collects it -- see
+    # domains.management.policyComplianceStates / policyInitiatives) rather than asserting
+    # anything itself. `Compliance = $true` routes this entry through the compliance engine
+    # (Invoke-ScoutComplianceAssessment) instead of the YAML rule engine -- see
+    # src/assess/engine/Get-ScoutComplianceScore.ps1 and docs/design/decisions/declarative-collectors.md
+    # for why this needed a small, explicit core-engine branch rather than a rule file: a rule
+    # asserts against one JSONPath; MCSB/CIS/ISO/NIST/PCI are ~200 already-scored controls apiece,
+    # and hand-writing YAML for every one of them would duplicate work Azure has already done and
+    # drift from Microsoft's own control mapping on every framework revision (AB#6792/AB#6794).
+    #
+    # `Rules = @('compliance.*')` exists ONLY so Get-ScoutAvailableAssessment's evidence-based
+    # menu gate (AB#6763) has a file to match -- src/assess/rules/compliance.initiative.yaml
+    # carries no `rules:` list, it is a marker. The reuse is deliberate: AB#6763 already solved
+    # "don't offer an entry that scores nothing"; this is the same mechanism, not a new one.
+    #
+    # One menu entry expands into ONE scored Framework card per initiative actually ASSIGNED in
+    # the scanned scope (AB#6794) -- MCSB always (Defender's default initiative), plus whichever
+    # of CIS/ISO/NIST/PCI/etc are assigned, each carrying its own exact version in the Framework
+    # name so two versions of the same initiative never merge into one score (AB#6792/AB#6794). An
+    # unassigned initiative produces no card at all -- see AB#6793 for why "not assessed" must
+    # never collapse into a percentage.
+    'Assess: Compliance' = @{
+        Description  = 'Regulatory compliance — scores every Azure Policy regulatory-compliance initiative assigned in the scanned scope (MCSB, CIS, ISO 27001, NIST, PCI-DSS, ...) from compliance state Azure already evaluated'
+        Category     = 'Management'
+        Collect      = @('Management')
+        Ingest       = @()
+        Rules        = @('compliance.*')
+        Frameworks   = @('CAF: Govern', 'CAF: Secure')
+        Tags         = @('compliance', 'policy', 'regulatory')
+        Compliance   = $true
+        RequiresData = @(
+            '$.domains.management.policyComplianceStates[*]'
+        )
+        Reporters    = @('Html', 'Excel')
     }
 
     # ---- migration readiness (AB#6832) ----
