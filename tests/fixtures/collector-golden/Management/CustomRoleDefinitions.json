@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "CustomRoleDefinitions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
+  "FixtureSha256": "16835ef6a8271300edd32cad2f54a9b253903b1e865e5195aa1de712a06a405a",
   "Rows": [
     "Actions=s:None|Assignable Scopes=s:None|Created By=<null>|Created On=<null>|Data Actions=s:None|Description=<null>|ID=<null>|Is Custom=<null>|Not Actions=s:None|Not Data Actions=s:None|Resource U=j:1|Role Name=<null>|Role Type=<null>|Updated By=<null>|Updated On=<null>",
     "Actions=s:None|Assignable Scopes=s:None|Created By=<null>|Created On=<null>|Data Actions=s:None|Description=<null>|ID=<null>|Is Custom=<null>|Not Actions=s:None|Not Data Actions=s:None|Resource U=j:1|Role Name=<null>|Role Type=<null>|Updated By=<null>|Updated On=<null>",

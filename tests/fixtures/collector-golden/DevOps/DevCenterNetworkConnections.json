@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "DevCenterNetworkConnections",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "f327a726138b0401b48ac5b9a6a673ad62877d59685bd76cbb9f987de790fefa",
+  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
   "Rows": [
     "Domain Join Type=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/networkconnections/devcenternetworkconnections-t1a-1|Location=s:res-value|Name=s:devcenternetworkconnections-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subnet=s:seg10|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network=s:seg8",
     "Domain Join Type=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/networkconnections/devcenternetworkconnections-t1b-1|Location=s:res-value|Name=s:devcenternetworkconnections-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subnet=s:seg10|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network=s:seg8",

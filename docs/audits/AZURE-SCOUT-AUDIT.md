@@ -612,7 +612,8 @@ Every Azure service from the portal, mapped to the Scout collector that covers i
 | API Connections | DevOps/ApiConnections | ✅ Have *(AB#6741)* |
 | App Configuration | DevOps/AppConfiguration | ✅ Have *(AB#6741)* |
 | Azure Native LambdaTest · Elastic · Plastic Cloud · New Relic | — | 🔲 Need *(marketplace ISV)* |
-| GitHub | Management/DevOps* *(via ADO REST, not ARM)* | ⛔ Not collectable as an ARM resource |
+| Azure DevOps *(organizations, projects, pipelines, repositories, service connections, agent pools)* | DevOps/DevOpsProjects, DevOpsPipelines, DevOpsRepositories, DevOpsServiceConnections, DevOpsAgentPools *(via ADO REST, not ARM — relocated from `Management/`, AB#6828)* | ✅ Have — gated behind `-IncludeDevOps`, see §9 |
+| GitHub | — | 🔲 Need — Scout has no GitHub integration; the row above was previously mislabeled "GitHub" while actually describing the five Azure DevOps REST collectors |
 
 ### General (10)
 
@@ -925,7 +926,7 @@ the Epic, so the movement is visible rather than asserted.
 | Compute | 32 | 32 | 12 | 18 | 2 | 38% | 28% |
 | Containers | 12 | 12 | 7 | 5 | 0 | 58% | 50% |
 | Databases | 17 | 18 | 12 | 5 | 0 | 71% | 71% |
-| DevOps | 18 | 23 | 16 | 1 | 1 | 89% | 17% |
+| DevOps | 19 | 23 | 17 | 2 | 0 | 89% | 17% |
 | General | 8 | 10 | 4 | 1 | 3 | 50% | 13% |
 | Hybrid + multicloud | 18 | 18 | 12 | 6 | 0 | 67% | 67% |
 | Identity | 19 | 18 | 9 | 6 | 4 | 47% | 47% |
@@ -938,17 +939,29 @@ the Epic, so the movement is visible rather than asserted.
 | Security | 19 | 22 | 18 | 0 | 1 | 95% | 32% |
 | Storage | 17 | 17 | 15 | 1 | 1 | 88% | 18% |
 | Web and Mobile | 22 | 22 | 22 | 0 | 0 | 100% | 27% |
-| **Total** | **349** | **364** | **232** | **96** | **21** | **66%** | **41%** |
+| **Total** | **350** | **364** | **233** | **97** | **20** | **67%** | **41%** |
 
 **AI moved DOWN, from 94% to 89%, and nothing about it got worse.** The category gained a row --
 `Personalizers`, added when DQ5 was closed -- so the denominator grew by one while the numerator did
 not. It is the only category whose percentage fell, and it is an arithmetic artefact, recorded here
 rather than quietly smoothed over.
 
+**Correction (AB#6828, 2026-08-01): the five Azure DevOps REST collectors were physically misfiled
+under `manifests/collectors/Management/` and the DevOps row above (line "GitHub") mislabeled them.**
+They have been relocated to `manifests/collectors/DevOps/` -- Scout's folder-equals-category
+convention (`Get-ScoutCollector.ps1`) now matches what this table already implied. The row that read
+"GitHub | Management/DevOps\* | ⛔ Not collectable" was wrong on every count: the service is Azure
+DevOps, not GitHub, the collector lives under `DevOps/` now, and it *is* collected (behind
+`-IncludeDevOps`) -- Scout genuinely has no GitHub integration, which is now its own, honest 🔲 row.
+DevOps's Have count rises from 16 to 17 (Listed 18→19, since the one mislabeled row split into two).
+**Management's own enumeration (§6, 34-service table) never listed these five collectors** -- the
+audit already treated them as DevOps services, not Management ones -- so Management's Have/Need
+figures are unchanged; only the codebase needed to catch up to what this document already claimed.
+
 **Three things this table says that the percentages alone do not:**
 
-1. **66% is the honest headline** — 232 of 349 enumerated services have a collector. Measured only
-   against services that *can* be collected (excluding the 21 ⛔), it is **71%**.
+1. **67% is the honest headline** — 233 of 350 enumerated services have a collector. Measured only
+   against services that *can* be collected (excluding the 20 ⛔), it is **71%**.
 2. **The "Listed" and "Portal" columns differ for an arithmetic reason, not a coverage one.**
    A single row here often carries several portal services — `Microsoft Entra ID · ID Security ·
    PIM` is one row and three portal entries; the four Azure Native ISV services (LambdaTest,
@@ -1551,6 +1564,24 @@ number of Microsoft Entra directories."**
 **Everything Scout collects today is the first row.** `Get-ScoutCostInventory`, the VM/Arc
 `EstimatedCost` calls, and `ReservationRecom` all query at subscription scope, so `Reader` covers
 them. No billing role required.
+
+**Reservation utilization (AB#6829, `General/ReservationUtilization`) is neither row above — it is
+a SIXTH scope.** `Microsoft.Consumption/reservationSummaries` reads at the **reservation**, not the
+subscription or the billing account: Microsoft's reservation permission model is its own,
+tenant-level system (`Reservations Reader`/`Reservations Administrator`/etc., or a built-in role
+held **at the reservation itself**) that reservations do not inherit from subscription RBAC —
+*"The reservation lifecycle is independent of an Azure subscription… Reservations don't inherit
+permissions from subscriptions after the purchase."* (
+[Permissions to view and manage Azure reservations](https://learn.microsoft.com/azure/cost-management-billing/reservations/view-reservations)).
+Microsoft's own utilization page states the practical minimum: *"To view reservation utilization,
+you must have Azure RBAC access to the reservation… Reservation scope: Built-in reader roles or
+higher"* (
+[View reservation utilization](https://learn.microsoft.com/azure/cost-management-billing/reservations/reservation-utilization)).
+Since the parent `Microsoft.Capacity/reservationOrders/reservations` resource already comes back
+from Resource Graph today (`General/Reservations`), the same principal already holds that
+reservation-scope visibility — **no additional grant, and specifically no EA/MCA billing role, is
+required.** Do not conflate this with the "Cost and billing" gates above; the AO/DA view-charges
+switches govern subscription cost data, not reservation utilization.
 
 #### Read-only billing roles, if you ever collect the second row
 
@@ -2707,7 +2738,7 @@ Every gap above, with the resource type to build against and whether a collector
 |---|---|---|---|
 | C1 | `Management/BackupProtectedItems` | `microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems` | **Which VMs have no backup** |
 | C2 | `Security/KeyVaultSecrets` | `microsoft.keyvault/vaults/secrets` | **Which secrets expire soon** |
-| C3 | `Security/KeyVaultCertificates` | `.../vaults/certificates` | Certificate expiry |
+| C3 | *(built as part of C2, not a separate collector — AB#6822/AB#6837)* | *there is no `.../vaults/certificates` ARM list endpoint* | Certificate expiry — a certificate is a secret whose `contentType` is `x-pkcs12`/`x-pem-file`; `KeyVaultSecrets`' `Kind`/`Expires` columns already answer this |
 | C4 | `Security/KeyVaultKeys` | `.../vaults/keys` | Key rotation posture |
 | C5 | `Storage/BlobContainers` | `microsoft.storage/storageaccounts/blobservices/containers` | **Public container exposure** |
 | C6 | `Storage/FileShares` | `.../storageaccounts/fileservices/shares` | Share inventory and quotas |

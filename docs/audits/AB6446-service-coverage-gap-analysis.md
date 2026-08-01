@@ -4,6 +4,14 @@ description: AB#6446 — evidence-based audit of Azure Scout's service coverage,
 
 # AB#6446 — Azure service coverage gap analysis
 
+> **Superseded, in part (AB#6828, 2026-08-01):** the "new category" framing below (Backup &
+> Recovery / Migration / Cost & Optimisation / DevOps / Virtual Desktop as five NEW categories) was
+> rejected by DQ3 in `AZURE-SCOUT-AUDIT.md` — Scout holds to Microsoft's 18 published categories,
+> and `DevOps` was already one of them, not an invented split. **The DevOps row's underlying action
+> — move the five `Management/DevOps*` manifests — has been done**: they now live under
+> `manifests/collectors/DevOps/`, alongside the 12 collectors Epic AB#6741 already filed there. See
+> `AZURE-SCOUT-AUDIT.md` §6 for the current, corrected coverage numbers.
+
 **Date:** 2026-07-30
 **Scope:** `manifests/collectors/**/*.psd1` (174 files), `src/collect/`, `src/ingest/`
 **Method:** every manifest parsed with `Import-PowerShellDataFile` and its `ResourceTypes` /

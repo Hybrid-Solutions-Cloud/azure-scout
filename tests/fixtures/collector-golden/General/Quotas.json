@@ -3,7 +3,7 @@
   "Category": "General",
   "Name": "Quotas",
   "FixturePath": "tests/fixtures/collector-equivalence/General.json",
-  "FixtureSha256": "345bb21a2816ee9ef7a76dff2e934a773ab0aa0bafcb622fbf65f4de8832ef30",
+  "FixtureSha256": "f92e2b5474e17a4a7e7b12bb37d77c843eb56c0035b8593d103f400906336dab",
   "Rows": [
     "Current Value=s:1024|ID=s:res-value|Limit=s:1024|Location=s:res-value|Quota=s:res-value|Quota Name=s:res-value|Resource U=j:1|Subscription=s:res-value|Unit=s:res-value|Used %=s:100",
     "Current Value=s:1024|ID=s:res-value|Limit=s:1024|Location=s:res-value|Quota=s:res-value|Quota Name=s:res-value|Resource U=j:0|Subscription=s:res-value|Unit=s:res-value|Used %=s:100",
