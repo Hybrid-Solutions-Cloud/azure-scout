@@ -127,14 +127,19 @@ Describe 'Get-ScoutReportSectionIndex' {
             [ref]$ParseErrors
         )
         @($ParseErrors).Count | Should -Be 0
+        # The token is assembled by concatenation so this test file does not match its own
+        # pattern. It has to be built OUTSIDE the predicate: an assignment is not a valid
+        # operand of -and, and PowerShell rejects it at parse time -- which is exactly what
+        # happened. The whole container failed discovery, so every test in this file has
+        # silently never run since it was written.
+        $retiredCollectorToken = 'Inventory' + 'Modules'
         $LegacyPathLiterals = @(
             $Ast.FindAll(
                 {
                     param($Node)
                     $Node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
-                    $retiredCollectorToken = 'Inventory' + 'Modules'
                     $Node.Value -match "$retiredCollectorToken|Modules[/\\]Public"
-                },
+                }.GetNewClosure(),
                 $true
             )
         )
