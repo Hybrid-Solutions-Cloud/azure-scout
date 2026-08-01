@@ -37,12 +37,23 @@ $ResUCount = 1
         @{
             Variable = '4'
             Source = '$data.virtualNetworkPeerings'
-            # AB#6845 -- DELIBERATELY NOT GUARDED. Unlike every other loop fixed under this bug,
-            # the row here IS the child: this worksheet is an inventory of PEERINGS, and a VNet
-            # with none has nothing to say on it. Nor is the VNet lost by staying out -- it has
-            # its own worksheet in Networking/VirtualNetwork, which is where an unpeered VNet
-            # belongs. A parent-only row would put a VNet on the peering sheet with every peering
-            # column blank, which reads as a broken peering rather than an absent one.
+            # AB#6845 decision ($4) -- DELIBERATELY NOT GUARDED. Unlike every other loop fixed
+            # under this bug, the row here IS the child: this worksheet is an inventory of
+            # PEERINGS, and a VNet with none has nothing to say on it. Nor is the VNet lost by
+            # staying out -- it has its own worksheet in Networking/VirtualNetwork, which is where
+            # an unpeered VNet belongs. A parent-only row would put a VNet on the peering sheet
+            # with every peering column blank, which reads as a broken peering rather than an
+            # absent one, and would make "how many peerings does this estate have" unanswerable by
+            # reading the row count.
+            #
+            # Contrast loop $2 in this same file, which DOES set EmitNullWhenEmpty: that one fans
+            # out over the local VNet's own address prefixes, which are an ATTRIBUTE of the parent
+            # rather than a separate thing being inventoried. The behaviour of this loop is
+            # asserted, not merely skipped, in tests/Collector.VanishingParent.Tests.ps1.
+            #
+            # Note also the AdditionalFilter at the top of this file, which admits only VNets with
+            # at least one peering. An unpeered VNet never reaches this loop in the first place,
+            # so the flag would be doubly unreachable here.
             Preamble = ''
         }
         @{

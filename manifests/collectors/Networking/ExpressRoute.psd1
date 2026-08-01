@@ -54,6 +54,13 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = 'Auth'
+            # AB#6845 decision ($Auth): NO EmitNullWhenEmpty, deliberately. $Auths falls back to
+            # '0' when the circuit carries no authorizations, so the circuit keeps its row.
+            #
+            # A circuit with no authorizations is the normal state for one not yet linked to a
+            # VNet gateway -- it is ordered, billing, and connected to nothing, which is a finding
+            # rather than a reason to omit it. The sentinel already guarantees the row; the flag
+            # would never fire.
             Source = '$Auths'
             Preamble = ''
         }

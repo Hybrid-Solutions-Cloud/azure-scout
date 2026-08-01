@@ -64,6 +64,15 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = '2'
+            # AB#6845 decision ($2): NO EmitNullWhenEmpty, deliberately. $vnlks is assigned
+            # through a sentinel that substitutes [pscustomobject]@{id = 'none'} when the zone has
+            # no virtual network links, so the zone keeps its row and the link column reads none
+            # rather than blank.
+            #
+            # An unlinked private DNS zone is an orphan worth reporting, not one to hide. As with
+            # the SQL collectors, the sentinel is preferable to the flag because it distinguishes
+            # "none" from "not collected"; the flag would also never fire, the source being
+            # non-empty by construction.
             Source = '$vnlks'
             Preamble = '$Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{''0''}'
         }

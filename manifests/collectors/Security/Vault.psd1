@@ -77,6 +77,13 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = '2'
+            # AB#6845 decision ($2): NO EmitNullWhenEmpty, deliberately. $AccessPol falls back to
+            # '0' when the vault exposes no accessPolicies, so the vault keeps its row.
+            #
+            # That is the ordinary state of every vault using RBAC rather than access policies --
+            # an increasing share of them -- so this path is common, not exotic.
+            # Collector.SparsePayload.Tests.ps1 asserts it on a payload with accessPolicies
+            # genuinely absent. The flag would never fire.
             Source = '$AccessPol'
             Preamble = @'
 $Secrets = if (@((Get-AZSCSafeProperty -InputObject $2 -Path 'permissions.secrets' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $2 -Path 'permissions.secrets' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $2 -Path 'permissions.secrets' -Enumerate) }

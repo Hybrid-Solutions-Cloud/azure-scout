@@ -134,6 +134,13 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = '2'
+            # AB#6845 decision ($2): NO EmitNullWhenEmpty, deliberately. $SecurityRules falls back
+            # to '0', so an NSG carrying no custom security rules keeps its row.
+            #
+            # An NSG with only default rules is both common and worth reporting -- it is the one
+            # attached to a subnet while permitting everything the platform defaults permit. The
+            # sentinel already holds it, and Collector.SparsePayload.Tests.ps1 asserts it on a
+            # hand-built sparse payload.
             Source = '$SecurityRules'
             Preamble = ''
         }

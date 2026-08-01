@@ -314,7 +314,20 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
     $ManagementGroups = @{}
     try {
-        $GraphRows = @(Search-AzGraph -Query "resourcecontainers | where type == 'microsoft.resources/subscriptions' | extend mgChain = properties.managementGroupAncestorsChain | project subscriptionId, mgChain" -First 1000 -ErrorAction Stop)
+        # AB#6779 -- `@(Search-AzGraph ...)` yields the PSResourceGraphResponse WRAPPER, not the rows.
+        # Reading `.Data` is the shape that behaves the same whether the result is empty or not.
+        $GraphResponse = Search-AzGraph -Query "resourcecontainers | where type == 'microsoft.resources/subscriptions' | extend mgChain = properties.managementGroupAncestorsChain | project subscriptionId, mgChain" -First 1000 -ErrorAction Stop
+        # Assigned in statements: `$x = if (...) { @() }` yields $null, because an empty array
+        # contributes nothing to the output stream an if-block returns through. Harmless for the
+        # `foreach` just below, which tolerates $null -- but the same idiom DOES throw where the
+        # result's `.Count` is read, so all four Search-AzGraph sites are written the one way.
+        $GraphRows = @()
+        if ($null -ne $GraphResponse -and $GraphResponse.PSObject.Properties['Data']) {
+            $GraphRows = @($GraphResponse.Data)
+        }
+        elseif ($null -ne $GraphResponse) {
+            $GraphRows = @($GraphResponse)
+        }
         foreach ($GraphRow in $GraphRows) {
             $Chain = @(Get-ScoutValue $GraphRow @('mgChain'))
             [array]::Reverse($Chain)

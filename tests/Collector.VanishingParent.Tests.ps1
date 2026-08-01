@@ -29,7 +29,7 @@
     than inventory — see the allow-list below, which carries a written reason per entry and asserts
     the exempt behaviour rather than merely skipping it.
 
-    THE THIRD CATEGORY, AND WHY IT IS CHECKED DIFFERENTLY. 26 of the 50 child loops never vanish
+    THE THIRD CATEGORY, AND WHY IT IS CHECKED DIFFERENTLY. 27 of the 50 child loops never vanish
     their parent because their source variable is assigned through a conditional with a non-empty
     fallback — `$Auths = if(...){$data.authorizations}else{'0'}` — so the loop always runs at least
     once and `EmitNullWhenEmpty` would be redundant. Emptying the SOURCE for those simulates a
@@ -43,7 +43,7 @@
 BeforeDiscovery {
     $DiscoveryRoot = Split-Path -Parent $PSScriptRoot
 
-    # Loops that MUST NOT emit a parent row, each with the reason it differs in kind from the 18
+    # Loops that MUST NOT emit a parent row, each with the reason it differs in kind from the 20
     # that were fixed. Keyed "Category/Name:LoopVariable". Adding an entry is a design decision
     # about what a worksheet is an inventory OF; it is not a way to quiet a failure.
     $Unguarded = @{
@@ -71,10 +71,21 @@ BeforeDiscovery {
                     @($Raw.AdditionalRowLoops) | ForEach-Object { $_.Preamble }
                 ) -join "`n"
 
+                # Comments are the one thing Import-PowerShellDataFile throws away, and the
+                # recorded decision for an unflagged loop lives ONLY in a comment. Read the raw
+                # text alongside the parsed data so both halves are visible to the assertions.
+                $RawText = Get-Content -LiteralPath $_.FullName -Raw
+
                 $Index = 0
                 foreach ($Loop in @($Raw.AdditionalRowLoops)) {
                     $Key = "$Category/$Name`:$($Loop.Variable)"
                     $Emits = $Loop.Contains('EmitNullWhenEmpty') -and [bool]$Loop.EmitNullWhenEmpty
+
+                    # The marker an unflagged loop must carry. `EmitNullWhenEmpty` is itself a
+                    # recorded decision — it is data, it survives parsing, and the interpreter
+                    # acts on it — so only the loops WITHOUT it need one of these.
+                    $Marker = "AB#6845 decision (`$$($Loop.Variable))"
+                    $HasDecisionComment = $RawText.Contains($Marker)
 
                     # A source of the form `$Thing` whose assignment is a conditional. The `if`
                     # must be on the assignment itself, not merely somewhere in the file, which is
@@ -96,6 +107,8 @@ BeforeDiscovery {
                         Sentinel   = $Sentinel
                         IsExempt   = $Unguarded.ContainsKey($Key)
                         Reason     = if ($Unguarded.ContainsKey($Key)) { $Unguarded[$Key] } else { '' }
+                        Marker             = $Marker
+                        HasDecisionComment = $HasDecisionComment
                     }
                     $Index++
                 }
@@ -182,6 +195,22 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
         # of them is the defect this bug is about, and it fails here the day it is added.
         $Accounted = $Emits -or $Sentinel -or $IsExempt
         $Accounted | Should -BeTrue -Because "loop `$$LoopVar over '$Source' fans the row out over a child collection: when that collection is empty it must either set EmitNullWhenEmpty, assign its source through a conditional with a non-empty fallback, or be listed as a deliberate exception in this file. It does none of the three, so $Category/$Name disappears from its worksheet whenever Azure omits that collection"
+    }
+
+    It '<Category>/<Name> loop $<LoopVar> carries an explicit, recorded decision' {
+        # THE AUDIT ASSERTION. Being accounted for is not the same as being REVIEWED. The three
+        # states above are inferred from structure, and a loop can fall into the "sentinel" state
+        # by accident — someone wrote the fallback for an unrelated reason years ago and nobody
+        # has since asked whether this parent should survive. A silent omission is indistinguishable
+        # from an oversight, which is the whole reason this bug's acceptance criterion is worded
+        # the way it is.
+        #
+        # So every loop must SAY which decision was taken. `EmitNullWhenEmpty` says it as data.
+        # A loop without it must say it in a comment carrying this exact marker, next to the loop
+        # it describes, so the reasoning cannot drift away from the code into a commit message
+        # nobody will read again.
+        $Recorded = $Emits -or $HasDecisionComment
+        $Recorded | Should -BeTrue -Because "loop `$$LoopVar over '$Source' fans a row out over a child collection, so someone has to have decided whether the parent survives that collection being empty. It neither sets EmitNullWhenEmpty nor carries a '$Marker' comment, so no decision is recorded and there is no way to tell a considered choice from an oversight. Add the flag, or add the comment saying why the row here IS the child"
     }
 
     It '<Category>/<Name> loop $<LoopVar> still emits the parent row when the child collection is empty' -Skip:(-not $Emits) {

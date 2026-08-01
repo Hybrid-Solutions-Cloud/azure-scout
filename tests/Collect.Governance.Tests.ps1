@@ -88,13 +88,29 @@ BeforeAll {
             }
         }
         [pscustomobject]@{
-            name = $script:OwnerGuid; type = 'microsoft.authorization/roledefinitions'
-            id = "/subscriptions/$($script:SubA)/providers/Microsoft.Authorization/roleDefinitions/$($script:OwnerGuid)"
+            # A CUSTOM role, and the only kind of definition a caller-scoped authorizationresources
+            # query actually returns. Owner deliberately is NOT here -- see MockTenantRoleDefinitions.
+            name = $script:CustomGuid; type = 'microsoft.authorization/roledefinitions'
+            id = "/providers/Microsoft.Authorization/roleDefinitions/$($script:CustomGuid)"
+            properties = [pscustomobject]@{ roleName = 'Contoso Platform Operator'; type = 'CustomRole' }
+        }
+    )
+
+    # What `-UseTenantScope` returns, and ONLY it: the built-in definitions. Keeping Owner out of
+    # the scoped payload above is the whole point -- the original fixture put it there, which
+    # baked in the false assumption that a scoped query returns built-ins and let 110 rows of
+    # `Unresolved (<guid>)` ship green. Live, the scoped query returned 1 definition and the
+    # tenant-scoped one returned 961.
+    $script:MockTenantRoleDefinitions = @(
+        [pscustomobject]@{
+            type = 'microsoft.authorization/roledefinitions'
+            id = "/providers/Microsoft.Authorization/RoleDefinitions/$($script:OwnerGuid)"
             properties = [pscustomobject]@{ roleName = 'Owner'; type = 'BuiltInRole' }
         }
         [pscustomobject]@{
-            name = $script:CustomGuid; type = 'microsoft.authorization/roledefinitions'
-            id = "/providers/Microsoft.Authorization/roleDefinitions/$($script:CustomGuid)"
+            # The tenant scope sees custom roles too, so the merge must not double-count them.
+            type = 'microsoft.authorization/roledefinitions'
+            id = "/providers/Microsoft.Authorization/RoleDefinitions/$($script:CustomGuid)"
             properties = [pscustomobject]@{ roleName = 'Contoso Platform Operator'; type = 'CustomRole' }
         }
     )
@@ -160,6 +176,10 @@ BeforeAll {
 
     function Set-ScoutGovernanceMock {
         Mock Search-AzGraph {
+            # Order matters: the tenant-scoped definition query ALSO hits authorizationresources,
+            # and it must be answered with definitions only. Serving it the scoped payload would
+            # let it contribute role assignments, which live it must never do.
+            if ($UseTenantScope)                        { return $script:MockTenantRoleDefinitions }
             if ($Query -match 'authorizationresources') { return $script:MockAuthorization }
             if ($Query -match 'policyresources')        { return $script:MockPolicyAssignments }
             return @()
@@ -175,6 +195,44 @@ BeforeAll {
             }
             return [pscustomobject]@{ StatusCode = 404; Content = '{}' }
         }
+    }
+
+    function New-ScoutArgResponse {
+        <#
+            A stand-in for what Search-AzGraph ACTUALLY writes: one PSResourceGraphResponse wrapper
+            carrying the rows on `.Data`, NOT the rows themselves.
+
+            The mocks above return a bare array, which is why 1787 green tests let AB#6779 ship a
+            permanently empty Role Assignments worksheet -- against a live tenant the caller got a
+            wrapper and every downstream read of `type` found nothing. Any fixture built from a
+            bare array re-states the bug's own assumption and cannot catch it.
+
+            The fake is deliberately NOT enumerable. The real wrapper is, but the cmdlet writes it
+            to the pipeline WITHOUT enumerating, so `@(Search-AzGraph ...)` observes exactly one
+            object either way -- whereas a Pester mock returning an enumerable would have its own
+            output enumerated by PowerShell and would quietly hide the trap. Non-enumerable
+            reproduces the behaviour at the call site, which is the only place that matters.
+            `Should have the shape Search-AzGraph really returns` below pins the fake to the real
+            type so this stand-in cannot drift away from the SDK.
+        #>
+        param([object[]] $Rows = @())
+        return [pscustomobject]@{
+            Data       = @($Rows)
+            Count      = @($Rows).Count
+            SkipToken  = $null
+            IsReadOnly = $true
+        }
+    }
+
+    function Set-ScoutGovernanceWrapperMock {
+        <# Set-ScoutGovernanceMock's payloads, delivered in the wrapper the real cmdlet returns. #>
+        Mock Search-AzGraph {
+            if ($UseTenantScope)                        { return (New-ScoutArgResponse -Rows $script:MockTenantRoleDefinitions) }
+            if ($Query -match 'authorizationresources') { return (New-ScoutArgResponse -Rows $script:MockAuthorization) }
+            if ($Query -match 'policyresources')        { return (New-ScoutArgResponse -Rows $script:MockPolicyAssignments) }
+            return (New-ScoutArgResponse -Rows @())
+        }
+        Mock Invoke-AzRestMethod { return [pscustomobject]@{ StatusCode = 404; Content = '{}' } }
     }
 
     function Get-ScoutGovernanceTestDataset {
@@ -216,12 +274,46 @@ BeforeAll {
 Describe 'AB#6779 -- the call budget' {
     BeforeEach { Set-ScoutGovernanceMock }
 
-    It 'collects the four datasets in exactly two Resource Graph queries' {
-        # Two, not three: role ASSIGNMENTS and role DEFINITIONS come back from one
-        # authorizationresources query. Splitting them would be a round trip this story is not
-        # allowed to spend, and without the definitions the worksheet is a list of GUIDs.
+    It 'collects the four datasets in exactly three Resource Graph queries' {
+        # THIS NUMBER WAS 2 AND MOVED TO 3 DELIBERATELY. Read this before "restoring" it.
+        #
+        # The original design asked one scoped authorizationresources query for role ASSIGNMENTS
+        # and role DEFINITIONS together, on the belief that the table returns built-in as well as
+        # custom definitions. It does not: at subscription/management-group scope it returns only
+        # the definitions created in scope. Live, that produced 110 role assignments of which 110
+        # had a Role Name of `Unresolved (<guid>)` -- a worksheet that renders perfectly and
+        # cannot answer the question it exists to answer.
+        #
+        # Built-in definitions require `-UseTenantScope`, which is a separate Search-AzGraph
+        # parameter set: it cannot combine with -ManagementGroup, and it returns a different set
+        # of assignments too. So it CANNOT be folded into query 1, and naming a built-in role
+        # costs a third round trip. AB#6779's acceptance criterion is "including who holds Owner",
+        # so the round trip is the cheaper side of the trade.
+        #
+        #   1. authorizationresources, caller-scoped  -- assignments (+ custom definitions)
+        #   2. authorizationresources, -UseTenantScope -- definition NAMES only
+        #   3. policyresources, caller-scoped          -- policy assignments
         Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions | Out-Null
-        Should -Invoke Search-AzGraph -Times 2 -Exactly
+        Should -Invoke Search-AzGraph -Times 3 -Exactly
+    }
+
+    It 'never lets the tenant-scoped query contribute a role ASSIGNMENT' {
+        # -UseTenantScope returns a DIFFERENT assignment set than the caller's scope (live: 39 vs
+        # 110). It is a name lookup and nothing else; if it ever starts feeding assignments, the
+        # sheet silently changes meaning.
+        Should -Invoke Search-AzGraph -ParameterFilter { $UseTenantScope } -Times 0 -Exactly
+        Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions | Out-Null
+        Should -Invoke Search-AzGraph -ParameterFilter {
+            $UseTenantScope -and $Query -match 'roleassignments'
+        } -Times 0 -Exactly
+    }
+
+    It 'does not scope the tenant-wide definition query to a management group' {
+        # The two are mutually exclusive parameter sets -- passing both throws.
+        Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions -ManagementGroupId 'contoso' | Out-Null
+        Should -Invoke Search-AzGraph -ParameterFilter {
+            $UseTenantScope -and $null -ne $ManagementGroup
+        } -Times 0 -Exactly
     }
 
     It 'reads budgets and locks exactly once per subscription' {
@@ -304,6 +396,184 @@ Describe 'AB#6779 -- the call budget' {
         @($result.governance.budgets).Count | Should -Be 2
         Should -Invoke Invoke-AzRestMethod -ParameterFilter { $Path -match 'budgets' } -Times 0 -Exactly
         Should -Invoke Invoke-AzRestMethod -ParameterFilter { $Path -match 'locks' } -Times 2 -Exactly
+    }
+}
+
+Describe 'AB#6779 -- Search-AzGraph returns a wrapper, not rows' {
+    # THE REGRESSION. Identity/RoleAssignments shipped returning zero rows against a tenant with
+    # 110 role assignments, and every test passed, because the mocks returned a bare array while
+    # Search-AzGraph returns a PSResourceGraphResponse whose rows hang off `.Data`. `@(Search-AzGraph
+    # ...)` collected the WRAPPER as a single element, so:
+    #
+    #   * the wrapper carries SkipToken/Data/Count/IsReadOnly and no `type`, so the filter that
+    #     splits role assignments from role definitions matched nothing -- an empty worksheet;
+    #   * `$batch.Count` was 1 forever, so the paging predicate could never fire and any governance
+    #     dataset over 1000 rows was silently truncated to its first page.
+    #
+    # Policy assignments escaped only by luck: nothing filters them on `type`, and the wrapper got
+    # enumerated by accident when it crossed a function-output boundary further downstream.
+
+    BeforeEach { Set-ScoutGovernanceWrapperMock }
+
+    It 'has the shape Search-AzGraph really returns' {
+        # Anchors New-ScoutArgResponse to the SDK. If Az.ResourceGraph ever stops carrying the rows
+        # on `Data`, this fails here rather than silently against a live tenant.
+        $type = [Microsoft.Azure.Commands.ResourceGraph.Models.PSResourceGraphResponse[psobject]]
+        $type.GetProperty('Data') | Should -Not -BeNullOrEmpty
+        # It IS enumerable -- but the cmdlet writes it un-enumerated, which is the whole trap.
+        [System.Collections.IEnumerable].IsAssignableFrom($type) | Should -BeTrue
+    }
+
+    It 'reads the rows off the wrapper instead of collecting the wrapper itself' {
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions
+
+        @($dataset.roleAssignments).Count | Should -Be 3
+        # 2 tenant-scoped + 1 caller-scoped custom, merged.
+        @($dataset.roleDefinitions).Count | Should -Be 3
+        @($dataset.policyAssignments).Count | Should -Be 2
+
+        # Not just a count -- the rows must be the real ARG payloads, not a wrapper that happens
+        # to number one. A wrapper has no `type`, so this is what actually failed live.
+        @($dataset.roleAssignments | Where-Object { $_.type -eq 'microsoft.authorization/roleassignments' }).Count |
+            Should -Be 3
+    }
+
+    It 'renders a populated Role Assignments worksheet end to end' {
+        # The user-visible symptom, asserted through the shipped .psd1 and the real interpreter.
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions
+        $envelope = @(
+            @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions) |
+                Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' }
+        )[0]
+
+        $definition = Get-ScoutCollectorDefinition -Path (
+            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
+        )
+        $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
+                ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions
+                InTag        = $false; Resources = @($envelope); Retirements = @()
+                Task         = 'Processing'; File = $null; SmaResources = $null
+                TableStyle   = 'Light20'; Unsupported = @()
+                RunTime      = [datetime]::Parse('2026-07-01T00:00:00Z').ToUniversalTime()
+            })
+
+        $rows.Count | Should -Be 3
+        @($rows | Where-Object { $_['Role Name'] -eq 'Owner' }).Count | Should -Be 1
+    }
+
+    It 'pages on the ROW count, not on the wrapper count' {
+        # `$batch.Count -eq 1000` compared the wrapper's one element against 1000 and never paged.
+        # A first page that is exactly full must fetch a second.
+        $script:PagedRows = @(
+            1..1000 | ForEach-Object {
+                [pscustomobject]@{
+                    name = "ra-$_"; type = 'microsoft.authorization/roleassignments'
+                    id = "/subscriptions/$($script:SubA)/providers/Microsoft.Authorization/roleAssignments/ra-$_"
+                    properties = [pscustomobject]@{ scope = "/subscriptions/$($script:SubA)"; principalId = 'p' }
+                }
+            }
+        )
+        # Counted rather than keyed off $Skip: the assertion is "a full page is followed by another
+        # request", and a page counter states that without depending on how the mock sees -Skip.
+        $script:AuthQueryCount = 0
+        Mock Search-AzGraph {
+            # The tenant-scoped definition lookup hits authorizationresources too; it is a
+            # different query and must not be counted as a page of this one.
+            if ($UseTenantScope) { return (New-ScoutArgResponse -Rows @()) }
+            if ($Query -notmatch 'authorizationresources') { return (New-ScoutArgResponse -Rows @()) }
+            $script:AuthQueryCount++
+            if ($script:AuthQueryCount -eq 1) { return (New-ScoutArgResponse -Rows $script:PagedRows) }
+            return (New-ScoutArgResponse -Rows @($script:MockAuthorization[0]))
+        }
+
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions @()
+
+        $script:AuthQueryCount | Should -Be 2
+        @($dataset.roleAssignments).Count | Should -Be 1001
+        Should -Invoke Search-AzGraph -ParameterFilter { $Skip -eq 1000 } -Times 1 -Exactly
+    }
+
+    It 'reports a genuinely empty result as zero rows, not one -- and without erroring' {
+        # The other half of the wrapper trap: an empty result must not read as Count 1.
+        #
+        # THE WARNING ASSERTION IS THE POINT, not a nicety. Written without it, this test passed
+        # while every one of the three queries was actually THROWING -- zero rows for the wrong
+        # reason, which is the definition of a vacuous pass. The cause was `$batch = if (...) {
+        # @($response.Data) }`: an if-block yields its body through the output stream, an empty
+        # array contributes no objects to that stream, so $batch became $null and the `.Count`
+        # read on it threw under StrictMode. An empty estate must be a quiet, successful run.
+        Mock Search-AzGraph { return (New-ScoutArgResponse -Rows @()) }
+
+        $warnings = @()
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions @() -WarningVariable warnings -WarningAction SilentlyContinue
+
+        @($warnings) | Should -BeNullOrEmpty
+        @($dataset.roleAssignments).Count   | Should -Be 0
+        @($dataset.roleDefinitions).Count   | Should -Be 0
+        @($dataset.policyAssignments).Count | Should -Be 0
+    }
+
+    It 'still accepts a bare array, so a caller that hands back plain rows keeps working' {
+        Set-ScoutGovernanceMock
+
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions
+        @($dataset.roleAssignments).Count | Should -Be 3
+        @($dataset.roleDefinitions).Count | Should -Be 3
+    }
+}
+
+Describe 'AB#6779 -- naming a built-in role needs the tenant-scoped lookup' {
+    BeforeEach { Set-ScoutGovernanceMock }
+
+    It 'resolves a built-in role name that the caller-scoped query never returned' {
+        # Owner exists ONLY in the tenant-scoped payload, exactly as live. If the third query is
+        # removed, this row reads `Unresolved (<guid>)` and this fails.
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions
+        $envelope = @(
+            @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions) |
+                Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' }
+        )[0]
+        $owner = @(@($envelope.properties) | Where-Object { $_.'Role Name' -eq 'Owner' })
+
+        $owner.Count | Should -Be 1
+        $owner[0].'Role Type' | Should -Be 'BuiltInRole'
+    }
+
+    It 'degrades to the GUID and warns when the tenant-scoped lookup is denied' {
+        # Tenant-scope read is a permission a caller can legitimately lack. A partial answer beats
+        # no answer: the custom role read at the caller's own scope must still resolve.
+        Mock Search-AzGraph {
+            if ($UseTenantScope) { throw 'Forbidden: insufficient privileges to query at tenant scope' }
+            if ($Query -match 'authorizationresources') { return $script:MockAuthorization }
+            if ($Query -match 'policyresources')        { return $script:MockPolicyAssignments }
+            return @()
+        }
+
+        $warnings = @()
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions -WarningVariable warnings -WarningAction SilentlyContinue
+
+        @($warnings) -join ' ' | Should -Match 'tenant-scoped role-definition lookup failed'
+        # The run survives, the assignments are all still there ...
+        @($dataset.roleAssignments).Count | Should -Be 3
+        # ... and the caller-scoped custom definition still names its role.
+        $envelope = @(
+            @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions) |
+                Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' }
+        )[0]
+        $rows = @($envelope.properties)
+        @($rows | Where-Object { $_.'Role Name' -eq 'Contoso Platform Operator' }).Count | Should -Be 1
+        @($rows | Where-Object { $_.'Role Name' -eq "Unresolved ($($script:OwnerGuid))" }).Count | Should -Be 1
+    }
+
+    It 'lets the caller-scoped definition win a GUID collision with the tenant one' {
+        # Both scopes return the custom role. It must appear once, named, not twice.
+        $dataset = Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions
+        $envelope = @(
+            @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions) |
+                Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' }
+        )[0]
+        @(@($envelope.properties) | Where-Object { $_.'Role Name' -eq 'Contoso Platform Operator' }).Count |
+            Should -Be 1
     }
 }
 

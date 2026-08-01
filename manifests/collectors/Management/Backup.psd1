@@ -46,6 +46,14 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = 'ProtectedItem'
+            # AB#6845 decision ($ProtectedItem): NO EmitNullWhenEmpty, deliberately.
+            # $ProtectedObjs falls back to '0' when no protected item references this policy, so
+            # the loop always runs and the policy keeps its row.
+            #
+            # Keeping it matters more here than almost anywhere else: a backup policy protecting
+            # NOTHING is precisely the finding this worksheet exists to surface. Dropping it would
+            # hide the defect the report is meant to report. The sentinel already does that job,
+            # so the flag would be unreachable configuration.
             Source = '$ProtectedObjs'
             Preamble = @'
 $ProtectedItemProperties = Get-AZSCSafeProperty -InputObject $ProtectedItem -Path 'properties'

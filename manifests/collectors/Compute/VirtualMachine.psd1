@@ -302,6 +302,14 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = '2'
+            # AB#6845 decision ($2): NO EmitNullWhenEmpty, deliberately. $VMNICS falls back to '0'
+            # when the VM references no network interface, so the loop always runs and the VM
+            # keeps its row with the NIC columns carrying the same "not found" values the body
+            # already produced.
+            #
+            # A VM is the most first-class resource in the report and must never vanish; the guard
+            # just already exists here, one layer earlier than the flag would sit. Setting the
+            # flag as well would be unreachable configuration.
             Source = '$VMNICS'
             Preamble = @'
 $vmnic = foreach ($netinterface in $nic)

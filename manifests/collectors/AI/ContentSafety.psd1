@@ -59,6 +59,18 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = 'pv'
+            # AB#6845 decision ($pv): NO EmitNullWhenEmpty, deliberately. $pvt is assigned through
+            # a sentinel in the row preamble -- if the account carries no
+            # privateEndpointConnections it becomes '0' rather than an empty collection -- so this
+            # loop always runs at least once and a Content Safety account keeps its row.
+            #
+            # This is not a lucky accident worth leaving unstated: a private endpoint is opt-in,
+            # so HAVING NONE IS THE DEFAULT. The sentinel is the only reason this worksheet is not
+            # empty for a typical estate, and deleting it reopens AB#6845 here.
+            #
+            # EmitNullWhenEmpty would be dead configuration -- it fires on an EMPTY source, and
+            # the sentinel guarantees this source is never empty. Adding it would also change the
+            # shipped column value from '0' to blank for every account that has no connections.
             Source = '$pvt'
             Preamble = '$priv = (Get-AZSCIdSegment -Id $pv -Index 8)'
         }

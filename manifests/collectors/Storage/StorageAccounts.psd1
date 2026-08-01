@@ -149,6 +149,13 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = '2'
+            # AB#6845 decision ($2): NO EmitNullWhenEmpty, deliberately. $VNETRules falls back to
+            # a single space when the account has no networkAcls.virtualNetworkRules, so the
+            # account keeps its row.
+            #
+            # Having no virtual network rules is the DEFAULT for a storage account, and an account
+            # open to all networks is a security finding rather than something to drop. The
+            # sentinel already holds the row; the flag would be unreachable configuration.
             Source = '$VNETRules'
             Preamble = @'
 $VNET = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $2 -Path 'id' -Enumerate) -Index 8)}else{''}

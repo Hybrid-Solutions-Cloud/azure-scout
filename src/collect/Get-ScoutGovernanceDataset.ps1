@@ -27,17 +27,28 @@ $ErrorActionPreference = 'Stop'
                                                  -> Import-Governance SKIPS the datasets that are
                                                     already populated
 
-    That is the AB#6755 shape applied a second time, and it is why rendering these four datasets
-    costs zero additional Azure calls on an assessment run: the two Resource Graph queries and the
-    two ARM REST reads per subscription MOVED here from `Import-Governance`; they were not added.
+    That is the AB#6755 shape applied a second time. Two of the three Resource Graph queries and
+    both ARM REST reads per subscription MOVED here from `Import-Governance`; they were not added.
     `tests/Collect.Governance.Tests.ps1` pins the count on both sides.
 
-    One deliberate difference from the query it replaces. `Import-Governance` read only
-    `microsoft.authorization/roleassignments`, which carries `properties.roleDefinitionId` -- a
-    GUID. A worksheet of GUIDs cannot answer "who has Owner", so the SAME single query also
-    returns `microsoft.authorization/roledefinitions` (the `authorizationresources` table holds
-    built-in AND custom definitions, each with `properties.roleName`). One round trip, two result
-    types, real role names.
+    THE THIRD QUERY IS DELIBERATE, AND IT IS A COST THIS FUNCTION DID NOT ORIGINALLY PAY.
+    `Import-Governance` read only `microsoft.authorization/roleassignments`, which carries
+    `properties.roleDefinitionId` -- a GUID. This function originally asked the SAME scoped query
+    for `microsoft.authorization/roledefinitions` too, on the belief that `authorizationresources`
+    returns built-in AND custom definitions. It does not: at subscription or management-group
+    scope that table returns only the definitions CREATED in scope -- in practice the custom roles
+    alone. Against a live tenant that produced 110 role assignments whose Role Name every one read
+    `Unresolved (<guid>)`, which fails AB#6779's actual acceptance criterion -- "a run reports
+    every role assignment, INCLUDING WHO HOLDS OWNER" -- while looking perfectly populated.
+
+    The ~960 built-in definitions are visible only under `Search-AzGraph -UseTenantScope`, and
+    that switch is its own PARAMETER SET: mutually exclusive with `-ManagementGroup`, and it
+    returns a different set of role ASSIGNMENTS as well. So it cannot be folded into the scoped
+    query, and a third round trip is the only way to name a built-in role. The budget moved from
+    two to three on purpose: a role-assignment worksheet that cannot name the role is output that
+    looks populated and answers nothing, which is the exact defect class this work exists to
+    remove. The third query is used ONLY to resolve definition names -- never for the assignments
+    themselves, which must keep coming from the scoped query.
 
 .PARAMETER Subscriptions
     Subscription objects carrying `.id` (and optionally `.name`). Budgets and resource locks are
@@ -83,21 +94,56 @@ function Get-ScoutGovernanceDataset {
 
     # Paged exactly as Import-Governance paged: Search-AzGraph rejects -Skip 0 (its ValidateRange
     # minimum is 1), so the first page omits it entirely.
-    function Invoke-ScoutGovernanceArg([string] $Query) {
+    #
+    # -TenantScope selects Search-AzGraph's TenantScopedQuery parameter set, which cannot carry
+    # -ManagementGroup. That is why it is a switch here rather than something the caller's
+    # -ManagementGroupId can imply: the two are mutually exclusive at the SDK, and only the
+    # role-DEFINITION lookup may use it.
+    function Invoke-ScoutGovernanceArg([string] $Query, [switch] $TenantScope) {
         $rows = @(); $skip = 0
         do {
             $params = @{ Query = $Query; First = 1000; ErrorAction = 'Stop' }
             if ($skip -gt 0) { $params.Skip = $skip }
-            if ($ManagementGroupId) { $params.ManagementGroup = $ManagementGroupId }
-            $batch = @(Search-AzGraph @params)
+            if ($TenantScope) { $params.UseTenantScope = $true }
+            elseif ($ManagementGroupId) { $params.ManagementGroup = $ManagementGroupId }
+
+            # Search-AzGraph writes ONE object -- a PSResourceGraphResponse wrapper carrying
+            # SkipToken/Data/Count/IsReadOnly -- and does NOT enumerate its rows into the pipeline.
+            # `@(Search-AzGraph ...)` therefore yields a one-element array holding the WRAPPER, not
+            # the rows, and that cost this function two things (AB#6779):
+            #
+            #   * the wrapper has no `type` property, so the filter below that separates role
+            #     assignments from role definitions matched nothing and the Role Assignments
+            #     worksheet shipped EMPTY against a tenant with 110 assignments;
+            #   * `$batch.Count` was permanently 1, so the paging predicate could never be true and
+            #     every governance query was silently capped at its first page.
+            #
+            # `.Data` is the rows, and it behaves identically on an empty result -- which is the
+            # whole reason to read it rather than to enumerate the wrapper. The array fallback is
+            # for a caller (or a test double) that hands back plain rows instead of a wrapper.
+            # Assigned in STATEMENTS, not as `$batch = if (...) { @($response.Data) }`. An if-block
+            # yields its body through the output stream, and an EMPTY array contributes zero
+            # objects to that stream -- so the expression form silently assigns $null on exactly
+            # the empty result this code exists to handle, and the `$batch.Count` below then throws
+            # under StrictMode and costs the whole dataset. Direct assignment keeps @() as @().
+            $response = Search-AzGraph @params
+            $batch = @()
+            if ($null -ne $response -and $response.PSObject.Properties['Data']) {
+                $batch = @($response.Data)
+            }
+            elseif ($null -ne $response) {
+                $batch = @($response | Where-Object { $null -ne $_ })
+            }
+
             $rows += $batch; $skip += 1000
         } while ($batch.Count -eq 1000)
         return , $rows
     }
 
-    # ---- 1 of 2 Resource Graph round trips: authorization -------------------------------------
-    # Assignments AND definitions in one query. Splitting them would be a second round trip for
-    # data the same table already holds, which is the exact cost this story is not allowed to add.
+    # ---- 1 of 3 Resource Graph round trips: authorization, at the caller's scope ---------------
+    # Assignments AND in-scope (in practice: custom) definitions in one query. THE ASSIGNMENTS
+    # COME FROM HERE AND ONLY HERE -- query 3 is tenant-scoped and returns a different, wrong set
+    # of assignments, so it is never allowed to contribute one.
     $authorization = @()
     try {
         $authorization = Invoke-ScoutGovernanceArg @'
@@ -116,7 +162,38 @@ authorizationresources
             $_.PSObject.Properties['type'] -and [string]$_.type -ieq 'microsoft.authorization/roledefinitions'
         })
 
-    # ---- 2 of 2 Resource Graph round trips: policy assignments --------------------------------
+    # ---- 2 of 3 Resource Graph round trips: role definition NAMES, tenant-scoped --------------
+    # The one call that makes "who has Owner" answerable. See the .DESCRIPTION for why it cannot
+    # be folded into query 1.
+    #
+    # Only three fields cross the wire: a role definition's full `properties` carries its entire
+    # permission model (Actions/NotActions/DataActions, hundreds of strings for a built-in), and
+    # nothing here reads it. `pack()` rebuilds the exact nested shape
+    # `ConvertTo-ScoutGovernanceResource` already reads -- properties.roleName / properties.type --
+    # so the dataset contract is unchanged and the flattener needed no edit.
+    #
+    # A failure here is NOT fatal and must not be. Tenant-scope read is a permission a caller can
+    # legitimately lack, and the run is still worth having: the scoped definitions from query 1
+    # survive, every other role degrades to `Unresolved (<guid>)`, and the warning says which
+    # permission would fix it. Failing the run instead would trade a partial answer for none.
+    $tenantRoleDefinitions = @()
+    try {
+        $tenantRoleDefinitions = Invoke-ScoutGovernanceArg -TenantScope -Query @'
+authorizationresources
+| where type =~ "microsoft.authorization/roledefinitions"
+| project id, type, properties = pack("roleName", tostring(properties.roleName), "type", tostring(properties.type))
+'@
+    }
+    catch {
+        Write-Warning ("Get-ScoutGovernanceDataset: tenant-scoped role-definition lookup failed; built-in role names " +
+            "will read as 'Unresolved (<guid>)'. Reader at the tenant root management group resolves this: $($_.Exception.Message)")
+    }
+
+    # Merged, not replaced. The scoped definitions from query 1 are listed LAST so they win a GUID
+    # collision: they were read at the caller's own scope and are the more specific answer.
+    $roleDefinitions = @(@($tenantRoleDefinitions | Where-Object { $_ }) + @($roleDefinitions | Where-Object { $_ }))
+
+    # ---- 3 of 3 Resource Graph round trips: policy assignments --------------------------------
     # The nested `properties` object is kept whole so the assessment rules' JSONPaths
     # (@.properties.enforcementMode / .parameters / .displayName) resolve exactly as before.
     $policyAssignments = @()

@@ -86,6 +86,11 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = 'FrontEnd'
+            # AB#6845 decision ($FrontEnd): NO EmitNullWhenEmpty, deliberately. $FrontEnds falls
+            # back to '0', so a load balancer with no frontend IP configuration keeps its row --
+            # and a load balancer with no frontend is exactly the misconfiguration worth seeing.
+            # The sentinel already guarantees the row; the flag would be unreachable
+            # configuration.
             Source = '$FrontEnds'
             Preamble = ''
         }

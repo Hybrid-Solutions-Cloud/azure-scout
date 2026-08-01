@@ -54,6 +54,15 @@ $ResUCount = 1
     AdditionalRowLoops = @(
         @{
             Variable = 'pvtep'
+            # AB#6845 decision ($pvtep): NO EmitNullWhenEmpty, deliberately. $pvteps is assigned
+            # through a sentinel that substitutes [pscustomobject]@{id = 'NONE'} when there are no
+            # private endpoint connections, so the loop always runs once and a SQL Managed
+            # Instance keeps its row.
+            #
+            # That sentinel is BETTER than the flag would be here, which is why it stays: the flag
+            # leaves the private endpoint column blank, and blank is ambiguous between 'none' and
+            # 'not collected'. The literal NONE says which. Setting the flag would never fire
+            # anyway, the source being non-empty by construction.
             Source = '$pvteps'
             Preamble = ''
         }

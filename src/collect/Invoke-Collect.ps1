@@ -680,7 +680,23 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             # -ManagementGroup regardless of whether one was supplied for this run.
             if ($ManagementGroupId -and -not $OmitManagementGroup) { $params.ManagementGroup = $ManagementGroupId }
             if ($SubscriptionId) { $params.Subscription = @($SubscriptionId) }
-            $batch = @(Search-AzGraph @params)
+            # AB#6779. `@(Search-AzGraph @params)` collects the PSResourceGraphResponse WRAPPER as
+            # a single element rather than the rows -- always, not only when the result is empty.
+            # That made $batch.Count permanently 1, so this loop's `-eq 1000` condition could NEVER
+            # fire and every query here was silently capped at its first page. Reading `.Data` is
+            # the only shape that behaves the same whether the result is empty or not.
+            # Assigned in STATEMENTS, not as `$batch = if (...) { @($response.Data) }`: an if-block
+            # yields its body through the output stream and an EMPTY array contributes zero objects
+            # to it, so the expression form assigns $null on exactly the empty result this handles,
+            # and `$batch.Count` below then throws under StrictMode.
+            $response = Search-AzGraph @params
+            $batch = @()
+            if ($null -ne $response -and $response.PSObject.Properties['Data']) {
+                $batch = @($response.Data)
+            }
+            elseif ($null -ne $response) {
+                $batch = @($response)
+            }
             $rows += $batch; $skip += 1000
         } while ($batch.Count -eq 1000)
         return , $rows

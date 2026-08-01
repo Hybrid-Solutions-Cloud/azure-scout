@@ -110,7 +110,7 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     # AB#6845 CONTINUED — the rest of the vanishing-parent audit, proved the honest way. Every one
     # of these fans its row out over a child collection, and the payloads below OMIT that
     # collection exactly as Azure does. Two mechanisms keep the parent: the newly added
-    # `EmitNullWhenEmpty`, and the older sentinel idiom (`$Auths = if(...){...}else{'0'}`) that 26
+    # `EmitNullWhenEmpty`, and the older sentinel idiom (`$Auths = if(...){...}else{'0'}`) that 27
     # loops already had. Both are behaviour, not structure, so both are asserted here rather than
     # inferred — tests/Collector.VanishingParent.Tests.ps1 carries the structural half.
     @{ Category = 'Compute'; Name = 'AvailabilitySets'; Type = 'microsoft.compute/availabilitysets'

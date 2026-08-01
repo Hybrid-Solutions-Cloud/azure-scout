@@ -100,6 +100,11 @@ $ResUCount = $null
     AdditionalRowLoops = @(
         @{
             Variable = 'CoreRule'
+            # AB#6845 decision ($CoreRule): NO EmitNullWhenEmpty, deliberately. $Rules falls back
+            # to '0', so a rule collection carrying no rules still yields one iteration and the
+            # firewall keeps its row. This is the innermost of three nested sentinels in this
+            # collector; all three must hold for a firewall with no policy at all to survive, and
+            # the sparse-payload suite asserts that end to end rather than per layer.
             Source = '$Rules'
             Preamble = @'
 $CoreCollections = Get-AZSCSafeProperty -InputObject $CoreRule -Path 'properties.rulecollections'
@@ -108,6 +113,11 @@ $CoreCollections = Get-AZSCSafeProperty -InputObject $CoreRule -Path 'properties
         }
         @{
             Variable = 'RuleCollection'
+            # AB#6845 decision ($RuleCollection): NO EmitNullWhenEmpty, deliberately.
+            # $CoreCollections falls back to '0', so a firewall whose policy carries no rule
+            # collection groups still iterates once here -- which is also what lets the nested
+            # $CoreRule loop below run at all. A firewall is a first-class resource and an
+            # expensive one; it must appear whether or not anyone has written a rule yet.
             Source = '$CoreCollections'
             Preamble = @'
 $RuleCoreCollections = Get-AZSCSafeProperty -InputObject $RuleCollection -Path 'rules'
@@ -116,6 +126,9 @@ $RuleCoreCollections = Get-AZSCSafeProperty -InputObject $RuleCollection -Path '
         }
         @{
             Variable = 'Rule'
+            # AB#6845 decision ($Rule): NO EmitNullWhenEmpty, deliberately. $RuleCoreCollections
+            # falls back to '0' for the same reason as the two loops above, and by the same
+            # mechanism. The flag would be unreachable on all three.
             Source = '$RuleCoreCollections'
             Preamble = @'
 $RuleProtocols = Get-AZSCSafeProperty -InputObject $Rule -Path 'ipprotocols'
