@@ -680,6 +680,599 @@ function New-ScoutDocxManualSection {
     }
 }
 
+#region v2 section builders (AB#6856 — driven by the report model, not by raw findings)
+
+<#
+    Everything in this region reads Build-ScoutReportModel's output. The v1 sections above are
+    retained and still run when no model is available (a caller re-rendering a hand-edited
+    findings.json, or a narrow unit test that dot-sources only this file), because a renderer
+    that hard-fails without its model is worse than one that renders less.
+
+    The rule these sections hold to: a number that was not collected is rendered as "not
+    collected", never as 0, and a domain that could not be assessed is rendered as "Not
+    assessed", never as a score. Every section below has at least one branch that exists only
+    to keep that true.
+#>
+
+function Get-ScoutDocxBandColor {
+    param([AllowNull()] $Score)
+    if ($null -eq $Score) { return $Script:ScoutDocxGray }
+    if ($Score -ge 9) { return $Script:ScoutDocxGreen }
+    if ($Score -ge 7) { return $Script:ScoutDocxSteel }
+    if ($Score -ge 5) { return $Script:ScoutDocxGold }
+    return $Script:ScoutDocxRed
+}
+
+function Add-ScoutDocxKeyValueTable {
+    param($Body, $Pairs, [double]$KeyWidthIn = 2.0, [double]$ValueWidthIn = 4.5)
+    $rows = New-ScoutDocxList
+    $r = 0
+    foreach ($p in $Pairs) {
+        $r++
+        $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
+        $cells = New-ScoutDocxList
+        $cells.Add((New-ScoutDocxCell -Text $p.Key -WidthIn $KeyWidthIn -Bold $true -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text $p.Value -WidthIn $ValueWidthIn -FillHex $bg))
+        $rows.Add((New-ScoutDocxRow -Cells $cells))
+    }
+    $Body.Append((New-ScoutDocxTable -ColWidthsIn @($KeyWidthIn, $ValueWidthIn) -Rows $rows))
+}
+
+function Add-ScoutDocxGridTable {
+    <#
+    .SYNOPSIS
+        A header row plus data rows, with per-cell fill/colour overrides.
+
+    .PARAMETER Rows
+        Array of arrays. Each inner array holds one row's cell specs:
+        @{ Text = '...'; Bold = $false; Hex = '...'; FillHex = '...'; Align = 'center' }
+    #>
+    param($Body, [string[]]$Headers, [double[]]$Widths, $Rows)
+
+    # A caller building rows with `$rows = foreach (...) { , @(...) }` gets a jagged array
+    # back for two-or-more rows, but for exactly ONE row PowerShell's output stream enumerates
+    # the unary-comma wrapper away and hands us the row's own cells as the top-level
+    # collection. Normalise here rather than in nine call sites: a ROW is an array of cell
+    # specs, so a collection whose first element is a cell spec (a dictionary) IS one row.
+    # Without this, every table that happened to have a single data row rendered as a wall of
+    # empty cells -- and, because the whole renderer is wrapped in a catch that falls back to
+    # HTML, the symptom was a silently missing .docx rather than an error anyone would read.
+    $normalised = @($Rows)
+    if ($normalised.Count -gt 0 -and $normalised[0] -is [System.Collections.IDictionary]) {
+        $normalised = @(, $normalised)
+    }
+
+    $tblRows = New-ScoutDocxList
+    $header = New-ScoutDocxList
+    for ($i = 0; $i -lt $Headers.Count; $i++) {
+        $header.Add((New-ScoutDocxCell -Text $Headers[$i] -WidthIn $Widths[$i] -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+    }
+    $tblRows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+
+    $r = 0
+    foreach ($row in $normalised) {
+        $r++
+        $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
+        $cells = New-ScoutDocxList
+        for ($i = 0; $i -lt $Widths.Count; $i++) {
+            $cellSpecs = @($row)
+            $spec = if ($i -lt $cellSpecs.Count -and $cellSpecs[$i] -is [System.Collections.IDictionary]) { $cellSpecs[$i] } else { @{ Text = '' } }
+            $text = if ($spec.ContainsKey('Text') -and $null -ne $spec.Text) { "$($spec.Text)" } else { '' }
+            $fill = if ($spec.ContainsKey('FillHex') -and $spec.FillHex) { $spec.FillHex } else { $bg }
+            $hex = if ($spec.ContainsKey('Hex') -and $spec.Hex) { $spec.Hex } else { $Script:ScoutDocxInk }
+            $bold = if ($spec.ContainsKey('Bold')) { [bool]$spec.Bold } else { $false }
+            $align = if ($spec.ContainsKey('Align')) { $spec.Align } else { $null }
+            $cells.Add((New-ScoutDocxCell -Text $text -WidthIn $Widths[$i] -Hex $hex -Bold $bold -FillHex $fill -Align $align))
+        }
+        $tblRows.Add((New-ScoutDocxRow -Cells $cells))
+    }
+    $Body.Append((New-ScoutDocxTable -ColWidthsIn $Widths -Rows $tblRows))
+}
+
+function New-ScoutDocxDocumentInfo {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Document Information' -Level 1
+
+    $eng = Get-ScoutDocxProp $Model 'Engagement'
+    $meta = Get-ScoutDocxProp $Model 'Meta'
+    $scope = Get-ScoutDocxProp $Model 'Scope'
+
+    $frameworks = @(Get-ScoutDocxProp $eng 'FrameworksReferenced')
+    $fwText = if ($frameworks.Count -gt 0) {
+        ($frameworks | ForEach-Object {
+            $v = Get-ScoutDocxProp $_ 'Version'
+            if ($v) { "$(Get-ScoutDocxProp $_ 'Framework') ($v)" } else { "$(Get-ScoutDocxProp $_ 'Framework')" }
+        }) -join '; '
+    } else { 'None recorded for this run' }
+
+    $generated = Get-ScoutDocxProp $meta 'GeneratedOn'
+    $generatedText = if ($generated) { try { ([datetime]$generated).ToString('d MMMM yyyy') } catch { "$generated" } } else { '(unknown)' }
+
+    $pairs = @(
+        @{ Key = 'Assessment date'; Value = $generatedText }
+        @{ Key = 'Tenant ID'; Value = "$(Get-ScoutDocxProp $eng 'TenantId' '(not recorded)')" }
+        @{ Key = 'Scope'; Value = "$(Get-ScoutDocxProp $meta 'Scope' '(not recorded)')" }
+        @{ Key = 'Management group'; Value = "$(Get-ScoutDocxProp $meta 'ManagementGroupId' '(tenant root / not specified)')" }
+        @{ Key = 'In-scope subscriptions'; Value = "$(Get-ScoutDocxProp $scope 'SubscriptionCount' 0)" }
+        @{ Key = 'Frameworks referenced'; Value = $fwText }
+        @{ Key = 'Classification'; Value = "$(Get-ScoutDocxProp $eng 'Classification')" }
+        @{ Key = 'Source data'; Value = 'Azure Scout collect.json for this run — read-only ARM, Resource Graph and Microsoft Graph queries. No tenant state was modified.' }
+        @{ Key = 'Run ID'; Value = "$(Get-ScoutDocxProp $meta 'RunId' '(not recorded)')" }
+    )
+    Add-ScoutDocxKeyValueTable -Body $Body -Pairs $pairs
+}
+
+function New-ScoutDocxTableOfContents {
+    param($Body, $Sections)
+    Add-ScoutDocxHeading -Body $Body -Text 'Contents' -Level 1
+    $n = 0
+    foreach ($s in $Sections) {
+        $n++
+        Add-ScoutDocxParagraph -Body $Body -Text ("{0:D2}.   {1}" -f $n, $s) -SizePt 11
+    }
+}
+
+function New-ScoutDocxInventorySection {
+    param($Body, $Model)
+
+    $tiles = @(Get-ScoutDocxProp (Get-ScoutDocxProp $Model 'Inventory') 'Tiles')
+    $collected = @($tiles | Where-Object { $_.Collected })
+    $missing = @($tiles | Where-Object { -not $_.Collected })
+
+    Add-ScoutDocxHeading -Body $Body -Text 'In-scope inventory' -Level 2
+
+    if ($collected.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No inventory counts were collected for this run.' -Hex $Script:ScoutDocxGray -Italic $true
+    }
+    else {
+        $rows = foreach ($t in $collected) {
+            , @(
+                @{ Text = $t.Label }
+                @{ Text = '{0:N0}' -f $t.Value; Bold = $true; Align = 'right' }
+            )
+        }
+        Add-ScoutDocxGridTable -Body $Body -Headers @('Resource', 'In scope') -Widths @(4.0, 2.5) -Rows $rows
+    }
+
+    if ($missing.Count -gt 0) {
+        # Stated, not hidden. A tile silently absent reads as "this estate has none of those",
+        # which is a different and much more comfortable claim than "we did not look".
+        Add-ScoutDocxParagraph -Body $Body `
+            -Text ("Not collected for this run, and therefore not counted above: {0}. These are blind spots, not zeroes." -f (($missing | ForEach-Object { $_.Label }) -join ', ')) `
+            -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true
+    }
+}
+
+function New-ScoutDocxExecSummaryV2 {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Executive Summary' -Level 1
+
+    New-ScoutDocxInventorySection -Body $Body -Model $Model
+
+    $maturity = Get-ScoutDocxProp $Model 'Maturity'
+    $composite = Get-ScoutDocxProp $maturity 'Composite'
+    $current = Get-ScoutDocxProp $composite 'Current'
+    $band = Get-ScoutDocxProp $composite 'Band'
+    $assessed = Get-ScoutDocxProp $composite 'AssessedDomainCount' 0
+    $excluded = Get-ScoutDocxProp $composite 'ExcludedDomainCount' 0
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Composite maturity' -Level 2
+    if ($null -eq $current) {
+        $naRuns = New-ScoutDocxList
+        $naRuns.Add((New-ScoutDocxRun -Text 'Not assessed' -SizePt 18 -Hex $Script:ScoutDocxGray -Bold $true))
+        $naRuns.Add((New-ScoutDocxRun -Text '   no domain in this run produced a scorable result.' -SizePt 12 -Hex $Script:ScoutDocxGray))
+        $Body.Append((New-ScoutDocxPara -Runs $naRuns -SpaceAfterPt 4))
+    }
+    else {
+        $runs = New-ScoutDocxList
+        $runs.Add((New-ScoutDocxRun -Text "$current / 10" -SizePt 24 -Hex (Get-ScoutDocxBandColor $current) -Bold $true))
+        $runs.Add((New-ScoutDocxRun -Text "   $band" -SizePt 13 -Hex $Script:ScoutDocxGray))
+        $Body.Append((New-ScoutDocxPara -Runs $runs -SpaceAfterPt 4))
+        Add-ScoutDocxParagraph -Body $Body `
+            -Text ("The composite is the unweighted mean of the {0} domain(s) that produced a scorable result." -f $assessed) `
+            -SizePt 10 -Hex $Script:ScoutDocxGray
+    }
+
+    if ($excluded -gt 0) {
+        Add-ScoutDocxParagraph -Body $Body `
+            -Text ("{0} domain(s) are excluded from the composite because no automated evidence was collected for them. They are shown as 'Not assessed' throughout this report and are never scored as zero — a zero would read as 'measured and found worst' rather than 'not measured'." -f $excluded) `
+            -SizePt 10 -Hex $Script:ScoutDocxGold
+
+    }
+
+    # Rollup counts
+    $coverage = Get-ScoutDocxProp $Model 'Coverage'
+    $gaps = @(Get-ScoutDocxProp $Model 'GapRegister')
+    $critical = @($gaps | Where-Object { $_.Severity -in 'CRITICAL', 'HIGH' }).Count
+    Add-ScoutDocxParagraph -Body $Body -Text ' ' -SizePt 4
+    foreach ($line in @(
+            "Open gaps in the register: $(@($gaps).Count)"
+            "Of those, CRITICAL or HIGH severity: $critical"
+            "Domains assessed: $(Get-ScoutDocxProp $coverage 'AssessedDomains' 0) — not assessed: $(Get-ScoutDocxProp $coverage 'NotAssessedDomains' 0)"
+            "Controls requiring manual review: $(Get-ScoutDocxProp $coverage 'ManualReviewItems' 0)"
+            "Controls that returned no data (gated or uncollected): $(Get-ScoutDocxProp $coverage 'NotAssessedItems' 0)"
+            "Controls that errored (check collector permissions): $(Get-ScoutDocxProp $coverage 'ErrorItems' 0)"
+        )) {
+        Add-ScoutDocxParagraph -Body $Body -Text "•   $line" -SizePt 12
+    }
+}
+
+function New-ScoutDocxFindingsDashboard {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Findings Dashboard' -Level 1
+    Add-ScoutDocxParagraph -Body $Body -Text 'One line per domain: the maturity score, and the balance of controls behind it. The domain chapters below carry the supporting detail.' -SizePt 10 -Hex $Script:ScoutDocxGray
+
+    $domains = @(Get-ScoutDocxProp (Get-ScoutDocxProp $Model 'Maturity') 'Domains')
+    if ($domains.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No domains were assessed for this run.' -Hex $Script:ScoutDocxGray -Italic $true
+        return
+    }
+
+    $rows = foreach ($d in $domains) {
+        $scoreText = if ($d.NotAssessed) { 'Not assessed' } else { "$($d.Score) / 10" }
+        , @(
+            @{ Text = $d.Domain }
+            @{ Text = $scoreText; Bold = $true; Hex = (Get-ScoutDocxBandColor $d.Score); Align = 'center' }
+            @{ Text = $d.Band; Align = 'center' }
+            @{ Text = "$($d.Pass)"; Align = 'center' }
+            @{ Text = "$($d.Partial)"; Align = 'center' }
+            @{ Text = "$($d.Fail)"; Align = 'center' }
+            @{ Text = "$($d.Manual)"; Align = 'center' }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body `
+        -Headers @('Domain', 'Score', 'Band', 'Pass', 'Partial', 'Fail', 'Manual') `
+        -Widths @(1.9, 1.0, 1.2, 0.6, 0.7, 0.6, 0.7) -Rows $rows
+}
+
+function New-ScoutDocxMethodology {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Maturity Scoring Methodology' -Level 1
+    Add-ScoutDocxParagraph -Body $Body -Text ('Each domain is scored on a 1-10 scale derived from the observed control state across the assessed scope. ' +
+        'A domain score is its share of passing controls (a partial counts as a half) rescaled to 1-10; the composite is the unweighted arithmetic mean of the ' +
+        'domains that produced a scorable result. Controls that are manual, errored, or returned no data are excluded from the denominator rather than counted as failures.')
+
+    $rubric = @(Get-ScoutDocxProp (Get-ScoutDocxProp $Model 'Maturity') 'Rubric')
+    $rows = foreach ($b in $rubric) {
+        , @(
+            @{ Text = "$($b.Min) – $($b.Max)"; Align = 'center'; Bold = $true }
+            @{ Text = $b.Level; Bold = $true }
+            @{ Text = $b.Description }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Score band', 'Maturity level', 'Description') -Widths @(1.0, 1.6, 4.0) -Rows $rows
+
+    Add-ScoutDocxParagraph -Body $Body -Text ('This 1-10 scale is Azure Scout''s own. Microsoft''s Cloud Adoption Framework Govern methodology publishes no numeric ' +
+        'maturity model, so there is nothing published to relabel; the scale is not comparable to the Well-Architected Framework''s separate five-level maturity ' +
+        'model, and the two are never plotted on one axis.') -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true
+}
+
+function New-ScoutDocxKriSection {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Key Risk Indicators' -Level 1
+
+    $kris = @(Get-ScoutDocxProp $Model 'KeyRiskIndicators')
+    if ($kris.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No key risk indicators were derived for this run.' -Hex $Script:ScoutDocxGray -Italic $true
+        return
+    }
+
+    Add-ScoutDocxParagraph -Body $Body -Text 'Every row carries the count that supports it. Rows graded GOOD are deliberate strengths, included so the table reads as an assessment rather than an indictment.' -SizePt 10 -Hex $Script:ScoutDocxGray
+
+    $rows = foreach ($k in $kris) {
+        $sevColor = switch ("$($k.Severity)".ToUpperInvariant()) {
+            'CRITICAL' { $Script:ScoutDocxRed }
+            'HIGH' { $Script:ScoutDocxRed }
+            'MEDIUM' { $Script:ScoutDocxGold }
+            'LOW' { $Script:ScoutDocxSteel }
+            'GOOD' { $Script:ScoutDocxGreen }
+            default { $Script:ScoutDocxGray }
+        }
+        $countText = if ($null -eq $k.SupportingCount) { 'not collected' } else { '{0:N0}' -f $k.SupportingCount }
+        , @(
+            @{ Text = $k.RiskArea }
+            @{ Text = $k.Domain }
+            @{ Text = $countText; Align = 'right' }
+            @{ Text = "$($k.Severity)"; Bold = $true; Hex = $Script:ScoutDocxPaper; FillHex = $sevColor; Align = 'center' }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Risk area', 'Domain', 'Count', 'Severity') -Widths @(3.2, 1.4, 0.9, 1.0) -Rows $rows
+}
+
+function New-ScoutDocxFocusAreaSection {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Prioritised Focus Areas' -Level 1
+    Add-ScoutDocxParagraph -Body $Body -Text 'Domains ranked by urgency — lowest maturity first, ties broken by the number of open gaps.' -SizePt 10 -Hex $Script:ScoutDocxGray
+
+    $focus = @(Get-ScoutDocxProp $Model 'FocusAreas')
+    if ($focus.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No domain produced a scorable result, so nothing can be ranked.' -Hex $Script:ScoutDocxGray -Italic $true
+        return
+    }
+
+    $rows = foreach ($f in $focus) {
+        , @(
+            @{ Text = "$($f.Rank)"; Align = 'center'; Bold = $true }
+            @{ Text = $f.Domain }
+            @{ Text = "$($f.Score) / 10"; Align = 'center'; Bold = $true; Hex = (Get-ScoutDocxBandColor $f.Score) }
+            @{ Text = "$($f.OpenGaps)"; Align = 'center' }
+            @{ Text = $f.Status; Align = 'center' }
+            @{ Text = $f.Priority; Align = 'center'; Bold = $true }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Rank', 'Domain', 'Score', 'Open gaps', 'Status', 'Priority') `
+        -Widths @(0.6, 2.2, 0.9, 0.9, 1.0, 1.1) -Rows $rows
+}
+
+function New-ScoutDocxDomainChapters {
+    param($Body, $Model)
+
+    $domains = @(Get-ScoutDocxProp (Get-ScoutDocxProp $Model 'Maturity') 'Domains')
+    $gaps = @(Get-ScoutDocxProp $Model 'GapRegister')
+
+    $n = 0
+    foreach ($d in $domains) {
+        $n++
+        Add-ScoutDocxPageBreak -Body $Body
+        Add-ScoutDocxHeading -Body $Body -Text ("Chapter {0} — {1}" -f $n, $d.Domain) -Level 1
+
+        $scoreText = if ($d.NotAssessed) { 'Not assessed' } else { "$($d.Score)/10" }
+        $runs = New-ScoutDocxList
+        $runs.Add((New-ScoutDocxRun -Text "Maturity Score: $scoreText" -SizePt 12 -Hex (Get-ScoutDocxBandColor $d.Score) -Bold $true))
+        $runs.Add((New-ScoutDocxRun -Text "   |   Band: $($d.Band)" -SizePt 12 -Hex $Script:ScoutDocxGray))
+        $Body.Append((New-ScoutDocxPara -Runs $runs -SpaceAfterPt 8))
+
+        if ($d.WhyThisMatters) {
+            Add-ScoutDocxHeading -Body $Body -Text 'Why this matters' -Level 2
+            Add-ScoutDocxParagraph -Body $Body -Text "$($d.WhyThisMatters)"
+        }
+
+        Add-ScoutDocxHeading -Body $Body -Text 'Current state' -Level 2
+        if ($d.NotAssessed) {
+            # The load-bearing branch. Inventing a current-state sentence for a domain with no
+            # evidence is precisely the failure this report exists to stop.
+            Add-ScoutDocxParagraph -Body $Body -Text ('No automated evidence was collected for this domain in this run, so no current state can be described and no score can be claimed. ' +
+                'This is a coverage gap, not a pass and not a failure.') -Hex $Script:ScoutDocxGold
+        }
+        elseif ($d.CurrentState) {
+            Add-ScoutDocxParagraph -Body $Body -Text "$($d.CurrentState)"
+        }
+        else {
+            $total = [int]$d.Pass + [int]$d.Partial + [int]$d.Fail
+            Add-ScoutDocxParagraph -Body $Body -Text ("{0} of {1} scorable controls in this domain are satisfied, {2} partially, and {3} are not. {4} further control(s) require manual review and are excluded from the score." -f `
+                    $d.Pass, $total, $d.Partial, $d.Fail, $d.Manual)
+        }
+
+        $domainGaps = @($gaps | Where-Object { "$($_.Domain)" -eq "$($d.Domain)" })
+        Add-ScoutDocxHeading -Body $Body -Text 'Findings and action items' -Level 2
+        if ($domainGaps.Count -eq 0) {
+            Add-ScoutDocxParagraph -Body $Body -Text 'No open gaps in this domain.' -Hex $Script:ScoutDocxGreen
+            continue
+        }
+
+        $rows = foreach ($g in $domainGaps) {
+            $observed = if ($g.EvidenceTruncated) {
+                "{0} affected (showing first {1})" -f $g.EvidenceCount, $g.EvidenceShown
+            } else {
+                "{0} affected" -f $g.EvidenceCount
+            }
+            , @(
+                @{ Text = $g.GapId; Align = 'center' }
+                @{ Text = $g.Title }
+                @{ Text = $observed; Align = 'center' }
+                @{ Text = $g.Severity; Bold = $true; Align = 'center' }
+                @{ Text = $(if ($g.ClosureAction) { $g.ClosureAction } else { '—' }) }
+            )
+        }
+        Add-ScoutDocxGridTable -Body $Body -Headers @('Gap', 'Finding', 'Observed', 'Severity', 'Recommended action') `
+            -Widths @(0.5, 2.0, 1.0, 0.8, 2.2) -Rows $rows
+
+        # The named resources. This is the section whose absence made every previous report
+        # unusable: "a rule failed" with no way to know what failed.
+        $withEvidence = @($domainGaps | Where-Object { @($_.Evidence).Count -gt 0 })
+        if ($withEvidence.Count -gt 0) {
+            Add-ScoutDocxHeading -Body $Body -Text 'Affected resources' -Level 2
+            $evRows = foreach ($g in $withEvidence) {
+                foreach ($e in @($g.Evidence)) {
+                    , @(
+                        @{ Text = $g.GapId; Align = 'center' }
+                        @{ Text = $(if ($e.SubscriptionName) { $e.SubscriptionName } elseif ($e.SubscriptionId) { $e.SubscriptionId } else { '—' }) }
+                        @{ Text = $(if ($e.ResourceGroup) { $e.ResourceGroup } else { '—' }) }
+                        @{ Text = $(if ($e.ResourceName) { $e.ResourceName } else { '—' }) }
+                        @{ Text = $e.Verdict }
+                    )
+                }
+            }
+            Add-ScoutDocxGridTable -Body $Body -Headers @('Gap', 'Subscription', 'Resource group', 'Resource', 'Triage verdict') `
+                -Widths @(0.5, 1.7, 1.5, 1.7, 1.6) -Rows $evRows
+            Add-ScoutDocxParagraph -Body $Body -Text ('Triage verdicts are a heuristic first pass over resource naming and placement, produced to sort the list — not a confirmed judgement. ' +
+                'Each row still needs review by someone who knows the estate.') -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true
+
+            $truncated = @($withEvidence | Where-Object { $_.EvidenceTruncated })
+            if ($truncated.Count -gt 0) {
+                # Deliberately does NOT restate the cap as its own number. The Observed column
+                # above already carries the exact "N affected (showing first M)" per gap, and a
+                # second, separately-derived figure here can disagree with it — which is worse
+                # than saying less.
+                Add-ScoutDocxParagraph -Body $Body -Text ("The resource list above is partial for {0} of these gap(s) — see the 'showing first' counts in the findings table. The affected totals themselves are complete." -f `
+                        $truncated.Count) -SizePt 9 -Hex $Script:ScoutDocxGold -Italic $true
+            }
+        }
+    }
+}
+
+function New-ScoutDocxMaturitySummary {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Overall Maturity Summary' -Level 1
+
+    $maturity = Get-ScoutDocxProp $Model 'Maturity'
+    $domains = @(Get-ScoutDocxProp $maturity 'Domains')
+    $composite = Get-ScoutDocxProp $maturity 'Composite'
+
+    $rows = foreach ($d in $domains) {
+        $cur = if ($d.NotAssessed) { 'Not assessed' } else { "$($d.Score)" }
+        $tgt = if ($null -ne $d.TargetScore) { "$($d.TargetScore)" } else { '—' }
+        $gap = if (-not $d.NotAssessed -and $null -ne $d.TargetScore) { '+{0}' -f ($d.TargetScore - $d.Score) } else { '—' }
+        , @(
+            @{ Text = $d.Domain }
+            @{ Text = $cur; Align = 'center'; Bold = $true; Hex = (Get-ScoutDocxBandColor $d.Score) }
+            @{ Text = $tgt; Align = 'center' }
+            @{ Text = $gap; Align = 'center' }
+            @{ Text = $d.Band; Align = 'center' }
+        )
+    }
+
+    $compCur = Get-ScoutDocxProp $composite 'Current'
+    $rows = @($rows) + @(, @(
+            @{ Text = 'Composite'; Bold = $true; FillHex = $Script:ScoutDocxMist }
+            @{ Text = $(if ($null -eq $compCur) { 'Not assessed' } else { "$compCur" }); Bold = $true; Align = 'center'; FillHex = $Script:ScoutDocxMist }
+            @{ Text = $(if ($null -ne (Get-ScoutDocxProp $composite 'Target')) { "$(Get-ScoutDocxProp $composite 'Target')" } else { '—' }); Align = 'center'; FillHex = $Script:ScoutDocxMist }
+            @{ Text = $(if ($null -ne (Get-ScoutDocxProp $composite 'Gap')) { "+$(Get-ScoutDocxProp $composite 'Gap')" } else { '—' }); Align = 'center'; FillHex = $Script:ScoutDocxMist }
+            @{ Text = "$(Get-ScoutDocxProp $composite 'Band')"; Align = 'center'; Bold = $true; FillHex = $Script:ScoutDocxMist }
+        ))
+
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Domain', 'Current', 'Target', 'Gap', 'Band') `
+        -Widths @(2.4, 1.1, 1.0, 0.8, 1.4) -Rows $rows
+}
+
+function New-ScoutDocxRoadmapSection {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text '90-Day Remediation Roadmap' -Level 1
+    Add-ScoutDocxParagraph -Body $Body -Text 'Three 30-day phases. An action is placed by its rule when the rule declares a phase; otherwise by severity, and the table says which.' -SizePt 10 -Hex $Script:ScoutDocxGray
+
+    $roadmap = Get-ScoutDocxProp $Model 'Roadmap'
+    foreach ($phase in @(Get-ScoutDocxProp $roadmap 'Phases')) {
+        Add-ScoutDocxHeading -Body $Body -Text ("Phase {0} — {1} ({2})" -f $phase.Phase, $phase.Name, $phase.DayRange) -Level 2
+        $items = @($phase.Items)
+        if ($items.Count -eq 0) {
+            Add-ScoutDocxParagraph -Body $Body -Text 'No actions fall into this phase.' -Hex $Script:ScoutDocxGray -Italic $true
+            continue
+        }
+        $rows = foreach ($i in $items) {
+            , @(
+                @{ Text = $i.GapId; Align = 'center' }
+                @{ Text = $i.Domain }
+                @{ Text = $(if ($i.Action) { $i.Action } else { '—' }) }
+                @{ Text = $(if ($i.Owner) { $i.Owner } else { '—' }) }
+                @{ Text = $(if ($i.Effort) { $i.Effort } else { '—' }); Align = 'center' }
+                @{ Text = $(if ($i.PhaseSource -eq 'rule') { 'declared' } else { 'by severity' }); Align = 'center' }
+            )
+        }
+        Add-ScoutDocxGridTable -Body $Body -Headers @('Gap', 'Domain', 'Action', 'Owner', 'Effort', 'Sequenced') `
+            -Widths @(0.5, 1.2, 2.4, 1.3, 0.5, 0.9) -Rows $rows
+    }
+
+    $exit = @(Get-ScoutDocxProp $roadmap 'ExitCriteria')
+    if ($exit.Count -gt 0) {
+        Add-ScoutDocxHeading -Body $Body -Text 'Exit criteria' -Level 2
+        foreach ($c in $exit) { Add-ScoutDocxParagraph -Body $Body -Text "•   $c" -SizePt 11 }
+    }
+}
+
+function New-ScoutDocxAppendixSubscriptions {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Appendix A — Subscription Detail' -Level 1
+
+    $subs = @(Get-ScoutDocxProp (Get-ScoutDocxProp $Model 'Scope') 'Subscriptions')
+    if ($subs.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No subscription inventory was collected for this run.' -Hex $Script:ScoutDocxGray -Italic $true
+        return
+    }
+
+    $gaps = @(Get-ScoutDocxProp $Model 'GapRegister')
+    $bySub = @{}
+    foreach ($g in $gaps) {
+        foreach ($e in @($g.Evidence)) {
+            $key = if ($e.SubscriptionId) { "$($e.SubscriptionId)" } else { continue }
+            if (-not $bySub.ContainsKey($key)) { $bySub[$key] = 0 }
+            $bySub[$key]++
+        }
+    }
+
+    $rows = foreach ($s in $subs) {
+        $id = "$($s.Id)"
+        , @(
+            @{ Text = "$($s.Name)" }
+            @{ Text = $id }
+            @{ Text = "$($s.State)"; Align = 'center' }
+            @{ Text = $(if ($bySub.ContainsKey($id)) { "$($bySub[$id])" } else { '0' }); Align = 'center' }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Subscription', 'Subscription ID', 'State', 'Affected resources') `
+        -Widths @(2.0, 2.6, 0.9, 1.2) -Rows $rows
+}
+
+function New-ScoutDocxAppendixGapRegister {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Appendix B — Consolidated Gap Register' -Level 1
+
+    $gaps = @(Get-ScoutDocxProp $Model 'GapRegister')
+    if ($gaps.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No open gaps — every scorable control in the assessed scope is satisfied.' -Hex $Script:ScoutDocxGreen
+        return
+    }
+
+    $bySeverity = $gaps | Group-Object Severity | ForEach-Object { "$($_.Count) $($_.Name)" }
+    Add-ScoutDocxParagraph -Body $Body -Text ("{0} gaps total — {1}. Grouped by domain and ordered by severity within each group." -f $gaps.Count, ($bySeverity -join ', '))
+
+    $rows = foreach ($g in $gaps) {
+        , @(
+            @{ Text = $g.GapId; Align = 'center' }
+            @{ Text = $g.Domain }
+            @{ Text = "$($g.Title) ($($g.EvidenceCount) affected)" }
+            @{ Text = $(if ($g.TargetState) { $g.TargetState } else { '—' }) }
+            @{ Text = $g.Severity; Bold = $true; Align = 'center' }
+            @{ Text = $(if ($g.ClosureAction) { $g.ClosureAction } else { '—' }) }
+        )
+    }
+    Add-ScoutDocxGridTable -Body $Body -Headers @('Gap', 'Domain', 'Current state (observed)', 'Target state', 'Severity', 'Closure action') `
+        -Widths @(0.45, 1.0, 1.7, 1.6, 0.7, 1.55) -Rows $rows
+
+    $noTarget = @($gaps | Where-Object { -not $_.TargetState }).Count
+    if ($noTarget -gt 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text ("{0} gap(s) carry no target state because their rule does not declare one. The closure action still applies; the target-state column is left blank rather than guessed." -f $noTarget) `
+            -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true
+    }
+}
+
+function New-ScoutDocxScopeAndAssumptions {
+    param($Body, $Model)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Scope & Assumptions' -Level 1
+
+    $meta = Get-ScoutDocxProp $Model 'Meta'
+    $scope = Get-ScoutDocxProp $Model 'Scope'
+    $coverage = Get-ScoutDocxProp $Model 'Coverage'
+
+    Add-ScoutDocxParagraph -Body $Body -Text ("This assessment covers {0} subscription(s) under scope '{1}'{2}. Findings reflect the state of the estate at the time of the scan; any remediation carried out since is not captured." -f `
+        (Get-ScoutDocxProp $scope 'SubscriptionCount' 0),
+        (Get-ScoutDocxProp $meta 'Scope' 'All'),
+        $(if (Get-ScoutDocxProp $meta 'ManagementGroupId') { ", rooted at management group $(Get-ScoutDocxProp $meta 'ManagementGroupId')" } else { '' }))
+
+    foreach ($line in @(
+            'Azure Scout is read-only. No tenant state was created, modified or deleted to produce this report.'
+            'Inheritance-based controls are treated as effective at descendant scope unless an explicit override was observed.'
+            ("{0} control(s) require manual review and are excluded from every score in this report." -f (Get-ScoutDocxProp $coverage 'ManualReviewItems' 0))
+            ("{0} control(s) returned no data — the source was gated behind a permission Scout does not hold, or was not collected. Neither a pass nor a failure is claimed for these." -f (Get-ScoutDocxProp $coverage 'NotAssessedItems' 0))
+            'The 1-10 maturity scale is Azure Scout''s own and is not a Microsoft-published model.'
+            'Triage verdicts on affected resources are heuristic suggestions, not confirmed judgements.'
+        )) {
+        Add-ScoutDocxParagraph -Body $Body -Text "•   $line" -SizePt 11
+    }
+}
+
+#endregion
+
 function New-ScoutDocxSectionProperties {
     # US Letter, portrait, 1" top/bottom, 0.75" left/right — twips (dxa) throughout.
     $sectPr = New-ScoutDocxEl "$Script:ScoutDocxWNs.SectionProperties"
@@ -715,10 +1308,23 @@ function Export-Word {
         already receive from Export-Report.ps1). Used only to surface scope /
         management-group context on the cover page when present.
 
+    .PARAMETER Model
+        Optional — the report model from Build-ScoutReportModel (AB#6852). When present, the
+        document renders the full v2 structure: document information, contents, executive
+        summary with inventory tiles and composite maturity, findings dashboard, scoring
+        methodology, key risk indicators, prioritised focus areas, one chapter per domain with
+        its affected resources named, overall maturity summary, the 90-day roadmap, and the
+        appendices including the consolidated gap register.
+
+        When absent — a caller re-rendering a hand-edited findings.json, or a unit test that
+        dot-sources only this file — Export-Word first tries to build the model itself, and
+        falls back to the pre-v2 section set only if Build-ScoutReportModel is not loaded. A
+        renderer that hard-fails without its model would be worse than one that renders less.
+
     .PARAMETER OutputPath
         Directory the rendered assessment_report.docx is written into.
     #>
-    param($Findings, $Collect, [string] $OutputPath)
+    param($Findings, $Collect, [string] $OutputPath, $Model = $null)
 
     try {
         Import-ScoutDocxOpenXmlAssembly
@@ -759,20 +1365,78 @@ function Export-Word {
             -Subtitle 'Executive Assessment — CAF & WAF Alignment' -MetaLine $metaLine
         Add-ScoutDocxPageBreak -Body $body
 
-        # ---- Executive Summary ----
-        New-ScoutDocxExecSummary -Body $body -Frameworks $frameworks -Areas $areas -Gaps $gaps -Manual $manual -Errors $errors
-        Add-ScoutDocxPageBreak -Body $body
+        # AB#6856: prefer the report model. A caller that did not pass one still gets the v2
+        # document as long as Build-ScoutReportModel is loaded; only a genuinely standalone
+        # dot-source of this single file falls back to the pre-v2 sections.
+        $reportModel = $Model
+        if (-not $reportModel -and (Get-Command Build-ScoutReportModel -ErrorAction SilentlyContinue)) {
+            try { $reportModel = Build-ScoutReportModel -Findings $Findings -Collect $Collect }
+            catch { Write-Warning "Export-Word: could not build the report model ($($_.Exception.Message)) -- falling back to the summary sections." }
+        }
 
-        # ---- Findings by Area ----
-        New-ScoutDocxAreaFindingsSection -Body $body -Areas $areas -AllFindings $allFindings
-        Add-ScoutDocxPageBreak -Body $body
+        if ($reportModel) {
+            $sections = @(
+                'Document Information', 'Executive Summary', 'Findings Dashboard',
+                'Maturity Scoring Methodology', 'Key Risk Indicators', 'Prioritised Focus Areas',
+                'Domain Chapters', 'Overall Maturity Summary', '90-Day Remediation Roadmap',
+                'Appendix A — Subscription Detail', 'Appendix B — Consolidated Gap Register',
+                'Scope & Assumptions'
+            )
+            New-ScoutDocxDocumentInfo -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
 
-        # ---- Prioritized Gaps ----
-        New-ScoutDocxGapsSection -Body $body -Gaps $gaps
-        Add-ScoutDocxPageBreak -Body $body
+            New-ScoutDocxTableOfContents -Body $body -Sections $sections
+            Add-ScoutDocxPageBreak -Body $body
 
-        # ---- Manual Review Worklist ----
-        New-ScoutDocxManualSection -Body $body -Manual $manual
+            New-ScoutDocxExecSummaryV2 -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxFindingsDashboard -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxMethodology -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxKriSection -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxFocusAreaSection -Body $body -Model $reportModel
+
+            New-ScoutDocxDomainChapters -Body $body -Model $reportModel
+
+            Add-ScoutDocxPageBreak -Body $body
+            New-ScoutDocxMaturitySummary -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxRoadmapSection -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxAppendixSubscriptions -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxAppendixGapRegister -Body $body -Model $reportModel
+            Add-ScoutDocxPageBreak -Body $body
+
+            # Manual review is still its own worklist — it is the only section a reader can
+            # act on without any Azure data behind it.
+            New-ScoutDocxManualSection -Body $body -Manual $manual
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxScopeAndAssumptions -Body $body -Model $reportModel
+        }
+        else {
+            # ---- Pre-v2 fallback: summary sections only ----
+            New-ScoutDocxExecSummary -Body $body -Frameworks $frameworks -Areas $areas -Gaps $gaps -Manual $manual -Errors $errors
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxAreaFindingsSection -Body $body -Areas $areas -AllFindings $allFindings
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxGapsSection -Body $body -Gaps $gaps
+            Add-ScoutDocxPageBreak -Body $body
+
+            New-ScoutDocxManualSection -Body $body -Manual $manual
+        }
 
         # ---- Section properties (must be the last child of w:body) ----
         $body.Append((New-ScoutDocxSectionProperties))

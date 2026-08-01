@@ -41,7 +41,13 @@ function Get-ScoutRendererName {
 function Export-Report {
     # $Drift (optional) is the cross-run drift object from Get-ScoutDrift; only the
     # React renderer consumes it (to populate its Drift tab). Other renderers ignore it.
-    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null)
+    #
+    # $Model (optional, AB#6852) is the report model from Build-ScoutReportModel — the single
+    # derivation of maturity, key risks, the gap register and the roadmap. It is optional on
+    # purpose: a caller re-rendering a hand-edited findings.json, and every renderer test
+    # harness that dot-sources one renderer file, both pass $null, and each renderer falls
+    # back to its pre-v2 behaviour rather than failing.
+    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null, $Model = $null)
     switch ($Renderer) {
         'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
@@ -56,8 +62,9 @@ function Export-Report {
         # summary, per-area findings table with repeating header, gaps, manual
         # review). See Export-Pdf.ps1's own header for the offline-PDF design.
         'Pdf' { Export-Pdf -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
-        # AB#333: Word (.docx) via OpenXML. AB#344: self-contained offline ECharts HTML dashboard.
-        'Word' { Export-Word -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#333: Word (.docx) via OpenXML. AB#6856 rebuilt it against the report model.
+        # AB#344: self-contained offline ECharts HTML dashboard.
+        'Word' { Export-Word -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
         'EChartsDashboard' { Export-EChartsDashboard -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         # AB#6459: consultant-grade Cloud Governance report -- 1-10 domain maturity score
         # per CAF Govern risk category, radar chart, domain x status heatmap.

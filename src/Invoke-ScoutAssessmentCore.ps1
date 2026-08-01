@@ -259,6 +259,21 @@ function Invoke-ScoutAssessmentCore {
         Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"
     }
 
+    # ---- REPORT MODEL (AB#6852) ----
+    # Derive the report model ONCE, here, and hand the same object to every renderer. Before
+    # this, five renderers each walked $scored independently and each dropped a different
+    # subset — which is why the document renderers lost evidence and remediation entirely.
+    # Nothing below calls Azure; it reads $collect and $scored and nothing else.
+    # Never fatal: a model failure must not sink an otherwise-good assessment, and every
+    # renderer still accepts a $null model and falls back to its pre-v2 behaviour.
+    $reportModel = $null
+    try {
+        $reportModel = Build-ScoutReportModel -Findings $scored -Collect $collect -OutputPath $runPath -RunId $runId
+    }
+    catch {
+        Write-Warning "Invoke-ScoutAssessmentCore: report model build skipped: $($_.Exception.Message)"
+    }
+
     # ---- REPORT ----
     # AB#6863: read the canonical list from Export-Report.ps1 rather than keeping a second
     # hardcoded copy here — the copy that used to live on this line silently omitted
@@ -274,7 +289,7 @@ function Invoke-ScoutAssessmentCore {
         # a run that includes 'React' returns @(reportPath, runPath) and every
         # caller that expects a single run-folder path (incl. Invoke-ScoutPipeline)
         # breaks.
-        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift | Out-Null
+        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift -Model $reportModel | Out-Null
     }
     Write-ScoutAssessmentProgress -Completed
     return $runPath
