@@ -50,7 +50,8 @@ function Invoke-Assessment {
                         Remediation   = "Not assessed: none of this rule set's required datasets returned any rows ($($Missing -join '; ')). Collect them before reading a score from this area."
                         Manual        = [bool]$rule.manual
                     } | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
-                        Add-Member -NotePropertyName AreaWeight -NotePropertyValue $set.Weight -PassThru
+                        Add-Member -NotePropertyName AreaWeight -NotePropertyValue $set.Weight -PassThru |
+                        Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $set.FrameworkVersion -PassThru
                 }
                 continue
             }
@@ -59,7 +60,8 @@ function Invoke-Assessment {
         foreach ($rule in $set.Rules) {
             $f = Invoke-Rule -Rule $rule -Collect $Collect -Area $set.Area -Framework $set.Framework
             $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
-                 Add-Member -NotePropertyName AreaWeight -NotePropertyValue $set.Weight -PassThru
+                 Add-Member -NotePropertyName AreaWeight -NotePropertyValue $set.Weight -PassThru |
+                 Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $set.FrameworkVersion -PassThru
         }
     }
     if ($Benchmark) { $findings += Compare-Benchmark -Collect $Collect -Benchmark $Benchmark }

@@ -1,5 +1,6 @@
 area: "AI governance & security"
 framework: CAF
+frameworkversion: "CAF design-area guidance, learn.microsoft.com/azure/cloud-adoption-framework, verified 2026-07-31 (docs/audits/AZURE-SCOUT-AUDIT.md, section 8)"
 weight: 1.0
 rules:
   - id: CAF-AI-01

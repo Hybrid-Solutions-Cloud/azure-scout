@@ -1,5 +1,6 @@
 area: "Storage reliability"
 framework: WAF
+frameworkversion: "WAF pillar guidance, learn.microsoft.com/azure/well-architected, verified 2026-07-31"
 weight: 1.0
 rules:
   - id: WAF-STO-01

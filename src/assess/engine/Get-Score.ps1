@@ -27,10 +27,19 @@ function Get-Score {
         $weight = 1.0
         $wf = $_.Group | Where-Object { $null -ne $_.PSObject.Properties['AreaWeight'] } | Select-Object -First 1
         if ($wf) { $weight = [double]$wf.AreaWeight }
+        # AB#6817 -- carry the framework version through to the score output so any coverage
+        # figure this object feeds names the version/date it was measured against. Findings
+        # built by fixtures that predate this field simply have no FrameworkVersion property;
+        # PSObject.Properties[...] is $null in that case rather than throwing under StrictMode.
+        $vf = $_.Group | Where-Object {
+            $null -ne $_.PSObject.Properties['FrameworkVersion'] -and $_.FrameworkVersion
+        } | Select-Object -First 1
+        $version = if ($vf) { $vf.FrameworkVersion } else { $null }
         [pscustomobject]@{
             Framework = $_.Group[0].Framework
             Area      = $_.Group[0].Area
             Weight    = $weight
+            Version   = $version
             Score     = if ($den -gt 0) { [math]::Round($num / $den * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
             # @(...) wrap is load-bearing: a Where-Object match of zero items collapses
             # to $null, and $null.Count throws PropertyNotFoundException under
@@ -48,9 +57,13 @@ function Get-Score {
         # Weighted average of area scores by AreaWeight (AB#5087).
         $wsum = ($_.Group | ForEach-Object { $_.Weight } | Measure-Object -Sum).Sum
         $wnum = ($_.Group | ForEach-Object { $_.Score * $_.Weight } | Measure-Object -Sum).Sum
+        # AB#6817 -- same rule at the framework roll-up: the headline score names the version
+        # it was measured against, taken from whichever area under it carries one.
+        $fv = $_.Group | Where-Object { $_.Version } | Select-Object -First 1
         [pscustomobject]@{
             Framework = $_.Name
             Score     = if ($wsum -gt 0) { [math]::Round($wnum / $wsum, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+            Version   = if ($fv) { $fv.Version } else { $null }
             Unknown   = ($_.Group | Measure-Object Unknown -Sum).Sum
             Error     = ($_.Group | Measure-Object Error -Sum).Sum
         }

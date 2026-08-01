@@ -1,5 +1,6 @@
 area: "Migration readiness (SMART)"
 framework: SMART
+frameworkversion: "SMART enumeration in docs/frameworks/smart-question-set.md, verified 2026-07-31"
 weight: 1.0
 # Scores migration readiness against the enumeration in docs/frameworks/smart-question-set.md
 # (AB#6832). EVERY rule below cites a SMART-* item from that file, and that file states plainly
