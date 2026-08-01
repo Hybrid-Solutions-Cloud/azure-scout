@@ -51,7 +51,8 @@ function Export-Report {
     switch ($Renderer) {
         'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
-        'Pptx'    { Export-Pptx    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#6858 rebuilt the deck as an executive readout against the report model.
+        'Pptx'    { Export-Pptx    -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
         'Excel'   { Export-Excel   -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'React'   { Export-React   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Drift $Drift }
         'Json'    { $Findings | ConvertTo-Json -Depth 100 | Out-File "$OutputPath/findings.json" }
