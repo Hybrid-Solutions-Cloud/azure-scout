@@ -69,11 +69,21 @@ function Resolve-ScoutAssignedInitiative {
 
     if ($assignedIds.Count -eq 0) { return @() }
 
-    # Index definitions by id, built-in only. When a compliance row names an initiative id Scout
-    # has no matching definition for (definitions collection failed/was skipped independently of
-    # the compliance sweep -- the two are separate Azure calls, AB#6792), fall back to whatever
-    # the compliance row itself carries so the initiative is still offered rather than dropped;
-    # DisplayName/Version are simply less complete in that degraded case.
+    # Index definitions by id, built-in only.
+    #
+    # AB#6792 -- what happens when a compliance row names an initiative Scout has no definition
+    # for was WRONG, and a live run against tenant tppoc caught it. Policy compliance state and
+    # policy set definitions are two SEPARATE Azure calls; the definitions sweep can return
+    # nothing while the compliance sweep returns hundreds of rows. In that case every id fell to
+    # the else branch below, the function returned an empty set, and the assessment produced
+    # ZERO findings -- against 469 real compliance rows scoring 29.6%. Silence reading as
+    # "nothing to report" is precisely the false-negative class this Epic exists to remove.
+    #
+    # The refusal to SCORE an initiative that cannot be confirmed BuiltIn is correct and is kept:
+    # presenting a customer's custom initiative under a framework's name would be actively
+    # misleading. But refusing to score is not the same as saying nothing. Each unconfirmable
+    # initiative is now returned marked Unconfirmed so the caller can render it as Not assessed
+    # and name it, rather than dropping it on the floor.
     $definitionById = @{}
     foreach ($def in $definitions) {
         if (-not $def -or -not $def.PSObject.Properties['Id'] -or -not $def.Id) { continue }
@@ -91,15 +101,22 @@ function Resolve-ScoutAssignedInitiative {
                 Version     = if ($def.PSObject.Properties['Version'] -and $def.Version) { [string]$def.Version } else { 'N/A' }
                 PolicyType  = 'BuiltIn'
                 PolicyCount = if ($def.PSObject.Properties['PolicyCount']) { $def.PolicyCount } else { $null }
+                Unconfirmed = $false
             }
         }
         else {
-            # No matching BuiltIn definition -- either the definitions sweep failed/was skipped,
-            # or this id belongs to a custom initiative (excluded above). A compliance row that
-            # names an initiative id Scout has no definition for at all cannot be confirmed
-            # BuiltIn, so it is not offered as a regulatory-compliance assessment; a custom
-            # initiative scored under a framework's name would be actively misleading.
-            $null
+            # No matching BuiltIn definition -- either the definitions sweep failed or was
+            # skipped, or this id belongs to a custom initiative (excluded above). Either way it
+            # cannot be confirmed BuiltIn, so it is NOT scored. It is still returned, flagged, so
+            # the caller renders it as Not assessed and names it. See the block comment above.
+            [pscustomobject]@{
+                Id          = $id
+                DisplayName = $id
+                Version     = 'N/A'
+                PolicyType  = 'Unconfirmed'
+                PolicyCount = $null
+                Unconfirmed = $true
+            }
         }
     }
 
