@@ -66,6 +66,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1e-1/ReservationUtilization/reservationutilization-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1f-1/ReservationUtilization/reservationutilization-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1f-1/ReservationUtilization/reservationutilization-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -902,6 +914,153 @@
             "name": "res-value"
           },
           "TYPE": "microsoft.capacity/reservationorders/reservations"
+        }
+      ]
+    },
+    "ReservationUtilization": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1a-1/ReservationUtilization/reservationutilization-t1a-2",
+          "NAME": "reservationutilization-t1a",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1b-1/ReservationUtilization/reservationutilization-t1b-2",
+          "NAME": "reservationutilization-t1b",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1c-1/ReservationUtilization/reservationutilization-t1c-2",
+          "NAME": "reservationutilization-t1c",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1d-1/ReservationUtilization/reservationutilization-t1d-2",
+          "NAME": "reservationutilization-t1d",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1e-1/ReservationUtilization/reservationutilization-t1e-2",
+          "NAME": "reservationutilization-t1e",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "skuName": "res-value",
+            "usageDate": "2026-01-15T10:30:00.0000000Z",
+            "reservedHours": "res-value",
+            "usedHours": "res-value",
+            "avgUtilizationPercentage": "res-value",
+            "minUtilizationPercentage": "res-value",
+            "maxUtilizationPercentage": "res-value",
+            "purchasedQuantity": "res-value",
+            "remainingQuantity": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "PARENTID": "res-value",
+          "PARENTNAME": "res-value",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/reservationutilization-t1f-1/ReservationUtilization/reservationutilization-t1f-2",
+          "NAME": "reservationutilization-t1f",
+          "TYPE": "AZSC/ARMChild/ReservationUtilization",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

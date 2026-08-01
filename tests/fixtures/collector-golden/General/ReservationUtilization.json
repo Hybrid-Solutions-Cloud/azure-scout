@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "General",
+  "Name": "ReservationUtilization",
+  "FixturePath": "tests/fixtures/collector-equivalence/General.json",
+  "FixtureSha256": "f92e2b5474e17a4a7e7b12bb37d77c843eb56c0035b8593d103f400906336dab",
+  "Rows": [
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value",
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value",
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value",
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=<null>|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value",
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value",
+    "Avg Utilization %=s:res-value|ID=s:res-value|Max Utilization %=s:res-value|Min Utilization %=s:res-value|Purchased Quantity=s:res-value|Remaining Quantity=s:res-value|Reservation=s:res-value|Reserved Hours=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Usage Date=s:01/15/2026 10:30:00|Used Hours=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tReservation\tSKU\tUsage Date\tReserved Hours\tUsed Hours\tAvg Utilization %\tMin Utilization %\tMax Utilization %\tPurchased Quantity\tRemaining Quantity\tResource U\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tReservation\tSKU\tUsage Date\tReserved Hours\tUsed Hours\tAvg Utilization %\tMin Utilization %\tMax Utilization %\tPurchased Quantity\tRemaining Quantity\tResource U\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tres-value\t01/15/2026 10:30:00\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1"
+    ]
+  }
+}

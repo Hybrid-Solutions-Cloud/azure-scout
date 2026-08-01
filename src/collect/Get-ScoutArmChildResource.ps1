@@ -74,7 +74,8 @@ function Get-ScoutArmChildResource {
             'StorageFileShares',
             'StorageLifecyclePolicies',
             'BackupInstances',
-            'ResourceDiagnosticSettings'
+            'ResourceDiagnosticSettings',
+            'ReservationUtilization'
         )]
         [string[]]$Dataset = @('All')
     )
@@ -98,7 +99,8 @@ function Get-ScoutArmChildResource {
         'StorageFileShares',
         'StorageLifecyclePolicies',
         'BackupInstances',
-        'ResourceDiagnosticSettings'
+        'ResourceDiagnosticSettings',
+        'ReservationUtilization'
     )
 
     # --- Diagnostic-settings parent scope (AB#6769) ---------------------------------------------
@@ -289,6 +291,9 @@ function Get-ScoutArmChildResource {
     })
     $BackupVaultParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.dataprotection/backupvaults'
+    })
+    $ReservationParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.capacity/reservationorders/reservations'
     })
     $DiagnosticSettingParents = @($Resources | Where-Object {
         $DiagnosticSettingParentTypes -contains [string](Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE'))
@@ -579,6 +584,47 @@ function Get-ScoutArmChildResource {
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Reservation utilization (AB#6829) -------------------------------------------------
+            #
+            # `Reservations` already lists WHAT was bought (Microsoft.Capacity/reservationOrders and
+            # .../reservations, both indexed by Resource Graph). It cannot say whether any of it is
+            # being used -- utilisation is served by a DIFFERENT resource provider,
+            # Microsoft.Consumption, scoped per reservation:
+            #
+            #   GET {reservationOrderId}/reservations/{reservationId}
+            #       /providers/Microsoft.Consumption/reservationSummaries?grain=monthly&api-version=2023-05-01
+            #
+            # This is NOT the billing-account permission system documented in the audit's "Cost and
+            # billing" section (§9). Reservations are their own, SIXTH scope: a tenant-level resource
+            # independent of subscription RBAC (see "Permissions to view and manage Azure
+            # reservations" -- learn.microsoft.com/azure/cost-management-billing/reservations/
+            # view-reservations). Microsoft's own guidance is that a built-in Reader role AT THE
+            # RESERVATION SCOPE is sufficient to view utilisation; since the parent reservation
+            # already came back from Resource Graph (which required exactly that visibility), no
+            # additional grant is asked for here -- only the existing billing/cost gate this
+            # function's neighbours already document, and even that is arguably not needed, because
+            # Reservations Reader (or reservation-scoped Reader) is a distinct system from EA/MCA
+            # billing roles.
+            #
+            # `grain=monthly` returns one row per calendar month; the most recent row is what the
+            # collector reports, so a very new reservation with no month closed yet has no
+            # utilisation row -- an absence, not a zero, and rendered as such.
+            'ReservationUtilization' {
+                foreach ($Parent in $ReservationParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.Consumption/reservationSummaries?grain=monthly&api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    $Latest = @(Get-ArmChildItemSet -Content $Content |
+                        Sort-Object -Property { [string](Get-ArmParentValue -InputObject $_ -Name @('properties', 'PROPERTIES') |
+                            ForEach-Object { Get-ArmParentValue -InputObject $_ -Name @('usageDate', 'UsageDate') }) } -Descending |
+                        Select-Object -First 1)
+                    foreach ($Child in $Latest) {
                         ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
                     }
                 }

@@ -63,6 +63,19 @@ The pre-flight checker no longer asks for any of the three, and `Test-AZSCPermis
 reports them as missing.
 :::
 
+::: tip Key Vault secrets, keys and certificates never need a data-plane grant
+`KeyVaultSecrets` and `KeyVaultKeys` (AB#6822) read `Microsoft.KeyVault/vaults/secrets` and
+`.../keys` — **ARM control-plane list operations** that return metadata only: id, `contentType`,
+and the `attributes` block (`enabled`, `exp`, `nbf`, `created`, `updated`). `Reader` on the vault
+is sufficient; reading a secret's or key's **value** is a separate data-plane operation against
+`<vault>.vault.azure.net` that needs a Key Vault access policy or data-plane RBAC role, and Scout
+never makes that call. A Key Vault certificate has no ARM list endpoint of its own — it is
+materialised as a secret whose `contentType` is `application/x-pkcs12` or `application/x-pem-file`,
+and that secret's `attributes.exp` **is** the certificate's expiry, so certificate expiry is
+already present in the `KeyVaultSecrets` worksheet's `Kind`/`Expires` columns rather than a
+separate collector. See `src/collect/Get-ScoutArmChildResource.ps1` for the exact calls.
+:::
+
 ::: tip Cost data is not gated on a role at all
 `Microsoft.CostManagement/query/read` is inside `Reader`'s `*/read`. If cost data still comes
 back empty with `Reader` assigned, the cause is a **billing setting**, not a permission: EA

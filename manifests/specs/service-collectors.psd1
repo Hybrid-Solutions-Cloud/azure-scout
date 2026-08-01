@@ -985,6 +985,41 @@ $ExpiryStatus = if($null -eq $DaysToExpiry){'No expiry set'}elseif($DaysToExpiry
 '@
         }
         @{
+            # AB#6829. `Reservations` (General/Reservations) already lists what was BOUGHT; this
+            # renders what the Microsoft.Consumption `reservationSummaries` child call says about
+            # how much of it is USED. Field names follow the documented ReservationSummary schema
+            # (learn.microsoft.com/javascript/api/@azure/arm-consumption/reservationsummary) --
+            # unverified against a live tenant, same caveat as every other ARMChild collector here.
+            # A reservation whose most recent monthly grain has not closed yet produces no child
+            # row at all (see Get-ScoutArmChildResource), which is an absence, not a zero -- the
+            # vault-with-no-items class this file's Key Vault collectors also have to get right.
+            Category = 'General'
+            Name = 'ReservationUtilization'
+            Worksheet = 'Reservation Utilization'
+            ResourceTypes = @('AZSC/ARMChild/ReservationUtilization')
+            Identity = @(
+                @{ Name = 'ID';           Expression = '$1.PARENTID' }
+                @{ Name = 'Subscription'; Expression = '$SubName' }
+                @{ Name = 'Reservation';  Expression = '$1.PARENTNAME' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'SKU';                    Expression = '$data.skuName' }
+                @{ Name = 'Usage Date';              Expression = '[string]$data.usageDate' }
+                @{ Name = 'Reserved Hours';          Expression = '[string]$data.reservedHours' }
+                @{ Name = 'Used Hours';              Expression = '[string]$data.usedHours' }
+                @{ Name = 'Avg Utilization %';       Expression = '[string]$data.avgUtilizationPercentage' }
+                @{ Name = 'Min Utilization %';       Expression = '[string]$data.minUtilizationPercentage' }
+                @{ Name = 'Max Utilization %';       Expression = '[string]$data.maxUtilizationPercentage' }
+                @{ Name = 'Purchased Quantity';      Expression = '[string]$data.purchasedQuantity' }
+                @{ Name = 'Remaining Quantity';      Expression = '[string]$data.remainingQuantity' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$SubName = $sub1.Name
+'@
+        }
+        @{
             Category = 'Storage'
             Name = 'BlobContainers'
             Worksheet = 'Blob Containers'
