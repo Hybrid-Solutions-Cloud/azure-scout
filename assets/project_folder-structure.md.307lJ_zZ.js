@@ -13,7 +13,7 @@ import{_ as n,o as a,c as e,a2 as p}from"./chunks/framework.il0noOp3.js";const d
 <span class="line"><span>│   │   ├── master-plan.md              #     Consolidated architecture + work-item index</span></span>
 <span class="line"><span>│   │   ├── enhancement-spec.md         #     Original v2 assessment-platform spec</span></span>
 <span class="line"><span>│   │   └── task-list.md                #     Delivery task tracking</span></span>
-<span class="line"><span>│   ├── images/                         #   Banner, icons</span></span>
+<span class="line"><span>│   ├── public/images/                  #   Banner, icons (VitePress serves /public at the site root)</span></span>
 <span class="line"><span>│   ├── index.md                        #   Home page</span></span>
 <span class="line"><span>│   ├── overview.md                     #   Inventory vs Assessment decision guide (first Getting Started page)</span></span>
 <span class="line"><span>│   ├── prerequisites.md                #   Inventory-mode prerequisites &amp; modules</span></span>
