@@ -1,0 +1,24 @@
+area: "Artificial Intelligence"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), AI category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-AI-01
+    title: "AI system outputs are monitored — abuse monitoring and content filtering configured"
+    severity: high
+    # No AI Foundry / content-filter configuration ingest exists in collect.json --
+    # domains.ai.cognitiveAccounts records that a Cognitive Services account exists, not its
+    # content-filter or abuse-monitoring configuration.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm abuse monitoring and content filtering are configured on AI Foundry / Azure OpenAI deployments -- Scout does not currently collect this configuration."
+    manual: true
+
+  - id: CGOV-AI-02
+    title: "Customer-facing AI systems are red-teamed on a recurring cadence"
+    severity: medium
+    # Organisational/process fact -- no Azure artifact records a red-team cadence.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm customer-facing AI systems are red-teamed on a recurring cadence. This is a process control with no Azure resource artifact for Scout to read."
+    manual: true

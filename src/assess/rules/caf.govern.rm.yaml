@@ -1,0 +1,15 @@
+area: "Resource Management"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), RM category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-RM-01
+    title: "Policies on resource deployments — e.g. tag-enforcement policies — are monitored for compliance"
+    severity: medium
+    # collect.json's policyAssignments carries no field distinguishing "tag-enforcement"
+    # policies specifically, so this evidences policy-assignment existence generally, the
+    # same existence-proxy limitation CAF-GOV-01/CGOV-SC-02 already document.
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Confirm tag-enforcement policies specifically (not just any policy assignment) are in place and monitored -- see $.tags on collected resources for actual tag coverage."
+    manual: false

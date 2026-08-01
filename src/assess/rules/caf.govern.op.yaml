@@ -1,0 +1,50 @@
+area: "Operations"
+framework: "Cloud Governance"
+weight: 0.142857
+frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), OP category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+rules:
+  - id: CGOV-OP-01
+    title: "Policy compliance is tracked for operations-scoped governance policies"
+    severity: medium
+    # Same dataset as CGOV-RC-01/CGOV-SC-02 -- generic, not operations-specific, per
+    # docs/frameworks/cloud-governance-question-set.md.
+    query: "$.domains.management.policyComplianceStates[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Confirm operations-scoped policy assignments (diagnostic settings, tagging, resource-type restrictions) specifically are tracked, not just policy compliance generally."
+    manual: false
+
+  - id: CGOV-OP-02
+    title: "Logs and metrics are monitored for availability and performance"
+    severity: high
+    # collect.json's management.logAnalyticsWorkspaces proves a workspace exists, not that
+    # coverage or content is adequate -- existence-only evidence, same limitation the
+    # enumeration doc records for Monitor/Workspaces.
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: exists }
+    remediation: "A Log Analytics workspace existing is not the same as adequate diagnostic-setting coverage across resources -- confirm coverage with the 'Assess: Monitor' assessment (waf.operational's diagnostic-coverage rule)."
+    manual: false
+
+  - id: CGOV-OP-03
+    title: "Advisor is used to monitor reliability/security/performance/cost, with alerts set on new recommendations"
+    severity: medium
+    # $.advisor[*] proves recommendations were pulled, but whether ALERTS are configured to
+    # fire on *new* recommendations is not observable from a point-in-time collect.json --
+    # the same "existence of data, not proof of the specific claim" gap CAF-GOV-05 (manual,
+    # DeployIfNotExists effect) already established the pattern for. Manual rather than a
+    # false pass on "Advisor data exists therefore alerting is configured".
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm Azure Advisor alerts are configured to notify on new reliability/security/performance/cost recommendations, not only that recommendations were reviewed once."
+    manual: true
+
+  - id: CGOV-OP-04
+    title: "Resource health is monitored for service-impacting events and planned maintenance"
+    severity: medium
+    # Monitor/Outages exists as a collector but was documented as broken (runs before the
+    # data it reads is merged) at the time this enumeration was written -- scoring it would
+    # either false-pass on stale/empty data or false-fail on a defect rather than an absence
+    # of monitoring. Manual until that collector defect is confirmed fixed.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm Azure Resource Health alerts are configured for service-impacting events and planned maintenance. Scout's Outages collector had a known ordering defect at the time this rule was written -- verify it has been fixed before trusting an automated read here."
+    manual: true
