@@ -1,0 +1,211 @@
+area: "FinOps Review"
+framework: FinOps
+frameworkversion: "FinOps enumeration in docs/frameworks/finops-review-question-set.md, verified 2026-08-01"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/finops-review-question-set.md (internal), FinOps Framework (learn.microsoft.com/cloud-computing/finops/framework/finops-framework, FinOps Foundation), verified 2026-08-01"
+# Scores against the enumeration in docs/frameworks/finops-review-question-set.md (AB#6826, Feature
+# AB#6749, Epic AB#6454). EVERY rule below cites a FINOPS-* item from that file. Read it before
+# quoting any coverage figure -- it states plainly what it is and is not:
+#
+#   THE FINOPS REVIEW ITSELF IS INFERRED, NOT MICROSOFT-PUBLISHED. Microsoft names and describes
+#   the FinOps Review assessment (an interactive, self-guided tool) and publishes the FinOps
+#   Framework it is scored against in full, but the assessment's own question TEXT and NUMBERS are
+#   never published. The FINOPS-* identifiers below are Scout's own, built from the FinOps
+#   Framework's 22 published capabilities -- a rule citing FINOPS-U01 cites an inferred structure,
+#   not a Microsoft question number. Say so in every consumer of this file's output, not just here.
+#
+# THE SHARP ACCEPTANCE CRITERION THIS FILE EXISTS TO MEET: cost data lives behind the EA/MCA
+# billing permission system, a DIFFERENT permission boundary than the ARM Reader role every other
+# Scout rule reads through. `Az.CostManagement` is also a deliberately-not-auto-installed module
+# (see src/collect/Get-ScoutCostInventory.ps1's header). Either gap must degrade to NotAssessed,
+# NEVER to a scored zero -- "no cost anomalies found" and "cost data was never collected" are not
+# the same answer, and collapsing them is the exact false-pass class this epic exists to kill
+# (AB#6844/AB#6845's sparse-payload and vanishing-parent classes, one release earlier). FINOPS-U01
+# and FINOPS-U04 below carry `assert.gate: "$.finops.available"` for exactly this --
+# see Invoke-Rule.ps1's AB#6826 note and src/ingest/Import-ScoutCostInventory.ps1 for how
+# `finops.available` is computed (module presence + per-subscription billing-API success, never
+# inferred from an empty result on its own).
+#
+# `$.finops.reservations` and the Advisor/budget signals other rules below read are ARM/Resource
+# Graph data (Reader-scoped) and are NEVER gated behind the billing permission system -- only the
+# two rules that read `$.finops.costRows` / `$.finops.anomalies` carry the gate.
+rules:
+  # --- Understand usage and cost (FINOPS-U01..U04) ------------------------------------------------
+  - id: FINOPS-U01
+    title: "Cost and usage data is ingested into a single accessible repository"
+    severity: medium
+    query: "$.finops.costRows[*]"
+    assert: { type: exists, gate: "$.finops.available" }
+    remediation: "Install Az.CostManagement ('Install-Module Az.CostManagement -Scope CurrentUser') and ensure the signed-in identity holds Cost Management Reader (or an equivalent EA/MCA billing role) so Scout's cost pull can run. No non-Azure cost source is ever ingested -- FINOPS-U01 only evidences the single-cloud half of this capability."
+    manual: false
+
+  - id: FINOPS-U02
+    title: "Cost is allocated meaningfully — broken down by tag, resource group, or business unit"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm cost is allocated to tags/business units, not only resource group/location/service/type. Get-ScoutCostInventory's grouping is not currently joined to $.tags[*] -- tag-based allocation needs a new join, not a new collector."
+    manual: true
+
+  - id: FINOPS-U03
+    title: "Cost and usage data is reported on and made visible to stakeholders"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm cost/usage data is regularly reported to stakeholders. Start-AZTIExtractionOrchestration.ps1's 'Costs' worksheet is a separate call path from the -Assessment collect.json pipeline this rule set reads, so no rule here can currently query it directly -- FINOPS-U01's costRows is the assessment-side evidence of ingestion, not of reporting/visibility."
+    manual: true
+
+  - id: FINOPS-U04
+    title: "Anomalies (spikes, unexpected changes) are proactively identified and reacted to"
+    severity: medium
+    query: "$.finops.anomalies[*]"
+    assert: { type: countEquals, value: 0, gate: "$.finops.available" }
+    remediation: "Review and root-cause the flagged cost anomalies (Get-ScoutCostAnomaly's spike/z-score/IQR detection, wired into the collect pipeline by AB#6826). A Pass here means detection ran and found nothing unresolved, not that detection never ran -- see the gate note above."
+    manual: false
+
+  # --- Quantify business value (FINOPS-Q01..Q05) ---------------------------------------------------
+  - id: FINOPS-Q01
+    title: "Cost and usage of new or changing workloads is predicted before deployment"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm pre-deployment cost estimation (Azure Pricing Calculator, IaC cost-estimation tooling) is part of the change process. No pre-deployment cost-estimation data source exists in Azure's control plane for Scout to read."
+    manual: true
+
+  - id: FINOPS-Q02
+    title: "Future cost is forecast from historical trends"
+    severity: low
+    query: "$.governance.budgets[?(@.properties.forecastSpend)]"
+    assert: { type: exists }
+    remediation: "Confirm Cost Management budgets carry a forecast-spend figure (Microsoft.Consumption/budgets' properties.forecastSpend, populated once enough trend history exists). Distinct evidence from FINOPS-Q03: a budget existing is not the same as it having accumulated enough history to forecast against. Not gated on the EA/MCA billing permission system -- budgets are an ARM REST resource, Reader-scoped, same as WAF-CO-03/CO-08."
+    manual: false
+
+  - id: FINOPS-Q03
+    title: "Budgets are actively monitored and managed, with alerts configured"
+    severity: low
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "Define Cost Management budgets with threshold alerts (same evidence WAF-CO-03 already scores under the Cost Optimization pillar -- this rule scores the identical signal under the FinOps Framework's own capability name)."
+    manual: false
+
+  - id: FINOPS-Q04
+    title: "Cloud efficiency is benchmarked against internal teams or industry peers"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm a benchmarking practice exists (internal team-to-team, or industry peer). No benchmarking dataset exists for Scout to read."
+    manual: true
+
+  - id: FINOPS-Q05
+    title: "Unit economics (cost per business unit of value) are calculated"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm unit-economics reporting exists. This needs a business-metric data source outside Azure's control plane (e.g. cost per transaction, per customer) that Scout cannot observe."
+    manual: true
+
+  # --- Optimize usage and cost (FINOPS-O01..O05) --------------------------------------------------
+  - id: FINOPS-O01
+    title: "Cloud solutions are architected for cost efficiency during design/migration, not retrofitted"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm cost efficiency is a design-time architectural consideration (right SKU/tier from the start), not a post-deployment retrofit. Design-time decision, not observable from a deployed estate."
+    manual: true
+
+  - id: FINOPS-O02
+    title: "Workload cost/usage is analyzed to identify efficiency opportunities"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Act on high-impact Advisor cost recommendations, and clean up orphaned disks/public IPs ($.costCleanup). The same evidence WAF-CO-02 scores under the Cost Optimization pillar, scored here under the FinOps Framework's own capability name -- not a second, independent detector."
+    manual: false
+
+  - id: FINOPS-O03
+    title: "Rate optimization is pursued — reservations, savings plans, commitment-discount planning"
+    severity: medium
+    query: "$.finops.reservations[*]"
+    assert: { type: exists }
+    remediation: "Purchase Reserved Instances / Savings Plans for steady-state compute/database workloads. $.finops.reservations reads Microsoft.Capacity/reservationOrders/reservations directly (AB#6826 wired this into Invoke-Collect.ps1 -- Reader-scoped ARM data, never gated behind the billing permission system, distinct from the General/Reservations Excel worksheet the same underlying collector also produces). Reservation RECOMMENDATIONS ($.finops.reservationRecommendations) are enumerated in the canonical shape but not yet wired to a live source -- General/ReservationRecom remains Excel-only; do not read that array as populated."
+    manual: false
+
+  - id: FINOPS-O04
+    title: "Software licenses and prepaid SaaS products (including Azure Hybrid Benefit) are tracked and fully utilized"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm license/AHB tracking exists. No license/Azure-Hybrid-Benefit-flag field is collected by any current Scout collector."
+    manual: true
+
+  - id: FINOPS-O05
+    title: "Carbon emissions are measured alongside cost as part of cloud sustainability"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm emissions are tracked via the Microsoft Emissions Impact Dashboard or the Carbon Optimization API. Scout has no Emissions/Carbon API collector."
+    manual: true
+
+  # --- Manage the FinOps practice (FINOPS-M01..M08) -- almost entirely organisational -------------
+  - id: FINOPS-M01
+    title: "A FinOps education and enablement programme exists"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm a FinOps education/enablement programme exists for engineering and finance stakeholders. Organisational -- no ARM/API signal exists."
+    manual: true
+
+  - id: FINOPS-M02
+    title: "FinOps practice operations (cadence, ownership, processes) are defined"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm FinOps practice operations (review cadence, ownership, escalation process) are documented. Organisational -- no ARM/API signal exists."
+    manual: true
+
+  - id: FINOPS-M03
+    title: "Workloads are onboarded to the FinOps practice based on financial/technical feasibility"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm a deliberate onboarding process exists for bringing workloads under FinOps practice. Organisational -- no ARM/API signal exists."
+    manual: true
+
+  - id: FINOPS-M04
+    title: "FinOps-specific policy and governance (cost-allocation tagging, spend guardrails) is enforced"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm FinOps-specific tagging/spend-guardrail policy is enforced. $.tags[*] and $.governance.policyAssignments are generic governance signals, not FinOps-specific enforcement -- left manual rather than scored against a proxy that could pass on unrelated tagging/policy hygiene."
+    manual: true
+
+  - id: FINOPS-M05
+    title: "Invoices are reconciled and cross-charged (chargeback/showback) to internal teams"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm invoice reconciliation and internal chargeback/showback exist. Same billing-hierarchy gap caf.billing.yaml's design-area rules document (EA/MCA enrollment, invoice sections) -- no billing-account/invoice collector exists."
+    manual: true
+
+  - id: FINOPS-M06
+    title: "The FinOps practice's own maturity is periodically reassessed"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm the FinOps practice itself is periodically reassessed for maturity. This is the meta-capability describing running an assessment like this one -- organisational by definition."
+    manual: true
+
+  - id: FINOPS-M07
+    title: "FinOps tools and services are selected and integrated to fit organizational needs"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm FinOps tooling (Cost Management, third-party FinOps platforms) is deliberately selected and integrated. Organisational/tooling choice, not an ARM/API signal."
+    manual: true
+
+  - id: FINOPS-M08
+    title: "FinOps practices are aligned with intersecting frameworks (ITAM, ITSM, security)"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm FinOps practice is aligned with ITAM/ITSM/security processes rather than operating in isolation. Organisational -- no ARM/API signal exists."
+    manual: true

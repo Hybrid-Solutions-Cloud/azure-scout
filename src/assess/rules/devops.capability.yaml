@@ -1,0 +1,194 @@
+area: "DevOps Capability"
+framework: "DevOps Capability"
+frameworkversion: "DevOps Capability enumeration in docs/frameworks/devops-capability-question-set.md, verified 2026-08-01"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/devops-capability-question-set.md (internal), Microsoft DevOps Resource Center (learn.microsoft.com/devops/what-is-devops), verified 2026-08-01"
+# Scores against the enumeration in docs/frameworks/devops-capability-question-set.md (AB#6827,
+# Feature AB#6749, Epic AB#6454). EVERY rule below cites a DEVOPS-* item from that file. Read it
+# before quoting any coverage figure -- it states plainly what it is and is not:
+#
+#   THE DEVOPS CAPABILITY ASSESSMENT ITSELF IS INFERRED, NOT MICROSOFT-PUBLISHED. Microsoft names
+#   and describes the assessment (an interactive, self-guided tool measuring current-state against
+#   the Microsoft DevOps Resource Center's practices) and publishes the Resource Center's five-phase
+#   structure in full, but the assessment's own question TEXT and NUMBERS are never published. The
+#   DEVOPS-* identifiers below are Scout's own, built from that published phase structure -- a rule
+#   citing DEVOPS-DEV-03 cites an inferred structure, not a Microsoft question number. Say so in
+#   every consumer of this file's output, not just here.
+#
+#   This is a DIFFERENT, narrower assessment than caf.platformauto.yaml, which scores the CAF Ready
+#   methodology's "Platform automation and DevOps" landing-zone design area (a broader,
+#   organisation-wide design area, not this named assessment). The two overlap in subject matter
+#   but are not the same enumeration -- do not merge or dedupe rule ids between them.
+#
+# THE SHARP ACCEPTANCE CRITERION THIS FILE EXISTS TO MEET: Azure DevOps sits behind its own access
+# boundary (org membership / PAT), a DIFFERENT permission surface than the ARM Reader role every
+# other Scout rule reads through, and `-IncludeDevOps` is opt-in by design (see
+# src/collect/Start-ScoutDevOpsExtraction.ps1's header). `-IncludeDevOps` being off must not read
+# as "no pipelines exist" -- it must degrade to NotAssessed. Every rule below that reads
+# `$.devops.projects` / `.pipelines` / `.repositories` / `.serviceConnections` / `.agentPools`
+# carries `assert.gate: "$.devops.available"` for exactly this -- see
+# Invoke-Rule.ps1's AB#6826 note and src/ingest/Import-ScoutDevOpsCapability.ps1 for how
+# `devops.available` is computed (an attempt was made AND at least one resource of any type came
+# back; the switch being off, no discoverable organization, and "no project access" everywhere all
+# collapse to the same unavailable signal).
+#
+# `$.devops.managedPools`, `.devCenters`, `.loadTesting`, `.playwrightTesting` are ARM/Resource
+# Graph data (Reader-scoped) and are NEVER gated behind Azure DevOps org access -- only the five
+# rules that read the ADO-REST-sourced fields above carry the gate.
+rules:
+  # --- Plan (DEVOPS-PLN-01..02) --------------------------------------------------------------------
+  - id: DEVOPS-PLN-01
+    title: "Work is planned and tracked through Azure DevOps (or an equivalent) rather than ad hoc"
+    severity: low
+    query: "$.devops.projects[*]"
+    assert: { type: exists, gate: "$.devops.available" }
+    remediation: "Confirm work is tracked in Azure DevOps (or an equivalent) rather than ad hoc. Evidenced by at least one Azure DevOps project being visible to the signed-in identity/PAT."
+    manual: false
+
+  - id: DEVOPS-PLN-02
+    title: "Outcome-oriented metrics (OKRs, delivery performance, quality) are defined and tracked"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm outcome-oriented metrics (OKRs, delivery performance, quality) are defined and tracked. No metric-definition artefact is visible through the ARM or Azure DevOps REST APIs Scout reads."
+    manual: true
+
+  # --- Develop / Continuous Integration (DEVOPS-DEV-01..03) -----------------------------------------
+  - id: DEVOPS-DEV-01
+    title: "Source code is held in version-controlled repositories, not ad hoc file shares"
+    severity: low
+    query: "$.devops.repositories[*]"
+    assert: { type: exists, gate: "$.devops.available" }
+    remediation: "Confirm source code is held in version-controlled repositories. Evidenced by at least one Azure DevOps Git repository."
+    manual: false
+
+  - id: DEVOPS-DEV-02
+    title: "Continuous integration pipelines build and test on every change"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm CI pipelines trigger and run on every change. Scout's Azure DevOps collectors record pipeline/configuration existence, not trigger-on-commit behaviour or run history -- the Pipelines Runs API is a separate, heavier surface (see the enumeration's own \"What this means\" section)."
+    manual: true
+
+  - id: DEVOPS-DEV-03
+    title: "Pipelines are defined as YAML-as-code rather than authored through the classic UI editor"
+    severity: medium
+    query: "$.devops.pipelines[?(@.ConfigurationType == 'yaml')]"
+    assert: { type: percentageAtLeast, value: 70, denominatorQuery: "$.devops.pipelines[*]", gate: "$.devops.available" }
+    remediation: "Migrate classic-editor pipelines to YAML-as-code; target at least 70% of pipelines defined as YAML."
+    manual: false
+
+  # --- Deliver / Continuous Delivery (DEVOPS-DEL-01..04) --------------------------------------------
+  - id: DEVOPS-DEL-01
+    title: "Deployments run through automated CI/CD pipelines rather than manual portal changes"
+    severity: medium
+    # Reuses the SAME generic IaC signal CAF-AUT-01 already scores (ARM/Resource Graph, Reader-
+    # scoped, never gated behind Azure DevOps access) -- a coarse, complementary signal to
+    # DEVOPS-PLN-01/DEV-03's pipeline-existence evidence, not a duplicate detector.
+    query: "$.management.deployments[?(@.properties.templateHash)]"
+    assert: { type: exists }
+    remediation: "Deploy landing-zone resources via Bicep/Terraform pipelines, not the portal. Combine with DEVOPS-PLN-01 (pipeline existence) for the fuller picture -- this rule alone only evidences that SOME IaC deployment history exists, not that it runs through the pipeline itself."
+    manual: false
+
+  - id: DEVOPS-DEL-02
+    title: "Service connections authenticate via credential-free federation, not long-lived secrets"
+    severity: high
+    query: "$.devops.serviceConnections[?(@.CredentialFree == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.devops.available" }
+    remediation: "Migrate service connections to workload identity federation (CredentialFree) instead of a stored secret/certificate. Every service connection listed here still authenticates with a long-lived credential."
+    manual: false
+
+  - id: DEVOPS-DEL-03
+    title: "Releases use safe-deployment practices — approvals, gates, canary/blue-green rollout"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm approvals/gates and progressive rollout (canary/blue-green) are configured on release pipelines. Pipeline stage/approval/gate configuration is not collected by any current Scout collector."
+    manual: true
+
+  - id: DEVOPS-DEL-04
+    title: "Feature flags and progressive-exposure deployment strategies are used"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm feature flags / progressive-exposure strategies are used to decouple deployment from release. Not collected by any current Scout collector."
+    manual: true
+
+  # --- Operate / Operations and Reliability (DEVOPS-OPS-01..05) ------------------------------------
+  - id: DEVOPS-OPS-01
+    title: "Build/release agent capacity uses managed pools rather than unmanaged self-hosted agents"
+    severity: medium
+    query: "$.devops.agentPools[?(@.Hosted == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.devops.available" }
+    remediation: "Move self-hosted Azure DevOps agent pools to Managed DevOps Pools (Microsoft.DevOpsInfrastructure/pools -- see $.devops.managedPools, an ARM/Resource Graph signal, Reader-scoped, never gated behind Azure DevOps access) so patching/capacity is Microsoft's obligation, not the team's."
+    manual: false
+
+  - id: DEVOPS-OPS-02
+    title: "Standardized, self-service developer environments are provisioned (Dev Centers / Dev Box)"
+    severity: low
+    query: "$.devops.devCenters[*]"
+    assert: { type: exists }
+    remediation: "Provision Microsoft Dev Box / Dev Center for standardized, self-service developer environments. Not gated on Azure DevOps access -- Microsoft.DevCenter/devcenters and .../projects are ARM/Resource Graph resources, Reader-scoped."
+    manual: false
+
+  - id: DEVOPS-OPS-03
+    title: "Load and resilience testing are part of the operational pipeline"
+    severity: low
+    query: "$.devops.loadTesting[*]"
+    assert: { type: exists }
+    remediation: "Provision Azure Load Testing (and, for resilience, Azure Chaos Studio -- see $.devops.chaosExperiments, collected but not independently scored here) as part of the release pipeline. This is an existence-only signal -- a Load Testing resource existing is not proof tests actually run in the pipeline, the same coarse tradeoff several CAF/WAF rules already accept (e.g. CAF-ANL-02's Purview existence check)."
+    manual: false
+
+  - id: DEVOPS-OPS-04
+    title: "Continuous monitoring instruments health, performance, and reliability across dev through production"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm monitoring instrumentation spans dev through production, not just production. $.opsPosture.diagnosticCoverage and Monitor/ActionGroups are generic monitoring signals, not scoped to Azure DevOps pipeline stages -- left manual rather than scored against a proxy that could pass on unrelated monitoring hygiene."
+    manual: true
+
+  - id: DEVOPS-OPS-05
+    title: "Software delivery performance is measured — lead time, deployment frequency, MTTR, change-failure % (DORA)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm the four DORA metrics are measured. Scout's Azure DevOps collectors read pipeline/repository/service-connection DEFINITIONS, not the Pipelines Runs / Releases run-history APIs these four metrics require -- a materially heavier, per-run-paginated API surface, deliberately out of scope for this pass (see the enumeration's own \"What this means\" section)."
+    manual: true
+
+  # --- DevSecOps (DEVOPS-SEC-01..04) -----------------------------------------------------------------
+  - id: DEVOPS-SEC-01
+    title: "Security and policy-compliance gates run in the pipeline before production promotion"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm security/compliance gates run before production promotion. Pipeline stage/gate configuration and YAML content are not collected."
+    manual: true
+
+  - id: DEVOPS-SEC-02
+    title: "Automated pipelines enforce policy-as-code (DeployIfNotExists/Modify) for platform configuration"
+    severity: medium
+    # NOT automated, despite the enumeration's own doc marking this checkable "same signal as
+    # CAF-AUT-02" -- CAF-AUT-02 itself was converted to manual by AB#6798's false-pass fix
+    # ("has any parameters" is not "is a DeployIfNotExists/Modify effect", and collect.json does
+    # not carry the resolved policy effect on an assignment row). Re-automating the identical
+    # signal here would reintroduce the exact defect that fix exists to prevent.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm DeployIfNotExists/Modify policy assignments deploy platform configuration automatically, verified against each assignment's effective policy definition effect, not merely the presence of a parameters block. Same manual-until-a-policy-definition-join status as CAF-AUT-02 (AB#6798) -- do not re-automate this on the parameters-block proxy alone."
+    manual: true
+
+  - id: DEVOPS-SEC-03
+    title: "Repositories and build artefacts are scanned for vulnerabilities before deployment"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm repository/artefact vulnerability scanning (GitHub Advanced Security for Azure DevOps, or an equivalent) runs before deployment. Not collected by any current Scout collector."
+    manual: true
+
+  - id: DEVOPS-SEC-04
+    title: "End-to-end functional/UI test automation is part of the release process"
+    severity: low
+    query: "$.devops.playwrightTesting[*]"
+    assert: { type: exists }
+    remediation: "Provision Azure Playwright Testing (or an equivalent) as part of the release process. This is an existence-only signal, not proof of test-run history or pass rate -- not gated on Azure DevOps access, Microsoft.AzurePlaywrightService/accounts is an ARM/Resource Graph resource, Reader-scoped."
+    manual: false

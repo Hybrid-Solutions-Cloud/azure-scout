@@ -75,7 +75,14 @@ function Invoke-ScoutAssessmentCore {
         # AB#5543 — extraction data from an inventory pass that already ran in this invocation.
         # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
         # rows already in memory instead of querying Azure a second time.
-        [object]   $FromInventory
+        [object]   $FromInventory,
+        # AB#6827 (Feature AB#6749) -- opt-in, same shape as Invoke-AzureScout's own switch. Only
+        # threaded to Import-ScoutDevOpsCapability when a chosen assessment's `Ingest` list asks
+        # for 'DevOpsCapability'; every other assessment pays nothing for it.
+        [switch]   $IncludeDevOps,
+        [string[]] $DevOpsOrganization,
+        [string]   $DevOpsPat,
+        [string]   $TenantID
     )
 
     $runId   = Get-Date -Format 'yyyyMMdd_HHmmss'
@@ -164,6 +171,32 @@ function Invoke-ScoutAssessmentCore {
                         $advisorArgs.FromInventory = @($FromInventory.Advisories)
                     }
                     $collect = Import-AdvisorScores @advisorArgs
+                }
+                # AB#6826 (Feature AB#6749) -- Get-ScoutCostInventory wired into the collect
+                # pipeline for the first time (previously built, never called -- see the
+                # FinOps question-set enumeration's own "what this means" section). No new
+                # switch: cost data is either reachable (Az.CostManagement installed, billing
+                # RBAC in place) or it is not, and the ingestor itself computes `available`.
+                'CostInventory' {
+                    $costArgs = @{ Collect = $collect }
+                    if ($FromInventory -and $FromInventory.PSObject.Properties['Costs']) {
+                        $costArgs.FromInventory = @($FromInventory.Costs)
+                    }
+                    $collect = Import-ScoutCostInventory @costArgs
+                }
+                # AB#6827 (Feature AB#6749) -- same opt-in gate Invoke-AzureScout's own
+                # -IncludeDevOps already uses; the DevOps Capability assessment is the first
+                # -Assessment-only caller of the five ADO REST collectors, which previously fed
+                # only the Excel inventory path.
+                'DevOpsCapability' {
+                    $devopsArgs = @{ Collect = $collect; IncludeDevOps = $IncludeDevOps.IsPresent }
+                    if ($DevOpsOrganization) { $devopsArgs.DevOpsOrganization = $DevOpsOrganization }
+                    if ($DevOpsPat) { $devopsArgs.DevOpsPat = $DevOpsPat }
+                    if ($TenantID) { $devopsArgs.TenantID = $TenantID }
+                    if ($FromInventory -and $FromInventory.PSObject.Properties['Resources']) {
+                        $devopsArgs.FromInventory = @($FromInventory.Resources)
+                    }
+                    $collect = Import-ScoutDevOpsCapability @devopsArgs
                 }
             }
         }

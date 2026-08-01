@@ -721,5 +721,76 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- FinOps / DevOps Capability enumerations (AB#6826/AB#6827, Feature AB#6749) -----------
+    # Same shape/fields as the matching KQL query in Invoke-Collect.ps1's $q hashtable -- this
+    # is the shaper those live queries are the reference implementation for (AB#5648's own
+    # pattern), so the inverted (default) path costs no extra Resource Graph round-trip for any
+    # of these six.
+    $result['reservations'] = @(
+        Select-ByType 'microsoft.capacity/reservationorders/reservations' | ForEach-Object {
+            [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
+                name             = [string] (Get-ScoutProp $_ 'name')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                sku              = [string] (Get-ScoutProp $_ 'sku.name')
+            }
+        }
+    )
+
+    $result['managedDevOpsPools'] = @(
+        Select-ByType 'microsoft.devopsinfrastructure/pools' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+            }
+        }
+    )
+
+    $result['devCenters'] = @(
+        $rows | Where-Object {
+            $t = [string] (Get-ScoutProp $_ 'type')
+            $t -ieq 'microsoft.devcenter/devcenters' -or $t -ieq 'microsoft.devcenter/projects'
+        } | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                type           = [string] (Get-ScoutProp $_ 'type')
+            }
+        }
+    )
+
+    $result['loadTesting'] = @(
+        Select-ByType 'microsoft.loadtestservice/loadtests' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+            }
+        }
+    )
+
+    $result['chaosExperiments'] = @(
+        Select-ByType 'microsoft.chaos/experiments' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+            }
+        }
+    )
+
+    $result['playwrightTesting'] = @(
+        Select-ByType 'microsoft.azureplaywrightservice/accounts' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+            }
+        }
+    )
+
     return $result
 }

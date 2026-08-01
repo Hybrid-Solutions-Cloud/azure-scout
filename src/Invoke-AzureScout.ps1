@@ -596,6 +596,13 @@ Function Invoke-AzureScout {
         if ($PermissionAudit.IsPresent)                     { $assessArgs.PermissionAudit = $true }
         if ($CollectOnly.IsPresent)                         { $assessArgs.CollectOnly = $true }
         if ($FromCollect)                                   { $assessArgs.FromCollect = $FromCollect }
+        # AB#6827 -- a standalone `-Assessment 'DevOps Capability Assessment' -IncludeDevOps` run
+        # (no -InventoryAndAssessment) needs these threaded through too, not just the deferred/
+        # combined path below.
+        if ($IncludeDevOps.IsPresent)                       { $assessArgs.IncludeDevOps = $true }
+        if ($DevOpsOrganization)                            { $assessArgs.DevOpsOrganization = $DevOpsOrganization }
+        if ($DevOpsPat)                                     { $assessArgs.DevOpsPat = $DevOpsPat }
+        if ($TenantID)                                      { $assessArgs.TenantID = $TenantID }
 
         # "Both" from the wizard: DEFER the assessment until after the inventory pass instead of
         # running it now (AB#5543). Running it here made the command collect from Azure twice —

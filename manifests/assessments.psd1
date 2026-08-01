@@ -236,6 +236,33 @@
         Reporters    = @('Html', 'Excel')
     }
 
+    # ---- FinOps Review / DevOps Capability Assessment (AB#6826/AB#6827, Feature AB#6749) ----
+    #
+    # Both enumerations are INFERRED, not Microsoft-published -- see the Description below and
+    # each rule file's own header before quoting a coverage figure from either. Both assessments
+    # degrade the same way when their gated data source is unavailable: `assert.gate` on the
+    # affected rules reports NotAssessed, never a scored zero (Invoke-Rule.ps1, AB#6826).
+    'FinOps Review' = @{
+        Description = 'FinOps Review -- scores against the FinOps Framework''s 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
+        Category    = '*'
+        Collect     = @('FinOps', 'Cost', 'Management')
+        Ingest      = @('Governance', 'AdvisorScores', 'CostInventory')
+        Rules       = @('finops.review')
+        Frameworks  = @('FinOps: 22 capabilities')
+        Tags        = @('finops', 'cost', 'inferred-enumeration')
+        Reporters   = @('Html', 'Excel')
+    }
+    'DevOps Capability Assessment' = @{
+        Description = 'DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center''s five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero.'
+        Category    = '*'
+        Collect     = @('DevOps', 'Management')
+        Ingest      = @('Governance', 'DevOpsCapability')
+        Rules       = @('devops.capability')
+        Frameworks  = @('DevOps Capability: 5 phases')
+        Tags        = @('devops', 'inferred-enumeration')
+        Reporters   = @('Html', 'Excel')
+    }
+
     # ---- cross-resource correlation (AB#6835) ----
     # Every rule here spans TWO datasets, so Collect must gather both halves or a rule silently
     # passes on an empty right-hand side. Both categories of every pair are listed deliberately.

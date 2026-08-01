@@ -46,6 +46,16 @@ $ErrorActionPreference = 'Stop'
                           digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
                       analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[]} }   (per-category scalars, Epic AB#5056)
         advisor[]                                                                   (filled by ingest)
+        finops     { available, moduleAvailable, costRows[], anomalies[], blockedSubscriptions[],
+                     reservations[], reservationRecommendations[] }  (reservations from ARM/ARG
+                     here; available/costRows/anomalies/blockedSubscriptions filled by the
+                     Import-ScoutCostInventory ingest, AB#6826)
+        devops     { available, attempted, projects[], pipelines[], repositories[],
+                     serviceConnections[], agentPools[], managedPools[], devCenters[],
+                     loadTesting[], chaosExperiments[], playwrightTesting[] }  (managedPools
+                     through playwrightTesting from ARM/ARG here; available/attempted/projects
+                     through agentPools filled by the Import-ScoutDevOpsCapability ingest,
+                     AB#6827)
 
     Read-only throughout.
 
@@ -602,6 +612,47 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
 | project name, resourceGroup, retentionInDays
 '@
+        # ---- FinOps / DevOps Capability enumerations (AB#6826/AB#6827, Feature AB#6749) --------
+        # Every query in this block is ARM/Resource Graph, Reader-scoped, and NEVER gated behind
+        # the EA/MCA billing permission system or Azure DevOps org access -- that gate only
+        # applies to the Cost Management API pull and the ADO REST calls, both handled by the
+        # Import-ScoutCostInventory / Import-ScoutDevOpsCapability ingestors, not here. See
+        # docs/frameworks/finops-review-question-set.md and
+        # docs/frameworks/devops-capability-question-set.md.
+        #
+        # microsoft.capacity/reservationorders/reservations IS indexed by Resource Graph --
+        # confirmed by the existing General/Reservations inventory collector, which matches this
+        # exact type against the same `resources` table (ResourceTypeMatching: SinglePass).
+        reservations = @'
+resources | where type =~ "microsoft.capacity/reservationorders/reservations"
+| project id, name, subscriptionId, provisioningState = tostring(properties.provisioningState),
+          sku = tostring(sku.name)
+'@
+        # microsoft.devopsinfrastructure/pools (Managed DevOps Pools -- DEVOPS-OPS-01), and the
+        # four Dev Center / testing / chaos service types DEVOPS-OPS-02/03 read, are all plain
+        # ARM resource types with existing General/DevOps declarative collectors that already
+        # match them against `resources` the same way -- ARG indexing is not new here, only the
+        # JSON assessment shape is.
+        managedDevOpsPools = @'
+resources | where type =~ "microsoft.devopsinfrastructure/pools"
+| project name, resourceGroup, subscriptionId
+'@
+        devCenters = @'
+resources | where type in~ ("microsoft.devcenter/devcenters", "microsoft.devcenter/projects")
+| project name, resourceGroup, subscriptionId, type
+'@
+        loadTesting = @'
+resources | where type =~ "microsoft.loadtestservice/loadtests"
+| project name, resourceGroup, subscriptionId
+'@
+        chaosExperiments = @'
+resources | where type =~ "microsoft.chaos/experiments"
+| project name, resourceGroup, subscriptionId
+'@
+        playwrightTesting = @'
+resources | where type =~ "microsoft.azureplaywrightservice/accounts"
+| project name, resourceGroup, subscriptionId
+'@
     }
 
     # ---- category tagging (AB#5057 follow-up) ----
@@ -660,6 +711,12 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
+        reservations        = @('FinOps', 'Cost', 'Management')
+        managedDevOpsPools  = @('DevOps', 'Management')
+        devCenters          = @('DevOps', 'Management')
+        loadTesting         = @('DevOps', 'Management')
+        chaosExperiments    = @('DevOps', 'Management')
+        playwrightTesting   = @('DevOps', 'Management')
     }
 
     $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
@@ -1155,6 +1212,25 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             }
         }
         advisor       = @()
+        # ---- AB#6826/AB#6827 (Feature AB#6749) -- stubs the ARM-sourced half of each domain.
+        # `available`/`costRows`/`anomalies`/`blockedSubscriptions` (finops) and
+        # `available`/`attempted`/`projects`/`pipelines`/`repositories`/`serviceConnections`/
+        # `agentPools` (devops) are the billing-/DevOps-access-gated halves, filled by
+        # Import-ScoutCostInventory / Import-ScoutDevOpsCapability when those ingestors run --
+        # a caller that never invokes them (a rule set neither -Assessment entry needs) still
+        # gets a well-formed, empty object rather than a missing key that throws under
+        # StrictMode.
+        finops        = [pscustomobject]@{
+            available = $false; costRows = @(); anomalies = @(); blockedSubscriptions = @()
+            reservations = $r.reservations; reservationRecommendations = @()
+        }
+        devops        = [pscustomobject]@{
+            available = $false; attempted = $false
+            projects = @(); pipelines = @(); repositories = @(); serviceConnections = @(); agentPools = @()
+            managedPools = $r.managedDevOpsPools; devCenters = $r.devCenters
+            loadTesting = $r.loadTesting; chaosExperiments = $r.chaosExperiments
+            playwrightTesting = $r.playwrightTesting
+        }
         _meta         = [pscustomobject]@{
             generatedOn = (Get-Date).ToString('o'); scope = $Scope
             categories = $Categories; managementGroupId = $ManagementGroupId
