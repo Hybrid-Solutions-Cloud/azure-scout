@@ -15,6 +15,13 @@ rules:
     query: "$.domains.management.policyComplianceStates[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "Collect with -IncludePolicyCompliance (or run the Compliance assessment) so policy compliance state is available to review, not just policy assignment existence."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Policy compliance state collected and reviewed, not only assignment existence"
+    owner: "Governance lead"
+    effort: S
+    phase: 1
     manual: false
 
   - id: CGOV-RC-02
@@ -26,4 +33,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "For each non-compliant resource, document why it is non-compliant (misconfiguration, exemption pending, policy too broad) rather than only tracking the compliance percentage."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Every non-compliant resource carries a documented root cause or a dated exemption"
+    owner: "Governance lead"
+    effort: L
+    phase: 3
     manual: true

@@ -122,6 +122,46 @@ Describe 'AB#6853 — the four optional gap-register / roadmap keys' {
     }
 }
 
+Describe 'AB#6853 — the CAF Govern rule files are annotated' {
+    BeforeAll {
+        $root = Split-Path $PSScriptRoot -Parent
+        . "$root/src/assess/engine/Get-RuleSet.ps1"
+        $Script:GovFiles = @(Get-ChildItem -Path "$root/src/assess/rules" -Filter 'caf.govern.*.yaml')
+    }
+
+    It 'still parses every governance rule file after the annotation' {
+        $Script:GovFiles.Count | Should -BeGreaterThan 0
+        foreach ($f in $Script:GovFiles) {
+            { Get-RuleSet -Patterns $f.Name } | Should -Not -Throw -Because "$($f.Name) must still load"
+        }
+    }
+
+    It 'carries targetState, owner, effort and phase on every rule' {
+        foreach ($f in $Script:GovFiles) {
+            $set = Get-RuleSet -Patterns $f.Name
+            foreach ($file in @($set)) {
+                foreach ($rule in @($file.rules)) {
+                    foreach ($key in 'targetState', 'owner', 'effort', 'phase') {
+                        (Get-ScoutRuleKey -Rule $rule -Name $key) |
+                            Should -Not -BeNullOrEmpty -Because "$($rule.id) must declare $key"
+                    }
+                }
+            }
+        }
+    }
+
+    It 'uses only the published effort and phase vocabularies' {
+        foreach ($f in $Script:GovFiles) {
+            foreach ($file in @(Get-RuleSet -Patterns $f.Name)) {
+                foreach ($rule in @($file.rules)) {
+                    (Get-ScoutRuleKey -Rule $rule -Name 'effort') | Should -BeIn @('S', 'M', 'L', 'XL')
+                    [int](Get-ScoutRuleKey -Rule $rule -Name 'phase') | Should -BeIn @(1, 2, 3)
+                }
+            }
+        }
+    }
+}
+
 Describe 'AB#6863 — every renderer Export-Report dispatches is reachable' {
     It 'includes GovernanceReport — the renderer that was shipped, tested and unreachable' {
         Get-ScoutRendererName | Should -Contain 'GovernanceReport'

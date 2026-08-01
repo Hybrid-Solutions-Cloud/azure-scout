@@ -11,6 +11,13 @@ rules:
     query: "$.domains.management.policyComplianceStates[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "Confirm operations-scoped policy assignments (diagnostic settings, tagging, resource-type restrictions) specifically are tracked, not just policy compliance generally."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Operations-scoped policy assignments tracked for compliance, not just present"
+    owner: "CCoE Platform"
+    effort: M
+    phase: 2
     manual: false
 
   - id: CGOV-OP-02
@@ -22,6 +29,13 @@ rules:
     query: "$.management.logAnalyticsWorkspaces[*]"
     assert: { type: exists }
     remediation: "A Log Analytics workspace existing is not the same as adequate diagnostic-setting coverage across resources -- confirm coverage with the 'Assess: Monitor' assessment (waf.operational's diagnostic-coverage rule)."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Diagnostic settings forwarding to a central workspace on every in-scope resource"
+    owner: "CCoE Platform"
+    effort: M
+    phase: 1
     manual: false
 
   - id: CGOV-OP-03
@@ -35,6 +49,13 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm Azure Advisor alerts are configured to notify on new reliability/security/performance/cost recommendations, not only that recommendations were reviewed once."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Advisor alerts configured for new reliability, security, performance and cost recommendations"
+    owner: "CCoE Platform"
+    effort: S
+    phase: 2
     manual: true
 
   - id: CGOV-OP-04
@@ -47,4 +68,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm Azure Resource Health alerts are configured for service-impacting events and planned maintenance. Scout's Outages collector had a known ordering defect at the time this rule was written -- verify it has been fixed before trusting an automated read here."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Resource Health alerts configured for service-impacting events and planned maintenance"
+    owner: "CCoE Platform"
+    effort: S
+    phase: 2
     manual: true

@@ -15,6 +15,13 @@ rules:
     query: "$.domains.analytics.purviewAccounts[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "A Purview account existing is not the same as active data-compliance monitoring -- confirm scans, classifications, and compliance policies are configured within it."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Purview scans, classifications and compliance policies configured and running"
+    owner: "Data Governance"
+    effort: L
+    phase: 3
     manual: false
 
   - id: CGOV-DG-02
@@ -25,4 +32,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm a dashboard exists for data-plane policy compliance (row/column-level security, data classification enforcement) -- Scout only evidences control-plane (ARM resource) policy, never data-plane."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "A data-plane policy compliance dashboard in place and reviewed"
+    owner: "Data Governance"
+    effort: M
+    phase: 3
     manual: true

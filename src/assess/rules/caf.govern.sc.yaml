@@ -17,6 +17,13 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm Defender secure score is reviewed on a recurring cadence (not just point-in-time) and recommendations are actioned or formally risk-accepted."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Defender secure score reviewed on a recurring cadence with recommendations actioned or risk-accepted"
+    owner: "Security Engineering"
+    effort: M
+    phase: 2
     manual: true
 
   - id: CGOV-SC-02
@@ -32,6 +39,13 @@ rules:
     query: "$.domains.management.policyComplianceStates[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "Run the 'Assess: Compliance' assessment for a per-initiative (MCSB/CIS/ISO/NIST/PCI-DSS) breakdown rather than relying on this generic existence check."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "A regulatory-compliance initiative assigned and its dashboard reviewed on a recurring cadence"
+    owner: "Security Engineering / Compliance"
+    effort: M
+    phase: 1
     manual: false
 
   - id: CGOV-SC-03
@@ -45,4 +59,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard -- none of this is currently observable from Scout's collected data."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Entra sign-in and audit log export configured, identity secure score reviewed, identity-governance dashboard in place"
+    owner: "IAM team"
+    effort: L
+    phase: 2
     manual: true
