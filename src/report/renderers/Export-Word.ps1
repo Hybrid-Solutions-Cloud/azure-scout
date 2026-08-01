@@ -652,7 +652,7 @@ function New-ScoutDocxManualSection {
 
     $items = @($Manual)
     if ($items.Count -eq 0) {
-        Add-ScoutDocxParagraph -Body $Body -Text 'No manual review items — full automated coverage for the selected assessment(s).' -Hex $Script:ScoutDocxGreen
+        Add-ScoutDocxParagraph -Body $Body -Text 'No manual review items — full automated coverage for every assessment in this run.' -Hex $Script:ScoutDocxGreen
         return
     }
 
@@ -693,6 +693,30 @@ function New-ScoutDocxManualSection {
     assessed", never as a score. Every section below has at least one branch that exists only
     to keep that true.
 #>
+
+function Format-ScoutDocxCount {
+    <#
+    .SYNOPSIS
+        "1 domain" / "3 domains" — never "3 domain(s)".
+
+    .NOTES
+        File-local, following this file's existing convention of not reaching into a sibling
+        renderer (see Import-ScoutDocxOpenXmlAssembly's header) so it stays loadable alone.
+
+        A parenthesised plural is the clearest single tell that a document was generated
+        rather than written. A reader who notices one starts discounting the analysis around
+        it, which is an expensive price for a character saved.
+    #>
+    param([int] $Count, [string] $Singular, [string] $Plural = $null)
+    $noun = if ($Count -eq 1) { $Singular } elseif ($Plural) { $Plural } else { "${Singular}s" }
+    return ('{0:N0} {1}' -f $Count, $noun)
+}
+
+function Get-ScoutDocxVerb {
+    param([int] $Count, [string] $Singular, [string] $Plural)
+    if ($Count -eq 1) { return $Singular }
+    return $Plural
+}
 
 function Get-ScoutDocxBandColor {
     param([AllowNull()] $Score)
@@ -871,15 +895,31 @@ function New-ScoutDocxExecSummaryV2 {
         $runs.Add((New-ScoutDocxRun -Text "   $band" -SizePt 13 -Hex $Script:ScoutDocxGray))
         $Body.Append((New-ScoutDocxPara -Runs $runs -SpaceAfterPt 4))
         Add-ScoutDocxParagraph -Body $Body `
-            -Text ("The composite is the unweighted mean of the {0} domain(s) that produced a scorable result." -f $assessed) `
+            -Text ("The composite is the unweighted mean of the {0} that produced a scorable result." -f (Format-ScoutDocxCount $assessed domain)) `
             -SizePt 10 -Hex $Script:ScoutDocxGray
     }
 
     if ($excluded -gt 0) {
         Add-ScoutDocxParagraph -Body $Body `
-            -Text ("{0} domain(s) are excluded from the composite because no automated evidence was collected for them. They are shown as 'Not assessed' throughout this report and are never scored as zero — a zero would read as 'measured and found worst' rather than 'not measured'." -f $excluded) `
+            -Text ("{0} excluded from the composite because no automated evidence was collected for them. They are shown as 'Not assessed' throughout this report and are never scored as zero — a zero would read as 'measured and found worst' rather than 'not measured'." -f (Format-ScoutDocxCount $excluded 'domain is' 'domains are')) `
             -SizePt 10 -Hex $Script:ScoutDocxGold
 
+    }
+
+    # ---- The narrative (AB#6854) ----
+    # Each paragraph carries a named lead in bold, then the prose, exactly as the reference
+    # report does. A run whose facts could not be derived emits no paragraphs here and the
+    # section is shorter — never padded with a hedged sentence.
+    $narrative = Get-ScoutDocxProp $Model 'Narrative'
+    $execParas = @(Get-ScoutDocxProp $narrative 'Executive')
+    if ($execParas.Count -gt 0) {
+        Add-ScoutDocxHeading -Body $Body -Text 'Assessment' -Level 2
+        foreach ($p in $execParas) {
+            $runs = New-ScoutDocxList
+            $runs.Add((New-ScoutDocxRun -Text "$(Get-ScoutDocxProp $p 'Lead'). " -SizePt 11 -Hex $Script:ScoutDocxNavy -Bold $true))
+            $runs.Add((New-ScoutDocxRun -Text "$(Get-ScoutDocxProp $p 'Text')" -SizePt 11 -Hex $Script:ScoutDocxInk))
+            $Body.Append((New-ScoutDocxPara -Runs $runs -SpaceAfterPt 8))
+        }
     }
 
     # Rollup counts
@@ -1045,7 +1085,7 @@ function New-ScoutDocxDomainChapters {
         }
         else {
             $total = [int]$d.Pass + [int]$d.Partial + [int]$d.Fail
-            Add-ScoutDocxParagraph -Body $Body -Text ("{0} of {1} scorable controls in this domain are satisfied, {2} partially, and {3} are not. {4} further control(s) require manual review and are excluded from the score." -f `
+            Add-ScoutDocxParagraph -Body $Body -Text ("{0} of {1} scorable controls in this domain are satisfied, {2} partially, and {3} are not. A further {4} require manual review and are excluded from the score." -f `
                     $d.Pass, $total, $d.Partial, $d.Fail, $d.Manual)
         }
 
@@ -1100,8 +1140,8 @@ function New-ScoutDocxDomainChapters {
                 # above already carries the exact "N affected (showing first M)" per gap, and a
                 # second, separately-derived figure here can disagree with it — which is worse
                 # than saying less.
-                Add-ScoutDocxParagraph -Body $Body -Text ("The resource list above is partial for {0} of these gap(s) — see the 'showing first' counts in the findings table. The affected totals themselves are complete." -f `
-                        $truncated.Count) -SizePt 9 -Hex $Script:ScoutDocxGold -Italic $true
+                Add-ScoutDocxParagraph -Body $Body -Text ("The resource list above is partial for {0} of these gaps — see the 'showing first' counts in the findings table. The affected totals themselves are complete." -f `
+                    (Format-ScoutDocxCount $truncated.Count 'gap')) -SizePt 9 -Hex $Script:ScoutDocxGold -Italic $true
             }
         }
     }
@@ -1240,7 +1280,7 @@ function New-ScoutDocxAppendixGapRegister {
 
     $noTarget = @($gaps | Where-Object { -not $_.TargetState }).Count
     if ($noTarget -gt 0) {
-        Add-ScoutDocxParagraph -Body $Body -Text ("{0} gap(s) carry no target state because their rule does not declare one. The closure action still applies; the target-state column is left blank rather than guessed." -f $noTarget) `
+        Add-ScoutDocxParagraph -Body $Body -Text ("{0} carry no target state because their rule does not declare one. The closure action still applies; the target-state column is left blank rather than guessed." -f (Format-ScoutDocxCount $noTarget 'gap carries' 'gaps carry')) `
             -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true
     }
 }
@@ -1254,16 +1294,16 @@ function New-ScoutDocxScopeAndAssumptions {
     $scope = Get-ScoutDocxProp $Model 'Scope'
     $coverage = Get-ScoutDocxProp $Model 'Coverage'
 
-    Add-ScoutDocxParagraph -Body $Body -Text ("This assessment covers {0} subscription(s) under scope '{1}'{2}. Findings reflect the state of the estate at the time of the scan; any remediation carried out since is not captured." -f `
-        (Get-ScoutDocxProp $scope 'SubscriptionCount' 0),
+    Add-ScoutDocxParagraph -Body $Body -Text ("This assessment covers {0} under scope '{1}'{2}. Findings reflect the state of the estate at the time of the scan; any remediation carried out since is not captured." -f `
+        (Format-ScoutDocxCount ([int](Get-ScoutDocxProp $scope 'SubscriptionCount' 0)) 'subscription'),
         (Get-ScoutDocxProp $meta 'Scope' 'All'),
         $(if (Get-ScoutDocxProp $meta 'ManagementGroupId') { ", rooted at management group $(Get-ScoutDocxProp $meta 'ManagementGroupId')" } else { '' }))
 
     foreach ($line in @(
             'Azure Scout is read-only. No tenant state was created, modified or deleted to produce this report.'
             'Inheritance-based controls are treated as effective at descendant scope unless an explicit override was observed.'
-            ("{0} control(s) require manual review and are excluded from every score in this report." -f (Get-ScoutDocxProp $coverage 'ManualReviewItems' 0))
-            ("{0} control(s) returned no data — the source was gated behind a permission Scout does not hold, or was not collected. Neither a pass nor a failure is claimed for these." -f (Get-ScoutDocxProp $coverage 'NotAssessedItems' 0))
+            ("{0} require manual review and are excluded from every score in this report." -f (Format-ScoutDocxCount ([int](Get-ScoutDocxProp $coverage 'ManualReviewItems' 0)) 'control'))
+            ("{0} returned no data — the source was gated behind a permission Scout does not hold, or was not collected. Neither a pass nor a failure is claimed for these." -f (Format-ScoutDocxCount ([int](Get-ScoutDocxProp $coverage 'NotAssessedItems' 0)) 'control'))
             'The 1-10 maturity scale is Azure Scout''s own and is not a Microsoft-published model.'
             'Triage verdicts on affected resources are heuristic suggestions, not confirmed judgements.'
         )) {

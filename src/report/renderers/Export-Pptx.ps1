@@ -976,7 +976,7 @@ function New-ScoutManualSlide {
     if ($items.Count -eq 0) {
         New-ScoutContentSlide -Shell $Shell -Title 'Manual Review Worklist' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
             param($tree)
-            Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.6 -Cx 12.2 -Lines @('No manual review items — full automated coverage for the selected assessment(s).') -SizePt 16
+            Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.6 -Cx 12.2 -Lines @('No manual review items — full automated coverage for every assessment in this run.') -SizePt 16
         }
         $PageCounter.Value++
         return
@@ -1049,6 +1049,16 @@ function New-ScoutNextStepsSlide {
     is read as a grade.
 #>
 
+function Format-ScoutPptCount {
+    # "1 domain" / "3 domains" -- never "3 domain(s)". File-local for the same standalone-
+    # loadability reason Import-ScoutOpenXmlAssembly is (see this file's header). A
+    # parenthesised plural on an executive slide reads as "nobody looked at this before
+    # sending it", and the reader applies that to the analysis too.
+    param([int] $Count, [string] $Singular, [string] $Plural = $null)
+    $noun = if ($Count -eq 1) { $Singular } elseif ($Plural) { $Plural } else { "${Singular}s" }
+    return ('{0:N0} {1}' -f $Count, $noun)
+}
+
 function Get-ScoutModelBandColor {
     param([AllowNull()] $Score)
     if ($null -eq $Score) { return $Script:Gray }
@@ -1103,9 +1113,9 @@ function New-ScoutScopeSlide {
         }
 
         $lines = New-ScoutList
-        $lines.Add(("Assessed scope: {0} subscription(s); {1} domain(s) produced a scorable result and {2} did not." -f `
-                (Get-ScoutProp $scope 'SubscriptionCount' 0),
-                (Get-ScoutProp $coverage 'AssessedDomains' 0),
+        $lines.Add(("Assessed scope: {0}; {1} produced a scorable result and {2} did not." -f `
+                (Format-ScoutPptCount ([int](Get-ScoutProp $scope 'SubscriptionCount' 0)) 'subscription'),
+                (Format-ScoutPptCount ([int](Get-ScoutProp $coverage 'AssessedDomains' 0)) 'domain'),
                 (Get-ScoutProp $coverage 'NotAssessedDomains' 0)))
         $lines.Add('Every figure comes from a read-only collection of the tenant. No Azure state was created, modified or deleted.')
         if ($notCollected.Count -gt 0) {
@@ -1142,11 +1152,11 @@ function New-ScoutTakeawaysSlide {
             "Composite maturity is $current / 10 — the $band band — averaged across the domains that produced a scorable result."
         }
         $two = if ($worst) {
-            "The weakest domain is $($worst.Domain) at $($worst.Score) / 10 with $($worst.OpenGaps) open gap(s); it is where remediation effort concentrates."
+            "The weakest domain is $($worst.Domain) at $($worst.Score) / 10 with $(Format-ScoutPptCount ([int]$worst.OpenGaps) 'open gap'); it is where remediation effort concentrates."
         } else {
             'No domain could be ranked, because none produced a scorable result.'
         }
-        $three = "$($gaps.Count) open gap(s) in the register, $($critical.Count) of them CRITICAL or HIGH. Each carries a named action and a remediation phase."
+        $three = "$(Format-ScoutPptCount $gaps.Count 'open gap') in the register, $($critical.Count) of them CRITICAL or HIGH. Each carries a named action and a remediation phase."
 
         $y = 1.35
         $n = 0
@@ -1164,7 +1174,7 @@ function New-ScoutTakeawaysSlide {
         if ($excluded -gt 0) {
             $noteParas = New-ScoutList
             $noteRuns = New-ScoutList
-            $noteRuns.Add((New-ScoutRun -Text ("$excluded domain(s) collected no automated evidence and are excluded from the composite — shown throughout as 'Not assessed', never scored as zero.") -SizePt 11 -Hex $Script:Gold))
+            $noteRuns.Add((New-ScoutRun -Text ("$(Format-ScoutPptCount $excluded 'domain') collected no automated evidence and are excluded from the composite — shown throughout as 'Not assessed', never scored as zero.") -SizePt 11 -Hex $Script:Gold))
             $noteParas.Add((New-ScoutPara -Runs $noteRuns))
             $tree.Append((New-ScoutShape -Name 'ExclusionNote' -X 0.55 -Y 6.15 -Cx 12.2 -Cy 0.5 -Paragraphs $noteParas))
         }
@@ -1210,11 +1220,11 @@ function New-ScoutScorecardSlide {
         if ($null -eq $current) {
             $lines.Add('Composite: not assessed — no domain produced a scorable result.')
         } else {
-            $lines.Add("Composite maturity: $current / 10 — $(Get-ScoutProp $composite 'Band') — across $(Get-ScoutProp $composite 'AssessedDomainCount' 0) assessed domain(s).")
+            $lines.Add("Composite maturity: $current / 10 — $(Get-ScoutProp $composite 'Band') — across $(Format-ScoutPptCount ([int](Get-ScoutProp $composite 'AssessedDomainCount' 0)) 'assessed domain').")
         }
         $lines.Add('Rubric: 1-2 Initial, 3-4 Emerging, 5-6 Defined, 7-8 Managed, 9-10 Optimised. A tile showing an em-dash was not assessed, and is not a zero.')
         if ($domains.Count -gt 8) {
-            $lines.Add("$($domains.Count - 8) further domain(s) are not shown on this slide; all appear in the report's maturity summary.")
+            $lines.Add("$(Format-ScoutPptCount ($domains.Count - 8) 'further domain is' 'further domains are') not shown on this slide; all appear in the report's maturity summary.")
         }
         Add-ScoutBulletList -Tree $tree -X 0.55 -Y 5.1 -Cx 12.2 -Lines $lines.ToArray() -SizePt 13
     }
@@ -1292,9 +1302,9 @@ function New-ScoutDeepDiveSlide {
 
         $lines = New-ScoutList
         $observed = if ($top.EvidenceTruncated) {
-            "Observed: $($top.EvidenceCount) affected resource(s) — the first $($top.EvidenceShown) are listed in the full report."
+            "Observed: $(Format-ScoutPptCount ([int]$top.EvidenceCount) 'affected resource') — the first $($top.EvidenceShown) are listed in the full report."
         } else {
-            "Observed: $($top.EvidenceCount) affected resource(s)."
+            "Observed: $(Format-ScoutPptCount ([int]$top.EvidenceCount) 'affected resource')."
         }
         $lines.Add($observed)
         if ($top.TargetState) { $lines.Add("Target state: $($top.TargetState)") }
@@ -1352,7 +1362,7 @@ function New-ScoutGapsByOwnerSlide {
 
         $unassigned = @($gaps | Where-Object { -not $_.Owner }).Count
         if ($unassigned -gt 0) {
-            $lines = @("$unassigned gap(s) have no accountable owner declared on their rule and are grouped as Unassigned. They still need one before the roadmap can be committed to.")
+            $lines = @("$(Format-ScoutPptCount $unassigned 'gap has' 'gaps have') no accountable owner declared on their rule and are grouped as Unassigned. They still need one before the roadmap can be committed to.")
             Add-ScoutBulletList -Tree $tree -X 0.55 -Y 6.2 -Cx 12.2 -Lines $lines -SizePt 12
         }
     }

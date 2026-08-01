@@ -437,7 +437,7 @@ function New-ScoutGapRegister {
                 Framework            = Get-ScoutModelProp $f 'Framework'
                 Domain               = Get-ScoutModelProp $f 'Area'
                 Title                = Get-ScoutModelProp $f 'Title'
-                CurrentStateObserved = "$count resource(s) matched this condition."
+                CurrentStateObserved = ('{0:N0} {1} matched this condition.' -f $count, $(if ($count -eq 1) { 'resource' } else { 'resources' }))
                 EvidenceCount        = $count
                 EvidenceShown        = @(Get-ScoutModelProp $f 'Evidence' -Default @()).Count
                 EvidenceTruncated    = $truncated
@@ -483,7 +483,7 @@ function New-ScoutKeyRiskIndicator {
         $kris.Add([pscustomobject]@{
                 RiskArea        = Get-ScoutModelProp $f 'Title'
                 Domain          = Get-ScoutModelProp $f 'Area'
-                CurrentState    = "$count resource(s) in scope matched this condition."
+                CurrentState    = ('{0:N0} {1} in scope matched this condition.' -f $count, $(if ($count -eq 1) { 'resource' } else { 'resources' }))
                 SupportingCount = $count
                 Severity        = Get-ScoutModelSeverityLabel (Get-ScoutModelProp $f 'Severity')
                 RuleId          = Get-ScoutModelProp $f 'Id'
@@ -504,7 +504,7 @@ function New-ScoutKeyRiskIndicator {
         $kris.Add([pscustomobject]@{
                 RiskArea        = Get-ScoutModelProp $f 'Title'
                 Domain          = Get-ScoutModelProp $f 'Area'
-                CurrentState    = "Control satisfied across $count resource(s) in scope."
+                CurrentState    = ('Control satisfied across {0:N0} {1} in scope.' -f $count, $(if ($count -eq 1) { 'resource' } else { 'resources' }))
                 SupportingCount = $count
                 Severity        = 'GOOD'
                 RuleId          = Get-ScoutModelProp $f 'Id'
@@ -518,7 +518,7 @@ function New-ScoutKeyRiskIndicator {
         $kris.Add([pscustomobject]@{
                 RiskArea        = 'Controls that could not be evaluated'
                 Domain          = 'Coverage'
-                CurrentState    = "$($notAssessed.Count) control(s) returned no data — the source was gated or not collected, so neither a pass nor a fail can be claimed."
+                CurrentState    = ('{0:N0} {1} returned no data — the source was gated or not collected, so neither a pass nor a fail can be claimed.' -f $notAssessed.Count, $(if ($notAssessed.Count -eq 1) { 'control' } else { 'controls' }))
                 SupportingCount = $notAssessed.Count
                 Severity        = 'UNKNOWN'
                 RuleId          = $null
@@ -810,6 +810,14 @@ function Build-ScoutReportModel {
             Manual   = @(Get-ScoutModelProp $Findings 'Manual' -Default @())
             Errors   = @(Get-ScoutModelProp $Findings 'Errors' -Default @())
         }
+    }
+
+    # AB#6854 — compose the prose LAST, because every sentence in it is derived from the
+    # domains and the gap register above. Soft dependency: a caller that has not dot-sourced
+    # Build-ScoutNarrative.ps1 gets the model with no Narrative property and $null domain
+    # CurrentState, and the renderers fall back to their table-only sections.
+    if (Get-Command Add-ScoutNarrativeToModel -ErrorAction SilentlyContinue) {
+        $model = Add-ScoutNarrativeToModel -Model $model
     }
 
     if ($OutputPath) {
