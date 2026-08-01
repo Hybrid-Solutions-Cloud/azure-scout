@@ -56,6 +56,10 @@ function Start-AZSCExtractionOrchestration {
     $Security = @()
     $Retirements = @()
     $EntraResources = @()
+    # AB#6456 -- Start-AZSCEntraExtraction's per-query success/failure record. Initialised here
+    # (not only inside the Entra branch) for the same StrictMode reason $Governance is: an
+    # ArmOnly run never enters that branch, and reading an unassigned variable throws.
+    $EntraQueryOutcomes = @()
     $PolicyAssign = $null
     $PolicyDef = $null
     $PolicySetDef = $null
@@ -169,6 +173,10 @@ function Start-AZSCExtractionOrchestration {
 
             $EntraData = Start-AZSCEntraExtraction -TenantID $TenantID
             $EntraResources = if ($EntraData) { $EntraData.EntraResources } else { @() }
+            # AB#6456 -- PSObject.Properties guard rather than a plain `.QueryOutcomes` read: an
+            # EntraData produced by an older/mocked Start-AZSCEntraExtraction that predates this
+            # field would throw a property-not-found under StrictMode instead of degrading.
+            $EntraQueryOutcomes = if ($EntraData -and $EntraData.PSObject.Properties['QueryOutcomes']) { $EntraData.QueryOutcomes } else { @() }
 
             # Merge Entra resources into the main Resources array. Guarded so a $null
             # EntraResources doesn't add a spurious null element to $Resources, which
@@ -178,6 +186,27 @@ function Start-AZSCExtractionOrchestration {
             Remove-Variable -Name EntraData -ErrorAction SilentlyContinue
 
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Entra ID extraction complete. ' + @($EntraResources).Count + ' resources added.')
+        }
+    }
+
+    # ── Orphaned role-assignment resolution — AB#6456 (Feature AB#6455, Epic AB#6454) ─────────
+    #
+    # Runs unconditionally, AFTER both branches above, because it needs whatever the two of them
+    # produced without caring which ran: the governance envelope (from the ARM branch) and the
+    # Entra principal rows + QueryOutcomes (from the Entra branch, when it ran at all). An ArmOnly
+    # run, or a run with no -TenantID, still gets a Role Assignments worksheet -- every principal
+    # in it just reads 'NotAssessed' rather than a guess, which is the whole point of the
+    # QueryOutcomes contract (see Resolve-ScoutOrphanedRoleAssignment's own header).
+    #
+    # A missing command (an older module build, or a unit test that dot-sources only part of the
+    # tree) degrades to "the Role Assignments worksheet keeps its unresolved columns" rather than
+    # failing the run -- the same shape every other optional enrichment in this file uses.
+    if (Get-Command Resolve-ScoutOrphanedRoleAssignment -ErrorAction SilentlyContinue) {
+        try {
+            $Resources = Resolve-ScoutOrphanedRoleAssignment -Resources $Resources -EntraQueryOutcomes $EntraQueryOutcomes
+        }
+        catch {
+            Write-Warning "Start-AZSCExtractionOrchestration: orphaned role-assignment resolution failed; the Role Assignments worksheet keeps its unresolved columns: $($_.Exception.Message)"
         }
     }
 
