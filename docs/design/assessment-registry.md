@@ -4,18 +4,20 @@ description: The catalogue of every Azure Scout assessment — description, cate
 
 # Assessment Registry
 
-`manifests/assessments.psd1` has **23 entries**, categorized and tagged. Run
-one with `Invoke-AzureScout -Assessment <Name>`. **23 registry entries is not
-23 assessments** — read the warning below before treating that number as a
-coverage claim.
+`manifests/assessments.psd1` has **46 entries**, categorized and tagged. Run
+one with `Invoke-AzureScout -Assessment <Name>`.
 
-::: warning What 23 entries actually breaks down into
-**`LandingZone` is the one real roll-up assessment** — every other entry is a
-narrower view over the same rule set, a genuinely separate small assessment,
-or not an assessment at all:
+The full list, with the rule files and the automated-versus-manual split behind each, is on the
+generated **[Assessment Catalogue](../reference/assessment-catalogue.md)** — prefer it to any
+count written in prose. This page explains how the entries are *structured*.
 
-- **15 per-category slices**, prefixed `Assess: ` (`Assess: Compute`,
-  `Assess: Security`, …). They collided with Scout's fifteen **inventory**
+::: warning What those entries actually break down into
+Since the AB#6746 restructure the per-pillar and per-design-area entries are **real scored
+assessments in their own right**, not views over a single roll-up. `LandingZone` remains the
+roll-up that pulls in every CAF and WAF rule file at once. What is left to explain is the rest:
+
+- **19 per-category slices**, prefixed `Assess: ` (`Assess: Compute`,
+  `Assess: Security`, …). They collided with Scout's **inventory**
   category names — `Compute` filters what gets *collected*, `Assess: Compute`
   filters what gets *scored* — so they're now prefixed to stop the two
   different things sitting side by side under one label (quote the value —
@@ -25,7 +27,7 @@ or not an assessment at all:
   named stopgap: a future release retires these fifteen once per-WAF-pillar
   and per-CAF-design-area assessments exist to replace them (see the
   14-target programme on the
-  [Roadmap](../roadmap.md#caf-waf-assessment-programme)).
+  [Roadmap](../project/roadmap.md#caf-waf-assessment-programme)).
 - **3 sub-bundles**, narrower still than a category (`Governance`,
   `UpdateManager`, `Monitoring`). `UpdateManager` and `Monitoring` are each a
   strict subset of a broader entry above (`Assess: Management` and
@@ -70,7 +72,7 @@ or the opt-in third-party `AzGovViz`), and which **rule files** are scored
 (`Rules`) against the collected data. `ArgQueryPack` is retired — a manifest
 entry that still names it in `Ingest` is now silently ignored, not run. See
 [Assessment guide — Collect is now actually scoped by
-category](../assessment.md#architecture-three-layers-json-on-disk) for the
+category](../assessment/assessment.md#architecture-three-layers-json-on-disk) for the
 full explanation.
 :::
 
@@ -78,7 +80,7 @@ Source of truth: [`manifests/assessments.psd1`](https://github.com/thisismydemo/
 Tracks Epic **AB#5056** (foundation **AB#5057**).
 
 Minimum auth per assessment (ARM Reader vs. the AzGovViz-only Graph
-permissions): [Auth & permissions per scan type](../assessment-permissions.md).
+permissions): [Auth & permissions per scan type](../assessment/assessment-permissions.md).
 
 ## Cross-category roll-ups
 
