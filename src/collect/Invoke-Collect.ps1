@@ -22,7 +22,10 @@ $ErrorActionPreference = 'Stop'
                      azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
                      privateEndpoints[{targetResourceId,targetProvider,targetType}] }
-        compute    { virtualMachines[{name,zoneRedundant,zoneEligible}] }
+        compute    { virtualMachines[{name,zoneRedundant,zoneEligible}],
+                     avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
+                     avdSessionHosts[{hostPoolName,status,agentVersion}],
+                     avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
         management { recoveryVaults[{backupItems[]}], deployments[],
                      logAnalyticsWorkspaces[{retentionInDays}] }
         security   { defenderPlans[] }
@@ -36,9 +39,12 @@ $ErrorActionPreference = 'Stop'
                       containers{aksClusters[{networkPolicyEnabled,aadIntegrated,allPoolsZoned}],
                                  containerRegistries[]},
                       security{keyVaults[]},
-                      ai{cognitiveAccounts[{identityType,cmkEnabled}]},
+                      ai{cognitiveAccounts[{identityType,cmkEnabled}],
+                         mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
+                         searchServices[{sku}]},                                           (AB#6818)
                       hybrid{arcServers[], arcExtensions[{machineId,extensionType}],
-                             azureLocalClusters[{connectivityStatus}]},
+                             azureLocalClusters[{connectivityStatus,nodeCount}],            (AB#6819)
+                             logicalNetworks[{}]},                                         (AB#6819)
                       integration{eventHubNamespaces[{autoInflateEnabled}], apiManagement[],
                                   serviceBusNamespaces[{publicAccess}]},
                       iot{iotHubs[{disableLocalAuth}],
@@ -595,12 +601,64 @@ resources | where type =~ "microsoft.azurestackhci/clusters"
 // (Connected/Disconnected/NotConnectedRecently/PartiallyConnected/
 // NotYetRegistered/NotSpecified) — CAF-HYB-05 (AB#5057).
 | extend connectivityStatus = tostring(properties.connectivityStatus)
-| project name, resourceGroup, connectivityStatus
+// nodeCount — WAF-AVD-RE-01 (AB#6819). properties.reportedProperties.nodes is the
+// documented ClusterReportedProperties.nodes array (learn.microsoft.com javascript SDK
+// reference, arm-azurestackhci). A cluster that has not yet reported (nodes absent) yields
+// $null, not 0 -- treated as "not yet known", not "single node", by the rule that reads it.
+| extend nodeCount = array_length(properties.reportedProperties.nodes)
+| project name, resourceGroup, connectivityStatus, nodeCount
 '@
         logAnalyticsWorkspaces = @'
 resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
 | project name, resourceGroup, retentionInDays
+'@
+        # ---- AI workload domain additions (AB#6818) --------------------------------------------
+        # `cognitiveAccounts` above already carries accountKind, so OpenAI/Applied-AI PaaS
+        # presence is read from it directly (no new query needed for that half). What is missing
+        # is the custom-build side of WAF-AI-APPD-06/APPP-03's PaaS-vs-custom comparison and the
+        # grounding-pipeline existence check WAF-AI-GROUND-02 -- both need resource types
+        # `cognitiveAccounts` does not cover.
+        mlWorkspaces = @'
+resources | where type =~ "microsoft.machinelearningservices/workspaces"
+| extend workspaceKind = tostring(['kind'])
+| extend publicAccess = tostring(properties.publicNetworkAccess)
+| extend identityType = tostring(identity.type)
+| project name, resourceGroup, workspaceKind, publicAccess, identityType
+'@
+        searchServices = @'
+resources | where type =~ "microsoft.search/searchservices"
+| project name, resourceGroup, sku = tostring(sku.name)
+'@
+        # ---- AVD (on Azure Local) workload domain additions (AB#6819) --------------------------
+        # microsoft.desktopvirtualization/* and microsoft.azurestackhci/logicalnetworks are both
+        # confirmed ARG-indexed resource types (Azure Resource Graph supported-tables-and-
+        # resource-types reference) — same verification standard as every other query in this
+        # file. Scout already renders these as Excel inventory collectors
+        # (manifests/collectors/Compute/AVD*.psd1); this is the first time they are also
+        # projected into the scalar `domains`/`compute` shape the rule engine reads.
+        avdHostPools = @'
+resources | where type =~ "microsoft.desktopvirtualization/hostpools"
+| extend hostPoolType = tostring(properties.hostPoolType)
+| extend loadBalancerType = tostring(properties.loadBalancerType)
+| extend maxSessionLimit = toint(properties.maxSessionLimit)
+| project name, resourceGroup, hostPoolType, loadBalancerType, maxSessionLimit
+'@
+        avdSessionHosts = @'
+resources | where type =~ "microsoft.desktopvirtualization/hostpools/sessionhosts"
+| extend hostPoolName = tostring(split(id, "/sessionHosts/")[0])
+| extend status = tostring(properties.status)
+| extend agentVersion = tostring(properties.agentVersion)
+| project name, hostPoolName, status, agentVersion
+'@
+        avdScalingPlans = @'
+resources | where type =~ "microsoft.desktopvirtualization/scalingplans"
+| extend hostPoolRefCount = array_length(properties.hostPoolReferences)
+| project name, resourceGroup, hostPoolRefCount
+'@
+        logicalNetworks = @'
+resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
+| project name, resourceGroup
 '@
     }
 
@@ -660,6 +718,15 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
+        # AB#6818 (AI workload assessment) — waf.ai.yaml's WAF-AI-* rules.
+        mlWorkspaces        = @('AI')
+        searchServices      = @('AI')
+        # AB#6819 (AVD workload assessment) — waf.avd.yaml's WAF-AVD-* rules. AVD-on-Azure-Local
+        # is Compute + Hybrid data, so both categories must gather these, not just one.
+        avdHostPools        = @('Compute', 'Hybrid')
+        avdSessionHosts     = @('Compute', 'Hybrid')
+        avdScalingPlans     = @('Compute', 'Hybrid')
+        logicalNetworks     = @('Hybrid')
     }
 
     $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
@@ -1092,7 +1159,14 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             privateDnsZones          = $r.privateDnsZones
             nsgPublicInbound         = $r.nsgPublicInbound
         }
-        compute       = [pscustomobject]@{ virtualMachines = $r.virtualMachines }
+        # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) sit under `compute`, not
+        # `domains`, alongside virtualMachines -- the existing pattern for Compute-category data.
+        compute       = [pscustomobject]@{
+            virtualMachines = $r.virtualMachines
+            avdHostPools    = $r.avdHostPools
+            avdSessionHosts = $r.avdSessionHosts
+            avdScalingPlans = $r.avdScalingPlans
+        }
         management    = [pscustomobject]@{
             recoveryVaults = @(); deployments = $r.deployments
             logAnalyticsWorkspaces = $r.logAnalyticsWorkspaces
@@ -1126,10 +1200,18 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             web          = [pscustomobject]@{ webApps = $r.webApps }
             containers   = [pscustomobject]@{ aksClusters = $r.aksClusters; containerRegistries = $r.containerRegistries }
             security     = [pscustomobject]@{ keyVaults = $r.keyVaults }
-            ai           = [pscustomobject]@{ cognitiveAccounts = $r.cognitiveAccounts }
+            # mlWorkspaces/searchServices (AB#6818) are the custom-build and grounding-pipeline
+            # halves of the AI workload assessment that cognitiveAccounts alone doesn't cover.
+            ai           = [pscustomobject]@{
+                cognitiveAccounts = $r.cognitiveAccounts
+                mlWorkspaces      = $r.mlWorkspaces
+                searchServices    = $r.searchServices
+            }
             hybrid       = [pscustomobject]@{
                 arcServers = $r.arcServers; arcExtensions = $r.arcExtensions
                 azureLocalClusters = $r.azureLocalClusters
+                # logicalNetworks (AB#6819) — WAF-AVD-SE-04 network-isolation evidence.
+                logicalNetworks = $r.logicalNetworks
             }
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement

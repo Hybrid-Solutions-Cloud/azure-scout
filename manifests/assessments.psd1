@@ -151,6 +151,28 @@
         Tags = @('caf', 'iot'); Reporters = @('Html', 'Excel')
     }
 
+    # ---- WAF workload-specific reviews (Feature AB#6748, Epic AB#6454) ----
+    #
+    # Neither of these is a WAF pillar or CAF design area -- both cut across several. See
+    # src/assess/rules/waf.ai.yaml and waf.avd.yaml for why each declares its own `framework`
+    # value (WAF-AI / WAF-AVD) rather than `WAF`, and docs/frameworks/waf-ai-workload-checklist.md
+    # / waf-avd-workload-checklist.md for what each enumeration does and does not cover.
+    'Assess: AI Workload' = @{
+        Description = 'AI workload review (Well-Architected Framework AI workload guidance) -- 34 items across 7 of 10 AI design areas; mostly manual, see docs/frameworks/waf-ai-workload-checklist.md'
+        Category    = 'AI'; Collect = @('AI'); Ingest = @()
+        Rules = @('waf.ai'); Frameworks = @('WAF: AI workload')
+        Tags = @('waf', 'ai', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'Assess: AVD Workload' = @{
+        # AVD-on-Azure-Local scope only -- see docs/frameworks/waf-avd-workload-checklist.md
+        # ("The gap this leaves") for what general (non-Azure-Local) AVD is NOT covered by this
+        # entry.
+        Description = 'AVD-on-Azure-Local workload review (Well-Architected Framework) -- 20 items across all 5 pillars; scoped to AVD deployed on Azure Local, not general Azure Virtual Desktop'
+        Category    = 'Compute'; Collect = @('Compute', 'Storage'); Ingest = @()
+        Rules = @('waf.avd'); Frameworks = @('WAF: AVD workload (Azure Local)')
+        Tags = @('waf', 'avd', 'azure-local', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+
     # ---- finer sub-bundles inside a category ----
     # 'Policy' used to sit here too, byte-identical to 'Governance' (same Category, Collect,
     # Ingest, Rules, Frameworks — literally the same assessment under two names). Removed by
