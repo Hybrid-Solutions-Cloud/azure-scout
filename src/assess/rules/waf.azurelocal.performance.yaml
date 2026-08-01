@@ -1,0 +1,64 @@
+area: "Performance Efficiency"
+framework: WAF
+frameworkversion: "Azure Local WAF checklist, docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01 (source: learn.microsoft.com/azure/well-architected/service-guides/azure-local)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01"
+# AB#6803 (Feature AB#6747, Epic AB#6454) -- Performance Efficiency-pillar rules for the Azure
+# Local Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one
+# of five separate per-pillar files.
+#
+# EVERY rule in this file is manual. The checklist rates zero of six Performance Efficiency
+# items answerable even against Scout's fullest Excel-inventory collectors: hardware validation
+# status, sizer-tool usage, and pre-production storage benchmarking are all pre-deployment or
+# procurement decisions with no ARM footprint, and storage tier / ReFS dedup-and-compression
+# settings are confirmed absent from microsoft.azurestackhci/storagecontainers' documented
+# schema (StorageContainerProperties exposes only `path` -- verified via Microsoft Learn before
+# writing this file, not assumed from the checklist).
+rules:
+  - id: WAF-AZLOCAL-PE-01
+    title: "Azure Local-validated hardware or premium solution builder offerings are used"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-01. Hardware validation status is not an ARM-readable property. Confirm the deployment used Azure Local Integrated System hardware or a validated/premium solution builder offering."
+    manual: true
+
+  - id: WAF-AZLOCAL-PE-02
+    title: "The right physical disk types are chosen for the machines (all-flash vs. hybrid storage)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-02. microsoft.azurestackhci/storagecontainers exposes only a `path` property (confirmed via the ARM template reference) -- disk-type/tier is not present. Confirm disk type choice against workload performance requirements manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-PE-03
+    title: "The Azure Local sizer tool is used during the instance design phase"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-03. A pre-deployment sizing exercise. Confirm the sizer tool was used during design."
+    manual: true
+
+  - id: WAF-AZLOCAL-PE-04
+    title: "All-flash storage is used for high-performance or low-latency workloads"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-04. Same field gap as PE-02. Confirm manually for any workload with a stated low-latency requirement."
+    manual: true
+
+  - id: WAF-AZLOCAL-PE-05
+    title: "A performance baseline for instance storage is established before production"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-05. A benchmarking exercise (DiskSpd/VMFleet), not a collected property. Confirm a pre-production storage baseline exists."
+    manual: true
+
+  - id: WAF-AZLOCAL-PE-06
+    title: "ReFS deduplication and compression are considered and monitored"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-PE-06. Not exposed via ARM/ARG for Azure Local storage. Confirm ReFS dedup/compression configuration and monitoring manually."
+    manual: true

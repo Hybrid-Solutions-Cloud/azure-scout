@@ -607,12 +607,84 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # nodeCount/clusterVersion added for AB#6803 (WAF-AZLOCAL-RE-02/RE-03/OE-06): both are
+    # ARG-indexed, top-level `properties.reportedProperties` fields on the SAME
+    # microsoft.azurestackhci/clusters row already selected below -- no new round trip. Field
+    # names verified against the collector this was converted from
+    # (manifests/collectors/Hybrid/Clusters.psd1, itself generated from the pre-retirement
+    # Modules/Public/InventoryModules/Hybrid/Clusters.ps1); the ARM template reference documents
+    # `reportedProperties` only as an opaque agent-reported bag with no listed sub-fields, so this
+    # is confirmed by the shipped collector's own field expressions, not by the template schema.
     $result['azureLocalClusters'] = @(
         Select-ByType 'microsoft.azurestackhci/clusters' | ForEach-Object {
+            $nodeCountRaw = Get-ScoutProp $_ 'properties.reportedProperties.clusterNodes'
             [pscustomobject]@{
                 name               = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
                 connectivityStatus = [string] (Get-ScoutProp $_ 'properties.connectivityStatus')
+                nodeCount          = Measure-ScoutArray $nodeCountRaw
+                clusterVersion     = [string] (Get-ScoutProp $_ 'properties.reportedProperties.clusterVersion')
+            }
+        }
+    )
+
+    # AB#6803 (WAF-AZLOCAL-RE-03/OE-03): microsoft.azurestackhci/logicalnetworks is confirmed
+    # ARG-indexed (learn.microsoft.com/azure/governance/resource-graph/reference/
+    # supported-tables-resources, entry `microsoft.azurestackhci/logicalnetworks`), so this reads
+    # the SAME `resources` rows as every other typed projection in this function -- no new round
+    # trip, no REST sweep, no per-parent extension-resource trap. The subnet fields are the first
+    # subnet only, matching the existing Hybrid/LogicalNetworks declarative collector's own
+    # "primary subnet" convention (manifests/collectors/Hybrid/LogicalNetworks.psd1).
+    $result['logicalNetworks'] = @(
+        Select-ByType 'microsoft.azurestackhci/logicalnetworks' | ForEach-Object {
+            $subnets = @(Get-ScoutProp $_ 'properties.subnets')
+            $firstSubnet = if ($subnets.Count -gt 0) { $subnets[0] } else { $null }
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                vmSwitchName   = [string] (Get-ScoutProp $_ 'properties.vmSwitchName')
+                subnetCount    = $subnets.Count
+                addressPrefix  = [string] (Get-ScoutProp $firstSubnet 'properties.addressPrefix')
+                vlan           = Get-ScoutProp $firstSubnet 'properties.vlan'
+            }
+        }
+    )
+
+    # ---- AB#6803 (Feature AB#6747, Epic AB#6454) — the two blocking Azure Local collectors ------
+    # `arcSites` and `azureLocalVirtualMachineInstances` are NOT Resource Graph rows -- both types
+    # are confirmed absent from ARG's supported-type reference (AB#6801/AB#6802) and are sourced
+    # entirely by the ARM REST sweep this function's caller opts into (see Invoke-Collect.ps1's
+    # `-IncludeAzureLocalArm` switch). They land in the SAME `$Resources` array as everything else
+    # here, tagged with their synthetic `AZSC/ARMChild/*` type, so `Select-ByType` finds them
+    # exactly like an ARG row once collected -- and returns an empty array, not an error, when the
+    # opt-in switch was not set. That empty-vs-populated distinction IS the RequiresData gate
+    # `manifests/assessments.psd1`'s 'WAF: Azure Local' entry reads.
+    $result['arcSites'] = @(
+        Select-ByType 'AZSC/ARMChild/ArcSites' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                displayName    = [string] (Get-ScoutProp $_ 'properties.displayName')
+            }
+        }
+    )
+
+    $result['azureLocalVirtualMachineInstances'] = @(
+        Select-ByType 'AZSC/ARMChild/AzureLocalVirtualMachineInstances' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                # The child envelope's own name is always the fixed string 'default' (AB#6802) --
+                # PARENTNAME/PARENTLOCATION carry the actual Arc machine / Azure Local VM identity.
+                parentName        = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                parentLocation    = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                powerState        = [string] (Get-ScoutProp $_ 'properties.instanceView.powerState')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
             }
         }
     )

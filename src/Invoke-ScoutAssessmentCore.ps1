@@ -134,6 +134,12 @@ function Invoke-ScoutAssessmentCore {
         # when a chosen assessment actually scores compliance state.
         $wantsCompliance = [bool](@($Assessment | Where-Object { $manifest.ContainsKey($_) -and $manifest[$_] -is [hashtable] -and $manifest[$_].ContainsKey('Compliance') -and $manifest[$_].Compliance }).Count)
         if ($wantsCompliance) { $collectArgs.IncludePolicyCompliance = $true }
+        # AB#6803 (Feature AB#6747, Epic AB#6454) -- same opt-in shape as -IncludePolicyCompliance
+        # above: `arcSites`/`azureLocalVirtualMachineInstances` cost a materially heavier ARM REST
+        # sweep than every other assessment's collect (see Invoke-Collect's -IncludeAzureLocalArm
+        # doc comment), so only an assessment that actually scores them pays for it.
+        $wantsAzureLocalArm = [bool](@($Assessment | Where-Object { $manifest.ContainsKey($_) -and $manifest[$_] -is [hashtable] -and $manifest[$_].ContainsKey('RequiresAzureLocalArm') -and $manifest[$_].RequiresAzureLocalArm }).Count)
+        if ($wantsAzureLocalArm) { $collectArgs.IncludeAzureLocalArm = $true }
         $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments

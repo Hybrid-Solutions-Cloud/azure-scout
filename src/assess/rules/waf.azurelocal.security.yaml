@@ -1,0 +1,90 @@
+area: "Security"
+framework: WAF
+frameworkversion: "Azure Local WAF checklist, docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01 (source: learn.microsoft.com/azure/well-architected/service-guides/azure-local)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01"
+# AB#6803 (Feature AB#6747, Epic AB#6454) -- Security-pillar rules for the Azure Local
+# Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one of
+# five separate per-pillar files rather than one combined file.
+#
+# EVERY rule in this file is manual. Not because Security has no evidence in principle -- the
+# checklist rates four of nine items answerable -- but because the specific fields the checklist
+# names (Security/DefenderPricing, Security/DefenderAlerts, Security/DefenderAssessments,
+# Identity/*, Management/PolicyComplianceStates for the Azure Local built-in policy set) are
+# EXCEL-INVENTORY collectors, not fields Invoke-Collect.ps1 wires into the assessment engine's
+# canonical `domains.*` JSON contract this rule file can query. Writing a JSONPath against a path
+# that does not exist in collect.json is exactly the invented-query trap this epic exists to
+# avoid; leaving these manual, with the real gap named in each remediation, is the honest choice
+# until a future story wires that data into the canonical contract.
+rules:
+  - id: WAF-AZLOCAL-SE-01
+    title: "Security baselines are reviewed (drift protection, regulatory standards)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-01. Security/DefenderSecureScore reflects general posture, but the Azure Local security-baseline drift-control setting is not a discrete field in collect.json's canonical contract -- confirm baseline/drift-control configuration manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-02
+    title: "Threats are detected, prevented, and responded to (Defender for Cloud, Defender for Servers)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-02. collect.json's top-level `security` object (defenderPlans) is not yet populated by the assessment collect pipeline. Confirm Defender for Cloud/Defender for Servers coverage on Azure Local and its Arc-connected servers via the portal."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-03
+    title: "Segmentation contains the blast radius (identity role separation, network isolation)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-03. domains.hybrid.logicalNetworks (added AB#6803) evidences network segmentation exists but not that it is correctly scoped; RBAC role-scope separation for the Azure Local resource provider has no collector yet. Confirm both manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-04
+    title: "A trusted identity provider controls access (Microsoft Entra ID)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-04. domains.hybrid.arcServers evidences Arc-connected servers exist (which requires an Entra-backed device identity), but the specific Azure Local built-in-role assignment is not yet a distinct field. Confirm access is Entra-mediated manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-05
+    title: "Network traffic is isolated, filtered, and blocked (Network Controller, NSGs, virtual appliance chaining)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-05. domains.hybrid.logicalNetworks (added AB#6803) evidences a logical network is defined; Network Controller policy objects and NSG attachment on Azure Local logical networks are not collected. Confirm manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-06
+    title: "Data is encrypted to protect against tampering (BitLocker at rest, trusted launch for Gen 2 VMs)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-06. BitLocker volume-encryption state and trusted-launch VM security-type flags are not in domains.hybrid.azureLocalClusters or azureLocalVirtualMachineInstances' current field set. Confirm manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-07
+    title: "Secret management is operationalised (deployment-identity credential rotation)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-07. Rotation cadence for the cluster's deployment-identity credentials is not an ARM-readable property. Confirm rotation policy and last-rotation date manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-08
+    title: "Security controls are enforced via Azure Policy (application control, encrypted volumes)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-08. domains.management.policyComplianceStates is only populated when the collect run opts into -IncludePolicyCompliance, which the 'WAF: Azure Local' assessment does not (it opts into -IncludeAzureLocalArm instead, a different, unrelated sweep). Confirm the relevant Azure Local built-in policy set is assigned and compliant via the portal, or run 'Assess: Compliance' separately."
+    manual: true
+
+  - id: WAF-AZLOCAL-SE-09
+    title: "Workload security posture is improved with built-in policies (guest configuration, patch currency)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-SE-09. Same gap as SE-08 -- Update Manager compliance state needs the compliance-scoped collect pass. Confirm patch/guest-configuration compliance via the portal or 'Assess: Compliance'."
+    manual: true

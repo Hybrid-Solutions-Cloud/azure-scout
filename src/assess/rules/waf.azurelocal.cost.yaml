@@ -1,0 +1,64 @@
+area: "Cost Optimization"
+framework: WAF
+frameworkversion: "Azure Local WAF checklist, docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01 (source: learn.microsoft.com/azure/well-architected/service-guides/azure-local)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-08-01"
+# AB#6803 (Feature AB#6747, Epic AB#6454) -- Cost Optimization-pillar rules for the Azure Local
+# Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one of
+# five separate per-pillar files.
+#
+# EVERY rule in this file is manual. Two items (CO-01/CO-02) are genuinely organisational or
+# pre-deployment and were never candidates for automation (the checklist marks both
+# Unanswerable). The remaining four (CO-03/04/05/06) name fields -- Azure Hybrid Benefit attach
+# state, Update Manager cost, and Hybrid/ArcKubernetes presence -- that are Excel-inventory-only
+# collectors not yet wired into collect.json's canonical `domains.*` contract this rule file
+# queries; inventing a query against a path that does not exist there is the exact trap this
+# epic exists to avoid.
+rules:
+  - id: WAF-AZLOCAL-CO-01
+    title: "Realistic costs are estimated as part of cost modeling"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-01. A pricing-calculator exercise, not a collected property. Confirm a cost model exists for the Azure Local deployment."
+    manual: true
+
+  - id: WAF-AZLOCAL-CO-02
+    title: "Azure Local hardware cost is optimized (validated OEM catalog choice)"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-02. Hardware procurement choice predates any ARM resource Scout can read. Confirm the deployment used the Azure Local validated hardware catalog or a premium solution builder offering."
+    manual: true
+
+  - id: WAF-AZLOCAL-CO-03
+    title: "Licensing costs are optimized (Azure Hybrid Benefit)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-03. domains.hybrid.azureLocalVirtualMachineInstances (added AB#6803, populated only with -IncludeAzureLocalArm) does not yet carry a license-type field, and cluster-level Hybrid Benefit attach state is not collected. Confirm Azure Hybrid Benefit attachment manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-CO-04
+    title: "Environment costs are saved (Hybrid Benefit, promotional/trial offers)"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-04. Same gap as CO-03. Confirm manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-CO-05
+    title: "Operational costs are saved (Update Manager, right-sized observability retention)"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-05. collect.json's management.logAnalyticsWorkspaces[].retentionInDays is a generic, tenant-wide field, not scoped to the Azure Local workspace specifically, so a rule here could not name the specific Azure Local resource behind the finding (this file's own naming requirement). Review Log Analytics retention for the Azure Local monitoring workspace, and Update Manager cost, manually."
+    manual: true
+
+  - id: WAF-AZLOCAL-CO-06
+    title: "Density is evaluated over isolation (AKS on Azure Local for containerised workloads)"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AZLOCAL-CO-06. Hybrid/ArcKubernetes is an Excel-inventory collector (manifests/collectors/Hybrid/ArcKubernetes.psd1) not yet wired into collect.json's canonical domains.hybrid contract. Confirm AKS on Azure Local adoption manually, or via the ArcKubernetes worksheet from an inventory run."
+    manual: true
