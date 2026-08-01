@@ -1,9 +1,9 @@
 {
   "SchemaVersion": 1,
-  "Category": "Management",
+  "Category": "DevOps",
   "Name": "DevOpsRepositories",
-  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
+  "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
+  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
   "Rows": [
     "Default Branch=s:res-value|Disabled=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1a-1|Organization=s:res-value|Project=s:res-value|Repository Name=s:devopsrepositories-t1a|Resource U=j:1|Size (MB)=j:0.0|Web URL=s:res-value",
     "Default Branch=s:res-value|Disabled=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1b-1|Organization=s:res-value|Project=s:res-value|Repository Name=s:devopsrepositories-t1b|Resource U=j:1|Size (MB)=j:0.0|Web URL=s:res-value",

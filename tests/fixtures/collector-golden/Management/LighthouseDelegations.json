@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "LighthouseDelegations",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "dbae512f7a720f5e8d974df8d6cde53683995ad56913eee44c178056fdbab8ef",
+  "FixtureSha256": "16835ef6a8271300edd32cad2f54a9b253903b1e865e5195aa1de712a06a405a",
   "Rows": [
     "Authorization Count=j:2|Authorizations=s:res-value -> res-value (Eligible (JIT)); res-value -> res-value (Eligible (JIT))|Description=s:res-value|Eligible Authorizations=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedServices/registrationDefinitions/lighthousedelegations-t1a-1|Managed By Tenant ID=s:res-value|Managed By Tenant Name=s:res-value|Provisioning State=s:res-value|Registration ID=s:res-value|Registration Name=s:lighthousedelegations-t1a|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Authorization Count=j:2|Authorizations=s:res-value -> res-value (Eligible (JIT)); res-value -> res-value (Eligible (JIT))|Description=s:res-value|Eligible Authorizations=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.ManagedServices/registrationDefinitions/lighthousedelegations-t1b-1|Managed By Tenant ID=s:res-value|Managed By Tenant Name=s:res-value|Provisioning State=s:res-value|Registration ID=s:res-value|Registration Name=s:lighthousedelegations-t1b|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

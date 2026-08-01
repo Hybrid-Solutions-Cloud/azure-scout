@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "DevCenters",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "f327a726138b0401b48ac5b9a6a673ad62877d59685bd76cbb9f987de790fefa",
+  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
   "Rows": [
     "Dev Box Limit=s:res-value|Dev Center=s:seg8|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/devcenters/devcenters-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:devcenters-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.devcenter/devcenters|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Dev Box Limit=s:res-value|Dev Center=s:seg8|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/projects/devcenters-t2a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:devcenters-t2a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.devcenter/projects|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

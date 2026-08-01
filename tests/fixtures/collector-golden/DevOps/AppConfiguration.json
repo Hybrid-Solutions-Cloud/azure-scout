@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "AppConfiguration",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "f327a726138b0401b48ac5b9a6a673ad62877d59685bd76cbb9f987de790fefa",
+  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
   "Rows": [
     "Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appconfiguration/configurationstores/appconfiguration-t1a-1|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:appconfiguration-t1a|Private Endpoints=s:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Purge Protection=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Soft Delete Days=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.appconfiguration/configurationstores/appconfiguration-t1b-1|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:appconfiguration-t1b|Private Endpoints=s:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Purge Protection=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Soft Delete Days=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

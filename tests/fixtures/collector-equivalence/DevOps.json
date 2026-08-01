@@ -266,8 +266,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1a-1",
@@ -294,8 +294,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1b-1",
@@ -323,8 +323,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1c-1",
@@ -349,8 +349,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1d-1",
@@ -377,8 +377,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1e-1",
@@ -405,8 +405,8 @@
               "name": "res-value",
               "type": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1f-1",
@@ -2633,6 +2633,687 @@
           "NAME": "playwrighttesting-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.azureplaywrightservice/accounts"
+        }
+      ]
+    },
+    "DevOpsAgentPools": {
+      "resources": [
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1a-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1a",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1b-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1b",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1c-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1c",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1d-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1d",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1e-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1e",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "isHosted": "res-value",
+            "createdOn": "2026-01-15T10:30:00Z",
+            "owner": {
+              "displayName": "res-value"
+            },
+            "isLegacy": "res-value",
+            "autoProvision": "res-value",
+            "id": "res-value",
+            "poolType": "res-value",
+            "size": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1f-1",
+          "organization": "res-value",
+          "NAME": "devopsagentpools-t1f",
+          "TYPE": "devops/agentpools",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DevOpsPipelines": {
+      "resources": [
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1a-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1a",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1b-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1b",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1c-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1c",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1d-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1d",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1e-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1e",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "folder": "res-value",
+            "configuration": {
+              "type": "res-value",
+              "path": "res-value"
+            },
+            "projectName": "res-value",
+            "id": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1f-1",
+          "organization": "res-value",
+          "NAME": "devopspipelines-t1f",
+          "TYPE": "devops/pipelines",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DevOpsProjects": {
+      "resources": [
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1a-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1a",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1b-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1b",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1c-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1c",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1d-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1d",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1e-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1e",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "lastUpdateTime": "2026-01-15T10:30:00Z",
+            "description": "res-value",
+            "state": "res-value",
+            "visibility": "res-value",
+            "revision": "res-value",
+            "url": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1f-1",
+          "organization": "res-value",
+          "NAME": "devopsprojects-t1f",
+          "TYPE": "devops/projects",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DevOpsRepositories": {
+      "resources": [
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1a-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1a",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1b-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1b",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1c-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1c",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1d-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1d",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1e-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1e",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "defaultBranch": "res-value",
+            "size": 1024,
+            "isDisabled": "res-value",
+            "projectName": "res-value",
+            "webUrl": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1f-1",
+          "organization": "res-value",
+          "NAME": "devopsrepositories-t1f",
+          "TYPE": "devops/repositories",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DevOpsServiceConnections": {
+      "resources": [
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1a-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1a",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1b-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1b",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1c-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1c",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1d-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1d",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1e-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1e",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "data": "res-value",
+            "authorization": {
+              "scheme": "res-value",
+              "parameters": {
+                "serviceprincipalid": "res-value"
+              }
+            },
+            "isShared": "res-value",
+            "isReady": "res-value",
+            "projectName": "res-value",
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1f-1",
+          "organization": "res-value",
+          "NAME": "devopsserviceconnections-t1f",
+          "TYPE": "devops/serviceconnections",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     }

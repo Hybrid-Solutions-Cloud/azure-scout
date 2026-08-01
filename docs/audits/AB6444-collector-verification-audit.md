@@ -146,7 +146,7 @@ Not defects, but they contribute to the same "green run, blank sheet" experience
 
 **15 `Identity/*` collectors** (`entra/*` types). `src/Invoke-AzureScout.ps1:340` declares `[string]$Scope = 'ArmOnly'`; `src/Start-AZTIExtractionOrchestration.ps1:140` runs Entra extraction only when `$Scope -in @('All','EntraOnly')`. This is documented (`Invoke-AzureScout.ps1:64`). What is *not* acceptable: when the scope **is** enabled, a Microsoft Graph permission failure is swallowed. `Invoke-AZSCGraphRequest` re-throws a non-retryable 403 (`src/Invoke-AZTIGraphRequest.ps1:144-145`) and `src/collect/Start-ScoutEntraExtraction.ps1:237-244` catches it and emits only a coloured `Write-Host "SKIP"`. Nothing reaches the warning stream or `$Error`, so the run's error-count check cannot see it. An identity lacking `Policy.Read.All` gets a silently empty Conditional Access sheet.
 
-**5 `Management/DevOps*` collectors** (`devops/*` types). Gated on `-IncludeDevOps` (`Start-AZTIExtractionOrchestration.ps1:165`). `Invoke-DevOpsRequest` (`src/collect/Start-ScoutDevOpsExtraction.ps1:118-134`) returns `$null` on *every* failure and logs 401/403/404 via `Write-Debug` only. A per-project 403 on service connections is invisible outside `-Debug`.
+**5 `DevOps/DevOps*` collectors** (`devops/*` types; relocated from `Management/` — AB#6828). Gated on `-IncludeDevOps` (`Start-AZTIExtractionOrchestration.ps1:165`). `Invoke-DevOpsRequest` (`src/collect/Start-ScoutDevOpsExtraction.ps1:118-134`) returns `$null` on *every* failure and logs 401/403/404 via `Write-Debug` only. A per-project 403 on service connections is invisible outside `-Debug`.
 
 ---
 
