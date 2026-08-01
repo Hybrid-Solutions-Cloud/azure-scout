@@ -31,6 +31,7 @@ BeforeAll {
     Import-Module Az.ResourceGraph -ErrorAction Stop
     . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutGovernanceDataset.ps1')
     . (Join-Path $script:RepoRoot 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
+    . (Join-Path $script:RepoRoot 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')
     . (Join-Path $script:RepoRoot 'src/ingest/Import-Governance.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
     . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
@@ -268,6 +269,43 @@ BeforeAll {
             RunTime       = [datetime]::Parse('2026-07-01T00:00:00Z').ToUniversalTime()
         }
         return @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context $context)
+    }
+
+    # ---- AB#6456 fixtures: Entra principals Scout would already have collected ----------------
+    # 'aaaaaaaa-...0001' (the Owner assignment's principal, above) intentionally does NOT exist
+    # here -- it is the orphan this whole story exists to catch. 'bbbbbbbb-...0002' (the
+    # management-group ServicePrincipal assignment) DOES exist, and resolves.
+    $script:MockEntraResources = @(
+        [pscustomobject]@{
+            id = 'bbbbbbbb-0000-0000-0000-000000000002'; name = 'ci-deploy-sp'; TYPE = 'entra/serviceprincipals'
+            tenantId = 'tenant-1'; properties = [pscustomobject]@{ displayName = 'ci-deploy-sp' }
+        }
+        [pscustomobject]@{
+            id = 'cccccccc-0000-0000-0000-000000000003'; name = 'platform-admins'; TYPE = 'entra/groups'
+            tenantId = 'tenant-1'; properties = [pscustomobject]@{ displayName = 'platform-admins' }
+        }
+    )
+
+    function Get-ScoutGovernanceEnvelopeWithResolution {
+        <#
+            Runs the same governance pipeline as Get-ScoutGovernanceEnvelope, then runs
+            Resolve-ScoutOrphanedRoleAssignment over the RESULT merged with Entra rows -- exactly
+            the order Start-AZSCExtractionOrchestration runs it in (ARM+governance rendered first,
+            Entra merged in, orphan resolution last).
+        #>
+        param(
+            [object[]] $EntraResources = $script:MockEntraResources,
+            [object[]] $EntraQueryOutcomes = @(
+                [pscustomobject]@{ Type = 'entra/users'; Name = 'Users'; Success = $true; Count = 0 }
+                [pscustomobject]@{ Type = 'entra/groups'; Name = 'Groups'; Success = $true; Count = 1 }
+                [pscustomobject]@{ Type = 'entra/serviceprincipals'; Name = 'Service Principals'; Success = $true; Count = 1 }
+            )
+        )
+        $dataset = Get-ScoutGovernanceTestDataset
+        $envelopes = @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions)
+        $resources = @(@($envelopes) + @($EntraResources))
+        $resources = Resolve-ScoutOrphanedRoleAssignment -Resources $resources -EntraQueryOutcomes $EntraQueryOutcomes
+        return @($resources | Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' })[0]
     }
 }
 
@@ -739,5 +777,162 @@ Describe 'AB#6783 -- Management/Budgets shows the cost guardrails in place' {
         $zero[0]['Budget Used %']     | Should -BeNullOrEmpty
         $zero[0]['Subscription']      | Should -Be 'sub-beta'
         $zero[0]['Alerts Configured'] | Should -Be 0
+    }
+}
+
+Describe 'AB#6456 -- Resolve-ScoutOrphanedRoleAssignment is a pure, local transform' {
+    It 'makes no Azure or Graph call at all' {
+        # The binding claim: resolving a principal costs nothing because everything it reads was
+        # already collected. Every command it could reach is stubbed to throw.
+        Mock Search-AzGraph { throw 'Resolve-ScoutOrphanedRoleAssignment must not query Resource Graph' }
+        Mock Invoke-AzRestMethod { throw 'Resolve-ScoutOrphanedRoleAssignment must not call ARM' }
+
+        $envelope = [pscustomobject]@{
+            type = 'AZSC/Governance/RoleAssignment'
+            properties = @(
+                [pscustomobject]@{ 'Principal ID' = 'aaaaaaaa-0000-0000-0000-000000000001'; 'Principal Type' = 'User' }
+            )
+        }
+        { Resolve-ScoutOrphanedRoleAssignment -Resources @($envelope) -EntraQueryOutcomes @() } | Should -Not -Throw
+        Should -Invoke Search-AzGraph -Times 0 -Exactly
+        Should -Invoke Invoke-AzRestMethod -Times 0 -Exactly
+    }
+
+    It 'leaves every non-RoleAssignment element of $Resources untouched' {
+        $other = [pscustomobject]@{ type = 'microsoft.compute/virtualmachines'; id = 'vm-1' }
+        $result = Resolve-ScoutOrphanedRoleAssignment -Resources @($other) -EntraQueryOutcomes @()
+        @($result).Count | Should -Be 1
+        $result[0].id | Should -Be 'vm-1'
+        $result[0].PSObject.Properties.Name | Should -Not -Contain 'Principal Resolution'
+    }
+
+    It 'survives an empty $Resources array' {
+        { Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @() } | Should -Not -Throw
+        @(Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @()) | Should -BeNullOrEmpty
+    }
+}
+
+Describe 'AB#6456 -- orphaned role assignments: the classification matrix' {
+    BeforeEach { Set-ScoutGovernanceMock }
+
+    It 'resolves a principal that still exists, and names it' {
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution
+        $row = @(@($envelope.properties) | Where-Object { $_.'Principal ID' -eq 'bbbbbbbb-0000-0000-0000-000000000002' })[0]
+
+        $row.'Principal Resolution'   | Should -Be 'Resolved'
+        $row.'Principal Display Name' | Should -Be 'ci-deploy-sp'
+    }
+
+    It 'flags a principal that no longer exists as Orphaned -- the whole point of the story' {
+        # aaaaaaaa-...0001 (the Owner assignment) is a User; Users succeeded and returned zero
+        # rows -- a genuinely empty (and therefore trustworthy) result -- so a User principal not
+        # found in it really is gone.
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution
+        $row = @(@($envelope.properties) | Where-Object { $_.'Principal ID' -eq 'aaaaaaaa-0000-0000-0000-000000000001' })[0]
+
+        $row.'Principal Resolution'   | Should -Be 'Orphaned'
+        $row.'Principal Display Name' | Should -BeNullOrEmpty
+    }
+
+    It 'never reports Orphaned when the backing Graph query was denied -- NotAssessed instead' {
+        # Same assignment, same missing principal -- but this time Users FAILED rather than
+        # succeeded empty. The permission was denied, not the user deleted, and the two must not
+        # render the same way.
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution -EntraQueryOutcomes @(
+            [pscustomobject]@{ Type = 'entra/users'; Name = 'Users'; Success = $false; Count = 0 }
+            [pscustomobject]@{ Type = 'entra/groups'; Name = 'Groups'; Success = $true; Count = 1 }
+            [pscustomobject]@{ Type = 'entra/serviceprincipals'; Name = 'Service Principals'; Success = $true; Count = 1 }
+        )
+        $row = @(@($envelope.properties) | Where-Object { $_.'Principal ID' -eq 'aaaaaaaa-0000-0000-0000-000000000001' })[0]
+
+        $row.'Principal Resolution' | Should -Be 'NotAssessed'
+    }
+
+    It 'reports NotAssessed for every principal when Entra extraction never ran at all' {
+        # No -TenantID / ArmOnly scope: QueryOutcomes is empty, not "failed" -- same conservative
+        # outcome, reached a different way.
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution -EntraResources @() -EntraQueryOutcomes @()
+        $rows = @($envelope.properties | Where-Object { $_.'Principal ID' })
+
+        $rows.Count | Should -BeGreaterThan 0
+        @($rows | Where-Object { $_.'Principal Resolution' -ne 'NotAssessed' }) | Should -BeNullOrEmpty
+    }
+
+    It 'never resolves a ForeignGroup locally, and never calls it Orphaned' {
+        # A ForeignGroup lives in a DIFFERENT tenant. It can never appear in this tenant's Groups
+        # query by definition, so a lookup miss must not be reported as a finding.
+        $envelope = [pscustomobject]@{
+            type = 'AZSC/Governance/RoleAssignment'
+            properties = @(
+                [pscustomobject]@{ 'Principal ID' = 'dddddddd-0000-0000-0000-000000000004'; 'Principal Type' = 'ForeignGroup' }
+            )
+        }
+        $resources = Resolve-ScoutOrphanedRoleAssignment -Resources @($envelope, $script:MockEntraResources[1]) -EntraQueryOutcomes @(
+            [pscustomobject]@{ Type = 'entra/groups'; Name = 'Groups'; Success = $true; Count = 1 }
+        )
+        $row = @(($resources | Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' })[0].properties)[0]
+
+        $row.'Principal Resolution' | Should -Be 'NotAssessed'
+    }
+
+    It 'treats an empty Principal ID as NotAssessed rather than Orphaned' {
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution
+        $sparse = @(@($envelope.properties) | Where-Object { $_.'Assignment Name' -eq 'ra-sparse' })[0]
+
+        # ra-sparse's payload never sets principalId (see $script:MockAuthorization).
+        $sparse.'Principal ID'        | Should -BeNullOrEmpty
+        $sparse.'Principal Resolution' | Should -Be 'NotAssessed'
+    }
+
+    It 'resolves a Group-typed assignment against the Entra groups collected in the same run' {
+        $envelope = [pscustomobject]@{
+            type = 'AZSC/Governance/RoleAssignment'
+            properties = @(
+                [pscustomobject]@{ 'Principal ID' = 'cccccccc-0000-0000-0000-000000000003'; 'Principal Type' = 'Group' }
+            )
+        }
+        $resources = Resolve-ScoutOrphanedRoleAssignment -Resources @($envelope, $script:MockEntraResources[1]) -EntraQueryOutcomes @(
+            [pscustomobject]@{ Type = 'entra/groups'; Name = 'Groups'; Success = $true; Count = 1 }
+        )
+        $row = @(($resources | Where-Object { $_.type -eq 'AZSC/Governance/RoleAssignment' })[0].properties)[0]
+
+        $row.'Principal Resolution'   | Should -Be 'Resolved'
+        $row.'Principal Display Name' | Should -Be 'platform-admins'
+    }
+}
+
+Describe 'AB#6456 -- Identity/RoleAssignments renders the resolution columns end to end' {
+    BeforeEach { Set-ScoutGovernanceMock }
+
+    It 'renders Principal Resolution and Principal Display Name through the real interpreter' {
+        $envelope = Get-ScoutGovernanceEnvelopeWithResolution
+        $definition = Get-ScoutCollectorDefinition -Path (
+            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
+        )
+        $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
+                ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions
+                InTag        = $false; Resources = @($envelope); Retirements = @()
+                Task         = 'Processing'; File = $null; SmaResources = $null
+                TableStyle   = 'Light20'; Unsupported = @()
+                RunTime      = [datetime]::Parse('2026-07-01T00:00:00Z').ToUniversalTime()
+            })
+
+        $rows.Count | Should -Be 3
+        $owner = @($rows | Where-Object { $_['Role Name'] -eq 'Owner' })[0]
+        $owner['Principal Resolution'] | Should -Be 'Orphaned'
+
+        $custom = @($rows | Where-Object { $_['Role Name'] -eq 'Contoso Platform Operator' })[0]
+        $custom['Principal Resolution']   | Should -Be 'Resolved'
+        $custom['Principal Display Name'] | Should -Be 'ci-deploy-sp'
+    }
+
+    It 'renders old-shape rows (no resolution run yet) without throwing -- backward compatible' {
+        # A row straight out of ConvertTo-ScoutGovernanceResource, exactly as every pre-AB#6456
+        # test in this file produces. Get-AZSCSafeProperty must degrade this to a blank cell, not
+        # a StrictMode throw, or the collector would break for every caller not yet handing it a
+        # resolved envelope.
+        $rows = Invoke-ScoutGovernanceCollector -Category 'Identity' -Name 'RoleAssignments' -Type 'AZSC/Governance/RoleAssignment'
+        $rows.Count | Should -Be 3
+        @($rows | Where-Object { $_['Principal Resolution'] }) | Should -BeNullOrEmpty
     }
 }

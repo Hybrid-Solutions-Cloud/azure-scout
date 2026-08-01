@@ -208,6 +208,59 @@ Describe 'Start-AZSCEntraExtraction' {
         }
     }
 
+    # ── QueryOutcomes (AB#6456) ─────────────────────────────────────────
+    Context 'QueryOutcomes -- per-query success/failure record' {
+
+        BeforeAll {
+            $script:outcomeCallCount = 0
+            Mock Invoke-AZSCGraphRequest {
+                param($Uri)
+                $script:outcomeCallCount++
+                # Fail the Users query specifically (the first catalog entry), succeed the rest --
+                # including one that returns zero rows so the two are distinguishable.
+                if ($Uri -like '*/users*') { throw 'Forbidden — insufficient privileges' }
+                if ($Uri -like '*crossTenantAccessPolicy*') { return @() }
+                return @([PSCustomObject]@{ id = "obj-$($script:outcomeCallCount)"; displayName = 'Item' })
+            }
+        }
+
+        AfterAll {
+            Remove-Variable -Name outcomeCallCount -Scope Script -ErrorAction SilentlyContinue
+        }
+
+        It 'returns a QueryOutcomes property' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $result.PSObject.Properties.Name | Should -Contain 'QueryOutcomes'
+        }
+
+        It 'records one outcome per catalog query' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $expected = @(Get-ScoutEntraQueryCatalog).Count
+            @($result.QueryOutcomes).Count | Should -Be $expected
+        }
+
+        It 'marks a failed query Success = $false' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $usersOutcome = @($result.QueryOutcomes | Where-Object { $_.Type -eq 'entra/users' })[0]
+            $usersOutcome.Success | Should -BeFalse
+        }
+
+        It 'marks a query that succeeded and returned zero rows Success = $true' {
+            # The distinction this whole field exists for: empty is not the same as denied.
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $crossTenantOutcome = @($result.QueryOutcomes | Where-Object { $_.Type -eq 'entra/crosstenantaccess' })[0]
+            $crossTenantOutcome.Success | Should -BeTrue
+            $crossTenantOutcome.Count   | Should -Be 0
+        }
+
+        It 'marks a normally-succeeding query Success = $true with its row count' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $groupsOutcome = @($result.QueryOutcomes | Where-Object { $_.Type -eq 'entra/groups' })[0]
+            $groupsOutcome.Success | Should -BeTrue
+            $groupsOutcome.Count   | Should -Be 1
+        }
+    }
+
     # ── TenantID Parameter ────────────────────────────────────────────
     Context 'TenantID Parameter' {
 

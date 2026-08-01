@@ -20,7 +20,11 @@
     The Azure AD / Entra ID tenant identifier.
 
 .OUTPUTS
-    [PSCustomObject] with property EntraResources (array of normalized objects).
+    [PSCustomObject] with property EntraResources (array of normalized objects) and
+    QueryOutcomes (array of @{ Type; Name; Success; Count } -- one per catalog entry, AB#6456).
+    QueryOutcomes is what lets a later consumer (Resolve-ScoutOrphanedRoleAssignment) tell
+    "this Graph query was denied/failed" apart from "it succeeded and genuinely found nothing" --
+    a distinction the normalized rows alone cannot carry, since both cases produce zero rows.
 
 .LINK
     https://github.com/thisismydemo/azure-scout
@@ -43,6 +47,12 @@ function Start-AZSCEntraExtraction {
     Write-Host '15 Resource Types' -ForegroundColor Cyan
 
     $allEntraResources = [System.Collections.Generic.List[object]]::new()
+    # AB#6456 -- one entry per catalog query, recording whether it actually succeeded. A
+    # collector consuming these rows later cannot distinguish "Graph denied this permission"
+    # from "Graph allowed it and returned zero objects" by looking at the rows alone -- both
+    # produce an empty set. Downstream orphan detection needs that distinction to avoid
+    # reporting a denied permission as a security finding.
+    $queryOutcomes = [System.Collections.Generic.List[object]]::new()
 
     # ── Helper: normalize a single Graph item into standard structure ──
     function Add-NormalizedResource {
@@ -126,12 +136,17 @@ function Start-AZSCEntraExtraction {
 
                 $count = if ($result -is [array]) { $result.Count } else { 1 }
                 Write-Host "$count items" -ForegroundColor Cyan
+                $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $true; Count = $count })
             }
             else {
                 Write-Host "  [" -NoNewline
                 Write-Host "--" -ForegroundColor DarkGray -NoNewline
                 Write-Host "] $($query.Name): " -NoNewline
                 Write-Host "No data returned" -ForegroundColor DarkGray
+                # $null is a legitimate "the query ran and there is nothing" response (e.g. no
+                # cross-tenant partners configured), not a failure -- Success stays true so a
+                # genuinely empty dataset is never mistaken for a denied permission downstream.
+                $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $true; Count = 0 })
             }
         }
         catch {
@@ -149,6 +164,7 @@ function Start-AZSCEntraExtraction {
             # end. The console line stays, because it is the readable one; the warning is what
             # makes it detectable.
             Write-Warning "[AzureScout] Entra collection for '$($query.Name)' failed — the collectors reading '$($query.Type)' will be EMPTY. Permission required: $($query.Permission). Error: $($_.Exception.Message)"
+            $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $false; Count = 0 })
         }
     }
 
@@ -160,5 +176,6 @@ function Start-AZSCEntraExtraction {
 
     return [PSCustomObject]@{
         EntraResources = $allEntraResources.ToArray()
+        QueryOutcomes  = $queryOutcomes.ToArray()
     }
 }
