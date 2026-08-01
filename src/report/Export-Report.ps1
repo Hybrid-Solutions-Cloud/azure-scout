@@ -9,6 +9,35 @@ $ErrorActionPreference = 'Stop'
 .NOTES
     Every renderer reads the same findings.json. Tracks ADO Story AB#5045.
 #>
+
+function Get-ScoutRendererName {
+    <#
+    .SYNOPSIS
+        The canonical list of renderer names Export-Report can dispatch — the single source
+        of truth for what `-OutputFormat All` expands to.
+
+    .NOTES
+        AB#6863 (Feature AB#6449, Epic AB#6450). Invoke-ScoutAssessmentCore.ps1 used to carry
+        its own hardcoded copy of this list, and it omitted 'GovernanceReport': the renderer
+        shipped, was tested, and no production caller could reach it through the All path, so
+        the only surface carrying the 1-10 CAF Govern domain maturity score never rendered on
+        a default run. One list, read by both, so the next renderer added to the switch below
+        cannot repeat it — and Export-Report.Tests.ps1 asserts the two stay in step.
+    #>
+    return @(
+        'PowerBi'
+        'Html'
+        'Pptx'
+        'Excel'
+        'React'
+        'Json'
+        'JsonEvidence'
+        'Pdf'
+        'Word'
+        'EChartsDashboard'
+        'GovernanceReport'
+    )
+}
 function Export-Report {
     # $Drift (optional) is the cross-run drift object from Get-ScoutDrift; only the
     # React renderer consumes it (to populate its Drift tab). Other renderers ignore it.

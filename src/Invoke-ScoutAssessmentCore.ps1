@@ -65,7 +65,7 @@ function Invoke-ScoutAssessmentCore {
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works
-        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
+        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport', 'All')]
         [string[]] $OutputFormat = @('Html'),
         [string]   $OutputPath = './output',
         [switch]   $PermissionAudit,
@@ -260,7 +260,10 @@ function Invoke-ScoutAssessmentCore {
     }
 
     # ---- REPORT ----
-    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') } else { $OutputFormat }
+    # AB#6863: read the canonical list from Export-Report.ps1 rather than keeping a second
+    # hardcoded copy here — the copy that used to live on this line silently omitted
+    # 'GovernanceReport', so a shipped, tested renderer was unreachable via -OutputFormat All.
+    $reporters = if ($OutputFormat -contains 'All') { @(Get-ScoutRendererName) } else { $OutputFormat }
     $reporterIndex = 0
     foreach ($r in $reporters) {
         $reporterIndex++
