@@ -4,12 +4,12 @@ description: The catalogue of every Azure Scout assessment — description, cate
 
 # Assessment Registry
 
-`manifests/assessments.psd1` has **24 entries**, categorized and tagged. Run
-one with `Invoke-AzureScout -Assessment <Name>`. **24 registry entries is not
-24 assessments** — read the warning below before treating that number as a
+`manifests/assessments.psd1` has **23 entries**, categorized and tagged. Run
+one with `Invoke-AzureScout -Assessment <Name>`. **23 registry entries is not
+23 assessments** — read the warning below before treating that number as a
 coverage claim.
 
-::: warning What 24 entries actually breaks down into
+::: warning What 23 entries actually breaks down into
 **`LandingZone` is the one real roll-up assessment** — every other entry is a
 narrower view over the same rule set, a genuinely separate small assessment,
 or not an assessment at all:
@@ -26,23 +26,35 @@ or not an assessment at all:
   and per-CAF-design-area assessments exist to replace them (see the
   14-target programme on the
   [Roadmap](../roadmap.md#caf-waf-assessment-programme)).
-- **4 sub-bundles**, narrower still than a category (`Governance`, `Policy`,
-  `UpdateManager`, `Monitoring`). `Governance` and `Policy` below are
-  presently byte-identical (same `Category`/`Collect`/`Ingest`/`Rules`) — a
-  known duplicate flagged for cleanup, not a documentation error.
-- **`Estate` is not really an assessment** — it declares no `Rules`, so it
-  scores nothing; it is a full inventory pull that happens to live in this
-  registry. The interactive wizard filters the menu to entries that actually
-  have a matching rule file behind them (an entry that runs and returns
-  nothing reads as "no findings," which is worse than not offering it), so
-  **`Estate` does not appear in the wizard**. It still runs if you name it
-  directly: `-Assessment Estate`.
+- **3 sub-bundles**, narrower still than a category (`Governance`,
+  `UpdateManager`, `Monitoring`). `UpdateManager` and `Monitoring` are each a
+  strict subset of a broader entry above (`Assess: Management` and
+  `Assess: Monitor` respectively) and now say so in their description
+  (AB#6795). `Policy`, which used to sit here byte-identical to `Governance`
+  (same `Category`/`Collect`/`Ingest`/`Rules`), was deleted rather than
+  fixed — script `-Assessment Governance` instead.
+- **`Estate` was removed entirely (AB#6795)** — it declared no `Rules`, so it
+  scored nothing; it was a full inventory pull that happened to live in this
+  registry, which meant it ran and returned "no findings" for anyone who
+  named it directly (the wizard already hid it — AB#6763 — on the same
+  evidence, but the registry itself still carried a dead entry). Run
+  inventory with `Invoke-AzureScout` (no `-Assessment`); it is a different
+  product, not a smaller assessment.
+- **`Assess: Compliance`** (AB#6792/#6793/#6794) is a compliance-engine
+  entry, not a YAML rule set — it scores every Azure Policy
+  regulatory-compliance initiative (MCSB, CIS, ISO 27001, NIST, PCI-DSS, …)
+  actually **assigned** in the scanned scope, one Framework score card per
+  initiative + exact version, from compliance state Azure has already
+  evaluated. The source of truth is
+  `src/assess/engine/Get-ScoutComplianceScore.ps1` and
+  `src/assess/engine/Resolve-ScoutAssignedInitiative.ps1`.
 
-That leaves **4 genuinely distinct assessments**: `LandingZone` (the
-roll-up), `Cost` (targeted cost/TCO pull), `CrossResource` (findings that
-need two collected datasets correlated), and `SMART` (migration readiness,
-scored against its own enumerated source — see
-[SMART's framework page](../frameworks/smart-question-set.md)).
+That leaves **4 genuinely distinct rule-scored assessments**: `LandingZone`
+(the roll-up), `Cost` (targeted cost/TCO pull), `CrossResource` (findings
+that need two collected datasets correlated), and `SMART` (migration
+readiness, scored against its own enumerated source — see
+[SMART's framework page](../frameworks/smart-question-set.md)) — plus the one
+compliance-engine assessment above.
 :::
 
 ::: info What `Category`/`Collect` scope in practice
@@ -51,7 +63,7 @@ layer (`Invoke-Collect.ps1`) **does** use it to filter which Resource Graph
 queries run — every query is tagged with the category name(s) whose rule
 files reference its output, including cross-domain references, and
 `subscriptions` always runs as base data. Passing `Collect = @('*')` (as
-`LandingZone` and `Estate` both do) runs every query. What else differs
+`LandingZone` does) runs every query. What else differs
 between assessments: which **ingestors** run (`Ingest` — `Governance`,
 native and the default for the 5 governance-data assessments; `AdvisorScores`;
 or the opt-in third-party `AzGovViz`), and which **rule files** are scored
@@ -73,8 +85,13 @@ permissions): [Auth & permissions per scan type](../assessment-permissions.md).
 | Assessment | Description | Category | Rules | Frameworks | Default report tiers | Tags |
 |---|---|---|---|---|---|---|
 | `LandingZone` | CAF/WAF landing zone audit (all areas) | `*` | `caf.*`, `waf.*`, `xr.*` | CAF: all 8 areas · WAF: all 5 pillars · XR: Cross-resource posture | PowerBi, Html, Pptx, React | caf, waf, landing-zone, cross-resource |
-| `Estate` | Full digital estate inventory (no scoring) | `*` | — (inventory) | — | Excel, PowerBi | inventory |
 | `Cost` | Cost / TCO data pull | `*` | `waf.cost` | WAF: Cost optimization | Excel, PowerBi | waf, cost |
+
+## Compliance (engine-scored, not a YAML rule set)
+
+| Assessment | Description | Category | "Rules" (menu-gate marker only) | Frameworks | Default report tiers | Tags |
+|---|---|---|---|---|---|---|
+| `Assess: Compliance` | Every Azure Policy regulatory-compliance initiative assigned in the scanned scope (MCSB, CIS, ISO 27001, NIST, PCI-DSS, …), scored from compliance state Azure already evaluated — one Framework card per initiative + exact version, three states (Pass/Fail/Not assessed) so an unassigned or unevaluated control is never counted as a pass or a fail | Management | `compliance.*` | CAF: Govern · CAF: Secure | Html, Excel | compliance, policy, regulatory |
 
 ## Per-category assessments
 
@@ -104,9 +121,8 @@ Legacy unprefixed names (`Management`, `Compute`, …) still resolve — see the
 | Assessment | Description | Parent category | Rules | Default report tiers |
 |---|---|---|---|---|
 | `Governance` | Management sub-bundle — policy assignments, locks, budgets | Management | `caf.governance` | Html |
-| `Policy` | Management sub-bundle — Azure Policy assignment/enforcement | Management | `caf.governance` | Html |
-| `UpdateManager` | Management sub-bundle — patch/update compliance | Management | `caf.management` | Html |
-| `Monitoring` | Monitor sub-bundle — diagnostic settings coverage | Monitor | `waf.operational` | Html |
+| `UpdateManager` | Management sub-bundle (subset of `Assess: Management`) — patch/update compliance only | Management | `caf.management` | Html |
+| `Monitoring` | Monitor sub-bundle (subset of `Assess: Monitor`) — diagnostic settings coverage only | Monitor | `waf.operational` | Html |
 
 ## Migration readiness and cross-resource correlation
 

@@ -583,7 +583,9 @@ Function Invoke-AzureScout {
             $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
-        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('Estate') } }
+        # AB#6795 -- 'Estate' no longer exists in the registry; 'LandingZone' is the same default
+        # used everywhere else an assessment name is needed and none was given.
+        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('LandingZone') } }
         if ($PSBoundParameters.ContainsKey('Scope'))        { $assessArgs.Scope = $Scope }
         if ($PSBoundParameters.ContainsKey('OutputFormat')) { $assessArgs.OutputFormat = @($OutputFormat) }
         if ($ReportDir)                                     { $assessArgs.OutputPath = $ReportDir }

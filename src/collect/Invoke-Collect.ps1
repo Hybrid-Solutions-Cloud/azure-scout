@@ -218,7 +218,14 @@ function Invoke-Collect {
         #   TypedQueries            run the KQL pack below, one query per result set (v2.7.0
         #                           behaviour, kept as the reference implementation).
         [ValidateSet('Inventory', 'TypedQueries')]
-        [string]   $Source = 'Inventory'
+        [string]   $Source = 'Inventory',
+
+        # AB#6792/#6793/#6794 (Feature AB#6744) -- opt-in, and deliberately so: the compliance-
+        # state sweep (Get-ScoutSubscriptionSecurityPolicySweep, one Get-AzPolicyState call per
+        # subscription) is the SAME call an inventory run already makes when -SecurityCenter is
+        # requested; every other assessment must not start paying for it on every run. Only
+        # Invoke-ScoutAssessmentCore sets this, and only for the 'Assess: Compliance' entry.
+        [switch]   $IncludePolicyCompliance
     )
     Import-Module Az.ResourceGraph -ErrorAction Stop
 
@@ -1000,6 +1007,77 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
         }
     )
 
+    # ---- policy compliance state and initiative definitions (AB#6792/#6793/#6794) ------------
+    # `policyInitiatives` costs NO extra Azure call: Get-ScoutRawInventory's tenant-wide pass
+    # (above, TenantWideDefinitionsOnly) already collects policy set definitions unconditionally
+    # for every assessment collect, as `AZSC/Management/PolicySetDefinition` envelope rows in
+    # $rawInventory.Resources -- nothing downstream of this function read them before this
+    # feature. Extracting them here adds zero round-trips.
+    $policyInitiatives = @()
+    if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
+        $initiativeEnvelope = @($rawInventory.Resources | Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq 'AZSC/Management/PolicySetDefinition' })
+        $policyInitiatives = @(
+            foreach ($envelope in $initiativeEnvelope) {
+                if (-not $envelope.PSObject.Properties['properties'] -or -not $envelope.properties) { continue }
+                foreach ($item in @($envelope.properties)) {
+                    if (-not $item) { continue }
+                    # Raw ARM REST list-response shape (camelCase); PowerShell property lookup is
+                    # case-insensitive, so `.Id`/`.DisplayName` below match the JSON `id`/
+                    # `displayName` keys without a separate case-normalising pass.
+                    $itemId = if ($item.PSObject.Properties['Id']) { [string]$item.Id } else { $null }
+                    if ([string]::IsNullOrWhiteSpace($itemId)) { continue }
+                    $props = if ($item.PSObject.Properties['Properties']) { $item.Properties } else { $null }
+                    $displayName = if ($props -and $props.PSObject.Properties['DisplayName']) { [string]$props.DisplayName } else { $null }
+                    $policyType  = if ($props -and $props.PSObject.Properties['PolicyType']) { [string]$props.PolicyType } else { $null }
+                    $version = $null
+                    if ($props -and $props.PSObject.Properties['Metadata'] -and $props.Metadata -and $props.Metadata.PSObject.Properties['Version']) {
+                        $version = [string]$props.Metadata.Version
+                    }
+                    $policyCount = $null
+                    if ($props -and $props.PSObject.Properties['PolicyDefinitions'] -and $props.PolicyDefinitions) {
+                        $policyCount = @($props.PolicyDefinitions).Count
+                    }
+                    [pscustomobject]@{
+                        Id          = $itemId
+                        DisplayName = $displayName
+                        PolicyType  = $policyType
+                        Version     = $version
+                        PolicyCount = $policyCount
+                    }
+                }
+            }
+        )
+        # A policy set definition can be visible from more than one subscription context in a
+        # multi-subscription tenant (the built-in ones are tenant-global); collapse to one row
+        # per distinct id so Resolve-ScoutAssignedInitiative sees each initiative once.
+        $policyInitiatives = @($policyInitiatives | Sort-Object Id -Unique)
+    }
+
+    $policyComplianceStates = @()
+    if ($IncludePolicyCompliance) {
+        try {
+            if (-not (Get-Command Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')
+            }
+            $sweepSubscriptions = @($r.subscriptions | Where-Object { $_ -and $_.PSObject.Properties['id'] })
+            $sweepResults = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $sweepSubscriptions)
+            $policyComplianceStates = @(
+                foreach ($sweep in $sweepResults) {
+                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
+                    foreach ($state in @($sweep.properties.PolicyComplianceStates)) {
+                        if (-not $state) { continue }
+                        $state | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
+                        $state | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
+                    }
+                }
+            )
+        }
+        catch {
+            Write-Warning "Invoke-Collect: the policy compliance sweep failed; the compliance assessment will report Not assessed rather than a fabricated score: $($_.Exception.Message)"
+            $policyComplianceStates = @()
+        }
+    }
+
     # ---- shape into the canonical contract ----
     $collect = [pscustomobject]@{
         subscriptions = $r.subscriptions
@@ -1068,6 +1146,12 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
             }
             analytics    = [pscustomobject]@{
                 synapseWorkspaces = $r.synapseWorkspaces; purviewAccounts = $r.purviewAccounts
+            }
+            # AB#6792/#6793/#6794 -- policyInitiatives is always populated (free, see above);
+            # policyComplianceStates is only non-empty when -IncludePolicyCompliance was set.
+            management   = [pscustomobject]@{
+                policyComplianceStates = $policyComplianceStates
+                policyInitiatives      = $policyInitiatives
             }
         }
         advisor       = @()

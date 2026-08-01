@@ -60,6 +60,11 @@ function Get-Score {
             Manual    = @($_.Group | Where-Object Status -eq 'Manual').Count
             Unknown   = @($_.Group | Where-Object Status -eq 'Unknown').Count
             Error     = @($_.Group | Where-Object Status -eq 'Error').Count
+            # AB#6793 — the third compliance state. Deliberately excluded from `$scorable`
+            # above (never a pass, never a fail, never in the score denominator) but still
+            # counted and surfaced, the same way Manual/Unknown/Error are, so it is visible
+            # rather than silently vanishing from every count.
+            NotAssessed = @($_.Group | Where-Object Status -eq 'NotAssessed').Count
         }
     }
 
@@ -97,6 +102,11 @@ function Get-Score {
         Gaps        = $gaps
         Manual      = @($Findings | Where-Object Status -eq 'Manual')
         Errors      = @($Findings | Where-Object Status -in 'Error', 'Unknown')
+        # AB#6793 — kept separate from Errors/Unknown: a control Azure has never evaluated is not
+        # a Scout error, and lumping it in there would read as "something broke" rather than "not
+        # assessed", which is the wrong signal for an operator deciding whether to assign an
+        # initiative.
+        NotAssessed = @($Findings | Where-Object Status -eq 'NotAssessed')
         Findings    = @($Findings)
     }
 }

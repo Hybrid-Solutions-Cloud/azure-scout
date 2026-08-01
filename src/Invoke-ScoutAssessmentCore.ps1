@@ -56,7 +56,12 @@ $ErrorActionPreference = 'Stop'
 function Invoke-ScoutAssessmentCore {
     [CmdletBinding()]
     param(
-        [string[]] $Assessment = @('Estate'),   # one, many, or 'All'
+        # AB#6795 -- 'Estate' (Rules = @(), a full-inventory pull with no scoring) was removed
+        # from the assessment registry entirely; it is not this platform's job to double as the
+        # inventory tool. 'LandingZone' is the existing pre-checked default everywhere else
+        # (Get-ScoutAvailableAssessment, the wizard), so a bare -CollectOnly / -FromCollect call
+        # with no explicit -Assessment now defaults to the same entry an interactive run would.
+        [string[]] $Assessment = @('LandingZone'),   # one, many, or 'All'
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works
@@ -124,6 +129,11 @@ function Invoke-ScoutAssessmentCore {
         $collectArgs = @{ Categories = $categories; Scope = $Scope; ManagementGroupId = $ManagementGroupId }
         # AB#5543 — reuse the inventory pass when this run already made one.
         if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
+        # AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect (it is an extra
+        # Azure call type relative to every other assessment's collect) and is switched on only
+        # when a chosen assessment actually scores compliance state.
+        $wantsCompliance = [bool](@($Assessment | Where-Object { $manifest.ContainsKey($_) -and $manifest[$_] -is [hashtable] -and $manifest[$_].ContainsKey('Compliance') -and $manifest[$_].Compliance }).Count)
+        if ($wantsCompliance) { $collectArgs.IncludePolicyCompliance = $true }
         $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments
@@ -169,6 +179,17 @@ function Invoke-ScoutAssessmentCore {
         Write-ScoutAssessmentProgress -Status "Assessing: $name" -PercentComplete (35 + [Math]::Min(30, [Math]::Round(($assessmentIndex / [Math]::Max(1, @($Assessment).Count)) * 30)))
         $spec = $manifest[$name]
         if (-not $spec.Rules) { continue }        # inventory-only assessment
+        # AB#6792/#6793/#6794 (Feature AB#6744) -- a `Compliance = $true` entry scores Azure
+        # Policy compliance state Scout already collected, not a YAML rule set. It still needs a
+        # matching Rules glob (for the AB#6763 menu gate, see compliance.initiative.yaml), so the
+        # `-not $spec.Rules` guard above still applies to it; this branch replaces Get-RuleSet /
+        # Invoke-Assessment with the compliance engine instead of running them on an empty
+        # `rules: []` marker file and reporting a hollow zero-finding "pass".
+        if ($spec.ContainsKey('Compliance') -and $spec.Compliance) {
+            $findings = Invoke-ScoutComplianceAssessment -Collect $collect -Assessment $name
+            $allFindings += $findings
+            continue
+        }
         $ruleSet   = Get-RuleSet -Patterns $spec.Rules
         # $spec is a Hashtable straight out of assessments.psd1, and most assessment
         # entries don't define a Benchmark key at all (only LandingZone does). Dot-
