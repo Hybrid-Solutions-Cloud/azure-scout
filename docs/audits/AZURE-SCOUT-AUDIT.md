@@ -376,6 +376,28 @@ flags), **zero machines touched**, one tenant-wide query instead of one POST per
 `Reader` becomes sufficient. Machines Update Manager hasn't assessed within 7 days now report
 `NotAssessed` rather than a misleading zero.
 
+> ⚠️ **KNOWN PAST DEFECT — assessments run before 2026-08-01 on a large estate scored truncated
+> data.** Recorded here because the code is fixed but the consequence is historical and nobody who
+> ran an assessment knows it applied to them.
+>
+> `Search-AzGraph` returns a single un-enumerated `PSResourceGraphResponse`. Four of Scout's six
+> call sites wrapped the *invocation* — `@(Search-AzGraph @params)` — which collects the **wrapper**
+> as one element rather than the rows. In the two paging loops, including `Invoke-Collect.ps1`
+> (the assessment platform's **main** query loop), that made `$batch.Count` permanently 1, so
+> `while ($batch.Count -eq 1000)` could never fire.
+>
+> **Every paged ARG query stopped after its first 1000 rows.** Measured against a simulated
+> 2500-row, 3-page result: the old loop made **1 call and returned 1 object**; the corrected loop
+> makes 3 calls and returns 2500 rows.
+>
+> It went unnoticed because the failure is second-order. The rows *inside* that first page were
+> recovered by accidental enumeration further downstream, so output looked plausible and
+> populated — the missing pages were simply never requested. Any estate holding more than 1000
+> resources of a single type was scored against a silent subset.
+>
+> Fixed in `b07cb72`. **If you have an assessment result from before that commit against an estate
+> of any size, re-run it.**
+
 ### 3.5 Nothing has ever been verified — *superseded 2026-08-01, see the run below*
 
 > ✅ **First per-collector verification run, 2026-08-01 (AB#6843).** All **240** collectors were
