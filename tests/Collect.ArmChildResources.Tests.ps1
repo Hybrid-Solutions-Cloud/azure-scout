@@ -45,6 +45,7 @@ BeforeAll {
             -Properties @{ applicationGroupType = 'Desktop' }
         Get-TestParent -Type 'microsoft.insights/components' -Name 'appi-one'
         Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law-one'
+        Get-TestParent -Type 'microsoft.hybridcompute/machines' -Name 'arc-machine-one'
     )
 
     function Get-ArmChildResponseStub {
@@ -142,8 +143,9 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             # $DiagnosticSettingParentTypes that also appears above, this list grows and the run
             # got more expensive.
             'AZSC/ARMChild/ResourceDiagnosticSettings'
+            'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
         )
-        $Rows.Count | Should -Be 14 -Because 'MLEndpoints emits one online and one batch endpoint, and the LA workspace also yields a diagnostic setting'
+        $Rows.Count | Should -Be 15 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace also yields a diagnostic setting, and the Arc machine yields one Azure Local VM instance'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {
@@ -202,6 +204,17 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
         $Calls | Should -Match '/savedSearches\?api-version=2020-08-01'
         $Calls | Should -Not -Match 'listQueryKeys' -Because 'the current SearchIndexes collector constructs that URI but never calls it'
         $Calls | Should -Not -Match '(?i)exportconfiguration|WorkItemConfigs' -Because 'both Application Insights endpoints are retired'
+    }
+
+    It 'reads the Azure Local VM instance singleton per Arc machine and stamps parent location (AB#6802)' {
+        $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents -Dataset 'AzureLocalVirtualMachineInstances')
+        $Calls = $script:ArmCalls -join "`n"
+
+        $Calls | Should -Match '/providers/Microsoft\.AzureStackHCI/virtualMachineInstances/default\?api-version=2024-01-01'
+        $Rows.Count | Should -Be 1
+        $Rows[0].TYPE | Should -Be 'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
+        $Rows[0].PARENTNAME | Should -Be 'arc-machine-one'
+        $Rows[0].PARENTLOCATION | Should -Be 'eastus'
     }
 }
 

@@ -23,7 +23,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Databases | 12 | Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis. |
 | DevOps | 12 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 4 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
-| Hybrid | 15 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
+| Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
 | Identity | 17 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 7 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
@@ -34,7 +34,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Security | 17 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 11 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **240** | across all 18 of Microsoft's published service categories |
+| **Total** | **241** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (27 modules)
 
@@ -151,7 +151,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Reservations | `microsoft.capacity/reservationorders` · `microsoft.capacity/reservationorders/reservations` | Reservations |
 | SupportTickets | `Microsoft.Support/supportTickets` | Support Tickets |
 
-## Hybrid Category (15 modules)
+## Hybrid Category (16 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -162,6 +162,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` | Arc Resource Bridge |
 | ArcServerOperationalData | `microsoft.hybridcompute/machines` | Arc Server Operational Data |
 | ARCServers | `microsoft.hybridcompute/machines` | ARC Servers |
+| ArcSites | `AZSC/ARMChild/ArcSites` | Arc Sites |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` | Arc SQL Managed Instances |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` | Arc SQL Servers |
 | Clusters | `microsoft.azurestackhci/clusters` | AzLocal Clusters |
@@ -169,7 +170,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | LogicalNetworks | `microsoft.azurestackhci/logicalnetworks` | AzLocal Networks |
 | MarketplaceGalleryImages | `microsoft.azurestackhci/marketplacegalleryimages` | AzLocal Marketplace |
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
-| VirtualMachines | `microsoft.azurestackhci/virtualmachineinstances` | AzLocal VMs |
+| VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` | AzLocal VMs |
 
 ## Identity Category (17 modules)
 

@@ -695,6 +695,20 @@ function Get-ScoutRawInventory {
         catch {
             Write-Warning "Get-ScoutRawInventory: tenant-wide collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
         }
+
+        # AB#6801: Microsoft.Edge/sites rides the same ARM REST sweep as the four envelopes
+        # above (it is on $collectedApiResources' `ArcSites` field), so it degrades with
+        # -SkipAPIs exactly like they do rather than being a fifth independent switch.
+        if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutArcSiteResource' -FileName 'ConvertTo-ScoutArcSiteResource.ps1') {
+            try {
+                foreach ($row in @(ConvertTo-ScoutArcSiteResource -ApiResources $collectedApiResources)) {
+                    if ($null -ne $row) { $resources.Add($row) }
+                }
+            }
+            catch {
+                Write-Warning "Get-ScoutRawInventory: Arc site conversion failed; continuing without its synthetic rows: $($_.Exception.Message)"
+            }
+        }
     }
 
     # ── Outage narrative normalisation — AB#6770 ──────────────────────────────────────────────

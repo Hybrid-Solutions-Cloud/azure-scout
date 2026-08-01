@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "ArcSQLServers",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "2faa14a1c8bf6ab1cb9850aecb31366beadc80f36d885309c22a5d08bc72bf22",
+  "FixtureSha256": "7e26c5858913513ff7562e505cbe9c5a20a2b8e5cc542891999e1893c350e061",
   "Rows": [
     "Azure Defender Status=s:res-value|Azure Defender Update Time=s:2026-01-15|Collation=s:res-value|Container Resource ID=s:res-value|Edition=s:res-value|Host Machine Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlservers-t1a-1|Licensing Type=s:res-value|Location=s:res-value|Name=s:arcsqlservers-t1a|Patch Level=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|SQL Version=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|vCores=s:res-value",
     "Azure Defender Status=s:res-value|Azure Defender Update Time=s:2026-01-15|Collation=s:res-value|Container Resource ID=s:res-value|Edition=s:res-value|Host Machine Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlservers-t1b-1|Licensing Type=s:res-value|Location=s:res-value|Name=s:arcsqlservers-t1b|Patch Level=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|SQL Version=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|vCores=s:res-value",

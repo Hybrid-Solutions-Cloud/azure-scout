@@ -2134,8 +2134,27 @@ AB#6444 traced these to defects in code. They emit zero rows **in every tenant, 
 | Databases/**POSTGRE** | Targets `microsoft.dbforpostgresql/servers`. Single Server reached end of life; no customer can own one | 🗑️ **Retired** — AB#6768 |
 | Monitor/**AppInsightsContinuousExport** | No producer — Azure retired the endpoint. Permanently empty by design | 🗑️ **Retired** — AB#6768 |
 | Monitor/**AppInsightsWorkItems** | No producer — endpoint retired | 🗑️ **Retired** — AB#6768 |
-| Hybrid/**ArcSites** | Declares three type strings that do not exist: `microsoft.azurestackhci/sites`, `microsoft.edgeconfig/sites`, `microsoft.hybridcompute/sites` | 🗑️ **Retired** — AB#6842 |
-| Hybrid/**VirtualMachines** | Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — it passes the AB#6842 existence gate, so this was never the ArcSites failure. Diagnosed 2026-07-31 (AB#6846): the test estate contains **zero** `microsoft.azurestackhci` resources and **zero** `microsoft.hybridcompute` resources, out of 109 resources across 38 types. The verdict is **"no rows because the tenant has none"**, not "broken" | ✅ **Not broken — do not retire** |
+| Hybrid/**ArcSites** | Declared three type strings that do not exist: `microsoft.azurestackhci/sites`, `microsoft.edgeconfig/sites`, `microsoft.hybridcompute/sites` | ✅ **Fixed** — AB#6801 re-created it against `Microsoft.Edge/sites`, confirmed real by [Microsoft Learn](https://learn.microsoft.com/azure/templates/microsoft.edge/2025-06-01/sites) and by `manifests/azure-provider-types.json`, but Resource Graph's own [supported-type reference](https://learn.microsoft.com/azure/governance/resource-graph/reference/supported-tables-resources#resources) does not index `microsoft.edge/sites` either — it is re-sourced via the same per-subscription ARM REST sweep `Get-ScoutApiResources.ps1` already runs, not a Resource Graph query |
+| Hybrid/**VirtualMachines** | **AB#6846's "not broken" verdict below is retracted.** Its live-tenant result (zero rows, zero HCI/Arc resources present) was real, but the reasoning was not: it treated "the type passes the AB#6842 existence gate" as proof Resource Graph can return rows for it, and the gate never checked that — only that the string is real ARM ground truth. `Microsoft.AzureStackHCI/virtualMachineInstances` is listed on Microsoft's own [extension-resource-types reference](https://learn.microsoft.com/azure/azure-resource-manager/management/extension-resource-types#microsoftazurestackhci) as an ARM EXTENSION resource scoped under a `Microsoft.HybridCompute/machines` parent, and Resource Graph's [supported-type reference](https://learn.microsoft.com/azure/governance/resource-graph/reference/supported-tables-resources#resources) lists eleven other `microsoft.azurestackhci/*` types it indexes — including the confusingly similar `microsoft.azurestackhci/virtualmachines` (no "instances") — but not `virtualmachineinstances`. This collector could not have returned a row in ANY tenant, deployed or not, and the AB#6846 live run against a tenant with zero HCI resources could never have distinguished the two hypotheses. Same defect class as AB#6769 (ResourceDiagnosticSettings) | ✅ **Fixed** — AB#6802 re-sourced it as an `AZSC/ARMChild/AzureLocalVirtualMachineInstances` per-parent ARM REST sweep, singleton per `Microsoft.HybridCompute/machines` guest, which also unblocks `Compute/AVDAzureLocal`'s Azure Local branch |
+
+<details>
+<summary>Retracted: AB#6846's original "not broken" verdict, kept for the record</summary>
+
+> Its type, `microsoft.azurestackhci/virtualmachineinstances`, **is** real — it passes the AB#6842
+> existence gate, so this was never the ArcSites failure. Diagnosed 2026-07-31 (AB#6846): the test
+> estate contains **zero** `microsoft.azurestackhci` resources and **zero** `microsoft.hybridcompute`
+> resources, out of 109 resources across 38 types. The verdict was **"no rows because the tenant has
+> none"**, not "broken".
+>
+> This was wrong. A live query against a tenant with zero HCI/Arc resources cannot distinguish "the
+> type is real but this tenant owns none" from "Resource Graph cannot return this type in any
+> tenant" — both produce zero rows. The AB#6842 existence gate answers a narrower question than the
+> verdict needed: it confirms a provider/type STRING is real ARM ground truth, not that Resource
+> Graph indexes it for querying. See AB#6801/AB#6802 (Feature AB#6747) for the citation-backed
+> correction.
+
+</details>
+
 | Management/**LighthouseDelegations** | `Microsoft.ManagedServices/registrationDefinitions` is real, but no pass reads the `managedserviceresources` ARG table that carries it | ✅ **Fixed** — AB#6771 added the `managedserviceresources` pass, on unconditionally |
 | Monitor/**Outages** | `Get-ScoutOutageResource` runs before the API merge, so it never sees the ResourceHealth events | ✅ **Fixed** — AB#6770 moved the transform below the ARM REST sweep and feeds it the events |
 | Monitor/**ResourceDiagnosticSettings** | `microsoft.insights/diagnosticsettings` is not an ARG-indexed type; it must be re-sourced via ARM REST | ✅ **Fixed** — AB#6769 re-sourced it as an `AZSC/ARMChild/*` sweep, scoped to 20 parent types |
@@ -2666,7 +2685,7 @@ Legend: ✅ have · ⚠️ partial · 🔲 need *(build-list ref)*
 |---|---|---|
 | **1. Azure Well-Architected Review** | VMs ✅ · disks ✅ · storage ✅ · SQL ✅ · networking ✅ · backup ⚠️ · monitor ✅ · cost ⚠️ | **C1** backup protected items *(Reliability pillar cannot score without it)* · **B4** budgets *(Cost pillar)* · **C8** snapshots *(Cost)* |
 | **2. Azure Landing Zone Review** | management groups ⚠️ · policy defs ⚠️ · policy assignments 🔲 · RBAC 🔲 · locks 🔲 · subscriptions ⚠️ · networking ✅ · Entra ✅ | **A1-A4** the dead switch *(4 collectors that can never run)* · **B1-B3** RBAC, locks, policy assignments · **D15** resource groups |
-| **3. Azure Local \| WAF Review** | Azure Local clusters ✅ · logical networks ✅ · storage containers ✅ · gallery images ✅ · Arc servers ✅ · Arc extensions ✅ | **A8** ArcSites *(fake types)* · **A9** azurestackhci VM instances *(not ARG-indexed)* — **both currently return nothing** |
+| **3. Azure Local \| WAF Review** | Azure Local clusters ✅ · logical networks ✅ · storage containers ✅ · gallery images ✅ · Arc servers ✅ · Arc extensions ✅ · Arc sites ✅ *(AB#6801)* · Azure Local VM instances ✅ *(AB#6802)* | **A8/A9 fixed** — see §9 note 3's revised verdict; not yet proven against a live Azure Local estate (see AB#6802's evidence note) |
 | **4. WAF AI workload** | Cognitive Services ✅ · ML workspaces ✅ · ML computes/endpoints/models ✅ · AI Search ✅ · Key Vault ⚠️ · private endpoints ✅ | **C2-C4** Key Vault children *(AI workloads score on secret handling)* |
 | **5. WAF Azure Virtual Desktop workload** | AVD host pools ✅ · session hosts ✅ · workspaces ✅ · app groups ✅ · scaling plans ✅ · VMs ✅ · storage ⚠️ | **C6** file shares *(FSLogix profile containers)* · **C1** backup protected items |
 | **6. WAF Azure VMware Solution workload** | AVS private clouds ✅ · networking ✅ · ExpressRoute ✅ | **C16** Virtual WAN hubs/gateways *(AVS connectivity)* |
@@ -2692,9 +2711,12 @@ wiring fix is the highest-leverage item in the entire document.
 *almost entirely* blocked by data Scout already has in memory and never writes down. #2 Landing
 Zone Review is heavily degraded by the same four.
 
-**#3 Azure Local is the differentiator and it is broken.** Two of its collectors return nothing in
-every tenant (`ArcSites`, `azurestackhci/virtualmachineinstances`). The strongest competitive
-position in the product currently has a hole in it.
+**#3 Azure Local was the differentiator with a hole in it — the hole is closed at the code level.**
+`ArcSites` and `azurestackhci/virtualmachineinstances` both returned nothing in every tenant, on
+every run, regardless of permission (§9 note 3). AB#6801/AB#6802 (Feature AB#6747) re-sourced
+both against the correct, cited endpoints. Static verification is complete; live confirmation
+against a tenant that actually runs Azure Local and Arc site manager is still open (see AB#6802's
+report for what was and was not proven).
 
 **Only #4, #5, #6 and #10 are mostly ready.** Their inventory exists; they need rule files, not
 collectors.

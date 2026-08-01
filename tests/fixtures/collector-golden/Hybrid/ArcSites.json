@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Hybrid",
+  "Name": "ArcSites",
+  "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
+  "FixtureSha256": "7e26c5858913513ff7562e505cbe9c5a20a2b8e5cc542891999e1893c350e061",
+  "Rows": [
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1a-1/ArcSites/arcsites-t1a-2|Label Count=j:1|Name=s:arcsites-t1a|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1b-1/ArcSites/arcsites-t1b-2|Label Count=j:1|Name=s:arcsites-t1b|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1c-1/ArcSites/arcsites-t1c-2|Label Count=j:1|Name=s:arcsites-t1c|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1d-1/ArcSites/arcsites-t1d-2|Label Count=j:1|Name=s:arcsites-t1d|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>",
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1e-1/ArcSites/arcsites-t1e-2|Label Count=j:1|Name=s:arcsites-t1e|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",
+    "Address=s:res-value, res-value, res-value, res-value, res-value|Country/Region=s:res-value|Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/arcsites-t1f-1/ArcSites/arcsites-t1f-2|Label Count=j:1|Name=s:arcsites-t1f|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tDisplay Name\tDescription\tAddress\tCountry/Region\tLabel Count\tResource U\nsub-fixture-01\tres-value\tarcsites-t1a\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1b\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1c\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\n\tres-value\tarcsites-t1d\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1e\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1f\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tDisplay Name\tDescription\tAddress\tCountry/Region\tLabel Count\tResource U\nsub-fixture-01\tres-value\tarcsites-t1a\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1b\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1c\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\n\tres-value\tarcsites-t1d\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1e\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1\nsub-fixture-01\tres-value\tarcsites-t1f\tres-value\tres-value\tres-value, res-value, res-value, res-value, res-value\tres-value\t1\t1"
+    ]
+  }
+}
