@@ -49,7 +49,8 @@ function Export-Report {
     # back to its pre-v2 behaviour rather than failing.
     param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null, $Model = $null)
     switch ($Renderer) {
-        'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#6860 added a resource-grain fact table and its dimensions.
+        'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         # AB#6858 rebuilt the deck as an executive readout against the report model.
         'Pptx'    { Export-Pptx    -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
