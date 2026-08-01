@@ -60,6 +60,10 @@ BeforeAll {
         'FINOPS'
         'DEVOPS'
         'COMPLIANCE'
+        # CAF Govern's seven RISK CATEGORIES (RC/SC/CM/OP/DG/RM/AI) are a different axis from
+        # CAF's eight landing-zone DESIGN AREAS -- a file scoring them cannot declare
+        # `framework: CAF` and name a design area, because it is not scoring one. AB#6459.
+        'Cloud Governance'
     )
 
     function Get-AllRuleDocs {
