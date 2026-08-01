@@ -223,16 +223,185 @@ function Add-ScoutExcelDashboard {
     }
 }
 
+#region v2 gap-inventory workbook (AB#6857 — Cover, legend, contents index, per-gap tabs)
+
+<#
+    The reference workbook attached to AB#6443 is only useful because of two things the v1
+    export has neither of:
+
+      1. A Cover tab carrying the scope, the source, the classification, a four-value VERDICT
+         LEGEND, and a contents index naming every tab with its record count.
+      2. A per-row Verdict on every gap tab. That column is what turns "149 non-group Owner
+         assignments" into "141 deliberate vending service principals plus 8 humans". Without
+         it a raw count is noise, and a workbook of raw counts gets closed.
+
+    Scout's verdicts are heuristic and the Cover says so in the legend. They sort the list so
+    a human triages the interesting rows first; they do not stand in for that human.
+#>
+
+function Add-ScoutExcelCoverSheet {
+    param($Model, [string] $Path)
+
+    $meta = Get-ScoutExcelProp -Obj $Model -Name 'Meta'
+    $eng = Get-ScoutExcelProp -Obj $Model -Name 'Engagement'
+    $scope = Get-ScoutExcelProp -Obj $Model -Name 'Scope'
+    $coverage = Get-ScoutExcelProp -Obj $Model -Name 'Coverage'
+    $gaps = @(Get-ScoutExcelProp -Obj $Model -Name 'GapRegister' -Default @())
+
+    $rows = [System.Collections.Generic.List[object]]::new()
+    function Add-Row([string]$a, [string]$b) { $rows.Add([pscustomobject]@{ Item = $a; Value = $b }) }
+
+    Add-Row 'Azure Scout — Gap Inventory Workbook' ''
+    Add-Row 'Companion to' 'the assessment report generated in the same run'
+    Add-Row 'Generated' "$(Get-ScoutExcelProp -Obj $meta -Name 'GeneratedOn' -Default '(unknown)')"
+    Add-Row 'Run ID' "$(Get-ScoutExcelProp -Obj $meta -Name 'RunId' -Default '(not recorded)')"
+    Add-Row 'Tenant' "$(Get-ScoutExcelProp -Obj $eng -Name 'TenantId' -Default '(not recorded)')"
+    Add-Row 'Scope' "$(Get-ScoutExcelProp -Obj $meta -Name 'Scope' -Default '(not recorded)')"
+    Add-Row 'Management group' "$(Get-ScoutExcelProp -Obj $meta -Name 'ManagementGroupId' -Default '(tenant root / not specified)')"
+    Add-Row 'In-scope subscriptions' "$(Get-ScoutExcelProp -Obj $scope -Name 'SubscriptionCount' -Default 0)"
+    Add-Row 'Source' 'Azure Scout collect.json — read-only ARM, Resource Graph and Microsoft Graph queries. No tenant state was modified.'
+    Add-Row 'Classification' "$(Get-ScoutExcelProp -Obj $eng -Name 'Classification' -Default 'CONFIDENTIAL')"
+    Add-Row '' ''
+
+    Add-Row 'VERDICT LEGEND' 'Every row on every gap tab carries one of these four values'
+    Add-Row 'Real - investigate' 'Genuine in-scope concern; requires engineering review or remediation.'
+    Add-Row 'Platform-required - deliberate pattern' 'By design — Azure-managed resource groups, landing-zone vending service principals, platform-deployed identities.'
+    Add-Row 'Sandbox - out of scope by design' 'Sandbox, vending-test or test-harness placement, exempt from production guard-rails by design.'
+    Add-Row 'Inherited from legacy' 'Sits outside the in-scope landing zones; likely to disappear as the legacy estate is decommissioned.'
+    Add-Row 'HOW TO READ THE VERDICT' 'Scout assigns it heuristically from resource naming and placement, to sort the list. It is NOT a confirmed judgement — every row still needs review by someone who knows the estate.'
+    Add-Row '' ''
+
+    Add-Row 'COVERAGE' ''
+    Add-Row 'Open gaps' "$($gaps.Count)"
+    Add-Row 'Domains assessed' "$(Get-ScoutExcelProp -Obj $coverage -Name 'AssessedDomains' -Default 0)"
+    Add-Row 'Domains NOT assessed' "$(Get-ScoutExcelProp -Obj $coverage -Name 'NotAssessedDomains' -Default 0) — no automated evidence collected; neither a pass nor a failure is claimed"
+    Add-Row 'Controls requiring manual review' "$(Get-ScoutExcelProp -Obj $coverage -Name 'ManualReviewItems' -Default 0)"
+    Add-Row 'Controls that returned no data' "$(Get-ScoutExcelProp -Obj $coverage -Name 'NotAssessedItems' -Default 0)"
+    Add-Row '' ''
+
+    Add-Row 'CONTENTS' 'Tab | records | verdict mix'
+    foreach ($g in $gaps) {
+        $ev = @(Get-ScoutExcelProp -Obj $g -Name 'Evidence' -Default @())
+        $mix = if ($ev.Count -eq 0) { 'no resource-level evidence retained' }
+        else {
+            (($ev | Group-Object Verdict | Sort-Object { -1 * $_.Count } |
+                    ForEach-Object { "$($_.Count) $($_.Name)" }) -join '; ')
+        }
+        # The record count is the RETAINED rows, and where evidence was truncated the affected
+        # total is larger. Saying both here stops the index from reading as a total.
+        $count = if ($g.EvidenceTruncated) { "$($ev.Count) of $($g.EvidenceCount) affected" } else { "$($ev.Count)" }
+        Add-Row "$($g.GapId) — $($g.Domain)" "$count | $mix"
+    }
+
+    $rows | ImportExcel\Export-Excel -Path $Path -WorksheetName 'Cover' -AutoSize
+}
+
+function Add-ScoutExcelGapSheets {
+    param($Model, [string] $Path)
+
+    $gaps = @(Get-ScoutExcelProp -Obj $Model -Name 'GapRegister' -Default @())
+
+    # One consolidated register tab first — the single view the reference workbook's reader
+    # opens after the cover.
+    $registerRows = foreach ($g in $gaps) {
+        [pscustomobject]@{
+            GapId             = $g.GapId
+            Domain            = $g.Domain
+            RuleId            = $g.RuleId
+            Finding           = $g.Title
+            Severity          = $g.Severity
+            AffectedTotal     = $g.EvidenceCount
+            RowsRetained      = @(Get-ScoutExcelProp -Obj $g -Name 'Evidence' -Default @()).Count
+            EvidenceTruncated = $g.EvidenceTruncated
+            TargetState       = $g.TargetState
+            ClosureAction     = $g.ClosureAction
+            Owner             = $g.Owner
+            Effort            = $g.Effort
+            Phase             = $g.Phase
+        }
+    }
+    if (@($registerRows).Count -gt 0) {
+        @($registerRows) | ImportExcel\Export-Excel -Path $Path -WorksheetName 'Gap_Register' -AutoSize -FreezeTopRow -AutoFilter
+    }
+
+    # Then one tab per gap that actually has resource-level evidence behind it.
+    $used = @{}
+    foreach ($g in $gaps) {
+        $ev = @(Get-ScoutExcelProp -Obj $g -Name 'Evidence' -Default @())
+        if ($ev.Count -eq 0) { continue }
+
+        # Excel worksheet names cap at 31 characters, and a truncated collision silently
+        # -Appends two gaps' rows into one sheet (AB#5091, hit once already in this file).
+        $base = ("$($g.GapId)_$($g.Domain)" -replace '[^\w]', '_')
+        $sheet = $base.Substring(0, [math]::Min(31, $base.Length))
+        if ($used.ContainsKey($sheet)) {
+            $used[$sheet]++
+            $suffix = "~$($used[$sheet])"
+            $sheet = $base.Substring(0, [math]::Min(31 - $suffix.Length, $base.Length)) + $suffix
+        }
+        else { $used[$sheet] = 1 }
+
+        $rows = foreach ($e in $ev) {
+            [pscustomobject]@{
+                GapId            = $g.GapId
+                Severity         = $g.Severity
+                SubscriptionName = $e.SubscriptionName
+                SubscriptionId   = $e.SubscriptionId
+                ResourceGroup    = $e.ResourceGroup
+                ResourceName     = $e.ResourceName
+                ResourceType     = $e.ResourceType
+                Location         = $e.Location
+                ResourceId       = $e.ResourceId
+                Observation      = $e.Observation
+                Verdict          = $e.Verdict
+                VerdictSource    = $e.VerdictSource
+                ClosureAction    = $g.ClosureAction
+                Owner            = $g.Owner
+            }
+        }
+
+        $verdictColours = @(
+            New-ConditionalText -Text 'Real - investigate' -Range 'K:K' -ConditionalType ContainsText -BackgroundColor LightPink
+            New-ConditionalText -Text 'Platform-required' -Range 'K:K' -ConditionalType ContainsText -BackgroundColor LightBlue
+            New-ConditionalText -Text 'Sandbox' -Range 'K:K' -ConditionalType ContainsText -BackgroundColor LightGray
+            New-ConditionalText -Text 'Inherited from legacy' -Range 'K:K' -ConditionalType ContainsText -BackgroundColor Wheat
+        )
+        @($rows) | ImportExcel\Export-Excel -Path $Path -WorksheetName $sheet -AutoSize -FreezeTopRow -AutoFilter -ConditionalText $verdictColours
+    }
+}
+
+#endregion
+
 function Export-Excel {
-    param($Findings, $Collect, [string] $OutputPath)
+    <#
+    .PARAMETER Model
+        Optional — the report model from Build-ScoutReportModel (AB#6852). When present the
+        workbook gains a Cover sheet (scope, source, verdict legend, contents index), a
+        consolidated Gap_Register sheet, and one sheet per gap carrying its affected resources
+        with full ARM ids and a per-row triage Verdict. The existing per-area evidence sheets
+        and the pivot dashboard are retained, not replaced.
+    #>
+    param($Findings, $Collect, [string] $OutputPath, $Model = $null)
     $xlsx = "$OutputPath/assessment_evidence.xlsx"
     # $Findings.Findings dots directly into a possibly-$null $Findings, or a
     # $Findings object that legitimately omits the key (e.g. a caller-built test
     # fixture) -- both throw PropertyNotFoundException under Set-StrictMode
     # -Version Latest, same reasoning as every Get-ScoutExcelProp call above.
     $allFindings = @(Get-ScoutExcelProp -Obj $Findings -Name 'Findings' -Default @())
+    # AB#6857: prefer the report model, exactly as Export-Word and Export-Pptx do.
+    $reportModel = $Model
+    if (-not $reportModel -and (Get-Command Build-ScoutReportModel -ErrorAction SilentlyContinue)) {
+        try { $reportModel = Build-ScoutReportModel -Findings $Findings -Collect $Collect }
+        catch { Write-Warning "Export-Excel: could not build the report model ($($_.Exception.Message)) -- writing the evidence sheets only." }
+    }
+
     if (Get-Module -ListAvailable -Name ImportExcel) {
         Import-Module ImportExcel
+        # Cover first so it is the sheet the workbook opens on.
+        if ($reportModel) {
+            Add-ScoutExcelCoverSheet -Model $reportModel -Path $xlsx
+            Add-ScoutExcelGapSheets -Model $reportModel -Path $xlsx
+        }
         Add-ScoutExcelDashboard -Findings $Findings -Collect $Collect -Path $xlsx
         # Excel worksheet names cap at 31 chars. Truncating alone can collapse two
         # similarly-prefixed areas into one sheet and -Append silently interleaves

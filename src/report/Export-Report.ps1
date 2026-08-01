@@ -54,7 +54,8 @@ function Export-Report {
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         # AB#6858 rebuilt the deck as an executive readout against the report model.
         'Pptx'    { Export-Pptx    -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
-        'Excel'   { Export-Excel   -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#6857 added the cover, verdict legend, contents index and per-gap sheets.
+        'Excel'   { Export-Excel   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Model $Model }
         'React'   { Export-React   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Drift $Drift }
         'Json'    { $Findings | ConvertTo-Json -Depth 100 | Out-File "$OutputPath/findings.json" }
         # AB#396: resources-only evidence export (raw Collect only -- no assessment
