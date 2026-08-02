@@ -23,7 +23,6 @@ $ResUCount = 1
 
     AdditionalRowLoops = @(
         @{
-            Variable = 'Loc'
             # AB#6845 decision ($Loc): deliberately UNGUARDED -- the parent must NOT become a row.
             #
             # This collector's "parent" is not an Azure resource at all: it is the synthetic
@@ -35,15 +34,16 @@ $ResUCount = 1
             #
             # The behaviour is asserted, not merely skipped, in
             # tests/Collector.VanishingParent.Tests.ps1.
+            Variable = 'Loc'
             Source = '$data'
             Preamble = ''
         }
         @{
-            Variable = 'Usage'
             # AB#6845 decision ($Usage): deliberately UNGUARDED -- the ROW IS THE CHILD. One row
             # per usage line is the unit this worksheet inventories, so a location envelope
             # carrying no usage data has nothing to state and must not manufacture a row to say
             # so.
+            Variable = 'Usage'
             Source = '$Loc.Data'
             Preamble = ''
         }
