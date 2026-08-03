@@ -33,7 +33,11 @@ function Invoke-Rule {
         [string] $Framework
     )
 
-    $status = 'Unknown'; $evidenceCount = 0; $evidence = @()
+    # $evidenceTruncated is initialised HERE, not at the assignment site. A manual rule (and the
+    # early-return error path) never reaches the query block, so reading it at the emitter would
+    # throw "the variable has not been set" under Set-StrictMode -Version Latest -- the same class
+    # this file's other guards exist for, and it takes down the whole render, not one finding.
+    $status = 'Unknown'; $evidenceCount = 0; $evidence = @(); $evidenceTruncated = $false
 
     # AB#6892. Initialised here, not at the point of use, because the early `return`s below
     # (gate failure, query failure, not-assessed) build their own finding object and every one of
@@ -126,8 +130,18 @@ function Invoke-Rule {
                 Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
+        # AB#6864. The payload is capped so a rule matching thousands of resources does not carry
+        # them all into every artefact -- but the cap has to be VISIBLE. Before this, a finding
+        # with 198 matches and one with 26 both shipped 25 evidence rows and looked identical, so
+        # a renderer walking Evidence silently under-reported and nothing said it had.
+        #
+        # EvidenceCount already held the true total; EvidenceTruncated is what lets a renderer
+        # tell "these are all of them" from "these are the first 25 of many". Same class as the
+        # empty-cell-versus-None-found problem the audit called out: the omission was invisible.
         $evidenceCount = $matches.Count
-        $evidence = $matches | Select-Object -First 25    # cap evidence payload
+        $evidenceCap = 25
+        $evidence = $matches | Select-Object -First $evidenceCap
+        $evidenceTruncated = $evidenceCount -gt $evidenceCap
         # ConvertFrom-Yaml returns `assert:` as a Hashtable (test fixtures often use a
         # pscustomobject instead), and 'exists'/'notExists' rules legitimately omit a
         # `value:` key. Accessing a missing key/property via dot-notation throws
@@ -195,6 +209,9 @@ function Invoke-Rule {
         Status        = $status
         EvidenceCount = $evidenceCount
         Evidence      = $evidence
+        # AB#6864: true when Evidence holds only the first N of EvidenceCount matches, so a
+        # renderer can say "25 of 198 shown" instead of presenting 25 as the whole set.
+        EvidenceTruncated = $evidenceTruncated
         SearchedPath  = $searchedPath
         AssertType    = $assertType
         Denominator   = $denominator

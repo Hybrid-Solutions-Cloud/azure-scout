@@ -30,7 +30,38 @@
         Ingest      = @('Governance', 'AdvisorScores')
         # 'xr.*' pulls in the cross-resource rules (AB#6835). A landing-zone audit that could not
         # say which VMs have no backup was answering a narrower question than its name claims.
-        Rules       = @('caf.*', 'waf.*', 'xr.*')
+        #
+        # AB#6890. The WAF pillars are ENUMERATED, not globbed. `waf.*` swept in every rule file
+        # whose name happens to start with waf -- which by now includes the WORKLOAD assessments
+        # (waf.ai, waf.avd, waf.azurelocal.*). A run selecting LandingZone and Cloud Governance
+        # was therefore scoring AI-workload, AVD and Azure Local rules it was never asked for, and
+        # the evidence workbook grew a visible tab for each of them: 34 areas where the audit
+        # covers 14. That is the same dangling-glob class that silently cost `Assess: Storage` its
+        # WAF rules, just pointing the other way.
+        #
+        # WAF defines FIVE pillars. If a sixth ever appears, it is added here deliberately;
+        # a new waf.<workload>.yaml must never join a landing-zone audit by filename alone.
+        # tests/Assessment.LandingZoneScope.Tests.ps1 gates exactly that.
+        # The EIGHT CAF landing-zone design areas, named. `caf.*` had the same defect as `waf.*`:
+        # it swept in caf.iot, caf.avslandingzone, caf.ai, caf.storage and the rest, every one of
+        # which is owned by its own assessment further down this file. A landing-zone audit is the
+        # eight design areas, not "every rule file whose name starts with caf".
+        Rules       = @(
+            'caf.billing'
+            'caf.identity'
+            'caf.network'
+            'caf.resourceorg'
+            'caf.security'
+            'caf.management'
+            'caf.governance'
+            'caf.platformauto'
+            'waf.cost'
+            'waf.operational'
+            'waf.performance'
+            'waf.reliability'
+            'waf.security'
+            'xr.*'
+        )
         Frameworks  = @('CAF: all 8 design areas', 'WAF: all 5 pillars', 'XR: Cross-resource posture')
         Tags        = @('caf', 'waf', 'landing-zone', 'cross-resource')
         Benchmark   = 'alz-reference.json'
