@@ -411,11 +411,45 @@ function New-ScoutPbipReportJson {
         }
     )
 
+    # The report-level config is where the THEME lives, and Power BI Desktop dereferences it
+    # unconditionally while building the ribbon. Omitting themeCollection does not fall back to a
+    # default -- Desktop throws "Cannot read properties of undefined (reading 'customTheme')" from
+    # inside desktop.min.js and the canvas never renders, even though the model has loaded fine
+    # and the project is otherwise valid. Verified against Power BI Desktop 2.156.951.0.
+    #
+    # baseTheme names a theme Desktop ships, so nothing has to be packaged alongside the report.
+    $reportConfig = [ordered]@{
+        version            = '5.43'
+        activeSectionIndex = 0
+        themeCollection    = [ordered]@{
+            baseTheme = [ordered]@{
+                name         = 'CY24SU10'
+                version      = '5.61'
+                type         = 2
+                reportVersion = '5.43'
+            }
+        }
+        objects            = [ordered]@{
+            section = @(
+                @{ properties = @{ verticalAlignment = @{ expr = @{ Literal = @{ Value = "'Top'" } } } } }
+            )
+        }
+    }
+
     $report = [ordered]@{
         '$schema'            = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json'
-        config               = (@{ version = '5.43'; activeSectionIndex = 0 } | ConvertTo-Json -Compress)
+        config               = ($reportConfig | ConvertTo-Json -Depth 20 -Compress)
         layoutOptimization   = 0
-        resourcePackages     = @()
+        resourcePackages     = @(
+            [ordered]@{
+                resourcePackage = [ordered]@{
+                    disabled = $false
+                    items    = @(@{ name = 'CY24SU10'; path = 'BaseThemes/CY24SU10.json'; type = 202 })
+                    name     = 'SharedResources'
+                    type     = 2
+                }
+            }
+        )
         sections             = $pages
     }
 
@@ -613,8 +647,12 @@ $(New-ScoutPbipColumnTmdl -Table 'Date' -Name 'Date' -DataType 'dateTime' -Forma
 
     # ---- report --------------------------------------------------------------------------
     ([ordered]@{
+        # version 1.0 is the CLASSIC report definition -- a definition.pbir alongside a single
+        # report.json. The 4.x versions signal the enhanced report format (PBIR), where the
+        # report is a definition/pages/ tree instead; declaring 4.x while shipping report.json
+        # tells Desktop to look for files that are not there.
         '$schema'        = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/1.0.0/schema.json'
-        version          = '4.0'
+        version          = '1.0'
         datasetReference = [ordered]@{ byPath = [ordered]@{ path = "../$ProjectName.SemanticModel" } }
     } | ConvertTo-Json -Depth 10) | Set-Content -LiteralPath (Join-Path $reportDir 'definition.pbir') -Encoding utf8
 
