@@ -385,11 +385,52 @@ function Add-ScoutPdfDot {
 }
 
 function Add-ScoutPdfImage {
-    param($Ctx, [double]$X, [double]$Y, [double]$W, [double]$H)
+    param($Ctx, [double]$X, [double]$Y, [double]$W, [double]$H, [string]$Name = 'Im1')
     Add-ScoutPdfRaw $Ctx 'q'
     Add-ScoutPdfRaw $Ctx ("{0} 0 0 {1} {2} {3} cm" -f (ScoutPdfNum $W), (ScoutPdfNum $H), (ScoutPdfNum $X), (ScoutPdfNum $Y))
-    Add-ScoutPdfRaw $Ctx '/Im1 Do'
+    Add-ScoutPdfRaw $Ctx "/$Name Do"
     Add-ScoutPdfRaw $Ctx 'Q'
+}
+
+function Add-ScoutPdfFigureSection {
+    <#
+    .SYNOPSIS
+        Place the rasterised figures, each with its caption.
+
+    .DESCRIPTION
+        AB#6883, clause W-12/D-03 applied to the PDF. Figures are drawn from image XObjects
+        embedded in this document -- there is no link and no external file, so the PDF carries its
+        own pictures wherever it is sent.
+
+        Each figure gets a page-width box; the image is scaled to fit while preserving aspect,
+        because a chart stretched to a box of a different ratio misreports its own bars.
+    #>
+    param($Ctx, $Figures)
+
+    $figs = @($Figures)
+    if ($figs.Count -eq 0) { return }
+
+    Add-ScoutPdfSubsection $Ctx 'Figures'
+    # 612 pt is the MediaBox width every page is emitted with (US Letter).
+    $maxW = 612.0 - (2 * $Ctx.Margin)
+
+    for ($i = 0; $i -lt $figs.Count; $i++) {
+        $fig = $figs[$i]
+        # 96 DPI source, 72 pt per inch: the point size of the image is px * 72/96.
+        $wPt = $fig.Width * 0.75
+        $hPt = $fig.Height * 0.75
+        if ($wPt -gt $maxW) {
+            $hPt = $hPt * ($maxW / $wPt)
+            $wPt = $maxW
+        }
+
+        ScoutPdfEnsureSpace $Ctx ($hPt + 34)
+        $Ctx.Y -= $hPt
+        Add-ScoutPdfImage $Ctx $Ctx.Margin $Ctx.Y $wPt $hPt -Name "Fig$($i + 1)"
+        $Ctx.Y -= 14
+        Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y $fig.Caption 9 'F1' $Script:ScoutPdfGray
+        $Ctx.Y -= 18
+    }
 }
 
 #endregion
@@ -600,7 +641,11 @@ function Get-ScoutPdfDiagram {
 # mix safely with the ASCII structure/text around them.
 
 function New-ScoutPdfDocument {
-    param($Ctx, $Diagram)
+    # AB#6883. $Figures are the rasterised report charts. They embed as image XObjects with
+    # /FlateDecode -- which IS zlib -- straight from the raw RGB buffer the figure descriptor
+    # carries, so the PDF needs no JPEG and no decode step. $Diagram remains the separate AB#379
+    # drop-in JPEG path.
+    param($Ctx, $Diagram, $Figures)
 
     $bytes = [System.Collections.Generic.List[byte]]::new()
     $offsets = @{}
@@ -619,6 +664,11 @@ function New-ScoutPdfDocument {
     $next = 5
     $objImage = $null
     if ($Diagram) { $objImage = $next; $next++ }
+
+    # One XObject per figure, named /Fig1../FigN in the page resource dictionary.
+    $figList = @($Figures)
+    $figObjNums = @()
+    foreach ($f in $figList) { $figObjNums += $next; $next++ }
 
     $pageObjNums = [System.Collections.Generic.List[int]]::new()
     $contentObjNums = [System.Collections.Generic.List[int]]::new()
@@ -648,8 +698,28 @@ function New-ScoutPdfDocument {
         AddAscii "`nendstream`nendobj`n"
     }
 
-    $resourceDict = if ($Diagram) {
-        "/Resources << /Font << /F1 $objFontRegular 0 R /F2 $objFontBold 0 R >> /XObject << /Im1 $objImage 0 R >> >>"
+    # AB#6883. Each figure becomes an image XObject carrying the raw RGB flate-encoded. PDF's
+    # /FlateDecode is zlib (RFC 1950), which is exactly what the rasteriser already produces, so
+    # the pixels go in without a decode/re-encode round trip and without a JPEG dependency.
+    for ($fi = 0; $fi -lt $figList.Count; $fi++) {
+        $fig = $figList[$fi]
+        if (-not $fig.PSObject.Properties['RawRgb'] -or $null -eq $fig.RawRgb) { continue }
+        if (-not (Get-Command -Name ConvertTo-ScoutZlibStream -ErrorAction SilentlyContinue)) {
+            . "$PSScriptRoot/../Build-ScoutFigure.ps1"
+        }
+        $flate = ConvertTo-ScoutZlibStream -Bytes ([byte[]]$fig.RawRgb)
+        $offsets[$figObjNums[$fi]] = $bytes.Count
+        AddAscii "$($figObjNums[$fi]) 0 obj`n<< /Type /XObject /Subtype /Image /Width $($fig.Width) /Height $($fig.Height) /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length $($flate.Length) >>`nstream`n"
+        AddRawBytes $flate
+        AddAscii "`nendstream`nendobj`n"
+    }
+
+    $xobjects = [System.Collections.Generic.List[string]]::new()
+    if ($Diagram) { $xobjects.Add("/Im1 $objImage 0 R") }
+    for ($fi = 0; $fi -lt $figList.Count; $fi++) { $xobjects.Add("/Fig$($fi + 1) $($figObjNums[$fi]) 0 R") }
+
+    $resourceDict = if ($xobjects.Count -gt 0) {
+        "/Resources << /Font << /F1 $objFontRegular 0 R /F2 $objFontBold 0 R >> /XObject << $([string]::Join(' ', $xobjects)) >> >>"
     }
     else {
         "/Resources << /Font << /F1 $objFontRegular 0 R /F2 $objFontBold 0 R >> >>"
@@ -802,6 +872,25 @@ function Export-Pdf {
             Add-ScoutPdfBullet $ctx $diagramNote $Script:ScoutPdfGray
         }
 
+        # ==== Figures (AB#6883) ====
+        # Rendered here so the figure set exists before New-ScoutPdfDocument builds the XObjects.
+        # Non-fatal: a PDF without figures is still a PDF, and losing the whole document because a
+        # chart would not draw is a far worse trade.
+        $figures = @()
+        try {
+            if (-not (Get-Command -Name Export-ScoutFigureSet -ErrorAction SilentlyContinue)) {
+                . "$PSScriptRoot/../Build-ScoutFigure.ps1"
+            }
+            $figures = @(Export-ScoutFigureSet -Findings $Findings -OutputPath $OutputPath)
+        }
+        catch {
+            Write-Warning "Export-Pdf: the figure set did not render ($($_.Exception.Message)) -- the PDF ships without figures."
+        }
+        if ($figures.Count -gt 0) {
+            Start-ScoutPdfPage $ctx
+            Add-ScoutPdfFigureSection -Ctx $ctx -Figures $figures
+        }
+
         # ==== Executive summary ====
         Start-ScoutPdfPage $ctx
         Add-ScoutPdfSubsection $ctx 'Executive Summary'
@@ -881,7 +970,7 @@ function Export-Pdf {
 
         Complete-ScoutPdfPage $ctx
 
-        $bytes = New-ScoutPdfDocument -Ctx $ctx -Diagram $diagram
+        $bytes = New-ScoutPdfDocument -Ctx $ctx -Diagram $diagram -Figures $figures
         $pdfPath = Join-Path $OutputPath 'assessment_report.pdf'
         [System.IO.File]::WriteAllBytes($pdfPath, $bytes)
 
