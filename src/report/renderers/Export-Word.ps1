@@ -193,6 +193,18 @@ function Add-ScoutDocxStyleDefinitions {
         $pPr = New-ScoutDocxEl "$Script:ScoutDocxWNs.StyleParagraphProperties"
         $keepNext = New-ScoutDocxEl "$Script:ScoutDocxWNs.KeepNext"
         $pPr.Append($keepNext)
+        # AB#6875, clause W-06. numId 1 is the multilevel chapter list declared in the numbering
+        # part; binding it HERE rather than at each heading call site is what makes "4.2" a
+        # property of being a level-2 heading. CT_PPrBase puts numPr after keepNext and before
+        # spacing -- the same schema ordering the outlineLvl comment below is about.
+        $numPr = New-ScoutDocxEl "$Script:ScoutDocxWNs.NumberingProperties"
+        $ilvl = New-ScoutDocxEl "$Script:ScoutDocxWNs.NumberingLevelReference"
+        $ilvl.Val = [int]$s.Outline
+        $numPr.Append($ilvl)
+        $numId = New-ScoutDocxEl "$Script:ScoutDocxWNs.NumberingId"
+        $numId.Val = 1
+        $numPr.Append($numId)
+        $pPr.Append($numPr)
         $spacing = New-ScoutDocxEl "$Script:ScoutDocxWNs.SpacingBetweenLines"
         $spacing.Before = [string]$s.Before
         $spacing.After = [string]$s.After
@@ -220,8 +232,339 @@ function Add-ScoutDocxStyleDefinitions {
         $styles.Append($style)
     }
 
+    # AB#6875, clause W-01. Heading1-3 above are the outline; these are the rest of what a
+    # rebrandable document needs -- a Normal that actually carries the document defaults, a Title
+    # for the cover, a Caption for figures, Header/Footer for the running furniture, toc 1-3 so
+    # Word has somewhere to put the entries the TOC field collects, and a named table style.
+    #
+    # These are appended as XML rather than built from typed objects for one reason: CT_Style
+    # child order is long and strict, and a 40-line append sequence per style hides the shape
+    # being declared. The InnerXml setter parses through the same schema-aware reader, so an
+    # ordering mistake still fails the validator the Report.Word suite gates on.
+    $extra = @(
+        @{ Type = 'paragraph'; Id = 'Normal'; Default = $true; Xml = '<w:name w:val="Normal"/><w:qFormat/>' }
+        @{ Type = 'paragraph'; Id = 'Title'; Xml = @"
+<w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/>
+<w:pPr><w:spacing w:before="0" w:after="160"/><w:contextualSpacing/><w:jc w:val="center"/></w:pPr>
+<w:rPr><w:rFonts w:ascii="Segoe UI Semibold" w:hAnsi="Segoe UI Semibold"/><w:b/><w:color w:val="$($Script:ScoutDocxNavy)"/><w:sz w:val="64"/></w:rPr>
+"@ }
+        @{ Type = 'paragraph'; Id = 'Caption'; Xml = @"
+<w:name w:val="caption"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/>
+<w:pPr><w:spacing w:before="0" w:after="200"/></w:pPr>
+<w:rPr><w:i/><w:color w:val="$($Script:ScoutDocxGray)"/><w:sz w:val="18"/></w:rPr>
+"@ }
+        @{ Type = 'paragraph'; Id = 'Header'; Xml = @"
+<w:name w:val="header"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="0"/></w:pPr>
+<w:rPr><w:color w:val="$($Script:ScoutDocxGray)"/><w:sz w:val="16"/></w:rPr>
+"@ }
+        @{ Type = 'paragraph'; Id = 'Footer'; Xml = @"
+<w:name w:val="footer"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="0"/></w:pPr>
+<w:rPr><w:color w:val="$($Script:ScoutDocxGray)"/><w:sz w:val="16"/></w:rPr>
+"@ }
+        @{ Type = 'paragraph'; Id = 'TOC1'; Xml = '<w:name w:val="toc 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:spacing w:before="120" w:after="0"/></w:pPr><w:rPr><w:b/></w:rPr>' }
+        @{ Type = 'paragraph'; Id = 'TOC2'; Xml = '<w:name w:val="toc 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:spacing w:after="0"/><w:ind w:left="240"/></w:pPr>' }
+        @{ Type = 'paragraph'; Id = 'TOC3'; Xml = '<w:name w:val="toc 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:spacing w:after="0"/><w:ind w:left="480"/></w:pPr>' }
+        @{ Type = 'paragraph'; Id = 'ListParagraph'; Xml = '<w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/><w:ind w:left="720"/><w:contextualSpacing/></w:pPr>' }
+        @{ Type = 'table'; Id = 'ScoutTable'; Xml = @"
+<w:name w:val="Scout Table"/><w:uiPriority w:val="59"/><w:qFormat/>
+<w:tblPr>
+  <w:tblBorders>
+    <w:top w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+    <w:left w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+    <w:bottom w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+    <w:right w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+    <w:insideH w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+    <w:insideV w:val="single" w:sz="4" w:space="0" w:color="$($Script:ScoutDocxLine)"/>
+  </w:tblBorders>
+</w:tblPr>
+<w:tblStylePr w:type="firstRow">
+  <w:rPr><w:b/><w:color w:val="$($Script:ScoutDocxPaper)"/></w:rPr>
+  <w:tcPr><w:shd w:val="clear" w:color="auto" w:fill="$($Script:ScoutDocxNavy)"/></w:tcPr>
+</w:tblStylePr>
+"@ }
+    )
+
+    foreach ($e in $extra) {
+        $style = New-ScoutDocxEl "$Script:ScoutDocxWNs.Style"
+        $style.Type = switch ($e.Type) {
+            'table' { [DocumentFormat.OpenXml.Wordprocessing.StyleValues]::Table }
+            default { [DocumentFormat.OpenXml.Wordprocessing.StyleValues]::Paragraph }
+        }
+        $style.StyleId = $e.Id
+        $style.CustomStyle = $false
+        if ($e.ContainsKey('Default')) { $style.Default = [bool]$e.Default }
+        $style.InnerXml = $e.Xml
+        $styles.Append($style)
+    }
+
+    # docDefaults is the FIRST child of w:styles (CT_Styles: docDefaults, latentStyles, style*),
+    # so it is inserted rather than appended. It is what makes Segoe UI the document font instead
+    # of every run having to declare it.
+    $docDefaults = New-ScoutDocxEl "$Script:ScoutDocxWNs.DocDefaults"
+    $docDefaults.InnerXml = @"
+<w:rPrDefault><w:rPr><w:rFonts w:ascii="Segoe UI" w:hAnsi="Segoe UI" w:cs="Segoe UI"/><w:color w:val="$($Script:ScoutDocxInk)"/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr></w:rPrDefault>
+<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault>
+"@
+    $styles.InsertAt($docDefaults, 0)
+
     $stylePart.Styles = $styles
     return $stylePart
+}
+
+function Add-ScoutDocxNumberingPart {
+    <#
+    .SYNOPSIS
+        Declare the chapter-numbering and bullet lists, and bind Heading1-3 to the first.
+
+    .DESCRIPTION
+        AB#6875, clause W-06. The reference deliverable has 14 NUMBERED sections and every
+        cross-reference in its text ("see 4.2") depends on that numbering being real. Scout's
+        headings were unnumbered text, so a reader had no way to refer to one.
+
+        numId 1 is the multilevel chapter list, bound to the heading styles by w:pStyle so a
+        heading is numbered by virtue of BEING a heading -- nothing at the call site has to
+        count. numId 2 is the plain bullet the summary lists use.
+    #>
+    param([Parameter(Mandatory)]$MainPart)
+
+    $part = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.NumberingDefinitionsPart]()
+    $xml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:abstractNum w:abstractNumId="0">
+    <w:multiLevelType w:val="multilevel"/>
+    <w:lvl w:ilvl="0">
+      <w:start w:val="1"/><w:numFmt w:val="decimal"/><w:pStyle w:val="Heading1"/>
+      <w:lvlText w:val="%1"/><w:lvlJc w:val="left"/>
+      <w:pPr><w:ind w:left="0" w:firstLine="0"/></w:pPr>
+    </w:lvl>
+    <w:lvl w:ilvl="1">
+      <w:start w:val="1"/><w:numFmt w:val="decimal"/><w:pStyle w:val="Heading2"/>
+      <w:lvlText w:val="%1.%2"/><w:lvlJc w:val="left"/>
+      <w:pPr><w:ind w:left="0" w:firstLine="0"/></w:pPr>
+    </w:lvl>
+    <w:lvl w:ilvl="2">
+      <w:start w:val="1"/><w:numFmt w:val="decimal"/><w:pStyle w:val="Heading3"/>
+      <w:lvlText w:val="%1.%2.%3"/><w:lvlJc w:val="left"/>
+      <w:pPr><w:ind w:left="0" w:firstLine="0"/></w:pPr>
+    </w:lvl>
+  </w:abstractNum>
+  <w:abstractNum w:abstractNumId="1">
+    <w:multiLevelType w:val="hybridMultilevel"/>
+    <w:lvl w:ilvl="0">
+      <w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="&#8226;"/><w:lvlJc w:val="left"/>
+      <w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr>
+      <w:rPr><w:rFonts w:ascii="Segoe UI" w:hAnsi="Segoe UI" w:hint="default"/></w:rPr>
+    </w:lvl>
+  </w:abstractNum>
+  <w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>
+  <w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>
+</w:numbering>
+"@
+    Set-ScoutDocxPartXml -Part $part -Xml $xml
+    return $part
+}
+
+function Add-ScoutDocxThemePart {
+    <#
+    .SYNOPSIS
+        Declare the document theme carrying the Scout palette.
+
+    .DESCRIPTION
+        AB#6875, clause W-07. Every colour the body uses is declared here as a theme slot, which
+        is what makes the document rebrandable: a partner swaps the clrScheme and the whole
+        deliverable follows. Without a theme part the hex values in the body are the only
+        definition of the brand, and there is nothing to swap.
+
+        The twelve slots are the full Scout chrome palette -- the conformance test asserts that
+        no run in the body carries a hex absent from this list, so adding a colour to a renderer
+        means adding it here too. That coupling is deliberate.
+    #>
+    param([Parameter(Mandatory)]$MainPart)
+
+    $part = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.ThemePart]()
+    $line = '<a:ln w="6350" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/></a:ln>'
+    $fill = '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
+    $xml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Azure Scout">
+  <a:themeElements>
+    <a:clrScheme name="Azure Scout">
+      <a:dk1><a:srgbClr val="$($Script:ScoutDocxInk)"/></a:dk1>
+      <a:lt1><a:srgbClr val="$($Script:ScoutDocxPaper)"/></a:lt1>
+      <a:dk2><a:srgbClr val="$($Script:ScoutDocxNavy)"/></a:dk2>
+      <a:lt2><a:srgbClr val="$($Script:ScoutDocxMist)"/></a:lt2>
+      <a:accent1><a:srgbClr val="$($Script:ScoutDocxSteel)"/></a:accent1>
+      <a:accent2><a:srgbClr val="$($Script:ScoutDocxGreen)"/></a:accent2>
+      <a:accent3><a:srgbClr val="$($Script:ScoutDocxGold)"/></a:accent3>
+      <a:accent4><a:srgbClr val="$($Script:ScoutDocxRed)"/></a:accent4>
+      <a:accent5><a:srgbClr val="$($Script:ScoutDocxGray)"/></a:accent5>
+      <a:accent6><a:srgbClr val="$($Script:ScoutDocxLine)"/></a:accent6>
+      <a:hlink><a:srgbClr val="$($Script:ScoutDocxSteel)"/></a:hlink>
+      <a:folHlink><a:srgbClr val="$($Script:ScoutDocxGray)"/></a:folHlink>
+    </a:clrScheme>
+    <a:fontScheme name="Azure Scout">
+      <a:majorFont><a:latin typeface="Segoe UI Semibold"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont>
+      <a:minorFont><a:latin typeface="Segoe UI"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont>
+    </a:fontScheme>
+    <a:fmtScheme name="Azure Scout">
+      <a:fillStyleLst>$fill$fill$fill</a:fillStyleLst>
+      <a:lnStyleLst>$line$line$line</a:lnStyleLst>
+      <a:effectStyleLst>
+        <a:effectStyle><a:effectLst/></a:effectStyle>
+        <a:effectStyle><a:effectLst/></a:effectStyle>
+        <a:effectStyle><a:effectLst/></a:effectStyle>
+      </a:effectStyleLst>
+      <a:bgFillStyleLst>$fill$fill$fill</a:bgFillStyleLst>
+    </a:fmtScheme>
+  </a:themeElements>
+</a:theme>
+"@
+    Set-ScoutDocxPartXml -Part $part -Xml $xml
+    return $part
+}
+
+function Add-ScoutDocxHeaderPart {
+    <#
+    .SYNOPSIS
+        The running header — assessment name left, classification right.
+
+    .DESCRIPTION
+        AB#6875, clause W-03. A page pulled out of a 40-page deliverable and put in front of
+        someone has to say what it is and how far it may travel. That is the whole job of the
+        header, and Scout's documents had none.
+    #>
+    param([Parameter(Mandatory)]$MainPart, [string]$Title, [string]$Classification)
+
+    $part = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.HeaderPart]()
+    $xml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:p>
+    <w:pPr>
+      <w:pStyle w:val="Header"/>
+      <w:pBdr><w:bottom w:val="single" w:sz="4" w:space="4" w:color="$($Script:ScoutDocxLine)"/></w:pBdr>
+      <w:tabs><w:tab w:val="right" w:pos="9360"/></w:tabs>
+    </w:pPr>
+    <w:r><w:t xml:space="preserve">$(ConvertTo-ScoutDocxXmlText $Title)</w:t></w:r>
+    <w:r><w:tab/><w:t xml:space="preserve">$(ConvertTo-ScoutDocxXmlText $Classification)</w:t></w:r>
+  </w:p>
+</w:hdr>
+"@
+    Set-ScoutDocxPartXml -Part $part -Xml $xml
+    return $part
+}
+
+function Add-ScoutDocxFooterPart {
+    <#
+    .SYNOPSIS
+        The running footer — provenance left, "Page N of M" right, as real fields.
+
+    .DESCRIPTION
+        AB#6875, clause W-04. PAGE and NUMPAGES are FIELDS, not text: they have to survive the
+        document being edited, re-paginated or have a section inserted. A rendered page number
+        would be wrong the moment anyone touched the file, which is worse than none.
+    #>
+    param([Parameter(Mandatory)]$MainPart, [string]$Provenance)
+
+    $part = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.FooterPart]()
+    $xml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:p>
+    <w:pPr>
+      <w:pStyle w:val="Footer"/>
+      <w:pBdr><w:top w:val="single" w:sz="4" w:space="4" w:color="$($Script:ScoutDocxLine)"/></w:pBdr>
+      <w:tabs><w:tab w:val="right" w:pos="9360"/></w:tabs>
+    </w:pPr>
+    <w:r><w:t xml:space="preserve">$(ConvertTo-ScoutDocxXmlText $Provenance)</w:t></w:r>
+    <w:r><w:tab/><w:t xml:space="preserve">Page </w:t></w:r>
+    <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+    <w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r>
+    <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+    <w:r><w:t>1</w:t></w:r>
+    <w:r><w:fldChar w:fldCharType="end"/></w:r>
+    <w:r><w:t xml:space="preserve"> of </w:t></w:r>
+    <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+    <w:r><w:instrText xml:space="preserve"> NUMPAGES </w:instrText></w:r>
+    <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+    <w:r><w:t>1</w:t></w:r>
+    <w:r><w:fldChar w:fldCharType="end"/></w:r>
+  </w:p>
+</w:ftr>
+"@
+    Set-ScoutDocxPartXml -Part $part -Xml $xml
+    return $part
+}
+
+function Add-ScoutDocxBlankHeaderFooterParts {
+    <#
+    .SYNOPSIS
+        Empty first-page header and footer, so the cover carries no running furniture.
+    #>
+    param([Parameter(Mandatory)]$MainPart)
+
+    $hdr = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.HeaderPart]()
+    Set-ScoutDocxPartXml -Part $hdr -Xml '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:pStyle w:val="Header"/></w:pPr></w:p></w:hdr>'
+    $ftr = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.FooterPart]()
+    Set-ScoutDocxPartXml -Part $ftr -Xml '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:pStyle w:val="Footer"/></w:pPr></w:p></w:ftr>'
+    return @{ Header = $hdr; Footer = $ftr }
+}
+
+function Add-ScoutDocxSettingsPart {
+    <#
+    .SYNOPSIS
+        Document settings, carrying updateFields so the TOC builds on first open.
+
+    .DESCRIPTION
+        AB#6875. A TOC field emitted by a generator has no cached result, so without this Word
+        shows the placeholder text until someone knows to press F9. updateFields makes Word
+        offer to build it on open, which is the difference between a working TOC and one the
+        reader has to be told about.
+    #>
+    param([Parameter(Mandatory)]$MainPart)
+
+    $part = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.DocumentSettingsPart]()
+    Set-ScoutDocxPartXml -Part $part -Xml '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:updateFields w:val="true"/></w:settings>'
+    return $part
+}
+
+function Set-ScoutDocxPartXml {
+    # Feeds raw part XML through the SDK's own reader, so a malformed or mis-ordered part fails
+    # the validator rather than shipping a package Word silently repairs.
+    param([Parameter(Mandatory)]$Part, [Parameter(Mandatory)][string]$Xml)
+    $ms = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($Xml))
+    try { $Part.FeedData($ms) } finally { $ms.Dispose() }
+}
+
+function Get-ScoutDocxReportVersion {
+    # AB#6875, clause W-09. Read from the module manifest rather than hardcoded -- a version in
+    # the Document Information block that does not track the module is worse than no version,
+    # because a reader will trust it.
+    [OutputType([string])]
+    param()
+    try {
+        $repoRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+        $manifest = Join-Path $repoRoot 'AzureScout.psd1'
+        if (Test-Path $manifest) {
+            $data = Import-PowerShellDataFile -Path $manifest -ErrorAction Stop
+            if ($data.ContainsKey('ModuleVersion')) { return "Azure Scout $($data.ModuleVersion)" }
+        }
+    }
+    catch {
+        # A missing or unreadable manifest is not a reason to fail a render.
+        Write-Verbose "Export-Word: could not read the module version ($_)."
+    }
+    return 'Azure Scout (version not resolved)'
+}
+
+function ConvertTo-ScoutDocxXmlText {
+    # Tenant names and scopes are attacker-adjacent free text as far as this renderer is
+    # concerned -- they come from Azure, not from us. Escaping here keeps a resource named
+    # "A & B <prod>" from producing a package Word refuses to open.
+    param([AllowEmptyString()][AllowNull()][string]$Text)
+    if ([string]::IsNullOrEmpty($Text)) { return '' }
+    return ($Text -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;')
 }
 
 function ScoutDocxDxa {
@@ -251,6 +594,18 @@ $Script:ScoutDocxGray = '595959'
 # pathological Findings object (thousands of gaps) can't produce a runaway render.
 $Script:ScoutDocxMaxGaps = 50
 $Script:ScoutDocxMaxManual = 100
+
+# AB#6875, clause W-13. A table longer than this belongs in an appendix — past roughly a page
+# the reader has stopped reading and started scrolling, and the narrative it was supporting is
+# already off-screen. The body keeps a bounded extract and a pointer.
+$Script:ScoutDocxBodyTableMaxRows = 30
+
+# Front-matter constants. Classification is what tells a reader how far the document may travel;
+# a deliverable carrying real tenant findings is not a public document, and saying so is the
+# renderer's job, not the reader's guess.
+$Script:ScoutDocxClassification = 'CONFIDENTIAL — prepared for the named client'
+$Script:ScoutDocxAuthor = 'Azure Scout'
+$Script:ScoutDocxProvenance = 'Azure Resource Graph and Microsoft Graph, read-only, collected by Azure Scout'
 
 #endregion
 
@@ -577,15 +932,37 @@ function Export-ScoutDocxHtmlFallback {
 #region Section builders
 
 function New-ScoutDocxCoverParagraphs {
-    param($Body, [string]$Title, [string]$Subtitle, [string]$MetaLine)
+    <#
+    .SYNOPSIS
+        The cover page — the four facts that make a deliverable read as "for them".
+
+    .DESCRIPTION
+        AB#6875, clause W-08. The reference deliverable's cover carries client, assessment,
+        scan date and classification, and every one of those is load-bearing: without the
+        client name the document is generic, without the scan date its numbers are undated
+        claims, and without a classification nobody knows how far it may travel.
+    #>
+    param(
+        $Body,
+        [string]$Title,
+        [string]$Subtitle,
+        [string]$MetaLine,
+        [string]$ClientName,
+        [string]$ScanDate,
+        [string]$Classification = $Script:ScoutDocxClassification
+    )
 
     $wmRuns = New-ScoutDocxList
     $wmRuns.Add((New-ScoutDocxRun -Text 'AZURE SCOUT' -SizePt 12 -Hex $Script:ScoutDocxSteel -Bold $true))
     $Body.Append((New-ScoutDocxPara -Runs $wmRuns -Align 'center' -SpaceBeforePt 60 -SpaceAfterPt 12))
 
+    # The cover title takes the Title STYLE, not direct formatting -- it is the one paragraph a
+    # rebranding partner is guaranteed to want to restyle.
     $titleRuns = New-ScoutDocxList
     $titleRuns.Add((New-ScoutDocxRun -Text $Title -SizePt 32 -Hex $Script:ScoutDocxNavy -Bold $true -Font 'Segoe UI Semibold'))
-    $Body.Append((New-ScoutDocxPara -Runs $titleRuns -Align 'center' -SpaceAfterPt 8))
+    $titlePara = New-ScoutDocxPara -Runs $titleRuns -Align 'center' -SpaceAfterPt 8
+    Set-ScoutDocxParaStyle -Paragraph $titlePara -StyleId 'Title'
+    $Body.Append($titlePara)
 
     if ($Subtitle) {
         $subRuns = New-ScoutDocxList
@@ -593,11 +970,134 @@ function New-ScoutDocxCoverParagraphs {
         $Body.Append((New-ScoutDocxPara -Runs $subRuns -Align 'center' -SpaceAfterPt 24))
     }
 
+    if ($ClientName) {
+        $clientRuns = New-ScoutDocxList
+        $clientRuns.Add((New-ScoutDocxRun -Text 'Prepared for' -SizePt 10 -Hex $Script:ScoutDocxGray))
+        $Body.Append((New-ScoutDocxPara -Runs $clientRuns -Align 'center' -SpaceAfterPt 2))
+        $nameRuns = New-ScoutDocxList
+        $nameRuns.Add((New-ScoutDocxRun -Text $ClientName -SizePt 18 -Hex $Script:ScoutDocxNavy -Bold $true -Font 'Segoe UI Semibold'))
+        $Body.Append((New-ScoutDocxPara -Runs $nameRuns -Align 'center' -SpaceAfterPt 20))
+    }
+
+    if ($ScanDate) {
+        $dateRuns = New-ScoutDocxList
+        $dateRuns.Add((New-ScoutDocxRun -Text "Scan date: $ScanDate" -SizePt 11 -Hex $Script:ScoutDocxInk))
+        $Body.Append((New-ScoutDocxPara -Runs $dateRuns -Align 'center' -SpaceAfterPt 6))
+    }
+
     if ($MetaLine) {
         $metaRuns = New-ScoutDocxList
         $metaRuns.Add((New-ScoutDocxRun -Text $MetaLine -SizePt 11 -Hex $Script:ScoutDocxGray -Italic $true))
         $Body.Append((New-ScoutDocxPara -Runs $metaRuns -Align 'center' -SpaceAfterPt 6))
     }
+
+    if ($Classification) {
+        # Rendered as a full-width banded row rather than a paragraph: on a cover it has to read
+        # as a stamp, not as another line of body text the eye skips.
+        #
+        # The List[object] here is not stylistic. `@($cell)` ENUMERATES the cell -- every
+        # OpenXmlElement is IEnumerable over its own children -- so it would produce an array of
+        # the cell's tcPr and paragraph, both already parented, and the append fails with
+        # "part of a tree". That is the same unrolling trap this file's header documents for
+        # `return ,$x`, and it bites on the way IN as well as on the way out.
+        $clsCells = New-ScoutDocxList
+        $clsCells.Add((New-ScoutDocxCell -Text $Classification -WidthIn 6.5 -SizePt 10 -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy -Align 'center'))
+        $clsRows = New-ScoutDocxList
+        $clsRows.Add((New-ScoutDocxRow -Cells $clsCells))
+        $Body.Append((New-ScoutDocxTable -ColWidthsIn @(6.5) -Rows $clsRows))
+    }
+}
+
+function New-ScoutDocxDocumentInformation {
+    <#
+    .SYNOPSIS
+        The Document Information block — what makes the numbers auditable.
+
+    .DESCRIPTION
+        AB#6875, clause W-09. This is the block that separates a consultancy deliverable from a
+        tool's output: it states where the data came from, when, at what version, and against
+        which frameworks. A reader who disagrees with a finding can go and check it.
+
+        Note it is deliberately NOT numbered as a chapter -- it is front matter, the same as the
+        cover, so it uses a styled non-heading paragraph rather than Heading1.
+    #>
+    param($Body, [string]$Version, [string]$Author, $Frameworks, [string]$Provenance, [string]$ScanDate, [string]$Scope)
+
+    $labelRuns = New-ScoutDocxList
+    $labelRuns.Add((New-ScoutDocxRun -Text 'Document Information' -SizePt 16 -Hex $Script:ScoutDocxNavy -Bold $true -Font 'Segoe UI Semibold'))
+    $Body.Append((New-ScoutDocxPara -Runs $labelRuns -SpaceBeforePt 12 -SpaceAfterPt 8 -KeepNext $true))
+
+    $fwNames = @(@($Frameworks) | ForEach-Object { "$(Get-ScoutDocxProp $_ 'Framework')" } | Where-Object { $_ })
+    $fwText = if ($fwNames.Count -gt 0) { [string]::Join(', ', $fwNames) } else { 'None scored for this run' }
+
+    $rowSpec = [ordered]@{
+        'Report version'         = $Version
+        'Author'                 = $Author
+        'Frameworks referenced'  = $fwText
+        'Source data provenance' = $Provenance
+        'Scan date'              = $ScanDate
+        'Scope'                  = $(if ($Scope) { $Scope } else { 'Not recorded' })
+    }
+
+    $rows = New-ScoutDocxList
+    $header = New-ScoutDocxList
+    $header.Add((New-ScoutDocxCell -Text 'Field' -WidthIn 2.0 -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+    $header.Add((New-ScoutDocxCell -Text 'Value' -WidthIn 4.5 -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+    $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+
+    $r = 0
+    foreach ($k in $rowSpec.Keys) {
+        $r++
+        $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
+        $cells = New-ScoutDocxList
+        $cells.Add((New-ScoutDocxCell -Text $k -WidthIn 2.0 -Bold $true -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$($rowSpec[$k])" -WidthIn 4.5 -FillHex $bg))
+        $rows.Add((New-ScoutDocxRow -Cells $cells))
+    }
+    $Body.Append((New-ScoutDocxTable -ColWidthsIn @(2.0, 4.5) -Rows $rows))
+}
+
+function New-ScoutDocxTableOfContents {
+    <#
+    .SYNOPSIS
+        A real TOC field.
+
+    .DESCRIPTION
+        AB#6875, clause W-05. The previous "table of contents" was a list of plain paragraphs:
+        it did not link, did not update, and did not know the page numbers. This is the field
+        Word itself resolves against the heading styles, which is why W-01/W-02 had to land
+        first -- a TOC field over an unstyled document collects nothing.
+    #>
+    param($Body)
+
+    $headRuns = New-ScoutDocxList
+    $headRuns.Add((New-ScoutDocxRun -Text 'Contents' -SizePt 16 -Hex $Script:ScoutDocxNavy -Bold $true -Font 'Segoe UI Semibold'))
+    $Body.Append((New-ScoutDocxPara -Runs $headRuns -SpaceBeforePt 12 -SpaceAfterPt 8 -KeepNext $true))
+
+    $p = New-ScoutDocxEl "$Script:ScoutDocxWNs.Paragraph"
+    $p.InnerXml = @'
+<w:r><w:fldChar w:fldCharType="begin" w:dirty="true"/></w:r>
+<w:r><w:instrText xml:space="preserve"> TOC \o "1-3" \h \z \u </w:instrText></w:r>
+<w:r><w:fldChar w:fldCharType="separate"/></w:r>
+<w:r><w:rPr><w:i/><w:color w:val="595959"/></w:rPr><w:t xml:space="preserve">Select this line and press F9 to build the table of contents.</w:t></w:r>
+<w:r><w:fldChar w:fldCharType="end"/></w:r>
+'@
+    $Body.Append($p)
+}
+
+function Set-ScoutDocxParaStyle {
+    # Puts a pStyle at the head of a paragraph's properties, creating the properties element if
+    # the paragraph has none. Same insert-at-zero rule Add-ScoutDocxHeading documents: pStyle is
+    # the FIRST child of CT_PPr, always.
+    param([Parameter(Mandatory)]$Paragraph, [Parameter(Mandatory)][string]$StyleId)
+    $pStyle = New-ScoutDocxEl "$Script:ScoutDocxWNs.ParagraphStyleId"
+    $pStyle.Val = $StyleId
+    $pPr = $Paragraph.GetFirstChild[DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties]()
+    if ($null -eq $pPr) {
+        $pPr = New-ScoutDocxEl "$Script:ScoutDocxWNs.ParagraphProperties"
+        $Paragraph.InsertAt($pPr, 0)
+    }
+    $pPr.InsertAt($pStyle, 0)
 }
 
 function New-ScoutDocxExecSummary {
@@ -649,8 +1149,193 @@ function New-ScoutDocxExecSummary {
     }
 }
 
+function New-ScoutDocxAreaScorecard {
+    <#
+    .SYNOPSIS
+        The chapter-level scorecard — the first thing under every domain heading.
+
+    .DESCRIPTION
+        AB#6875, clause W-11. The reference deliverable opens every chapter with the same shape:
+        scorecard, current state, findings, actions. The scorecard exists so a reader who reads
+        ONLY the first table of each chapter still leaves with the right picture.
+
+        "Not assessed" is a first-class column here (clause W-17). Rolling manual controls into
+        a zero would misreport the estate as failing controls nobody has looked at.
+    #>
+    param($Body, $Area)
+
+    $score = Get-ScoutDocxProp $Area 'Score'
+    $scoreText = if ($null -eq $score) { 'Not assessed' } else { "$score / 100" }
+    $pass = Get-ScoutDocxProp $Area 'Pass' 0
+    $partial = Get-ScoutDocxProp $Area 'Partial' 0
+    $fail = Get-ScoutDocxProp $Area 'Fail' 0
+    $notAssessed = Get-ScoutDocxProp $Area 'Manual' 0
+
+    $spec = [ordered]@{
+        'Alignment score' = $scoreText
+        'Pass'            = "$pass"
+        'Partial'         = "$partial"
+        'Fail'            = "$fail"
+        'Not assessed'    = "$notAssessed"
+    }
+
+    $header = New-ScoutDocxList
+    $values = New-ScoutDocxList
+    foreach ($k in $spec.Keys) {
+        $header.Add((New-ScoutDocxCell -Text $k -WidthIn 1.3 -SizePt 9 -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy -Align 'center'))
+        $hex = if ($k -eq 'Alignment score') { Get-ScoutDocxScoreColor $score } else { $Script:ScoutDocxInk }
+        $values.Add((New-ScoutDocxCell -Text $spec[$k] -WidthIn 1.3 -SizePt 12 -Bold $true -Hex $hex -FillHex $Script:ScoutDocxMist -Align 'center'))
+    }
+    $rows = New-ScoutDocxList
+    $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+    $rows.Add((New-ScoutDocxRow -Cells $values))
+    $Body.Append((New-ScoutDocxTable -ColWidthsIn @(1.3, 1.3, 1.3, 1.3, 1.3) -Rows $rows))
+}
+
+function Get-ScoutDocxCurrentState {
+    <#
+    .SYNOPSIS
+        The Current State sentence for one chapter.
+
+    .DESCRIPTION
+        AB#6875, clauses W-11 and W-16. This is deliberately a COMPARATIVE/AGGREGATE sentence
+        about the whole area rather than a per-rule template -- "13 of 19 controls in this area
+        are aligned" is a property of the run, and it is the kind of sentence a non-specialist
+        can act on. A per-rule restatement of the table below it adds nothing.
+
+        Clause W-17 is why "not assessed" is stated separately and never folded into the failures.
+    #>
+    [OutputType([string])]
+    param($Area)
+
+    $pass = [int](Get-ScoutDocxProp $Area 'Pass' 0)
+    $partial = [int](Get-ScoutDocxProp $Area 'Partial' 0)
+    $fail = [int](Get-ScoutDocxProp $Area 'Fail' 0)
+    $manual = [int](Get-ScoutDocxProp $Area 'Manual' 0)
+    $automated = $pass + $partial + $fail
+
+    if ($automated -eq 0 -and $manual -eq 0) {
+        return 'No controls were evaluated in this area for this run.'
+    }
+    if ($automated -eq 0) {
+        return "None of the $manual control(s) in this area can be evaluated automatically; all $manual are pending manual review and are reported as Not assessed, not as failures."
+    }
+
+    $parts = [System.Collections.Generic.List[string]]::new()
+    $parts.Add("$pass of $automated automatically evaluated control(s) in this area are aligned")
+    if ($partial -gt 0) { $parts.Add("$partial are partially aligned") }
+    if ($fail -gt 0) { $parts.Add("$fail are not aligned") }
+    $sentence = [string]::Join(', ', $parts) + '.'
+    if ($manual -gt 0) {
+        $sentence += " A further $manual control(s) require manual review and are reported as Not assessed."
+    }
+    return $sentence
+}
+
+function New-ScoutDocxActionItems {
+    <#
+    .SYNOPSIS
+        The action items closing a chapter — owner and effort per row, so it can be assigned.
+
+    .DESCRIPTION
+        AB#6875, clause W-11. A findings table describes; an action table assigns. Effort is
+        derived from severity rather than invented, and the owner column is stated as unassigned
+        rather than guessed -- claiming an owner the run cannot know would be exactly the kind of
+        unmeasured assertion clause W-17 exists to stop.
+    #>
+    param($Body, $AreaFindings)
+
+    $actionable = @(@($AreaFindings) | Where-Object {
+            $s = "$(Get-ScoutDocxProp $_ 'Status')"
+            $s -eq 'Fail' -or $s -eq 'Partial'
+        } | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Id)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Action items' -Level 3
+    if ($actionable.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body -Text 'No action items — every automatically evaluated control in this area is aligned.' -Hex $Script:ScoutDocxGreen
+        return
+    }
+
+    $rows = New-ScoutDocxList
+    $header = New-ScoutDocxList
+    foreach ($h in 'Id', 'Action', 'Effort', 'Owner') {
+        $w = switch ($h) { 'Id' { 1.2 } 'Action' { 3.3 } 'Effort' { 1.0 } default { 1.0 } }
+        $header.Add((New-ScoutDocxCell -Text $h -WidthIn $w -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+    }
+    $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+
+    $r = 0
+    foreach ($f in $actionable) {
+        $r++
+        $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
+        $remediation = "$(Get-ScoutDocxProp $f 'Remediation')"
+        if (-not $remediation.Trim()) { $remediation = "$(Get-ScoutDocxProp $f 'Title')" }
+        $effort = switch (Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $f 'Severity')) {
+            0 { 'High' }
+            1 { 'Medium' }
+            2 { 'Low' }
+            default { 'Unsized' }
+        }
+        $cells = New-ScoutDocxList
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Id')" -WidthIn 1.2 -SizePt 9 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text $remediation -WidthIn 3.3 -SizePt 9 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text $effort -WidthIn 1.0 -SizePt 9 -FillHex $bg -Align 'center'))
+        $cells.Add((New-ScoutDocxCell -Text 'Unassigned' -WidthIn 1.0 -SizePt 9 -Hex $Script:ScoutDocxGray -FillHex $bg -Align 'center'))
+        $rows.Add((New-ScoutDocxRow -Cells $cells))
+    }
+    $Body.Append((New-ScoutDocxTable -ColWidthsIn @(1.2, 3.3, 1.0, 1.0) -Rows $rows))
+}
+
+function New-ScoutDocxFindingsTable {
+    # The findings table for one chapter, as an element rather than appended in place -- clause
+    # W-13 needs the SAME table emitted either in the body or in the appendix depending on its
+    # length, and building it twice is how the two drift apart.
+    param($AreaFindings)
+
+    $rows = New-ScoutDocxList
+    $header = New-ScoutDocxList
+    foreach ($h in 'Id', 'Severity', 'Status', 'Title') {
+        $w = switch ($h) { 'Id' { 1.3 } 'Severity' { 1.0 } 'Status' { 1.0 } default { 3.2 } }
+        $header.Add((New-ScoutDocxCell -Text $h -WidthIn $w -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+    }
+    $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+
+    $r = 0
+    foreach ($f in (@($AreaFindings) | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Id)) {
+        $r++
+        $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
+        $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp $f 'Severity')
+        $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp $f 'Severity')
+        # Clause W-17: a manual control is Not assessed, never a zero and never a pass.
+        $status = "$(Get-ScoutDocxProp $f 'Status')"
+        if ($status -eq 'Manual') { $status = 'Not assessed' }
+        $cells = New-ScoutDocxList
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Id')" -WidthIn 1.3 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text $sevLabel -WidthIn 1.0 -Bold $true -Hex $Script:ScoutDocxPaper -FillHex $sevColor -Align 'center'))
+        $cells.Add((New-ScoutDocxCell -Text $status -WidthIn 1.0 -FillHex $bg -Align 'center'))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Title')" -WidthIn 3.2 -FillHex $bg))
+        $rows.Add((New-ScoutDocxRow -Cells $cells))
+    }
+    return , (New-ScoutDocxTable -ColWidthsIn @(1.3, 1.0, 1.0, 3.2) -Rows $rows)
+}
+
 function New-ScoutDocxAreaFindingsSection {
+    <#
+    .SYNOPSIS
+        One numbered chapter per assessed domain, in the reference deliverable's shape.
+
+    .DESCRIPTION
+        AB#6875, clause W-11: scorecard -> Current State -> findings table -> action items, in
+        that order, for every domain. Phase 0's document was a flat list of tables under one
+        heading, which is why it read as a tool's output rather than as chapters.
+
+        Clause W-13: a findings table longer than $Script:ScoutDocxBodyTableMaxRows rows is
+        emitted to the appendix instead, and the body keeps a pointer. The returned list is the
+        appendix worklist -- the caller emits it after the last chapter.
+    #>
     param($Body, $Areas, $AllFindings)
+
+    $appendix = [System.Collections.Generic.List[object]]::new()
 
     Add-ScoutDocxHeading -Body $Body -Text 'Findings by Area' -Level 1
 
@@ -661,7 +1346,7 @@ function New-ScoutDocxAreaFindingsSection {
     $sortedAreas = @(@($Areas) | Sort-Object Framework, Area)
     if ($sortedAreas.Count -eq 0) {
         Add-ScoutDocxParagraph -Body $Body -Text 'No areas were assessed for this run.' -Hex $Script:ScoutDocxGray
-        return
+        return , $appendix
     }
 
     foreach ($area in $sortedAreas) {
@@ -671,37 +1356,66 @@ function New-ScoutDocxAreaFindingsSection {
         $scoreText = if ($null -eq $score) { 'not scored' } else { "$score / 100" }
         Add-ScoutDocxHeading -Body $Body -Text "$framework — $areaName (Score: $scoreText)" -Level 2
 
+        New-ScoutDocxAreaScorecard -Body $Body -Area $area
+
+        Add-ScoutDocxHeading -Body $Body -Text 'Current state' -Level 3
+        Add-ScoutDocxParagraph -Body $Body -Text (Get-ScoutDocxCurrentState -Area $area)
+
         $areaFindings = @($AllFindings | Where-Object {
                 (Get-ScoutDocxProp $_ 'Framework') -eq $framework -and (Get-ScoutDocxProp $_ 'Area') -eq $areaName
             })
 
+        Add-ScoutDocxHeading -Body $Body -Text 'Findings' -Level 3
+
         if ($areaFindings.Count -eq 0) {
             Add-ScoutDocxParagraph -Body $Body -Text 'No individual findings recorded for this area.' -Hex $Script:ScoutDocxGray -Italic $true
+            New-ScoutDocxActionItems -Body $Body -AreaFindings $areaFindings
             continue
         }
 
-        $rows = New-ScoutDocxList
-        $header = New-ScoutDocxList
-        foreach ($h in 'Id', 'Severity', 'Status', 'Title') {
-            $w = switch ($h) { 'Id' { 1.3 } 'Severity' { 1.0 } 'Status' { 1.0 } default { 3.2 } }
-            $header.Add((New-ScoutDocxCell -Text $h -WidthIn $w -Hex $Script:ScoutDocxPaper -Bold $true -FillHex $Script:ScoutDocxNavy))
+        # Clause W-13. Past the row cap the table stops supporting the narrative and starts
+        # burying it, so the long ones move to the appendix and the body keeps a pointer.
+        if ($areaFindings.Count -gt $Script:ScoutDocxBodyTableMaxRows) {
+            $appendixLabel = "Appendix $([char](64 + $appendix.Count + 1))"
+            $appendix.Add([pscustomobject]@{
+                    Label    = $appendixLabel
+                    Title    = "$framework — $areaName findings"
+                    Findings = $areaFindings
+                })
+            Add-ScoutDocxParagraph -Body $Body -Text "$($areaFindings.Count) findings were recorded for this area — the full table is in $appendixLabel." -Italic $true -Hex $Script:ScoutDocxGray
         }
-        $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
+        else {
+            $Body.Append((New-ScoutDocxFindingsTable -AreaFindings $areaFindings))
+        }
 
-        $r = 0
-        foreach ($f in ($areaFindings | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Id)) {
-            $r++
-            $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
-            $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp $f 'Severity')
-            $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp $f 'Severity')
-            $cells = New-ScoutDocxList
-            $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Id')" -WidthIn 1.3 -FillHex $bg))
-            $cells.Add((New-ScoutDocxCell -Text $sevLabel -WidthIn 1.0 -Bold $true -Hex $Script:ScoutDocxPaper -FillHex $sevColor -Align 'center'))
-            $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Status')" -WidthIn 1.0 -FillHex $bg -Align 'center'))
-            $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Title')" -WidthIn 3.2 -FillHex $bg))
-            $rows.Add((New-ScoutDocxRow -Cells $cells))
-        }
-        $Body.Append((New-ScoutDocxTable -ColWidthsIn @(1.3, 1.0, 1.0, 3.2) -Rows $rows))
+        New-ScoutDocxActionItems -Body $Body -AreaFindings $areaFindings
+        Add-ScoutDocxParagraph -Body $Body -Text ' ' -SizePt 4
+    }
+
+    return , $appendix
+}
+
+function New-ScoutDocxAppendices {
+    <#
+    .SYNOPSIS
+        Emit the long tables the body deferred.
+
+    .DESCRIPTION
+        AB#6875, clause W-13. Each appendix carries the SAME table the body would have shown,
+        built by the same function, so there is no second rendering path to drift.
+    #>
+    param($Body, $Appendix)
+
+    $items = @($Appendix)
+    if ($items.Count -eq 0) { return }
+
+    Add-ScoutDocxPageBreak -Body $Body
+    Add-ScoutDocxHeading -Body $Body -Text 'Appendices' -Level 1
+    Add-ScoutDocxParagraph -Body $Body -Text 'Tables deferred from the body because of their length. Each is the complete list for its chapter.' -Hex $Script:ScoutDocxGray -Italic $true
+
+    foreach ($a in $items) {
+        Add-ScoutDocxHeading -Body $Body -Text "$($a.Label) — $($a.Title)" -Level 2
+        $Body.Append((New-ScoutDocxFindingsTable -AreaFindings $a.Findings))
         Add-ScoutDocxParagraph -Body $Body -Text ' ' -SizePt 4
     }
 }
@@ -834,7 +1548,33 @@ function New-ScoutDocxManualSection {
 
 function New-ScoutDocxSectionProperties {
     # US Letter, portrait, 1" top/bottom, 0.75" left/right — twips (dxa) throughout.
+    #
+    # AB#6875, clauses W-03/W-04: the header and footer parts exist only if the SECTION
+    # references them, which is the half of this that Phase 0's package was missing. CT_SectPr
+    # fixes headerReference/footerReference as the FIRST children -- before pgSz -- and titlePg
+    # after the column definition, so the cover can carry its own (blank) furniture.
+    param($HeaderRelId, $FooterRelId, $FirstHeaderRelId, $FirstFooterRelId)
+
     $sectPr = New-ScoutDocxEl "$Script:ScoutDocxWNs.SectionProperties"
+
+    foreach ($ref in @(
+            @{ Rel = $FirstHeaderRelId; Kind = 'header'; Type = 'First' }
+            @{ Rel = $HeaderRelId; Kind = 'header'; Type = 'Default' }
+            @{ Rel = $FirstFooterRelId; Kind = 'footer'; Type = 'First' }
+            @{ Rel = $FooterRelId; Kind = 'footer'; Type = 'Default' }
+        )) {
+        if (-not $ref.Rel) { continue }
+        $el = if ($ref.Kind -eq 'header') {
+            New-ScoutDocxEl "$Script:ScoutDocxWNs.HeaderReference"
+        }
+        else {
+            New-ScoutDocxEl "$Script:ScoutDocxWNs.FooterReference"
+        }
+        $el.Id = $ref.Rel
+        $el.Type = [DocumentFormat.OpenXml.Wordprocessing.HeaderFooterValues]::"$($ref.Type)"
+        $sectPr.Append($el)
+    }
+
     $pgSz = New-ScoutDocxEl "$Script:ScoutDocxWNs.PageSize"
     $pgSz.Width = [uint32](ScoutDocxDxa 8.5)
     $pgSz.Height = [uint32](ScoutDocxDxa 11)
@@ -848,6 +1588,9 @@ function New-ScoutDocxSectionProperties {
     $pgMar.Footer = [uint32](ScoutDocxDxa 0.5)
     $pgMar.Gutter = [uint32]0
     $sectPr.Append($pgMar)
+    if ($FirstHeaderRelId -or $FirstFooterRelId) {
+        $sectPr.Append((New-ScoutDocxEl "$Script:ScoutDocxWNs.TitlePage"))
+    }
     return , $sectPr
 }
 
@@ -892,13 +1635,29 @@ function Export-Word {
             try { ([datetime]$generatedOn).ToString('yyyy-MM-dd') } catch { "$generatedOn" }
         } else { (Get-Date).ToString('yyyy-MM-dd') }
 
-        $scope = Get-ScoutDocxProp (Get-ScoutDocxProp $Collect '_meta') 'scope'
-        $mgId = Get-ScoutDocxProp (Get-ScoutDocxProp $Collect '_meta') 'managementGroupId'
+        $meta = Get-ScoutDocxProp $Collect '_meta'
+        $scope = Get-ScoutDocxProp $meta 'scope'
+        $mgId = Get-ScoutDocxProp $meta 'managementGroupId'
         $metaParts = [System.Collections.Generic.List[string]]::new()
         $metaParts.Add("Generated $generatedText")
         if ($scope) { $metaParts.Add("Scope: $scope") }
         if ($mgId) { $metaParts.Add("Management Group: $mgId") }
         $metaLine = [string]::Join('  ·  ', $metaParts)
+
+        # AB#6875, clause W-08. The cover has to name the CLIENT, and the run only knows the
+        # tenant, so the tenant is the client name. Trying several keys rather than one is
+        # deliberate: _meta's shape has changed across collector generations and a cover that
+        # silently says "Azure tenant" because a key was renamed is the exact failure this
+        # clause exists to catch.
+        $clientName = $null
+        foreach ($key in 'tenantDisplayName', 'tenantName', 'tenantDomain', 'tenant', 'tenantId') {
+            $v = Get-ScoutDocxProp $meta $key
+            if ($v) { $clientName = "$v"; break }
+        }
+        if (-not $clientName) { $clientName = 'Azure tenant (not identified in this run)' }
+
+        $assessmentName = 'Azure Landing Zone Assessment'
+        $reportVersion = Get-ScoutDocxReportVersion
 
         $doc = [DocumentFormat.OpenXml.Packaging.WordprocessingDocument]::Create($outFile, [DocumentFormat.OpenXml.WordprocessingDocumentType]::Document)
         $mainPart = $doc.AddMainDocumentPart()
@@ -906,21 +1665,42 @@ function Export-Word {
         # style to reference. Phase 0 measured the absence of this part as the root formatting
         # defect -- no styles means no navigation pane, no TOC field, and no rebranding.
         $null = Add-ScoutDocxStyleDefinitions -MainPart $mainPart
+        # AB#6875 (W-06/W-07 and the TOC's supporting settings). Same ordering rule: every part a
+        # body element references has to exist before the body is written.
+        $null = Add-ScoutDocxNumberingPart -MainPart $mainPart
+        $null = Add-ScoutDocxThemePart -MainPart $mainPart
+        $null = Add-ScoutDocxSettingsPart -MainPart $mainPart
+
+        # W-03/W-04. The cover takes blank first-page furniture so the running header and page
+        # numbering start on the first content page, the way a bound deliverable does.
+        $headerPart = Add-ScoutDocxHeaderPart -MainPart $mainPart -Title $assessmentName -Classification $Script:ScoutDocxClassification
+        $footerPart = Add-ScoutDocxFooterPart -MainPart $mainPart -Provenance "$clientName  ·  Scanned $generatedText"
+        $blank = Add-ScoutDocxBlankHeaderFooterParts -MainPart $mainPart
+
         $mainPart.Document = New-ScoutDocxEl "$Script:ScoutDocxWNs.Document"
         $body = New-ScoutDocxEl "$Script:ScoutDocxWNs.Body"
         $mainPart.Document.Append($body)
 
-        # ---- Cover ----
-        New-ScoutDocxCoverParagraphs -Body $body -Title 'Azure Landing Zone Assessment' `
-            -Subtitle 'Executive Assessment — CAF & WAF Alignment' -MetaLine $metaLine
+        # ---- Cover (W-08) ----
+        New-ScoutDocxCoverParagraphs -Body $body -Title $assessmentName `
+            -Subtitle 'Executive Assessment — CAF & WAF Alignment' -MetaLine $metaLine `
+            -ClientName $clientName -ScanDate $generatedText
         Add-ScoutDocxPageBreak -Body $body
 
-        # ---- Executive Summary ----
+        # ---- Document Information (W-09) ----
+        New-ScoutDocxDocumentInformation -Body $body -Version $reportVersion -Author $Script:ScoutDocxAuthor `
+            -Frameworks $frameworks -Provenance $Script:ScoutDocxProvenance -ScanDate $generatedText -Scope $scope
+
+        # ---- Contents (W-05) ----
+        New-ScoutDocxTableOfContents -Body $body
+        Add-ScoutDocxPageBreak -Body $body
+
+        # ---- Executive Summary (W-10 — conclusion before detail) ----
         New-ScoutDocxExecSummary -Body $body -Frameworks $frameworks -Areas $areas -Gaps $gaps -Manual $manual -Errors $errors
         Add-ScoutDocxPageBreak -Body $body
 
-        # ---- Findings by Area ----
-        New-ScoutDocxAreaFindingsSection -Body $body -Areas $areas -AllFindings $allFindings
+        # ---- Findings by Area (W-11), deferring long tables to the appendix (W-13) ----
+        $appendix = New-ScoutDocxAreaFindingsSection -Body $body -Areas $areas -AllFindings $allFindings
         Add-ScoutDocxPageBreak -Body $body
 
         # ---- Prioritized Gaps ----
@@ -930,8 +1710,15 @@ function Export-Word {
         # ---- Manual Review Worklist ----
         New-ScoutDocxManualSection -Body $body -Manual $manual
 
+        # ---- Appendices (W-13) ----
+        New-ScoutDocxAppendices -Body $body -Appendix $appendix
+
         # ---- Section properties (must be the last child of w:body) ----
-        $body.Append((New-ScoutDocxSectionProperties))
+        $body.Append((New-ScoutDocxSectionProperties `
+                    -HeaderRelId $mainPart.GetIdOfPart($headerPart) `
+                    -FooterRelId $mainPart.GetIdOfPart($footerPart) `
+                    -FirstHeaderRelId $mainPart.GetIdOfPart($blank.Header) `
+                    -FirstFooterRelId $mainPart.GetIdOfPart($blank.Footer)))
 
         $mainPart.Document.Save()
         $doc.Dispose()

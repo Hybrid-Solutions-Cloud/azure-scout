@@ -261,7 +261,12 @@ function Export-Excel {
                 New-ConditionalText -Text 'NotAssessed' -Range 'D:D' -ConditionalType ContainsText -BackgroundColor LightBlue
             )
             $_.Group | Select-Object Id, Framework, Severity, Status, EvidenceCount, Title, Remediation |
-                ImportExcel\Export-Excel -Path $xlsx -WorksheetName $sheet -AutoSize -Append -ConditionalText $statusConditions
+                # AB#6883, clause X-03. FreezeTopRow and AutoFilter are not cosmetics on an
+                # evidence tab: a gap workbook is read by scrolling and filtering, and without
+                # them a reader 200 rows down has lost the header and cannot narrow to the rows
+                # they came for. The reference gap workbook has both on all 13 tabs.
+                ImportExcel\Export-Excel -Path $xlsx -WorksheetName $sheet -AutoSize -Append `
+                    -FreezeTopRow -AutoFilter -ConditionalText $statusConditions
         }
     }
     else {
