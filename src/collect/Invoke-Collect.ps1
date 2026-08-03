@@ -1394,7 +1394,16 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
             privateClouds   = $r.privateClouds
         }
         management    = [pscustomobject]@{
-            recoveryVaults = @(); deployments = $r.deployments
+            # AB#6895: was hardcoded @(), so no run in the product's history ever reported a
+            # Recovery Services vault -- while backupProtectedItems returned rows, leaving a child
+            # with no parent (the AB#6845 class). The vault itself lives in the ordinary
+            # `resources` table, not in recoveryservicesresources, so the inverted path shapes it
+            # from rows the raw pass already holds and it costs no extra round-trip.
+            #
+            # Read defensively: the typed-query path has no such key, and a dot-access would throw
+            # PropertyNotFound under StrictMode.
+            recoveryVaults = @(if ($r.PSObject.Properties['recoveryVaults']) { $r.recoveryVaults } else { @() })
+            deployments = $r.deployments
             logAnalyticsWorkspaces = $r.logAnalyticsWorkspaces
             # The right-hand side of XR-BKP-01/02 (AB#6835). Filed under management because that
             # is where the vault lives, not under compute where the protected VM does.
