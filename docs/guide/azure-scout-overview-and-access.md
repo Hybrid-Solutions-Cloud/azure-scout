@@ -123,12 +123,36 @@ Grant **application permissions** on Microsoft Graph, each requiring admin conse
 | `Organization.Read.All` | Tenant profile and licensing posture |
 | `Domain.Read.All` | Verified domains and federation configuration |
 | `AdministrativeUnit.Read.All` | Administrative units |
-| `IdentityProvider.Read.All` | External identity providers |
-| `IdentityRiskyUser.Read.All` | Identity Protection risk state (Entra ID P2) |
+| `IdentityRiskyUser.Read.All` | Identity Protection risky users — **requires Entra ID P2** |
 | `PrivilegedAccess.Read.AzureResources` | PIM eligibility and activation |
 
 If a permission is withheld, the findings that depend on it are reported as **not assessed** and
 name the permission — the run continues and the rest of the report is unaffected.
+
+### Do not grant
+
+| Permission | Why not |
+|---|---|
+| `IdentityProvider.Read.All` | Scout queries external identity providers but **no collector reads the result**. Granting it widens your consent surface for no coverage. Scout's own permission audit warns about this by design — a permission the tool asks for and does not need belongs in the report, not in a code comment. |
+
+Scout's permission audit distinguishes the two cases deliberately, and the wording is worth
+knowing before you read its output:
+
+- **`[WARN] … queried but NO collector reads the result. Do not grant it.`** — working as
+  intended. Leave the permission ungranted; nothing in the report depends on it.
+- **`[FAIL] … DENIED — N collectors will be empty`** — a real gap. Granting it fills those
+  collectors; leaving it means those findings are reported as *not assessed*.
+
+### About `IdentityRiskyUser.Read.All`
+
+This is the one most often seen as a `[FAIL]`. Two things have to be true for it to return data:
+
+1. The application permission is granted **and admin-consented**, and
+2. the tenant is licensed for **Entra ID P2** — Identity Protection is a P2 feature.
+
+With consent but no P2, the API returns an empty result and Scout reports `Identity/RiskyUsers`
+as not assessed. That is the correct outcome, not a failure to fix: it is a licensing boundary,
+and the report says so rather than implying no users are risky.
 
 ### Security data
 
