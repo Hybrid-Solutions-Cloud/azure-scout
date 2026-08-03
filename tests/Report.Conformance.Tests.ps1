@@ -79,7 +79,7 @@ BeforeAll {
 
     $script:DocxPath = Export-Word -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     $script:PptxPath = Export-Pptx -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
-    $null = Export-Excel -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
+    $null = Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     $null = Export-PowerBi -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     $script:PbiDir = Join-Path $script:OutDir 'powerbi'
 

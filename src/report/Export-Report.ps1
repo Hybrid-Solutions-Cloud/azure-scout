@@ -17,7 +17,11 @@ function Export-Report {
         'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Pptx'    { Export-Pptx    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
-        'Excel'   { Export-Excel   -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
+        # AB#6883. Renamed from Export-Excel: that name is also exported by ImportExcel, which the
+        # renderer itself imports, so ImportExcel's command shadowed ours for every call after the
+        # first and every PER-ASSESSMENT workbook failed with "A parameter cannot be found that
+        # matches parameter name 'Findings'". Only a real multi-assessment run surfaced it.
+        'Excel'   { Export-ScoutEvidenceWorkbook -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'React'   { Export-React   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Drift $Drift }
         'Json'    { $Findings | ConvertTo-Json -Depth 100 | Out-File "$OutputPath/findings.json" }
         # AB#396: resources-only evidence export (raw Collect only -- no assessment
