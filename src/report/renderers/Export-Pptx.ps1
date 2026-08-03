@@ -526,6 +526,11 @@ $Script:Mist = 'F6F9FD'
 $Script:Line = 'E2E2E2'
 $Script:Gray = '595959'
 
+# AB#6886, clause P-05. A roll-up deck is bounded, and the bound is a design decision rather
+# than an accident of how many areas an estate happens to have: 11 slides is the reference
+# deliverable's readout, and a deck that grows past this stops being a readout.
+$Script:ScoutDeckMaxSlides = 15
+
 $Script:SlideWIn = 13.333
 $Script:SlideHIn = 7.5
 
@@ -899,7 +904,11 @@ function New-ScoutExecSummarySlide {
 }
 
 function New-ScoutAreaTableSlides {
-    param($Shell, $Areas, [ref]$PageCounter, [int]$TotalPages)
+    # $MaxPages is the slide budget clause P-05 leaves this section after the fixed slides. An
+    # estate with 60 areas would otherwise produce a six-page table and blow the cap; it is
+    # truncated with a stated remainder rather than silently, because a table that stops without
+    # saying so reads as the whole list.
+    param($Shell, $Areas, [ref]$PageCounter, [int]$TotalPages, [int]$MaxPages = 0)
 
     # @(...) wraps the WHOLE pipeline, not just $Areas -- a Sort-Object over zero
     # input collapses the bare assignment to $null, and $null.Count throws
@@ -907,13 +916,20 @@ function New-ScoutAreaTableSlides {
     # load-bearing pattern Get-Score.ps1 documents for its own Pass/Fail counters.
     $rows = @(@($Areas) | Sort-Object Framework, Area)
     if ($rows.Count -eq 0) { return }
-    $chunks = Split-ScoutChunks -Items $rows -Size 10
+    $chunks = @(Split-ScoutChunks -Items $rows -Size 10)
+    $dropped = 0
+    if ($MaxPages -gt 0 -and $chunks.Count -gt $MaxPages) {
+        $shown = $MaxPages * 10
+        $dropped = $rows.Count - $shown
+        $chunks = @($chunks | Select-Object -First $MaxPages)
+    }
     $pageOfPages = $chunks.Count
 
     $chunkIdx = 0
     foreach ($chunk in $chunks) {
         $chunkIdx++
         $title = if ($pageOfPages -gt 1) { "Area Score Breakdown ($chunkIdx/$pageOfPages)" } else { 'Area Score Breakdown' }
+        if ($dropped -gt 0 -and $chunkIdx -eq $pageOfPages) { $title = "$title — $dropped more in the workbook" }
         $capturedChunk = $chunk
         New-ScoutContentSlide -Shell $Shell -Title $title -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
             param($tree)
@@ -1057,6 +1073,85 @@ function New-ScoutManualSlide {
     $PageCounter.Value++
 }
 
+function New-ScoutScopeSlide {
+    <#
+    .SYNOPSIS
+        What this assessment did and — more importantly — did NOT look at.
+
+    .DESCRIPTION
+        AB#6886, clause P-03. A deck that states only what it found invites the reader to assume
+        everything else was checked and passed. Roughly 60% of a Scout run is Manual or Unknown,
+        which is a property of the rule set (Epic AB#6454), and a deck that does not say so is
+        overclaiming.
+
+        The numbers here are computed from the run rather than written as boilerplate, so the
+        slide cannot drift away from what was actually assessed.
+    #>
+    param($Shell, $Areas, $AllFindings, $Manual, $Errors, [ref]$PageCounter, [int]$TotalPages)
+
+    $all = @($AllFindings)
+    $manualCount = @($Manual).Count
+    $errorCount = @($Errors).Count
+    $automated = $all.Count - $manualCount - $errorCount
+    if ($automated -lt 0) { $automated = 0 }
+
+    New-ScoutContentSlide -Shell $Shell -Title 'Scope — and what was not assessed' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
+        param($tree)
+        $lines = @(
+            "$automated control(s) were evaluated automatically against $(@($Areas).Count) assessed area(s)."
+            "$manualCount control(s) require manual review and were NOT assessed. They are not passes and not failures."
+            "$errorCount finding(s) could not be evaluated — usually a collector permission or query issue, not a compliance failure."
+            'Assessment depth is bounded by the rule set, not by this report. A control with no automated rule is reported as Not assessed.'
+            'Nothing outside the tenant and subscriptions listed on the title slide was examined.'
+        )
+        Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.5 -Cx 12.2 -Lines $lines -SizePt 16 -LineGapIn 0.7
+    }
+    $PageCounter.Value++
+}
+
+function New-ScoutActFirstSlide {
+    <#
+    .SYNOPSIS
+        The single "act on this first" slide, naming one specific item.
+
+    .DESCRIPTION
+        AB#6886, clause P-04: "exactly one 'act on this first' slide naming a specific item."
+        Exactly one, because a deck with five priorities has none, and a named item because
+        "address high-severity gaps" is not something anyone can be assigned on Monday.
+
+        The item is chosen by the same worst-first ordering the document uses, so the deck and
+        the report cannot disagree about what matters most.
+    #>
+    param($Shell, $Gaps, [ref]$PageCounter, [int]$TotalPages)
+
+    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutProp $_ 'Severity') } }, Area)
+    $top = $sorted | Select-Object -First 1
+
+    New-ScoutContentSlide -Shell $Shell -Title 'Act on this first' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
+        param($tree)
+        if ($null -eq $top) {
+            $lines = @(
+                'No gaps were raised by this run.'
+                'Every automatically evaluated control in scope is aligned. The Not assessed items on the scope slide are the remaining work.'
+            )
+        }
+        else {
+            $sev = Get-ScoutSeverityLabel (Get-ScoutProp $top 'Severity')
+            $area = "$(Get-ScoutProp $top 'Area')"
+            $title = "$(Get-ScoutProp $top 'Title')"
+            $evidence = Get-ScoutPptxEvidenceSummary $top
+            $lines = @(
+                "$title"
+                "Area: $area   ·   Severity: $sev$(if ($evidence) { "   ·   Scope: $evidence" })"
+                "$(Get-ScoutProp $top 'Remediation')"
+                'This is the highest-severity gap in the run. It is one item, on purpose — a deck with five priorities has none.'
+            )
+        }
+        Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.5 -Cx 12.2 -Lines $lines -SizePt 16 -LineGapIn 0.8
+    }
+    $PageCounter.Value++
+}
+
 function New-ScoutNextStepsSlide {
     param($Shell, [ref]$PageCounter, [int]$TotalPages)
 
@@ -1108,6 +1203,7 @@ function Export-Pptx {
     $gaps = @(Get-ScoutProp $Findings 'Gaps')
     $manual = @(Get-ScoutProp $Findings 'Manual')
     $errors = @(Get-ScoutProp $Findings 'Errors')
+    $allFindings = @(Get-ScoutProp $Findings 'Findings')
     $generatedOn = Get-ScoutProp $Findings 'GeneratedOn'
     $generatedText = if ($generatedOn) {
         try { ([datetime]$generatedOn).ToString('yyyy-MM-dd') } catch { "$generatedOn" }
@@ -1122,14 +1218,29 @@ function Export-Pptx {
     $metaLine = [string]::Join('  ·  ', $metaParts)
 
     # Slide count plan (used for the "n / total" footer):
-    #   1 title + 1 summary + area-table pages + gap pages (>=1) + 1 manual + 1 next-steps
+    #   1 title + 1 scope + 1 summary + 1 act-first + area pages + gap pages (>=1) + 1 manual + 1 next-steps
+    #
+    # AB#6886, clause P-05 caps a roll-up deck at 15 slides, and adding the scope and act-first
+    # slides spends two of that budget. The area and gap page counts are therefore bounded below
+    # rather than left to grow with the estate: an eleven-slide deck that says one thing per
+    # slide beats a forty-slide deck nobody reaches the end of, and the detail those extra pages
+    # would have carried is in the workbook and the document.
+    $fixedSlides = 6
+    $budget = $Script:ScoutDeckMaxSlides - $fixedSlides
+
     $areaPages = if (@($areas).Count -gt 0) { [Math]::Ceiling(@($areas).Count / 10.0) } else { 0 }
     # @() wraps the WHOLE pipeline -- Select-Object -First over zero input
     # collapses the bare assignment to $null, and $null.Count throws under
     # Set-StrictMode -Version Latest.
     $gapCandidates = @(@($gaps) | Select-Object -First 15)
     $gapPages = if ($gapCandidates.Count -gt 0) { [Math]::Ceiling($gapCandidates.Count / 10.0) } else { 1 }
-    $totalPages = 1 + 1 + $areaPages + $gapPages + 1 + 1
+
+    # Gaps keep at least one page -- a deck that drops the gap list to fit an area table has
+    # dropped the point of the assessment.
+    $areaPages = [Math]::Max(0, [Math]::Min($areaPages, $budget - 1))
+    $gapPages = [Math]::Max(1, [Math]::Min($gapPages, $budget - $areaPages))
+
+    $totalPages = $fixedSlides + $areaPages + $gapPages
 
     $shell = New-ScoutDeckShell -OutFile $outFile
 
@@ -1141,8 +1252,12 @@ function Export-Pptx {
     $page++
 
     $pageRef = [ref]$page
-    New-ScoutAreaTableSlides -Shell $shell -Areas $areas -PageCounter $pageRef -TotalPages $totalPages
-    New-ScoutGapsSlides -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages
+    # Scope before the detail (P-03) and the single priority right after it (P-04): a reader who
+    # leaves after three slides should still know what was covered and what to do on Monday.
+    New-ScoutScopeSlide -Shell $shell -Areas $areas -AllFindings $allFindings -Manual $manual -Errors $errors -PageCounter $pageRef -TotalPages $totalPages
+    New-ScoutActFirstSlide -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages
+    New-ScoutAreaTableSlides -Shell $shell -Areas $areas -PageCounter $pageRef -TotalPages $totalPages -MaxPages $areaPages
+    New-ScoutGapsSlides -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages -MaxGaps ($gapPages * 10)
     New-ScoutManualSlide -Shell $shell -Manual $manual -PageCounter $pageRef -TotalPages $totalPages
     New-ScoutNextStepsSlide -Shell $shell -PageCounter $pageRef -TotalPages $totalPages
 

@@ -306,6 +306,24 @@ Describe 'P — PowerPoint deck' {
         $slide1 | Should -Match '\d{4}-\d{2}-\d{2}'
     }
 
+    It 'P-03: the deck contains a scope slide stating what was NOT assessed' {
+        $texts = @($script:SlideNames | ForEach-Object { Get-ZipEntryText -Path $script:PptxPath -Entry $_ })
+        $scopeSlides = @($texts | Where-Object { $_ -match 'not assessed' -and $_ -match 'Scope' })
+        $scopeSlides.Count | Should -BeGreaterThan 0
+        # And it must state a NUMBER of unassessed controls, not merely the phrase — "some
+        # things were not checked" is not a scope statement.
+        ($scopeSlides -join ' ') | Should -Match '\d+\s+control\(s\) require manual review'
+    }
+
+    It 'P-04: the deck contains exactly one act-on-this-first slide, naming a specific item' {
+        $titles = @($script:SlideNames | ForEach-Object { Get-ZipEntryText -Path $script:PptxPath -Entry $_ }) |
+            Where-Object { $_ -match 'Act on this first' }
+        # Exactly one. A deck with five priorities has none, which is the point of the clause.
+        @($titles).Count | Should -Be 1
+        # And it names an item rather than a category.
+        @($titles)[0] | Should -Match 'Severity:'
+    }
+
     It 'P-05: a roll-up deck is bounded at 15 slides — one idea per slide' {
         $script:SlideNames.Count | Should -BeGreaterThan 0
         $script:SlideNames.Count | Should -BeLessOrEqual 15
@@ -320,6 +338,52 @@ Describe 'X — Excel workbook' {
 
     It 'the workbook was emitted' {
         $script:XlsxPath | Should -Exist
+    }
+
+    It 'X-01: sheet 1 is a Cover carrying scope, a legend, and a contents index with record counts' {
+        $wb = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/workbook.xml'
+        # Position matters, not merely presence: a cover on tab 12 is not a cover.
+        $wb | Should -Match '<sheets>\s*<sheet[^>]*name="Cover"'
+
+        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
+        $strings | Should -Match 'Scan date'
+        $strings | Should -Match 'Legend'
+        $strings | Should -Match 'Contents'
+        $strings | Should -Match 'Records'
+        # The legend has to explain the two columns that make a row actionable, or the reader
+        # meets "None matched" and "review" with no idea what they mean.
+        $strings | Should -Match 'Triage'
+        $strings | Should -Match 'ResourceId'
+    }
+
+    It 'X-02: there is one tab per gap class, named for the gap rather than the collector' {
+        $wb = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/workbook.xml'
+        $names = @([regex]::Matches($wb, '<sheet[^>]*name="([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+        # The fixture assesses Networking and Security, so both must appear as their own tab.
+        $names | Should -Contain 'Networking'
+        $names | Should -Contain 'Security'
+        # And no VISIBLE tab may be named for a collector or a staging sheet.
+        $visible = @([regex]::Matches($wb, '<sheet\b(?![^>]*state="(hidden|veryHidden)")[^>]*name="([^"]+)"') |
+                ForEach-Object { $_.Groups[2].Value })
+        @($visible | Where-Object { $_ -match '^_dash_src' }) | Should -BeNullOrEmpty
+    }
+
+    It 'X-04: every evidence row carries the full ARM resource id, or says none matched' {
+        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
+        $strings | Should -Match 'ResourceId'
+        # The fixture's findings carry no evidence, so every row must take the explicit
+        # "None matched" rendering. An EMPTY cell would satisfy a weaker test and tell the
+        # reader nothing — that is exactly the failure this clause is about.
+        $strings | Should -Match 'None matched'
+    }
+
+    It 'X-05: every gap row carries a triage verdict' {
+        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
+        $strings | Should -Match 'Triage'
+        # Seeded, not guessed: a passing control is closed out, everything else is flagged for
+        # a human. A renderer that invented "by-design" would close real findings.
+        $strings | Should -Match 'review'
+        $strings | Should -Match 'n/a — passing'
     }
 
     It 'X-03: every visible data tab has frozen panes and an autofilter on the header row' {
