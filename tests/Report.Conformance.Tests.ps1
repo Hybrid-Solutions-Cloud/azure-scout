@@ -237,6 +237,29 @@ Describe 'W — Word document (docs/design/report-conformance.md)' {
         $currentStateAt | Should -BeLessThan $actionItemsAt
     }
 
+    It 'W-12: every figure in the body is an embedded image part, never a link' {
+        $media = @($script:WordEntries | Where-Object { $_ -match '(^|/)media/.*\.png$' })
+        $media.Count | Should -BeGreaterThan 0
+
+        # One drawing per embedded image, and every one of them must reference a relationship id
+        # that resolves inside the package. A `r:link` instead of `r:embed` would render on the
+        # machine that made the file and nowhere else.
+        # The namespace declaration is emitted BEFORE the attribute, so the pattern cannot
+        # assume r:embed follows the element name directly.
+        $drawings = [regex]::Matches($script:WordXml, '<a:blip[^>]*\br:embed="([^"]+)"')
+        @($drawings).Count | Should -Be $media.Count
+        $script:WordXml | Should -Not -Match '<a:blip[^>]*r:link='
+
+        $rels = Get-ZipEntryText -Path $script:DocxPath -Entry 'word/_rels/document.xml.rels'
+        foreach ($d in $drawings) {
+            $rels | Should -Match ('Id="{0}"' -f [regex]::Escape($d.Groups[1].Value))
+        }
+
+        # And each figure carries a caption in the Caption style -- a picture with no caption is
+        # a picture the reader has to interpret unaided.
+        $script:WordXml | Should -Match '<w:pStyle w:val="Caption"'
+    }
+
     It 'W-13: a findings table longer than the row cap is in an appendix, not the body' {
         # The fixture's Networking area has 34 findings against a cap of 30, so this clause is
         # being exercised rather than merely satisfied by a document with no long tables.
@@ -375,6 +398,64 @@ Describe 'B — Power BI (clauses B-01 to B-05)' {
                 { $vc.config | ConvertFrom-Json } | Should -Not -Throw
             }
         }
+    }
+}
+
+Describe 'D — diagrams and figures' {
+
+    It 'D-01: every generated figure is rasterised to PNG on disk, not only embedded' {
+        $figDir = Join-Path $script:OutDir 'figures'
+        $figDir | Should -Exist
+        $pngs = @(Get-ChildItem $figDir -Filter '*.png')
+        $pngs.Count | Should -BeGreaterThan 0
+        foreach ($p in $pngs) {
+            # A real PNG signature, not a renamed something-else. A zero-byte or misnamed file
+            # in a document package is a corrupt document rather than a missing picture, which
+            # is why clause D-02 requires omission instead.
+            $head = [System.IO.File]::ReadAllBytes($p.FullName)[0..7]
+            ($head -join ',') | Should -Be '137,80,78,71,13,10,26,10'
+            $p.Length | Should -BeGreaterThan 100
+        }
+    }
+
+    It 'D-02: a figure that cannot render is omitted with a note, never emitted broken or empty' {
+        # Driven by making the renderer fail for real rather than by asserting the happy path.
+        $dir = Join-Path $script:Root 'tests' 'test-output' 'conformance-nofig'
+        if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
+        $saved = ${function:Export-ScoutFigureSet}
+        try {
+            Set-Item function:Export-ScoutFigureSet -Value { throw 'forced figure failure' }
+            $path = Export-Word -Findings $script:Scored -Collect $script:Collect -OutputPath $dir -WarningAction SilentlyContinue
+            (Split-Path $path -Leaf) | Should -Be 'assessment_report.docx'
+            $xml = Get-ZipEntryText -Path $path -Entry 'word/document.xml'
+            # The document still renders, says so plainly, and carries no dangling drawing.
+            $xml | Should -Match 'No figures were produced for this run'
+            $xml | Should -Not -Match '<a:blip'
+        }
+        finally {
+            Set-Item function:Export-ScoutFigureSet -Value $saved
+            if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+
+    It 'D-03: figures embedded in the document are the rasterised output, not a link' {
+        # The same property W-12 asserts from the document's side, stated here from the
+        # pipeline's: the bytes in the package are the bytes on disk.
+        $figDir = Join-Path $script:OutDir 'figures'
+        $onDisk = @(Get-ChildItem $figDir -Filter '*.png')
+        $inPackage = @($script:WordEntries | Where-Object { $_ -match '(^|/)media/.*\.png$' })
+        $inPackage.Count | Should -Be $onDisk.Count
+
+        $packagedSizes = @()
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($script:DocxPath)
+        try {
+            foreach ($e in $inPackage) { $packagedSizes += $zip.GetEntry($e).Length }
+        }
+        finally { $zip.Dispose() }
+        # `$onDisk.Length` is the ARRAY's length, not each file's -- member enumeration loses to
+        # the array's own property. ForEach-Object is the only way to mean per-item here.
+        $diskSizes = @($onDisk | ForEach-Object { $_.Length })
+        (@($packagedSizes) | Sort-Object) -join ',' | Should -Be (($diskSizes | Sort-Object) -join ',')
     }
 }
 

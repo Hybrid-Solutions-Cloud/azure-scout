@@ -1546,6 +1546,136 @@ function New-ScoutDocxManualSection {
     }
 }
 
+function Add-ScoutDocxFigure {
+    <#
+    .SYNOPSIS
+        Embed one rasterised figure as an image part, with a styled caption beneath it.
+
+    .DESCRIPTION
+        AB#6885, clauses W-12 and D-03. The figure is EMBEDDED as a package part, not linked: a
+        deliverable emailed to a client has to carry its own pictures, and a linked image is a
+        broken image the moment the document leaves the machine that made it.
+
+        EMU ("English Metric Units") are the DrawingML unit -- 914,400 per inch, and 9,525 per
+        pixel at 96 DPI. The image is scaled down to the text width when it would otherwise
+        overflow the margins, preserving aspect, because a figure wider than the page prints
+        cropped rather than small.
+    #>
+    param(
+        $Body,
+        [Parameter(Mandatory)]$MainPart,
+        [Parameter(Mandatory)]$Figure,
+        [Parameter(Mandatory)][int]$Index,
+        [double]$MaxWidthIn = 7.0
+    )
+
+    # AddNewPart<ImagePart>(contentType), not AddImagePart: the convenience overload was removed
+    # in DocumentFormat.OpenXml 3.x, which is the version this renderer pins.
+    $imagePart = $MainPart.AddNewPart[DocumentFormat.OpenXml.Packaging.ImagePart]('image/png')
+    $ms = [System.IO.MemoryStream]::new([byte[]]$Figure.Bytes)
+    try { $imagePart.FeedData($ms) } finally { $ms.Dispose() }
+    $relId = $MainPart.GetIdOfPart($imagePart)
+
+    $emuPerPx = 9525
+    $cx = [int64]$Figure.Width * $emuPerPx
+    $cy = [int64]$Figure.Height * $emuPerPx
+    $maxCx = [int64]($MaxWidthIn * 914400)
+    if ($cx -gt $maxCx) {
+        $cy = [int64][math]::Round($cy * ($maxCx / $cx))
+        $cx = $maxCx
+    }
+
+    $p = New-ScoutDocxEl "$Script:ScoutDocxWNs.Paragraph"
+    $p.InnerXml = @"
+<w:pPr><w:jc w:val="center"/></w:pPr>
+<w:r>
+  <w:drawing>
+    <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+      <wp:extent cx="$cx" cy="$cy"/>
+      <wp:effectExtent l="0" t="0" r="0" b="0"/>
+      <wp:docPr id="$Index" name="Figure $Index"/>
+      <wp:cNvGraphicFramePr>
+        <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
+      </wp:cNvGraphicFramePr>
+      <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+        <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+          <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+            <pic:nvPicPr>
+              <pic:cNvPr id="$Index" name="$(ConvertTo-ScoutDocxXmlText $Figure.Name).png"/>
+              <pic:cNvPicPr/>
+            </pic:nvPicPr>
+            <pic:blipFill>
+              <a:blip r:embed="$relId" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+              <a:stretch><a:fillRect/></a:stretch>
+            </pic:blipFill>
+            <pic:spPr>
+              <a:xfrm><a:off x="0" y="0"/><a:ext cx="$cx" cy="$cy"/></a:xfrm>
+              <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+            </pic:spPr>
+          </pic:pic>
+        </a:graphicData>
+      </a:graphic>
+    </wp:inline>
+  </w:drawing>
+</w:r>
+"@
+    $Body.Append($p)
+
+    $capRuns = New-ScoutDocxList
+    $capRuns.Add((New-ScoutDocxRun -Text $Figure.Caption -SizePt 9 -Hex $Script:ScoutDocxGray -Italic $true))
+    $capPara = New-ScoutDocxPara -Runs $capRuns -Align 'center' -SpaceAfterPt 12
+    Set-ScoutDocxParaStyle -Paragraph $capPara -StyleId 'Caption'
+    $Body.Append($capPara)
+}
+
+function Add-ScoutDocxFigureSection {
+    <#
+    .SYNOPSIS
+        Render and embed the report's figures, or say plainly that there are none.
+
+    .DESCRIPTION
+        AB#6885, clause W-12: "a figure that failed to render is omitted with a caption saying
+        so -- never a broken reference." That is why the whole section is inside one try/catch
+        and why the empty case writes a sentence rather than nothing: a reader who expected a
+        chart and finds blank space cannot tell a rendering failure from a design decision.
+    #>
+    param($Body, [Parameter(Mandatory)]$MainPart, $Findings, [string]$OutputPath)
+
+    Add-ScoutDocxHeading -Body $Body -Text 'Figures' -Level 1
+
+    $figures = @()
+    try {
+        if (-not (Get-Command -Name Export-ScoutFigureSet -ErrorAction SilentlyContinue)) {
+            . "$PSScriptRoot/../Build-ScoutFigure.ps1"
+        }
+        $figures = @(Export-ScoutFigureSet -Findings $Findings -OutputPath $OutputPath)
+    }
+    catch {
+        Write-Warning "Export-Word: the figure set did not render ($($_.Exception.Message)) -- the document says so rather than leaving a gap."
+        $figures = @()
+    }
+
+    if ($figures.Count -eq 0) {
+        Add-ScoutDocxParagraph -Body $Body `
+            -Text 'No figures were produced for this run. This is stated rather than left blank so it is clear the charts were not silently dropped.' `
+            -Hex $Script:ScoutDocxGray -Italic $true
+        return
+    }
+
+    $i = 0
+    foreach ($fig in $figures) {
+        $i++
+        try {
+            Add-ScoutDocxFigure -Body $Body -MainPart $MainPart -Figure $fig -Index $i
+        }
+        catch {
+            Write-Warning "Export-Word: figure '$($fig.Name)' could not be embedded ($($_.Exception.Message)) -- omitted."
+            Add-ScoutDocxParagraph -Body $Body -Text "Figure $i ($($fig.Name)) could not be embedded in this document. The rendered PNG is in the run's figures/ folder." `
+                -Hex $Script:ScoutDocxGray -Italic $true
+        }
+    }
+}
+
 function New-ScoutDocxSectionProperties {
     # US Letter, portrait, 1" top/bottom, 0.75" left/right — twips (dxa) throughout.
     #
@@ -1697,6 +1827,12 @@ function Export-Word {
 
         # ---- Executive Summary (W-10 — conclusion before detail) ----
         New-ScoutDocxExecSummary -Body $body -Frameworks $frameworks -Areas $areas -Gaps $gaps -Manual $manual -Errors $errors
+        Add-ScoutDocxPageBreak -Body $body
+
+        # ---- Figures (W-12, D-01/D-03) ----
+        # Placed after the summary and before the detail: a figure is an argument about the whole
+        # run, so it belongs where the run is being characterised, not buried among the tables.
+        Add-ScoutDocxFigureSection -Body $body -MainPart $mainPart -Findings $Findings -OutputPath $OutputPath
         Add-ScoutDocxPageBreak -Body $body
 
         # ---- Findings by Area (W-11), deferring long tables to the appendix (W-13) ----
