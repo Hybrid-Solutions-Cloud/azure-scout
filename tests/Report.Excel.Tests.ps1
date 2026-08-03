@@ -72,7 +72,7 @@ Describe 'Export-Excel -- dashboard tabs (AB#322)' -Skip:(-not $script:HasImport
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
-        Export-Excel -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
+        Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
         $script:Xlsx = Join-Path $script:OutDir 'assessment_evidence.xlsx'
     }
     AfterAll {
@@ -145,7 +145,7 @@ Describe 'Export-Excel -- dashboards omit when data is absent (no empty dashboar
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
-        Export-Excel -Findings $script:Scored -Collect $null -OutputPath $script:OutDir
+        Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $null -OutputPath $script:OutDir
         $script:Xlsx = Join-Path $script:OutDir 'assessment_evidence.xlsx'
     }
     AfterAll {
@@ -175,7 +175,7 @@ Describe 'Export-Excel -- $null -Findings crash class (StrictMode sweep)' {
         $dir = Join-Path $script:Root 'tests' 'test-output' 'excel-null-findings'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
-            { Export-Excel -Findings $null -Collect $null -OutputPath $dir } | Should -Not -Throw
+            { Export-ScoutEvidenceWorkbook -Findings $null -Collect $null -OutputPath $dir } | Should -Not -Throw
         }
         finally {
             if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }

@@ -44,7 +44,26 @@ $ErrorActionPreference = 'Stop'
 function Get-ScoutExcelProp {
     param($Obj, [Parameter(Mandatory)][string] $Name, $Default = $null)
     if ($null -eq $Obj) { return $Default }
-    $prop = $Obj.PSObject.Properties[$Name]
+
+    # AB#6883. Not every value reaching this helper is a property bag. Evidence rows in
+    # particular are not uniformly shaped across collector generations -- some are objects, some
+    # are plain strings, some are hashtables -- and `$Obj.PSObject.Properties[...]` throws
+    # "The property 'Properties' cannot be found on this object" under StrictMode for the ones
+    # that are not. The first real-tenant run produced that error eight times while the whole
+    # conformance suite was green, which is precisely why fixture-only verification is not
+    # enough.
+    #
+    # Hashtables are handled explicitly rather than left to PSObject: a hashtable's PSObject
+    # exposes its .NET members (Keys, Count, ...), NOT its entries, so a key lookup through the
+    # property bag silently returns $Default for a key that is right there.
+    if ($Obj -is [System.Collections.IDictionary]) {
+        if ($Obj.Contains($Name)) { return $Obj[$Name] }
+        return $Default
+    }
+
+    $psObj = $Obj.PSObject
+    if ($null -eq $psObj) { return $Default }
+    $prop = $psObj.Properties[$Name]
     if ($prop) { return $prop.Value } else { return $Default }
 }
 
@@ -357,7 +376,25 @@ function Add-ScoutExcelCoverSheet {
     }
 }
 
-function Export-Excel {
+function Export-ScoutEvidenceWorkbook {
+    <#
+    .SYNOPSIS
+        Render the assessment evidence workbook.
+
+    .DESCRIPTION
+        AB#6883. RENAMED from `Export-Excel`, which was a name this file shared with the cmdlet
+        exported by ImportExcel -- the module this very function imports. Once that import
+        happened, ImportExcel's command shadowed ours for the rest of the session, so the
+        dispatcher's `Export-Excel -Findings ...` resolved to theirs and died with "A parameter
+        cannot be found that matches parameter name 'Findings'".
+
+        It failed for every PER-ASSESSMENT workbook while the run-root one succeeded, because the
+        root ran first and did the import. Only a real multi-assessment tenant run surfaced it.
+
+        Resolving it by `function:` path is not enough: ImportExcel is a script module, so its
+        Export-Excel is itself a FUNCTION and shadows ours in that drive too. A distinct name is
+        the only fix that cannot be re-broken by import order.
+    #>
     param($Findings, $Collect, [string] $OutputPath)
     $xlsx = "$OutputPath/assessment_evidence.xlsx"
     # $Findings.Findings dots directly into a possibly-$null $Findings, or a
