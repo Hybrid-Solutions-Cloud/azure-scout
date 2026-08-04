@@ -314,7 +314,7 @@ is asked for when someone wants the sub-services under a main category.
 | Azure Local storage containers | Collected | `StorageContainers` |
 | Azure VMware Solution | Collected (cross-category: Compute) | `VMWare` |
 | Azure Stack Edge | Collected (cross-category: Migration) | `StackEdge` |
-| Azure Stack Hub | Not collected | real gap — no collector targets Stack Hub's ARM-over-REST endpoint |
+| Azure Stack Hub | **Out of scope** | not a gap — Azure Scout does not cover Azure Stack Hub. Product decision, 2026-08-04. Do not re-raise this as missing coverage. |
 | Azure Operator Nexus / Operator Service Manager | Not collected | real gap — telco-specific, likely low priority |
 | Azure Storage Mover | Not collected | real gap |
 
