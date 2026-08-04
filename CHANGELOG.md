@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
+
+Every one of these was found by using the product rather than by reading the test results.
+
+### Fixed
+
+- **The wizard offered every report format except the one it renders.** Choosing both
+  inventory and assessment — the commonest path there is — fell through to the
+  inventory-only format list, which contains no React at all, while the assessment list
+  it skipped still offered `Html`, `PowerBI`, `Excel`, `Pptx`, `Word` and `Pdf`: six
+  formats that are on hold and warn-and-skip at run time, with `Html` as the default. An
+  assessment run now offers `React` (the deliverable, and the default) plus `Json` /
+  `JsonEvidence`, which are data rather than documents and are deliberately never held.
+  `tests/Assessment.MenuHonesty.Tests.ps1` now compares the menu against
+  `$script:ScoutHeldRenderers` and fails if the wizard ever again offers a format the
+  product declines to produce.
+- **One tenant in eight could not render at all.** `Compare-Benchmark` read
+  `$Collect.governance.policyAssignments.properties.displayName`; dotted member
+  enumeration over an **empty** collection resolves against the array object rather than
+  its zero elements, so a tenant with management groups but no policy assignments threw
+  `The property 'properties' cannot be found on this object` and produced no report.
+  Rewritten with `ForEach-Object`, which iterates zero times. All eight banked corpus
+  tenants now render; a regression test reproduces the exact shape.
+- **The diagram-overlap gate was green because it inspected nothing.** The fixture
+  builder wrote flat keys (`virtualNetworks`) while the template and the real payload use
+  dotted paths (`networking.virtualNetworks`), so every diagram hit its empty-data guard
+  and the checker reported no violations over no diagrams. The fixture builder now emits
+  the payload's own key shape; the checker reads 13 nodes / 9 edges of network topology
+  and 18 nodes / 17 edges of management-group hierarchy, and was proved to fail on a
+  manufactured overlap.
+
 ## [3.5.0] - 2026-08-04 — the report is a product, not a page
 
 The owner-approved v6 design ships: the React report becomes a multi-page application

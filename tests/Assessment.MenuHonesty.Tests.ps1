@@ -188,3 +188,50 @@ Describe 'AB#6762 — the assessment core resolves legacy names before indexing 
         $lookupAt  | Should -BeGreaterThan $resolveAt -Because 'an unresolved legacy name would index the hashtable and come back $null'
     }
 }
+
+Describe 'AB#6922 — the format menu lists only renderers a run will actually produce' {
+
+    # The AB#6763 principle, applied to output formats. Read as SOURCE rather than by invoking
+    # the wizard, because the defect is in the two lists and the branch that chooses between
+    # them -- driving an interactive checklist would test the prompt, not the offer.
+    BeforeAll {
+        $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
+        $script:CoreSrc   = Get-Content (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1') -Raw
+
+        $m = [regex]::Match($script:CoreSrc, '\$script:ScoutHeldRenderers\s*=\s*@\(([^)]*)\)')
+        $script:Held = @($m.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
+
+        $a = [regex]::Match($script:WizardSrc, '\$assessmentFormats\s*=\s*@\(([^)]*)\)')
+        $script:Offered = @($a.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
+    }
+
+    It 'found both lists to compare' {
+        $script:Held.Count | Should -BeGreaterThan 0
+        $script:Offered.Count | Should -BeGreaterThan 0
+    }
+
+    It 'offers no renderer that is on hold — the wizard cannot promise what the core will skip' {
+        foreach ($f in $script:Offered) {
+            $script:Held | Should -Not -Contain $f -Because "the wizard offers '$f' but Invoke-ScoutAssessmentCore holds it, so the run warns and skips it"
+        }
+    }
+
+    It 'offers React, which is the deliverable' {
+        $script:Offered | Should -Contain 'React'
+    }
+
+    It 'defaults an assessment run to React rather than a held renderer' {
+        $m = [regex]::Match($script:WizardSrc, '\$defaultFormats\s*=\s*if\s*\(\$wantsAssessment[^)]*\)\s*\{\s*@\(([^)]*)\)')
+        $m.Success | Should -BeTrue
+        $defaults = @($m.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
+        $defaults | Should -Contain 'React'
+        foreach ($d in $defaults) { $script:Held | Should -Not -Contain $d }
+    }
+
+    It 'chooses the assessment list whenever an assessment runs, inventory or not' {
+        # The original `$wantsAssessment -and -not $wantsInventory` sent the commonest path --
+        # Inventory AND Assessment -- to the inventory-only list, which contains no React.
+        $script:WizardSrc | Should -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\)'
+        $script:WizardSrc | Should -Not -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\s+-and\s+-not\s+\$wantsInventory\)'
+    }
+}

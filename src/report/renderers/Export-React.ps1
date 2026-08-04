@@ -227,11 +227,27 @@ function Export-React {
     # version bump or the pending org move (AB#-tracked in the mockup's identity.cjs) is a
     # one-line edit there, not two. Falls back to the mockup's known-good literals if the
     # manifest can't be read standalone (e.g. under Pester without the module imported).
-    $moduleInfo = Get-Module -Name AzureScout -ErrorAction SilentlyContinue | Select-Object -First 1
-    $productVersion = if ($moduleInfo) { $moduleInfo.Version.ToString() } else {
-        try { (Import-PowerShellDataFile "$PSScriptRoot/../../../AzureScout.psd1").ModuleVersion } catch { '3.3.4' }
-    }
-    $productUrl = 'https://thisismydemo.cloud/azure-scout/'
+    # Read the manifest that sits beside THIS file first, and only then fall back to a loaded
+    # module. Get-Module reports what the session happens to have imported, which is not
+    # necessarily the code being executed -- an operator with an older AzureScout still loaded
+    # (or several versions available) had the report stamped with that version instead of the
+    # one that produced it. The manifest three directories up is the running copy by
+    # construction, in both the repo layout and an installed module's layout.
+    # There is deliberately NO hardcoded version fallback: a literal here goes stale silently
+    # and stamps every report with a lie, which is exactly what a hardcoded '3.3.4' did.
+    $manifestPath = Join-Path $PSScriptRoot '../../../AzureScout.psd1'
+    $manifestData = try { Import-PowerShellDataFile -Path $manifestPath -ErrorAction Stop } catch { $null }
+    $productVersion = if ($manifestData -and $manifestData.ModuleVersion) { $manifestData.ModuleVersion }
+                      else {
+                          $loaded = Get-Module -Name AzureScout -ErrorAction SilentlyContinue | Select-Object -First 1
+                          if ($loaded) { $loaded.Version.ToString() } else { 'unknown' }
+                      }
+    # Single source of truth: the manifest's own ProjectUri, so the pending org move is one
+    # edit in the manifest rather than a literal to hunt for here.
+    $productUrl = if ($manifestData -and $manifestData.PrivateData -and
+                      $manifestData.PrivateData.PSData -and $manifestData.PrivateData.PSData.ProjectUri) {
+                      $manifestData.PrivateData.PSData.ProjectUri
+                  } else { 'https://thisismydemo.cloud/azure-scout/' }
 
     $runId = if ($OutputPath) { Split-Path $OutputPath -Leaf } else { '' }
 

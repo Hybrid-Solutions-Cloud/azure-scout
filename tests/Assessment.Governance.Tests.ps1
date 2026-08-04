@@ -201,4 +201,22 @@ Describe 'Compare-Benchmark with native governance data' {
         $findings[0].Id     | Should -Be 'BENCH-GOV-DATA'
         $findings[0].Status | Should -Be 'Unknown'
     }
+
+    It 'does not throw when management groups are present but policyAssignments is an empty array (AB#6929, tenant ptlmgmt)' {
+        # StrictMode trap: @().properties throws "property 'properties' cannot be found" because
+        # dotted member-enumeration on an EMPTY array hits the array object itself, not zero elements.
+        # A tenant with MG visibility but no policy assignments (ptlmgmt's corpus shape) crashed the
+        # whole render on this line before the fix.
+        $collect = [pscustomobject]@{
+            governance = [pscustomobject]@{
+                managementGroups  = @([pscustomobject]@{ name = 'platform' })
+                policyAssignments = @()
+            }
+        }
+        $benchmark = Get-Content "$(Split-Path $PSScriptRoot -Parent)/src/assess/benchmarks/alz-reference.json" -Raw | ConvertFrom-Json
+
+        { $script:findings = Compare-Benchmark -Collect $collect -Benchmark $benchmark } | Should -Not -Throw
+        ($script:findings | Where-Object Id -eq 'BENCH-MG-platform').Status | Should -Be 'Pass'
+        ($script:findings | Where-Object Id -like 'BENCH-POL-*').Status | Should -Contain 'Fail'
+    }
 }
