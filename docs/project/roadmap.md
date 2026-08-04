@@ -41,7 +41,11 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.3.4 — One report, and it is the deliverable
+## Current Release — v3.5.0 — The report is a product, not a page
+
+Released 4 August 2026. The report is a product, not a page. The owner-approved v6 design ships: the React report becomes a multi-page application — Overview, Inventory & audit, Assessments, Diagrams, Data & drift, Remediation plan — rendered from the run's own data. Inventory becomes a blade view on the documented 18-category taxonomy with every collector listed including zeros, filterable/sortable item tables, tenant structure, audit callouts and a full cost-optimization blade. Each assessment carries the complete conformance register: every check, a gap block for every fail (resource-grain evidence, why it matters, numbered fix, per-check Learn link), the manual review agenda, and a What's-next section. A Diagrams page adds MG hierarchy, VNet/subnet IP utilization, estate and gaps figures with full-screen zoom. Executive/Consultant/Data become a depth toggle; exports add Markdown and JSON. Conformance clause R-04 is enforced for real — the renderer no longer re-invokes the scoring engine. All other assessment formats remain on hold. See AB#6928, AB#6936, AB#6937, AB#6938, AB#7035.
+
+## Previous Release — v3.3.4 — One report, and it is the deliverable
 
 Released 4 August 2026. A full multi-tenant render, read end to end rather than counted, found
 every one of the six rendered report formats weak in a different way — a dashboard that drew its
