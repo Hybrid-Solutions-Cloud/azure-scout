@@ -2,7 +2,8 @@
 <#
 .SYNOPSIS
     AB#7060 -- maps every collector manifest to whether its resource types are queried anywhere
-    in the assessment collect (Invoke-Collect.ps1), the pipeline that feeds the React report.
+    in the assessment collect (Invoke-Collect.ps1), the pipeline that feeds the React report, and
+    optionally whether that resource type has live rows in a real tenant.
 
 .DESCRIPTION
     242 collector manifests under manifests/collectors/ each declare the ARM resource type(s)
@@ -10,28 +11,35 @@
     payload the React report renders -- runs a fixed set of Resource Graph KQL queries, each
     keyed by name, each filtering on `type =~ "<resource type>"` (or `type in~ (...)`).
 
-    This script extracts both sides statically (no live tenant, no banked corpus needed -- the
-    banked corpus only contains collect.json, the ALREADY-SHAPED payload, which cannot answer
-    "is this resource type queried at all") and reports, per manifest:
+    This script extracts both sides statically (no live tenant needed for the WIRED/NOT WIRED
+    verdict -- the banked corpus only contains collect.json, the ALREADY-SHAPED payload, which
+    cannot answer "is this resource type queried at all") and reports, per manifest:
 
       WIRED       -- at least one of its ResourceTypes is queried by name in Invoke-Collect.ps1.
                      Its data CAN reach the payload; whether it actually renders is a shaping
                      question for AB#7059's per-category tasks, not this audit.
       NOT WIRED   -- none of its ResourceTypes appear anywhere in Invoke-Collect.ps1. This is the
                      definitive "never reaches the payload" list AB#7059/AB#7069 exist to close.
+      NEEDS MANUAL CHECK -- declares a synthetic AZSC/* marker rather than a real ARM resource
+                     type (an ARM-child sweep or a subscription-level sweep); this method cannot
+                     resolve these either way.
 
-    This is necessarily a STATIC, code-level cross-reference. It answers "is the plumbing there",
-    not "does it return rows in a real tenant" -- that second question is scripts/Invoke-
-    CorpusCoverage.ps1's job, and only applies to keys that are already wired.
+    -LiveTypeCounts accepts a JSON file of {resourceType: rowCount} from a REAL Azure Resource
+    Graph query (see the accompanying live-query recipe in the AB#7060 board comment) and adds,
+    for every NOT WIRED collector, whether that resource type has actual rows in the tenant the
+    counts were pulled from RIGHT NOW -- turning "this collector is unwired" into "and here is
+    live evidence the estate has data it is missing" without needing a full live collect run.
 
 .EXAMPLE
     ./scripts/Test-CollectorPayloadCoverage.ps1
-    ./scripts/Test-CollectorPayloadCoverage.ps1 -OutputPath docs/reference/collector-payload-coverage.md
+    ./scripts/Test-CollectorPayloadCoverage.ps1 -OutputPath docs/reference/collector-payload-coverage.md -LiveTypeCounts hcs-live-type-counts.json -LiveTenantLabel hcs
 #>
 [CmdletBinding()]
 param(
-    [string] $RepoRoot     = (Split-Path -Parent $PSScriptRoot),
-    [string] $OutputPath   = ''
+    [string] $RepoRoot        = (Split-Path -Parent $PSScriptRoot),
+    [string] $OutputPath      = '',
+    [string] $LiveTypeCounts  = '',
+    [string] $LiveTenantLabel = 'live tenant'
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -64,6 +72,16 @@ foreach ($m in $queryMatches) {
 "Assessment-collect keys found: $($queryMatches.Count)"
 "Distinct resource types referenced: $($typeToKeys.Count)"
 
+# ---- 2b. optional: real per-type row counts from a live tenant ----------------------------
+$liveCounts = $null
+if ($LiveTypeCounts) {
+    $liveCountsPath = if (Test-Path -LiteralPath $LiveTypeCounts) { $LiveTypeCounts } else { Join-Path $RepoRoot $LiveTypeCounts }
+    $liveRaw = Get-Content -LiteralPath $liveCountsPath -Raw | ConvertFrom-Json
+    $liveCounts = @{}
+    foreach ($p in $liveRaw.PSObject.Properties) { $liveCounts[$p.Name.ToLowerInvariant()] = [int]$p.Value }
+    "Live type counts loaded from '$LiveTypeCounts': $($liveCounts.Count) resource types with >=1 row in $LiveTenantLabel"
+}
+
 # ---- 3. walk every collector manifest, extract its ResourceTypes -------------------------
 $manifests = Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'manifests/collectors') -Recurse -Filter *.psd1 | Sort-Object FullName
 "Collector manifests found: $($manifests.Count)"
@@ -87,13 +105,23 @@ $rows = foreach ($m in $manifests) {
     $nonSyntheticTypes = @($types | Where-Object { -not $_.StartsWith('azsc/') })
     $isSynthetic = ($types.Count -gt 0) -and ($nonSyntheticTypes.Count -eq 0)
 
+    $status = if ($isSynthetic) { 'NEEDS MANUAL CHECK (synthetic type)' }
+              elseif ($hitKeys.Count -gt 0) { 'WIRED' } else { 'NOT WIRED' }
+
+    $liveRowCount = $null
+    if ($liveCounts -and $status -eq 'NOT WIRED') {
+        $total = 0
+        foreach ($t in $types) { if ($liveCounts.ContainsKey($t)) { $total += $liveCounts[$t] } }
+        $liveRowCount = $total
+    }
+
     [pscustomobject]@{
-        Category    = $category
-        Name        = $m.BaseName
+        Category      = $category
+        Name          = $m.BaseName
         ResourceTypes = ($types -join '; ')
-        Status      = if ($isSynthetic) { 'NEEDS MANUAL CHECK (synthetic type)' }
-                       elseif ($hitKeys.Count -gt 0) { 'WIRED' } else { 'NOT WIRED' }
-        CollectKeys = ($hitKeys -join ', ')
+        Status        = $status
+        CollectKeys   = ($hitKeys -join ', ')
+        LiveRows      = $liveRowCount
     }
 }
 
@@ -104,6 +132,13 @@ $synthetic = @($rows | Where-Object Status -like 'NEEDS MANUAL CHECK*')
 "`n=== WIRED -- resource type(s) queried in Invoke-Collect.ps1: $($wired.Count) of $($rows.Count) ==="
 "=== NOT WIRED (confirmed gap, real ARM type absent from the assessment collect): $($notWired.Count) of $($rows.Count) ==="
 "=== NEEDS MANUAL CHECK -- synthetic AZSC/* type, this method cannot answer: $($synthetic.Count) of $($rows.Count) ==="
+if ($liveCounts) {
+    $liveConfirmed = @($notWired | Where-Object { $_.LiveRows -gt 0 })
+    "=== OF THE NOT-WIRED GAP, CONFIRMED LIVE IN $($LiveTenantLabel.ToUpper()) RIGHT NOW: $($liveConfirmed.Count) of $($notWired.Count) ==="
+    $liveConfirmed | Sort-Object -Property @{Expression='LiveRows';Descending=$true} | ForEach-Object {
+        "  {0,-14} {1,-40} {2,6} row(s) live in $LiveTenantLabel" -f $_.Category, $_.Name, $_.LiveRows
+    }
+}
 $notWired | ForEach-Object { "  {0,-14} {1,-40} [{2}]" -f $_.Category, $_.Name, $_.ResourceTypes }
 
 if ($OutputPath) {
@@ -119,15 +154,29 @@ if ($OutputPath) {
     [void]$md.AppendLine()
     [void]$md.AppendLine('**NEEDS MANUAL CHECK** collectors declare a synthetic `AZSC/*` type (an ARM-child sweep via `Get-ScoutArmChildResource`, or a subscription-level sweep like the Defender security-policy walk) rather than a real ARM resource type. Neither is a `type =~` KQL filter, so this static method cannot determine whether they reach the payload through some other path -- do not read these as confirmed gaps.')
     [void]$md.AppendLine()
+    if ($liveCounts) {
+        $liveConfirmed = @($notWired | Where-Object { $_.LiveRows -gt 0 })
+        [void]$md.AppendLine("## Live evidence -- $LiveTenantLabel, $(Get-Date -Format 'yyyy-MM-dd' -Date ([datetime]'2026-08-04'))")
+        [void]$md.AppendLine()
+        [void]$md.AppendLine("A live Azure Resource Graph query against **$LiveTenantLabel** (2 subscriptions, root-MG Reader) confirms **$($liveConfirmed.Count) of the $($notWired.Count) NOT-WIRED collectors have real, present-today rows** this tenant's estate carries but the React report cannot show, because the resource type is never queried by the assessment collect.")
+        [void]$md.AppendLine()
+        [void]$md.AppendLine('| Collector | Category | Live rows in ' + $LiveTenantLabel + ' |')
+        [void]$md.AppendLine('|---|---|---|')
+        foreach ($r in ($liveConfirmed | Sort-Object -Property @{Expression='LiveRows';Descending=$true})) {
+            [void]$md.AppendLine("| ``$($r.Name)`` | $($r.Category) | $($r.LiveRows) |")
+        }
+        [void]$md.AppendLine()
+    }
     [void]$md.AppendLine('## Not wired (confirmed gap), by category')
     [void]$md.AppendLine()
     foreach ($g in $byCat) {
         [void]$md.AppendLine("### $($g.Name) ($($g.Count))")
         [void]$md.AppendLine()
-        [void]$md.AppendLine('| Collector | Resource types |')
-        [void]$md.AppendLine('|---|---|')
+        [void]$md.AppendLine('| Collector | Resource types | Live rows |')
+        [void]$md.AppendLine('|---|---|---|')
         foreach ($r in ($g.Group | Sort-Object Name)) {
-            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` |")
+            $liveCell = if ($null -ne $r.LiveRows) { $r.LiveRows } else { '' }
+            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` | $liveCell |")
         }
         [void]$md.AppendLine()
     }

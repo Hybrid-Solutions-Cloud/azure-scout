@@ -8,233 +8,259 @@ This answers "is the plumbing there", not "does it return rows in a real tenant"
 
 **NEEDS MANUAL CHECK** collectors declare a synthetic `AZSC/*` type (an ARM-child sweep via `Get-ScoutArmChildResource`, or a subscription-level sweep like the Defender security-policy walk) rather than a real ARM resource type. Neither is a `type =~` KQL filter, so this static method cannot determine whether they reach the payload through some other path -- do not read these as confirmed gaps.
 
+## Live evidence -- hcs, 2026-08-04
+
+A live Azure Resource Graph query against **hcs** (2 subscriptions, root-MG Reader) confirms **19 of the 136 NOT-WIRED collectors have real, present-today rows** this tenant's estate carries but the React report cannot show, because the resource type is never queried by the assessment collect.
+
+| Collector | Category | Live rows in hcs |
+|---|---|---|
+| `ManagedIds` | Identity | 19 |
+| `ContainerApp` | Containers | 12 |
+| `ContainerAppEnv` | Containers | 6 |
+| `MetricAlertRules` | Monitor | 5 |
+| `NetworkInterface` | Networking | 4 |
+| `POSTGREFlexible` | Databases | 3 |
+| `NetworkWatchers` | Networking | 3 |
+| `ActivityLogAlertRules` | Monitor | 3 |
+| `ActionGroups` | Monitor | 2 |
+| `ScheduledQueryRules` | Monitor | 2 |
+| `LoadBalancer` | Networking | 1 |
+| `SmartDetectorAlertRules` | Monitor | 1 |
+| `DataCollectionEndpoints` | Monitor | 1 |
+| `StorageSync` | Storage | 1 |
+| `AppInsights` | Monitor | 1 |
+| `LogicApps` | Integration | 1 |
+| `ApiConnections` | DevOps | 1 |
+| `DataCollectionRules` | Monitor | 1 |
+| `StaticWebApps` | Web | 1 |
+
 ## Not wired (confirmed gap), by category
 
 ### AI (1)
 
-| Collector | Resource types |
-|---|---|
-| `BotServices` | `microsoft.botservice/botservices` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `BotServices` | `microsoft.botservice/botservices` | 0 |
 
 ### Analytics (3)
 
-| Collector | Resource types |
-|---|---|
-| `Databricks` | `microsoft.databricks/workspaces` |
-| `DataExplorerCluster` | `microsoft.kusto/clusters` |
-| `Streamanalytics` | `microsoft.streamanalytics/streamingjobs` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `Databricks` | `microsoft.databricks/workspaces` | 0 |
+| `DataExplorerCluster` | `microsoft.kusto/clusters` | 0 |
+| `Streamanalytics` | `microsoft.streamanalytics/streamingjobs` | 0 |
 
 ### Compute (4)
 
-| Collector | Resource types |
-|---|---|
-| `AvailabilitySets` | `microsoft.compute/availabilitysets` |
-| `AVDApplicationGroups` | `microsoft.desktopvirtualization/applicationgroups` |
-| `AVDWorkspaces` | `microsoft.desktopvirtualization/workspaces` |
-| `VirtualMachineScaleSet` | `microsoft.compute/virtualmachinescalesets` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AvailabilitySets` | `microsoft.compute/availabilitysets` | 0 |
+| `AVDApplicationGroups` | `microsoft.desktopvirtualization/applicationgroups` | 0 |
+| `AVDWorkspaces` | `microsoft.desktopvirtualization/workspaces` | 0 |
+| `VirtualMachineScaleSet` | `microsoft.compute/virtualmachinescalesets` | 0 |
 
 ### Containers (4)
 
-| Collector | Resource types |
-|---|---|
-| `ARO` | `microsoft.redhatopenshift/openshiftclusters` |
-| `ContainerApp` | `microsoft.app/containerapps` |
-| `ContainerAppEnv` | `microsoft.app/managedenvironments` |
-| `ContainerGroups` | `microsoft.containerinstance/containergroups` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ARO` | `microsoft.redhatopenshift/openshiftclusters` | 0 |
+| `ContainerApp` | `microsoft.app/containerapps` | 12 |
+| `ContainerAppEnv` | `microsoft.app/managedenvironments` | 6 |
+| `ContainerGroups` | `microsoft.containerinstance/containergroups` | 0 |
 
 ### Databases (10)
 
-| Collector | Resource types |
-|---|---|
-| `CosmosDB` | `microsoft.documentdb/databaseaccounts` |
-| `MariaDB` | `microsoft.dbformariadb/servers` |
-| `MySQL` | `microsoft.dbformysql/servers` |
-| `MySQLflexible` | `microsoft.dbformysql/flexibleservers` |
-| `POSTGREFlexible` | `microsoft.dbforpostgresql/flexibleservers` |
-| `RedisCache` | `microsoft.cache/redis; microsoft.cache/redisenterprise` |
-| `SQLMI` | `microsoft.sql/managedinstances` |
-| `SQLMIDB` | `microsoft.sql/managedinstances/databases` |
-| `SQLPOOL` | `microsoft.sql/servers/elasticpools` |
-| `SQLVM` | `microsoft.sqlvirtualmachine/sqlvirtualmachines` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `CosmosDB` | `microsoft.documentdb/databaseaccounts` | 0 |
+| `MariaDB` | `microsoft.dbformariadb/servers` | 0 |
+| `MySQL` | `microsoft.dbformysql/servers` | 0 |
+| `MySQLflexible` | `microsoft.dbformysql/flexibleservers` | 0 |
+| `POSTGREFlexible` | `microsoft.dbforpostgresql/flexibleservers` | 3 |
+| `RedisCache` | `microsoft.cache/redis; microsoft.cache/redisenterprise` | 0 |
+| `SQLMI` | `microsoft.sql/managedinstances` | 0 |
+| `SQLMIDB` | `microsoft.sql/managedinstances/databases` | 0 |
+| `SQLPOOL` | `microsoft.sql/servers/elasticpools` | 0 |
+| `SQLVM` | `microsoft.sqlvirtualmachine/sqlvirtualmachines` | 0 |
 
 ### DevOps (12)
 
-| Collector | Resource types |
-|---|---|
-| `ApiConnections` | `microsoft.web/connections` |
-| `AppConfiguration` | `microsoft.appconfiguration/configurationstores` |
-| `DeploymentEnvironments` | `microsoft.devcenter/devcenters/environmenttypes; microsoft.devcenter/projects/environmenttypes; microsoft.devcenter/devcenters/catalogs; microsoft.devcenter/projects/catalogs` |
-| `DevBoxPools` | `microsoft.devcenter/projects/pools` |
-| `DevCenterNetworkConnections` | `microsoft.devcenter/networkconnections` |
-| `DevOpsAgentPools` | `devops/agentpools` |
-| `DevOpsPipelines` | `devops/pipelines` |
-| `DevOpsProjects` | `devops/projects` |
-| `DevOpsRepositories` | `devops/repositories` |
-| `DevOpsServiceConnections` | `devops/serviceconnections` |
-| `DevTestLabs` | `microsoft.devtestlab/labs; microsoft.devtestlab/schedules` |
-| `LabServices` | `microsoft.labservices/labs; microsoft.labservices/labplans` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ApiConnections` | `microsoft.web/connections` | 1 |
+| `AppConfiguration` | `microsoft.appconfiguration/configurationstores` | 0 |
+| `DeploymentEnvironments` | `microsoft.devcenter/devcenters/environmenttypes; microsoft.devcenter/projects/environmenttypes; microsoft.devcenter/devcenters/catalogs; microsoft.devcenter/projects/catalogs` | 0 |
+| `DevBoxPools` | `microsoft.devcenter/projects/pools` | 0 |
+| `DevCenterNetworkConnections` | `microsoft.devcenter/networkconnections` | 0 |
+| `DevOpsAgentPools` | `devops/agentpools` | 0 |
+| `DevOpsPipelines` | `devops/pipelines` | 0 |
+| `DevOpsProjects` | `devops/projects` | 0 |
+| `DevOpsRepositories` | `devops/repositories` | 0 |
+| `DevOpsServiceConnections` | `devops/serviceconnections` | 0 |
+| `DevTestLabs` | `microsoft.devtestlab/labs; microsoft.devtestlab/schedules` | 0 |
+| `LabServices` | `microsoft.labservices/labs; microsoft.labservices/labplans` | 0 |
 
 ### General (2)
 
-| Collector | Resource types |
-|---|---|
-| `ReservationRecom` | `microsoft.consumption/reservationrecommendations` |
-| `SupportTickets` | `microsoft.support/supporttickets` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ReservationRecom` | `microsoft.consumption/reservationrecommendations` | 0 |
+| `SupportTickets` | `microsoft.support/supporttickets` | 0 |
 
 ### Hybrid (9)
 
-| Collector | Resource types |
-|---|---|
-| `ArcDataControllers` | `microsoft.azurearcdata/datacontrollers` |
-| `ArcGateways` | `microsoft.hybridcompute/gateways` |
-| `ArcKubernetes` | `microsoft.kubernetes/connectedclusters` |
-| `ArcResourceBridge` | `microsoft.resourceconnector/appliances` |
-| `ArcSQLManagedInstances` | `microsoft.azurearcdata/sqlmanagedinstances` |
-| `ArcSQLServers` | `microsoft.azurearcdata/sqlserverinstances` |
-| `GalleryImages` | `microsoft.azurestackhci/galleryimages` |
-| `MarketplaceGalleryImages` | `microsoft.azurestackhci/marketplacegalleryimages` |
-| `StorageContainers` | `microsoft.azurestackhci/storagecontainers` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ArcDataControllers` | `microsoft.azurearcdata/datacontrollers` | 0 |
+| `ArcGateways` | `microsoft.hybridcompute/gateways` | 0 |
+| `ArcKubernetes` | `microsoft.kubernetes/connectedclusters` | 0 |
+| `ArcResourceBridge` | `microsoft.resourceconnector/appliances` | 0 |
+| `ArcSQLManagedInstances` | `microsoft.azurearcdata/sqlmanagedinstances` | 0 |
+| `ArcSQLServers` | `microsoft.azurearcdata/sqlserverinstances` | 0 |
+| `GalleryImages` | `microsoft.azurestackhci/galleryimages` | 0 |
+| `MarketplaceGalleryImages` | `microsoft.azurestackhci/marketplacegalleryimages` | 0 |
+| `StorageContainers` | `microsoft.azurestackhci/storagecontainers` | 0 |
 
 ### Identity (16)
 
-| Collector | Resource types |
-|---|---|
-| `AdminUnits` | `entra/administrativeunits` |
-| `AppRegistrations` | `entra/applications` |
-| `ConditionalAccess` | `entra/conditionalaccesspolicies` |
-| `CrossTenantAccess` | `entra/crosstenantaccess` |
-| `DirectoryRoles` | `entra/directoryroles` |
-| `Domains` | `entra/domains` |
-| `Groups` | `entra/groups` |
-| `Licensing` | `entra/subscribedskus` |
-| `ManagedIdentities` | `entra/managedidentities` |
-| `ManagedIds` | `microsoft.managedidentity/userassignedidentities` |
-| `NamedLocations` | `entra/namedlocations` |
-| `PIMAssignments` | `entra/pimassignments` |
-| `RiskyUsers` | `entra/riskyusers` |
-| `SecurityPolicies` | `entra/securitypolicies` |
-| `ServicePrincipals` | `entra/serviceprincipals` |
-| `Users` | `entra/users` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AdminUnits` | `entra/administrativeunits` | 0 |
+| `AppRegistrations` | `entra/applications` | 0 |
+| `ConditionalAccess` | `entra/conditionalaccesspolicies` | 0 |
+| `CrossTenantAccess` | `entra/crosstenantaccess` | 0 |
+| `DirectoryRoles` | `entra/directoryroles` | 0 |
+| `Domains` | `entra/domains` | 0 |
+| `Groups` | `entra/groups` | 0 |
+| `Licensing` | `entra/subscribedskus` | 0 |
+| `ManagedIdentities` | `entra/managedidentities` | 0 |
+| `ManagedIds` | `microsoft.managedidentity/userassignedidentities` | 19 |
+| `NamedLocations` | `entra/namedlocations` | 0 |
+| `PIMAssignments` | `entra/pimassignments` | 0 |
+| `RiskyUsers` | `entra/riskyusers` | 0 |
+| `SecurityPolicies` | `entra/securitypolicies` | 0 |
+| `ServicePrincipals` | `entra/serviceprincipals` | 0 |
+| `Users` | `entra/users` | 0 |
 
 ### Integration (7)
 
-| Collector | Resource types |
-|---|---|
-| `EventGrid` | `microsoft.eventgrid/topics; microsoft.eventgrid/systemtopics; microsoft.eventgrid/domains; microsoft.eventgrid/partnertopics; microsoft.eventgrid/namespaces` |
-| `EventHubClusters` | `microsoft.eventhub/clusters` |
-| `HealthDataServices` | `microsoft.healthcareapis/services; microsoft.healthcareapis/workspaces; microsoft.healthcareapis/workspaces/fhirservices; microsoft.healthcareapis/workspaces/dicomservices; microsoft.healthcareapis/workspaces/iotconnectors` |
-| `IntegrationAccounts` | `microsoft.logic/integrationaccounts; microsoft.logic/integrationserviceenvironments` |
-| `LogicApps` | `microsoft.logic/workflows` |
-| `LogicAppsCustomConnectors` | `microsoft.web/customapis` |
-| `Relays` | `microsoft.relay/namespaces; microsoft.relay/namespaces/hybridconnections; microsoft.relay/namespaces/wcfrelays` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `EventGrid` | `microsoft.eventgrid/topics; microsoft.eventgrid/systemtopics; microsoft.eventgrid/domains; microsoft.eventgrid/partnertopics; microsoft.eventgrid/namespaces` | 0 |
+| `EventHubClusters` | `microsoft.eventhub/clusters` | 0 |
+| `HealthDataServices` | `microsoft.healthcareapis/services; microsoft.healthcareapis/workspaces; microsoft.healthcareapis/workspaces/fhirservices; microsoft.healthcareapis/workspaces/dicomservices; microsoft.healthcareapis/workspaces/iotconnectors` | 0 |
+| `IntegrationAccounts` | `microsoft.logic/integrationaccounts; microsoft.logic/integrationserviceenvironments` | 0 |
+| `LogicApps` | `microsoft.logic/workflows` | 1 |
+| `LogicAppsCustomConnectors` | `microsoft.web/customapis` | 0 |
+| `Relays` | `microsoft.relay/namespaces; microsoft.relay/namespaces/hybridconnections; microsoft.relay/namespaces/wcfrelays` | 0 |
 
 ### IoT (4)
 
-| Collector | Resource types |
-|---|---|
-| `DefenderForIoT` | `microsoft.iotsecurity/defendersettings; microsoft.iotsecurity/sites; microsoft.iotsecurity/sensors; microsoft.iotsecurity/onpremisesensors` |
-| `DeviceUpdate` | `microsoft.deviceupdate/accounts; microsoft.deviceupdate/accounts/instances` |
-| `IoTCentral` | `microsoft.iotcentral/iotapps` |
-| `Maps` | `microsoft.maps/accounts; microsoft.maps/accounts/creators` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `DefenderForIoT` | `microsoft.iotsecurity/defendersettings; microsoft.iotsecurity/sites; microsoft.iotsecurity/sensors; microsoft.iotsecurity/onpremisesensors` | 0 |
+| `DeviceUpdate` | `microsoft.deviceupdate/accounts; microsoft.deviceupdate/accounts/instances` | 0 |
+| `IoTCentral` | `microsoft.iotcentral/iotapps` | 0 |
+| `Maps` | `microsoft.maps/accounts; microsoft.maps/accounts/creators` | 0 |
 
 ### Management (6)
 
-| Collector | Resource types |
-|---|---|
-| `AdvisorScore` | `microsoft.advisor/advisorscore` |
-| `AutomationAccounts` | `microsoft.automation/automationaccounts` |
-| `Backup` | `microsoft.recoveryservices/vaults/backuppolicies` |
-| `LighthouseDelegations` | `microsoft.managedservices/registrationdefinitions` |
-| `MaintenanceConfigurations` | `microsoft.maintenance/maintenanceconfigurations` |
-| `RecoveryVault` | `microsoft.recoveryservices/vaults` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AdvisorScore` | `microsoft.advisor/advisorscore` | 0 |
+| `AutomationAccounts` | `microsoft.automation/automationaccounts` | 0 |
+| `Backup` | `microsoft.recoveryservices/vaults/backuppolicies` | 0 |
+| `LighthouseDelegations` | `microsoft.managedservices/registrationdefinitions` | 0 |
+| `MaintenanceConfigurations` | `microsoft.maintenance/maintenanceconfigurations` | 0 |
+| `RecoveryVault` | `microsoft.recoveryservices/vaults` | 0 |
 
 ### Migration (4)
 
-| Collector | Resource types |
-|---|---|
-| `AzureMigrateAssessments` | `microsoft.migrate/assessmentprojects` |
-| `AzureMigrateDiscoverySites` | `microsoft.offazure/vmwaresites; microsoft.offazure/hypervsites; microsoft.offazure/serversites; microsoft.offazure/mastersites` |
-| `DataBox` | `microsoft.databox/jobs` |
-| `StackEdge` | `microsoft.databoxedge/databoxedgedevices` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AzureMigrateAssessments` | `microsoft.migrate/assessmentprojects` | 0 |
+| `AzureMigrateDiscoverySites` | `microsoft.offazure/vmwaresites; microsoft.offazure/hypervsites; microsoft.offazure/serversites; microsoft.offazure/mastersites` | 0 |
+| `DataBox` | `microsoft.databox/jobs` | 0 |
+| `StackEdge` | `microsoft.databoxedge/databoxedgedevices` | 0 |
 
 ### Monitor (14)
 
-| Collector | Resource types |
-|---|---|
-| `ActionGroups` | `microsoft.insights/actiongroups` |
-| `ActivityLogAlertRules` | `microsoft.insights/activitylogalerts` |
-| `AppInsights` | `microsoft.insights/components` |
-| `AppInsightsAvailabilityTests` | `microsoft.insights/webtests` |
-| `AppInsightsWebTests` | `microsoft.insights/webtests` |
-| `AutoscaleSettings` | `microsoft.insights/autoscalesettings` |
-| `DataCollectionEndpoints` | `microsoft.insights/datacollectionendpoints` |
-| `DataCollectionRules` | `microsoft.insights/datacollectionrules` |
-| `LAWorkspaceSolutions` | `microsoft.operationsmanagement/solutions` |
-| `MetricAlertRules` | `microsoft.insights/metricalerts` |
-| `MonitorPrivateLinkScopes` | `microsoft.insights/privatelinkscopes` |
-| `MonitorWorkbooks` | `microsoft.insights/workbooks` |
-| `ScheduledQueryRules` | `microsoft.insights/scheduledqueryrules` |
-| `SmartDetectorAlertRules` | `microsoft.alertsmanagement/smartdetectoralertrules` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ActionGroups` | `microsoft.insights/actiongroups` | 2 |
+| `ActivityLogAlertRules` | `microsoft.insights/activitylogalerts` | 3 |
+| `AppInsights` | `microsoft.insights/components` | 1 |
+| `AppInsightsAvailabilityTests` | `microsoft.insights/webtests` | 0 |
+| `AppInsightsWebTests` | `microsoft.insights/webtests` | 0 |
+| `AutoscaleSettings` | `microsoft.insights/autoscalesettings` | 0 |
+| `DataCollectionEndpoints` | `microsoft.insights/datacollectionendpoints` | 1 |
+| `DataCollectionRules` | `microsoft.insights/datacollectionrules` | 1 |
+| `LAWorkspaceSolutions` | `microsoft.operationsmanagement/solutions` | 0 |
+| `MetricAlertRules` | `microsoft.insights/metricalerts` | 5 |
+| `MonitorPrivateLinkScopes` | `microsoft.insights/privatelinkscopes` | 0 |
+| `MonitorWorkbooks` | `microsoft.insights/workbooks` | 0 |
+| `ScheduledQueryRules` | `microsoft.insights/scheduledqueryrules` | 2 |
+| `SmartDetectorAlertRules` | `microsoft.alertsmanagement/smartdetectoralertrules` | 1 |
 
 ### Networking (13)
 
-| Collector | Resource types |
-|---|---|
-| `ApplicationGateways` | `microsoft.network/applicationgateways` |
-| `BastionHosts` | `microsoft.network/bastionhosts` |
-| `Connections` | `microsoft.network/connections` |
-| `ExpressRoute` | `microsoft.network/expressroutecircuits` |
-| `Frontdoor` | `microsoft.network/frontdoors` |
-| `LoadBalancer` | `microsoft.network/loadbalancers` |
-| `NATGateway` | `microsoft.network/natgateways` |
-| `NetworkInterface` | `microsoft.network/networkinterfaces` |
-| `NetworkWatchers` | `microsoft.network/networkwatchers` |
-| `PublicDNS` | `microsoft.network/dnszones` |
-| `RouteTables` | `microsoft.network/routetables` |
-| `TrafficManager` | `microsoft.network/trafficmanagerprofiles` |
-| `VirtualWAN` | `microsoft.network/virtualwans` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `ApplicationGateways` | `microsoft.network/applicationgateways` | 0 |
+| `BastionHosts` | `microsoft.network/bastionhosts` | 0 |
+| `Connections` | `microsoft.network/connections` | 0 |
+| `ExpressRoute` | `microsoft.network/expressroutecircuits` | 0 |
+| `Frontdoor` | `microsoft.network/frontdoors` | 0 |
+| `LoadBalancer` | `microsoft.network/loadbalancers` | 1 |
+| `NATGateway` | `microsoft.network/natgateways` | 0 |
+| `NetworkInterface` | `microsoft.network/networkinterfaces` | 4 |
+| `NetworkWatchers` | `microsoft.network/networkwatchers` | 3 |
+| `PublicDNS` | `microsoft.network/dnszones` | 0 |
+| `RouteTables` | `microsoft.network/routetables` | 0 |
+| `TrafficManager` | `microsoft.network/trafficmanagerprofiles` | 0 |
+| `VirtualWAN` | `microsoft.network/virtualwans` | 0 |
 
 ### Security (10)
 
-| Collector | Resource types |
-|---|---|
-| `AppComplianceAutomation` | `microsoft.appcomplianceautomation/reports; microsoft.appcomplianceautomation/reports/snapshots` |
-| `ApplicationSecurityGroups` | `microsoft.network/applicationsecuritygroups` |
-| `ArtifactSigning` | `microsoft.codesigning/codesigningaccounts` |
-| `CloudHSM` | `microsoft.hardwaresecuritymodules/cloudhsmclusters` |
-| `ConfidentialLedger` | `microsoft.confidentialledger/ledgers` |
-| `DdosProtectionPlans` | `microsoft.network/ddosprotectionplans` |
-| `EntraDomainServices` | `microsoft.aad/domainservices` |
-| `ManagedHSM` | `microsoft.keyvault/managedhsms` |
-| `Sentinel` | `microsoft.operationsmanagement/solutions; microsoft.securityinsights/onboardingstates` |
-| `WafPolicies` | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies; microsoft.network/frontdoorwebapplicationfirewallpolicies; microsoft.cdn/cdnwebapplicationfirewallpolicies` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AppComplianceAutomation` | `microsoft.appcomplianceautomation/reports; microsoft.appcomplianceautomation/reports/snapshots` | 0 |
+| `ApplicationSecurityGroups` | `microsoft.network/applicationsecuritygroups` | 0 |
+| `ArtifactSigning` | `microsoft.codesigning/codesigningaccounts` | 0 |
+| `CloudHSM` | `microsoft.hardwaresecuritymodules/cloudhsmclusters` | 0 |
+| `ConfidentialLedger` | `microsoft.confidentialledger/ledgers` | 0 |
+| `DdosProtectionPlans` | `microsoft.network/ddosprotectionplans` | 0 |
+| `EntraDomainServices` | `microsoft.aad/domainservices` | 0 |
+| `ManagedHSM` | `microsoft.keyvault/managedhsms` | 0 |
+| `Sentinel` | `microsoft.operationsmanagement/solutions; microsoft.securityinsights/onboardingstates` | 0 |
+| `WafPolicies` | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies; microsoft.network/frontdoorwebapplicationfirewallpolicies; microsoft.cdn/cdnwebapplicationfirewallpolicies` | 0 |
 
 ### Storage (5)
 
-| Collector | Resource types |
-|---|---|
-| `EdgeHardwareCenter` | `microsoft.edgeorder/orders; microsoft.edgeorder/orderitems; microsoft.edgeorder/addresses` |
-| `ElasticSan` | `microsoft.elasticsan/elasticsans; microsoft.elasticsan/elasticsans/volumegroups` |
-| `NetApp` | `microsoft.netapp/netappaccounts/capacitypools/volumes` |
-| `PartnerStorage` | `purestorage.block/storagepools; purestorage.block/reservations; qumulo.storage/filesystems` |
-| `StorageSync` | `microsoft.storagesync/storagesyncservices; microsoft.storagesync/storagesyncservices/syncgroups; microsoft.storagesync/storagesyncservices/registeredservers` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `EdgeHardwareCenter` | `microsoft.edgeorder/orders; microsoft.edgeorder/orderitems; microsoft.edgeorder/addresses` | 0 |
+| `ElasticSan` | `microsoft.elasticsan/elasticsans; microsoft.elasticsan/elasticsans/volumegroups` | 0 |
+| `NetApp` | `microsoft.netapp/netappaccounts/capacitypools/volumes` | 0 |
+| `PartnerStorage` | `purestorage.block/storagepools; purestorage.block/reservations; qumulo.storage/filesystems` | 0 |
+| `StorageSync` | `microsoft.storagesync/storagesyncservices; microsoft.storagesync/storagesyncservices/syncgroups; microsoft.storagesync/storagesyncservices/registeredservers` | 1 |
 
 ### Web (12)
 
-| Collector | Resource types |
-|---|---|
-| `AppServiceCertificates` | `microsoft.certificateregistration/certificateorders; microsoft.web/certificates` |
-| `AppServiceDomains` | `microsoft.domainregistration/domains` |
-| `AppServiceEnvironments` | `microsoft.web/hostingenvironments` |
-| `APPServicePlan` | `microsoft.web/serverfarms` |
-| `CommunicationServices` | `microsoft.communication/communicationservices; microsoft.communication/emailservices; microsoft.communication/emailservices/domains` |
-| `DeploymentSlots` | `microsoft.web/sites/slots` |
-| `FluidRelay` | `microsoft.fluidrelay/fluidrelayservers` |
-| `NotificationHubs` | `microsoft.notificationhubs/namespaces; microsoft.notificationhubs/namespaces/notificationhubs` |
-| `SignalR` | `microsoft.signalrservice/signalr` |
-| `SpringApps` | `microsoft.appplatform/spring; microsoft.appplatform/spring/apps` |
-| `StaticWebApps` | `microsoft.web/staticsites` |
-| `WebPubSub` | `microsoft.signalrservice/webpubsub` |
+| Collector | Resource types | Live rows |
+|---|---|---|
+| `AppServiceCertificates` | `microsoft.certificateregistration/certificateorders; microsoft.web/certificates` | 0 |
+| `AppServiceDomains` | `microsoft.domainregistration/domains` | 0 |
+| `AppServiceEnvironments` | `microsoft.web/hostingenvironments` | 0 |
+| `APPServicePlan` | `microsoft.web/serverfarms` | 0 |
+| `CommunicationServices` | `microsoft.communication/communicationservices; microsoft.communication/emailservices; microsoft.communication/emailservices/domains` | 0 |
+| `DeploymentSlots` | `microsoft.web/sites/slots` | 0 |
+| `FluidRelay` | `microsoft.fluidrelay/fluidrelayservers` | 0 |
+| `NotificationHubs` | `microsoft.notificationhubs/namespaces; microsoft.notificationhubs/namespaces/notificationhubs` | 0 |
+| `SignalR` | `microsoft.signalrservice/signalr` | 0 |
+| `SpringApps` | `microsoft.appplatform/spring; microsoft.appplatform/spring/apps` | 0 |
+| `StaticWebApps` | `microsoft.web/staticsites` | 1 |
+| `WebPubSub` | `microsoft.signalrservice/webpubsub` | 0 |
 
 ## Needs manual check (synthetic type), by category
 
