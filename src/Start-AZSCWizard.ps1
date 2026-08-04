@@ -69,7 +69,15 @@ function Start-AZSCWizard {
         'Security', 'Storage', 'Web'
     )
     $inventoryFormats = @('Excel', 'Json', 'Markdown', 'AsciiDoc', 'PowerBI')
-    $assessmentFormats = @('Html', 'PowerBI', 'Excel', 'Json', 'React', 'Pptx', 'Word', 'Pdf')
+    # Menu honesty (the AB#6763 principle applied to formats): offer only what a run will
+    # actually produce. Every held renderer -- Html, PowerBi, Pptx, Excel, Pdf, Word,
+    # EChartsDashboard, GovernanceReport, see $script:ScoutHeldRenderers in
+    # Invoke-ScoutAssessmentCore.ps1 -- warns and skips, so listing them here offered the
+    # operator a choice the product then declined to honour. React is the deliverable;
+    # Json/JsonEvidence are data rather than documents and are deliberately never held (the
+    # corpus harness and drift history read them). Lifting a hold means adding the name back
+    # here as well as removing it from $ScoutHeldRenderers.
+    $assessmentFormats = @('React', 'Json', 'JsonEvidence')
 
     Write-AZSCWizardBanner
 
@@ -317,8 +325,13 @@ function Start-AZSCWizard {
     # ── Step 4: output ───────────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 4 -Total 5 -Title 'Output'
 
-    $formatPool = if ($wantsAssessment -and -not $wantsInventory) { $assessmentFormats } else { $inventoryFormats }
-    $defaultFormats = if ($wantsAssessment -and -not $wantsInventory) { @('Html') } else { $inventoryFormats }
+    # An assessment run renders the React report whether or not inventory was also asked for --
+    # the report carries the inventory itself (v3.5.0's Inventory & audit page). The earlier
+    # `-and -not $wantsInventory` meant the commonest path of all, Inventory AND Assessment,
+    # fell through to the inventory-only list, which offers no React at all: the operator was
+    # shown every format the assessment would refuse to render and none of the one it would.
+    $formatPool = if ($wantsAssessment) { $assessmentFormats } else { $inventoryFormats }
+    $defaultFormats = if ($wantsAssessment) { @('React') } else { $inventoryFormats }
     $formats = Read-AZSCWizardChecklist -Title 'Report formats' -Items $formatPool -DefaultSelected $defaultFormats
     if ($null -eq $formats) { return $null }
     if ($formats.Count -eq $formatPool.Count) { $formats = @('All') }
