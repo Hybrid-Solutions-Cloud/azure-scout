@@ -12,7 +12,12 @@ $ErrorActionPreference = 'Stop'
 function Export-Report {
     # $Drift (optional) is the cross-run drift object from Get-ScoutDrift; only the
     # React renderer consumes it (to populate its Drift tab). Other renderers ignore it.
-    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null)
+    # $ReportIdentity (AB#6930, optional) is the operator-supplied report-identity hashtable
+    # (clientName/classification/etc.); only the React renderer consumes it today -- see
+    # Export-React's own -ReportIdentity doc comment for the neutral-default fallback.
+    # $DefaultReportMode (AB#6928 follow-up, optional) -- which view lens the React report opens
+    # on when the browser has nothing persisted yet; only the React renderer consumes it.
+    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null, [hashtable] $ReportIdentity = @{}, [string] $DefaultReportMode = 'Consultant')
     switch ($Renderer) {
         'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
@@ -22,7 +27,7 @@ function Export-Report {
         # first and every PER-ASSESSMENT workbook failed with "A parameter cannot be found that
         # matches parameter name 'Findings'". Only a real multi-assessment run surfaced it.
         'Excel'   { Export-ScoutEvidenceWorkbook -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
-        'React'   { Export-React   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Drift $Drift }
+        'React'   { Export-React   -Findings $Findings -Collect $Collect -OutputPath $OutputPath -Drift $Drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode }
         'Json'    { $Findings | ConvertTo-Json -Depth 100 | Out-File "$OutputPath/findings.json" }
         # AB#396: resources-only evidence export (raw Collect only -- no assessment
         # metadata/scores/findings; see Export-JsonEvidence.ps1's own header for why).

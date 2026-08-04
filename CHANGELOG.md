@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-08-04 — the report is a product, not a page
+
+The owner-approved v6 design ships: the React report becomes a multi-page application
+driven by the run's own data.
+
+### Added
+
+- **Pages**: Overview (collection provenance strip, KPI row, menu tiles, assessment gauge
+  tiles, one act-this-week spotlight) · Inventory & audit · Assessments · Diagrams ·
+  Data & drift · Remediation plan.
+- **Inventory & audit as a blade view** on the documented 18-category taxonomy with the
+  Azure portal labels: the left menu selects (overview, tenant structure, audit callouts,
+  cost optimization, a main-category summary, or one collector), the right pane shows only
+  that selection. Every collector is listed including the ones that found nothing — a
+  dimmed zero whose blade states the absence explicitly. Per-category item tables are
+  bounded, sticky-headed, filter on any column and sort on any header. Derived judgement
+  sets (cost cleanup, FinOps) live in the audit/cost blades, not the category tree.
+- **Cost optimization blade** carrying the whole cost story: the quantified savings
+  opportunity with its arithmetic visible, every cost-area check with a link to its fix,
+  Advisor cost recommendations, the FinOps datasets with the reason they are empty, and
+  cleanup items.
+- **The complete conformance register per assessment**: every check listed — met, not met
+  and manual alike — a gap block for every "Not met" (current configuration at resource
+  grain, why it matters, numbered fix steps, per-check Microsoft Learn link), the manual
+  checks as a review agenda with their questions, and a closing **What's next** section
+  whose actions link back to their fix blocks with owner and window.
+- **Diagrams page**: management-group hierarchy, virtual networks with per-subnet IP
+  utilization, estate distribution, and gaps-by-area — inline SVG with contextual KPIs,
+  click-through to the underlying data, and a full-screen overlay with zoom and pan.
+- **View depth toggle** (Executive / Consultant / Data), **theme toggle** (dark / light
+  enterprise), and **Markdown + JSON exports** alongside CSV and print.
+
+### Fixed
+
+- Conformance clause R-04 enforced for real: the React renderer no longer re-invokes the
+  scoring engine for per-assessment slices — area buckets are tallied inline from the
+  already-scored findings with the same visible arithmetic.
+- Advisor cost recommendations were silently dropped by a lowercase `category` field
+  probe; the real rows carry `Category`.
+- Per-check guidance links no longer collapse onto one pillar page for a whole check
+  prefix (client-side keyword mapping; per-rule URLs land with the assessment-depth work).
+
+### Docs
+
+- Every page in the report section states that all other assessment report formats remain
+  ON HOLD; the inventory pipeline's data exports are unaffected and say so.
+- `docs/reference/react-report-section-contract.md` rewritten to the v6 information
+  architecture.
+
 ## [3.3.4] - 2026-08-04 — one report, and it is the deliverable
 
 Azure Scout produced six rendered report formats. A full multi-tenant render, read end to end,

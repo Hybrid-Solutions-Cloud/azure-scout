@@ -284,6 +284,244 @@ assessment tooling uses them.
 
 ---
 
+## 10. ADDENDUM (2026-08-03 session 2) — the full Microsoft Assessments catalogue and results-page anatomy
+
+The owner pushed back that the earlier sections above didn't scan the full Microsoft Assessments
+catalogue or dissect the results page itself, citing the FAQ's "what information does the results
+page provide" answer and its labelled screenshot. This addendum closes that gap.
+
+### 10.1 The results-page screenshot is a dead link — flagging, not guessing
+
+The FAQ embeds `![Results page overview.](media/resultspage.png)` at
+[learn.microsoft.com/en-us/assessments/support/#what-information-does-the-results-page-provide-](https://learn.microsoft.com/en-us/assessments/support/#what-is-microsoft-assessments).
+I fetched that image directly (`https://learn.microsoft.com/en-us/assessments/media/resultspage.png`)
+and it returns **HTTP 404** — Microsoft's own docs site serves a "not found" HTML page in its
+place, confirmed via a direct `curl` request with response headers showing `HTTP/1.1 404 Not
+Found`. I also checked the likely source repo
+(`raw.githubusercontent.com/MicrosoftDocs/assessments-pr/live/assessments-pr/support/media/resultspage.png`)
+— also 404. **I could not verify any element-by-element description of the annotated screenshot.
+Do not treat any description of "the labelled callouts" as sourced — none exists in what I could
+retrieve.** The only description of the results page content is the FAQ's prose (already captured
+in §1 above and restated in §10.2), which is the actual verifiable content, not the image.
+
+### 10.2 What the results page provides — restated precisely from the FAQ prose (the only verifiable source)
+
+Direct quotes from [learn.microsoft.com/en-us/assessments/support/](https://learn.microsoft.com/en-us/assessments/support/):
+
+> "This page will provide you with an overall score helping you benchmark where you are on your
+> journey. It also provides curated next steps and tailored recommendations per category with
+> links to additional documentation to read. You can share your assessment's results on social
+> media platforms (Twitter, LinkedIn, Facebook, and Email)... The goal is to help you determine
+> what concrete actions you can take to improve your journey."
+
+> "Yes. If you're logged in, Assessment results can be share[d] with those you trust. Likewise,
+> Assessment results can be exported to a CSV file; which also requires being logged into the
+> platform."
+
+So the results page's verifiable content model is: **overall score (for benchmarking) → curated
+next steps → tailored recommendations per category, each with a documentation link → social share
+→ CSV export (sign-in required for both share and export)**. No further structural detail (e.g.,
+where the score sits relative to the recommendations, whether categories are tabs or scroll
+sections, whether there's a chart) is stated in text anywhere I could reach — anything more
+specific than the above is unverifiable from this source and should not be asserted.
+
+### 10.3 The full assessment catalogue — this is much larger than the 2026 "launch four"
+
+The FAQ's "What assessments are available at launch?" answer (Cloud Journey Tracker, Governance
+Benchmark, Well-Architected Review, SMAT) describes the **platform's original 2020 launch set**,
+not today's catalogue. The current catalogue, per
+[learn.microsoft.com/en-us/assessments/browse/](https://learn.microsoft.com/en-us/assessments/browse/?page=1&pagesize=30)
+and [learn.microsoft.com/en-us/assessments/](https://learn.microsoft.com/en-us/assessments/), is
+organized two ways simultaneously: by **lifecycle phase** (Define, Plan, Prepare, Adopt, Govern,
+Manage) and by **product/workload**. It now spans at minimum (confirmed present, not exhaustive —
+the browse page paginates):
+
+- **Strategy/adoption**: Cloud Adoption Strategy Evaluator, Cloud Journey Tracker, Governance
+  Benchmark
+- **Landing zone / platform**: Azure Landing Zone Review, Azure VMware Solution Landing Zone
+  Assessment Review
+- **Migration**: Strategic Migration Assessment and Readiness Tool (SMAT/SMART — the FAQ and
+  browse page spell the acronym differently, flagging the inconsistency rather than picking one),
+  App and Data Modernization Readiness Tool
+- **DevOps**: DevOps Capability Assessment
+- **AI**: AI Readiness Assessment (7 pillars: Business Strategy, AI Governance & Security, Data
+  Foundations, AI Strategy & Experience, Organization & Culture, Infrastructure for AI, Model
+  Management), AI Engineer Skill Assessment
+- **Data/analytics**: Analytics Journey Tracker
+- **Well-Architected — one "Core" review plus at least 10 workload-specific variants**, confirmed
+  from [the WAF implementation guide's own list](https://learn.microsoft.com/en-us/azure/well-architected/design-guides/implementing-recommendations#specialized-well-architected-reviews):
+  Core Well-Architected Review, AI workload, Analytics, Azure AI Search, Azure Virtual Desktop
+  workload, Data Services, SaaS workload, plus (from the browse page) Azure Machine Learning,
+  Azure Local, Azure VMware Solution workload, Oracle on Azure IaaS workload, and a separate
+  "Well-Architected Framework Maturity Model Assessment."
+- **Partner-enablement assessments** (a distinct category, not customer-facing posture
+  assessments): Azure Virtual Desktop \| Microsoft Partner, Azure Stack HCI \| Microsoft Partners,
+  Azure VMware Solution (AVS) \| Microsoft Partner, Microsoft Cloud for Retail/Sustainability
+  Adoption Guides \| Microsoft Partners.
+- **Non-Azure-infra**: Power Platform Solution Assessment.
+
+**This directly answers the owner's question "did you scan all their WAF/CAF assessment tools":
+no single "WAF/CAF assessment" exists as one tool — Microsoft ships one Core WAF Review plus 10+
+technology-specific WAF variants (AVD, AVS, AI, SaaS, Analytics, Data Services, Oracle, Azure
+Local, Azure ML, Azure AI Search), each reusing the same five-pillar structure and results-page
+mechanics documented in §1/§4/§10.2, scoped to that workload type's own ~30–60 question set.**
+azure-scout's per-assessment-category structure is closer to this "one framework, many scoped
+instances" model than to a single monolithic assessment — worth stating explicitly in the report's
+methodology section.
+
+Sources: [Assessments home](https://learn.microsoft.com/en-us/assessments/), [Assessments browse
+page](https://learn.microsoft.com/en-us/assessments/browse/?page=1&pagesize=30), [WAF
+implementation guide — specialized reviews list](https://learn.microsoft.com/en-us/azure/well-architected/design-guides/implementing-recommendations#specialized-well-architected-reviews).
+
+### 10.4 What a Microsoft recommendation looks like as a unit — the exact CSV schema (verified, not inferred)
+
+I pulled the actual sample export file Microsoft ships with its own DevOps import tooling:
+[`Azure_Well_Architected_Review_Sample.csv`](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/Azure_Well_Architected_Review_Sample.csv)
+in [Azure/WellArchitected-Tools](https://github.com/Azure/WellArchitected-Tools). This is the
+CSV export contract in question #5 below, and it's also the ground truth for what a
+"recommendation as a unit" contains — more precise than any prose description could be.
+
+**Header row, verbatim:**
+```
+Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note
+```
+
+**Sample data rows, verbatim:**
+```
+Reliability,"RE:04 - Define healthy, degraded, and unhealthy states.",https://learn.microsoft.com/azure/well-architected/reliability/metrics#building-a-health-model,High,RE:04,,80,,N,
+Security,SE:05 - Secure high-impact accounts.,https://learn.microsoft.com/azure/well-architected/security/identity-access#critical-impact-accounts,High,SE:05,,100,,N,
+```
+
+The file also opens with a small header block above the data table giving per-pillar rollups,
+e.g. `Your overall results,Critical,'0/120'` and `Reliability,Critical,'0/200'` — a
+criticality-banded score (not a bare percentage) sits above the recommendation rows in the same
+file.
+
+**So a Microsoft recommendation-as-a-unit is exactly 10 fields:**
+
+| Field | What it is | azure-scout equivalent today |
+|---|---|---|
+| `Category` | The WAF pillar name (Reliability, Security, ...) | We have this (assessment category) |
+| `Link-Text` | The recommendation title, already including its pillar code, e.g. `"RE:04 - Define healthy, degraded, and unhealthy states."` | We render title + severity + remediation text — no pillar+number code prefix baked into the title |
+| `Link` | Direct URL to the Learn guidance for that exact recommendation | Per the prior session's audit, link-to-guidance coverage is inconsistent (§8 of this doc) |
+| `Priority` | A banded value (`High` seen here) — not a raw score | We show severity, comparable |
+| `ReportingCategory` | The stable code (`RE:04`, `SE:05`) — this is the identifier that survives a re-run | **We do not have this.** This is the single biggest structural gap: a stable per-recommendation code separate from its prose title |
+| `ReportingSubcategory` | Present as a schema field but empty in both sample rows — a finer-grained bucket under the code, apparently rarely used | Not applicable / no equivalent needed |
+| `Weight` | A numeric weight per recommendation (`80`, `100` in the samples) — this is the scoring contribution, exposed in the raw export even though the live UI (per §6 of this doc, Secure Score) tends to hide the arithmetic | Assessment rule weights exist in `src/assess/rules/*.yaml` but aren't surfaced in the rendered report (already a filed gap, §8) |
+| `Context` | Present as a schema field, empty in the samples — presumably free text for where in the workload the recommendation applies | No direct equivalent found |
+| `CompleteY/N` | A remediation-tracking flag — `N` in both samples, meant to be edited by the customer as they work the backlog | We don't ship a field for the customer to mark remediation progress inside the artifact itself |
+| `Note` | Free-text field for the customer's own annotation, empty in samples | No direct equivalent |
+
+**Answering question 1 directly: what azure-scout is precisely missing versus this unit is (a) a
+stable per-recommendation code distinct from the title (`RE:04` style), (b) a numeric weight
+exposed alongside the recommendation rather than only used internally by the scoring engine, and
+(c) two customer-editable fields (`CompleteY/N`, `Note`) that make the exported artifact a working
+document rather than a read-only report.** We already have category, a link (inconsistently), and
+priority/severity — those three are not gaps.
+
+Sources: [Azure_Well_Architected_Review_Sample.csv, raw](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/Azure_Well_Architected_Review_Sample.csv), [Azure/WellArchitected-Tools WARP/devops README](https://github.com/Azure/WellArchitected-Tools/tree/main/WARP/devops#readme).
+
+### 10.5 How recommendations are prioritized and grouped (question 2)
+
+From [Complete an Azure Well-Architected Review assessment](https://learn.microsoft.com/en-us/azure/well-architected/design-guides/implementing-recommendations),
+fetched directly this session:
+
+- Grouping is **by pillar first** (`Category` in the CSV), then by the `ReportingCategory` code
+  within a pillar (`RE:04`, `SE:05`, etc. — these codes correspond one-to-one with numbered
+  articles in the WAF pillar guidance).
+- There is **no single Microsoft-computed "do these first" ranking baked into the export** — the
+  CSV's `Priority` column (`High` in the samples) is the only ordering signal Microsoft ships in
+  the data itself. The doc is explicit that final prioritization is a **human judgment step**:
+  "Workload owners and key stakeholders should prioritize the recommendations in accordance with
+  the team's standard work prioritization process, factoring in the applicability of the
+  recommendations and any tradeoffs." A recommendation can explicitly be "assigned to a specific
+  owner," "postponed," or "dismissed" — i.e., the tool hands over a prioritized-by-severity list
+  and expects the workload team, not the tool, to do the final triage.
+- This **corrects/nuances a claim in §4 of this document** (the "curated top-5 priority actions"
+  characterization) — I could not re-find a citable source this session that shows Microsoft's
+  tooling auto-generating a top-5 list; what is verified is the `Priority` banding (`High` etc.)
+  plus pillar/code grouping, and an explicit statement that final ranking is left to the reader.
+  Treat the "top-5" framing in §4 as **unverified** going forward unless a fresh primary source is
+  found — the WAF review updates blog cited there should be re-checked before repeating that claim.
+
+**Answering question 2 directly:** grouping is by pillar → by numbered code. Prioritization is a
+`Priority` band (High/Medium/Low, inferred from the one visible value `High`) computed by the
+tool, but the final "do these first" ordering is explicitly left to the customer's own backlog
+process, not auto-curated by Microsoft into a fixed top-N list in what I could verify.
+
+### 10.6 How the score is presented so the reader trusts it (question 3)
+
+Two distinct, verified patterns exist depending on which Microsoft tool you look at:
+
+1. **Banded criticality score with a fraction, shown per pillar, above the recommendation table**
+   (WAF Review CSV export, §10.4): `'0/120'` overall, `'0/200'` Reliability, `'0/100'` Security —
+   a **numerator/denominator pair with a criticality label** (`Critical`), not a bare percentage.
+   This matches and reinforces the Secure Score numerator/denominator pattern already documented
+   in §6 of this file — it's now confirmed as a second, independent Microsoft source doing the
+   same thing (raw score + max score shown together, never just a percentage).
+2. **Benchmark framing** (results-page FAQ, §10.2): the score's stated purpose is "helping you
+   benchmark where you are on your journey" — Microsoft frames the number as a position-in-journey
+   marker, not an absolute pass/fail grade.
+3. **Progress-over-time framing** (§10.7 below) — trust is also built by showing the score is
+   expected to move, and giving the reader the mechanism (milestones) to prove it moved because of
+   their own remediation work, not measurement noise.
+
+**Answering question 3 directly:** numerator/denominator with a banded label, framed explicitly as
+a benchmark/journey marker rather than a final grade, backed by an explicit re-measurement
+mechanism (milestones) so the reader can verify movement is real. No per-category weighted
+contribution breakdown was found in the WAF Review sources this session beyond the per-pillar
+fraction already shown in the CSV header block — Secure Score (§6) remains the stronger source for
+per-control contribution math specifically.
+
+### 10.7 Milestones / retake / comparison — how it compares to azure-scout's Drift tab (question 4)
+
+From the same implementation guide, verified this session:
+
+- "Use the milestone feature of the assessment to track this change over time, using the prior
+  milestone as a baseline."
+- Sign-in is a hard requirement for milestones: "You should always sign in when you take
+  assessments so that the tool can generate milestones," and a stated cross-profile limitation:
+  "Assessments are tied to a Microsoft Learn profile. They can't be transferred to or accessed by
+  other profiles."
+- A **recommended cadence is given explicitly for brownfield workloads**: "Set a cadence, for
+  example every four months, and use milestones to track how the workload design can continue to
+  improve."
+- Naming discipline is called out as a tip: "Use meaningful milestone names to indicate when
+  you're evaluating the workload" and "Choose a meaningful name for the assessment... include the
+  workload's name" — i.e., Microsoft's own guidance treats an unnamed/un-timestamped assessment
+  run as an anti-pattern, directly reinforcing the "unnamed reports" gap already filed against
+  azure-scout in §8.
+- The improvement loop is explicitly drawn as a diagram: assess → prioritize → implement →
+  re-assess, with the milestone comparison as the mechanism that closes the loop.
+
+**No further detail on the comparison UI itself** (e.g., whether it's a side-by-side table, a line
+chart, a diff view) was recoverable from the text-only fetch of this page — that would require
+rendering the live authenticated tool, which is out of scope here. Flag this as unverified.
+
+**Answering question 4 directly, and how it compares to our Drift tab:** Microsoft's milestone
+model is (a) named runs, (b) an explicit recommended cadence stated to the user, (c) prior-run as
+baseline, (d) tied to sign-in/profile identity so history persists centrally rather than being a
+one-off artifact. Whatever azure-scout's Drift tab already does structurally, the concrete
+Microsoft-sourced additions worth checking it against are: does it **name each run** meaningfully,
+does it **state a recommended cadence** to the reader (Microsoft explicitly tells the user "every
+four months" — a number, not just "re-run periodically"), and does it make **prior-run-as-baseline**
+explicit rather than implicit. I did not re-open the Drift tab's current implementation this
+session to compare feature-for-feature — that comparison should be done directly against
+`src/report/renderers/` by whoever owns that file, using this list as the checklist.
+
+### 10.8 CSV export contract — answered fully in §10.4
+
+Restating for question 5's exact ask: the column list is
+`Category, Link-Text, Link, Priority, ReportingCategory, ReportingSubcategory, Weight, Context, CompleteY/N, Note`
+— 10 columns, plus a small non-tabular header block above the data giving `Your overall results`
+and per-pillar `'current/max'` fractions with a criticality label. Source quoted verbatim in
+§10.4.  This is a **cheap, concrete target to match or beat**: azure-scout's CSV export should be
+checked against this 10-column shape specifically for the two customer-workflow columns Microsoft
+includes that a pure report-generator wouldn't think to add — `CompleteY/N` and `Note` — since
+those are what make the export usable as a working backlog artifact rather than a snapshot.
+
+---
+
 ## Sources
 
 - [Azure Landing Zone Review](https://learn.microsoft.com/en-us/assessments/21765fea-dfe6-4bc4-8bb7-db9df5a6f6c0/)
@@ -300,6 +538,13 @@ assessment tooling uses them.
 - [Complete an Azure Well-Architected Review assessment](https://learn.microsoft.com/en-us/azure/well-architected/design-guides/implementing-recommendations)
 - [Azure Well-Architected Review Assessment Updates (Community Hub)](https://techcommunity.microsoft.com/blog/azurearchitectureblog/azure-well-architected-review-assessment-updates/3981023)
 - [Secure score in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/secure-score-security-controls)
+- [Microsoft Assessments home](https://learn.microsoft.com/en-us/assessments/)
+- [Microsoft Assessments browse/catalogue page](https://learn.microsoft.com/en-us/assessments/browse/?page=1&pagesize=30)
+- [Microsoft Assessments FAQ — results page + CSV export](https://learn.microsoft.com/en-us/assessments/support/)
+- [Azure/WellArchitected-Tools — WARP/devops README](https://github.com/Azure/WellArchitected-Tools/tree/main/WARP/devops#readme)
+- [Azure_Well_Architected_Review_Sample.csv (raw)](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/Azure_Well_Architected_Review_Sample.csv)
+- [Complete an Azure Well-Architected Review assessment — specialized reviews list](https://learn.microsoft.com/en-us/azure/well-architected/design-guides/implementing-recommendations)
+- Unverifiable this session (flagged, not asserted): `https://learn.microsoft.com/en-us/assessments/media/resultspage.png` — returns HTTP 404 as of 2026-08-04, confirmed via direct `curl` fetch with response headers.
 
 ## Repo cross-reference
 

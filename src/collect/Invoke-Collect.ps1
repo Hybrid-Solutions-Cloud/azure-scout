@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
                      azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
                      privateEndpoints[{targetResourceId,targetProvider,targetType}] }
-        compute    { virtualMachines[{name,zoneRedundant,zoneEligible}],
+        compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType}],
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
                      avdSessionHosts[{hostPoolName,status,agentVersion}],
                      avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
@@ -356,8 +356,18 @@ resources
   )
 // `id` is projected for the cross-resource joins (AB#6835): "which VMs have no backup"
 // correlates this id against a backup protected item's sourceResourceId.
+// licenseType is how Azure Hybrid Benefit is expressed on a VM, and it is ABSENT from the
+// payload unless AHB is actually configured -- so an empty string here is the finding, not
+// missing data. Projected alongside osType because the benefit only applies to Windows
+// Server and to RHEL/SLES BYOS: without osType a rule cannot tell "eligible but not
+// claimed" (real money) from "Linux, never eligible" (noise). The legacy Excel inventory
+// path already surfaced this (manifests/collectors/Compute/VirtualMachine.psd1's "Hybrid
+// Benefit" column) but the assess pipeline reads collect.json, which never carried it --
+// which is why finops.review.yaml correctly reported it as uncollected. (AB#6928 follow-up)
 | project id, name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
-          size = tostring(properties.hardwareProfile.vmSize)
+          size = tostring(properties.hardwareProfile.vmSize),
+          licenseType = tostring(properties.licenseType),
+          osType = tostring(properties.storageProfile.osDisk.osType)
 '@
         orphanedDisks = @'
 resources | where type =~ "microsoft.compute/disks" and properties.diskState =~ "Unattached"

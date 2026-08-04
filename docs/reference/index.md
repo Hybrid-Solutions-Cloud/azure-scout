@@ -32,6 +32,7 @@ date before anyone noticed, which is why they are built this way now.
 | [Category Structure](./category-structure.md) | How the 18 categories are organised |
 | [Category Reference](./category-reference.md) | Every report section heading mapped to its category, aliases, and collector folder |
 | [Validation Matrix](./validation-matrix.md) | Which checks are verified by automated tests and which need a live tenant |
+| [React Report Section Contract](./react-report-section-contract.md) | The v6 page structure of the one supported deliverable, the register completeness rule, and what a section must satisfy so an assessment can be added without touching the shell |
 
 ## Reading a count on any page here
 
