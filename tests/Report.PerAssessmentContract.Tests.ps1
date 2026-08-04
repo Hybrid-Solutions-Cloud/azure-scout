@@ -166,3 +166,101 @@ Describe 'AB#6880 -- the cross-assessment executive roll-up (clause R-03)' {
         $ExecIndex | Should -BeGreaterThan $GuardIndex
     }
 }
+
+<#
+    AB#6928 follow-up, 2026-08-04 -- owner decision: ONE master React report file, not a
+    per-assessment set. This SUPERSEDES R-01 (per-assessment rendered documents) and R-03
+    (a separate roll-up deck) for RENDERED documents specifically -- the run-root report-react.html
+    already sections every selected assessment (Export-React groups by the Assessment property),
+    so a second copy per assessment folder duplicated data already in the one file. The
+    machine-readable findings.json / rollup.json data R-01/R-03 also produced is UNCHANGED and
+    still written -- only the rendered React copy is dropped. See Invoke-ScoutAssessmentCore.ps1's
+    own comment at the per-assessment block for the full reasoning.
+#>
+Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED documents (data is kept)' {
+    It 'the per-assessment renderer list explicitly excludes React' {
+        $script:Source | Should -Match "\`$perAssessmentReporters\s*=\s*@\(\`$reporters \| Where-Object \{ \`$_ -ne 'React' \}\)"
+        $script:Source | Should -Match 'foreach \(\$r in \$perAssessmentReporters\)'
+    }
+
+    It 'findings.json is still written per assessment, unconditionally -- not gated on any renderer running' {
+        # perScored/findings.json must appear BEFORE the "no reporters left" early-continue, so it
+        # writes even when React was the only format requested (perAssessmentReporters is then
+        # empty and nothing renders, but the data is still there).
+        $DataWrite = $script:Source.IndexOf('$perScored | ConvertTo-Json')
+        $EmptyGuard = $script:Source.IndexOf('if ($perAssessmentReporters.Count -eq 0) { continue }')
+        $DataWrite | Should -BeGreaterThan 0
+        $EmptyGuard | Should -BeGreaterThan $DataWrite
+    }
+
+    It 'the executive roll-up never renders React either, even if a future hold-lift reintroduces it to $reporters' {
+        $script:Source | Should -Match "\`$reporters -notcontains \`$r -or \`$r -eq 'React'"
+    }
+
+    It 'rollup.json is still written unconditionally, independent of the renderer loop below it' {
+        $RollupWrite = $script:Source.IndexOf('rollup.json')
+        $RenderLoop = $script:Source.IndexOf("foreach (`$r in @('Pptx', 'Pdf'))")
+        $RollupWrite | Should -BeGreaterThan 0
+        $RenderLoop | Should -BeGreaterThan $RollupWrite
+    }
+
+    It 'names R-01/AB#6879 and R-03/AB#6880 at the supersession comment, not a silent removal' {
+        $script:Source | Should -Match 'SUPERSEDED'
+        $script:Source | Should -Match 'R-01'
+        $script:Source | Should -Match 'AB#6879'
+    }
+
+    Context 'live end to end: a run selecting two assessments' {
+        BeforeAll {
+            $script:LiveRoot = Split-Path $PSScriptRoot -Parent
+            Import-Module "$script:LiveRoot/AzureScout.psd1" -Force -ErrorAction Stop
+            $script:LiveModule = Get-Module AzureScout | Where-Object { $_.ModuleBase -eq $script:LiveRoot } | Select-Object -First 1
+            $script:LiveFixture = "$script:LiveRoot/tests/datadump/sample-collect.json"
+            $script:LiveOut = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_MasterFile_" + [System.IO.Path]::GetRandomFileName())
+            $script:LiveRun = & $script:LiveModule {
+                param($Fixture, $OutPath)
+                Invoke-ScoutAssessmentCore -Assessment 'LandingZone', 'Assess: Security' -FromCollect $Fixture -OutputFormat React -OutputPath $OutPath
+            } $script:LiveFixture $script:LiveOut 3>$null
+        }
+        AfterAll {
+            if ($script:LiveOut -and (Test-Path $script:LiveOut)) {
+                Remove-Item $script:LiveOut -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It 'writes exactly one report-react.html at the run root' {
+            Test-Path (Join-Path $script:LiveRun 'report-react.html') | Should -BeTrue
+        }
+
+        It 'the run-root master file contains BOTH selected assessments as sections' {
+            $html = Get-Content (Join-Path $script:LiveRun 'report-react.html') -Raw
+            # Bounded by the literal marker (not a greedy `.*` regex, which over-matches into
+            # later <script> blocks that also contain `;` -- the same trap Export-React's own
+            # test helper (Get-EmbeddedPayload) already avoids).
+            $marker = 'window.__SCOUT_DATA__ = '
+            $start = $html.IndexOf($marker) + $marker.Length
+            $end = $html.IndexOf(';</script>', $start)
+            $start | Should -BeGreaterThan ($marker.Length - 1)
+            $end | Should -BeGreaterThan $start
+            $payload = $html.Substring($start, $end - $start) | ConvertFrom-Json -Depth 100
+            $names = @($payload.assessments.name)
+            $names | Should -Contain 'LandingZone'
+            $names | Should -Contain 'Assess: Security'
+        }
+
+        It 'writes findings.json per assessment (the data R-01 kept)' {
+            Test-Path (Join-Path $script:LiveRun 'assessments/landingzone/findings.json') | Should -BeTrue
+            Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/findings.json') | Should -BeTrue
+        }
+
+        It 'does NOT write a per-assessment report-react.html (the render R-01 dropped)' {
+            Test-Path (Join-Path $script:LiveRun 'assessments/landingzone/report-react.html') | Should -BeFalse
+            Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/report-react.html') | Should -BeFalse
+        }
+
+        It 'writes rollup.json but no executive report-react.html' {
+            Test-Path (Join-Path $script:LiveRun 'executive/rollup.json') | Should -BeTrue
+            Test-Path (Join-Path $script:LiveRun 'executive/report-react.html') | Should -BeFalse
+        }
+    }
+}

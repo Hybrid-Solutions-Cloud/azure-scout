@@ -52,9 +52,22 @@ same behaviour at a terminal.
 | | Inventory (default) | Assessment (`-Assessment`) |
 |:--|:--|:--|
 | Answers | "What's in my tenant?" | "How well does it conform to CAF/WAF?" |
-| Output | Excel, JSON, Markdown, AsciiDoc, Power BI CSVs | Scored `findings.json`, HTML, Power BI, PowerPoint, React, Excel evidence |
-| `-OutputFormat` | `All`, `Excel`, `Json`, `Markdown`, `AsciiDoc`, `PowerBI` | `Html`, `Pptx`, `React`, `Pdf`, `Word`, `EChartsDashboard`, `JsonEvidence`, plus `Excel`/`Json`/`PowerBI` |
+| Output | Excel, JSON, Markdown, AsciiDoc, Power BI CSVs | The React report (`report-react.html`), scored `findings.json`, `evidence.json` |
+| `-OutputFormat` | `All`, `Excel`, `Json`, `Markdown`, `AsciiDoc`, `PowerBI` | `React`, `Json`, `JsonEvidence`. `Html`, `Pptx`, `Pdf`, `Word`, `Excel`, `PowerBI`, `EChartsDashboard` still bind, but are **on hold** and are not rendered |
 | Full guide | [Usage Guide](./usage.md) | [Assessment mode](../assessment/assessment.md) |
+
+::: danger Assessment reporting: one deliverable
+The **React report is the one supported assessment deliverable**. Word, PDF, Excel, PowerPoint,
+Power BI, the standalone HTML renderer and the ECharts dashboard are **on hold** (**AB#6922**) —
+they are being rebuilt to generate *from* the React report rather than alongside it, so a document
+and the page it came from can never disagree. Export to Markdown, JSON, CSV, PDF (print) or a
+standalone HTML copy from the report page itself.
+
+Asking for a held format by name still binds: the run warns, skips it, and renders the React
+report, so a run never returns an empty folder. `Json` / `JsonEvidence` are data, not documents,
+and are never held. The inventory-mode formats in the left-hand column are a different pipeline
+and are unaffected. See [Report tiers](../assessment/configuration.md#report-tiers).
+:::
 
 Both modes are the same module, the same sign-in, and the same `-TenantID`, `-Scope`,
 `-Category`, and `-ReportDir` parameters. Mixing a format across modes fails with a message
@@ -97,7 +110,8 @@ so `Import-Module` rejects Windows PowerShell 5.1 outright.
 
 See [Prerequisites & Required Modules](./prerequisites.md) for the module list, and
 [Assessment Prerequisites](../assessment/assessment-prerequisites.md) for the extra dependencies the
-PowerPoint and PDF report tiers need.
+PowerPoint and PDF report tiers need — those tiers are currently on hold, so nothing in an
+assessment run needs them today.
 
 ## Assessment command migration
 

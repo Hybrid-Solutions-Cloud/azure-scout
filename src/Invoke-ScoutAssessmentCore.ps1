@@ -107,7 +107,16 @@ function Invoke-ScoutAssessmentCore {
         [switch]   $IncludeDevOps,
         [string[]] $DevOpsOrganization,
         [string]   $DevOpsPat,
-        [string]   $TenantID
+        [string]   $TenantID,
+        # AB#6930 -- operator-supplied report identity (clientName, engagementName,
+        # classification, etc.). Threaded verbatim to every Export-Report call below; unset keys
+        # fall back to Export-React's neutral defaults (never a vendor name or URL). See
+        # Get-ScoutReportIdentityDefault in src/report/renderers/Export-React.ps1.
+        [hashtable] $ReportIdentity = @{},
+        # AB#6928 follow-up -- which view lens the React report opens on first (see Export-Report/
+        # Export-React's own doc comments). Threaded to every Export-Report call below.
+        [ValidateSet('Executive', 'Consultant', 'Data')]
+        [string] $DefaultReportMode = 'Consultant'
     )
 
     # AB#6902: two runs started within the same second must not share a folder --
@@ -341,18 +350,36 @@ function Invoke-ScoutAssessmentCore {
         # a run that includes 'React' returns @(reportPath, runPath) and every
         # caller that expects a single run-folder path (incl. Invoke-ScoutPipeline)
         # breaks.
-        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift | Out-Null
+        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
     }
 
-    # ---- PER-ASSESSMENT REPORTS (AB#6879, clause R-01/R-02) ----
-    # The run root keeps the merged set, unchanged, so every existing caller and test that reads
-    # $runPath/assessment_report.docx still finds it. Alongside it, each selected assessment now
-    # gets its OWN complete report set under assessments/<slug>/.
+    # ---- PER-ASSESSMENT DATA (AB#6879, clause R-01/R-02 -- SUPERSEDED for rendered documents) ----
+    # Owner decision, 2026-08-04 (AB#6928 follow-up): "we have one master file that allows them to
+    # dig into the data and go into inventory, go into the assessments chosen ... each in the same
+    # overall react page, but separate pages inside that" -- then "ok. I am good with a single file
+    # then." The run-root React report already renders every selected assessment as its own
+    # section (Export-React groups findings by the `Assessment` property into `payload.
+    # assessments[]`), so a SEPARATE report-react.html per assessment folder is now a duplicate of
+    # data already in the master file, not a second deliverable.
     #
-    # Only when there is more than one: a single-assessment run would otherwise write the same
-    # documents twice, which is noise, not a deliverable.
+    # This SUPERSEDES clause R-01 ("a report set per assessment") for RENDERED documents only.
+    # R-01's underlying reason -- Phase 0's measurement that a single merged document made three
+    # unrelated tenants produce reports within 258 bytes of each other -- no longer applies: the
+    # merged React report's per-assessment sections carry each assessment's own score/areas/
+    # findings, so the "which assessment did what" signal R-01 existed to restore is now IN the
+    # one file, not achieved by writing more files.
+    #
+    # What is KEPT: each assessment's own findings.json under assessments/<slug>/ (machine-
+    # readable data, cheap to write, and the corpus harness / drift history / downstream tooling
+    # may read it independently of any rendered document -- same reasoning AB#6922 already applied
+    # to Json/JsonEvidence at the run-root level). What is DROPPED: rendering into that folder.
+    # 'React' is filtered out of the per-assessment renderer list explicitly (not by relying on
+    # $reporters being empty) so a future non-held renderer requested via -OutputFormat still
+    # writes its per-assessment copy exactly as before -- only the master-file-duplicating React
+    # render is removed.
     if (@($findingsByAssessment.Keys).Count -gt 1) {
         $assessmentRoot = Join-Path $runPath 'assessments'
+        $perAssessmentReporters = @($reporters | Where-Object { $_ -ne 'React' })
         foreach ($name in $findingsByAssessment.Keys) {
             $perFindings = @($findingsByAssessment[$name])
             if ($perFindings.Count -eq 0) { continue }
@@ -363,18 +390,21 @@ function Invoke-ScoutAssessmentCore {
             $perPath = Join-Path $assessmentRoot $slug
             $null = New-Item -ItemType Directory -Path $perPath -Force
 
-            # Scored INDEPENDENTLY. A per-assessment report must show that assessment's own score,
-            # not the run-wide one -- reusing $scored would print the same number in every folder
-            # and defeat the point of splitting them.
+            # Scored INDEPENDENTLY. The per-assessment findings.json must show that assessment's
+            # own score, not the run-wide one -- reusing $scored would print the same number in
+            # every folder and defeat the point of splitting them. Written unconditionally: this
+            # is the machine-readable data AB#6928 kept, independent of which (if any) document
+            # renderer is requested below.
             $perScored = Get-Score -Findings $perFindings
             $perScored | ConvertTo-Json -Depth 100 | Out-File "$perPath/findings.json"
 
+            if ($perAssessmentReporters.Count -eq 0) { continue }
             Write-ScoutAssessmentProgress -Status "Rendering: $name"
-            foreach ($r in $reporters) {
+            foreach ($r in $perAssessmentReporters) {
                 # Never fatal. One assessment's renderer failing must not cost the operator the
                 # other assessments' reports, nor the merged set already written above.
                 try {
-                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift | Out-Null
+                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
                 }
                 catch {
                     Write-Warning "Invoke-ScoutAssessmentCore: '$r' failed for assessment '$name': $($_.Exception.Message)"
@@ -382,16 +412,16 @@ function Invoke-ScoutAssessmentCore {
             }
         }
 
-        # ---- EXECUTIVE ROLL-UP (AB#6880, clause R-03) ----
-        # "Here is your estate, and here is how it scored across every framework assessed."
-        # Scout has never produced this artefact, and it is the one an executive actually reads:
-        # the per-assessment reports answer "how did Landing Zone do", but nobody was answering
-        # "how did we do overall, and which of these is the worst".
-        #
-        # It renders from the SAME merged $scored the run root uses -- this is a roll-up, not a
-        # re-assessment -- into executive/, next to the per-assessment folders. Deck and PDF only:
-        # the roll-up is the read-in-ten-minutes artefact, and shipping a full workbook and Power
-        # BI project beside it would bury the point.
+        # ---- EXECUTIVE ROLL-UP DATA (AB#6880, clause R-03 -- SUPERSEDED for rendered documents) ----
+        # Same owner decision as above: the run-root React report's per-assessment sections ARE
+        # the cross-assessment comparison ("how did we do overall, and which of these is the
+        # worst") the roll-up existed to provide -- reading every section of one file rather than
+        # a separate deck. rollup.json (machine-readable, same reasoning as findings.json above)
+        # is still written. The renderer loop below only ever named 'Pptx'/'Pdf' -- both already
+        # held under AB#6922 -- so it was not rendering React before this change either; the
+        # explicit exclusion here is defensive documentation, not a functional change, in case a
+        # future lift of the Pptx/Pdf hold (AB#6922 is a one-line-edit hold, not a removal) would
+        # otherwise silently reintroduce a duplicate roll-up document.
         $execPath = Join-Path $runPath 'executive'
         $null = New-Item -ItemType Directory -Path $execPath -Force
 
@@ -411,9 +441,9 @@ function Invoke-ScoutAssessmentCore {
 
         Write-ScoutAssessmentProgress -Status 'Rendering: executive roll-up'
         foreach ($r in @('Pptx', 'Pdf')) {
-            if ($reporters -notcontains $r) { continue }
+            if ($reporters -notcontains $r -or $r -eq 'React') { continue }
             try {
-                Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $execPath -Drift $drift | Out-Null
+                Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $execPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
             }
             catch {
                 Write-Warning "Invoke-ScoutAssessmentCore: '$r' failed for the executive roll-up: $($_.Exception.Message)"

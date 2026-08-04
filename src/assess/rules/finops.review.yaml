@@ -131,11 +131,18 @@ rules:
 
   - id: FINOPS-O04
     title: "Software licenses and prepaid SaaS products (including Azure Hybrid Benefit) are tracked and fully utilized"
-    severity: low
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm license/AHB tracking exists. No license/Azure-Hybrid-Benefit-flag field is collected by any current Scout collector."
-    manual: true
+    severity: medium
+    # Windows VMs with no licenseType are eligible for Azure Hybrid Benefit and are NOT claiming
+    # it -- each one is paying the Windows licence a second time. Azure omits licenseType from the
+    # payload entirely unless AHB is configured, so an empty string IS the finding, not missing
+    # data. osType filters to the Windows population because AHB does not apply to standard Linux;
+    # without it every Linux VM in the estate would surface as a false positive. Reader-scoped ARM
+    # data -- deliberately NOT behind the billing permission system or Az.CostManagement, so this
+    # scores on every run, including runs collected without -IncludeCosts.
+    query: "$.compute.virtualMachines[?(@.osType == 'Windows' && @.licenseType == '')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "Each VM listed is a Windows Server VM running without Azure Hybrid Benefit, so its Windows licence is being paid for twice where an eligible on-premises licence with Software Assurance exists. Set licenseType=Windows_Server on eligible VMs (Azure portal: VM > Configuration > Azure Hybrid Benefit, or `az vm update --license-type Windows_Server`). Confirm Software Assurance entitlement covers the count before claiming. RHEL/SLES BYOS carry their own licenseType values and are assessed separately."
+    manual: false
 
   - id: FINOPS-O05
     title: "Carbon emissions are measured alongside cost as part of cloud sustainability"

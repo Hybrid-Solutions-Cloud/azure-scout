@@ -105,6 +105,63 @@ format.
 
 ---
 
+## 5. Microsoft ALZ Review results page — the KBR example (added 2026-08-04)
+
+**Where:** owner-supplied PDF (`Azure Landing Zone Review - KBR`, Desktop) + screenshots of the
+live Learn assessments results page. Owner: *"do not have to copy exactly but this gives you an
+idea."*
+
+**What to take — the results presentation pattern:**
+- **Overall result as a banded gauge**: one horizontal bar divided CRITICAL 0–67 / MODERATE
+  67–133 / EXCELLENT 133–200 with a tick marker at *your* score ("Your result: 100/200"), a band
+  chip ("MODERATE"), and a one-line verdict in words: *"Almost there. You have some room to
+  improve but you are on track."* The band thresholds are visible — the reader sees where the
+  next band starts.
+- **"Categories that influenced your results"**: one compact tri-colour band bar PER design area
+  (8 CAF areas + About-your-organization), each with its own tick marker and band label
+  (EXCELLENT / MODERATE / CRITICAL) — nine areas comparable at a glance in one panel.
+- **"Improve your results" — recommendations grouped by category**, each category block carrying:
+  band chip, its own results-breakdown gauge ("Your result: 8/10"), then a table of
+  **Recommendation (linked to Learn) | Priority | Notes** with a checkbox per row and an
+  "Add a Note" affordance — the results page doubles as a working checklist.
+- Filterable (All/…), **Export to CSV**, and 3-up next-step cards (accelerator, CAF guide,
+  partner) at the top.
+
+**Scout mapping:** the banded gauge + per-area band bars fit Executive mode and the consultant
+domain scorecard directly (we already show arithmetic; add the band thresholds and verdict
+sentence). The per-category recommendation table with Priority + Notes maps to our
+findings-by-area, and a notes column that survives into CSV/Word export turns the report into
+the working document the engagement actually uses. Our differentiator stays: theirs is
+questionnaire-answered, ours is measured from the tenant.
+
+## 6. Azure Local Documenter — inventory page screenshots (added 2026-08-04)
+
+**Where:** owner-supplied screenshots of the Get-to-the-Cloud Azure Local Documenter running
+(Overview + Cost Analysis pages). Owner: *"here are some examples for the inventory.. there is a
+lot of improvements you can do using react."*
+
+**What to take — the inventory presentation patterns:**
+- **A per-category educational intro block** ("About Azure Local: …key components…") — two
+  sentences of *what this technology is* before the data. Makes the inventory a document a
+  customer learns from, not just a listing. Ours: short intro per category (what VNets are for /
+  what to look for), collapsible.
+- **Icon KPI card grid as the overview**: one card per category — icon, big count, label,
+  clickable through to the section (2 Clusters · 6 Nodes · 36 Logical Networks…). Better landing
+  than a table of counts.
+- **The "Cost Optimization Opportunity" callout**: a visually distinct card that QUANTIFIES the
+  saving ("By enabling Azure Hybrid Benefit on all nodes you could save Monthly $1,920 /
+  Yearly $23,040") and ends with an explicit **Action:** line. Maps directly onto our new AHB
+  rule — we can compute the same savings estimate from core counts.
+- **Arithmetic visible on every number**: "$1920.00 · Based on $10/core/month",
+  "1920.00 × 12 months", "0 of 6 nodes enabled". Same principle as our score formulas, applied
+  to cost.
+- **Status chips inside inventory tables** (amber "✗ NOT ENABLED" per node row) — state is
+  legible per row, not only in a summary.
+- **Provenance footer**: "Pricing as of 2024-03-04 … view official pricing" — every derived
+  number carries its as-of date and source link.
+- Header bar: "Last updated" timestamp + prominent **Export PDF**; connection banner naming the
+  account and subscription the data came from.
+
 ## The standing instruction
 
 > "All these examples… I want you to design and create a solution that provides more details,

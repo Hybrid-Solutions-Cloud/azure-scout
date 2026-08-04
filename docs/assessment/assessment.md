@@ -28,6 +28,7 @@ useful. This page is about assessment. For the resources themselves, run
 PowerShell 5.1 outright. Assessment mode additionally needs modules the
 inventory auto-install list does not cover, plus a `.NET SDK` for the
 PowerPoint tier — see [Assessment Prerequisites](./assessment-prerequisites.md).
+The PowerPoint tier is currently on hold, so the `.NET SDK` is not needed for a run today.
 :::
 
 ::: info One command
@@ -319,6 +320,18 @@ sync with what its `Rules` actually reference.
 
 ### `-OutputFormat` — one example per tier
 
+::: danger The React report is the one supported deliverable
+Only `React`, `Json` and `JsonEvidence` are emitted today. `PowerBi`, `Html`, `Pptx`, `Excel`,
+`Word`, `Pdf`, `EChartsDashboard` and `GovernanceReport` are **on hold** (**AB#6922**) — the
+renderers still exist and are still tested, but they are being rebuilt to generate *from* the
+React report rather than alongside it, so a document and the page it came from can never disagree.
+
+Every command below still binds. A held format warns, is skipped, and the React report is rendered
+instead, so a run never returns an empty folder. Export to Markdown, JSON, CSV, PDF (print) or a
+standalone HTML copy **from the React report page itself**. See
+[Report tiers](./configuration.md#report-tiers).
+:::
+
 ```powershell
 Invoke-AzureScout -Assessment LandingZone -OutputFormat PowerBi
 Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
@@ -333,11 +346,16 @@ Invoke-AzureScout -Assessment LandingZone -OutputFormat Pdf
 Invoke-AzureScout -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
 ```
 
-`-OutputFormat` also accepts an array (`-OutputFormat Html,Pptx`). `React`
-produces a single self-contained `report-react.html`; `Word`, `EChartsDashboard`,
-and `Pdf` are three more self-contained tiers added in v2.2.0 — see
-[Report tiers](#report-tiers) below — and all are also available on
-`Invoke-ScoutPipeline` via its own `-OutputFormat` parameter.
+`-OutputFormat` also accepts an array (`-OutputFormat React,Json`). `React`
+produces a single self-contained `report-react.html` — a multi-page application in one file
+(Overview, Inventory & audit, Assessments and a full conformance register per assessment,
+Diagrams, Data & drift, Remediation plan) with an Executive / Consultant / Data view-depth
+toggle, a light/dark theme toggle, and Markdown / JSON / CSV / Print / standalone-HTML exports.
+Its structure is normative — see
+[the React report section contract](../reference/react-report-section-contract.md).
+`Word`, `EChartsDashboard` and `Pdf` were self-contained tiers added in v2.2.0 and are now held —
+see [Report tiers](./configuration.md#report-tiers). The same `-OutputFormat` parameter is
+available on `Invoke-ScoutPipeline`.
 
 ### `-OutputPath`
 

@@ -377,7 +377,17 @@ Function Invoke-AzureScout {
         [Alias('ADOOrganization')]
         [string[]]$DevOpsOrganization,
         [Alias('ADOPat')]
-        [string]$DevOpsPat
+        [string]$DevOpsPat,
+        # AB#6930 -- operator-supplied report identity for the React report (clientName,
+        # engagementName, classification, preparedBy, etc.). Only meaningful with -Assessment
+        # (or -CollectOnly/-FromCollect, which route to the same assessment core below); unset
+        # keys fall back to neutral defaults, never a vendor name or URL. See
+        # Get-ScoutReportIdentityDefault in src/report/renderers/Export-React.ps1.
+        [hashtable]$ReportIdentity = @{},
+        # AB#6928 follow-up -- which view lens the React report opens on first (Executive/
+        # Consultant/Data) when the browser has nothing persisted yet. Default Consultant.
+        [ValidateSet('Executive', 'Consultant', 'Data')]
+        [string]$DefaultReportMode = 'Consultant'
         )
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
@@ -603,6 +613,8 @@ Function Invoke-AzureScout {
         if ($DevOpsOrganization)                            { $assessArgs.DevOpsOrganization = $DevOpsOrganization }
         if ($DevOpsPat)                                     { $assessArgs.DevOpsPat = $DevOpsPat }
         if ($TenantID)                                      { $assessArgs.TenantID = $TenantID }
+        if ($ReportIdentity -and $ReportIdentity.Count -gt 0) { $assessArgs.ReportIdentity = $ReportIdentity }
+        if ($PSBoundParameters.ContainsKey('DefaultReportMode')) { $assessArgs.DefaultReportMode = $DefaultReportMode }
 
         # "Both" from the wizard: DEFER the assessment until after the inventory pass instead of
         # running it now (AB#5543). Running it here made the command collect from Azure twice —

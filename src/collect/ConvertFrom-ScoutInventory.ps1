@@ -441,6 +441,13 @@ function ConvertFrom-ScoutInventory {
                 zoneRedundant  = ($null -ne $zoneCount -and $zoneCount -gt 0)
                 zoneEligible   = $zoneEligibleRegions -contains ([string] (Get-ScoutProp $_ 'location')).ToLowerInvariant()
                 size           = [string] (Get-ScoutProp $_ 'properties.hardwareProfile.vmSize')
+                # Must mirror Invoke-Collect.ps1's virtualMachines KQL projection field for
+                # field -- a combined inventory + assessment run shapes VMs HERE instead, and a
+                # rule that reads licenseType would silently see nothing on that path. Empty
+                # string means AHB is not configured (Azure omits licenseType entirely unless
+                # set), which is the finding itself, not absent data.
+                licenseType    = [string] (Get-ScoutProp $_ 'properties.licenseType')
+                osType         = [string] (Get-ScoutProp $_ 'properties.storageProfile.osDisk.osType')
             }
         }
     )

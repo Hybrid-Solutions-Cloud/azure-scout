@@ -93,6 +93,7 @@ export default defineConfig({
           { text: 'Category Structure', link: '/reference/category-structure' },
           { text: 'Category Reference', link: '/reference/category-reference' },
           { text: 'Validation Matrix', link: '/reference/validation-matrix' },
+          { text: 'React Report Section Contract', link: '/reference/react-report-section-contract' },
         ],
       },
       {

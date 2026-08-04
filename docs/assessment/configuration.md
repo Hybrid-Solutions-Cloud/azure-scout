@@ -31,23 +31,31 @@ assessment.
 
 ## Report tiers
 
-> **The React report is the deliverable. Every other rendered format is _coming soon_.**
->
-> Azure Scout now produces **one** report: a self-contained single-page HTML/React document that
-> hosts the inventory and every assessment behind one adaptive shell, and exports to PDF, Word,
-> Markdown and CSV from the page itself. The standalone document renderers are being rebuilt to
-> generate **from** that report rather than alongside it, and are on hold in the meantime
-> (**AB#6922**).
->
-> Asking for a held format by name still binds — the run warns, skips it, and renders the React
-> report so you always get a deliverable. `-OutputFormat All` renders the React report plus the
-> machine-readable data exports.
+::: danger The React/HTML report is the one supported deliverable
+**Word, PDF, Excel, PowerPoint, Power BI, the standalone HTML renderer, the ECharts dashboard and
+the governance-report renderer are ON HOLD (AB#6922) and are not emitted.**
+
+Azure Scout produces **one** report: a self-contained HTML/React document — a multi-page
+application in a single file — that hosts the inventory and every assessment behind one shell, and
+exports to Markdown, JSON, CSV, PDF (print) and a standalone HTML copy **from the page itself**.
+The standalone document renderers still exist and are still tested, but they are being rebuilt to
+generate **from** that report rather than alongside it, so a document and the page it came from
+can never disagree.
+
+Asking for a held format by name still binds — the run warns, skips it, and renders the React
+report so you always get a deliverable. `-OutputFormat All` renders the React report plus the
+machine-readable data exports. `Json` / `JsonEvidence` are data, not documents, and are never
+held.
+
+The report's structure is normative — see
+[the React report section contract](../reference/react-report-section-contract.md).
+:::
 
 ### Available now
 
 | Tier | Output | Notes |
 |------|--------|-------|
-| **React** | `report-react.html` | **The deliverable.** Self-contained (CSS/JS inline, findings embedded as a JSON blob, no external/CDN requests). Adaptive navigation built from what actually ran — inventory only, inventory + Entra, or inventory + assessments with per-assessment detail. Each assessment answers what was run, what was found, and what to fix against CAF/WAF, with every score shown alongside its own arithmetic and what was excluded from the denominator. VNet topology and MG-hierarchy diagrams, KPI cards, governance section, per-section search/filter, sortable findings with evidence drill-down, and a Drift tab (see [Cross-run drift](#cross-run-drift)). |
+| **React** | `report-react.html` | **The deliverable.** Self-contained (CSS/JS inline, findings embedded as a JSON blob, no external/CDN requests) and a multi-page application in one file: **Overview**, **Inventory & audit** (a blade per Azure portal category), **Assessments** (landing tiles into a full conformance register per assessment), **Diagrams**, **Data & drift**, and a **Remediation plan**. Navigation is built from what actually ran. An **Executive / Consultant / Data** view-depth toggle, a light/dark theme toggle, and exports to Markdown, JSON, findings CSV, evidence CSV, Print/PDF and a standalone HTML copy. Every register lists every check — passes, fails and manual questions — with a gap block for each fail carrying its evidence, why it matters, a numbered fix and a Microsoft Learn link, and every score shown alongside its own arithmetic and what was excluded from the denominator. See [Cross-run drift](./analysis-features.md#cross-run-drift) and [the section contract](../reference/react-report-section-contract.md). |
 | JSON | `findings.json` | The machine-readable contract — full assessment metadata, scores, and findings. Data, not a document; never held. |
 | JSON evidence | `evidence.json` (`Export-JsonEvidence`) | Resources-only export of the raw `collect.json` data (**AB#396**) — no assessment metadata, scores, or findings. For callers that just want the discovered resources as JSON. |
 
