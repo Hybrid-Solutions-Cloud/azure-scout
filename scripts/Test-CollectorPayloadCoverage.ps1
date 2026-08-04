@@ -72,6 +72,52 @@ foreach ($m in $queryMatches) {
 "Assessment-collect keys found: $($queryMatches.Count)"
 "Distinct resource types referenced: $($typeToKeys.Count)"
 
+# ---- 1b. the 40 synthetic-AZSC/* collectors, resolved by hand against Invoke-Collect.ps1's own
+# canonical payload-shape doc (lines 19-73 of that file), not left as "needs manual check".
+# None of these are `type =~` KQL filters (they're ARM-child sweeps or a legacy subscription-wide
+# security/policy sweep), so the static regex above can never see them -- this table is the
+# result of actually reading the canonical shape comment and the governance/keyvault wiring code
+# (the raw-governance pass at ~line 1065, the KeyVault ARM-child sweep at ~line 1309,
+# Get-ScoutDefenderPlanSweep at ~line 1383) and matching each collector to a real verdict.
+$syntheticVerdicts = @{
+    'azsc/armchild/arcsites'                       = @{ Wired=$true;  Reason='canonical shape line 53: hybrid.arcSites[] -- always present as a key, populated when -IncludeAzureLocalArm is passed (AB#6803)' }
+    'azsc/armchild/azurelocalvirtualmachineinstances' = @{ Wired=$true;  Reason='canonical shape line 53: hybrid.azureLocalVirtualMachineInstances[] -- same -IncludeAzureLocalArm gate as arcSites' }
+    'azsc/governance/roleassignment'               = @{ Wired=$true;  Reason='canonical shape line 34: governance.roleAssignments[] -- filled by the raw-governance pass, Invoke-Collect.ps1 ~line 1065' }
+    'azsc/management/subscriptionenrichment'       = @{ Wired=$true;  Reason='canonical shape line 20: top-level subscriptions[] IS the subscription-enrichment data this collector reads' }
+    'azsc/armchild/backupinstances'                = @{ Wired=$true;  Reason='canonical shape line 31: management.recoveryVaults[{backupItems[]}] -- backupItems is this data under the vault' }
+    'azsc/governance/budget'                       = @{ Wired=$true;  Reason='canonical shape line 34: governance.budgets[] -- filled by the raw-governance pass' }
+    'azsc/management/managementgroup'              = @{ Wired=$true;  Reason='canonical shape line 34: governance.managementGroups[]' }
+    'azsc/governance/policyassignment'             = @{ Wired=$true;  Reason='canonical shape line 34: governance.policyAssignments[] -- filled by the raw-governance pass' }
+    'azsc/governance/resourcelock'                 = @{ Wired=$true;  Reason='canonical shape line 34: governance.resourceLocks[] -- filled by the raw-governance pass' }
+    'azsc/armchild/keyvaultkeys'                   = @{ Wired=$true;  Reason='canonical shape line 48: security.keyVaultKeys[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821)' }
+    'azsc/armchild/keyvaultsecrets'                 = @{ Wired=$true;  Reason='canonical shape line 47: security.keyVaultSecrets[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821)' }
+
+    'azsc/armchild/mlcomputes'                     = @{ Wired=$false; Reason='canonical shape documents ai.mlWorkspaces[] only (workspace-level scalars); no mlComputes child key exists in the payload' }
+    'azsc/armchild/mldatasets'                     = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child datasets key' }
+    'azsc/armchild/mldatastores'                   = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child datastores key' }
+    'azsc/armchild/mlendpoints'                    = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child endpoints key' }
+    'azsc/armchild/mlmodels'                       = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child models key' }
+    'azsc/armchild/mlpipelines'                    = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child pipelines key' }
+    'azsc/armchild/openaideployments'              = @{ Wired=$false; Reason='canonical shape documents ai.cognitiveAccounts[] at the account level only; no deployments child key' }
+    'azsc/armchild/searchindexes'                  = @{ Wired=$false; Reason='canonical shape documents ai.searchServices[] at the service level only; no indexes child key' }
+    'azsc/armchild/avdapplications'                = @{ Wired=$false; Reason='canonical shape documents compute.avdHostPools/avdSessionHosts/avdScalingPlans only; no avdApplications key' }
+    'azsc/avd/azurelocalsessionhost'               = @{ Wired=$false; Reason='canonical shape has compute.avdSessionHosts[] as a generic key; the Azure-Local-hosted variant this collector targets is not separately wired' }
+    'azsc/vm/quotas'                               = @{ Wired=$false; Reason='not in the canonical payload shape at all -- quotas are not part of the assessment collect contract' }
+    'azsc/armchild/reservationutilization'         = @{ Wired=$false; Reason='canonical shape documents finops.reservations[]/reservationRecommendations[] only; no per-reservation utilization key' }
+    'azsc/management/roledefinition'               = @{ Wired=$false; Reason='canonical shape documents governance.roleAssignments[] only; custom role DEFINITIONS (as opposed to assignments) are not wired' }
+    'azsc/subscription/securitypolicysweep'        = @{ Wired=$false; Reason='canonical shape documents security.defenderPlans[] only (Get-ScoutDefenderPlanSweep); this legacy subscription-wide sweep type covers 6 manifests (Defender alerts/assessments/pricing/secure-score, policy compliance states, subscription diagnostic settings) and NONE of that additional detail reaches the payload -- only the bare plan list does' }
+    'azsc/management/policydefinition'             = @{ Wired=$false; Reason='canonical shape documents governance.policyAssignments[] only; the DEFINITIONS behind an assignment are not wired -- matches AB#7066 exactly' }
+    'azsc/management/policysetdefinition'          = @{ Wired=$false; Reason='same as PolicyDefinitions -- initiative (policy SET) definitions are not wired, matches AB#7066' }
+    'azsc/armchild/appinsightsproactivedetection'  = @{ Wired=$false; Reason='not in the canonical payload shape -- no AppInsights child-detail keys are wired at all' }
+    'azsc/armchild/laworkspacelinkedservices'      = @{ Wired=$false; Reason='canonical shape documents management.logAnalyticsWorkspaces[{retentionInDays}] only; no linked-services child key' }
+    'azsc/armchild/laworkspacesavedsearches'       = @{ Wired=$false; Reason='canonical shape documents management.logAnalyticsWorkspaces[{retentionInDays}] only; no saved-searches child key' }
+    'azsc/monitor/outage'                          = @{ Wired=$false; Reason='not in the canonical payload shape at all -- no outages key is wired' }
+    'azsc/armchild/resourcediagnosticsettings'     = @{ Wired=$false; Reason='opsPosture.diagnosticCoverage[] is an aggregate coverage PERCENTAGE only, not per-resource diagnostic settings -- matches AB#7064 exactly' }
+    'azsc/armchild/storageblobcontainers'          = @{ Wired=$false; Reason='canonical shape documents domains.storage.storageAccounts[{networkDefaultDeny}] at the account level only; no blob-container child key' }
+    'azsc/armchild/storagefileshares'              = @{ Wired=$false; Reason='canonical shape documents storageAccounts[] at the account level only; no file-share child key' }
+    'azsc/armchild/storagelifecyclepolicies'       = @{ Wired=$false; Reason='canonical shape documents storageAccounts[] at the account level only; no lifecycle-policy child key' }
+}
+
 # ---- 2b. optional: real per-type row counts from a live tenant ----------------------------
 $liveCounts = $null
 if ($LiveTypeCounts) {
@@ -99,14 +145,22 @@ $rows = foreach ($m in $manifests) {
     # AZSC/* is not an ARM resource type at all -- it's this codebase's own marker for a
     # collector that runs an ARM-child sweep (Get-ScoutArmChildResource) or a synthetic
     # subscription-level sweep (e.g. the Defender security-policy walk), neither of which is a
-    # `type =~` KQL filter Invoke-Collect.ps1 could ever match. A manifest built that way is
-    # NEITHER wired nor not-wired by this check -- it is simply unanswerable by this method, and
-    # reporting it as NOT WIRED would be a false claim of a gap that may not exist.
+    # `type =~` KQL filter Invoke-Collect.ps1 could ever match. These are resolved from
+    # $syntheticVerdicts (hand-checked against Invoke-Collect.ps1's own canonical payload-shape
+    # doc), NOT left as an unresolved flag -- every one of the 242 gets a real verdict and reason.
     $nonSyntheticTypes = @($types | Where-Object { -not $_.StartsWith('azsc/') })
     $isSynthetic = ($types.Count -gt 0) -and ($nonSyntheticTypes.Count -eq 0)
 
-    $status = if ($isSynthetic) { 'NEEDS MANUAL CHECK (synthetic type)' }
-              elseif ($hitKeys.Count -gt 0) { 'WIRED' } else { 'NOT WIRED' }
+    $reason = ''
+    $status = if ($isSynthetic) {
+        $verdict = $null
+        foreach ($t in $types) { if ($syntheticVerdicts.ContainsKey($t)) { $verdict = $syntheticVerdicts[$t]; break } }
+        if (-not $verdict) { throw "Synthetic type(s) '$($types -join ', ')' on $category/$($m.BaseName) has no entry in `$syntheticVerdicts -- resolve it by hand and add one; do not let a manifest fall through to an unverdicted state." }
+        $reason = $verdict.Reason
+        if ($verdict.Wired) { 'WIRED' } else { 'NOT WIRED' }
+    }
+    elseif ($hitKeys.Count -gt 0) { $reason = "queried via collect key(s): $($hitKeys -join ', ')"; 'WIRED' }
+    else { $reason = 'resource type never appears in Invoke-Collect.ps1 -- no collect key, no ARM-child sweep, no synthetic wiring references it'; 'NOT WIRED' }
 
     $liveRowCount = $null
     if ($liveCounts -and $status -eq 'NOT WIRED') {
@@ -120,18 +174,17 @@ $rows = foreach ($m in $manifests) {
         Name          = $m.BaseName
         ResourceTypes = ($types -join '; ')
         Status        = $status
+        Reason        = $reason
         CollectKeys   = ($hitKeys -join ', ')
         LiveRows      = $liveRowCount
     }
 }
 
-$wired     = @($rows | Where-Object Status -eq 'WIRED')
-$notWired  = @($rows | Where-Object Status -eq 'NOT WIRED')
-$synthetic = @($rows | Where-Object Status -like 'NEEDS MANUAL CHECK*')
+$wired    = @($rows | Where-Object Status -eq 'WIRED')
+$notWired = @($rows | Where-Object Status -eq 'NOT WIRED')
 
-"`n=== WIRED -- resource type(s) queried in Invoke-Collect.ps1: $($wired.Count) of $($rows.Count) ==="
-"=== NOT WIRED (confirmed gap, real ARM type absent from the assessment collect): $($notWired.Count) of $($rows.Count) ==="
-"=== NEEDS MANUAL CHECK -- synthetic AZSC/* type, this method cannot answer: $($synthetic.Count) of $($rows.Count) ==="
+"`n=== WIRED -- resource type(s) reach the assessment collect: $($wired.Count) of $($rows.Count) ==="
+"=== NOT WIRED -- confirmed gap, with a reason for every one: $($notWired.Count) of $($rows.Count) ==="
 if ($liveCounts) {
     $liveConfirmed = @($notWired | Where-Object { $_.LiveRows -gt 0 })
     "=== OF THE NOT-WIRED GAP, CONFIRMED LIVE IN $($LiveTenantLabel.ToUpper()) RIGHT NOW: $($liveConfirmed.Count) of $($notWired.Count) ==="
@@ -148,11 +201,9 @@ if ($OutputPath) {
     [void]$md.AppendLine()
     [void]$md.AppendLine("Generated by ``scripts/Test-CollectorPayloadCoverage.ps1``. Static cross-reference of every collector manifest's `ResourceTypes` against the resource types Invoke-Collect.ps1 (the assessment collect feeding the React report) actually queries.")
     [void]$md.AppendLine()
-    [void]$md.AppendLine("**$($rows.Count) manifests total -- $($wired.Count) WIRED, $($notWired.Count) NOT WIRED (confirmed), $($synthetic.Count) NEEDS MANUAL CHECK.**")
+    [void]$md.AppendLine("**$($rows.Count) manifests total -- $($wired.Count) WIRED, $($notWired.Count) NOT WIRED. Every manifest carries a verdict and a reason** -- collectors declaring a synthetic `AZSC/*` type (an ARM-child sweep or a subscription-level sweep) are resolved by hand against Invoke-Collect.ps1's own canonical payload-shape documentation (its file header, lines 19-73) rather than left unresolved.")
     [void]$md.AppendLine()
     [void]$md.AppendLine('This answers "is the plumbing there", not "does it return rows in a real tenant" -- see `scripts/Invoke-CorpusCoverage.ps1` for the second question, which only applies once a key is wired.')
-    [void]$md.AppendLine()
-    [void]$md.AppendLine('**NEEDS MANUAL CHECK** collectors declare a synthetic `AZSC/*` type (an ARM-child sweep via `Get-ScoutArmChildResource`, or a subscription-level sweep like the Defender security-policy walk) rather than a real ARM resource type. Neither is a `type =~` KQL filter, so this static method cannot determine whether they reach the payload through some other path -- do not read these as confirmed gaps.')
     [void]$md.AppendLine()
     if ($liveCounts) {
         $liveConfirmed = @($notWired | Where-Object { $_.LiveRows -gt 0 })
@@ -172,25 +223,26 @@ if ($OutputPath) {
     foreach ($g in $byCat) {
         [void]$md.AppendLine("### $($g.Name) ($($g.Count))")
         [void]$md.AppendLine()
-        [void]$md.AppendLine('| Collector | Resource types | Live rows |')
-        [void]$md.AppendLine('|---|---|---|')
+        [void]$md.AppendLine('| Collector | Resource types | Reason | Live rows |')
+        [void]$md.AppendLine('|---|---|---|---|')
         foreach ($r in ($g.Group | Sort-Object Name)) {
             $liveCell = if ($null -ne $r.LiveRows) { $r.LiveRows } else { '' }
-            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` | $liveCell |")
+            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` | $($r.Reason) | $liveCell |")
         }
         [void]$md.AppendLine()
     }
 
-    [void]$md.AppendLine('## Needs manual check (synthetic type), by category')
+    [void]$md.AppendLine('## Wired via a synthetic type (ARM-child sweep or subscription-wide sweep), by category')
     [void]$md.AppendLine()
-    $byCatSynthetic = $synthetic | Group-Object Category | Sort-Object Name
-    foreach ($g in $byCatSynthetic) {
+    $wiredSynthetic = @($wired | Where-Object { $_.ResourceTypes -match '^azsc/' })
+    $byCatWiredSynthetic = $wiredSynthetic | Group-Object Category | Sort-Object Name
+    foreach ($g in $byCatWiredSynthetic) {
         [void]$md.AppendLine("### $($g.Name) ($($g.Count))")
         [void]$md.AppendLine()
-        [void]$md.AppendLine('| Collector | Synthetic type |')
-        [void]$md.AppendLine('|---|---|')
+        [void]$md.AppendLine('| Collector | Synthetic type | Reason |')
+        [void]$md.AppendLine('|---|---|---|')
         foreach ($r in ($g.Group | Sort-Object Name)) {
-            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` |")
+            [void]$md.AppendLine("| ``$($r.Name)`` | ``$($r.ResourceTypes)`` | $($r.Reason) |")
         }
         [void]$md.AppendLine()
     }
