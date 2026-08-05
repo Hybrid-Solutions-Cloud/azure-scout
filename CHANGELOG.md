@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Azure Update Manager and Azure Policy definitions now reach the assessment payload**
+  (AB#7065, AB#7066 — Story AB#7059, Feature AB#7069). `management.maintenanceConfigurations`
+  and `governance.policyDefinitions` / `governance.policySetDefinitions` were collected by
+  their manifests but never reached `collect.json`; both are wired now, the latter two at
+  zero extra Azure calls (reused from the existing `TenantWideDefinitionsOnly` sweep). A new
+  regression test (AB#7067) pins all three keys through both collection paths. Collector
+  payload-wiring coverage moves from 77/242 to 80/242 — see
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
