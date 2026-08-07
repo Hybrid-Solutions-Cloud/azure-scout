@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Azure Local child resources now reach the assessment payload.** A cluster showed as a
+  single row in the report with none of its child resources — the collector manifests
+  already existed and are ARG-indexed, but the assessment collect never queried them.
+  `collect.domains.hybrid.*` now includes `arcDataControllers`, `arcGateways`,
+  `arcKubernetes`, `arcResourceBridge`, `arcSQLManagedInstances`, `arcSQLServers`,
+  `galleryImages`, `marketplaceGalleryImages`, `storageContainers`. AB#7061.
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
