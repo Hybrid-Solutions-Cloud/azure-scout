@@ -29,13 +29,28 @@ $ErrorActionPreference = 'Stop'
                      privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
                                      expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
-                     logAnalyticsWorkspaces[{retentionInDays}] }
+                     logAnalyticsWorkspaces[{retentionInDays}],
+                     maintenanceConfigurations[{scope,recurEvery,startDateTime,duration,
+                                                 timeZone,rebootSetting}] }               (AB#7065)
         security   { defenderPlans[] }
-        governance { managementGroups[], policyAssignments[], roleAssignments[], budgets[],
-                     resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the native Governance ingestor, Import-Governance)
+        governance { managementGroups[], policyAssignments[], policyDefinitions[],
+                     policySetDefinitions[], roleAssignments[], budgets[],
+                     resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the
+                     native Governance ingestor, Import-Governance; policyDefinitions/
+                     policySetDefinitions are the raw ARM REST list rows behind the
+                     AZSC/Management/PolicyDefinition|PolicySetDefinition envelopes the
+                     TenantWideDefinitionsOnly sweep already collects -- AB#7066)
         costCleanup { orphanedDisks[], orphanedPips[] }
         opsPosture  { diagnosticCoverage[{type,coveragePct}] }
-        monitor     { appInsights[{applicationType,flowType,retentionInDays,samplingPercentage,
+        monitor     { dataCollectionRules[{dataCollectionEndpointId,hasLogAnalyticsDestination,dataFlowCount,immutableId}],
+                      dataCollectionEndpoints[{publicNetworkAccess,configurationAccessEndpoint,immutableId}],
+                      actionGroups[{enabled,groupShortName,emailReceiverCount,smsReceiverCount,webhookReceiverCount}],
+                      autoscaleSettings[{enabled,targetResourceUri,profileCount}],
+                      metricAlertRules[{enabled,severity,autoMitigate,scopeCount,actionGroupCount}],
+                      scheduledQueryRules[{enabled,severity,autoMitigate,kind,scopeCount}],
+                      activityLogAlertRules[{enabled,scopeCount,actionGroupCount}],
+                      smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}],
+                      appInsights[{applicationType,flowType,retentionInDays,samplingPercentage,
                                     ingestionMode,publicNetworkAccessForIngestion,publicNetworkAccessForQuery}],
                       workbooks[{kind,category,sourceId,version}],
                       privateLinkScopes[{accessMode,ingestionAccessMode,privateEndpointConnectionCount,
@@ -43,18 +58,15 @@ $ErrorActionPreference = 'Stop'
                       workspaceSolutions[{workspaceResourceId,planName,planPublisher,planProduct}],
                       appInsightsAvailabilityTests[{kind,enabled,frequency,timeoutSeconds,
                                                      syntheticMonitorId,testLocationCount}] }   (AB#7064,
-                      Story AB#7059, Feature AB#7069 -- the five remaining `manifests/collectors/
-                      Monitor/*.psd1` collectors the Monitor(20) coverage table listed as "not
-                      wired": AppInsights, MonitorWorkbooks, MonitorPrivateLinkScopes,
-                      LAWorkspaceSolutions, and the AppInsightsAvailabilityTests/AppInsightsWebTests
-                      pair -- the latter two share one ARM type, `microsoft.insights/webtests`, and
-                      are distinguished only by `AdditionalFilter` in their manifests
-                      (AvailabilityTests has none, i.e. every Kind; WebTests filters
-                      `KIND -eq 'standard'`), so they combine into one
+                      Story AB#7059, Feature AB#7069 -- ordinary ARG-indexed Monitor types the
+                      Monitor(20) coverage table listed as "not wired"; sits alongside
+                      `opsPosture`/`management`, not folded into either. The
+                      AppInsightsAvailabilityTests/AppInsightsWebTests pair share one ARM type,
+                      `microsoft.insights/webtests`, distinguished only by `AdditionalFilter` in
+                      their manifests (AvailabilityTests has none, i.e. every Kind; WebTests
+                      filters `KIND -eq 'standard'`), so they combine into one
                       `appInsightsAvailabilityTests` query carrying `kind` per row rather than two
-                      separate ARG round-trips over the same rows. Sits alongside the eight-type
-                      `monitor` section wired separately under AB#7064's first slice, same
-                      top-level key)
+                      separate ARG round-trips over the same rows)
         domains     { storage{storageAccounts[{networkDefaultDeny}]},
                       databases{sqlServers[],sqlDatabases[],sqlDefenderPricing[{pricingTier}]},
                       web{webApps[{vnetIntegrated,customDomainBound}]},
@@ -690,6 +702,27 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
 | project name, resourceGroup, retentionInDays
 '@
+        # ---- Azure Update Manager (AB#7065, Story AB#7065, Feature AB#7069, Epic AB#7099) -------
+        # microsoft.maintenance/maintenanceconfigurations IS Resource Graph indexed (confirmed
+        # against the ARG supported-tables-and-resource-types reference, same verification
+        # standard as every other query in this file) -- the manifest
+        # manifests/collectors/Management/MaintenanceConfigurations.psd1 already renders it as an
+        # Excel worksheet, but nothing projected it into the scalar assessment shape until now.
+        # Every field below mirrors a column that manifest already reads off the Az cmdlet
+        # equivalent (maintenanceScope, maintenanceWindow.recurEvery/startDateTime/duration/
+        # timeZone, installPatches.rebootSetting) -- documented MaintenanceConfiguration ARM
+        # properties, kept as scalars so a rule never needs `.length`/array tricks (AB#5083).
+        maintenanceConfigurations = @'
+resources | where type =~ "microsoft.maintenance/maintenanceconfigurations"
+| extend scope = tostring(properties.maintenanceScope)
+| extend recurEvery = tostring(properties.maintenanceWindow.recurEvery)
+| extend startDateTime = tostring(properties.maintenanceWindow.startDateTime)
+| extend duration = tostring(properties.maintenanceWindow.duration)
+| extend timeZone = tostring(properties.maintenanceWindow.timeZone)
+| extend rebootSetting = tostring(properties.installPatches.rebootSetting)
+| project name, resourceGroup, subscriptionId, scope, recurEvery, startDateTime, duration,
+          timeZone, rebootSetting
+'@
         # ---- AI workload domain additions (AB#6818) --------------------------------------------
         # `cognitiveAccounts` above already carries accountKind, so OpenAI/Applied-AI PaaS
         # presence is read from it directly (no new query needed for that half). What is missing
@@ -867,6 +900,84 @@ resources
           syntheticMonitorId = tostring(properties.SyntheticMonitorId),
           testLocationCount = array_length(properties.Locations)
 '@
+        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Azure Monitor plumbing.
+        # `manifests/collectors/Monitor/*.psd1` for each of the eight types below already exist
+        # and are confirmed ARG-indexed (ordinary `resources`-table rows, not a synthetic AZSC/*
+        # sweep); this only wires their query into the assessment payload the way AB#7065/7066
+        # wired maintenanceConfigurations/policyDefinitions. Every projection is a scalar or a
+        # count (`array_length`) -- never an array a rule would need `.length` on (AB#5083).
+        dataCollectionRules = @'
+resources
+| where type =~ "microsoft.insights/datacollectionrules"
+| project id, name, resourceGroup, subscriptionId, location,
+          dataCollectionEndpointId = tostring(properties.dataCollectionEndpointId),
+          hasLogAnalyticsDestination = isnotnull(properties.destinations.logAnalytics),
+          dataFlowCount = array_length(properties.dataFlows),
+          immutableId = tostring(properties.immutableId)
+'@
+        dataCollectionEndpoints = @'
+resources
+| where type =~ "microsoft.insights/datacollectionendpoints"
+| project id, name, resourceGroup, subscriptionId, location,
+          publicNetworkAccess = tostring(properties.networkAcls.publicNetworkAccess),
+          configurationAccessEndpoint = tostring(properties.configurationAccess.endpoint),
+          immutableId = tostring(properties.immutableId)
+'@
+        actionGroups = @'
+resources
+| where type =~ "microsoft.insights/actiongroups"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          groupShortName = tostring(properties.groupShortName),
+          emailReceiverCount = array_length(properties.emailReceivers),
+          smsReceiverCount = array_length(properties.smsReceivers),
+          webhookReceiverCount = array_length(properties.webhookReceivers)
+'@
+        autoscaleSettings = @'
+resources
+| where type =~ "microsoft.insights/autoscalesettings"
+| project id, name, resourceGroup, subscriptionId, location,
+          enabled = tobool(properties.enabled),
+          targetResourceUri = tostring(properties.targetResourceUri),
+          profileCount = array_length(properties.profiles)
+'@
+        metricAlertRules = @'
+resources
+| where type =~ "microsoft.insights/metricalerts"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          severity = toint(properties.severity),
+          autoMitigate = tobool(properties.autoMitigate),
+          scopeCount = array_length(properties.scopes),
+          actionGroupCount = array_length(properties.actions)
+'@
+        scheduledQueryRules = @'
+resources
+| where type =~ "microsoft.insights/scheduledqueryrules"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          severity = toint(properties.severity),
+          autoMitigate = tobool(properties.autoMitigate),
+          kind = tostring(properties.kind),
+          scopeCount = array_length(properties.scopes)
+'@
+        activityLogAlertRules = @'
+resources
+| where type =~ "microsoft.insights/activitylogalerts"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          scopeCount = array_length(properties.scopes),
+          actionGroupCount = array_length(properties.actions.actionGroups)
+'@
+        smartDetectorAlertRules = @'
+resources
+| where type =~ "microsoft.alertsmanagement/smartdetectoralertrules"
+| project id, name, resourceGroup, subscriptionId,
+          state = tostring(properties.state),
+          severity = tostring(properties.severity),
+          frequency = tostring(properties.frequency),
+          actionGroupCount = array_length(properties.actionGroups.groupIds)
+'@
     }
 
     # ---- category tagging (AB#5057 follow-up) ----
@@ -926,6 +1037,10 @@ resources
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
+        # AB#7065 (Azure Update Manager) — patch-schedule coverage spans the ordinary Management
+        # pillar and the Azure Local operational checklist (waf.azurelocal.operational.yaml's
+        # Update Manager composite item), so both categories must gather it.
+        maintenanceConfigurations = @('Management', 'Hybrid')
         # AB#6818 (AI workload assessment) — waf.ai.yaml's WAF-AI-* rules.
         mlWorkspaces        = @('AI')
         searchServices      = @('AI')
@@ -944,6 +1059,17 @@ resources
         loadTesting         = @('DevOps', 'Management')
         chaosExperiments    = @('DevOps', 'Management')
         playwrightTesting   = @('DevOps', 'Management')
+        # AB#7064 -- dataCollectionRules/dataCollectionEndpoints are also tagged Hybrid: they are
+        # the AMA-agent plumbing Arc-enabled servers and Azure Local clusters route telemetry
+        # through, the same reasoning logAnalyticsWorkspaces above is tagged Management+Monitor.
+        dataCollectionRules    = @('Monitor', 'Hybrid')
+        dataCollectionEndpoints = @('Monitor', 'Hybrid')
+        actionGroups            = @('Monitor')
+        autoscaleSettings       = @('Monitor')
+        metricAlertRules        = @('Monitor')
+        scheduledQueryRules     = @('Monitor')
+        activityLogAlertRules   = @('Monitor')
+        smartDetectorAlertRules = @('Monitor')
         # AB#7064 -- ordinary Monitor-native resources, same category as the first AB#7064 slice.
         appInsights                  = @('Monitor')
         workbooks                    = @('Monitor')
@@ -1391,6 +1517,43 @@ resources
         $policyInitiatives = @($policyInitiatives | Sort-Object Id -Unique)
     }
 
+    # ---- governance.policyDefinitions / governance.policySetDefinitions (AB#7066) -------------
+    # Same source as `policyInitiatives` immediately above: Get-ScoutTenantWideResource already
+    # appends AZSC/Management/PolicyDefinition and AZSC/Management/PolicySetDefinition envelopes
+    # to $rawInventory.Resources on every assessment collect (the TenantWideDefinitionsOnly
+    # sweep is unconditional -- see the $rawArgs comment above), so extracting them here adds
+    # zero Azure round-trips, exactly like policyInitiatives.
+    #
+    # Unlike policyInitiatives (which flattens to five PascalCase scalar fields for
+    # Resolve-ScoutAssignedInitiative), these rows are kept as the RAW ARM REST list-response
+    # shape (id/name/type/properties) with `properties` whole -- the same convention
+    # governance.policyAssignments above uses (Get-ScoutGovernanceDataset never flattens its
+    # `properties` object either), so a rule's JSONPath (@.properties.policyType,
+    # @.properties.metadata.category, @.properties.parameters, @.properties.policyRule.then.effect)
+    # resolves against these exactly as it does against a policy assignment.
+    function Get-ScoutTenantWideDefinitionRow {
+        param([Parameter(Mandatory)] [string] $EnvelopeType)
+        @(
+            if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
+                $envelopes = @($rawInventory.Resources | Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq $EnvelopeType })
+                foreach ($envelope in $envelopes) {
+                    if (-not $envelope.PSObject.Properties['properties'] -or -not $envelope.properties) { continue }
+                    foreach ($item in @($envelope.properties)) {
+                        # `id` is read case-insensitively (PowerShell property lookup), matching
+                        # the raw ARM REST list-response shape's `id` field -- see the
+                        # policyInitiatives block above for the same idiom.
+                        if ($item -and $item.PSObject.Properties['Id'] -and -not [string]::IsNullOrWhiteSpace([string]$item.Id)) { $item }
+                    }
+                }
+            }
+        )
+    }
+    # A definition can be visible from more than one subscription's ARM REST sweep in a
+    # multi-subscription tenant (built-ins repeat per subscription); collapse to one row per
+    # distinct id, matching the policyInitiatives dedup immediately above.
+    $policyDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicyDefinition' | Sort-Object Id -Unique)
+    $policySetDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicySetDefinition' | Sort-Object Id -Unique)
+
     # ---- Key Vault children: secrets and keys (AB#6821, Epic AB#6454) -------------------------
     # These rows come from Get-ScoutArmChildResource's ARM REST sweep (see the ArmChildDataset
     # note above) rather than Resource Graph -- $rawInventory.Resources carries them as
@@ -1539,12 +1702,19 @@ resources
             # The right-hand side of XR-BKP-01/02 (AB#6835). Filed under management because that
             # is where the vault lives, not under compute where the protected VM does.
             backupProtectedItems = $r.backupProtectedItems
+            # AB#7065: was a manifest that only ever rendered an Excel worksheet -- Azure Update
+            # Manager schedule/patch-configuration data never reached the assessment payload.
+            maintenanceConfigurations = $r.maintenanceConfigurations
         }
         # AB#6903: was hardcoded @() -- see the sweep above.
         security      = [pscustomobject]@{ defenderPlans = $defenderPlans }
         governance    = [pscustomobject]@{
             managementGroups = @()
             policyAssignments = $rawGovernance.policyAssignments
+            # AB#7066: definitions BEHIND an assignment/initiative were never surfaced, only the
+            # assignment itself -- see the extraction block above for the source and shape.
+            policyDefinitions = $policyDefinitions
+            policySetDefinitions = $policySetDefinitions
             roleAssignments = $rawGovernance.roleAssignments
             budgets = $rawGovernance.budgets
             resourceLocks = $rawGovernance.resourceLocks
@@ -1555,8 +1725,16 @@ resources
         # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Monitor-native resources sit
         # under their own top-level key rather than being folded into `management`/`opsPosture`,
         # which already carry unrelated meanings (deployments/backup vs derived diagnostic-coverage
-        # percentages). This is the five-collector remainder deferred out of AB#7064's first slice.
+        # percentages).
         monitor       = [pscustomobject]@{
+            dataCollectionRules     = $r.dataCollectionRules
+            dataCollectionEndpoints = $r.dataCollectionEndpoints
+            actionGroups            = $r.actionGroups
+            autoscaleSettings       = $r.autoscaleSettings
+            metricAlertRules        = $r.metricAlertRules
+            scheduledQueryRules     = $r.scheduledQueryRules
+            activityLogAlertRules   = $r.activityLogAlertRules
+            smartDetectorAlertRules = $r.smartDetectorAlertRules
             appInsights                  = $r.appInsights
             workbooks                    = $r.workbooks
             privateLinkScopes            = $r.privateLinkScopes

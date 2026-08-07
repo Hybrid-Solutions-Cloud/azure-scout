@@ -305,7 +305,7 @@ Describe 'Invoke-Collect -- Monitor remainder keys reach the canonical contract 
         }
         try {
             $collect = Invoke-Collect -FromInventory $inventory -WarningAction SilentlyContinue
-            $collect.monitor.PSObject.Properties.Name | Should -Be $script:MonitorKeys
+            foreach ($k in $script:MonitorKeys) { $collect.monitor.PSObject.Properties.Name | Should -Contain $k }
             foreach ($key in $script:MonitorKeys) {
                 { @($collect.monitor.$key).Count } | Should -Not -Throw
                 @($collect.monitor.$key).Count | Should -Be 0

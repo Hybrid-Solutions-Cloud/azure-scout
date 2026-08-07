@@ -9,13 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Five more Azure Monitor collectors now reach the assessment payload**, closing out the
-  remainder of AB#7064's Monitor plumbing: `collect.monitor.appInsights`, `.workbooks`,
-  `.privateLinkScopes`, `.workspaceSolutions`, `.appInsightsAvailabilityTests`. The last key
-  combines the `AppInsightsAvailabilityTests` and `AppInsightsWebTests` manifests, which
-  both target the same ARM type (`microsoft.insights/webtests`) and differ only by an
-  `AdditionalFilter` — a `kind` field per row lets a WebTests-only consumer filter to
-  `kind -eq 'standard'` without a duplicate Resource Graph query. AB#7064.
+- **Thirteen Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
+  AB#7059, Feature AB#7069). `Invoke-Collect.ps1` gains a new `monitor{}` payload section —
+  `dataCollectionRules`, `dataCollectionEndpoints`, `actionGroups`, `autoscaleSettings`,
+  `metricAlertRules`, `scheduledQueryRules`, `activityLogAlertRules`,
+  `smartDetectorAlertRules`, `appInsights`, `workbooks`, `privateLinkScopes`,
+  `workspaceSolutions`, `appInsightsAvailabilityTests` — all previously collected by existing
+  manifests but never wired into `collect.json`. The last key combines the
+  `AppInsightsAvailabilityTests` and `AppInsightsWebTests` manifests, which both target the
+  same ARM type (`microsoft.insights/webtests`) and differ only by an `AdditionalFilter` — a
+  `kind` field per row lets a WebTests-only consumer filter to `kind -eq 'standard'` without a
+  duplicate Resource Graph query. New regression tests
+  (`tests/Collect.MonitorPlumbing.Tests.ps1`, `tests/Collect.MonitorPlumbing2.Tests.ps1`) pin
+  all thirteen keys through both collection paths. See
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
+- **Azure Update Manager and Azure Policy definitions now reach the assessment payload**
+  (AB#7065, AB#7066 — Story AB#7059, Feature AB#7069). `management.maintenanceConfigurations`
+  and `governance.policyDefinitions` / `governance.policySetDefinitions` were collected by
+  their manifests but never reached `collect.json`; both are wired now, the latter two at
+  zero extra Azure calls (reused from the existing `TenantWideDefinitionsOnly` sweep). A new
+  regression test (AB#7067) pins all three keys through both collection paths. See
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
 
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
