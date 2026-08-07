@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **49 more collectors now reach the assessment payload** across Databases (10: CosmosDB,
+  MariaDB, MySQL, MySQLflexible, POSTGREFlexible, RedisCache, SQLMI, SQLMIDB, SQLPOOL,
+  SQLVM), DevOps (7: ApiConnections, AppConfiguration, DeploymentEnvironments, DevBoxPools,
+  DevCenterNetworkConnections, DevTestLabs, LabServices), Identity (1, new
+  `domains.identity` section: ManagedIds), Management (4: AdvisorScore,
+  AutomationAccounts, Backup, LighthouseDelegations), Security (10:
+  AppComplianceAutomation, ApplicationSecurityGroups, ArtifactSigning, CloudHSM,
+  ConfidentialLedger, DdosProtectionPlans, EntraDomainServices, ManagedHSM, Sentinel,
+  WafPolicies), and Storage (5: EdgeHardwareCenter, ElasticSan, NetApp, PartnerStorage,
+  StorageSync). AB#7110.
+
+### Fixed
+
+- **A shared test-mock cleanup idiom silently leaked state across files.**
+  `Remove-Item function:global:Search-AzGraph` was a no-op — the `global:` segment doesn't
+  match the function drive's own scoping, so the mock persisted into whichever test file
+  ran next in the same Pester process, intermittently corrupting `Collect.Governance.Tests.ps1`.
+  Fixed (in this PR's own new test file) by dropping the `global:` segment plus an `AfterAll`
+  cleanup. The same pattern exists in several other recently-added test files and is a
+  candidate for a follow-up fix once identified.
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
