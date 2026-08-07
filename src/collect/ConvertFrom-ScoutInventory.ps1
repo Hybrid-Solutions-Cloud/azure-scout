@@ -1145,9 +1145,9 @@ function ConvertFrom-ScoutInventory {
     # ---- Azure Monitor plumbing (AB#7064, Story AB#7059, Feature AB#7069, Epic AB#7099) --------
     # Mirrors Invoke-Collect.ps1's dataCollectionRules/dataCollectionEndpoints/actionGroups/
     # autoscaleSettings/metricAlertRules/scheduledQueryRules/activityLogAlertRules/
-    # smartDetectorAlertRules KQL field for field, same pattern the AB#6826/AB#6827 block above
-    # follows -- the inverted (default) `-FromInventory` path costs no extra Resource Graph
-    # round-trip for any of these eight.
+    # smartDetectorAlertRules/appInsights/workbooks/privateLinkScopes/workspaceSolutions/
+    # appInsightsAvailabilityTests KQL field for field -- the inverted (default) `-FromInventory`
+    # path costs no extra Resource Graph round-trip for any of these thirteen.
     $result['dataCollectionRules'] = @(
         Select-ByType 'microsoft.insights/datacollectionrules' | ForEach-Object {
             $dataFlowCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.dataFlows')
@@ -1270,6 +1270,100 @@ function ConvertFrom-ScoutInventory {
                 severity         = [string] (Get-ScoutProp $_ 'properties.severity')
                 frequency        = [string] (Get-ScoutProp $_ 'properties.frequency')
                 actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actionGroups.groupIds')
+            }
+        }
+    )
+
+    $result['appInsights'] = @(
+        Select-ByType 'microsoft.insights/components' | ForEach-Object {
+            $retentionRaw = Get-ScoutProp $_ 'properties.RetentionInDays'
+            [pscustomobject]@{
+                id                              = [string] (Get-ScoutProp $_ 'id')
+                name                            = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup                   = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId                  = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                        = [string] (Get-ScoutProp $_ 'location')
+                applicationType                 = [string] (Get-ScoutProp $_ 'properties.Application_Type')
+                flowType                        = [string] (Get-ScoutProp $_ 'properties.Flow_Type')
+                retentionInDays                 = if ($null -eq $retentionRaw) { $null } else { [int] $retentionRaw }
+                samplingPercentage              = [string] (Get-ScoutProp $_ 'properties.SamplingPercentage')
+                ingestionMode                   = [string] (Get-ScoutProp $_ 'properties.IngestionMode')
+                publicNetworkAccessForIngestion = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForIngestion')
+                publicNetworkAccessForQuery     = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForQuery')
+            }
+        }
+    )
+
+    $result['workbooks'] = @(
+        Select-ByType 'microsoft.insights/workbooks' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+                kind           = [string] (Get-ScoutProp $_ 'kind')
+                category       = [string] (Get-ScoutProp $_ 'properties.category')
+                sourceId       = [string] (Get-ScoutProp $_ 'properties.sourceId')
+                version        = [string] (Get-ScoutProp $_ 'properties.version')
+            }
+        }
+    )
+
+    $result['privateLinkScopes'] = @(
+        Select-ByType 'microsoft.insights/privatelinkscopes' | ForEach-Object {
+            [pscustomobject]@{
+                id                              = [string] (Get-ScoutProp $_ 'id')
+                name                            = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup                   = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId                  = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                        = [string] (Get-ScoutProp $_ 'location')
+                accessMode                      = [string] (Get-ScoutProp $_ 'properties.accessModeSettings.queryAccessMode')
+                ingestionAccessMode             = [string] (Get-ScoutProp $_ 'properties.accessModeSettings.ingestionAccessMode')
+                privateEndpointConnectionCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.privateEndpointConnections')
+                scopedResourceCount             = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopedResources')
+            }
+        }
+    )
+
+    $result['workspaceSolutions'] = @(
+        Select-ByType 'microsoft.operationsmanagement/solutions' | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                workspaceResourceId = [string] (Get-ScoutProp $_ 'properties.workspaceResourceId')
+                planName            = [string] (Get-ScoutProp $_ 'plan.name')
+                planPublisher       = [string] (Get-ScoutProp $_ 'plan.publisher')
+                planProduct         = [string] (Get-ScoutProp $_ 'plan.product')
+            }
+        }
+    )
+
+    # `AppInsightsAvailabilityTests.psd1` and `AppInsightsWebTests.psd1` both match
+    # `microsoft.insights/webtests` -- AvailabilityTests carries no `AdditionalFilter` (every
+    # Kind), WebTests filters `$_.KIND -eq 'standard'` (a strict subset). One combined array over
+    # every webtest row, carrying `kind` per row, reproduces both manifests' scope; a consumer
+    # that needs the WebTests-only subset filters this array on `kind -eq 'standard'` the same way
+    # the manifest's AdditionalFilter does.
+    $result['appInsightsAvailabilityTests'] = @(
+        Select-ByType 'microsoft.insights/webtests' | ForEach-Object {
+            $frequencyRaw = Get-ScoutProp $_ 'properties.Frequency'
+            $timeoutRaw = Get-ScoutProp $_ 'properties.Timeout'
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                kind                = [string] (Get-ScoutProp $_ 'kind')
+                enabled             = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.Enabled')
+                frequency           = if ($null -eq $frequencyRaw) { $null } else { [int] $frequencyRaw }
+                timeoutSeconds      = if ($null -eq $timeoutRaw) { $null } else { [int] $timeoutRaw }
+                syntheticMonitorId  = [string] (Get-ScoutProp $_ 'properties.SyntheticMonitorId')
+                testLocationCount   = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.Locations')
             }
         }
     )

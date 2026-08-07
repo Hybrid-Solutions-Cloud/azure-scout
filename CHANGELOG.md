@@ -9,15 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Eight Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
+- **Thirteen Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
   AB#7059, Feature AB#7069). `Invoke-Collect.ps1` gains a new `monitor{}` payload section —
   `dataCollectionRules`, `dataCollectionEndpoints`, `actionGroups`, `autoscaleSettings`,
   `metricAlertRules`, `scheduledQueryRules`, `activityLogAlertRules`,
-  `smartDetectorAlertRules` — all previously collected by existing manifests but never wired
-  into `collect.json`. A new regression test
-  (`tests/Collect.MonitorPlumbing.Tests.ps1`) pins all eight keys through both collection
-  paths. `AppInsights`, `MonitorWorkbooks`, `MonitorPrivateLinkScopes` and
-  `LAWorkspaceSolutions` remain unwired, deferred to a follow-up. See
+  `smartDetectorAlertRules`, `appInsights`, `workbooks`, `privateLinkScopes`,
+  `workspaceSolutions`, `appInsightsAvailabilityTests` — all previously collected by existing
+  manifests but never wired into `collect.json`. The last key combines the
+  `AppInsightsAvailabilityTests` and `AppInsightsWebTests` manifests, which both target the
+  same ARM type (`microsoft.insights/webtests`) and differ only by an `AdditionalFilter` — a
+  `kind` field per row lets a WebTests-only consumer filter to `kind -eq 'standard'` without a
+  duplicate Resource Graph query. New regression tests
+  (`tests/Collect.MonitorPlumbing.Tests.ps1`, `tests/Collect.MonitorPlumbing2.Tests.ps1`) pin
+  all thirteen keys through both collection paths. See
   [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
 - **Azure Update Manager and Azure Policy definitions now reach the assessment payload**
   (AB#7065, AB#7066 — Story AB#7059, Feature AB#7069). `management.maintenanceConfigurations`

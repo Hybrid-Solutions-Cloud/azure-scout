@@ -49,12 +49,24 @@ $ErrorActionPreference = 'Stop'
                       metricAlertRules[{enabled,severity,autoMitigate,scopeCount,actionGroupCount}],
                       scheduledQueryRules[{enabled,severity,autoMitigate,kind,scopeCount}],
                       activityLogAlertRules[{enabled,scopeCount,actionGroupCount}],
-                      smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}] }   (AB#7064,
+                      smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}],
+                      appInsights[{applicationType,flowType,retentionInDays,samplingPercentage,
+                                    ingestionMode,publicNetworkAccessForIngestion,publicNetworkAccessForQuery}],
+                      workbooks[{kind,category,sourceId,version}],
+                      privateLinkScopes[{accessMode,ingestionAccessMode,privateEndpointConnectionCount,
+                                          scopedResourceCount}],
+                      workspaceSolutions[{workspaceResourceId,planName,planPublisher,planProduct}],
+                      appInsightsAvailabilityTests[{kind,enabled,frequency,timeoutSeconds,
+                                                     syntheticMonitorId,testLocationCount}] }   (AB#7064,
                       Story AB#7059, Feature AB#7069 -- ordinary ARG-indexed Monitor types the
                       Monitor(20) coverage table listed as "not wired"; sits alongside
-                      `opsPosture`/`management`, not folded into either, because these are
-                      Monitor-native resources rather than derived posture metrics or
-                      cross-domain management data)
+                      `opsPosture`/`management`, not folded into either. The
+                      AppInsightsAvailabilityTests/AppInsightsWebTests pair share one ARM type,
+                      `microsoft.insights/webtests`, distinguished only by `AdditionalFilter` in
+                      their manifests (AvailabilityTests has none, i.e. every Kind; WebTests
+                      filters `KIND -eq 'standard'`), so they combine into one
+                      `appInsightsAvailabilityTests` query carrying `kind` per row rather than two
+                      separate ARG round-trips over the same rows)
         domains     { storage{storageAccounts[{networkDefaultDeny}]},
                       databases{sqlServers[],sqlDatabases[],sqlDefenderPricing[{pricingTier}]},
                       web{webApps[{vnetIntegrated,customDomainBound}]},
@@ -826,6 +838,68 @@ resources | where type =~ "microsoft.chaos/experiments"
 resources | where type =~ "microsoft.azureplaywrightservice/accounts"
 | project name, resourceGroup, subscriptionId
 '@
+        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- the five Monitor collectors
+        # deferred out of the first AB#7064 slice. `manifests/collectors/Monitor/*.psd1` for each
+        # already exists and is confirmed ARG-indexed; this wires their query into the assessment
+        # payload the same way the first slice wired dataCollectionRules etc. Every projection is
+        # a scalar or a count (`array_length`) -- never an array a rule would need `.length` on
+        # (AB#5083).
+        appInsights = @'
+resources
+| where type =~ "microsoft.insights/components"
+| project id, name, resourceGroup, subscriptionId, location,
+          applicationType = tostring(properties.Application_Type),
+          flowType = tostring(properties.Flow_Type),
+          retentionInDays = toint(properties.RetentionInDays),
+          samplingPercentage = tostring(properties.SamplingPercentage),
+          ingestionMode = tostring(properties.IngestionMode),
+          publicNetworkAccessForIngestion = tostring(properties.publicNetworkAccessForIngestion),
+          publicNetworkAccessForQuery = tostring(properties.publicNetworkAccessForQuery)
+'@
+        workbooks = @'
+resources
+| where type =~ "microsoft.insights/workbooks"
+| project id, name, resourceGroup, subscriptionId, location,
+          kind = tostring(kind),
+          category = tostring(properties.category),
+          sourceId = tostring(properties.sourceId),
+          version = tostring(properties.version)
+'@
+        privateLinkScopes = @'
+resources
+| where type =~ "microsoft.insights/privatelinkscopes"
+| project id, name, resourceGroup, subscriptionId, location,
+          accessMode = tostring(properties.accessModeSettings.queryAccessMode),
+          ingestionAccessMode = tostring(properties.accessModeSettings.ingestionAccessMode),
+          privateEndpointConnectionCount = array_length(properties.privateEndpointConnections),
+          scopedResourceCount = array_length(properties.scopedResources)
+'@
+        workspaceSolutions = @'
+resources
+| where type =~ "microsoft.operationsmanagement/solutions"
+| project id, name, resourceGroup, subscriptionId, location,
+          workspaceResourceId = tostring(properties.workspaceResourceId),
+          planName = tostring(plan.name),
+          planPublisher = tostring(plan.publisher),
+          planProduct = tostring(plan.product)
+'@
+        # `AppInsightsAvailabilityTests.psd1` and `AppInsightsWebTests.psd1` both match
+        # `microsoft.insights/webtests` -- AvailabilityTests carries no `AdditionalFilter` (every
+        # Kind), WebTests filters `$_.KIND -eq 'standard'` (a strict subset). One combined query
+        # over every webtest row, carrying `kind` per row, reproduces both manifests' scope without
+        # a second identical ARG round-trip; a consumer that needs the WebTests-only subset filters
+        # this array on `kind -eq 'standard'` the same way the manifest's AdditionalFilter does.
+        appInsightsAvailabilityTests = @'
+resources
+| where type =~ "microsoft.insights/webtests"
+| project id, name, resourceGroup, subscriptionId, location,
+          kind = tostring(kind),
+          enabled = tobool(properties.Enabled),
+          frequency = toint(properties.Frequency),
+          timeoutSeconds = toint(properties.Timeout),
+          syntheticMonitorId = tostring(properties.SyntheticMonitorId),
+          testLocationCount = array_length(properties.Locations)
+'@
         # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Azure Monitor plumbing.
         # `manifests/collectors/Monitor/*.psd1` for each of the eight types below already exist
         # and are confirmed ARG-indexed (ordinary `resources`-table rows, not a synthetic AZSC/*
@@ -996,6 +1070,12 @@ resources
         scheduledQueryRules     = @('Monitor')
         activityLogAlertRules   = @('Monitor')
         smartDetectorAlertRules = @('Monitor')
+        # AB#7064 -- ordinary Monitor-native resources, same category as the first AB#7064 slice.
+        appInsights                  = @('Monitor')
+        workbooks                    = @('Monitor')
+        privateLinkScopes            = @('Monitor')
+        workspaceSolutions           = @('Monitor')
+        appInsightsAvailabilityTests = @('Monitor')
     }
 
     $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
@@ -1642,10 +1722,10 @@ resources
         }
         costCleanup   = [pscustomobject]@{ orphanedDisks = $r.orphanedDisks; orphanedPips = $r.orphanedPips }
         opsPosture    = [pscustomobject]@{ diagnosticCoverage = $r.diagnosticCoverage }
-        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Monitor-native resources
-        # (DCRs/DCEs, alert rules, action groups) sit under their own top-level key rather than
-        # being folded into `management`/`opsPosture`, which already carry unrelated
-        # meanings (deployments/backup vs derived diagnostic-coverage percentages).
+        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Monitor-native resources sit
+        # under their own top-level key rather than being folded into `management`/`opsPosture`,
+        # which already carry unrelated meanings (deployments/backup vs derived diagnostic-coverage
+        # percentages).
         monitor       = [pscustomobject]@{
             dataCollectionRules     = $r.dataCollectionRules
             dataCollectionEndpoints = $r.dataCollectionEndpoints
@@ -1655,6 +1735,11 @@ resources
             scheduledQueryRules     = $r.scheduledQueryRules
             activityLogAlertRules   = $r.activityLogAlertRules
             smartDetectorAlertRules = $r.smartDetectorAlertRules
+            appInsights                  = $r.appInsights
+            workbooks                    = $r.workbooks
+            privateLinkScopes            = $r.privateLinkScopes
+            workspaceSolutions           = $r.workspaceSolutions
+            appInsightsAvailabilityTests = $r.appInsightsAvailabilityTests
         }
         # Per-domain resource data (scalar compliance fields) for the per-category
         # assessments in Epic AB#5056.

@@ -319,7 +319,7 @@ Describe 'Invoke-Collect -- Monitor keys reach the canonical contract on both pa
         }
         try {
             $collect = Invoke-Collect -FromInventory $inventory -WarningAction SilentlyContinue
-            $collect.monitor.PSObject.Properties.Name | Should -Be $script:MonitorKeys
+            foreach ($k in $script:MonitorKeys) { $collect.monitor.PSObject.Properties.Name | Should -Contain $k }
             foreach ($key in $script:MonitorKeys) {
                 { @($collect.monitor.$key).Count } | Should -Not -Throw
                 @($collect.monitor.$key).Count | Should -Be 0
