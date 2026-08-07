@@ -30,7 +30,14 @@ $ErrorActionPreference = 'Stop'
                                      expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
                      logAnalyticsWorkspaces[{retentionInDays}] }
-        security   { defenderPlans[] }
+        security   { defenderPlans[], wafPolicies[{type,sku,provisioningState,enabledState,mode,
+                     managedRuleSetCount,customRuleCount}],
+                     ddosProtectionPlans[{provisioningState,protectedVNetCount,resourceGuid}],
+                     applicationSecurityGroups[{provisioningState,resourceGuid}] }   (AB#7063,
+                     Story AB#7059, Feature AB#7069, Epic AB#7099 -- ordinary ARG-indexed
+                     Networking/Security types; DefenderAlerts/DefenderAssessments/
+                     DefenderSecureScore/DefenderPricing were deliberately left out of this pass,
+                     see the AB#7063 note above the query pack for why)
         governance { managementGroups[], policyAssignments[], roleAssignments[], budgets[],
                      resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the native Governance ingestor, Import-Governance)
         costCleanup { orphanedDisks[], orphanedPips[] }
@@ -463,6 +470,71 @@ resources | where type =~ "microsoft.keyvault/vaults"
 | extend purgeProtection = tobool(properties.enablePurgeProtection)
 | project id, name, resourceGroup, softDelete, purgeProtection
 '@
+        # ---- AB#7063 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Defender-for-Cloud
+        # detail collectors, Security(17) coverage gap ------------------------------------------
+        # manifests/collectors/Security/*.psd1 has 17 collectors; only defenderPlans/keyVaults/
+        # keyVaultKeys/keyVaultSecrets (4) reached the assessment payload before this pass.
+        #
+        # Wired here -- ordinary ARG-indexed `resources` table rows, same fix pattern as
+        # AB#7064/7065/7066:
+        #   wafPolicies / ddosProtectionPlans / applicationSecurityGroups
+        #
+        # Deliberately DEFERRED (not a wiring gap -- a missing collection mechanism):
+        # DefenderAlerts.psd1, DefenderAssessments.psd1 and DefenderSecureScore.psd1 all declare
+        # the synthetic `AZSC/Subscription/SecurityPolicySweep` type -- their SourceCollector
+        # header points at Modules/Public/InventoryModules/Security/Defender*.ps1, but the ONLY
+        # code that ever populates that sweep on the assessment collect path is
+        # Get-ScoutDefenderPlanSweep.ps1, which calls exactly one REST endpoint
+        # (`/providers/Microsoft.Security/pricings`, i.e. plans/pricing tiers) and nothing else.
+        # Alerts/assessments/secure-score come from three DIFFERENT Defender-for-Cloud REST
+        # endpoints (`/alerts`, `/assessments`, `/secureScores`) that Resource Graph does not
+        # index under the default `resources` table and that today's collect makes zero calls
+        # to -- there is no existing data to project into the payload, and adding three new
+        # per-subscription REST round trips is a genuinely new collection mechanism, not a
+        # plumbing fix. Confirmed against scripts/Test-CollectorPayloadCoverage.ps1's
+        # $syntheticVerdicts entry for 'azsc/subscription/securitypolicysweep' (AB#7060), which
+        # already documents this same gap.
+        #
+        # DefenderPricing.psd1 ALSO declares that same synthetic type and reads from the same
+        # single `/pricings` endpoint Get-ScoutDefenderPlanSweep already calls -- its columns
+        # (Plan Name, Plan ID, Pricing Tier, Enabled) duplicate what `security.defenderPlans`
+        # already carries (id/name/properties.pricingTier/properties.subPlan). Its few genuinely
+        # extra columns (Extensions, Deprecated, Replaced By, Free Trial Remaining Days) require
+        # reshaping Get-ScoutDefenderPlanSweep's own projection, which CAF-SEC/WAF-SEC rules
+        # already query as `security.defenderPlans[?(@.properties.pricingTier == 'Standard')]`
+        # (AB#6903) -- changing that shared function's output risks regressing those live rules
+        # for detail fields no rule currently needs. Left out of this pass as a duplicate-key
+        # risk, not a missing mechanism; a follow-up should extend
+        # Get-ScoutDefenderPlanSweep.ps1's own projection instead of adding a second query.
+        wafPolicies = @'
+resources
+| where type in~ (
+    "microsoft.network/applicationgatewaywebapplicationfirewallpolicies",
+    "microsoft.network/frontdoorwebapplicationfirewallpolicies",
+    "microsoft.cdn/cdnwebapplicationfirewallpolicies")
+| extend enabledStateRaw = tostring(properties.policySettings.enabledState)
+| extend stateRaw = tostring(properties.policySettings.state)
+| extend enabledState = iff(isnotempty(enabledStateRaw), enabledStateRaw, stateRaw)
+| extend mode = tostring(properties.policySettings.mode)
+| extend managedRuleSetCount = array_length(properties.managedRules.managedRuleSets)
+| extend customRuleCount = iff(isnotnull(properties.customRules.rules), array_length(properties.customRules.rules), array_length(properties.customRules))
+| project id, name, resourceGroup, subscriptionId, location, type,
+          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState),
+          enabledState, mode, managedRuleSetCount, customRuleCount
+'@
+        ddosProtectionPlans = @'
+resources | where type =~ "microsoft.network/ddosprotectionplans"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          protectedVNetCount = array_length(properties.virtualNetworks),
+          resourceGuid = tostring(properties.resourceGuid)
+'@
+        applicationSecurityGroups = @'
+resources | where type =~ "microsoft.network/applicationsecuritygroups"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          resourceGuid = tostring(properties.resourceGuid)
+'@
         # ---- cross-resource join sources (AB#6835) --------------------------------------------
         # Each of these exists to be the OTHER half of a rule, not to be scored on its own.
         #
@@ -820,6 +892,11 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         aksClusters         = @('Containers')
         containerRegistries = @('Containers')
         keyVaults           = @('Security')
+        # AB#7063 -- ordinary Networking-typed resources that are also Security-scoped review
+        # subjects (same reasoning as firewallPolicyRuleGroups/nsgPublicInbound above).
+        wafPolicies               = @('Networking', 'Security')
+        ddosProtectionPlans       = @('Networking', 'Security')
+        applicationSecurityGroups = @('Networking', 'Security')
         # The cross-resource rule set spans categories by definition, so its sources must be
         # gathered whenever EITHER side's category was asked for -- a -Category Compute run that
         # skipped backupProtectedItems would silently Pass "every VM has a backup" (AB#6835).
@@ -1453,7 +1530,16 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
             backupProtectedItems = $r.backupProtectedItems
         }
         # AB#6903: was hardcoded @() -- see the sweep above.
-        security      = [pscustomobject]@{ defenderPlans = $defenderPlans }
+        # AB#7063: wafPolicies/ddosProtectionPlans/applicationSecurityGroups (AB#7063, Story
+        # AB#7059, Feature AB#7069, Epic AB#7099) -- ordinary ARG-indexed types, see the query
+        # pack above for what was deliberately deferred (DefenderAlerts/Assessments/SecureScore/
+        # Pricing) and why.
+        security      = [pscustomobject]@{
+            defenderPlans = $defenderPlans
+            wafPolicies = $r.wafPolicies
+            ddosProtectionPlans = $r.ddosProtectionPlans
+            applicationSecurityGroups = $r.applicationSecurityGroups
+        }
         governance    = [pscustomobject]@{
             managementGroups = @()
             policyAssignments = $rawGovernance.policyAssignments
