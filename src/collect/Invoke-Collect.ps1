@@ -43,7 +43,11 @@ $ErrorActionPreference = 'Stop'
         management { recoveryVaults[{backupItems[]}], deployments[],
                      logAnalyticsWorkspaces[{retentionInDays}],
                      maintenanceConfigurations[{scope,recurEvery,startDateTime,duration,
-                                                 timeZone,rebootSetting}] }               (AB#7065)
+                                                 timeZone,rebootSetting}],                (AB#7065)
+                     advisorScores[{lastRefreshedScore}], automationAccounts[{sku}],
+                     recoveryVaultBackupPolicies[{backupManagementType,scheduleFrequency}],
+                     lighthouseDelegations[{provisioningState,authorizationCount}] }   (AB#7110,
+                     Story AB#7059, Feature AB#7069, Epic AB#7099)
         updateManager { patchAssessments[{machineId,platform,osType,rebootPending,
                                            patchServiceUsed,startDateTime,lastModifiedDateTime,
                                            availablePatchCountByClassification}],
@@ -117,7 +121,22 @@ $ErrorActionPreference = 'Stop'
                          mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
                          searchServices[{sku}]},                                           (AB#6818)
                       security{keyVaults[], keyVaultSecrets[{contentType,enabled,expires}],
-                               keyVaultKeys[{enabled,expires}]},   (AB#6821)
+                               keyVaultKeys[{enabled,expires}],
+                               appComplianceReports[{triggerType}],                        (AB#7110)
+                               applicationSecurityGroups[],                                (AB#7110)
+                               artifactSigningAccounts[{sku}],                             (AB#7110)
+                               cloudHsmClusters[{provisioningState}],                       (AB#7110)
+                               confidentialLedgers[{provisioningState,ledgerType}],         (AB#7110)
+                               ddosProtectionPlans[{virtualNetworkCount}],                  (AB#7110)
+                               entraDomainServices[{provisioningState}],                    (AB#7110)
+                               managedHsms[{provisioningState,sku}],                        (AB#7110)
+                               sentinelWorkspaces[{provisioningState}],                     (AB#7110)
+                               wafPolicies[{policyType,mode}]},                             (AB#7110,
+                               Story AB#7059, Feature AB#7069, Epic AB#7099)
+                      identity{managedIdentities[]},                                       (AB#7110,
+                               Story AB#7059, Feature AB#7069, Epic AB#7099 -- Identity had no
+                               existing canonical domains section; ManagedIds is the only ARG-
+                               indexed, non-Graph collector in the Identity(16) coverage gap)
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[{patchMode,assessmentMode}],                        (AB#7109)
                              arcExtensions[{machineId,extensionType}],
@@ -169,10 +188,18 @@ $ErrorActionPreference = 'Stop'
                      Import-ScoutCostInventory ingest, AB#6826)
         devops     { available, attempted, projects[], pipelines[], repositories[],
                      serviceConnections[], agentPools[], managedPools[], devCenters[],
-                     loadTesting[], chaosExperiments[], playwrightTesting[] }  (managedPools
-                     through playwrightTesting from ARM/ARG here; available/attempted/projects
-                     through agentPools filled by the Import-ScoutDevOpsCapability ingest,
-                     AB#6827)
+                     loadTesting[], chaosExperiments[], playwrightTesting[],
+                     apiConnections[], appConfigurationStores[{sku}],
+                     deploymentEnvironmentTypes[], devBoxPools[{licenseType}],
+                     devCenterNetworkConnections[{domainJoinType}],
+                     devTestLabs[], labServicesLabs[] }  (managedPools through playwrightTesting,
+                     and apiConnections through labServicesLabs, from ARM/ARG here;
+                     available/attempted/projects through agentPools filled by the
+                     Import-ScoutDevOpsCapability ingest, AB#6827; apiConnections..labServicesLabs
+                     added AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099 -- these are
+                     ordinary ARG-indexed ARM types, distinct from the org-level `devops/*`
+                     Azure DevOps REST surface (projects[]/pipelines[]/etc above) which stays
+                     out of scope for this ARG-only plumbing pass)
 
     Read-only throughout.
 
@@ -222,26 +249,51 @@ $ErrorActionPreference = 'Stop'
 
     AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- collector-payload wiring audit
     follow-up. `docs/reference/collector-payload-coverage.md` (AB#7060) found 165 of 242 shipped
-    collector manifests never reach this file's output. This pass wires the 20 that are (a)
-    ordinary ARM ResourceTypes (no synthetic `AZSC/*` marker, so a plain `resources | where
-    type =~ ...` query is the correct and sufficient mechanism) and (b) not already claimed by
-    a Monitor/Hybrid/Defender/PolicyDefinitions/MaintenanceConfigurations plumbing pass running
-    in parallel:
-      - Networking (13): applicationGateways, bastionHosts, networkConnections,
-        expressRouteCircuits, frontDoors, loadBalancers, natGateways, networkInterfaces,
-        networkWatchers, publicDnsZones, routeTables, trafficManagerProfiles, virtualWans.
-      - Containers (4): openShiftClusters, containerApps, containerAppEnvironments,
-        containerGroups.
-      - Analytics (3): databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs.
-    Every projected field is a documented top-level (or `sku`/`properties`) scalar on the
-    resource itself, matching the verification standard the rest of this file already applies —
-    no sub-resource joins, no new collection mechanism. Categories deliberately swept but left
-    unwired in this pass: AI (all remaining items are `azsc/armchild/*` ML-workspace children,
-    matching no canonical `ai.mlWorkspaces[]` child key), Databases/DevOps/General/Identity/
-    Integration/IoT/Management/Migration/Security/Storage/Web (real ARM types exist in some of
-    these too but were left for a follow-up pass to keep this one reviewable; entra/* and
-    devops/* Identity/DevOps items are Graph/Azure-DevOps-API surfaces, not ARG-indexed ARM
-    resources, and stay out of scope for a `Search-AzGraph` fix regardless).
+    collector manifests never reach this file's output. A first pass (Part 1) wired 20 ordinary
+    ARG-indexed types: Networking (13: applicationGateways, bastionHosts, networkConnections,
+    expressRouteCircuits, frontDoors, loadBalancers, natGateways, networkInterfaces,
+    networkWatchers, publicDnsZones, routeTables, trafficManagerProfiles, virtualWans),
+    Containers (4: openShiftClusters, containerApps, containerAppEnvironments,
+    containerGroups), Analytics (3: databricksWorkspaces, dataExplorerClusters,
+    streamAnalyticsJobs).
+
+    This is Part 2 of the
+    docs/reference/collector-payload-coverage.md wiring audit, sweeping Databases/DevOps/
+    Identity/Management/Security/Storage/Web (Part 1, AB#7061/7064, covered Networking/
+    Containers/Analytics/Hybrid/Monitor). Every type added below is an ordinary ARG-indexed
+    `resources`-table row -- verified against the Azure Resource Graph
+    supported-tables-and-resource-types reference before being added, same standard as every
+    other query in this file. Deliberately EXCLUDED from this pass (confirmed non-ARG or
+    synthetic, not a plumbing gap):
+      - `entra/*` Identity manifests (AdminUnits, AppRegistrations, ConditionalAccess,
+        CrossTenantAccess, DirectoryRoles, Domains, Groups, Licensing, ManagedIdentities
+        (the Graph-scoped manifest, distinct from `ManagedIds`/`microsoft.managedidentity/
+        userassignedidentities` below), NamedLocations, PIMAssignments, RiskyUsers,
+        SecurityPolicies, ServicePrincipals, Users) -- Microsoft Graph API, not ARM/ARG.
+      - `devops/*` org-level DevOps manifests (DevOpsAgentPools, DevOpsPipelines,
+        DevOpsProjects, DevOpsRepositories, DevOpsServiceConnections) -- Azure DevOps REST
+        API, not ARM/ARG; the `devops` canonical section's `agentPools`/`projects`/etc
+        stubs above are what the Import-ScoutDevOpsCapability ingest fills.
+      - Defender for Cloud manifests (DefenderAlerts, DefenderAssessments, DefenderPricing,
+        DefenderSecureScore) and PolicyComplianceStates -- all resolve to the synthetic
+        `AZSC/Subscription/SecurityPolicySweep` type (Get-ScoutDefenderPlanSweep), already
+        covered by `security.defenderPlans`; the additional per-alert/assessment detail is
+        a different, non-plumbing ticket.
+      - PolicyDefinitions/PolicySetDefinitions/CustomRoleDefinitions -- synthetic
+        `AZSC/Management/*` types; MaintenanceConfigurations (Azure Update Manager) --
+        already in flight on a separate branch (AB#7065/AB#7107-7109). None re-wired here
+        to avoid duplicating that work.
+      - RecoveryVault (`microsoft.recoveryservices/vaults`) -- NOT a gap: the
+        `management.recoveryVaults` key already reaches the payload end-to-end (AB#6895/
+        AB#6896), just via a shape-only path with no `$q` entry (documented at its
+        assignment site below); the coverage doc's static string-match audit cannot see
+        that path and reports a false negative.
+      - The entire Migration(4) category (AzureMigrateAssessments, AzureMigrateDiscoverySites,
+        DataBox, StackEdge) -- NOT a gap: `domains.migration.migrateProjects`/
+        `migrationServices`/`discoverySites` (AB#6830/6831/6832, already on main) match
+        these exact resource types via `type in~ (...)`/`type startswith` KQL, which the
+        coverage doc's literal-substring audit script does not recognize as covering them.
+        Verified by direct inspection of this file, not re-wired.
 
     Deliberately NOT collected here, confirmed absent/out of scope after
     checking the ARM template references before writing this note:
@@ -608,6 +660,33 @@ resourcecontainers
 | where type =~ "microsoft.resources/subscriptions/resourcegroups"
 | project name, subscriptionId
 '@
+        # ---- Management plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) --------
+        # Four ordinary ARG-indexed Management types the Management(10) coverage-doc table listed
+        # as "not wired". CustomRoleDefinitions/PolicyComplianceStates/PolicyDefinitions/
+        # PolicySetDefinitions (synthetic AZSC/* types) and MaintenanceConfigurations (already in
+        # flight on a separate branch) and RecoveryVault (already wired, see the file header) are
+        # deliberately not re-declared here.
+        advisorScores = @'
+resources | where type =~ "microsoft.advisor/advisorscore"
+| extend lastRefreshedScore = todouble(properties.lastRefreshedScore.score)
+| project id, name, subscriptionId, lastRefreshedScore
+'@
+        automationAccounts = @'
+resources | where type =~ "microsoft.automation/automationaccounts"
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(properties.sku.name)
+'@
+        recoveryVaultBackupPolicies = @'
+resources | where type =~ "microsoft.recoveryservices/vaults/backuppolicies"
+| extend backupManagementType = tostring(properties.backupManagementType)
+| extend scheduleFrequency = tostring(properties.schedulePolicy.scheduleRunFrequency)
+| project id, name, resourceGroup, subscriptionId, backupManagementType, scheduleFrequency
+'@
+        lighthouseDelegations = @'
+resources | where type =~ "microsoft.managedservices/registrationdefinitions"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend authorizationCount = array_length(properties.authorizations)
+| project id, name, subscriptionId, provisioningState, authorizationCount
+'@
         storageAccounts = @'
 resources | where type =~ "microsoft.storage/storageaccounts"
 | extend publicAccess = tobool(properties.allowBlobPublicAccess)
@@ -617,6 +696,42 @@ resources | where type =~ "microsoft.storage/storageaccounts"
 // sub-resource), so it's safe to project directly — CAF-STO-05 (AB#5057).
 | extend networkDefaultDeny = tostring(properties.networkAcls.defaultAction) =~ "Deny"
 | project id, name, resourceGroup, sku = tostring(sku.name), publicAccess, httpsOnly, minTls, networkDefaultDeny
+'@
+        # ---- Storage plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) -----------
+        # Five ordinary ARG-indexed Storage-adjacent types the Storage(8) coverage-doc table listed
+        # as "not wired" (the other three -- BlobContainers/FileShares/LifecyclePolicies -- are
+        # synthetic ARM-child sweeps, out of scope for this flat-ARG plumbing slice).
+        edgeHardwareCenterOrders = @'
+resources
+| where type in~ ("microsoft.edgeorder/orders", "microsoft.edgeorder/orderitems", "microsoft.edgeorder/addresses")
+| extend orderStatus = tostring(properties.orderItemDetails.orderItemStatus.status)
+| project id, name, type, resourceGroup, subscriptionId, orderStatus
+'@
+        elasticSanVolumeGroups = @'
+resources
+| where type in~ ("microsoft.elasticsan/elasticsans", "microsoft.elasticsan/elasticsans/volumegroups")
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, type, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), provisioningState
+'@
+        netAppVolumes = @'
+resources | where type =~ "microsoft.netapp/netappaccounts/capacitypools/volumes"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend usageThresholdGB = round(properties.usageThreshold / 1073741824.0, 2)
+| project id, name, resourceGroup, subscriptionId, location, provisioningState, usageThresholdGB
+'@
+        partnerStorageResources = @'
+resources
+| where type in~ ("purestorage.block/storagepools", "purestorage.block/reservations", "qumulo.storage/filesystems")
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, type, resourceGroup, subscriptionId, location, provisioningState
+'@
+        storageSyncServices = @'
+resources
+| where type in~ ("microsoft.storagesync/storagesyncservices", "microsoft.storagesync/storagesyncservices/syncgroups",
+                  "microsoft.storagesync/storagesyncservices/registeredservers")
+| extend incomingTrafficPolicy = tostring(properties.incomingTrafficPolicy)
+| project id, name, type, resourceGroup, subscriptionId, location, incomingTrafficPolicy
 '@
         sqlDatabases = @'
 resources | where type =~ "microsoft.sql/servers/databases"
@@ -641,6 +756,76 @@ SecurityResources
 | where type =~ "microsoft.security/pricings" and name =~ "sqlservers"
 | project subscriptionId, name, pricingTier = tostring(properties.pricingTier)
 '@
+        # ---- Databases plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ---------
+        # Ten ordinary ARG-indexed database/cache PaaS types the Databases(10) coverage-doc table
+        # listed as "not wired" -- manifests already collect them (Excel worksheets), this only
+        # wires the scalar/count projection into the assessment payload, same pattern as every
+        # other typed query in this file.
+        cosmosDbAccounts = @'
+resources | where type =~ "microsoft.documentdb/databaseaccounts"
+| extend accountKind = tostring(['kind'])
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| extend disableLocalAuth = tobool(properties.disableLocalAuth)
+| project id, name, resourceGroup, subscriptionId, location, kind = accountKind,
+          publicNetworkAccess, disableLocalAuth
+'@
+        mariaDbServers = @'
+resources | where type =~ "microsoft.dbformariadb/servers"
+| extend sslEnforcement = tostring(properties.sslEnforcement)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          sslEnforcement, publicNetworkAccess
+'@
+        mySqlServers = @'
+resources | where type =~ "microsoft.dbformysql/servers"
+| extend sslEnforcement = tostring(properties.sslEnforcement)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          sslEnforcement, publicNetworkAccess
+'@
+        mySqlFlexibleServers = @'
+resources | where type =~ "microsoft.dbformysql/flexibleservers"
+| extend version = tostring(properties.version)
+| extend publicNetworkAccess = tostring(properties.network.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          version, publicNetworkAccess
+'@
+        postgreSqlFlexibleServers = @'
+resources | where type =~ "microsoft.dbforpostgresql/flexibleservers"
+| extend version = tostring(properties.version)
+| extend publicNetworkAccess = tostring(properties.network.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          version, publicNetworkAccess
+'@
+        redisCaches = @'
+resources | where type in~ ("microsoft.cache/redis", "microsoft.cache/redisenterprise")
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, type, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          publicNetworkAccess
+'@
+        sqlManagedInstances = @'
+resources | where type =~ "microsoft.sql/managedinstances"
+| extend publicDataEndpointEnabled = tobool(properties.publicDataEndpointEnabled)
+| extend vCores = toint(sku.capacity)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          publicDataEndpointEnabled, vCores
+'@
+        sqlManagedInstanceDatabases = @'
+resources | where type =~ "microsoft.sql/managedinstances/databases"
+| extend status = tostring(properties.status)
+| project id, name, resourceGroup, subscriptionId, status
+'@
+        sqlElasticPools = @'
+resources | where type =~ "microsoft.sql/servers/elasticpools"
+| project id, name, resourceGroup, subscriptionId, location,
+          skuName = tostring(sku.name), skuTier = tostring(sku.tier)
+'@
+        sqlVirtualMachines = @'
+resources | where type =~ "microsoft.sqlvirtualmachine/sqlvirtualmachines"
+| extend sqlImageSku = tostring(properties.sqlImageSku)
+| extend sqlServerLicenseType = tostring(properties.sqlServerLicenseType)
+| project id, name, resourceGroup, subscriptionId, location, sqlImageSku, sqlServerLicenseType
+'@
         webApps = @'
 resources | where type =~ "microsoft.web/sites"
 | extend httpsOnly = tobool(properties.httpsOnly)
@@ -653,6 +838,80 @@ resources | where type =~ "microsoft.web/sites"
 | extend vnetIntegrated = isnotempty(tostring(properties.virtualNetworkSubnetId))
 | extend customDomainBound = array_length(properties.hostNameSslStates) > 1
 | project name, resourceGroup, httpsOnly, minTls, vnetIntegrated, customDomainBound
+'@
+        # ---- Web plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ---------------
+        # Twelve ordinary ARG-indexed Web/App-Service-adjacent types the Web(12) coverage-doc table
+        # listed as "not wired" -- same plumbing fix as the Databases block above.
+        appServiceCertificates = @'
+resources
+| where type in~ ("microsoft.certificateregistration/certificateorders", "microsoft.web/certificates")
+| extend keyVaultId = tostring(properties.keyVaultId)
+| project id, name, type, resourceGroup, subscriptionId, location, keyVaultId
+'@
+        appServiceDomains = @'
+resources | where type =~ "microsoft.domainregistration/domains"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, provisioningState
+'@
+        appServiceEnvironments = @'
+resources | where type =~ "microsoft.web/hostingenvironments"
+| extend status = tostring(properties.status)
+| extend aseKind = tostring(['kind'])
+| project id, name, resourceGroup, subscriptionId, location, status, kind = aseKind
+'@
+        appServicePlans = @'
+resources | where type =~ "microsoft.web/serverfarms"
+| extend reserved = tobool(properties.reserved)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name), reserved
+'@
+        communicationServices = @'
+resources
+| where type in~ ("microsoft.communication/communicationservices", "microsoft.communication/emailservices",
+                  "microsoft.communication/emailservices/domains")
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, type, resourceGroup, subscriptionId, location, provisioningState
+'@
+        webAppDeploymentSlots = @'
+resources | where type =~ "microsoft.web/sites/slots"
+| extend state = tostring(properties.state)
+| extend siteName = tostring(split(id, "/slots/")[0])
+| project id, name, siteName, resourceGroup, subscriptionId, state
+'@
+        fluidRelayServers = @'
+resources | where type =~ "microsoft.fluidrelay/fluidrelayservers"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, provisioningState
+'@
+        notificationHubNamespaces = @'
+resources
+| where type in~ ("microsoft.notificationhubs/namespaces", "microsoft.notificationhubs/namespaces/notificationhubs")
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, type, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), provisioningState
+'@
+        signalRServices = @'
+resources | where type =~ "microsoft.signalrservice/signalr"
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          publicNetworkAccess
+'@
+        springApps = @'
+resources | where type in~ ("microsoft.appplatform/spring", "microsoft.appplatform/spring/apps")
+| extend zoneRedundant = tobool(properties.zoneRedundant)
+| project id, name, type, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          zoneRedundant
+'@
+        staticWebApps = @'
+resources | where type =~ "microsoft.web/staticsites"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          provisioningState
+'@
+        webPubSubServices = @'
+resources | where type =~ "microsoft.signalrservice/webpubsub"
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          publicNetworkAccess
 '@
         aksClusters = @'
 resources | where type =~ "microsoft.containerservice/managedclusters"
@@ -704,6 +963,63 @@ resources | where type =~ "microsoft.keyvault/vaults"
 | extend softDelete = tobool(properties.enableSoftDelete)
 | extend purgeProtection = tobool(properties.enablePurgeProtection)
 | project id, name, resourceGroup, softDelete, purgeProtection
+'@
+        # ---- Security plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ----------
+        # Ten ordinary ARG-indexed Security types the Security(14) coverage-doc table listed as
+        # "not wired" (the other four, DefenderAlerts/Assessments/Pricing/SecureScore, resolve to
+        # the synthetic AZSC/Subscription/SecurityPolicySweep type already covered by
+        # security.defenderPlans -- deliberately not re-wired here, see the file header).
+        # NOTE: wafPolicies/ddosProtectionPlans/applicationSecurityGroups are NOT redeclared here
+        # -- AB#7063 (below) already wires all three with a fuller projection.
+        appComplianceReports = @'
+resources
+| where type in~ ("microsoft.appcomplianceautomation/reports", "microsoft.appcomplianceautomation/reports/snapshots")
+| extend triggerType = tostring(properties.triggerTime)
+| project id, name, type, resourceGroup, subscriptionId, triggerType
+'@
+        artifactSigningAccounts = @'
+resources | where type =~ "microsoft.codesigning/codesigningaccounts"
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name)
+'@
+        cloudHsmClusters = @'
+resources | where type =~ "microsoft.hardwaresecuritymodules/cloudhsmclusters"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, provisioningState
+'@
+        confidentialLedgers = @'
+resources | where type =~ "microsoft.confidentialledger/ledgers"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend ledgerType = tostring(properties.ledgerType)
+| project id, name, resourceGroup, subscriptionId, location, provisioningState, ledgerType
+'@
+        entraDomainServices = @'
+resources | where type =~ "microsoft.aad/domainservices"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, provisioningState
+'@
+        managedHsms = @'
+resources | where type =~ "microsoft.keyvault/managedhsms"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          provisioningState
+'@
+        # Sentinel: `microsoft.securityinsights/onboardingstates` is the reliable, Sentinel-
+        # specific ARM signal. Its sibling type on the manifest, `microsoft.operationsmanagement/
+        # solutions`, is the SAME generic Log Analytics solutions type LAWorkspaceSolutions
+        # (deferred in the AB#7064 Monitor plumbing pass) would also match -- deliberately not
+        # queried here to avoid a false "Sentinel enabled" positive off an unrelated solution.
+        sentinelWorkspaces = @'
+resources | where type =~ "microsoft.securityinsights/onboardingstates"
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, provisioningState
+'@
+        # ---- Identity plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ----------
+        # ManagedIds is the one non-Graph, ARG-indexed collector in the Identity(16) coverage-doc
+        # table -- every other Identity collector declares an `entra/*` type (Microsoft Graph API,
+        # not ARM/ARG), deliberately out of scope, see the file header.
+        managedIdentities = @'
+resources | where type =~ "microsoft.managedidentity/userassignedidentities"
+| project id, name, resourceGroup, subscriptionId, location
 '@
         # ---- AB#7063 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Defender-for-Cloud
         # detail collectors, Security(17) coverage gap ------------------------------------------
@@ -1309,6 +1625,43 @@ resources | where type =~ "microsoft.chaos/experiments"
 resources | where type =~ "microsoft.azureplaywrightservice/accounts"
 | project name, resourceGroup, subscriptionId
 '@
+        # ---- DevOps plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ------------
+        # Seven ordinary ARG-indexed DevOps types the DevOps(12) coverage-doc table listed as "not
+        # wired" (the other five -- DevOpsAgentPools/Pipelines/Projects/Repositories/
+        # ServiceConnections -- declare the org-level Azure DevOps REST `devops/*` synthetic type,
+        # deliberately out of scope, see the file header).
+        apiConnections = @'
+resources | where type =~ "microsoft.web/connections"
+| project id, name, resourceGroup, subscriptionId, location
+'@
+        appConfigurationStores = @'
+resources | where type =~ "microsoft.appconfiguration/configurationstores"
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name)
+'@
+        deploymentEnvironmentTypes = @'
+resources
+| where type in~ ("microsoft.devcenter/devcenters/environmenttypes", "microsoft.devcenter/projects/environmenttypes",
+                  "microsoft.devcenter/devcenters/catalogs", "microsoft.devcenter/projects/catalogs")
+| project id, name, type, resourceGroup, subscriptionId
+'@
+        devBoxPools = @'
+resources | where type =~ "microsoft.devcenter/projects/pools"
+| extend licenseType = tostring(properties.licenseType)
+| project id, name, resourceGroup, subscriptionId, location, licenseType
+'@
+        devCenterNetworkConnections = @'
+resources | where type =~ "microsoft.devcenter/networkconnections"
+| extend domainJoinType = tostring(properties.domainJoinType)
+| project id, name, resourceGroup, subscriptionId, location, domainJoinType
+'@
+        devTestLabs = @'
+resources | where type in~ ("microsoft.devtestlab/labs", "microsoft.devtestlab/schedules")
+| project id, name, type, resourceGroup, subscriptionId, location
+'@
+        labServicesLabs = @'
+resources | where type in~ ("microsoft.labservices/labs", "microsoft.labservices/labplans")
+| project id, name, type, resourceGroup, subscriptionId, location
+'@
         # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- the five Monitor collectors
         # deferred out of the first AB#7064 slice. `manifests/collectors/Monitor/*.psd1` for each
         # already exists and is confirmed ARG-indexed; this wires their query into the assessment
@@ -1574,6 +1927,60 @@ resources
         loadTesting         = @('DevOps', 'Management')
         chaosExperiments    = @('DevOps', 'Management')
         playwrightTesting   = @('DevOps', 'Management')
+        # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Databases plumbing.
+        cosmosDbAccounts         = @('Databases')
+        mariaDbServers           = @('Databases')
+        mySqlServers             = @('Databases')
+        mySqlFlexibleServers     = @('Databases')
+        postgreSqlFlexibleServers = @('Databases')
+        redisCaches              = @('Databases')
+        sqlManagedInstances      = @('Databases')
+        sqlManagedInstanceDatabases = @('Databases')
+        sqlElasticPools          = @('Databases')
+        sqlVirtualMachines       = @('Databases')
+        # AB#7110 -- Web plumbing.
+        appServiceCertificates   = @('Web')
+        appServiceDomains        = @('Web')
+        appServiceEnvironments   = @('Web')
+        appServicePlans          = @('Web')
+        communicationServices    = @('Web')
+        webAppDeploymentSlots    = @('Web')
+        fluidRelayServers        = @('Web')
+        notificationHubNamespaces = @('Web')
+        signalRServices          = @('Web')
+        springApps               = @('Web')
+        staticWebApps            = @('Web')
+        webPubSubServices        = @('Web')
+        # AB#7110 -- Security plumbing (wafPolicies/ddosProtectionPlans/applicationSecurityGroups
+        # already tagged above via AB#7063).
+        appComplianceReports      = @('Security')
+        artifactSigningAccounts   = @('Security')
+        cloudHsmClusters          = @('Security')
+        confidentialLedgers       = @('Security')
+        entraDomainServices       = @('Security')
+        managedHsms               = @('Security')
+        sentinelWorkspaces        = @('Security')
+        # AB#7110 -- Storage plumbing.
+        edgeHardwareCenterOrders  = @('Storage')
+        elasticSanVolumeGroups    = @('Storage')
+        netAppVolumes             = @('Storage')
+        partnerStorageResources   = @('Storage')
+        storageSyncServices       = @('Storage')
+        # AB#7110 -- Management plumbing.
+        advisorScores                = @('Management')
+        automationAccounts           = @('Management')
+        recoveryVaultBackupPolicies  = @('Management')
+        lighthouseDelegations        = @('Management')
+        # AB#7110 -- Identity plumbing.
+        managedIdentities         = @('Identity')
+        # AB#7110 -- DevOps plumbing.
+        apiConnections             = @('DevOps')
+        appConfigurationStores     = @('DevOps')
+        deploymentEnvironmentTypes = @('DevOps')
+        devBoxPools                = @('DevOps')
+        devCenterNetworkConnections = @('DevOps')
+        devTestLabs                = @('DevOps')
+        labServicesLabs            = @('DevOps')
         # AB#7064 -- dataCollectionRules/dataCollectionEndpoints are also tagged Hybrid: they are
         # the AMA-agent plumbing Arc-enabled servers and Azure Local clusters route telemetry
         # through, the same reasoning logAnalyticsWorkspaces above is tagged Management+Monitor.
@@ -2243,6 +2650,11 @@ resources
             # AB#7065: was a manifest that only ever rendered an Excel worksheet -- Azure Update
             # Manager schedule/patch-configuration data never reached the assessment payload.
             maintenanceConfigurations = $r.maintenanceConfigurations
+            # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Management plumbing.
+            advisorScores = $r.advisorScores
+            automationAccounts = $r.automationAccounts
+            recoveryVaultBackupPolicies = $r.recoveryVaultBackupPolicies
+            lighthouseDelegations = $r.lighthouseDelegations
         }
         # AB#7107/AB#7108 -- Update Manager's own assessment/installation history, a new
         # top-level section for the same reason `monitor` is one: the data spans both Azure VMs
@@ -2303,12 +2715,44 @@ resources
                 storageAccounts = $r.storageAccounts
                 snapshots = $r.snapshots; managedDisks = $r.managedDisks
                 diskEncryptionSets = $r.diskEncryptionSets
+                # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Storage plumbing.
+                edgeHardwareCenterOrders = $r.edgeHardwareCenterOrders
+                elasticSanVolumeGroups = $r.elasticSanVolumeGroups
+                netAppVolumes = $r.netAppVolumes
+                partnerStorageResources = $r.partnerStorageResources
+                storageSyncServices = $r.storageSyncServices
             }
             databases    = [pscustomobject]@{
                 sqlDatabases = $r.sqlDatabases; sqlServers = $r.sqlServers
                 sqlDefenderPricing = $r.sqlDefenderPricing
+                # AB#7110 -- Databases plumbing.
+                cosmosDbAccounts = $r.cosmosDbAccounts
+                mariaDbServers = $r.mariaDbServers
+                mySqlServers = $r.mySqlServers
+                mySqlFlexibleServers = $r.mySqlFlexibleServers
+                postgreSqlFlexibleServers = $r.postgreSqlFlexibleServers
+                redisCaches = $r.redisCaches
+                sqlManagedInstances = $r.sqlManagedInstances
+                sqlManagedInstanceDatabases = $r.sqlManagedInstanceDatabases
+                sqlElasticPools = $r.sqlElasticPools
+                sqlVirtualMachines = $r.sqlVirtualMachines
             }
-            web          = [pscustomobject]@{ webApps = $r.webApps }
+            web          = [pscustomobject]@{
+                webApps = $r.webApps
+                # AB#7110 -- Web plumbing.
+                appServiceCertificates = $r.appServiceCertificates
+                appServiceDomains = $r.appServiceDomains
+                appServiceEnvironments = $r.appServiceEnvironments
+                appServicePlans = $r.appServicePlans
+                communicationServices = $r.communicationServices
+                webAppDeploymentSlots = $r.webAppDeploymentSlots
+                fluidRelayServers = $r.fluidRelayServers
+                notificationHubNamespaces = $r.notificationHubNamespaces
+                signalRServices = $r.signalRServices
+                springApps = $r.springApps
+                staticWebApps = $r.staticWebApps
+                webPubSubServices = $r.webPubSubServices
+            }
             # openShiftClusters/containerApps/containerAppEnvironments/containerGroups AB#7110.
             containers   = [pscustomobject]@{
                 aksClusters = $r.aksClusters; containerRegistries = $r.containerRegistries
@@ -2321,6 +2765,23 @@ resources
             security     = [pscustomobject]@{
                 keyVaults = $r.keyVaults
                 keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
+                # AB#7110 -- Security plumbing.
+                appComplianceReports = $r.appComplianceReports
+                applicationSecurityGroups = $r.applicationSecurityGroups
+                artifactSigningAccounts = $r.artifactSigningAccounts
+                cloudHsmClusters = $r.cloudHsmClusters
+                confidentialLedgers = $r.confidentialLedgers
+                ddosProtectionPlans = $r.ddosProtectionPlans
+                entraDomainServices = $r.entraDomainServices
+                managedHsms = $r.managedHsms
+                sentinelWorkspaces = $r.sentinelWorkspaces
+                wafPolicies = $r.wafPolicies
+            }
+            # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Identity had no existing
+            # canonical domains section; ManagedIds is the only ARG-indexed, non-Graph collector
+            # in the Identity(16) coverage gap.
+            identity     = [pscustomobject]@{
+                managedIdentities = $r.managedIdentities
             }
             # mlWorkspaces/searchServices (AB#6818) are the custom-build and grounding-pipeline
             # halves of the AI workload assessment that cognitiveAccounts alone doesn't cover.
@@ -2405,6 +2866,14 @@ resources
             managedPools = $r.managedDevOpsPools; devCenters = $r.devCenters
             loadTesting = $r.loadTesting; chaosExperiments = $r.chaosExperiments
             playwrightTesting = $r.playwrightTesting
+            # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- DevOps plumbing.
+            apiConnections = $r.apiConnections
+            appConfigurationStores = $r.appConfigurationStores
+            deploymentEnvironmentTypes = $r.deploymentEnvironmentTypes
+            devBoxPools = $r.devBoxPools
+            devCenterNetworkConnections = $r.devCenterNetworkConnections
+            devTestLabs = $r.devTestLabs
+            labServicesLabs = $r.labServicesLabs
         }
         _meta         = [pscustomobject]@{
             generatedOn = (Get-Date).ToString('o'); scope = $Scope
