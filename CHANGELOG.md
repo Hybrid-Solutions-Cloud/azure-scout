@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **20 more collectors now reach the assessment payload** across Networking (13:
+  applicationGateways, bastionHosts, networkConnections, expressRouteCircuits, frontDoors,
+  loadBalancers, natGateways, networkInterfaces, networkWatchers, publicDnsZones,
+  routeTables, trafficManagerProfiles, virtualWans), Containers (4: openShiftClusters,
+  containerApps, containerAppEnvironments, containerGroups), and Analytics (3:
+  databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs) — no new ARG round trips,
+  all shaped from the existing raw resource pass. AB#7110.
 - **Three more Defender for Cloud collectors now reach the assessment payload**:
   `collect.security.wafPolicies`, `.ddosProtectionPlans`, `.applicationSecurityGroups`.
   Defender alerts, assessments, secure score and pricing detail remain out of scope — they
