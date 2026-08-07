@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Three more Defender for Cloud collectors now reach the assessment payload**:
+  `collect.security.wafPolicies`, `.ddosProtectionPlans`, `.applicationSecurityGroups`.
+  Defender alerts, assessments, secure score and pricing detail remain out of scope — they
+  need new per-subscription REST calls (`Get-ScoutDefenderPlanSweep` only calls
+  `Microsoft.Security/pricings` today) rather than plumbing an existing query. AB#7063.
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
