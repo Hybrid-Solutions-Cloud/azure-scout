@@ -203,7 +203,7 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
             $collect.security.applicationSecurityGroups[0].resourceGuid | Should -Be 'guid-asg'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -233,7 +233,7 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
             $collect.security.applicationSecurityGroups[0].name | Should -Be 'asg1'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -254,7 +254,7 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
             }
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -272,7 +272,7 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
             $collect.security.PSObject.Properties.Name | Should -Be @('defenderPlans', 'wafPolicies', 'ddosProtectionPlans', 'applicationSecurityGroups')
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 }
