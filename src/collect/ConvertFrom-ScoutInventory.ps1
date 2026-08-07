@@ -1142,6 +1142,70 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Defender-for-Cloud detail: WAF/DDoS/ASG (AB#7063, Story AB#7059, Feature AB#7069,
+    # Epic AB#7099) -- mirrors Invoke-Collect.ps1's wafPolicies/ddosProtectionPlans/
+    # applicationSecurityGroups KQL field for field -- the default `-FromInventory` path costs
+    # no extra Resource Graph round trip for any of these three. DefenderAlerts/
+    # DefenderAssessments/DefenderSecureScore/DefenderPricing are NOT shaped here -- see
+    # Invoke-Collect.ps1's query-pack comment for why.
+    $result['wafPolicies'] = @(
+        $rows | Where-Object {
+            $t = [string] (Get-ScoutProp $_ 'type')
+            $t -ieq 'microsoft.network/applicationgatewaywebapplicationfirewallpolicies' -or
+            $t -ieq 'microsoft.network/frontdoorwebapplicationfirewallpolicies' -or
+            $t -ieq 'microsoft.cdn/cdnwebapplicationfirewallpolicies'
+        } | ForEach-Object {
+            $enabledStateRaw = Get-ScoutProp $_ 'properties.policySettings.enabledState'
+            $stateRaw = Get-ScoutProp $_ 'properties.policySettings.state'
+            $enabledState = if (-not [string]::IsNullOrEmpty([string] $enabledStateRaw)) { [string] $enabledStateRaw } else { [string] $stateRaw }
+            $customRuleRules = Get-ScoutPropArray $_ 'properties.customRules.rules'
+            $customRuleCount = if ($null -ne $customRuleRules) { Measure-ScoutArray $customRuleRules } else { Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.customRules') }
+            [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location             = [string] (Get-ScoutProp $_ 'location')
+                type                 = [string] (Get-ScoutProp $_ 'type')
+                sku                  = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState    = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                enabledState         = $enabledState
+                mode                 = [string] (Get-ScoutProp $_ 'properties.policySettings.mode')
+                managedRuleSetCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.managedRules.managedRuleSets')
+                customRuleCount      = $customRuleCount
+            }
+        }
+    )
+
+    $result['ddosProtectionPlans'] = @(
+        Select-ByType 'microsoft.network/ddosprotectionplans' | ForEach-Object {
+            [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
+                name               = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location           = [string] (Get-ScoutProp $_ 'location')
+                provisioningState  = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                protectedVNetCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.virtualNetworks')
+                resourceGuid       = [string] (Get-ScoutProp $_ 'properties.resourceGuid')
+            }
+        }
+    )
+
+    $result['applicationSecurityGroups'] = @(
+        Select-ByType 'microsoft.network/applicationsecuritygroups' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                resourceGuid      = [string] (Get-ScoutProp $_ 'properties.resourceGuid')
+            }
+        }
+    )
+
     # ---- Azure Local child resources (AB#7061, Story AB#7059, Feature AB#7069, Epic AB#7099) ----
     # Mirrors Invoke-Collect.ps1's arcDataControllers/arcGateways/arcKubernetes/
     # arcResourceBridge/arcSqlManagedInstances/arcSqlServers/galleryImages/

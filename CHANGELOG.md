@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Three more Defender for Cloud collectors now reach the assessment payload**:
+  `collect.security.wafPolicies`, `.ddosProtectionPlans`, `.applicationSecurityGroups`.
+  Defender alerts, assessments, secure score and pricing detail remain out of scope — they
+  need new per-subscription REST calls (`Get-ScoutDefenderPlanSweep` only calls
+  `Microsoft.Security/pricings` today) rather than plumbing an existing query. AB#7063.
 - **Azure Local child resources now reach the assessment payload.** A cluster showed as a
   single row in the report with none of its child resources — the collector manifests
   already existed and are ARG-indexed, but the assessment collect never queried them.
