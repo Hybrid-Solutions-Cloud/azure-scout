@@ -29,10 +29,17 @@ $ErrorActionPreference = 'Stop'
                      privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
                                      expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
-                     logAnalyticsWorkspaces[{retentionInDays}] }
+                     logAnalyticsWorkspaces[{retentionInDays}],
+                     maintenanceConfigurations[{scope,recurEvery,startDateTime,duration,
+                                                 timeZone,rebootSetting}] }               (AB#7065)
         security   { defenderPlans[] }
-        governance { managementGroups[], policyAssignments[], roleAssignments[], budgets[],
-                     resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the native Governance ingestor, Import-Governance)
+        governance { managementGroups[], policyAssignments[], policyDefinitions[],
+                     policySetDefinitions[], roleAssignments[], budgets[],
+                     resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the
+                     native Governance ingestor, Import-Governance; policyDefinitions/
+                     policySetDefinitions are the raw ARM REST list rows behind the
+                     AZSC/Management/PolicyDefinition|PolicySetDefinition envelopes the
+                     TenantWideDefinitionsOnly sweep already collects -- AB#7066)
         costCleanup { orphanedDisks[], orphanedPips[] }
         opsPosture  { diagnosticCoverage[{type,coveragePct}] }
         monitor     { dataCollectionRules[{dataCollectionEndpointId,hasLogAnalyticsDestination,dataFlowCount,immutableId}],
@@ -683,6 +690,27 @@ resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
 | project name, resourceGroup, retentionInDays
 '@
+        # ---- Azure Update Manager (AB#7065, Story AB#7065, Feature AB#7069, Epic AB#7099) -------
+        # microsoft.maintenance/maintenanceconfigurations IS Resource Graph indexed (confirmed
+        # against the ARG supported-tables-and-resource-types reference, same verification
+        # standard as every other query in this file) -- the manifest
+        # manifests/collectors/Management/MaintenanceConfigurations.psd1 already renders it as an
+        # Excel worksheet, but nothing projected it into the scalar assessment shape until now.
+        # Every field below mirrors a column that manifest already reads off the Az cmdlet
+        # equivalent (maintenanceScope, maintenanceWindow.recurEvery/startDateTime/duration/
+        # timeZone, installPatches.rebootSetting) -- documented MaintenanceConfiguration ARM
+        # properties, kept as scalars so a rule never needs `.length`/array tricks (AB#5083).
+        maintenanceConfigurations = @'
+resources | where type =~ "microsoft.maintenance/maintenanceconfigurations"
+| extend scope = tostring(properties.maintenanceScope)
+| extend recurEvery = tostring(properties.maintenanceWindow.recurEvery)
+| extend startDateTime = tostring(properties.maintenanceWindow.startDateTime)
+| extend duration = tostring(properties.maintenanceWindow.duration)
+| extend timeZone = tostring(properties.maintenanceWindow.timeZone)
+| extend rebootSetting = tostring(properties.installPatches.rebootSetting)
+| project name, resourceGroup, subscriptionId, scope, recurEvery, startDateTime, duration,
+          timeZone, rebootSetting
+'@
         # ---- AI workload domain additions (AB#6818) --------------------------------------------
         # `cognitiveAccounts` above already carries accountKind, so OpenAI/Applied-AI PaaS
         # presence is read from it directly (no new query needed for that half). What is missing
@@ -935,6 +963,10 @@ resources
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
+        # AB#7065 (Azure Update Manager) — patch-schedule coverage spans the ordinary Management
+        # pillar and the Azure Local operational checklist (waf.azurelocal.operational.yaml's
+        # Update Manager composite item), so both categories must gather it.
+        maintenanceConfigurations = @('Management', 'Hybrid')
         # AB#6818 (AI workload assessment) — waf.ai.yaml's WAF-AI-* rules.
         mlWorkspaces        = @('AI')
         searchServices      = @('AI')
@@ -1405,6 +1437,43 @@ resources
         $policyInitiatives = @($policyInitiatives | Sort-Object Id -Unique)
     }
 
+    # ---- governance.policyDefinitions / governance.policySetDefinitions (AB#7066) -------------
+    # Same source as `policyInitiatives` immediately above: Get-ScoutTenantWideResource already
+    # appends AZSC/Management/PolicyDefinition and AZSC/Management/PolicySetDefinition envelopes
+    # to $rawInventory.Resources on every assessment collect (the TenantWideDefinitionsOnly
+    # sweep is unconditional -- see the $rawArgs comment above), so extracting them here adds
+    # zero Azure round-trips, exactly like policyInitiatives.
+    #
+    # Unlike policyInitiatives (which flattens to five PascalCase scalar fields for
+    # Resolve-ScoutAssignedInitiative), these rows are kept as the RAW ARM REST list-response
+    # shape (id/name/type/properties) with `properties` whole -- the same convention
+    # governance.policyAssignments above uses (Get-ScoutGovernanceDataset never flattens its
+    # `properties` object either), so a rule's JSONPath (@.properties.policyType,
+    # @.properties.metadata.category, @.properties.parameters, @.properties.policyRule.then.effect)
+    # resolves against these exactly as it does against a policy assignment.
+    function Get-ScoutTenantWideDefinitionRow {
+        param([Parameter(Mandatory)] [string] $EnvelopeType)
+        @(
+            if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
+                $envelopes = @($rawInventory.Resources | Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq $EnvelopeType })
+                foreach ($envelope in $envelopes) {
+                    if (-not $envelope.PSObject.Properties['properties'] -or -not $envelope.properties) { continue }
+                    foreach ($item in @($envelope.properties)) {
+                        # `id` is read case-insensitively (PowerShell property lookup), matching
+                        # the raw ARM REST list-response shape's `id` field -- see the
+                        # policyInitiatives block above for the same idiom.
+                        if ($item -and $item.PSObject.Properties['Id'] -and -not [string]::IsNullOrWhiteSpace([string]$item.Id)) { $item }
+                    }
+                }
+            }
+        )
+    }
+    # A definition can be visible from more than one subscription's ARM REST sweep in a
+    # multi-subscription tenant (built-ins repeat per subscription); collapse to one row per
+    # distinct id, matching the policyInitiatives dedup immediately above.
+    $policyDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicyDefinition' | Sort-Object Id -Unique)
+    $policySetDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicySetDefinition' | Sort-Object Id -Unique)
+
     # ---- Key Vault children: secrets and keys (AB#6821, Epic AB#6454) -------------------------
     # These rows come from Get-ScoutArmChildResource's ARM REST sweep (see the ArmChildDataset
     # note above) rather than Resource Graph -- $rawInventory.Resources carries them as
@@ -1553,12 +1622,19 @@ resources
             # The right-hand side of XR-BKP-01/02 (AB#6835). Filed under management because that
             # is where the vault lives, not under compute where the protected VM does.
             backupProtectedItems = $r.backupProtectedItems
+            # AB#7065: was a manifest that only ever rendered an Excel worksheet -- Azure Update
+            # Manager schedule/patch-configuration data never reached the assessment payload.
+            maintenanceConfigurations = $r.maintenanceConfigurations
         }
         # AB#6903: was hardcoded @() -- see the sweep above.
         security      = [pscustomobject]@{ defenderPlans = $defenderPlans }
         governance    = [pscustomobject]@{
             managementGroups = @()
             policyAssignments = $rawGovernance.policyAssignments
+            # AB#7066: definitions BEHIND an assignment/initiative were never surfaced, only the
+            # assignment itself -- see the extraction block above for the source and shape.
+            policyDefinitions = $policyDefinitions
+            policySetDefinitions = $policySetDefinitions
             roleAssignments = $rawGovernance.roleAssignments
             budgets = $rawGovernance.budgets
             resourceLocks = $rawGovernance.resourceLocks
