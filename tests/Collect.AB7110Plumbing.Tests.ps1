@@ -169,7 +169,7 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+    Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
 }
 
 Describe 'ConvertFrom-ScoutInventory shapes the 20 AB#7110 datasets from a populated estate' {
