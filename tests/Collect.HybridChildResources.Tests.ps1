@@ -335,7 +335,7 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
             $collect.domains.hybrid.arcDataControllers[0].name | Should -Be 'dc1'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -365,7 +365,7 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
             $collect.domains.hybrid.storageContainers[0].availableSizeGB | Should -Be 100
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -386,7 +386,7 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
             }
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -406,7 +406,7 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
             $collect.domains.hybrid.PSObject.Properties.Name | Should -Contain 'azureLocalVirtualMachineInstances'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 }
