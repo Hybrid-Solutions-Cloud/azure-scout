@@ -1124,5 +1124,173 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Azure Local child resources (AB#7061, Story AB#7059, Feature AB#7069, Epic AB#7099) ----
+    # Mirrors Invoke-Collect.ps1's arcDataControllers/arcGateways/arcKubernetes/
+    # arcResourceBridge/arcSqlManagedInstances/arcSqlServers/galleryImages/
+    # marketplaceGalleryImages/storageContainers KQL field for field, same pattern the
+    # AB#7064 Monitor-plumbing block above follows -- the inverted (default) `-FromInventory`
+    # path costs no extra Resource Graph round-trip for any of these nine.
+    $result['arcDataControllers'] = @(
+        Select-ByType 'microsoft.azurearcdata/datacontrollers' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                infrastructure    = [string] (Get-ScoutProp $_ 'properties.infrastructure')
+                k8sNamespace      = [string] (Get-ScoutProp $_ 'properties.k8sRaw.metadata.namespace')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
+    $result['arcGateways'] = @(
+        Select-ByType 'microsoft.hybridcompute/gateways' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                gatewayType       = [string] (Get-ScoutProp $_ 'properties.gatewayType')
+                gatewayEndpoint   = [string] (Get-ScoutProp $_ 'properties.gatewayEndpoint')
+            }
+        }
+    )
+
+    $result['arcKubernetes'] = @(
+        Select-ByType 'microsoft.kubernetes/connectedclusters' | ForEach-Object {
+            $totalNodeCountRaw = Get-ScoutProp $_ 'properties.totalNodeCount'
+            [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
+                name               = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location           = [string] (Get-ScoutProp $_ 'location')
+                provisioningState  = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                connectivityStatus = [string] (Get-ScoutProp $_ 'properties.connectivityStatus')
+                distribution       = [string] (Get-ScoutProp $_ 'properties.distribution')
+                kubernetesVersion  = [string] (Get-ScoutProp $_ 'properties.kubernetesVersion')
+                totalNodeCount     = if ($null -eq $totalNodeCountRaw) { $null } else { [int] $totalNodeCountRaw }
+            }
+        }
+    )
+
+    $result['arcResourceBridge'] = @(
+        Select-ByType 'microsoft.resourceconnector/appliances' | ForEach-Object {
+            [pscustomobject]@{
+                id                      = [string] (Get-ScoutProp $_ 'id')
+                name                    = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup           = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId          = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                = [string] (Get-ScoutProp $_ 'location')
+                provisioningState       = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                status                  = [string] (Get-ScoutProp $_ 'properties.status')
+                distro                  = [string] (Get-ScoutProp $_ 'properties.distro')
+                version                 = [string] (Get-ScoutProp $_ 'properties.version')
+                infrastructureProvider  = [string] (Get-ScoutProp $_ 'properties.infrastructureConfig.provider')
+            }
+        }
+    )
+
+    $result['arcSqlManagedInstances'] = @(
+        Select-ByType 'microsoft.azurearcdata/sqlmanagedinstances' | ForEach-Object {
+            $vCoresRequestRaw = Get-ScoutProp $_ 'properties.vCores.request'
+            $vCoresLimitRaw = Get-ScoutProp $_ 'properties.vCores.limit'
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                dataControllerId  = [string] (Get-ScoutProp $_ 'properties.dataControllerId')
+                tier              = [string] (Get-ScoutProp $_ 'properties.tier')
+                vCoresRequest     = if ($null -eq $vCoresRequestRaw) { $null } else { [int] $vCoresRequestRaw }
+                vCoresLimit       = if ($null -eq $vCoresLimitRaw) { $null } else { [int] $vCoresLimitRaw }
+            }
+        }
+    )
+
+    $result['arcSqlServers'] = @(
+        Select-ByType 'microsoft.azurearcdata/sqlserverinstances' | ForEach-Object {
+            $vCoreRaw = Get-ScoutProp $_ 'properties.vCore'
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                provisioningState   = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                version             = [string] (Get-ScoutProp $_ 'properties.version')
+                edition             = [string] (Get-ScoutProp $_ 'properties.edition')
+                licenseType         = [string] (Get-ScoutProp $_ 'properties.licenseType')
+                vCore               = if ($null -eq $vCoreRaw) { $null } else { [int] $vCoreRaw }
+                patchLevel          = [string] (Get-ScoutProp $_ 'properties.patchLevel')
+                azureDefenderStatus = [string] (Get-ScoutProp $_ 'properties.azureDefenderStatus')
+            }
+        }
+    )
+
+    $result['galleryImages'] = @(
+        Select-ByType 'microsoft.azurestackhci/galleryimages' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                osType            = [string] (Get-ScoutProp $_ 'properties.osType')
+                hyperVGeneration  = [string] (Get-ScoutProp $_ 'properties.hyperVGeneration')
+                publisher         = [string] (Get-ScoutProp $_ 'properties.identifier.publisher')
+                offer             = [string] (Get-ScoutProp $_ 'properties.identifier.offer')
+                sku               = [string] (Get-ScoutProp $_ 'properties.identifier.sku')
+                imageVersion      = [string] (Get-ScoutProp $_ 'properties.version.name')
+            }
+        }
+    )
+
+    $result['marketplaceGalleryImages'] = @(
+        Select-ByType 'microsoft.azurestackhci/marketplacegalleryimages' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                status            = [string] (Get-ScoutProp $_ 'properties.status.provisioningStatus.status')
+                osType            = [string] (Get-ScoutProp $_ 'properties.osType')
+                hyperVGeneration  = [string] (Get-ScoutProp $_ 'properties.hyperVGeneration')
+                publisher         = [string] (Get-ScoutProp $_ 'properties.identifier.publisher')
+                offer             = [string] (Get-ScoutProp $_ 'properties.identifier.offer')
+                sku               = [string] (Get-ScoutProp $_ 'properties.identifier.sku')
+                imageVersion      = [string] (Get-ScoutProp $_ 'properties.version.name')
+            }
+        }
+    )
+
+    $result['storageContainers'] = @(
+        Select-ByType 'microsoft.azurestackhci/storagecontainers' | ForEach-Object {
+            $availableBytesRaw = Get-ScoutProp $_ 'properties.status.availableSizeBytes'
+            $containerBytesRaw = Get-ScoutProp $_ 'properties.status.containerSizeBytes'
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                status            = [string] (Get-ScoutProp $_ 'properties.status.provisioningStatus.status')
+                path              = [string] (Get-ScoutProp $_ 'properties.path')
+                availableSizeGB   = if ($null -eq $availableBytesRaw) { $null } else { [math]::Round([double] $availableBytesRaw / 1GB, 2) }
+                containerSizeGB   = if ($null -eq $containerBytesRaw) { $null } else { [math]::Round([double] $containerBytesRaw / 1GB, 2) }
+            }
+        }
+    )
+
     return $result
 }
