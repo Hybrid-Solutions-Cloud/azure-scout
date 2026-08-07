@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Azure Update Manager patch detail now reaches the assessment payload.** New
+  `collect.updateManager.patchAssessments[]` / `.patchInstallations[]` (per-machine summary
+  rows, sourced from Update Manager's own `patchassessmentresources`/
+  `patchinstallationresources` Resource Graph tables, collected since AB#6731 but never
+  shaped into `collect.json`), plus `patchMode`/`assessmentMode` added to the existing
+  `compute.virtualMachines[]` and `domains.hybrid.arcServers[]` projections at no extra
+  round-trip cost. AB#7107 AB#7108 AB#7109.
 - **20 more collectors now reach the assessment payload** across Networking (13:
   applicationGateways, bastionHosts, networkConnections, expressRouteCircuits, frontDoors,
   loadBalancers, natGateways, networkInterfaces, networkWatchers, publicDnsZones,

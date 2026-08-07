@@ -33,7 +33,8 @@ $ErrorActionPreference = 'Stop'
                      trafficManagerProfiles[{profileStatus,trafficRoutingMethod}],
                      virtualWans[{wanType,allowBranchToBranchTraffic}] }   (AB#7110, Story AB#7059,
                      Feature AB#7069, Epic AB#7099 -- 13 ordinary ARG-indexed Networking types)
-        compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType}],
+        compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType,
+                                       patchMode,assessmentMode}],                       (AB#7109)
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
                      avdSessionHosts[{hostPoolName,status,agentVersion}],
                      avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
@@ -43,6 +44,23 @@ $ErrorActionPreference = 'Stop'
                      logAnalyticsWorkspaces[{retentionInDays}],
                      maintenanceConfigurations[{scope,recurEvery,startDateTime,duration,
                                                  timeZone,rebootSetting}] }               (AB#7065)
+        updateManager { patchAssessments[{machineId,platform,osType,rebootPending,
+                                           patchServiceUsed,startDateTime,lastModifiedDateTime,
+                                           availablePatchCountByClassification}],
+                         patchInstallations[{machineId,platform,osType,status,
+                                              installationActivityId,installedPatchCount,
+                                              failedPatchCount,pendingPatchCount,
+                                              notSelectedPatchCount,excludedPatchCount,
+                                              rebootStatus,maintenanceWindowExceeded,
+                                              startDateTime,lastModifiedDateTime}] }
+                       (AB#7107/AB#7108 -- Azure Update Manager's own `patchassessmentresources`/
+                       `patchinstallationresources` Resource Graph tables, read-only, 7/30-day
+                       retention respectively. A new top-level section rather than folding into
+                       `management`/`compute`/`hybrid`, same reasoning as `monitor` -- the data
+                       spans both Azure VMs and Arc-enabled servers, not one category's resource
+                       type. `compute.virtualMachines`/`domains.hybrid.arcServers` above carry the
+                       machine's own patch ORCHESTRATION config (patchMode/assessmentMode);
+                       `updateManager` carries what Update Manager actually found/did.)
         security   { defenderPlans[], wafPolicies[{type,sku,provisioningState,enabledState,mode,
                      managedRuleSetCount,customRuleCount}],
                      ddosProtectionPlans[{provisioningState,protectedVNetCount,resourceGuid}],
@@ -101,7 +119,8 @@ $ErrorActionPreference = 'Stop'
                       security{keyVaults[], keyVaultSecrets[{contentType,enabled,expires}],
                                keyVaultKeys[{enabled,expires}]},   (AB#6821)
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
-                      hybrid{arcServers[], arcExtensions[{machineId,extensionType}],
+                      hybrid{arcServers[{patchMode,assessmentMode}],                        (AB#7109)
+                             arcExtensions[{machineId,extensionType}],
                              azureLocalClusters[{connectivityStatus,nodeCount,clusterVersion}],            (AB#6819)
                              logicalNetworks[{vmSwitchName,subnetCount,addressPrefix,vlan}],                (AB#6819)
                              arcSites[], azureLocalVirtualMachineInstances[{parentName,powerState}],
@@ -551,10 +570,23 @@ resources
 // path already surfaced this (manifests/collectors/Compute/VirtualMachine.psd1's "Hybrid
 // Benefit" column) but the assess pipeline reads collect.json, which never carried it --
 // which is why finops.review.yaml correctly reported it as uncollected. (AB#6928 follow-up)
+// patchMode/assessmentMode (AB#7109, Story AB#7059, Feature AB#7069, Epic AB#7099) -- the
+// machine's own Update Manager ORCHESTRATION setting (who triggers assessment/install:
+// AutomaticByPlatform/AutomaticByOS/Manual/ImageDefault), documented on
+// properties.osProfile.{windows,linux}Configuration.patchSettings. Neither sub-object is ever
+// present on the OTHER OS family, so reading whichever one is non-empty is the correct merge --
+// not an ambiguity, since a VM is Windows XOR Linux.
+| extend winPatchMode = tostring(properties.osProfile.windowsConfiguration.patchSettings.patchMode)
+| extend linPatchMode = tostring(properties.osProfile.linuxConfiguration.patchSettings.patchMode)
+| extend winAssessMode = tostring(properties.osProfile.windowsConfiguration.patchSettings.assessmentMode)
+| extend linAssessMode = tostring(properties.osProfile.linuxConfiguration.patchSettings.assessmentMode)
+| extend patchMode = iff(isnotempty(winPatchMode), winPatchMode, linPatchMode)
+| extend assessmentMode = iff(isnotempty(winAssessMode), winAssessMode, linAssessMode)
 | project id, name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
           size = tostring(properties.hardwareProfile.vmSize),
           licenseType = tostring(properties.licenseType),
-          osType = tostring(properties.storageProfile.osDisk.osType)
+          osType = tostring(properties.storageProfile.osDisk.osType),
+          patchMode, assessmentMode
 '@
         orphanedDisks = @'
 resources | where type =~ "microsoft.compute/disks" and properties.diskState =~ "Unattached"
@@ -819,7 +851,78 @@ resources | where type =~ "microsoft.cognitiveservices/accounts"
         arcServers = @'
 resources | where type =~ "microsoft.hybridcompute/machines"
 | extend status = tostring(properties.status)
-| project name, resourceGroup, status, agentVersion = tostring(properties.agentVersion)
+// patchMode/assessmentMode (AB#7109) -- same PatchSettings shape Microsoft.HybridCompute
+// documents for an Arc-enabled server as Microsoft.Compute does for an Azure VM; see the
+// virtualMachines query above for why reading whichever OS family's sub-object is non-empty is
+// the correct (not ambiguous) merge.
+| extend winPatchMode = tostring(properties.osProfile.windowsConfiguration.patchSettings.patchMode)
+| extend linPatchMode = tostring(properties.osProfile.linuxConfiguration.patchSettings.patchMode)
+| extend winAssessMode = tostring(properties.osProfile.windowsConfiguration.patchSettings.assessmentMode)
+| extend linAssessMode = tostring(properties.osProfile.linuxConfiguration.patchSettings.assessmentMode)
+| extend patchMode = iff(isnotempty(winPatchMode), winPatchMode, linPatchMode)
+| extend assessmentMode = iff(isnotempty(winAssessMode), winAssessMode, linAssessMode)
+| project name, resourceGroup, status, agentVersion = tostring(properties.agentVersion),
+          patchMode, assessmentMode
+'@
+        # ---- Azure Update Manager patch detail (AB#7107 AB#7108, Story AB#7059, Feature AB#7069,
+        # Epic AB#7099) -- reads Update Manager's OWN Resource Graph tables, exactly as the raw
+        # pass's -IncludeUpdateManagerResources sweep does (see Get-ScoutRawInventory.ps1's
+        # AB#6731 comment for the full read-only rationale: this is what Update Manager already
+        # recorded, never a fresh guest-OS scan). Both tables cover
+        # microsoft.compute/virtualmachines, microsoft.hybridcompute/machines AND
+        # microsoft.connectedvmwarevsphere/virtualmachines (Arc-enabled VMware) in one query, so
+        # `platform` distinguishes which kind of machine a row is about.
+        #
+        # Each table also carries child `.../softwarepatches` rows (per-update KB/classification
+        # detail) -- excluded here because this is the per-MACHINE summary row a rule scores
+        # against, not the per-update detail a future collector could add separately.
+        #
+        # `id` is `<machineId>/patch{Assessment,Installation}Results/<latest-or-GUID>`
+        # (documented ARM id shape) -- `machineId` below recovers the machine's own ARM id so a
+        # rule can join this row back to compute.virtualMachines[].id / a future
+        # hybrid.arcServers[].id, the same join pattern backupProtectedItems.sourceResourceId
+        # already establishes for XR-BKP-01/02.
+        patchAssessments = @'
+patchassessmentresources
+| where type !endswith "softwarepatches"
+| extend sepIdx = indexof(tolower(id), "/patchassessmentresults/")
+| extend machineId = substring(id, 0, sepIdx)
+| extend platform = case(
+    type startswith "microsoft.compute", "AzureVM",
+    type startswith "microsoft.hybridcompute", "ArcServer",
+    type startswith "microsoft.connectedvmwarevsphere", "AVS",
+    "Unknown")
+| project machineId, platform, subscriptionId, resourceGroup,
+          osType = tostring(properties.osType),
+          rebootPending = tobool(properties.rebootPending),
+          patchServiceUsed = tostring(properties.patchServiceUsed),
+          startDateTime = tostring(properties.startDateTime),
+          lastModifiedDateTime = tostring(properties.lastModifiedDateTime),
+          availablePatchCountByClassification = properties.availablePatchCountByClassification
+'@
+        patchInstallations = @'
+patchinstallationresources
+| where type !endswith "softwarepatches"
+| extend sepIdx = indexof(tolower(id), "/patchinstallationresults/")
+| extend machineId = substring(id, 0, sepIdx)
+| extend platform = case(
+    type startswith "microsoft.compute", "AzureVM",
+    type startswith "microsoft.hybridcompute", "ArcServer",
+    type startswith "microsoft.connectedvmwarevsphere", "AVS",
+    "Unknown")
+| project machineId, platform, subscriptionId, resourceGroup,
+          osType = tostring(properties.osType),
+          status = tostring(properties.status),
+          installationActivityId = tostring(properties.installationActivityId),
+          installedPatchCount = toint(properties.installedPatchCount),
+          failedPatchCount = toint(properties.failedPatchCount),
+          pendingPatchCount = toint(properties.pendingPatchCount),
+          notSelectedPatchCount = toint(properties.notSelectedPatchCount),
+          excludedPatchCount = toint(properties.excludedPatchCount),
+          rebootStatus = tostring(properties.rebootStatus),
+          maintenanceWindowExceeded = tobool(properties.maintenanceWindowExceeded),
+          startDateTime = tostring(properties.startDateTime),
+          lastModifiedDateTime = tostring(properties.lastModifiedDateTime)
 '@
         eventHubNamespaces = @'
 resources | where type =~ "microsoft.eventhub/namespaces"
@@ -1417,6 +1520,11 @@ resources
         discoverySites      = @('Migration')
         cognitiveAccounts   = @('AI')
         arcServers          = @('Hybrid')
+        # AB#7107/AB#7108 -- Azure Update Manager patch state spans Azure VMs (Compute) and
+        # Arc-enabled servers (Hybrid) equally, and the owner named Update Manager itself as core
+        # Management-pillar data (AB#7059's description), so all three categories must gather it.
+        patchAssessments    = @('Compute', 'Hybrid', 'Management')
+        patchInstallations  = @('Compute', 'Hybrid', 'Management')
         arcExtensions       = @('Hybrid')
         azureLocalClusters  = @('Hybrid')
         logicalNetworks     = @('Hybrid')
@@ -1656,9 +1764,18 @@ resources
             # Backup/diagnostics children an assessment collect has no rule that reads), so the
             # added cost is bounded to two REST calls per Key Vault in scope, not per-parent across
             # every dataset the declarative inventory collectors need.
+            #
+            # -IncludeUpdateManagerResources (AB#7107 AB#7108, Story AB#7059, Feature AB#7069,
+            # Epic AB#7099) is the second -Include* switch this path needs, added the same way
+            # -IncludeBackupResources was by AB#6835 above: `patchassessmentresources` and
+            # `patchinstallationresources` are their OWN Resource Graph tables (NOT part of the
+            # default `resources`/`networkresources` pass), so nothing short of asking for them by
+            # name ever returns Update Manager's patch state. Two more Resource Graph round-trips
+            # on the default assessment collect, same tradeoff class as the backup-items call.
             $rawArgs = @{
                 IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true
                 IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
+                IncludeUpdateManagerResources = $true
             }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             # AB#6803 -- -IncludeAzureLocalArm turns on BOTH switches this needs:
@@ -2126,6 +2243,14 @@ resources
             # AB#7065: was a manifest that only ever rendered an Excel worksheet -- Azure Update
             # Manager schedule/patch-configuration data never reached the assessment payload.
             maintenanceConfigurations = $r.maintenanceConfigurations
+        }
+        # AB#7107/AB#7108 -- Update Manager's own assessment/installation history, a new
+        # top-level section for the same reason `monitor` is one: the data spans both Azure VMs
+        # and Arc-enabled servers, not one existing category's resource type. See the canonical
+        # contract comment at the top of this file.
+        updateManager = [pscustomobject]@{
+            patchAssessments   = $r.patchAssessments
+            patchInstallations = $r.patchInstallations
         }
         # AB#6903: was hardcoded @() -- see the sweep above.
         # AB#7063: wafPolicies/ddosProtectionPlans/applicationSecurityGroups (AB#7063, Story

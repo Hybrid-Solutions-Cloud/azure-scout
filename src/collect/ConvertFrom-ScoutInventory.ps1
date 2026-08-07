@@ -218,6 +218,24 @@ function ConvertTo-ScoutBool {
     return [bool]::TryParse($text, [ref] $null) ? [bool]::Parse($text) : $null
 }
 
+function Get-ScoutOsPatchSetting {
+    <#
+    .SYNOPSIS
+        Read a Compute/HybridCompute PatchSettings field (patchMode or assessmentMode),
+        preferring whichever OS family's sub-object is present.
+
+    .NOTES
+        AB#7109. `properties.osProfile.windowsConfiguration` and `...linuxConfiguration` are
+        mutually exclusive on any one machine (a VM/Arc server is Windows XOR Linux), so
+        preferring whichever is non-null is a merge, not an ambiguity -- mirrors
+        Invoke-Collect.ps1's `iff(isnotempty(winX), winX, linX)` KQL idiom field for field.
+    #>
+    param([Parameter(Mandatory)] [AllowNull()] $Resource, [Parameter(Mandatory)] [string] $Field)
+    $winValue = Get-ScoutProp $Resource "properties.osProfile.windowsConfiguration.patchSettings.$Field"
+    if ($null -ne $winValue) { return $winValue }
+    return Get-ScoutProp $Resource "properties.osProfile.linuxConfiguration.patchSettings.$Field"
+}
+
 function Measure-ScoutArray {
     <#
     .SYNOPSIS
@@ -636,6 +654,9 @@ function ConvertFrom-ScoutInventory {
                 # set), which is the finding itself, not absent data.
                 licenseType    = [string] (Get-ScoutProp $_ 'properties.licenseType')
                 osType         = [string] (Get-ScoutProp $_ 'properties.storageProfile.osDisk.osType')
+                # AB#7109 -- mirrors Invoke-Collect.ps1's virtualMachines KQL field for field.
+                patchMode      = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'patchMode')
+                assessmentMode = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'assessmentMode')
             }
         }
     )
@@ -1029,6 +1050,81 @@ function ConvertFrom-ScoutInventory {
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
                 status        = [string] (Get-ScoutProp $_ 'properties.status')
                 agentVersion  = [string] (Get-ScoutProp $_ 'properties.agentVersion')
+                # AB#7109 -- mirrors Invoke-Collect.ps1's arcServers KQL field for field.
+                patchMode      = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'patchMode')
+                assessmentMode = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'assessmentMode')
+            }
+        }
+    )
+
+    # ---- Azure Update Manager patch detail (AB#7107 AB#7108, Story AB#7059, Feature AB#7069,
+    # Epic AB#7099) -- mirrors Invoke-Collect.ps1's patchAssessments/patchInstallations KQL field
+    # for field, reading the `patchassessmentresources`/`patchinstallationresources` rows the raw
+    # pass's -IncludeUpdateManagerResources sweep appends to $Resources (see
+    # Get-ScoutRawInventory.ps1's AB#6731 comment). Only the per-machine SUMMARY row is shaped --
+    # the `.../softwarepatches` per-update child rows are excluded, same filter the KQL applies.
+    function Get-ScoutPatchMachineId {
+        param([Parameter(Mandatory)] [string] $Id, [Parameter(Mandatory)] [string] $Separator)
+        $sepIndex = $Id.ToLowerInvariant().IndexOf($Separator.ToLowerInvariant())
+        if ($sepIndex -lt 0) { return $null }
+        return $Id.Substring(0, $sepIndex)
+    }
+    function Get-ScoutPatchPlatform {
+        param([Parameter(Mandatory)] [string] $Type)
+        if ($Type -ilike 'microsoft.compute*') { return 'AzureVM' }
+        if ($Type -ilike 'microsoft.hybridcompute*') { return 'ArcServer' }
+        if ($Type -ilike 'microsoft.connectedvmwarevsphere*') { return 'AVS' }
+        return 'Unknown'
+    }
+    $patchAssessmentTypes = @(
+        'microsoft.compute/virtualmachines/patchassessmentresults'
+        'microsoft.hybridcompute/machines/patchassessmentresults'
+        'microsoft.connectedvmwarevsphere/virtualmachines/patchassessmentresults'
+    )
+    $result['patchAssessments'] = @(
+        $patchAssessmentTypes | ForEach-Object { Select-ByType $_ } | ForEach-Object {
+            $id = [string] (Get-ScoutProp $_ 'id')
+            $type = [string] (Get-ScoutProp $_ 'type')
+            [pscustomobject]@{
+                machineId                           = Get-ScoutPatchMachineId -Id $id -Separator '/patchAssessmentResults/'
+                platform                             = Get-ScoutPatchPlatform -Type $type
+                subscriptionId                       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                resourceGroup                        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                osType                                = [string] (Get-ScoutProp $_ 'properties.osType')
+                rebootPending                         = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.rebootPending')
+                patchServiceUsed                      = [string] (Get-ScoutProp $_ 'properties.patchServiceUsed')
+                startDateTime                         = [string] (Get-ScoutProp $_ 'properties.startDateTime')
+                lastModifiedDateTime                  = [string] (Get-ScoutProp $_ 'properties.lastModifiedDateTime')
+                availablePatchCountByClassification    = Get-ScoutProp $_ 'properties.availablePatchCountByClassification'
+            }
+        }
+    )
+    $patchInstallationTypes = @(
+        'microsoft.compute/virtualmachines/patchinstallationresults'
+        'microsoft.hybridcompute/machines/patchinstallationresults'
+        'microsoft.connectedvmwarevsphere/virtualmachines/patchinstallationresults'
+    )
+    $result['patchInstallations'] = @(
+        $patchInstallationTypes | ForEach-Object { Select-ByType $_ } | ForEach-Object {
+            $id = [string] (Get-ScoutProp $_ 'id')
+            $type = [string] (Get-ScoutProp $_ 'type')
+            [pscustomobject]@{
+                machineId                  = Get-ScoutPatchMachineId -Id $id -Separator '/patchInstallationResults/'
+                platform                    = Get-ScoutPatchPlatform -Type $type
+                subscriptionId              = [string] (Get-ScoutProp $_ 'subscriptionId')
+                resourceGroup               = [string] (Get-ScoutProp $_ 'resourceGroup')
+                osType                      = [string] (Get-ScoutProp $_ 'properties.osType')
+                status                      = [string] (Get-ScoutProp $_ 'properties.status')
+                installationActivityId      = [string] (Get-ScoutProp $_ 'properties.installationActivityId')
+                installedPatchCount         = Get-ScoutProp $_ 'properties.installedPatchCount'
+                failedPatchCount            = Get-ScoutProp $_ 'properties.failedPatchCount'
+                pendingPatchCount           = Get-ScoutProp $_ 'properties.pendingPatchCount'
+                notSelectedPatchCount       = Get-ScoutProp $_ 'properties.notSelectedPatchCount'
+                excludedPatchCount          = Get-ScoutProp $_ 'properties.excludedPatchCount'
+                rebootStatus                = [string] (Get-ScoutProp $_ 'properties.rebootStatus')
+                maintenanceWindowExceeded   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.maintenanceWindowExceeded')
+                startDateTime               = [string] (Get-ScoutProp $_ 'properties.startDateTime')
+                lastModifiedDateTime        = [string] (Get-ScoutProp $_ 'properties.lastModifiedDateTime')
             }
         }
     )
