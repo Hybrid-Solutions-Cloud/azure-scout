@@ -1142,5 +1142,137 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Azure Monitor plumbing (AB#7064, Story AB#7059, Feature AB#7069, Epic AB#7099) --------
+    # Mirrors Invoke-Collect.ps1's dataCollectionRules/dataCollectionEndpoints/actionGroups/
+    # autoscaleSettings/metricAlertRules/scheduledQueryRules/activityLogAlertRules/
+    # smartDetectorAlertRules KQL field for field, same pattern the AB#6826/AB#6827 block above
+    # follows -- the inverted (default) `-FromInventory` path costs no extra Resource Graph
+    # round-trip for any of these eight.
+    $result['dataCollectionRules'] = @(
+        Select-ByType 'microsoft.insights/datacollectionrules' | ForEach-Object {
+            $dataFlowCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.dataFlows')
+            [pscustomobject]@{
+                id                          = [string] (Get-ScoutProp $_ 'id')
+                name                        = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup               = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId              = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                    = [string] (Get-ScoutProp $_ 'location')
+                dataCollectionEndpointId    = [string] (Get-ScoutProp $_ 'properties.dataCollectionEndpointId')
+                hasLogAnalyticsDestination  = ($null -ne (Get-ScoutProp $_ 'properties.destinations.logAnalytics'))
+                dataFlowCount               = $dataFlowCount
+                immutableId                 = [string] (Get-ScoutProp $_ 'properties.immutableId')
+            }
+        }
+    )
+
+    $result['dataCollectionEndpoints'] = @(
+        Select-ByType 'microsoft.insights/datacollectionendpoints' | ForEach-Object {
+            [pscustomobject]@{
+                id                           = [string] (Get-ScoutProp $_ 'id')
+                name                         = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup                = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId               = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                     = [string] (Get-ScoutProp $_ 'location')
+                publicNetworkAccess          = [string] (Get-ScoutProp $_ 'properties.networkAcls.publicNetworkAccess')
+                configurationAccessEndpoint  = [string] (Get-ScoutProp $_ 'properties.configurationAccess.endpoint')
+                immutableId                  = [string] (Get-ScoutProp $_ 'properties.immutableId')
+            }
+        }
+    )
+
+    $result['actionGroups'] = @(
+        Select-ByType 'microsoft.insights/actiongroups' | ForEach-Object {
+            [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                enabled              = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                groupShortName       = [string] (Get-ScoutProp $_ 'properties.groupShortName')
+                emailReceiverCount   = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.emailReceivers')
+                smsReceiverCount     = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.smsReceivers')
+                webhookReceiverCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.webhookReceivers')
+            }
+        }
+    )
+
+    $result['autoscaleSettings'] = @(
+        Select-ByType 'microsoft.insights/autoscalesettings' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                enabled           = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                targetResourceUri = [string] (Get-ScoutProp $_ 'properties.targetResourceUri')
+                profileCount      = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.profiles')
+            }
+        }
+    )
+
+    $result['metricAlertRules'] = @(
+        Select-ByType 'microsoft.insights/metricalerts' | ForEach-Object {
+            $severityRaw = Get-ScoutProp $_ 'properties.severity'
+            [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
+                name             = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                enabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                severity         = if ($null -eq $severityRaw) { $null } else { [int] $severityRaw }
+                autoMitigate     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.autoMitigate')
+                scopeCount       = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopes')
+                actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actions')
+            }
+        }
+    )
+
+    $result['scheduledQueryRules'] = @(
+        Select-ByType 'microsoft.insights/scheduledqueryrules' | ForEach-Object {
+            $severityRaw = Get-ScoutProp $_ 'properties.severity'
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                enabled        = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                severity       = if ($null -eq $severityRaw) { $null } else { [int] $severityRaw }
+                autoMitigate   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.autoMitigate')
+                kind           = [string] (Get-ScoutProp $_ 'properties.kind')
+                scopeCount     = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopes')
+            }
+        }
+    )
+
+    $result['activityLogAlertRules'] = @(
+        Select-ByType 'microsoft.insights/activitylogalerts' | ForEach-Object {
+            [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
+                name             = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                enabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                scopeCount       = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopes')
+                actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actions.actionGroups')
+            }
+        }
+    )
+
+    $result['smartDetectorAlertRules'] = @(
+        Select-ByType 'microsoft.alertsmanagement/smartdetectoralertrules' | ForEach-Object {
+            [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
+                name             = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                state            = [string] (Get-ScoutProp $_ 'properties.state')
+                severity         = [string] (Get-ScoutProp $_ 'properties.severity')
+                frequency        = [string] (Get-ScoutProp $_ 'properties.frequency')
+                actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actionGroups.groupIds')
+            }
+        }
+    )
+
     return $result
 }

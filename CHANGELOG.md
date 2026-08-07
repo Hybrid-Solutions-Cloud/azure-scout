@@ -9,13 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Eight Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
+  AB#7059, Feature AB#7069). `Invoke-Collect.ps1` gains a new `monitor{}` payload section —
+  `dataCollectionRules`, `dataCollectionEndpoints`, `actionGroups`, `autoscaleSettings`,
+  `metricAlertRules`, `scheduledQueryRules`, `activityLogAlertRules`,
+  `smartDetectorAlertRules` — all previously collected by existing manifests but never wired
+  into `collect.json`. A new regression test
+  (`tests/Collect.MonitorPlumbing.Tests.ps1`) pins all eight keys through both collection
+  paths. `AppInsights`, `MonitorWorkbooks`, `MonitorPrivateLinkScopes` and
+  `LAWorkspaceSolutions` remain unwired, deferred to a follow-up. See
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
 - **Azure Update Manager and Azure Policy definitions now reach the assessment payload**
   (AB#7065, AB#7066 — Story AB#7059, Feature AB#7069). `management.maintenanceConfigurations`
   and `governance.policyDefinitions` / `governance.policySetDefinitions` were collected by
   their manifests but never reached `collect.json`; both are wired now, the latter two at
   zero extra Azure calls (reused from the existing `TenantWideDefinitionsOnly` sweep). A new
-  regression test (AB#7067) pins all three keys through both collection paths. Collector
-  payload-wiring coverage moves from 77/242 to 80/242 — see
+  regression test (AB#7067) pins all three keys through both collection paths. See
   [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
 
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine

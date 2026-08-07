@@ -42,6 +42,19 @@ $ErrorActionPreference = 'Stop'
                      TenantWideDefinitionsOnly sweep already collects -- AB#7066)
         costCleanup { orphanedDisks[], orphanedPips[] }
         opsPosture  { diagnosticCoverage[{type,coveragePct}] }
+        monitor     { dataCollectionRules[{dataCollectionEndpointId,hasLogAnalyticsDestination,dataFlowCount,immutableId}],
+                      dataCollectionEndpoints[{publicNetworkAccess,configurationAccessEndpoint,immutableId}],
+                      actionGroups[{enabled,groupShortName,emailReceiverCount,smsReceiverCount,webhookReceiverCount}],
+                      autoscaleSettings[{enabled,targetResourceUri,profileCount}],
+                      metricAlertRules[{enabled,severity,autoMitigate,scopeCount,actionGroupCount}],
+                      scheduledQueryRules[{enabled,severity,autoMitigate,kind,scopeCount}],
+                      activityLogAlertRules[{enabled,scopeCount,actionGroupCount}],
+                      smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}] }   (AB#7064,
+                      Story AB#7059, Feature AB#7069 -- ordinary ARG-indexed Monitor types the
+                      Monitor(20) coverage table listed as "not wired"; sits alongside
+                      `opsPosture`/`management`, not folded into either, because these are
+                      Monitor-native resources rather than derived posture metrics or
+                      cross-domain management data)
         domains     { storage{storageAccounts[{networkDefaultDeny}]},
                       databases{sqlServers[],sqlDatabases[],sqlDefenderPricing[{pricingTier}]},
                       web{webApps[{vnetIntegrated,customDomainBound}]},
@@ -813,6 +826,84 @@ resources | where type =~ "microsoft.chaos/experiments"
 resources | where type =~ "microsoft.azureplaywrightservice/accounts"
 | project name, resourceGroup, subscriptionId
 '@
+        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Azure Monitor plumbing.
+        # `manifests/collectors/Monitor/*.psd1` for each of the eight types below already exist
+        # and are confirmed ARG-indexed (ordinary `resources`-table rows, not a synthetic AZSC/*
+        # sweep); this only wires their query into the assessment payload the way AB#7065/7066
+        # wired maintenanceConfigurations/policyDefinitions. Every projection is a scalar or a
+        # count (`array_length`) -- never an array a rule would need `.length` on (AB#5083).
+        dataCollectionRules = @'
+resources
+| where type =~ "microsoft.insights/datacollectionrules"
+| project id, name, resourceGroup, subscriptionId, location,
+          dataCollectionEndpointId = tostring(properties.dataCollectionEndpointId),
+          hasLogAnalyticsDestination = isnotnull(properties.destinations.logAnalytics),
+          dataFlowCount = array_length(properties.dataFlows),
+          immutableId = tostring(properties.immutableId)
+'@
+        dataCollectionEndpoints = @'
+resources
+| where type =~ "microsoft.insights/datacollectionendpoints"
+| project id, name, resourceGroup, subscriptionId, location,
+          publicNetworkAccess = tostring(properties.networkAcls.publicNetworkAccess),
+          configurationAccessEndpoint = tostring(properties.configurationAccess.endpoint),
+          immutableId = tostring(properties.immutableId)
+'@
+        actionGroups = @'
+resources
+| where type =~ "microsoft.insights/actiongroups"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          groupShortName = tostring(properties.groupShortName),
+          emailReceiverCount = array_length(properties.emailReceivers),
+          smsReceiverCount = array_length(properties.smsReceivers),
+          webhookReceiverCount = array_length(properties.webhookReceivers)
+'@
+        autoscaleSettings = @'
+resources
+| where type =~ "microsoft.insights/autoscalesettings"
+| project id, name, resourceGroup, subscriptionId, location,
+          enabled = tobool(properties.enabled),
+          targetResourceUri = tostring(properties.targetResourceUri),
+          profileCount = array_length(properties.profiles)
+'@
+        metricAlertRules = @'
+resources
+| where type =~ "microsoft.insights/metricalerts"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          severity = toint(properties.severity),
+          autoMitigate = tobool(properties.autoMitigate),
+          scopeCount = array_length(properties.scopes),
+          actionGroupCount = array_length(properties.actions)
+'@
+        scheduledQueryRules = @'
+resources
+| where type =~ "microsoft.insights/scheduledqueryrules"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          severity = toint(properties.severity),
+          autoMitigate = tobool(properties.autoMitigate),
+          kind = tostring(properties.kind),
+          scopeCount = array_length(properties.scopes)
+'@
+        activityLogAlertRules = @'
+resources
+| where type =~ "microsoft.insights/activitylogalerts"
+| project id, name, resourceGroup, subscriptionId,
+          enabled = tobool(properties.enabled),
+          scopeCount = array_length(properties.scopes),
+          actionGroupCount = array_length(properties.actions.actionGroups)
+'@
+        smartDetectorAlertRules = @'
+resources
+| where type =~ "microsoft.alertsmanagement/smartdetectoralertrules"
+| project id, name, resourceGroup, subscriptionId,
+          state = tostring(properties.state),
+          severity = tostring(properties.severity),
+          frequency = tostring(properties.frequency),
+          actionGroupCount = array_length(properties.actionGroups.groupIds)
+'@
     }
 
     # ---- category tagging (AB#5057 follow-up) ----
@@ -894,6 +985,17 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         loadTesting         = @('DevOps', 'Management')
         chaosExperiments    = @('DevOps', 'Management')
         playwrightTesting   = @('DevOps', 'Management')
+        # AB#7064 -- dataCollectionRules/dataCollectionEndpoints are also tagged Hybrid: they are
+        # the AMA-agent plumbing Arc-enabled servers and Azure Local clusters route telemetry
+        # through, the same reasoning logAnalyticsWorkspaces above is tagged Management+Monitor.
+        dataCollectionRules    = @('Monitor', 'Hybrid')
+        dataCollectionEndpoints = @('Monitor', 'Hybrid')
+        actionGroups            = @('Monitor')
+        autoscaleSettings       = @('Monitor')
+        metricAlertRules        = @('Monitor')
+        scheduledQueryRules     = @('Monitor')
+        activityLogAlertRules   = @('Monitor')
+        smartDetectorAlertRules = @('Monitor')
     }
 
     $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
@@ -1540,6 +1642,20 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         }
         costCleanup   = [pscustomobject]@{ orphanedDisks = $r.orphanedDisks; orphanedPips = $r.orphanedPips }
         opsPosture    = [pscustomobject]@{ diagnosticCoverage = $r.diagnosticCoverage }
+        # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Monitor-native resources
+        # (DCRs/DCEs, alert rules, action groups) sit under their own top-level key rather than
+        # being folded into `management`/`opsPosture`, which already carry unrelated
+        # meanings (deployments/backup vs derived diagnostic-coverage percentages).
+        monitor       = [pscustomobject]@{
+            dataCollectionRules     = $r.dataCollectionRules
+            dataCollectionEndpoints = $r.dataCollectionEndpoints
+            actionGroups            = $r.actionGroups
+            autoscaleSettings       = $r.autoscaleSettings
+            metricAlertRules        = $r.metricAlertRules
+            scheduledQueryRules     = $r.scheduledQueryRules
+            activityLogAlertRules   = $r.activityLogAlertRules
+            smartDetectorAlertRules = $r.smartDetectorAlertRules
+        }
         # Per-domain resource data (scalar compliance fields) for the per-category
         # assessments in Epic AB#5056.
         domains       = [pscustomobject]@{
