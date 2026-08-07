@@ -21,7 +21,18 @@ $ErrorActionPreference = 'Stop'
         networking { virtualNetworks[{name,peeringCount,ddosEnabled}], subnets[{ipUtilizationPct}],
                      azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
-                     privateEndpoints[{targetResourceId,targetProvider,targetType}] }
+                     privateEndpoints[{targetResourceId,targetProvider,targetType}],
+                     applicationGateways[{sku,tier,provisioningState}], bastionHosts[{sku,provisioningState}],
+                     networkConnections[{connectionType,connectionStatus}],
+                     expressRouteCircuits[{sku,circuitProvisioningState,serviceProviderProvisioningState}],
+                     frontDoors[{provisioningState,enabledState}],
+                     loadBalancers[{sku,frontendIpCount}], natGateways[{sku,idleTimeoutInMinutes}],
+                     networkInterfaces[{nsgAttached,privateIpCount}], networkWatchers[{provisioningState}],
+                     publicDnsZones[{zoneType,recordSetCount}],
+                     routeTables[{routeCount,disableBgpRoutePropagation}],
+                     trafficManagerProfiles[{profileStatus,trafficRoutingMethod}],
+                     virtualWans[{wanType,allowBranchToBranchTraffic}] }   (AB#7110, Story AB#7059,
+                     Feature AB#7069, Epic AB#7099 -- 13 ordinary ARG-indexed Networking types)
         compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType}],
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
                      avdSessionHosts[{hostPoolName,status,agentVersion}],
@@ -39,7 +50,11 @@ $ErrorActionPreference = 'Stop'
                       databases{sqlServers[],sqlDatabases[],sqlDefenderPricing[{pricingTier}]},
                       web{webApps[{vnetIntegrated,customDomainBound}]},
                       containers{aksClusters[{networkPolicyEnabled,aadIntegrated,allPoolsZoned}],
-                                 containerRegistries[]},
+                                 containerRegistries[],
+                                 openShiftClusters[{provisioningState}], containerApps[{provisioningState,environmentId}],
+                                 containerAppEnvironments[{provisioningState}],
+                                 containerGroups[{osType,restartPolicy}]},   (AB#7110 -- 4 ordinary
+                                 ARG-indexed Containers types)
                       security{keyVaults[]},
                       ai{cognitiveAccounts[{identityType,cmkEnabled}],
                          mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
@@ -59,7 +74,12 @@ $ErrorActionPreference = 'Stop'
                       iot{iotHubs[{disableLocalAuth}],
                           dpsInstances[{publicAccess,allocationPolicy,linkedHubCount}],
                           digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
-                      analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[]} }   (per-category scalars, Epic AB#5056)
+                      analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[],
+                                databricksWorkspaces[{sku,managedResourceGroupId}],
+                                dataExplorerClusters[{sku,state}],
+                                streamAnalyticsJobs[{sku,jobState}]} }   (per-category scalars,
+                      Epic AB#5056; databricksWorkspaces/dataExplorerClusters/streamAnalyticsJobs
+                      AB#7110 -- 3 ordinary ARG-indexed Analytics types)
         advisor[]                                                                   (filled by ingest)
         finops     { available, moduleAvailable, costRows[], anomalies[], blockedSubscriptions[],
                      reservations[], reservationRecommendations[] }  (reservations from ARM/ARG
@@ -117,6 +137,29 @@ $ErrorActionPreference = 'Stop'
     change — its `targetProvider`/`targetType` projection is already
     type-agnostic, so PEs pointed at either new resource type are picked up by
     the existing query.
+
+    AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- collector-payload wiring audit
+    follow-up. `docs/reference/collector-payload-coverage.md` (AB#7060) found 165 of 242 shipped
+    collector manifests never reach this file's output. This pass wires the 20 that are (a)
+    ordinary ARM ResourceTypes (no synthetic `AZSC/*` marker, so a plain `resources | where
+    type =~ ...` query is the correct and sufficient mechanism) and (b) not already claimed by
+    a Monitor/Hybrid/Defender/PolicyDefinitions/MaintenanceConfigurations plumbing pass running
+    in parallel:
+      - Networking (13): applicationGateways, bastionHosts, networkConnections,
+        expressRouteCircuits, frontDoors, loadBalancers, natGateways, networkInterfaces,
+        networkWatchers, publicDnsZones, routeTables, trafficManagerProfiles, virtualWans.
+      - Containers (4): openShiftClusters, containerApps, containerAppEnvironments,
+        containerGroups.
+      - Analytics (3): databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs.
+    Every projected field is a documented top-level (or `sku`/`properties`) scalar on the
+    resource itself, matching the verification standard the rest of this file already applies —
+    no sub-resource joins, no new collection mechanism. Categories deliberately swept but left
+    unwired in this pass: AI (all remaining items are `azsc/armchild/*` ML-workspace children,
+    matching no canonical `ai.mlWorkspaces[]` child key), Databases/DevOps/General/Identity/
+    Integration/IoT/Management/Migration/Security/Storage/Web (real ARM types exist in some of
+    these too but were left for a follow-up pass to keep this one reviewable; entra/* and
+    devops/* Identity/DevOps items are Graph/Azure-DevOps-API surfaces, not ARG-indexed ARM
+    resources, and stay out of scope for a `Search-AzGraph` fix regardless).
 
     Deliberately NOT collected here, confirmed absent/out of scope after
     checking the ARM template references before writing this note:
@@ -338,6 +381,87 @@ resources
 | project nsg = name, resourceGroup, rule = tostring(rule.name),
           port = tostring(rule.properties.destinationPortRange)
 '@
+        # ---- AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Networking(13)
+        # coverage gap. Every type below is an ordinary ARM resource confirmed against the
+        # Azure Resource Graph supported-tables-and-resource-types reference; every projected
+        # field is a documented top-level or `sku`/`properties` scalar, no sub-resource joins.
+        applicationGateways = @'
+resources | where type =~ "microsoft.network/applicationgateways"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(properties.sku.name), tier = tostring(properties.sku.tier),
+          provisioningState = tostring(properties.provisioningState)
+'@
+        bastionHosts = @'
+resources | where type =~ "microsoft.network/bastionhosts"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState)
+'@
+        networkConnections = @'
+resources | where type =~ "microsoft.network/connections"
+| project id, name, resourceGroup, subscriptionId, location,
+          connectionType = tostring(properties.connectionType),
+          connectionStatus = tostring(properties.connectionStatus)
+'@
+        expressRouteCircuits = @'
+resources | where type =~ "microsoft.network/expressroutecircuits"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
+          circuitProvisioningState = tostring(properties.circuitProvisioningState),
+          serviceProviderProvisioningState = tostring(properties.serviceProviderProvisioningState)
+'@
+        frontDoors = @'
+resources | where type =~ "microsoft.network/frontdoors"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          enabledState = tostring(properties.enabledState)
+'@
+        loadBalancers = @'
+resources | where type =~ "microsoft.network/loadbalancers"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
+          frontendIpCount = array_length(properties.frontendIPConfigurations)
+'@
+        natGateways = @'
+resources | where type =~ "microsoft.network/natgateways"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
+          idleTimeoutInMinutes = toint(properties.idleTimeoutInMinutes)
+'@
+        networkInterfaces = @'
+resources | where type =~ "microsoft.network/networkinterfaces"
+| project id, name, resourceGroup, subscriptionId, location,
+          nsgAttached = isnotempty(tostring(properties.networkSecurityGroup.id)),
+          privateIpCount = array_length(properties.ipConfigurations)
+'@
+        networkWatchers = @'
+resources | where type =~ "microsoft.network/networkwatchers"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState)
+'@
+        publicDnsZones = @'
+resources | where type =~ "microsoft.network/dnszones"
+| project id, name, resourceGroup, subscriptionId, location,
+          zoneType = tostring(properties.zoneType),
+          recordSetCount = toint(properties.numberOfRecordSets)
+'@
+        routeTables = @'
+resources | where type =~ "microsoft.network/routetables"
+| project id, name, resourceGroup, subscriptionId, location,
+          routeCount = array_length(properties.routes),
+          disableBgpRoutePropagation = tobool(properties.disableBgpRoutePropagation)
+'@
+        trafficManagerProfiles = @'
+resources | where type =~ "microsoft.network/trafficmanagerprofiles"
+| project id, name, resourceGroup, subscriptionId, location,
+          profileStatus = tostring(properties.profileStatus),
+          trafficRoutingMethod = tostring(properties.trafficRoutingMethod)
+'@
+        virtualWans = @'
+resources | where type =~ "microsoft.network/virtualwans"
+| project id, name, resourceGroup, subscriptionId, location,
+          wanType = tostring(properties.type),
+          allowBranchToBranchTraffic = tobool(properties.allowBranchToBranchTraffic)
+'@
         virtualMachines = @'
 resources
 | where type =~ "microsoft.compute/virtualmachines"
@@ -456,6 +580,29 @@ resources | where type =~ "microsoft.containerregistry/registries"
 | extend adminEnabled = tobool(properties.adminUserEnabled)
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | project name, resourceGroup, sku = tostring(sku.name), adminEnabled, publicAccess
+'@
+        # ---- AB#7110 -- Containers(4) coverage gap. Ordinary ARG-indexed ARM types, same
+        # verification standard as the rest of this file.
+        openShiftClusters = @'
+resources | where type =~ "microsoft.redhatopenshift/openshiftclusters"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState)
+'@
+        containerApps = @'
+resources | where type =~ "microsoft.app/containerapps"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          environmentId = tostring(properties.environmentId)
+'@
+        containerAppEnvironments = @'
+resources | where type =~ "microsoft.app/managedenvironments"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState)
+'@
+        containerGroups = @'
+resources | where type =~ "microsoft.containerinstance/containergroups"
+| project id, name, resourceGroup, subscriptionId, location,
+          osType = tostring(properties.osType), restartPolicy = tostring(properties.restartPolicy)
 '@
         keyVaults = @'
 resources | where type =~ "microsoft.keyvault/vaults"
@@ -629,6 +776,24 @@ resources | where type =~ "microsoft.synapse/workspaces"
         purviewAccounts = @'
 resources | where type =~ "microsoft.purview/accounts"
 | project name, resourceGroup, subscriptionId
+'@
+        # ---- AB#7110 -- Analytics(3) coverage gap. Ordinary ARG-indexed ARM types, same
+        # verification standard as the rest of this file.
+        databricksWorkspaces = @'
+resources | where type =~ "microsoft.databricks/workspaces"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
+          managedResourceGroupId = tostring(properties.managedResourceGroupId)
+'@
+        dataExplorerClusters = @'
+resources | where type =~ "microsoft.kusto/clusters"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), state = tostring(properties.state)
+'@
+        streamAnalyticsJobs = @'
+resources | where type =~ "microsoft.streamanalytics/streamingjobs"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(properties.sku.name), jobState = tostring(properties.jobState)
 '@
         arcExtensions = @'
 resources | where type =~ "microsoft.hybridcompute/machines/extensions"
@@ -804,6 +969,20 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         privateEndpoints    = @('Networking', 'Security', 'AI', 'IoT')
         privateDnsZones     = @('Networking', 'Security')
         nsgPublicInbound    = @('Networking', 'Security')
+        # AB#7110 -- 13 ordinary ARG-indexed Networking types.
+        applicationGateways = @('Networking')
+        bastionHosts        = @('Networking')
+        networkConnections  = @('Networking')
+        expressRouteCircuits = @('Networking')
+        frontDoors          = @('Networking')
+        loadBalancers       = @('Networking')
+        natGateways         = @('Networking')
+        networkInterfaces   = @('Networking')
+        networkWatchers     = @('Networking')
+        publicDnsZones      = @('Networking')
+        routeTables         = @('Networking')
+        trafficManagerProfiles = @('Networking')
+        virtualWans         = @('Networking')
         virtualMachines     = @('Compute')
         # caf.billing (CAF-BIL-02/03) and waf.cost both need these under Management
         # and Compute/Cost respectively.
@@ -819,6 +998,11 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         webApps             = @('Web')
         aksClusters         = @('Containers')
         containerRegistries = @('Containers')
+        # AB#7110 -- 4 ordinary ARG-indexed Containers types.
+        openShiftClusters   = @('Containers')
+        containerApps       = @('Containers')
+        containerAppEnvironments = @('Containers')
+        containerGroups     = @('Containers')
         keyVaults           = @('Security')
         # The cross-resource rule set spans categories by definition, so its sources must be
         # gathered whenever EITHER side's category was asked for -- a -Category Compute run that
@@ -843,6 +1027,10 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         digitalTwinsInstances = @('IoT')
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
+        # AB#7110 -- 3 ordinary ARG-indexed Analytics types.
+        databricksWorkspaces = @('Analytics')
+        dataExplorerClusters = @('Analytics')
+        streamAnalyticsJobs  = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
         # AB#6818 (AI workload assessment) — waf.ai.yaml's WAF-AI-* rules.
         mlWorkspaces        = @('AI')
@@ -1421,6 +1609,20 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
             privateEndpoints         = $r.privateEndpoints
             privateDnsZones          = $r.privateDnsZones
             nsgPublicInbound         = $r.nsgPublicInbound
+            # AB#7110 -- 13 ordinary ARG-indexed Networking types.
+            applicationGateways      = $r.applicationGateways
+            bastionHosts             = $r.bastionHosts
+            networkConnections       = $r.networkConnections
+            expressRouteCircuits     = $r.expressRouteCircuits
+            frontDoors               = $r.frontDoors
+            loadBalancers            = $r.loadBalancers
+            natGateways              = $r.natGateways
+            networkInterfaces        = $r.networkInterfaces
+            networkWatchers          = $r.networkWatchers
+            publicDnsZones           = $r.publicDnsZones
+            routeTables              = $r.routeTables
+            trafficManagerProfiles   = $r.trafficManagerProfiles
+            virtualWans              = $r.virtualWans
         }
         # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) and privateClouds (AB#6820) sit
         # under `compute`, not `domains`, alongside virtualMachines -- the existing pattern for
@@ -1477,7 +1679,13 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
                 sqlDefenderPricing = $r.sqlDefenderPricing
             }
             web          = [pscustomobject]@{ webApps = $r.webApps }
-            containers   = [pscustomobject]@{ aksClusters = $r.aksClusters; containerRegistries = $r.containerRegistries }
+            # openShiftClusters/containerApps/containerAppEnvironments/containerGroups AB#7110.
+            containers   = [pscustomobject]@{
+                aksClusters = $r.aksClusters; containerRegistries = $r.containerRegistries
+                openShiftClusters = $r.openShiftClusters; containerApps = $r.containerApps
+                containerAppEnvironments = $r.containerAppEnvironments
+                containerGroups = $r.containerGroups
+            }
             # keyVaultSecrets/keyVaultKeys (AB#6821) carry the expiry and rotation metadata CASA
             # scores; they come from the ARM-child sweep, not from the ARG keyVaults row.
             security     = [pscustomobject]@{
@@ -1521,8 +1729,12 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
                 migrationServices = $r.migrationServices
                 discoverySites = $r.discoverySites
             }
+            # databricksWorkspaces/dataExplorerClusters/streamAnalyticsJobs AB#7110.
             analytics    = [pscustomobject]@{
                 synapseWorkspaces = $r.synapseWorkspaces; purviewAccounts = $r.purviewAccounts
+                databricksWorkspaces = $r.databricksWorkspaces
+                dataExplorerClusters = $r.dataExplorerClusters
+                streamAnalyticsJobs = $r.streamAnalyticsJobs
             }
             # AB#6792/#6793/#6794 -- policyInitiatives is always populated (free, see above);
             # policyComplianceStates is only non-empty when -IncludePolicyCompliance was set.
