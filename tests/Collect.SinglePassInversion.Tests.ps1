@@ -187,7 +187,7 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+    Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
 }
 
 Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
@@ -419,9 +419,14 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
             if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
             return @()
         }
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
-        $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        try {
+            $collect = Invoke-Collect -WarningAction SilentlyContinue
+            @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
+            $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 
     It 'falls back to the typed pack when the raw pass throws, rather than returning nothing' {
@@ -433,12 +438,18 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
             if ($Query -match 'project id,name,type,tenantId') { throw 'ARG is unavailable' }
             return Invoke-FixtureTypedQuery -Query $Query
         }
-        # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a total
-        # ARG outage comes back as an EMPTY raw pass rather than an exception. Either way the
-        # caller must still get a well-formed collect object with the contract's keys present.
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        $collect.PSObject.Properties.Name | Should -Contain 'networking'
-        $collect.PSObject.Properties.Name | Should -Contain 'domains'
-        { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+        try {
+            # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a
+            # total ARG outage comes back as an EMPTY raw pass rather than an exception. Either
+            # way the caller must still get a well-formed collect object with the contract's
+            # keys present.
+            $collect = Invoke-Collect -WarningAction SilentlyContinue
+            $collect.PSObject.Properties.Name | Should -Contain 'networking'
+            $collect.PSObject.Properties.Name | Should -Contain 'domains'
+            { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 }
