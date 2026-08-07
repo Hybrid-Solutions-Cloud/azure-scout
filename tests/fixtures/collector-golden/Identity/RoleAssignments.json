@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "RoleAssignments",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
+  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
   "Rows": [
     "Assignment Name=s:Assignment Name value|Condition=s:Condition value|Created On=s:Created On value|Description=s:Description value|ID=s:ID value|Principal Display Name=<null>|Principal ID=s:Principal ID value|Principal Resolution=<null>|Principal Type=s:Principal Type value|Resource U=j:1|Role Definition ID=s:Role Definition ID value|Role Name=s:Role Name value|Role Type=s:Role Type value|Scope=s:Scope value|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
     "Assignment Name=s:Assignment Name value|Condition=s:Condition value|Created On=s:Created On value|Description=s:Description value|ID=s:ID value|Principal Display Name=<null>|Principal ID=s:Principal ID value|Principal Resolution=<null>|Principal Type=s:Principal Type value|Resource U=j:1|Role Definition ID=s:Role Definition ID value|Role Name=s:Role Name value|Role Type=s:Role Type value|Scope=s:Scope value|Scope Type=s:Scope Type value|Subscription=s:Subscription value",

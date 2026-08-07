@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "RiskyUsers",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
+  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/riskyusers/riskyusers-t1a-1|Is Deleted=s:res-value|Is Processing=s:res-value|Resource U=j:1|Risk Detail=s:res-value|Risk Last Updated DateTime=j:\"2026-01-15T10:30:00Z\"|Risk Level=s:res-value|Risk State=s:res-value|Tenant ID=s:res-value|User Display Name=s:res-value|User Principal Name=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/riskyusers/riskyusers-t1b-1|Is Deleted=s:res-value|Is Processing=s:res-value|Resource U=j:1|Risk Detail=s:res-value|Risk Last Updated DateTime=j:\"2026-01-15T10:30:00Z\"|Risk Level=s:res-value|Risk State=s:res-value|Tenant ID=s:res-value|User Display Name=s:res-value|User Principal Name=s:res-value",

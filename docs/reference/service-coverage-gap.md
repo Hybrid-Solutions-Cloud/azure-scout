@@ -343,7 +343,7 @@ Source: [azure.microsoft.com/products?categories=identity](https://azure.microso
 ::: warning This category doesn't fit a Collected/Not collected table
 Microsoft's product catalogue counts **Microsoft Entra ID** as a single product; it doesn't break out
 Entra ID's internal object types (users, groups, app registrations, Conditional Access, PIM, etc.) into
-separate catalogue entries the way the Azure portal's Identity blade — and our 17 Identity collectors —
+separate catalogue entries the way the Azure portal's Identity blade — and our 19 Identity collectors —
 do. So "4 of 4" would be true but not useful. All 4 Microsoft-catalogued identity products have at least
 one collector:
 :::
@@ -352,7 +352,7 @@ one collector:
 |---|---|---|
 | Microsoft Entra ID | Collected | 15 of the 17 Identity collectors (`Users`, `Groups`, `AppRegistrations`, `ConditionalAccess`, `DirectoryRoles`, `Domains`, `Licensing`, `ManagedIdentities`, `NamedLocations`, `PIMAssignments`, `RiskyUsers`, `SecurityPolicies`, `ServicePrincipals`, `AdminUnits`, `CrossTenantAccess`) — the remaining 2 (`ManagedIds`, an ARM `Microsoft.ManagedIdentity/userAssignedIdentities` collector distinct from the Entra-Graph `ManagedIdentities`; and `RoleAssignments`, Azure RBAC role assignments) are governance/RBAC primitives filed under the Identity manifest folder rather than Entra-ID directory objects |
 | Microsoft Entra Domain Services | Collected (cross-category: Security) | `EntraDomainServices` |
-| Microsoft Entra Verified ID | Not collected | real gap — no Verified ID credential collector |
+| Microsoft Entra Verified ID | Collected | `VerifiedIDProfiles` (`/v1.0/identity/verifiedId/profiles` — the configured profiles: recovery/onboarding usage, Face Check, accepted issuer), `VerifiedIDConfiguration` (`/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials` — the tenant-wide enable/disable state and excluded groups). AB#7097. **Not reached:** the separate Verified ID Admin API (issuer DIDs, authorities, contracts) at `verifiedid.did.msidentity.com` — a different host and OAuth resource (`6a8b4b39-c021-437c-b060-5a14a3fd65f3`) than the `graph.microsoft.com` audience every other Entra collector in this repo uses; reaching it needs a second token audience threaded through the shared Graph client, not a per-collector change. |
 | Microsoft Entra External ID | Not collected | real gap — no distinct External ID tenant/customer directory collector (our `Domains`/`Users` collectors run against the workforce tenant) |
 
 ## Integration

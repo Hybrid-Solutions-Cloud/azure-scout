@@ -144,6 +144,35 @@ function Get-ScoutEntraQueryCatalog {
             Permission   = 'IdentityRiskyUser.Read.All'
         },
         @{
+            # AB#7097. The tenant-wide toggle for Verified ID as an authentication method --
+            # whether it is enabled, and which groups are in/out of scope. This is genuinely
+            # under graph.microsoft.com (Invoke-AZSCGraphRequest's fixed base URL and single
+            # Graph-audience token both hold), unlike the Verified ID Admin API (issuer DIDs,
+            # authorities, contracts), which is served from a DIFFERENT host
+            # (verifiedid.did.msidentity.com) under a DIFFERENT OAuth resource
+            # (6a8b4b39-c021-437c-b060-5a14a3fd65f3) that this codebase's Graph token helper does
+            # not acquire. Reaching that surface needs a second token audience threaded through
+            # every entra/* collector's shared infrastructure -- out of scope for one collector.
+            Name         = 'Verified ID Authentication Method'
+            Uri          = '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
+            Type         = 'entra/verifiedidconfiguration'
+            NameProperty = 'id'
+            SingleObject = $true
+            Permission   = 'Policy.Read.AuthenticationMethod'
+        },
+        @{
+            # AB#7097. Verified ID profiles (recovery / onboarding usage, Face Check config,
+            # accepted issuer) -- the tenant-configured objects a Verified ID deployment actually
+            # produces via the Entra admin center, GA under graph.microsoft.com. See the note
+            # above the authentication-method entry for the admin-API (DID/authority) surface
+            # this catalog deliberately does not reach.
+            Name         = 'Verified ID Profiles'
+            Uri          = '/v1.0/identity/verifiedId/profiles'
+            Type         = 'entra/verifiedidprofiles'
+            NameProperty = 'name'
+            Permission   = 'VerifiedId-Profile.Read.All'
+        },
+        @{
             # No collector consumes this. It is kept in the catalog rather than deleted so the
             # impact table can say so out loud -- an unconsumed query is a permission Scout asks
             # for and does not need, and that belongs in the report, not in a comment.

@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "PIMAssignments",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
+  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
   "Rows": [
     "Directory Scope=s:res-value|ID=s:res-value|Principal ID=s:res-value|Principal Name=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role Definition ID=s:res-value|Role Name=s:res-value|Tenant ID=s:res-value",
     "Directory Scope=s:res-value|ID=s:res-value|Principal ID=s:res-value|Principal Name=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role Definition ID=s:res-value|Role Name=s:res-value|Tenant ID=s:res-value",
