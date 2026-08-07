@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Azure Local child resources now reach the assessment payload.** A cluster showed as a
+  single row in the report with none of its child resources — the collector manifests
+  already existed and are ARG-indexed, but the assessment collect never queried them.
+  `collect.domains.hybrid.*` now includes `arcDataControllers`, `arcGateways`,
+  `arcKubernetes`, `arcResourceBridge`, `arcSQLManagedInstances`, `arcSQLServers`,
+  `galleryImages`, `marketplaceGalleryImages`, `storageContainers`. AB#7061.
 - **Thirteen Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
   AB#7059, Feature AB#7069). `Invoke-Collect.ps1` gains a new `monitor{}` payload section —
   `dataCollectionRules`, `dataCollectionEndpoints`, `actionGroups`, `autoscaleSettings`,

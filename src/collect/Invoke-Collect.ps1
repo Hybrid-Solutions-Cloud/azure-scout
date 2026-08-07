@@ -82,7 +82,31 @@ $ErrorActionPreference = 'Stop'
                       hybrid{arcServers[], arcExtensions[{machineId,extensionType}],
                              azureLocalClusters[{connectivityStatus,nodeCount,clusterVersion}],            (AB#6819)
                              logicalNetworks[{vmSwitchName,subnetCount,addressPrefix,vlan}],                (AB#6819)
-                             arcSites[], azureLocalVirtualMachineInstances[{parentName,powerState}]},
+                             arcSites[], azureLocalVirtualMachineInstances[{parentName,powerState}],
+                             arcDataControllers[{infrastructure,k8sNamespace,provisioningState}],
+                             arcGateways[{provisioningState,gatewayType,gatewayEndpoint}],
+                             arcKubernetes[{provisioningState,connectivityStatus,distribution,
+                                             kubernetesVersion,totalNodeCount}],
+                             arcResourceBridge[{provisioningState,status,distro,version,
+                                                 infrastructureProvider}],
+                             arcSqlManagedInstances[{provisioningState,dataControllerId,tier,
+                                                      vCoresRequest,vCoresLimit}],
+                             arcSqlServers[{provisioningState,version,edition,licenseType,vCore,
+                                             patchLevel,azureDefenderStatus}],
+                             galleryImages[{provisioningState,osType,hyperVGeneration,publisher,
+                                             offer,sku,imageVersion}],
+                             marketplaceGalleryImages[{provisioningState,status,osType,
+                                                        hyperVGeneration,publisher,offer,sku,
+                                                        imageVersion}],
+                             storageContainers[{provisioningState,status,path,availableSizeGB,
+                                                 containerSizeGB}]},                              (AB#7061,
+                             Story AB#7059, Feature AB#7069, Epic AB#7099 -- Azure Local child
+                             resources: gallery/marketplace images, storage containers, and the
+                             remaining Arc-adjacent types (data controllers, gateways, Kubernetes,
+                             resource bridge, SQL Server/Managed Instance) -- every one of the nine
+                             is an ordinary ARG-indexed `resources`-table row, same pattern as
+                             arcServers/azureLocalClusters/logicalNetworks above, not the ARM-child
+                             sweep arcSites/azureLocalVirtualMachineInstances need.
                              (arcSites/azureLocalVirtualMachineInstances are ALWAYS present as
                              keys but only ever populated when the caller passes
                              -IncludeAzureLocalArm -- AB#6803, Feature AB#6747)
@@ -697,6 +721,113 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
 | extend vlan = toint(firstSubnet.properties.vlan)
 | project name, resourceGroup, subscriptionId, vmSwitchName, subnetCount, addressPrefix, vlan
 '@
+        # AB#7061 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Azure Local child resources.
+        # `manifests/collectors/Hybrid/*.psd1` for each of the nine types below already exist and
+        # are confirmed ARG-indexed (ordinary `resources`-table rows -- verified against the Azure
+        # Resource Graph supported-tables-and-resource-types reference before being added, same
+        # standard as every other query in this file); this only wires their query into the
+        # assessment payload the way AB#7064/7065/7066 wired the last three plumbing slices.
+        # VirtualMachines/ArcSites are deliberately NOT re-declared here -- they are already wired,
+        # via the ARM-child sweep (azureLocalVirtualMachineInstances/arcSites above), because
+        # Resource Graph does not index their synthetic types. ArcServerOperationalData is also
+        # not re-declared -- its ResourceTypes is `microsoft.hybridcompute/machines`, the same type
+        # arcServers already queries above; its distinguishing operational fields (patch
+        # assessment, backup status) come from a separate per-machine REST envelope this collect
+        # pass does not make, so only the base machine row (already covered by arcServers) is
+        # in scope here.
+        arcDataControllers = @'
+resources
+| where type =~ "microsoft.azurearcdata/datacontrollers"
+| project id, name, resourceGroup, subscriptionId, location,
+          infrastructure = tostring(properties.infrastructure),
+          k8sNamespace = tostring(properties.k8sRaw.metadata.namespace),
+          provisioningState = tostring(properties.provisioningState)
+'@
+        arcGateways = @'
+resources
+| where type =~ "microsoft.hybridcompute/gateways"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          gatewayType = tostring(properties.gatewayType),
+          gatewayEndpoint = tostring(properties.gatewayEndpoint)
+'@
+        arcKubernetes = @'
+resources
+| where type =~ "microsoft.kubernetes/connectedclusters"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          connectivityStatus = tostring(properties.connectivityStatus),
+          distribution = tostring(properties.distribution),
+          kubernetesVersion = tostring(properties.kubernetesVersion),
+          totalNodeCount = toint(properties.totalNodeCount)
+'@
+        arcResourceBridge = @'
+resources
+| where type =~ "microsoft.resourceconnector/appliances"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          status = tostring(properties.status),
+          distro = tostring(properties.distro),
+          version = tostring(properties.version),
+          infrastructureProvider = tostring(properties.infrastructureConfig.provider)
+'@
+        arcSqlManagedInstances = @'
+resources
+| where type =~ "microsoft.azurearcdata/sqlmanagedinstances"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          dataControllerId = tostring(properties.dataControllerId),
+          tier = tostring(properties.tier),
+          vCoresRequest = toint(properties.vCores.request),
+          vCoresLimit = toint(properties.vCores.limit)
+'@
+        arcSqlServers = @'
+resources
+| where type =~ "microsoft.azurearcdata/sqlserverinstances"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          version = tostring(properties.version),
+          edition = tostring(properties.edition),
+          licenseType = tostring(properties.licenseType),
+          vCore = toint(properties.vCore),
+          patchLevel = tostring(properties.patchLevel),
+          azureDefenderStatus = tostring(properties.azureDefenderStatus)
+'@
+        galleryImages = @'
+resources
+| where type =~ "microsoft.azurestackhci/galleryimages"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          osType = tostring(properties.osType),
+          hyperVGeneration = tostring(properties.hyperVGeneration),
+          publisher = tostring(properties.identifier.publisher),
+          offer = tostring(properties.identifier.offer),
+          sku = tostring(properties.identifier.sku),
+          imageVersion = tostring(properties.version.name)
+'@
+        marketplaceGalleryImages = @'
+resources
+| where type =~ "microsoft.azurestackhci/marketplacegalleryimages"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          status = tostring(properties.status.provisioningStatus.status),
+          osType = tostring(properties.osType),
+          hyperVGeneration = tostring(properties.hyperVGeneration),
+          publisher = tostring(properties.identifier.publisher),
+          offer = tostring(properties.identifier.offer),
+          sku = tostring(properties.identifier.sku),
+          imageVersion = tostring(properties.version.name)
+'@
+        storageContainers = @'
+resources
+| where type =~ "microsoft.azurestackhci/storagecontainers"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          status = tostring(properties.status.provisioningStatus.status),
+          path = tostring(properties.path),
+          availableSizeGB = round(properties.status.availableSizeBytes / 1073741824.0, 2),
+          containerSizeGB = round(properties.status.containerSizeBytes / 1073741824.0, 2)
+'@
         logAnalyticsWorkspaces = @'
 resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
@@ -1028,6 +1159,17 @@ resources
         arcExtensions       = @('Hybrid')
         azureLocalClusters  = @('Hybrid')
         logicalNetworks     = @('Hybrid')
+        # AB#7061 -- Azure Local child resources (gallery/marketplace images, storage containers,
+        # remaining Arc-adjacent types).
+        arcDataControllers       = @('Hybrid')
+        arcGateways              = @('Hybrid')
+        arcKubernetes            = @('Hybrid')
+        arcResourceBridge        = @('Hybrid')
+        arcSqlManagedInstances   = @('Hybrid')
+        arcSqlServers            = @('Hybrid')
+        galleryImages            = @('Hybrid')
+        marketplaceGalleryImages = @('Hybrid')
+        storageContainers        = @('Hybrid')
         eventHubNamespaces  = @('Integration')
         apiManagement       = @('Integration')
         serviceBusNamespaces = @('Integration')
@@ -1784,6 +1926,19 @@ resources
                 logicalNetworks = $r.logicalNetworks
                 arcSites = $r.arcSites
                 azureLocalVirtualMachineInstances = $r.azureLocalVirtualMachineInstances
+                # AB#7061 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Azure Local child
+                # resources. All nine are ordinary ARG-indexed types (see the $q declaration
+                # above), always populated on a normal collect, same as arcServers/
+                # azureLocalClusters/logicalNetworks -- no -IncludeAzureLocalArm gate needed.
+                arcDataControllers = $r.arcDataControllers
+                arcGateways = $r.arcGateways
+                arcKubernetes = $r.arcKubernetes
+                arcResourceBridge = $r.arcResourceBridge
+                arcSqlManagedInstances = $r.arcSqlManagedInstances
+                arcSqlServers = $r.arcSqlServers
+                galleryImages = $r.galleryImages
+                marketplaceGalleryImages = $r.marketplaceGalleryImages
+                storageContainers = $r.storageContainers
             }
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement
