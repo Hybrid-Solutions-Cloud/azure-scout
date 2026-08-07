@@ -258,7 +258,7 @@ Describe 'Invoke-Collect -- Monitor remainder keys reach the canonical contract 
             $collect.monitor.appInsights[0].name | Should -Be 'ai1'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -290,7 +290,7 @@ Describe 'Invoke-Collect -- Monitor remainder keys reach the canonical contract 
             $collect.monitor.privateLinkScopes[0].scopedResourceCount | Should -Be 2
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -312,7 +312,7 @@ Describe 'Invoke-Collect -- Monitor remainder keys reach the canonical contract 
             }
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 }
