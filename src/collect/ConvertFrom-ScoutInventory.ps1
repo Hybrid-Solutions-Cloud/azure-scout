@@ -989,6 +989,24 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Azure Update Manager (AB#7065) — mirrors Invoke-Collect.ps1's `maintenanceConfigurations`
+    # KQL field for field so the inverted (default) path costs no extra Resource Graph round-trip.
+    $result['maintenanceConfigurations'] = @(
+        Select-ByType 'microsoft.maintenance/maintenanceconfigurations' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                scope          = [string] (Get-ScoutProp $_ 'properties.maintenanceScope')
+                recurEvery     = [string] (Get-ScoutProp $_ 'properties.maintenanceWindow.recurEvery')
+                startDateTime  = [string] (Get-ScoutProp $_ 'properties.maintenanceWindow.startDateTime')
+                duration       = [string] (Get-ScoutProp $_ 'properties.maintenanceWindow.duration')
+                timeZone       = [string] (Get-ScoutProp $_ 'properties.maintenanceWindow.timeZone')
+                rebootSetting  = [string] (Get-ScoutProp $_ 'properties.installPatches.rebootSetting')
+            }
+        }
+    )
+
     # ---- AI workload domain additions (AB#6818) — mirrors Invoke-Collect.ps1's `mlWorkspaces`/
     # `searchServices` KQL field for field so the inverted (default) path costs no extra
     # Resource Graph round-trip for either.
