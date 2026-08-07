@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **20 more collectors now reach the assessment payload** across Networking (13:
+  applicationGateways, bastionHosts, networkConnections, expressRouteCircuits, frontDoors,
+  loadBalancers, natGateways, networkInterfaces, networkWatchers, publicDnsZones,
+  routeTables, trafficManagerProfiles, virtualWans), Containers (4: openShiftClusters,
+  containerApps, containerAppEnvironments, containerGroups), and Analytics (3:
+  databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs) — no new ARG round trips,
+  all shaped from the existing raw resource pass. AB#7110.
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
