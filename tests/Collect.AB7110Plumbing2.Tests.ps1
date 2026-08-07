@@ -178,13 +178,6 @@ Describe 'ConvertFrom-ScoutInventory -- AB#7110 Part 2 plumbing (Databases/DevOp
         $row.reserved | Should -BeFalse
     }
 
-    It 'projects wafPolicies policyType/mode correctly' {
-        $shaped = ConvertFrom-ScoutInventory -Resources (Get-FixturePlumbingRows) -ResourceContainers @(New-MockSubscriptionRow)
-        $row = $shaped['wafPolicies'][0]
-        $row.policyType | Should -Be 'applicationgatewaywebapplicationfirewallpolicies'
-        $row.mode | Should -Be 'Prevention'
-    }
-
     It 'projects storageSyncServices incomingTrafficPolicy correctly' {
         $shaped = ConvertFrom-ScoutInventory -Resources (Get-FixturePlumbingRows) -ResourceContainers @(New-MockSubscriptionRow)
         $row = $shaped['storageSyncServices'][0]

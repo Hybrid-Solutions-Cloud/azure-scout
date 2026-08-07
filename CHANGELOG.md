@@ -29,6 +29,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Fixed (in this PR's own new test file) by dropping the `global:` segment plus an `AfterAll`
   cleanup. The same pattern exists in several other recently-added test files and is a
   candidate for a follow-up fix once identified.
+- **Azure Update Manager patch detail now reaches the assessment payload.** New
+  `collect.updateManager.patchAssessments[]` / `.patchInstallations[]` (per-machine summary
+  rows, sourced from Update Manager's own `patchassessmentresources`/
+  `patchinstallationresources` Resource Graph tables, collected since AB#6731 but never
+  shaped into `collect.json`), plus `patchMode`/`assessmentMode` added to the existing
+  `compute.virtualMachines[]` and `domains.hybrid.arcServers[]` projections at no extra
+  round-trip cost. AB#7107 AB#7108 AB#7109.
+- **20 more collectors now reach the assessment payload** across Networking (13:
+  applicationGateways, bastionHosts, networkConnections, expressRouteCircuits, frontDoors,
+  loadBalancers, natGateways, networkInterfaces, networkWatchers, publicDnsZones,
+  routeTables, trafficManagerProfiles, virtualWans), Containers (4: openShiftClusters,
+  containerApps, containerAppEnvironments, containerGroups), and Analytics (3:
+  databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs) — no new ARG round trips,
+  all shaped from the existing raw resource pass. AB#7110.
+- **Three more Defender for Cloud collectors now reach the assessment payload**:
+  `collect.security.wafPolicies`, `.ddosProtectionPlans`, `.applicationSecurityGroups`.
+  Defender alerts, assessments, secure score and pricing detail remain out of scope — they
+  need new per-subscription REST calls (`Get-ScoutDefenderPlanSweep` only calls
+  `Microsoft.Security/pricings` today) rather than plumbing an existing query. AB#7063.
+- **Azure Local child resources now reach the assessment payload.** A cluster showed as a
+  single row in the report with none of its child resources — the collector manifests
+  already existed and are ARG-indexed, but the assessment collect never queried them.
+  `collect.domains.hybrid.*` now includes `arcDataControllers`, `arcGateways`,
+  `arcKubernetes`, `arcResourceBridge`, `arcSQLManagedInstances`, `arcSQLServers`,
+  `galleryImages`, `marketplaceGalleryImages`, `storageContainers`. AB#7061.
+- **Thirteen Azure Monitor collectors now reach the assessment payload** (AB#7064 — Story
+  AB#7059, Feature AB#7069). `Invoke-Collect.ps1` gains a new `monitor{}` payload section —
+  `dataCollectionRules`, `dataCollectionEndpoints`, `actionGroups`, `autoscaleSettings`,
+  `metricAlertRules`, `scheduledQueryRules`, `activityLogAlertRules`,
+  `smartDetectorAlertRules`, `appInsights`, `workbooks`, `privateLinkScopes`,
+  `workspaceSolutions`, `appInsightsAvailabilityTests` — all previously collected by existing
+  manifests but never wired into `collect.json`. The last key combines the
+  `AppInsightsAvailabilityTests` and `AppInsightsWebTests` manifests, which both target the
+  same ARM type (`microsoft.insights/webtests`) and differ only by an `AdditionalFilter` — a
+  `kind` field per row lets a WebTests-only consumer filter to `kind -eq 'standard'` without a
+  duplicate Resource Graph query. New regression tests
+  (`tests/Collect.MonitorPlumbing.Tests.ps1`, `tests/Collect.MonitorPlumbing2.Tests.ps1`) pin
+  all thirteen keys through both collection paths. See
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
+- **Azure Update Manager and Azure Policy definitions now reach the assessment payload**
+  (AB#7065, AB#7066 — Story AB#7059, Feature AB#7069). `management.maintenanceConfigurations`
+  and `governance.policyDefinitions` / `governance.policySetDefinitions` were collected by
+  their manifests but never reached `collect.json`; both are wired now, the latter two at
+  zero extra Azure calls (reused from the existing `TenantWideDefinitionsOnly` sweep). A new
+  regression test (AB#7067) pins all three keys through both collection paths. See
+  [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
 
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 

@@ -187,36 +187,52 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+    Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
 }
 
 Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     BeforeEach { New-CountingSearchAzGraph }
 
-    It 'the DEFAULT assessment collect reaches Resource Graph exactly 5 times' {
+    It 'the DEFAULT assessment collect reaches Resource Graph exactly 7 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
-        # Four raw tables + the one query that genuinely cannot be served from inventory.
+        # Four raw tables carrying the `project id,name,type,tenantId` marker, plus two more raw
+        # tables that do NOT carry it (see below), plus the one query that genuinely cannot be
+        # served from inventory.
         #
-        # This was 4 until AB#6835. The fourth raw table is `recoveryservicesresources`, added
-        # because backup protected items are the right-hand side of XR-BKP-01 ("which VMs have no
-        # backup") and no other table carries them. It is the ONLY round-trip that epic added:
-        # snapshots, managed disks, disk encryption sets and the entire Migration domain are all
-        # shaped from the `resources` rows the pass already returns. Raising this number is a
-        # deliberate contract change, and a SIXTH would need the same justification in writing.
-        $script:argQueries.Count | Should -Be 5 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources) plus sqlDefenderPricing'
+        # This was 4 until AB#6835 (recoveryservicesresources, for XR-BKP-01/02). It is 6 raw
+        # round-trips as of AB#7107/AB#7108 (Story AB#7059, Feature AB#7069, Epic AB#7099):
+        # `patchassessmentresources` and `patchinstallationresources` are Update Manager's OWN
+        # Resource Graph tables (7-day/30-day retention respectively) -- read-only, same as every
+        # other raw-pass table, but not derivable from `resources`/`networkresources` at all, so
+        # collecting them costs two more round-trips. Raising this number further is a deliberate
+        # contract change, and an EIGHTH would need the same justification in writing.
+        $script:argQueries.Count | Should -Be 7 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources) plus sqlDefenderPricing'
 
+        # patchassessmentresources/patchinstallationresources deliberately omit the `project
+        # $columns` clause every OTHER raw table carries (Get-ScoutRawInventory.ps1's AB#6731
+        # comment explains why: a `project` naming a column the table does not define fails the
+        # whole query, and these two tables' schema is not guaranteed to match the `resources`
+        # projection). That means the `project id,name,type,tenantId` marker below only ever
+        # matches 4 of the 6 raw-pass queries, not all 6 -- an accident of the heuristic, not a
+        # sign the patch queries are typed/live queries.
         @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 4
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
+        @($script:argQueries | Where-Object { $_ -match '^patchassessmentresources' }).Count | Should -Be 1
+        @($script:argQueries | Where-Object { $_ -match '^patchinstallationresources' }).Count | Should -Be 1
     }
 
-    It 'the one remaining live query is the documented SecurityResources exception, nothing else' {
+    It 'the queries outside the projection marker are the documented SecurityResources exception plus the two patch tables, nothing else' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
-        $typed = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId' })
-        $typed.Count | Should -Be 1
-        $typed[0] | Should -Match 'SecurityResources'
-        $typed[0] | Should -Match 'microsoft\.security/pricings'
+        $unmarked = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId' })
+        $unmarked.Count | Should -Be 3
+
+        $securityException = @($unmarked | Where-Object { $_ -match 'SecurityResources' -and $_ -match 'microsoft\.security/pricings' })
+        $securityException.Count | Should -Be 1
+
+        $patchTables = @($unmarked | Where-Object { $_ -match '^patchassessmentresources' -or $_ -match '^patchinstallationresources' })
+        $patchTables.Count | Should -Be 2
     }
 
     It 'the pre-inversion typed pack still costs more than 30 round-trips (the "before" number)' {
@@ -226,7 +242,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 0
     }
 
-    It 'a narrowed -Categories collect still costs 4 or fewer, never more than the full run' {
+    It 'a narrowed -Categories collect never costs more than the full run' {
         Invoke-Collect -Categories @('Security') -WarningAction SilentlyContinue | Out-Null
         $narrow = $script:argQueries.Count
 
@@ -234,8 +250,13 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
         $full = $script:argQueries.Count
 
+        # The raw pass (resourcecontainers/resources/networkresources/recoveryservicesresources/
+        # patchassessmentresources/patchinstallationresources) is NOT category-filtered -- it is
+        # the same unconditional sweep regardless of -Categories, same as -IncludeBackupResources
+        # was before it -- so a narrowed run costs the same 7 as the full run; it can never cost
+        # MORE.
         $narrow | Should -BeLessOrEqual $full
-        $narrow | Should -BeLessOrEqual 5
+        $narrow | Should -BeLessOrEqual 7
     }
 
     It '-FromInventory still costs exactly 1 (the combined-run path is unchanged)' {
@@ -398,9 +419,14 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
             if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
             return @()
         }
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
-        $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        try {
+            $collect = Invoke-Collect -WarningAction SilentlyContinue
+            @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
+            $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 
     It 'falls back to the typed pack when the raw pass throws, rather than returning nothing' {
@@ -412,12 +438,18 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
             if ($Query -match 'project id,name,type,tenantId') { throw 'ARG is unavailable' }
             return Invoke-FixtureTypedQuery -Query $Query
         }
-        # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a total
-        # ARG outage comes back as an EMPTY raw pass rather than an exception. Either way the
-        # caller must still get a well-formed collect object with the contract's keys present.
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        $collect.PSObject.Properties.Name | Should -Contain 'networking'
-        $collect.PSObject.Properties.Name | Should -Contain 'domains'
-        { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+        try {
+            # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a
+            # total ARG outage comes back as an EMPTY raw pass rather than an exception. Either
+            # way the caller must still get a well-formed collect object with the contract's
+            # keys present.
+            $collect = Invoke-Collect -WarningAction SilentlyContinue
+            $collect.PSObject.Properties.Name | Should -Contain 'networking'
+            $collect.PSObject.Properties.Name | Should -Contain 'domains'
+            { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 }
