@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Five more Azure Monitor collectors now reach the assessment payload**, closing out the
+  remainder of AB#7064's Monitor plumbing: `collect.monitor.appInsights`, `.workbooks`,
+  `.privateLinkScopes`, `.workspaceSolutions`, `.appInsightsAvailabilityTests`. The last key
+  combines the `AppInsightsAvailabilityTests` and `AppInsightsWebTests` manifests, which
+  both target the same ARM type (`microsoft.insights/webtests`) and differ only by an
+  `AdditionalFilter` — a `kind` field per row lets a WebTests-only consumer filter to
+  `kind -eq 'standard'` without a duplicate Resource Graph query. AB#7064.
+
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 
 Every one of these was found by using the product rather than by reading the test results.
