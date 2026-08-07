@@ -269,7 +269,7 @@ Describe 'Invoke-Collect -- Monitor keys reach the canonical contract on both pa
             $collect.monitor.dataCollectionRules[0].name | Should -Be 'dcr1'
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -304,7 +304,7 @@ Describe 'Invoke-Collect -- Monitor keys reach the canonical contract on both pa
             $collect.monitor.actionGroups[0].emailReceiverCount | Should -Be 1
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 
@@ -326,7 +326,7 @@ Describe 'Invoke-Collect -- Monitor keys reach the canonical contract on both pa
             }
         }
         finally {
-            Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }
 }
