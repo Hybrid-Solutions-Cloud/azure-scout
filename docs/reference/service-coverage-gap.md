@@ -122,6 +122,13 @@ We also collect `AppliedAIServices`, `AzureAI`, `FaceAPI` and `HealthInsights` �
 Cognitive Services surfaces that Microsoft's current catalogue folds into "Foundry Tools" rather than
 listing individually, so they are not double-counted above.
 
+We also collect `ContentModerator` (`microsoft.cognitiveservices/accounts`, `Kind -eq
+'ContentModerator'`), which does not appear in the table above because Microsoft retired it: Content
+Moderator has been unavailable for new resource creation since 15 March 2024 and is scheduled for full
+retirement on 15 March 2027, replaced by Azure AI Content Safety (already tracked above as
+`ContentSafety`). Same shape as the `MariaDB`/`SQLPOOL` note under Databases — a working collector
+pointed at a decommissioned service, not a coverage gap.
+
 ## Analytics
 
 Source: [azure.microsoft.com/products?categories=analytics](https://azure.microsoft.com/en-us/products/?categories=analytics), fetched 2026-08-04 — 19 products.
@@ -218,7 +225,7 @@ Source: [azure.microsoft.com/products?categories=databases](https://azure.micros
 |---|---|---|
 | Azure Cosmos DB | Collected | `CosmosDB` |
 | Azure DocumentDB | Not collected | real gap — the 2025 vCore-based MongoDB service is a distinct resource provider from Cosmos DB |
-| Azure SQL (umbrella) | Collected | see SQL DB / MI / Server rows |
+| Azure SQL (umbrella) | Collected | see SQL DB / MI rows below, plus `SQLSERVER` (the logical `microsoft.sql/servers` resource) |
 | Azure SQL Database | Collected | `SQLDB` |
 | Azure SQL Managed Instance | Collected | `SQLMI`, `SQLMIDB` |
 | SQL Server on Azure Virtual Machines | Collected (cross-category: Compute) | `SQLVM` |
@@ -234,7 +241,10 @@ Source: [azure.microsoft.com/products?categories=databases](https://azure.micros
 
 We also collect `MariaDB` and `SQLPOOL` (elastic pools), neither of which appears in Microsoft's current
 catalogue — Azure Database for MariaDB was retired by Microsoft in September 2025, so that collector is
-now pointed at a decommissioned service rather than a coverage gap.
+now pointed at a decommissioned service rather than a coverage gap. We also collect `SQLSERVER` (the
+logical `microsoft.sql/servers` resource that hosts Azure SQL Database and Managed Instance) — Microsoft
+does not catalogue "SQL Server" as a separate product from the "Azure SQL" umbrella, which is why it has
+no dedicated row above.
 
 ## DevOps
 
@@ -262,9 +272,11 @@ Source: [azure.microsoft.com/products?categories=devops](https://azure.microsoft
 | GitHub Copilot | N/A | not an Azure resource |
 | Azure SRE Agent | Not collected | real gap — new (2026) service |
 
-We also collect `ApiConnections`, `ChaosStudio`, `LabServices`, `LoadTesting` and `ManagedDevOpsPools`,
-none of which are separately listed on Microsoft's DevOps catalogue page (Chaos Studio is listed under
-Analytics there, and the rest are sub-features of things already counted above).
+We also collect `ApiConnections`, `ChaosStudio`, `LabServices`, `LoadTesting`, `ManagedDevOpsPools` and
+`DevOpsServiceConnections`, none of which are separately listed on Microsoft's DevOps catalogue page
+(Chaos Studio is listed under Analytics there, `DevOpsServiceConnections` is a sub-object of an Azure
+DevOps project rather than its own product, and the rest are sub-features of things already counted
+above).
 
 ## General
 
@@ -338,7 +350,7 @@ one collector:
 
 | Microsoft product | Status | AzureScout collector(s) |
 |---|---|---|
-| Microsoft Entra ID | Collected | 12 of the 17 Identity collectors (`Users`, `Groups`, `AppRegistrations`, `ConditionalAccess`, `DirectoryRoles`, `Domains`, `Licensing`, `ManagedIdentities`, `NamedLocations`, `PIMAssignments`, `RiskyUsers`, `SecurityPolicies`, `ServicePrincipals`, `AdminUnits`, `CrossTenantAccess`) |
+| Microsoft Entra ID | Collected | 15 of the 17 Identity collectors (`Users`, `Groups`, `AppRegistrations`, `ConditionalAccess`, `DirectoryRoles`, `Domains`, `Licensing`, `ManagedIdentities`, `NamedLocations`, `PIMAssignments`, `RiskyUsers`, `SecurityPolicies`, `ServicePrincipals`, `AdminUnits`, `CrossTenantAccess`) — the remaining 2 (`ManagedIds`, an ARM `Microsoft.ManagedIdentity/userAssignedIdentities` collector distinct from the Entra-Graph `ManagedIdentities`; and `RoleAssignments`, Azure RBAC role assignments) are governance/RBAC primitives filed under the Identity manifest folder rather than Entra-ID directory objects |
 | Microsoft Entra Domain Services | Collected (cross-category: Security) | `EntraDomainServices` |
 | Microsoft Entra Verified ID | Not collected | real gap — no Verified ID credential collector |
 | Microsoft Entra External ID | Not collected | real gap — no distinct External ID tenant/customer directory collector (our `Domains`/`Users` collectors run against the workforce tenant) |
@@ -529,8 +541,11 @@ Source: [azure.microsoft.com/products?categories=security](https://azure.microso
 | Microsoft Azure Attestation | Not collected | real gap |
 | Microsoft Security Copilot | Not collected | real gap (also listed under AI + Machine Learning) |
 
-We also collect `AppComplianceAutomation`, `ApplicationSecurityGroups` and `ManagedHSM`, none separately
-catalogued as products by Microsoft's Security page.
+We also collect `AppComplianceAutomation`, `ApplicationSecurityGroups`, `ManagedHSM` and `ArtifactSigning`
+(`microsoft.codesigning/codesigningaccounts` — Azure Artifact Signing, formerly Trusted Signing), none
+separately catalogued as products by Microsoft's Security page (Artifact Signing has its own product
+page at [azure.microsoft.com/products/artifact-signing](https://azure.microsoft.com/en-us/products/artifact-signing)
+but is not tagged into the `?categories=security` catalogue listing checked above).
 
 ## Storage
 
