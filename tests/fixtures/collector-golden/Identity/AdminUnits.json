@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "AdminUnits",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
+  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
   "Rows": [
     "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/administrativeunits/adminunits-t1a-1|Membership Rule=s:res-value|Membership Type=s:res-value|Resource U=j:1|Tenant ID=s:res-value|Visibility=s:res-value",
     "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/administrativeunits/adminunits-t1b-1|Membership Rule=s:res-value|Membership Type=s:res-value|Resource U=j:1|Tenant ID=s:res-value|Visibility=s:res-value",

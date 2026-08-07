@@ -271,5 +271,69 @@ Describe 'Start-AZSCEntraExtraction' {
             $attr.Mandatory | Should -BeTrue
         }
     }
+
+    # ── Verified ID catalog entries (AB#7097) ──────────────────────────
+    Context 'Verified ID catalog entries' {
+
+        It 'declares the authentication-method configuration as a SingleObject query under graph.microsoft.com' {
+            $entry = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.Type -eq 'entra/verifiedidconfiguration' })
+            $entry.Count | Should -Be 1
+            $entry[0].Uri | Should -Be '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
+            $entry[0].SingleObject | Should -BeTrue
+            $entry[0].Permission | Should -Be 'Policy.Read.AuthenticationMethod'
+        }
+
+        It 'declares the profiles collection query under graph.microsoft.com' {
+            $entry = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.Type -eq 'entra/verifiedidprofiles' })
+            $entry.Count | Should -Be 1
+            $entry[0].Uri | Should -Be '/v1.0/identity/verifiedId/profiles'
+            $entry[0].Permission | Should -Be 'VerifiedId-Profile.Read.All'
+        }
+
+        BeforeAll {
+            Mock Invoke-AZSCGraphRequest {
+                param($Uri)
+                if ($Uri -like '*authenticationMethodConfigurations/VerifiableCredentials*') {
+                    return [PSCustomObject]@{
+                        id             = 'VerifiableCredentials'
+                        state          = 'enabled'
+                        excludeTargets = @()
+                    }
+                }
+                if ($Uri -like '*verifiedId/profiles*') {
+                    return @(
+                        [PSCustomObject]@{
+                            id                            = 'profile-001'
+                            name                           = 'Recovery Profile'
+                            description                    = 'Self-service recovery'
+                            state                           = 'enabled'
+                            priority                        = 1
+                            verifierDid                     = 'did:web:contoso.com'
+                            verifiedIdProfileConfiguration  = [PSCustomObject]@{ acceptedIssuer = 'did:web:contoso.com'; type = 'VerifiedEmployee' }
+                            verifiedIdUsageConfigurations   = @([PSCustomObject]@{ purpose = 'recovery'; isEnabledForTestOnly = $false })
+                            faceCheckConfiguration          = [PSCustomObject]@{ state = 'disabled' }
+                            lastModifiedDateTime            = '2026-07-01T00:00:00Z'
+                        }
+                    )
+                }
+                return @([PSCustomObject]@{ id = 'obj-1'; displayName = 'Item' })
+            }
+        }
+
+        It 'normalises the single-object configuration response into one entra/verifiedidconfiguration row' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $rows = @($result.EntraResources | Where-Object { $_.TYPE -eq 'entra/verifiedidconfiguration' })
+            $rows.Count | Should -Be 1
+            $rows[0].properties.state | Should -Be 'enabled'
+        }
+
+        It 'normalises the profiles collection into entra/verifiedidprofiles rows' {
+            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $rows = @($result.EntraResources | Where-Object { $_.TYPE -eq 'entra/verifiedidprofiles' })
+            $rows.Count | Should -Be 1
+            $rows[0].name | Should -Be 'Recovery Profile'
+            $rows[0].properties.verifierDid | Should -Be 'did:web:contoso.com'
+        }
+    }
 }
 } # end InModuleScope

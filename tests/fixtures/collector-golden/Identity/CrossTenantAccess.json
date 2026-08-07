@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "CrossTenantAccess",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "24d9207dabc93aa5888ef6e9cdbdf61f3f2d4de93762a9a244beb6002657ea00",
+  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
   "Rows": [
     "B2B Collaboration=s:res-value|B2B Direct Connect=s:res-value|Display Name=s:crosstenantaccess-t1a|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/crosstenantaccess/crosstenantaccess-t1a-1|Inbound Trust=s:MFA, CompliantDevice, HybridAADJoined|Is Service Provider=j:true|Partner Tenant ID=s:res-value|Resource U=j:1|Tenant ID=s:res-value",
     "B2B Collaboration=s:res-value|B2B Direct Connect=s:res-value|Display Name=s:crosstenantaccess-t1b|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/crosstenantaccess/crosstenantaccess-t1b-1|Inbound Trust=s:MFA, CompliantDevice, HybridAADJoined|Is Service Provider=j:true|Partner Tenant ID=s:res-value|Resource U=j:1|Tenant ID=s:res-value",

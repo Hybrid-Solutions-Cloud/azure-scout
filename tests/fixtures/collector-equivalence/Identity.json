@@ -210,6 +210,30 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1f-1/RoleAssignment/roleassignments-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -2979,6 +3003,354 @@
           "tenantId": "res-value",
           "NAME": "users-t1f",
           "TYPE": "entra/users",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "VerifiedIDConfiguration": {
+      "resources": [
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1a-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1a",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1b-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1b",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1c-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1c",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1d-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1d",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1e-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1e",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1f",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "VerifiedIDProfiles": {
+      "resources": [
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1a-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1a",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1b-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1b",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1c-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1c",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1d-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1d",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1e-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1e",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1f",
+          "TYPE": "entra/verifiedidprofiles",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
