@@ -75,8 +75,17 @@ function Start-AZSCEntraExtraction {
                 $name = $item.userPrincipalName
             }
 
+            # AB#7098 -- `crossTenantAccessPolicyConfigurationDefault` (the singleton "default"
+            # cross-tenant access policy External Identities reads) carries no `id` property at
+            # all, unlike every query already in the catalog. An unconditional `$item.id` throws
+            # under StrictMode the moment a query returns a shape without one, and that throw is
+            # caught by the query loop's own try/catch -- so the new query would report SKIP on
+            # every run, not "collected nothing". Guarded the same way `$name` resolution already
+            # is, immediately above.
+            $id = if ($item.PSObject.Properties.Name -contains 'id') { $item.id } else { $null }
+
             $normalized = [PSCustomObject]@{
-                id         = $item.id
+                id         = $id
                 name       = $name
                 TYPE       = $SyntheticType
                 tenantId   = $TenantID
