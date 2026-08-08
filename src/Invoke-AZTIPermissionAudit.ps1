@@ -120,6 +120,60 @@ function Test-ScoutTenantLicence {
     }
 }
 
+function Get-ScoutGraphTokenClaim {
+    <#
+    .SYNOPSIS
+        Decode the payload of the Graph bearer token Scout just minted.
+
+    .DESCRIPTION
+        AB#7187. No signature verification -- we are reading our own token to learn what the
+        STS put in it, not authenticating anything. Returns whether the token is delegated
+        (user sign-in: `scp` claim) or an app token (SPN: `roles` claim), and which
+        permissions it carries.
+
+        Why this exists: in user-interactive mode the token comes from
+        `az account get-access-token`, i.e. the Azure CLI first-party client
+        (04b07795-8ddb-461a-bbee-02f9e1bf7b46). That client's delegated-scope set is fixed by
+        Microsoft -- az has no way to request an extra scope -- so a Graph endpoint whose
+        required scope is outside that set returns 403 for EVERY user, a Global Administrator
+        included. That failure is a property of the sign-in CLIENT, not of the caller's
+        directory roles, and the audit must say so instead of sending an owner with
+        tenant-wide rights to a permissions blade that cannot fix it -- the same anti-pattern
+        AB#6893 removed for licence-gated permissions. (Older endpoints keep working because
+        the az scope set includes the broad Directory.AccessAsUser.All, which newer granular
+        surfaces such as authenticationMethodsPolicy and identity/verifiedId do not honour --
+        that is why Policy.Read.All probes pass on the same token these two fail on.)
+    #>
+    [OutputType([object])]
+    param([Parameter(Mandatory)][hashtable]$Headers)
+
+    try {
+        $jwt = "$($Headers['Authorization'])" -replace '^Bearer\s+', ''
+        $payload = $jwt.Split('.')[1].Replace('-', '+').Replace('_', '/')
+        switch ($payload.Length % 4) { 2 { $payload += '==' } 3 { $payload += '=' } }
+        $claims = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json
+
+        $scopes = @()
+        $isDelegated = $false
+        if ($claims.PSObject.Properties['scp'] -and $claims.scp) {
+            $isDelegated = $true
+            $scopes = @("$($claims.scp)" -split '\s+' | Where-Object { $_ })
+        }
+        $appRoles = @()
+        if ($claims.PSObject.Properties['roles'] -and $claims.roles) { $appRoles = @($claims.roles) }
+
+        [PSCustomObject]@{
+            IsDelegated = $isDelegated
+            Scopes      = $scopes
+            AppRoles    = $appRoles
+        }
+    }
+    catch {
+        Write-Verbose "Get-ScoutGraphTokenClaim: could not decode the Graph token payload ($($_.Exception.Message)); scope-claim checks skipped."
+        return $null
+    }
+}
+
 function Invoke-AZSCPermissionAudit {
     [CmdletBinding()]
     param(
@@ -485,6 +539,11 @@ function Invoke-AZSCPermissionAudit {
 
             $graphImpact = @(Get-ScoutGraphPermissionImpact)
 
+            # AB#7187 -- decoded once for the whole probe loop; $null when undecodable, and
+            # every use below is guarded so an undecodable token degrades to the old behaviour
+            # (a plain DENIED) rather than a new failure mode.
+            $tokenClaim = Get-ScoutGraphTokenClaim -Headers $graphToken
+
             $graphAccess = $true
 
             foreach ($impact in $graphImpact) {
@@ -539,6 +598,28 @@ function Invoke-AZSCPermissionAudit {
                         }
                     }
 
+                    # AB#7187. A delegated token that does not CARRY the required scope cannot
+                    # pass this probe no matter which directory roles the signed-in user holds:
+                    # user-mode tokens come from Azure CLI, whose fixed pre-authorized scope set
+                    # cannot be extended, so "grant the permission" is advice that cannot work
+                    # -- a Global Administrator hits the same 403. Report the truth instead:
+                    # this surface needs a service principal, or it stays Not assessed.
+                    if ($tokenClaim -and $tokenClaim.IsDelegated -and $tokenClaim.Scopes -notcontains $impact.Permission) {
+                        foreach ($c in $impact.Collectors) {
+                            $emptyCollectors.Add([PSCustomObject]@{
+                                    Collector  = $c
+                                    Reason     = "Unavailable with CLI sign-in — needs '$($impact.Permission)' via a service principal"
+                                    Permission = $impact.Permission
+                                })
+                        }
+                        $r = New-CheckResult $checkName 'Warn' `
+                            "UNAVAILABLE WITH CLI SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes Azure CLI tokens carry, and az cannot request it, so this fails for every user regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" `
+                            "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help."
+                        Write-AuditLine -Status Warn -Text "$checkName — unavailable with CLI sign-in; reported as Not assessed"
+                        $graphDetails.Add($r)
+                        continue
+                    }
+
                     # Criticality is derived: this permission has consumers, so denying it
                     # empties worksheets, so the run is not READY. There is no list to edit.
                     $graphAccess = $false
@@ -549,15 +630,27 @@ function Invoke-AZSCPermissionAudit {
                             Permission = $impact.Permission
                         })
                     }
+                    # AB#7187 -- the Enterprise Applications blade only exists for SPNs; telling
+                    # a signed-in USER to go there was a dead end. A delegated token that DOES
+                    # carry the scope but still gets 403 is a directory-role problem.
+                    $deniedRemediation = if ($tokenClaim -and $tokenClaim.IsDelegated) {
+                        "The signed-in user's directory roles do not permit this read. Assign a role that covers it (for authentication-method and Verified ID surfaces: Authentication Policy Administrator, or Global Reader), or run Scout as a service principal granted the '$($impact.Permission)' application permission."
+                    } else {
+                        "Grant '$($impact.Permission)' in Entra ID > Enterprise Applications > API Permissions"
+                    }
                     $r = New-CheckResult $checkName 'Fail' `
                         "DENIED — $($impact.Permission) ($purpose). $($impact.CollectorCount) collectors will be empty: $($impact.Collectors -join ', ')" `
-                        "Grant '$($impact.Permission)' in Entra ID > Enterprise Applications > API Permissions"
+                        $deniedRemediation
                     Write-AuditLine -Status Fail -Text "$checkName — DENIED; $($impact.CollectorCount) collectors will be empty"
                     # AB#6765 -- this used to be a coloured Write-Host and nothing else, so a
                     # denied permission never reached the warning stream and never reached the
                     # run's error count. An automated caller could not tell.
                     Write-Warning "[AzureScout] Graph permission '$($impact.Permission)' is DENIED. These collectors will produce no data: $($impact.Collectors -join ', ')."
-                    $recommendations.Add("Grant Graph permission '$($impact.Permission)' — without it these collectors are empty: $($impact.Collectors -join ', ')")
+                    if ($tokenClaim -and $tokenClaim.IsDelegated) {
+                        $recommendations.Add("Assign a directory role covering '$($impact.Permission)' (or run as a service principal with that application permission) — without it these collectors are empty: $($impact.Collectors -join ', ')")
+                    } else {
+                        $recommendations.Add("Grant Graph permission '$($impact.Permission)' — without it these collectors are empty: $($impact.Collectors -join ', ')")
+                    }
                 }
                 $graphDetails.Add($r)
             }
