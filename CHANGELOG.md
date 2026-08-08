@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-08-08 - the network picture, completed
+
+### Added
+
+- **The remaining network diagrams (AB#6928).** The VNet connectivity diagram draws REAL
+  peering-pair edges (state-labelled, gateway-transit annotated) from the new vnetPeerings
+  data, falling back to peering-count inference on older collects. The hybrid diagram gains
+  per-connection detail (local network gateway, address prefixes, connection status), an
+  ExpressRoute lane, and Virtual WAN hubs. Two new diagrams: **Edge & delivery** (Front Door,
+  Traffic Manager, Application Gateway with a WAF-disabled warning, load balancers flagged
+  when publicly fronted, NAT gateways, Bastion) and **Routing & forced tunnelling** (per route
+  table, with every 0.0.0.0/0 route called out by next-hop type). All wired into the Diagrams
+  page and the overlap-collision gate.
+- **The wizard assessment menu is grouped by source (AB#7188 phase 1).** The 46-entry
+  checklist renders under four headings - Cloud Adoption Framework (CAF), Well-Architected
+  Framework (WAF), Specialized reviews, Service category deep-dives - with registry keys,
+  returned selection values, and the LandingZone default untouched; an unknown future key
+  still appears (menu honesty, AB#6763). Key renames + aliasing remain a later phase.
+
 ### Added
 
 - **Connectivity relationship detail in the assessment collect (AB#6928).** Four new
