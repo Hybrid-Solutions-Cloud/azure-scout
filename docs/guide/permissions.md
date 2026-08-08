@@ -108,6 +108,8 @@ is called out rather than requested:
 | `AdministrativeUnit.Read.All` | Application or Delegated | Read administrative units |
 | `Domain.Read.All` | Application or Delegated | Read verified domains |
 | `IdentityRiskyUser.Read.All` | Application or Delegated | Read risky-user signals — **also requires an Entra ID P2 licence**; a P1 tenant with the permission granted still returns nothing |
+| `Policy.Read.AuthenticationMethod` | Application or Delegated | Read the Verified ID authentication-method configuration (AB#7097) |
+| `VerifiedId-Profile.Read.All` | Application or Delegated | Read Verified ID profiles (AB#7097) |
 
 ::: warning `IdentityProvider.Read.All` is queried but no collector reads the result — do not grant it
 Scout's pre-flight now derives criticality from which collectors actually consume a permission,
@@ -119,14 +121,28 @@ consumed sign-in logs.
 :::
 
 If you're signing in as a **user** instead of a service principal, the equivalent least-privilege
-grant is two Entra **directory roles** — `Directory Readers` + Entra `Security Reader` — not the
-application permissions above. Azure RBAC, Entra directory roles, and Graph application
-permissions are three separate systems with different scoping and approvers; pick the directory
-roles or the app permissions based on whether Scout runs as a user or a service principal, don't
-mix them. `Directory Readers` + `Security Reader` covers 14 of the 15 Entra collectors; the
-fifteenth, `CrossTenantAccess`, needs `Security Administrator`, `Tenant Governance Administrator`,
-or `Global Reader` — evaluate the first two before reaching for `Global Reader`, which Microsoft
-classifies as a privileged role. See [Assessment Permissions](../assessment/assessment-permissions.md).
+grant is Entra **directory roles** — not the application permissions above. Azure RBAC, Entra
+directory roles, and Graph application permissions are three separate systems with different
+scoping and approvers; pick the directory roles or the app permissions based on whether Scout runs
+as a user or a service principal, don't mix them.
+
+`Directory Readers` + `Security Reader` covers most Entra collectors; the following need
+additional roles of their own, evaluated least-privileged first:
+
+- `CrossTenantAccess` needs `Security Administrator` or `Tenant Governance Administrator` —
+  evaluate both before reaching for `Global Reader`, which Microsoft classifies as a privileged
+  role.
+- `VerifiedIDConfiguration` (reads `Policy.Read.AuthenticationMethod`, AB#7097) needs
+  `Authentication Policy Administrator` (or `Global Reader`, but `Authentication Policy
+  Administrator` is the less-privileged of the two, and `Security Reader` does **not** cover this
+  endpoint despite covering most of the rest).
+- `VerifiedIDProfiles` (reads `VerifiedId-Profile.Read.All`, AB#7097) needs `Authentication Policy
+  Administrator` — Microsoft's documented least-privileged role for this endpoint.
+
+`Authentication Policy Administrator` covers both Verified ID collectors, so the full user-auth
+grant is three directory roles: `Directory Readers` + `Security Reader` + `Authentication Policy
+Administrator`, plus one of `Security Administrator` / `Tenant Governance Administrator` for
+`CrossTenantAccess`. See [Assessment Permissions](../assessment/assessment-permissions.md).
 
 ## Licence tiers — what a permission cannot buy you
 

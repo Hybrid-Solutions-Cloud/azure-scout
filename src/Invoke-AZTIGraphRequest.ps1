@@ -28,6 +28,11 @@
 .PARAMETER MaxRetries
     Maximum number of retries for transient errors (429, 5xx). Default: 5.
 
+.PARAMETER TenantID
+    Optional tenant ID to scope the underlying Graph token to. See Get-AZSCGraphToken --
+    without this, the token comes from az CLI's ambient default tenant, which is not
+    necessarily the tenant being audited or collected against.
+
 .OUTPUTS
     [PSObject[]] Aggregated .value array, or the raw response for single-object endpoints.
 
@@ -54,7 +59,9 @@ function Invoke-AZSCGraphRequest {
 
         [switch]$SinglePage,
 
-        [int]$MaxRetries = 5
+        [int]$MaxRetries = 5,
+
+        [string]$TenantID
     )
 
     $baseUrl = 'https://graph.microsoft.com'
@@ -73,7 +80,7 @@ function Invoke-AZSCGraphRequest {
     $currentUri = $fullUri
 
     do {
-        $headers = Get-AZSCGraphToken
+        $headers = Get-AZSCGraphToken -TenantID $TenantID
 
         $requestParams = @{
             Uri         = $currentUri
@@ -136,7 +143,7 @@ function Invoke-AZSCGraphRequest {
                     Start-Sleep -Seconds $retryAfter
 
                     # Refresh token in case it expired during wait
-                    $headers = Get-AZSCGraphToken
+                    $headers = Get-AZSCGraphToken -TenantID $TenantID
                     $requestParams['Headers'] = $headers
                 }
                 else {

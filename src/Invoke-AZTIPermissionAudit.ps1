@@ -88,12 +88,19 @@ function Test-ScoutTenantLicence {
         no P2" from "I could not read the SKUs", because downgrading a genuine permission denial to
         a licensing note on the strength of a failed lookup would hide a real problem. Only an
         explicit $false softens the verdict.
+
+        AB#7100: TenantID must be passed and threaded to the Graph token -- without it the
+        subscribedSkus read comes from az CLI's ambient default tenant, not necessarily the
+        tenant this audit was invoked against, and can report a licensed tenant as unlicensed.
     #>
     [OutputType([object])]
-    param([Parameter(Mandatory)][string]$SkuPattern)
+    param(
+        [Parameter(Mandatory)][string]$SkuPattern,
+        [string]$TenantID
+    )
 
     try {
-        $skus = @(Invoke-AZSCGraphRequest -Uri '/v1.0/subscribedSkus' -SinglePage)
+        $skus = @(Invoke-AZSCGraphRequest -Uri '/v1.0/subscribedSkus' -SinglePage -TenantID $TenantID)
         if ($skus.Count -eq 0) { return $null }
         foreach ($s in $skus) {
             $plans = $s.PSObject.Properties['servicePlans']
@@ -447,7 +454,7 @@ function Invoke-AZSCPermissionAudit {
 
         $graphToken = $null
         try {
-            $graphToken = Get-AZSCGraphToken
+            $graphToken = Get-AZSCGraphToken -TenantID $tenantId
             Write-AuditLine -Status Pass -Text 'Microsoft Graph token acquired successfully'
         }
         catch {
@@ -497,7 +504,7 @@ function Invoke-AZSCPermissionAudit {
                 }
 
                 try {
-                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage
+                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId
                     $r = New-CheckResult $checkName 'Pass' "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
@@ -514,7 +521,7 @@ function Invoke-AZSCPermissionAudit {
                     # because silently downgrading a real denial would be the worse error.
                     if ($Script:ScoutGraphLicensedFeature.ContainsKey($impact.Permission)) {
                         $req = $Script:ScoutGraphLicensedFeature[$impact.Permission]
-                        $licensed = Test-ScoutTenantLicence -SkuPattern $req.SkuPattern
+                        $licensed = Test-ScoutTenantLicence -SkuPattern $req.SkuPattern -TenantID $tenantId
                         if ($licensed -eq $false) {
                             foreach ($c in $impact.Collectors) {
                                 $emptyCollectors.Add([PSCustomObject]@{
