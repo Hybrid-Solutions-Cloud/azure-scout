@@ -448,6 +448,11 @@ function ConvertFrom-ScoutInventory {
     # rest of this file.
     $result['applicationGateways'] = @(
         Select-ByType 'microsoft.network/applicationgateways' | ForEach-Object {
+            # AB#6928 -- wafEnabled mirrors the KQL: a WAF-capable tier AND (classic WAF config
+            # enabled OR a firewall policy attached).
+            $tier         = [string] (Get-ScoutProp $_ 'properties.sku.tier')
+            $wafCfg       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.webApplicationFirewallConfiguration.enabled')
+            $fwPolicyId   = [string] (Get-ScoutProp $_ 'properties.firewallPolicy.id')
             [pscustomobject]@{
                 id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')
@@ -455,14 +460,27 @@ function ConvertFrom-ScoutInventory {
                 subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location          = [string] (Get-ScoutProp $_ 'location')
                 sku               = [string] (Get-ScoutProp $_ 'properties.sku.name')
-                tier              = [string] (Get-ScoutProp $_ 'properties.sku.tier')
+                tier              = $tier
                 provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                wafEnabled        = [bool] (($tier -like '*WAF*') -and (($wafCfg -eq $true) -or -not [string]::IsNullOrEmpty($fwPolicyId)))
+                listenerCount     = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.httpListeners')
+                backendPoolCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.backendAddressPools')
             }
         }
     )
 
     $result['bastionHosts'] = @(
         Select-ByType 'microsoft.network/bastionhosts' | ForEach-Object {
+            # AB#6928 -- owning VNet parsed from the ipConfiguration subnet id, segment index 8
+            # (/subscriptions/../virtualNetworks/<vnet>/subnets/<subnet>), same as the KQL split.
+            # Assign BEFORE @(): Get-ScoutPropArray comma-wraps its result, so an inline
+            # @(Get-ScoutPropArray ...) collects the inner array as ONE element.
+            $ipConfigsRaw = Get-ScoutPropArray $_ 'properties.ipConfigurations'
+            $ipConfigs = @($ipConfigsRaw)
+            $subnetId  = if ($ipConfigs.Count -gt 0 -and $null -ne $ipConfigs[0]) {
+                [string] (Get-ScoutProp $ipConfigs[0] 'properties.subnet.id')
+            } else { '' }
+            $subnetSegments = $subnetId.Split('/')
             [pscustomobject]@{
                 id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')
@@ -471,6 +489,7 @@ function ConvertFrom-ScoutInventory {
                 location          = [string] (Get-ScoutProp $_ 'location')
                 sku               = [string] (Get-ScoutProp $_ 'sku.name')
                 provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                vnet              = if ($subnetSegments.Count -gt 8) { $subnetSegments[8] } else { '' }
             }
         }
     )
@@ -500,6 +519,13 @@ function ConvertFrom-ScoutInventory {
                 sku                                = [string] (Get-ScoutProp $_ 'sku.name')
                 circuitProvisioningState           = [string] (Get-ScoutProp $_ 'properties.circuitProvisioningState')
                 serviceProviderProvisioningState   = [string] (Get-ScoutProp $_ 'properties.serviceProviderProvisioningState')
+                # AB#6928 -- provider relationship scalars, mirrors the extended KQL projection.
+                serviceProviderName                = [string] (Get-ScoutProp $_ 'properties.serviceProviderProperties.serviceProviderName')
+                peeringLocation                    = [string] (Get-ScoutProp $_ 'properties.serviceProviderProperties.peeringLocation')
+                bandwidthInMbps                    = $(
+                    $bwRaw = Get-ScoutProp $_ 'properties.serviceProviderProperties.bandwidthInMbps'
+                    if ($null -eq $bwRaw) { $null } else { [int] $bwRaw }
+                )
             }
         }
     )
@@ -512,22 +538,39 @@ function ConvertFrom-ScoutInventory {
                 resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location          = [string] (Get-ScoutProp $_ 'location')
+                # AB#6928 -- classic Front Door carries no sku block; empty string keeps the
+                # contract shape stable, mirroring the KQL tostring(sku.name).
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
                 provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
                 enabledState      = [string] (Get-ScoutProp $_ 'properties.enabledState')
+                endpointCount     = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.frontendEndpoints')
             }
         }
     )
 
     $result['loadBalancers'] = @(
         Select-ByType 'microsoft.network/loadbalancers' | ForEach-Object {
+            # AB#6928 -- hasPublicFrontend: any frontend config carrying the publicIPAddress
+            # relationship (the key only appears on ARM payloads when a public IP is bound),
+            # mirroring the KQL serialized-contains probe.
+            $hasPublicFrontend = $false
+            # Assign BEFORE @(): Get-ScoutPropArray comma-wraps its result, so an inline
+            # @(Get-ScoutPropArray ...) collects the inner array as ONE element.
+            $feConfigs = Get-ScoutPropArray $_ 'properties.frontendIPConfigurations'
+            foreach ($fe in @($feConfigs)) {
+                if ($null -eq $fe) { continue }
+                if ($null -ne (Get-ScoutProp $fe 'properties.publicIPAddress')) { $hasPublicFrontend = $true; break }
+            }
             [pscustomobject]@{
-                id              = [string] (Get-ScoutProp $_ 'id')
-                name            = [string] (Get-ScoutProp $_ 'name')
-                resourceGroup   = [string] (Get-ScoutProp $_ 'resourceGroup')
-                subscriptionId  = [string] (Get-ScoutProp $_ 'subscriptionId')
-                location        = [string] (Get-ScoutProp $_ 'location')
-                sku             = [string] (Get-ScoutProp $_ 'sku.name')
-                frontendIpCount = Measure-ScoutArray (Get-ScoutProp $_ 'properties.frontendIPConfigurations')
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                frontendIpCount   = Measure-ScoutArray (Get-ScoutProp $_ 'properties.frontendIPConfigurations')
+                backendPoolCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.backendAddressPools')
+                hasPublicFrontend = $hasPublicFrontend
             }
         }
     )
@@ -543,6 +586,10 @@ function ConvertFrom-ScoutInventory {
                 location             = [string] (Get-ScoutProp $_ 'location')
                 sku                  = [string] (Get-ScoutProp $_ 'sku.name')
                 idleTimeoutInMinutes = if ($null -eq $idleRaw) { $null } else { [int] $idleRaw }
+                # AB#6928 -- Get-ScoutPropArray so a present-but-empty array reads 0 like KQL
+                # array_length(), not $null.
+                publicIpCount        = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.publicIpAddresses')
+                subnetCount          = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.subnets')
             }
         }
     )
@@ -591,14 +638,33 @@ function ConvertFrom-ScoutInventory {
 
     $result['routeTables'] = @(
         Select-ByType 'microsoft.network/routetables' | ForEach-Object {
+            # AB#6928 -- per-route summary string ("name:prefix->nextHopType; ...") plus any
+            # 0.0.0.0/0 route's next hop as a scalar, mirroring the KQL leftouter-join shape.
+            $routeItems = Get-ScoutPropArray $_ 'properties.routes'
+            $routeStrs  = [System.Collections.Generic.List[string]]::new()
+            $defaultHops = [System.Collections.Generic.List[string]]::new()
+            foreach ($route in @($routeItems)) {
+                if ($null -eq $route) { continue }
+                $prefix  = [string] (Get-ScoutProp $route 'properties.addressPrefix')
+                $nextHop = [string] (Get-ScoutProp $route 'properties.nextHopType')
+                $routeStrs.Add(('{0}:{1}->{2}' -f [string] (Get-ScoutProp $route 'name'), $prefix, $nextHop))
+                if ($prefix -eq '0.0.0.0/0' -and -not [string]::IsNullOrEmpty($nextHop)) { $defaultHops.Add($nextHop) }
+            }
             [pscustomobject]@{
                 id                          = [string] (Get-ScoutProp $_ 'id')
                 name                        = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup               = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId              = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location                    = [string] (Get-ScoutProp $_ 'location')
-                routeCount                  = Measure-ScoutArray (Get-ScoutProp $_ 'properties.routes')
+                # Get-ScoutPropArray (not Get-ScoutProp): a present-but-EMPTY routes array must
+                # read 0 like KQL array_length(), not collapse to $null (AB#6928).
+                routeCount                  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.routes')
+                subnetCount                 = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.subnets')
                 disableBgpRoutePropagation  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableBgpRoutePropagation')
+                routes                      = ($routeStrs -join '; ')
+                # KQL side uses max() over the per-route hop strings; a list this short makes
+                # "the maximum" and "the one hop" the same answer on any real table.
+                defaultRouteNextHopType     = $(if ($defaultHops.Count -gt 0) { @($defaultHops | Sort-Object)[-1] } else { '' })
             }
         }
     )
@@ -613,6 +679,9 @@ function ConvertFrom-ScoutInventory {
                 location             = [string] (Get-ScoutProp $_ 'location')
                 profileStatus        = [string] (Get-ScoutProp $_ 'properties.profileStatus')
                 trafficRoutingMethod = [string] (Get-ScoutProp $_ 'properties.trafficRoutingMethod')
+                # AB#6928 -- profile-level probe verdict + endpoint count, mirrors the KQL.
+                monitorStatus        = [string] (Get-ScoutProp $_ 'properties.monitorConfig.profileMonitorStatus')
+                endpointCount        = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.endpoints')
             }
         }
     )
@@ -627,6 +696,81 @@ function ConvertFrom-ScoutInventory {
                 location                   = [string] (Get-ScoutProp $_ 'location')
                 wanType                    = [string] (Get-ScoutProp $_ 'properties.type')
                 allowBranchToBranchTraffic = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowBranchToBranchTraffic')
+            }
+        }
+    )
+
+    # ---- AB#6928 -- connectivity relationship detail ----
+    # Mirrors the four AB#6928 typed KQL projections field for field. The last id segment IS
+    # the resource name on every well-formed ARM id (same value the KQL split(...)[8] takes);
+    # [-1] avoids the StrictMode out-of-bounds throw a fixed index would risk on a short id.
+    function Get-ScoutNameFromId {
+        param([AllowNull()] [string] $Id)
+        if ([string]::IsNullOrEmpty($Id)) { return '' }
+        return [string] (@($Id -split '/')[-1])
+    }
+
+    $result['vnetPeerings'] = @(
+        foreach ($vnet in $virtualNetworks) {
+            # Assign-then-wrap: `@(Get-ScoutPropArray ...)` used INLINE keeps the function's
+            # `, @()` wrapper as a single element instead of enumerating the peerings.
+            $peeringItems = Get-ScoutPropArray $vnet 'properties.virtualNetworkPeerings'
+            foreach ($peering in @($peeringItems)) {
+                if ($null -eq $peering) { continue }
+                $remoteVnetId = [string] (Get-ScoutProp $peering 'properties.remoteVirtualNetwork.id')
+                [pscustomobject]@{
+                    vnet                = [string] (Get-ScoutProp $vnet 'name')
+                    resourceGroup       = [string] (Get-ScoutProp $vnet 'resourceGroup')
+                    subscriptionId      = [string] (Get-ScoutProp $vnet 'subscriptionId')
+                    remoteVnetId        = $remoteVnetId
+                    remoteVnetName      = Get-ScoutNameFromId $remoteVnetId
+                    peeringState        = [string] (Get-ScoutProp $peering 'properties.peeringState')
+                    allowGatewayTransit = ConvertTo-ScoutBool (Get-ScoutProp $peering 'properties.allowGatewayTransit')
+                    useRemoteGateways   = ConvertTo-ScoutBool (Get-ScoutProp $peering 'properties.useRemoteGateways')
+                }
+            }
+        }
+    )
+
+    $result['vpnConnections'] = @(
+        Select-ByType 'microsoft.network/connections' | ForEach-Object {
+            $prefixItems = Get-ScoutPropArray $_ 'properties.localNetworkGateway2.properties.localNetworkAddressSpace.addressPrefixes'
+            [pscustomobject]@{
+                name                    = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup           = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId          = [string] (Get-ScoutProp $_ 'subscriptionId')
+                gatewayName             = Get-ScoutNameFromId ([string] (Get-ScoutProp $_ 'properties.virtualNetworkGateway1.id'))
+                connectionType          = [string] (Get-ScoutProp $_ 'properties.connectionType')
+                connectionStatus        = [string] (Get-ScoutProp $_ 'properties.connectionStatus')
+                localNetworkGatewayName = Get-ScoutNameFromId ([string] (Get-ScoutProp $_ 'properties.localNetworkGateway2.id'))
+                localAddressPrefixes    = (@(@($prefixItems) | Where-Object { $null -ne $_ } | ForEach-Object { [string] $_ }) -join ',')
+                # BOOL ONLY -- the pre-shared key VALUE is never shaped into the payload.
+                sharedKeyPresent        = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.sharedKey'))
+            }
+        }
+    )
+
+    $result['localNetworkGateways'] = @(
+        Select-ByType 'microsoft.network/localnetworkgateways' | ForEach-Object {
+            $prefixItems = Get-ScoutPropArray $_ 'properties.localNetworkAddressSpace.addressPrefixes'
+            [pscustomobject]@{
+                name             = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                gatewayIpAddress = [string] (Get-ScoutProp $_ 'properties.gatewayIpAddress')
+                addressPrefixes  = (@(@($prefixItems) | Where-Object { $null -ne $_ } | ForEach-Object { [string] $_ }) -join ',')
+            }
+        }
+    )
+
+    $result['virtualHubs'] = @(
+        Select-ByType 'microsoft.network/virtualhubs' | ForEach-Object {
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                addressPrefix  = [string] (Get-ScoutProp $_ 'properties.addressPrefix')
+                virtualWanName = Get-ScoutNameFromId ([string] (Get-ScoutProp $_ 'properties.virtualWan.id'))
             }
         }
     )

@@ -97,7 +97,9 @@ const diagrams = {
   'vnet connectivity': kernel.diagVnetTopology ? toSvgText(kernel.diagVnetTopology()) : null,
   'hybrid site-to-site': kernel.diagHybrid ? toSvgText(kernel.diagHybrid()) : null,
   'private link & dns': kernel.diagPrivateLink ? toSvgText(kernel.diagPrivateLink()) : null,
-  'internet exposure': kernel.diagExposure ? toSvgText(kernel.diagExposure()) : null
+  'internet exposure': kernel.diagExposure ? toSvgText(kernel.diagExposure()) : null,
+  'edge & delivery': kernel.diagEdgeDelivery ? toSvgText(kernel.diagEdgeDelivery()) : null,
+  'routing & forced tunnelling': kernel.diagRouting ? toSvgText(kernel.diagRouting()) : null
 };
 
 function parseNodes(svg) {

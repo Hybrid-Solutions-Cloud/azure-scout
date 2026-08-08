@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Connectivity relationship detail in the assessment collect (AB#6928).** Four new
+  `networking.*` keys — `vnetPeerings` (per-peering pairs with the remote VNet named,
+  peering state, and gateway-transit flags), `vpnConnections` (gateway and local network
+  gateway named per connection, joined local address prefixes, and `sharedKeyPresent` as a
+  bool only — the pre-shared key value is never collected), `localNetworkGateways`
+  (gateway IP + joined address prefixes), and `virtualHubs` (hub-per-vWAN membership).
+  Two keys extended: `expressRouteCircuits` gains `serviceProviderName`, `peeringLocation`,
+  and `bandwidthInMbps`; `routeTables` gains `subnetCount`, a per-route `routes` summary
+  string (`name:prefix->nextHopType; ...`), and `defaultRouteNextHopType` so a forced-tunnel
+  0.0.0.0/0 route is detectable from a scalar. Both collect paths (single-pass inventory
+  shaping and the typed KQL pack) produce identical shapes, gated by
+  `tests/Collect.ConnectivityPlumbing.Tests.ps1`.
+- **Edge-and-delivery detail in the assessment collect (AB#6928).** Six `networking.*` keys
+  extended: `loadBalancers` gains `backendPoolCount` and `hasPublicFrontend` (a scalar bool —
+  an internal-only LB keeps its row); `applicationGateways` gains `wafEnabled` (WAF-capable
+  tier AND classic WAF config enabled or a firewall policy attached), `listenerCount`, and
+  `backendPoolCount`; `frontDoors` (classic) gains `sku` and `endpointCount`;
+  `trafficManagerProfiles` gains `monitorStatus` and `endpointCount`; `natGateways` gains
+  `publicIpCount` and `subnetCount`; `bastionHosts` gains `vnet`, parsed from the
+  ipConfiguration subnet id. Both collect paths produce identical shapes, gated by
+  `tests/Collect.EdgeDeliveryPlumbing.Tests.ps1`.
+
 ## [3.6.1] - 2026-08-08 — four field defects from one live session
 
 ### Fixed

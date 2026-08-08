@@ -1163,6 +1163,10 @@ function diagVnetTopology(){
   var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
   var subnets = safeArr((inventory['networking.subnets']||{}).rows);
   var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
+  /* AB#6928: real peering pairs when the collect carries them; older collects
+     fall back to the per-VNet peeringCount inference below. */
+  var peers = safeArr((inventory['networking.vnetPeerings']||{}).rows);
+  var peersOf = function(n){ return peers.filter(function(p){ return p.vnet === n; }); };
   if(!vnets.length) return '';
 
   var gwRg = gws.length ? gws[0].resourceGroup : null;
@@ -1189,17 +1193,27 @@ function diagVnetTopology(){
     '<text x="'+cx+'" y="'+(cy-16)+'" text-anchor="middle" fill="var(--primary)" font-weight="800" font-size="10">HUB</text>'+
     '<text x="'+cx+'" y="'+(cy+2)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12">'+esc(hub.name)+'</text>'+
     '<text x="'+cx+'" y="'+(cy+19)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+hubSubs.length+' subnet'+(hubSubs.length===1?'':'s')+' · '+(hub.peeringCount||0)+' peering'+((hub.peeringCount||0)===1?'':'s')+' · DDoS '+(hub.ddosEnabled?'on':'off')+'</text></g>';
+  if(peersOf(hub.name).some(function(p){ return p.allowGatewayTransit; })){
+    out += '<text x="'+(cx+hubW/2+10)+'" y="'+(cy+4)+'" fill="var(--accent)" font-weight="700" font-size="10">⇄ gateway transit</text>';
+  }
 
   var sw = 210, gap = 22, totalW = spokes.length*sw + (spokes.length-1)*gap;
   var sx = cx - totalW/2, sy = cy + 130;
   spokes.forEach(function(s){
     var subs = subnets.filter(function(x){ return x.vnet === s.name; });
-    var peered = (s.peeringCount||0) > 0;
+    var sRows = peersOf(s.name);
+    var toHub = sRows.find(function(p){ return p.remoteVnetName === hub.name; }) || sRows[0] || null;
+    var peered = peers.length ? sRows.length > 0 : (s.peeringCount||0) > 0;
     var mx = sx + sw/2;
     out += peered
       ? '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--primary)" stroke-width="2" fill="none"/>'
       : '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--band-crit)" stroke-width="2" stroke-dasharray="4 4" fill="none" opacity=".55"/>'+
         '<text x="'+mx+'" y="'+(sy-32)+'" text-anchor="middle" fill="var(--band-crit)" font-size="10" font-weight="700">no peering</text>';
+    if(peered && toHub){
+      var edgeLbl = (toHub.remoteVnetName && toHub.remoteVnetName !== hub.name ? '→ '+toHub.remoteVnetName+' · ' : '')+(toHub.peeringState||'')+
+        ((toHub.useRemoteGateways||toHub.allowGatewayTransit)?' · gw transit':'');
+      out += '<text x="'+mx+'" y="'+(sy-32)+'" text-anchor="middle" fill="'+(toHub.peeringState==='Connected'?'var(--primary)':'var(--band-crit)')+'" font-size="9.5" font-weight="600">'+esc(edgeLbl)+'</text>';
+    }
     out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'">'+
       '<rect x="'+sx+'" y="'+sy+'" width="'+sw+'" height="66" rx="8" fill="var(--surface)" stroke="'+(peered?'var(--primary)':'var(--band-crit)')+'" stroke-width="1.5"/>'+
       '<text x="'+(sx+sw/2)+'" y="'+(sy+24)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11.5">'+esc(s.name)+'</text>'+
@@ -1209,7 +1223,9 @@ function diagVnetTopology(){
   });
 
   return svgWrap('vnettopo', 'VNet connectivity — hub and spoke',
-    vnets.length+' VNets. The hub is identified by the gateway it hosts; an edge is drawn where a peering exists and marked in red where a VNet has none. <b>Peering direction and the remote end of each edge need the collector extension</b> — today the payload carries a peering count per VNet, not the pairs.',
+    peers.length
+      ? vnets.length+' VNets, '+peers.length+' measured peering pair'+(peers.length===1?'':'s')+'. Each edge is a real peering with its remote VNet and state; red marks a VNet with no peering; ⇄ marks gateway transit.'
+      : vnets.length+' VNets. The hub is identified by the gateway it hosts; an edge is drawn where a peering exists and marked in red where a VNet has none. <b>Peering direction and the remote end of each edge need the collector extension</b> — today the payload carries a peering count per VNet, not the pairs.',
     out, w, sy+90);
 }
 function diagHybrid(){
@@ -1217,7 +1233,13 @@ function diagHybrid(){
   var azl = safeArr((inventory['domains.hybrid.azureLocalClusters']||{}).rows);
   var lnets = safeArr((inventory['domains.hybrid.logicalNetworks']||{}).rows);
   var arc = safeArr((inventory['domains.hybrid.arcServers']||{}).rows);
-  if(!gws.length && !azl.length && !arc.length) return '';
+  /* AB#6928: connection-level detail when the collect carries it. */
+  var conns = safeArr((inventory['networking.vpnConnections']||{}).rows);
+  var lngs = safeArr((inventory['networking.localNetworkGateways']||{}).rows);
+  var ercs = safeArr((inventory['networking.expressRouteCircuits']||{}).rows);
+  var wans = safeArr((inventory['networking.virtualWans']||{}).rows);
+  var vhubs = safeArr((inventory['networking.virtualHubs']||{}).rows);
+  if(!gws.length && !azl.length && !arc.length && !conns.length && !ercs.length && !wans.length) return '';
 
   var w = 860;
   var out = '';
@@ -1268,8 +1290,84 @@ function diagHybrid(){
   }
 
   var h = Math.max(oy+40, midY+70);
+
+  /* ---- AB#6928 connection lane: each measured connection from its local network
+     gateway, through the tunnel, to the VPN gateway it terminates on. Additive —
+     older collects without these keys render exactly as before. ---- */
+  if(conns.length || lngs.length){
+    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">SITE-TO-SITE CONNECTIONS ('+conns.length+') · LOCAL NETWORK GATEWAYS ('+lngs.length+')</text>';
+    var ry = h + 28;
+    var drawnLngs = {};
+    conns.forEach(function(c){
+      var lng = lngs.find(function(l){ return l.name === c.localNetworkGatewayName; }) || null;
+      if(lng) drawnLngs[lng.name] = true;
+      var ip = lng ? lng.gatewayIpAddress : '';
+      var pfx = (lng && lng.addressPrefixes) ? lng.addressPrefixes : (c.localAddressPrefixes||'');
+      var okConn = String(c.connectionStatus||'') === 'Connected';
+      out += '<g class="diag-node" data-gopane="'+catId('networking.localNetworkGateways')+'">'+
+        '<rect x="12" y="'+ry+'" width="330" height="44" rx="7" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>'+
+        '<text x="26" y="'+(ry+18)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(c.localNetworkGatewayName||'(local gateway)')+'</text>'+
+        '<text x="26" y="'+(ry+34)+'" fill="var(--muted)" font-size="10">'+esc(ip||'IP n/a')+(pfx?' · '+esc(String(pfx).slice(0,40)):'')+'</text></g>';
+      out += '<path d="M 342 '+(ry+22)+' H 518" stroke="'+(okConn?'var(--accent)':'var(--band-crit)')+'" stroke-width="2"'+(okConn?'':' stroke-dasharray="5 4"')+' fill="none"/>'+
+        '<text x="430" y="'+(ry+16)+'" text-anchor="middle" fill="'+(okConn?'var(--accent)':'var(--band-crit)')+'" font-weight="700" font-size="9.5">'+esc(c.connectionStatus||'status n/a')+'</text>';
+      out += '<g class="diag-node" data-gopane="'+catId('networking.vpnConnections')+'">'+
+        '<rect x="518" y="'+ry+'" width="240" height="44" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>'+
+        '<text x="638" y="'+(ry+18)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11">'+esc(c.name)+'</text>'+
+        '<text x="638" y="'+(ry+34)+'" text-anchor="middle" fill="var(--muted)" font-size="10">'+esc(c.gatewayName||'')+' · '+esc(c.connectionType||'')+'</text></g>';
+      ry += 52;
+    });
+    lngs.filter(function(l){ return !drawnLngs[l.name]; }).forEach(function(l){
+      out += '<g class="diag-node" data-gopane="'+catId('networking.localNetworkGateways')+'">'+
+        '<rect x="12" y="'+ry+'" width="330" height="44" rx="7" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
+        '<text x="26" y="'+(ry+18)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(l.name)+'</text>'+
+        '<text x="26" y="'+(ry+34)+'" fill="var(--muted)" font-size="10">'+esc(l.gatewayIpAddress||'IP n/a')+(l.addressPrefixes?' · '+esc(String(l.addressPrefixes).slice(0,40)):'')+' · no connection</text></g>';
+      ry += 52;
+    });
+    h = ry + 8;
+  }
+
+  /* ---- AB#6928 ExpressRoute lane. ---- */
+  if(ercs.length){
+    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">EXPRESSROUTE CIRCUITS ('+ercs.length+')</text>';
+    var ey = h + 28;
+    ercs.forEach(function(e){
+      var prov = String(e.serviceProviderProvisioningState||e.circuitProvisioningState||'');
+      out += '<g class="diag-node" data-gopane="'+catId('networking.expressRouteCircuits')+'">'+
+        '<rect x="12" y="'+ey+'" width="746" height="44" rx="7" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="1.5"/>'+
+        '<text x="26" y="'+(ey+18)+'" fill="var(--ink)" font-weight="700" font-size="11">'+esc(e.name)+' <tspan fill="var(--muted)" font-weight="400">'+esc(e.sku||'')+'</tspan></text>'+
+        '<text x="26" y="'+(ey+34)+'" fill="var(--muted)" font-size="10">'+esc(e.serviceProviderName||'provider n/a')+' · '+esc(e.peeringLocation||'location n/a')+(e.bandwidthInMbps?' · '+esc(e.bandwidthInMbps)+' Mbps':'')+' · '+esc(prov||'state n/a')+'</text></g>';
+      ey += 52;
+    });
+    h = ey + 8;
+  }
+
+  /* ---- AB#6928 Virtual WAN lane with its hubs. ---- */
+  if(wans.length){
+    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">VIRTUAL WAN ('+wans.length+') · HUBS ('+vhubs.length+')</text>';
+    var wy = h + 28;
+    wans.forEach(function(wn){
+      var myHubs = vhubs.filter(function(hb){ return hb.virtualWanName === wn.name; });
+      out += '<g class="diag-node" data-gopane="'+catId('networking.virtualWans')+'">'+
+        '<rect x="12" y="'+wy+'" width="746" height="44" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>'+
+        '<text x="26" y="'+(wy+18)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(wn.name)+'</text>'+
+        '<text x="26" y="'+(wy+34)+'" fill="var(--muted)" font-size="10">'+esc(wn.wanType||'')+' vWAN · branch-to-branch '+(wn.allowBranchToBranchTraffic?'allowed':'blocked')+'</text></g>';
+      wy += 52;
+      myHubs.forEach(function(hb){
+        out += '<path d="M 26 '+(wy-8)+' V '+(wy+8)+' H 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/>'+
+          '<g class="diag-node" data-gopane="'+catId('networking.virtualHubs')+'">'+
+          '<rect x="40" y="'+wy+'" width="702" height="16" rx="3" fill="color-mix(in srgb,var(--accent) 10%,transparent)"/>'+
+          '<text x="48" y="'+(wy+12)+'" fill="var(--ink)" font-size="9.5">hub '+esc(hb.name)+' <tspan fill="var(--faint)">'+esc(hb.addressPrefix||'no prefix')+'</tspan></text></g>';
+        wy += 22;
+      });
+      wy += 8;
+    });
+    h = wy + 6;
+  }
+
   return svgWrap('hybrid', 'Hybrid connectivity — on-premises to Azure',
-    'The tunnel, its gateway and the on-premises estate that reaches Azure through it. <b>The connections themselves, the local network gateways and their on-premises address spaces need the collector extension</b> — the gateway is collected today, what it connects to is not.',
+    (conns.length||lngs.length||ercs.length||wans.length)
+      ? 'The tunnel, its gateway and the on-premises estate that reaches Azure through it — with each measured connection, its local network gateway and on-premises address space'+(ercs.length?', the ExpressRoute circuits':'')+(wans.length?', and the Virtual WAN hubs':'')+'.'
+      : 'The tunnel, its gateway and the on-premises estate that reaches Azure through it. <b>The connections themselves, the local network gateways and their on-premises address spaces need the collector extension</b> — the gateway is collected today, what it connects to is not.',
     out, w, h);
 }
 function diagPrivateLink(){
@@ -1350,6 +1448,126 @@ function diagExposure(){
     rules.length+' NSG rules across '+order.length+' network security groups permit inbound traffic from the internet, with the ports each one opens. Every one should be intentional; this is the estate\'s front door.',
     out, w, y+16);
 }
+function diagEdgeDelivery(){
+  /* AB#6928: internet-facing delivery tiers, drawn only for the service types
+     the collect actually carries -- older collects without these keys return
+     nothing and the Blade shows its fallback. */
+  var fds  = safeArr((inventory['networking.frontDoors']||{}).rows);
+  var tms  = safeArr((inventory['networking.trafficManagerProfiles']||{}).rows);
+  var agws = safeArr((inventory['networking.applicationGateways']||{}).rows);
+  var lbs  = safeArr((inventory['networking.loadBalancers']||{}).rows);
+  var nats = safeArr((inventory['networking.natGateways']||{}).rows);
+  var bas  = safeArr((inventory['networking.bastionHosts']||{}).rows);
+  var plur = function(nv,s){ return nv+' '+s+(nv===1?'':'s'); };
+  var tiers = [
+    { key:'networking.frontDoors', label:'FRONT DOOR', rows:fds,
+      sub:function(r){ return (r.sku||'classic')+' · '+(r.enabledState||r.provisioningState||'state n/a')+' · '+plur(r.endpointCount||0,'endpoint'); },
+      warn:function(){ return null; }, flag:function(){ return null; } },
+    { key:'networking.trafficManagerProfiles', label:'TRAFFIC MANAGER', rows:tms,
+      sub:function(r){ return (r.trafficRoutingMethod||'method n/a')+' · '+(r.profileStatus||'')+' · '+plur(r.endpointCount||0,'endpoint'); },
+      warn:function(r){ return String(r.monitorStatus||'')==='Degraded' ? '⚠ probe degraded' : null; }, flag:function(){ return null; } },
+    { key:'networking.applicationGateways', label:'APPLICATION GATEWAYS', rows:agws,
+      sub:function(r){ return (r.tier||r.sku||'sku n/a')+' · '+plur(r.listenerCount||0,'listener')+' · '+plur(r.backendPoolCount||0,'pool'); },
+      warn:function(r){ return r.wafEnabled ? null : '⚠ no WAF'; }, flag:function(r){ return r.wafEnabled ? 'WAF on' : null; } },
+    { key:'networking.loadBalancers', label:'LOAD BALANCERS', rows:lbs,
+      sub:function(r){ return (r.sku||'sku n/a')+' · '+plur(r.frontendIpCount||0,'frontend')+' · '+plur(r.backendPoolCount||0,'pool'); },
+      warn:function(){ return null; }, flag:function(r){ return r.hasPublicFrontend ? 'public frontend' : null; } },
+    { key:'networking.natGateways', label:'NAT GATEWAYS', rows:nats,
+      sub:function(r){ return plur(r.publicIpCount||0,'public IP')+' · '+plur(r.subnetCount||0,'subnet')+(r.idleTimeoutInMinutes?' · idle '+r.idleTimeoutInMinutes+'m':''); },
+      warn:function(){ return null; }, flag:function(){ return null; } },
+    { key:'networking.bastionHosts', label:'BASTION HOSTS', rows:bas,
+      sub:function(r){ return (r.sku||'sku n/a')+(r.vnet?' · '+r.vnet:''); },
+      warn:function(){ return null; }, flag:function(){ return null; } }
+  ].filter(function(t){ return t.rows.length; });
+  if(!tiers.length) return '';
+
+  var w = 860, cardW = 240, cardH = 50, perRow = 3, gapX = 13, gapY = 10, x0 = 44;
+  var out = '<text x="20" y="26" fill="var(--band-crit)" font-weight="800" font-size="11">INTERNET</text>';
+  var y = 44;
+  var maxCards = 6;
+  tiers.forEach(function(t){
+    out += '<path d="M 20 '+(y+4)+' H 36" stroke="var(--band-crit)" stroke-width="2" fill="none"/>'+
+      '<text x="'+x0+'" y="'+(y+8)+'" fill="var(--faint)" font-size="10" font-weight="700">'+t.label+' ('+t.rows.length+')</text>';
+    y += 18;
+    var shown = t.rows.slice(0, maxCards);
+    shown.forEach(function(r, i){
+      var col = i % perRow, row = Math.floor(i / perRow);
+      var cx0 = x0 + col*(cardW+gapX), cy0 = y + row*(cardH+gapY);
+      var wn = t.warn(r), fl = t.flag(r);
+      out += '<g class="diag-node" data-gopane="'+catId(t.key)+'">'+
+        '<rect x="'+cx0+'" y="'+cy0+'" width="'+cardW+'" height="'+cardH+'" rx="7" fill="var(--surface)" stroke="'+(wn?'var(--band-crit)':'var(--border)')+'" stroke-width="1.5"/>'+
+        '<text x="'+(cx0+12)+'" y="'+(cy0+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(String(r.name||'').slice(0,28))+'</text>'+
+        '<text x="'+(cx0+12)+'" y="'+(cy0+31)+'" fill="var(--muted)" font-size="9.5">'+esc(t.sub(r).slice(0,44))+'</text>'+
+        (wn ? '<text x="'+(cx0+12)+'" y="'+(cy0+44)+'" fill="var(--band-crit)" font-weight="700" font-size="9.5">'+esc(wn)+'</text>'
+            : (fl ? '<text x="'+(cx0+12)+'" y="'+(cy0+44)+'" fill="var(--accent)" font-weight="600" font-size="9.5">'+esc(fl)+'</text>' : ''))+
+        '</g>';
+    });
+    var rowsUsed = Math.ceil(shown.length / perRow);
+    y += rowsUsed*(cardH+gapY);
+    if(t.rows.length > maxCards){
+      out += '<text x="'+x0+'" y="'+(y+2)+'" fill="var(--faint)" font-size="9.5">+ '+(t.rows.length-maxCards)+' more</text>';
+      y += 14;
+    }
+    y += 12;
+  });
+  out = '<path d="M 20 32 V '+(y-24)+'" stroke="var(--band-crit)" stroke-width="2.5" stroke-dasharray="5 4" fill="none"/>' + out;
+
+  var total = tiers.reduce(function(a,t){ return a+t.rows.length; }, 0);
+  var noWaf = agws.filter(function(r){ return !r.wafEnabled; }).length;
+  return svgWrap('edge', 'Edge & delivery — internet-facing entry points',
+    total+' delivery/edge resource'+(total===1?'':'s')+' across '+tiers.length+' service tier'+(tiers.length===1?'':'s')+
+    (noWaf?'; <b>'+noWaf+' application gateway'+(noWaf===1?'':'s')+' without WAF</b>':'')+
+    '. Each tier is drawn only where the collect found resources; red marks a gateway taking internet traffic with no web application firewall.',
+    out, w, y+8);
+}
+function diagRouting(){
+  /* AB#6928: one row per route table with its 0.0.0.0/0 routes called out --
+     VirtualAppliance next hop = forced tunnelling, warning treatment. */
+  var rts = safeArr((inventory['networking.routeTables']||{}).rows);
+  if(!rts.length) return '';
+
+  var w = 860;
+  var out = '';
+  var y = 16;
+  rts.forEach(function(rt){
+    /* routes is the collect's per-route summary string "name:prefix->nextHopType; ..." */
+    var defaults = String(rt.routes||'').split(';').map(function(s){ return s.trim(); })
+      .filter(function(s){ return s.indexOf(':0.0.0.0/0->') !== -1; })
+      .map(function(s){ return { name:s.split(':')[0], hop:s.split('->').pop() }; });
+    var bgpOff = !!rt.disableBgpRoutePropagation;
+    var forced = defaults.some(function(d){ return d.hop === 'VirtualAppliance'; });
+    var rh = 44 + defaults.length*16;
+    out += '<g class="diag-node" data-gopane="'+catId('networking.routeTables')+'">'+
+      '<rect x="12" y="'+y+'" width="746" height="'+rh+'" rx="7" fill="var(--surface)" stroke="'+(forced?'var(--band-mod)':'var(--border)')+'" stroke-width="1.5"/>'+
+      '<text x="26" y="'+(y+18)+'" fill="var(--ink)" font-weight="700" font-size="11">'+esc(rt.name)+
+        ' <tspan fill="var(--muted)" font-weight="400">'+(rt.routeCount||0)+' route'+((rt.routeCount||0)===1?'':'s')+' · '+(rt.subnetCount||0)+' subnet'+((rt.subnetCount||0)===1?'':'s')+'</tspan></text>'+
+      '<text x="26" y="'+(y+34)+'" fill="'+(bgpOff?'var(--band-mod)':'var(--muted)')+'" font-size="10"'+(bgpOff?' font-weight="700"':'')+'>'+
+        (bgpOff?'⚠ BGP route propagation disabled':'BGP route propagation on')+' · '+esc(rt.resourceGroup)+'</text>';
+    defaults.forEach(function(d, i){
+      var dy = y + 44 + i*16;
+      var fa = d.hop === 'VirtualAppliance';
+      out += '<text x="40" y="'+(dy+4)+'" fill="'+(fa?'var(--band-crit)':'var(--accent)')+'" font-size="10" font-weight="'+(fa?'700':'600')+'" class="mono">0.0.0.0/0 → '+esc(d.hop)+
+        (fa?' — forced tunnelling':'')+' <tspan fill="var(--faint)" font-weight="400">('+esc(d.name)+')</tspan></text>';
+    });
+    out += '</g>';
+    y += rh + 12;
+  });
+
+  var forcedCount = rts.filter(function(rt){ return String(rt.defaultRouteNextHopType||'')==='VirtualAppliance'; }).length;
+  return svgWrap('routing', 'Routing & forced tunnelling — user-defined routes',
+    rts.length+' route table'+(rts.length===1?'':'s')+
+    (forcedCount?'; <b>'+forcedCount+' force'+(forcedCount===1?'s':'')+' the default route through a virtual appliance</b> (forced tunnelling)':'; none forces the default route through a virtual appliance')+
+    '. Every 0.0.0.0/0 route is called out with its next hop — that route decides where all outbound traffic leaves the subnet.',
+    out, w, y+4);
+}
+function diagEdgeDeliveryBlade(){
+  var d = diagEdgeDelivery();
+  return d || '<p class="lede">No delivery or edge services (Front Door, Traffic Manager, Application Gateway, load balancers, NAT gateways, Bastion) collected in this run.</p>';
+}
+function diagRoutingBlade(){
+  var d = diagRouting();
+  return d || '<p class="lede">No route tables collected in this run.</p>';
+}
 function diagVnetTopoBlade(){
   var d = diagVnetTopology();
   return d || '<p class="lede">No virtual networks collected for hub-and-spoke topology in this run.</p>';
@@ -1375,12 +1593,15 @@ function pageDiagrams(){
     '<a class="sideitem dgmgo" data-dpane="dgm-vnettopo" href="#"><span>VNet connectivity</span></a>'+
     '<a class="sideitem dgmgo" data-dpane="dgm-plink" href="#"><span>Private link &amp; DNS</span></a>'+
     '<a class="sideitem dgmgo" data-dpane="dgm-exposure" href="#"><span>Internet exposure</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-edge" href="#"><span>Edge &amp; delivery</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-routing" href="#"><span>Routing &amp; forced tunnelling</span></a>'+
     '<div class="sidehead">Hybrid</div><a class="sideitem dgmgo" data-dpane="dgm-hybrid" href="#"><span>Site-to-site</span></a>'+
     '<div class="sidehead">Estate</div><a class="sideitem dgmgo" data-dpane="dgm-estate" href="#"><span>Top categories</span></a>'+
     '<div class="sidehead">Assessments</div><a class="sideitem dgmgo" data-dpane="dgm-sev" href="#"><span>Gaps by area</span></a></nav>';
   var dgms = [['mg','Management-group hierarchy','Tenant'],['net','Virtual networks & subnets','Networking'],
     ['vnettopo','VNet connectivity — hub &amp; spoke','Networking'],['hybrid','Hybrid / site-to-site','Hybrid'],
     ['plink','Private link &amp; DNS','Networking'],['exposure','Internet exposure','Networking'],
+    ['edge','Edge &amp; delivery','Networking'],['routing','Routing &amp; forced tunnelling','Networking'],
     ['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
   var ov = '<h2>Diagrams</h2><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
     '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div>';
@@ -1420,6 +1641,7 @@ function pageDiagrams(){
   var panes = [['dgm-ov', ov], ['dgm-mg', mgCtx+diagMgTreeBlade()], ['dgm-net', netCtx+diagNetworkBlade()],
     ['dgm-vnettopo', diagVnetTopoBlade()], ['dgm-hybrid', diagHybridBlade()],
     ['dgm-plink', diagPrivateLinkBlade()], ['dgm-exposure', diagExposureBlade()],
+    ['dgm-edge', diagEdgeDeliveryBlade()], ['dgm-routing', diagRoutingBlade()],
     ['dgm-estate', estateCtx+diagEstateBars()], ['dgm-sev', sevCtx+diagSeverity()]];
   return '<div class="invlayout">'+side+'<div class="invbody">'+panes.map(function(p,i){ return '<div class="dgmpane'+(i===0?' on':'')+'" id="pane-'+p[0]+'">'+p[1]+'</div>'; }).join('')+'</div></div>';
 }
@@ -1765,7 +1987,8 @@ window.__SCOUT_DIAGRAM_KERNEL__ = {
   measureText: measureText, wrapText: wrapText, autoSizeBox: autoSizeBox,
   routeOrthogonal: routeOrthogonal, layoutTree: layoutTree, placeRingLabels: placeRingLabels,
   diagramNetworkTopology: diagramNetworkTopology, diagramMgHierarchy: diagramMgHierarchy,
-  diagVnetTopology: diagVnetTopology, diagHybrid: diagHybrid, diagPrivateLink: diagPrivateLink, diagExposure: diagExposure
+  diagVnetTopology: diagVnetTopology, diagHybrid: diagHybrid, diagPrivateLink: diagPrivateLink, diagExposure: diagExposure,
+  diagEdgeDelivery: diagEdgeDelivery, diagRouting: diagRouting
 };
 })();
 </script>

@@ -78,7 +78,15 @@ BeforeAll {
                 extendedLocation = $null; managedBy = $null; tags = $null
                 properties = [pscustomobject]@{
                     enableDdosProtection   = $false
-                    virtualNetworkPeerings = @([pscustomobject]@{ name = 'peer1' })
+                    virtualNetworkPeerings = @([pscustomobject]@{
+                            name       = 'peer1'
+                            properties = [pscustomobject]@{
+                                remoteVirtualNetwork = [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet2' }
+                                peeringState         = 'Connected'
+                                allowGatewayTransit  = $true
+                                useRemoteGateways    = $false
+                            }
+                        })
                     subnets                = @(
                         [pscustomobject]@{
                             name = 'snet-app'
@@ -128,6 +136,15 @@ BeforeAll {
         if ($Query -match 'peeringCount') {
             return @([pscustomobject]@{ name = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
                     peeringCount = 1; ddosEnabled = $false })
+        }
+        # AB#6928 vnetPeerings -- the per-peering mv-expand projection for peer1 above. Must be
+        # checked ON the remoteVirtualNetwork marker: the parent virtualNetworks query also
+        # names virtualNetworkPeerings (array_length), but only this query walks the pairs.
+        if ($Query -match 'remoteVirtualNetwork') {
+            return @([pscustomobject]@{ vnet = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
+                    remoteVnetId = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet2'
+                    remoteVnetName = 'vnet2'; peeringState = 'Connected'
+                    allowGatewayTransit = $true; useRemoteGateways = $false })
         }
         if ($Query -match 'ipUtilizationPct') {
             return @([pscustomobject]@{ vnet = 'vnet1'; subnet = 'snet-app'; prefix = '10.0.1.0/24'

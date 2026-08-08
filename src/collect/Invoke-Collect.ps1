@@ -22,17 +22,30 @@ $ErrorActionPreference = 'Stop'
                      azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
                      privateEndpoints[{targetResourceId,targetProvider,targetType}],
-                     applicationGateways[{sku,tier,provisioningState}], bastionHosts[{sku,provisioningState}],
+                     applicationGateways[{sku,tier,provisioningState,wafEnabled,listenerCount,
+                                           backendPoolCount}],
+                     bastionHosts[{sku,provisioningState,vnet}],
                      networkConnections[{connectionType,connectionStatus}],
-                     expressRouteCircuits[{sku,circuitProvisioningState,serviceProviderProvisioningState}],
-                     frontDoors[{provisioningState,enabledState}],
-                     loadBalancers[{sku,frontendIpCount}], natGateways[{sku,idleTimeoutInMinutes}],
+                     expressRouteCircuits[{sku,circuitProvisioningState,serviceProviderProvisioningState,
+                                            serviceProviderName,peeringLocation,bandwidthInMbps}],
+                     frontDoors[{sku,provisioningState,enabledState,endpointCount}],
+                     loadBalancers[{sku,frontendIpCount,backendPoolCount,hasPublicFrontend}],
+                     natGateways[{sku,idleTimeoutInMinutes,publicIpCount,subnetCount}],
                      networkInterfaces[{nsgAttached,privateIpCount}], networkWatchers[{provisioningState}],
                      publicDnsZones[{zoneType,recordSetCount}],
-                     routeTables[{routeCount,disableBgpRoutePropagation}],
-                     trafficManagerProfiles[{profileStatus,trafficRoutingMethod}],
-                     virtualWans[{wanType,allowBranchToBranchTraffic}] }   (AB#7110, Story AB#7059,
+                     routeTables[{routeCount,subnetCount,disableBgpRoutePropagation,routes,
+                                   defaultRouteNextHopType}],
+                     trafficManagerProfiles[{profileStatus,trafficRoutingMethod,monitorStatus,
+                                              endpointCount}],   (AB#6928 -- edge-and-delivery detail)
+                     virtualWans[{wanType,allowBranchToBranchTraffic}],   (AB#7110, Story AB#7059,
                      Feature AB#7069, Epic AB#7099 -- 13 ordinary ARG-indexed Networking types)
+                     vnetPeerings[{vnet,remoteVnetId,remoteVnetName,peeringState,
+                                    allowGatewayTransit,useRemoteGateways}],
+                     vpnConnections[{gatewayName,connectionType,connectionStatus,
+                                      localNetworkGatewayName,localAddressPrefixes,sharedKeyPresent}],
+                     localNetworkGateways[{gatewayIpAddress,addressPrefixes}],
+                     virtualHubs[{addressPrefix,virtualWanName}] }   (AB#6928 -- connectivity
+                     relationship detail)
         compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType,
                                        patchMode,assessmentMode}],                       (AB#7109)
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
@@ -537,16 +550,28 @@ resources
         # coverage gap. Every type below is an ordinary ARM resource confirmed against the
         # Azure Resource Graph supported-tables-and-resource-types reference; every projected
         # field is a documented top-level or `sku`/`properties` scalar, no sub-resource joins.
+        # AB#6928 extends the AB#7110 projection with edge-and-delivery scalars: wafEnabled is
+        # true only when the tier is WAF-capable AND either the classic WAF config is enabled or
+        # a firewall policy is attached; listener/backend counts stay array_length scalars
+        # (AB#5083 -- never a raw array a rule would .length).
         applicationGateways = @'
 resources | where type =~ "microsoft.network/applicationgateways"
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(properties.sku.name), tier = tostring(properties.sku.tier),
-          provisioningState = tostring(properties.provisioningState)
+          provisioningState = tostring(properties.provisioningState),
+          wafEnabled = tostring(properties.sku.tier) contains "WAF"
+                       and (coalesce(tobool(properties.webApplicationFirewallConfiguration.enabled), false)
+                            or isnotempty(tostring(properties.firewallPolicy.id))),
+          listenerCount = array_length(properties.httpListeners),
+          backendPoolCount = array_length(properties.backendAddressPools)
 '@
+        # AB#6928: the owning VNet parsed from the ipConfiguration subnet id
+        # (/subscriptions/../virtualNetworks/<vnet>/subnets/<subnet> -- segment index 8).
         bastionHosts = @'
 resources | where type =~ "microsoft.network/bastionhosts"
 | project id, name, resourceGroup, subscriptionId, location,
-          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState)
+          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState),
+          vnet = tostring(split(tostring(properties.ipConfigurations[0].properties.subnet.id), "/")[8])
 '@
         networkConnections = @'
 resources | where type =~ "microsoft.network/connections"
@@ -554,30 +579,48 @@ resources | where type =~ "microsoft.network/connections"
           connectionType = tostring(properties.connectionType),
           connectionStatus = tostring(properties.connectionStatus)
 '@
+        # AB#6928 extends the AB#7110 projection with the provider relationship scalars
+        # (who carries the circuit, where, and how big) so connectivity review rules can
+        # reason about the physical uplink without an ARM round trip.
         expressRouteCircuits = @'
 resources | where type =~ "microsoft.network/expressroutecircuits"
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(sku.name),
           circuitProvisioningState = tostring(properties.circuitProvisioningState),
-          serviceProviderProvisioningState = tostring(properties.serviceProviderProvisioningState)
+          serviceProviderProvisioningState = tostring(properties.serviceProviderProvisioningState),
+          serviceProviderName = tostring(properties.serviceProviderProperties.serviceProviderName),
+          peeringLocation = tostring(properties.serviceProviderProperties.peeringLocation),
+          bandwidthInMbps = toint(properties.serviceProviderProperties.bandwidthInMbps)
 '@
+        # AB#6928: classic Front Door (the type the Networking/Frontdoor.psd1 manifest targets).
+        # Classic has no sku block -- the projection keeps the column (empty string) so the
+        # contract shape is stable if the manifest ever moves to AFD Standard/Premium.
         frontDoors = @'
 resources | where type =~ "microsoft.network/frontdoors"
 | project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
           provisioningState = tostring(properties.provisioningState),
-          enabledState = tostring(properties.enabledState)
+          enabledState = tostring(properties.enabledState),
+          endpointCount = array_length(properties.frontendEndpoints)
 '@
+        # AB#6928: hasPublicFrontend serialises the frontend config array and looks for the
+        # publicIPAddress relationship key -- a scalar bool, no mv-expand, so a purely internal
+        # LB keeps its parent row (AB#6845 class avoided by construction).
         loadBalancers = @'
 resources | where type =~ "microsoft.network/loadbalancers"
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(sku.name),
-          frontendIpCount = array_length(properties.frontendIPConfigurations)
+          frontendIpCount = array_length(properties.frontendIPConfigurations),
+          backendPoolCount = array_length(properties.backendAddressPools),
+          hasPublicFrontend = tostring(properties.frontendIPConfigurations) contains "publicIPAddress"
 '@
         natGateways = @'
 resources | where type =~ "microsoft.network/natgateways"
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(sku.name),
-          idleTimeoutInMinutes = toint(properties.idleTimeoutInMinutes)
+          idleTimeoutInMinutes = toint(properties.idleTimeoutInMinutes),
+          publicIpCount = array_length(properties.publicIpAddresses),
+          subnetCount = array_length(properties.subnets)
 '@
         networkInterfaces = @'
 resources | where type =~ "microsoft.network/networkinterfaces"
@@ -596,23 +639,93 @@ resources | where type =~ "microsoft.network/dnszones"
           zoneType = tostring(properties.zoneType),
           recordSetCount = toint(properties.numberOfRecordSets)
 '@
+        # AB#6928: per-route detail joined back onto the parent row. ARG mv-expand has no
+        # kind=outer, so the expanded/summarised side is leftouter-joined onto a plain parent
+        # projection -- a route table with zero routes keeps its row (routes = ""), the
+        # AB#6845 vanishing-parent class. `defaultRouteNextHopType` surfaces any 0.0.0.0/0
+        # route's next hop as a scalar so forced tunnelling is detectable without parsing.
         routeTables = @'
-resources | where type =~ "microsoft.network/routetables"
+resources
+| where type =~ "microsoft.network/routetables"
 | project id, name, resourceGroup, subscriptionId, location,
           routeCount = array_length(properties.routes),
+          subnetCount = array_length(properties.subnets),
           disableBgpRoutePropagation = tobool(properties.disableBgpRoutePropagation)
+| join kind=leftouter (
+    resources
+    | where type =~ "microsoft.network/routetables"
+    | mv-expand r = properties.routes
+    | extend routeStr = strcat(tostring(r.name), ":", tostring(r.properties.addressPrefix), "->", tostring(r.properties.nextHopType))
+    | extend defHop = iff(tostring(r.properties.addressPrefix) == "0.0.0.0/0", tostring(r.properties.nextHopType), "")
+    | summarize routes = strcat_array(make_list(routeStr), "; "), defaultRouteNextHopType = max(defHop) by id
+  ) on id
+| project id, name, resourceGroup, subscriptionId, location, routeCount, subnetCount,
+          disableBgpRoutePropagation, routes = coalesce(routes, ""),
+          defaultRouteNextHopType = coalesce(defaultRouteNextHopType, "")
 '@
+        # AB#6928: monitorStatus is the profile-level probe verdict; endpointCount stays a
+        # scalar count of the endpoints child array.
         trafficManagerProfiles = @'
 resources | where type =~ "microsoft.network/trafficmanagerprofiles"
 | project id, name, resourceGroup, subscriptionId, location,
           profileStatus = tostring(properties.profileStatus),
-          trafficRoutingMethod = tostring(properties.trafficRoutingMethod)
+          trafficRoutingMethod = tostring(properties.trafficRoutingMethod),
+          monitorStatus = tostring(properties.monitorConfig.profileMonitorStatus),
+          endpointCount = array_length(properties.endpoints)
 '@
         virtualWans = @'
 resources | where type =~ "microsoft.network/virtualwans"
 | project id, name, resourceGroup, subscriptionId, location,
           wanType = tostring(properties.type),
           allowBranchToBranchTraffic = tobool(properties.allowBranchToBranchTraffic)
+'@
+        # ---- AB#6928 (Epic AB#7099) -- connectivity RELATIONSHIP detail. ----
+        # Per-peering pairs. mv-expand drops VNets with zero peerings, which is safe HERE
+        # only because the sibling `virtualNetworks` key keeps the parent-level peeringCount
+        # (the parent-preservation rule); scalar projections only per AB#5083.
+        vnetPeerings = @'
+resources
+| where type =~ "microsoft.network/virtualnetworks"
+| mv-expand p = properties.virtualNetworkPeerings
+| extend remoteVnetId = tostring(p.properties.remoteVirtualNetwork.id)
+| project vnet = name, resourceGroup, subscriptionId, remoteVnetId,
+          remoteVnetName = tostring(split(remoteVnetId, "/")[8]),
+          peeringState = tostring(p.properties.peeringState),
+          allowGatewayTransit = tobool(p.properties.allowGatewayTransit),
+          useRemoteGateways = tobool(p.properties.useRemoteGateways)
+'@
+        # Gateway connections with both relationship endpoints named. sharedKeyPresent is a
+        # BOOL ONLY -- the pre-shared key VALUE is never projected (hard rule: no secrets in
+        # any collected payload). localNetworkGateway2 is the embedded LNG sub-resource on
+        # the connection, so its address space rides along without a join.
+        vpnConnections = @'
+resources
+| where type =~ "microsoft.network/connections"
+| extend gatewayId = tostring(properties.virtualNetworkGateway1.id)
+| extend lngId = tostring(properties.localNetworkGateway2.id)
+| project name, resourceGroup, subscriptionId,
+          gatewayName = tostring(split(gatewayId, "/")[8]),
+          connectionType = tostring(properties.connectionType),
+          connectionStatus = tostring(properties.connectionStatus),
+          localNetworkGatewayName = tostring(split(lngId, "/")[8]),
+          localAddressPrefixes = coalesce(strcat_array(properties.localNetworkGateway2.properties.localNetworkAddressSpace.addressPrefixes, ","), ""),
+          sharedKeyPresent = isnotempty(properties.sharedKey)
+'@
+        localNetworkGateways = @'
+resources
+| where type =~ "microsoft.network/localnetworkgateways"
+| project name, resourceGroup, subscriptionId,
+          gatewayIpAddress = tostring(properties.gatewayIpAddress),
+          addressPrefixes = coalesce(strcat_array(properties.localNetworkAddressSpace.addressPrefixes, ","), "")
+'@
+        # Hub-per-WAN membership -- the vWAN relationship the flat virtualWans row cannot carry.
+        virtualHubs = @'
+resources
+| where type =~ "microsoft.network/virtualhubs"
+| extend wanId = tostring(properties.virtualWan.id)
+| project name, resourceGroup, subscriptionId,
+          addressPrefix = tostring(properties.addressPrefix),
+          virtualWanName = tostring(split(wanId, "/")[8])
 '@
         virtualMachines = @'
 resources
@@ -1853,6 +1966,11 @@ resources
         routeTables         = @('Networking')
         trafficManagerProfiles = @('Networking')
         virtualWans         = @('Networking')
+        # AB#6928 -- connectivity relationship detail.
+        vnetPeerings        = @('Networking')
+        vpnConnections      = @('Networking')
+        localNetworkGateways = @('Networking')
+        virtualHubs         = @('Networking')
         virtualMachines     = @('Compute')
         # caf.billing (CAF-BIL-02/03) and waf.cost both need these under Management
         # and Compute/Cost respectively.
@@ -2659,6 +2777,12 @@ resources
             routeTables              = $r.routeTables
             trafficManagerProfiles   = $r.trafficManagerProfiles
             virtualWans              = $r.virtualWans
+            # AB#6928 -- connectivity relationship detail (peering pairs, gateway
+            # connections, LNGs, vWAN hubs).
+            vnetPeerings             = $r.vnetPeerings
+            vpnConnections           = $r.vpnConnections
+            localNetworkGateways     = $r.localNetworkGateways
+            virtualHubs              = $r.virtualHubs
         }
         # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) and privateClouds (AB#6820) sit
         # under `compute`, not `domains`, alongside virtualMachines -- the existing pattern for
