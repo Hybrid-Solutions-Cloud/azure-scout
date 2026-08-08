@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "Domains",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "bc7f4f015d5065f263dc251f8067068c39fff523539097632deefc2cf2e92089",
+  "FixtureSha256": "1df7fa7a387bc94a24513d1f1a25abc5869391aa6a1351f10fc0cfcf77e23e6a",
   "Rows": [
     "Authentication Type=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/domains/domains-t1a-1|Is Admin Managed=j:true|Is Default=j:true|Is Verified=j:true|Resource U=j:1|Supported Services=s:res-item-0, res-item-1|Tenant ID=s:res-value",
     "Authentication Type=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/domains/domains-t1b-1|Is Admin Managed=j:true|Is Default=j:true|Is Verified=j:true|Resource U=j:1|Supported Services=s:res-item-0, res-item-1|Tenant ID=s:res-value",

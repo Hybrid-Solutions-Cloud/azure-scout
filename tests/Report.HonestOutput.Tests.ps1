@@ -272,7 +272,7 @@ Describe 'AB#6765 — the query catalog is the single source both sides read' {
         }
     }
 
-    It 'still covers all seventeen queries the extraction used to inline' {
-        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 17
+    It 'still covers all twenty queries the extraction used to inline' {
+        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 20
     }
 }
