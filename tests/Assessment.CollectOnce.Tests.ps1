@@ -278,3 +278,54 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         $deferredCallIdx | Should -BeLessThan $processIdx
     }
 }
+
+Describe 'AB#7185 — the deferred assessment writes into the SAME run folder as the inventory pass' {
+    # A live end-to-end run needs a real Azure connection, so -- matching this file's existing
+    # style for Invoke-AzureScout-level checks above -- this pins the fix by source position
+    # rather than executing the run. Before this fix, $deferredAssessArgs.OutputPath was set once
+    # at the "-Assessment" argument-building block to the bare $ReportDir, and never touched again
+    # -- so Invoke-ScoutAssessmentCore (which always nests its own dated subfolder under whatever
+    # OutputPath it receives) wrote outside the inventory run folder instead of inside it. A
+    # regression that removes the retarget line, or that moves it before $DefaultPath exists or
+    # after the deferred call already ran, fails this test even though nothing here executes the
+    # run.
+    BeforeAll {
+        $script:Source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+
+        function Get-ScoutSourceIndex {
+            param([string]$Pattern)
+            $m = [regex]::Match($script:Source, $Pattern)
+            $m.Success | Should -BeTrue -Because "expected to find '$Pattern' in Invoke-AzureScout.ps1"
+            return $m.Index
+        }
+    }
+
+    It 'retargets $deferredAssessArgs.OutputPath to $DefaultPath, guarded on $deferredAssessArgs being set' {
+        Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}' | Out-Null
+    }
+
+    It 'retargets OutputPath after $DefaultPath is assigned from $ReportingPath, not before' {
+        $defaultPathIdx = Get-ScoutSourceIndex '\$DefaultPath\s*=\s*\$ReportingPath\.DefaultPath'
+        $retargetIdx    = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
+        $defaultPathIdx | Should -BeLessThan $retargetIdx
+    }
+
+    It 'retargets OutputPath before the deferred Invoke-ScoutAssessmentCore call consumes it' {
+        $retargetIdx     = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
+        $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
+        $retargetIdx | Should -BeLessThan $deferredCallIdx
+    }
+
+    It 'no longer leaves the stale bare-$ReportDir assignment as the last word on $deferredAssessArgs.OutputPath' {
+        # The original assignment at the -Assessment argument-building block is fine to keep (it
+        # seeds a sane default before $DefaultPath exists yet) -- what must never regress is it
+        # being the ONLY assignment. This is a belt-and-suspenders duplicate of the two ordering
+        # tests above, expressed as a straight count so a future refactor that deletes the
+        # retarget line without deleting the seed assignment still fails obviously.
+        $assignments = [regex]::Matches($script:Source, '\$deferredAssessArgs\.OutputPath\s*=')
+        $assignments.Count | Should -BeGreaterThan 0
+        $outputPathAssignments = [regex]::Matches($script:Source, '\$assessArgs\.OutputPath\s*=\s*\$ReportDir')
+        $retargetAssignments   = [regex]::Matches($script:Source, '\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath')
+        $retargetAssignments.Count | Should -BeGreaterThan 0
+    }
+}
