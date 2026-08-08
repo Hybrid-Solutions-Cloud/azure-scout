@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-08-08 — four field defects from one live session
+
+### Fixed
+
+- **Graph token now targets the tenant being audited, not az CLI's ambient default.**
+  Get-AZSCGraphToken called az account get-access-token with no --tenant flag, so on a
+  multi-tenant identity the Entra ID P2 licence check read a *different* tenant's
+  subscribedSkus and reported a licensed tenant as NOT LICENSED. -TenantID is now
+  threaded through the token helper (with a per-tenant token cache), Invoke-AZSCGraphRequest,
+  and every Graph call in the permission audit. AB#7184.
+- **A combined Inventory+Assessment run no longer writes two sibling output folders.** The
+  deferred assessment's OutputPath was captured before the timestamped run folder existed,
+  so the React report landed in a folder *next to* the one the operator was told about, while
+  the inventory documents landed inside it. The assessment now nests inside the same run
+  folder. AB#7185.
+- **User-mode Graph probes no longer report CLI-unacquirable scopes as DENIED.** Azure CLI's
+  delegated-scope set is fixed by Microsoft and excludes Policy.Read.AuthenticationMethod
+  and VerifiedId-Profile.Read.All, so those probes 403 for every user — a Global
+  Administrator included — and the audit sent owners to grant permissions that cannot help.
+  The audit now decodes its own token's scp claim and reports these as
+  UNAVAILABLE WITH CLI SIGN-IN (Warn, collectors *Not assessed*) with the honest
+  remediation: run as a service principal. Genuine delegated denials now advise the
+  directory-role path instead of the SPN-only Enterprise Applications blade. AB#7187.
+
+### Added
+
+- **The four approved network diagrams are in the shipping React report** — VNet connectivity
+  (hub-and-spoke with no-peering warnings), hybrid site-to-site (single-instance gateway
+  warning), private link & DNS, and internet exposure — ported from the approved mockup into
+  the report's diagram kernel with sidebar/tile/pane wiring and overlap-gate coverage. Two
+  defects were caught during the port: a wrong node CSS class that broke click-navigation and
+  hid the diagrams from the collision gate, and a test-harness shape mismatch that made the
+  gate pass while inspecting nothing. AB#7186 (under Feature AB#6928).
+
+### Docs
+
+- docs/guide/permissions.md — the Graph permissions table now lists the two Verified ID
+  permissions; the user-auth section names Authentication Policy Administrator and carries
+  a danger block explaining why the two Verified ID collectors cannot run under CLI sign-in at
+  all (AB#7097, AB#7187).
+## [3.6.0] - 2026-08-08 — the collector-payload wiring audit, closed out
+
 ### Added
 
 - **Microsoft Entra External ID now has a collector** — the governance/landing-zone-relevant
@@ -97,8 +139,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   collectors found running but previously undocumented added to their category footnotes
   (`ContentModerator`, `SQLSERVER`, `DevOpsServiceConnections`, `ArtifactSigning`), and an
   arithmetic error in Identity's own Microsoft Entra ID row corrected. AB#7092.
-
-## [3.6.0] - 2026-08-08 — the collector-payload wiring audit, closed out
 
 Nearly 100 collector manifests existed, were fully tested, and produced Excel-only rows —
 but never reached the assessment collect (`collect.json`) the React report actually renders
