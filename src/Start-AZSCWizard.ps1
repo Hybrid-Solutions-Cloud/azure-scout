@@ -317,7 +317,12 @@ function Start-AZSCWizard {
                 return $false
             })
         }
-        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Items $assessmentNames -DefaultSelected @('LandingZone')
+        # AB#7188 — presentation only. The 40+ entry flat menu mixed three naming
+        # generations with no visible structure; group by source framework instead.
+        # Registry keys and the returned selection are untouched — grouping changes
+        # what the operator SEES, never what the checklist RETURNS.
+        $assessmentGroups = Group-AZSCWizardAssessment -Names $assessmentNames
+        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups $assessmentGroups -DefaultSelected @('LandingZone')
         if ($null -eq $chosen) { return $null }
         $answers.Assessment = $chosen
     }
@@ -488,28 +493,103 @@ function Read-AZSCWizardChoice {
 
 <#
 .SYNOPSIS
+    Sorts assessment registry keys into the wizard's four display groups.
+
+.DESCRIPTION
+    AB#7188 — presentation-only grouping for the assessment checklist. Every key
+    lands in exactly one group, decided by its prefix:
+
+        CAF:*      → Cloud Adoption Framework (CAF)
+        WAF:*      → Well-Architected Framework (WAF)
+        Assess:*   → Service category deep-dives
+        (anything else, including future/unknown keys) → Specialized reviews
+
+    Unknown keys fall into Specialized reviews rather than disappearing — the
+    wizard must never hide an assessment the registry offers (AB#6763). The keys
+    themselves are returned verbatim inside the group arrays; nothing is renamed.
+
+.OUTPUTS
+    An ordered dictionary of heading → string[] of registry keys, in the fixed
+    display order CAF, WAF, Specialized reviews, Service category deep-dives.
+#>
+function Group-AZSCWizardAssessment {
+    param([string[]]$Names)
+
+    $groups = [ordered]@{
+        'Cloud Adoption Framework (CAF)'   = [System.Collections.Generic.List[string]]::new()
+        'Well-Architected Framework (WAF)' = [System.Collections.Generic.List[string]]::new()
+        'Specialized reviews'              = [System.Collections.Generic.List[string]]::new()
+        'Service category deep-dives'      = [System.Collections.Generic.List[string]]::new()
+    }
+    foreach ($name in @($Names)) {
+        if ([string]::IsNullOrWhiteSpace($name)) { continue }
+        $heading = switch -Wildcard ($name) {
+            'CAF:*'    { 'Cloud Adoption Framework (CAF)'; break }
+            'WAF:*'    { 'Well-Architected Framework (WAF)'; break }
+            'Assess:*' { 'Service category deep-dives'; break }
+            default    { 'Specialized reviews' }
+        }
+        $groups[$heading].Add($name)
+    }
+    $result = [ordered]@{}
+    foreach ($key in $groups.Keys) { $result[$key] = @($groups[$key]) }
+    return $result
+}
+
+<#
+.SYNOPSIS
     Multi-select checklist. Everything is selected by default; the operator
     unchecks what they don't want. Returns the selected items, or $null if
     cancelled.
+
+.DESCRIPTION
+    Pass -Groups (an ordered dictionary of heading → item array) instead of
+    -Items to render non-selectable heading lines between item runs (AB#7188).
+    Numbering stays continuous across groups and toggling/select-all/return
+    values are identical to the flat form — the items ARE the flattened groups,
+    in group order. Empty groups render nothing.
 #>
 function Read-AZSCWizardChecklist {
     param(
         [string]$Title,
         [string[]]$Items,
-        [string[]]$DefaultSelected
+        [string[]]$DefaultSelected,
+        [System.Collections.Specialized.OrderedDictionary]$Groups
     )
+
+    if ($null -ne $Groups) {
+        # The flat item list is derived from the groups, so every existing code
+        # path (numbering, toggling, all/none, the returned selection) operates
+        # on exactly the same array the grouped render displays.
+        $Items = @(foreach ($heading in $Groups.Keys) { @($Groups[$heading]) | Where-Object { $_ } })
+    }
 
     $selected = [System.Collections.Generic.HashSet[string]]::new()
     $initial = if ($PSBoundParameters.ContainsKey('DefaultSelected')) { $DefaultSelected } else { $Items }
     foreach ($item in $initial) { [void]$selected.Add($item) }
 
+    $writeItemLine = {
+        param([int]$Index)
+        $mark = if ($selected.Contains($Items[$Index])) { 'x' } else { ' ' }
+        $colour = if ($selected.Contains($Items[$Index])) { 'Green' } else { 'DarkGray' }
+        Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($Index + 1), $Items[$Index]) -ForegroundColor $colour
+    }
+
     while ($true) {
         Write-Host ''
         Write-Host "  $Title" -ForegroundColor White
-        for ($i = 0; $i -lt $Items.Count; $i++) {
-            $mark = if ($selected.Contains($Items[$i])) { 'x' } else { ' ' }
-            $colour = if ($selected.Contains($Items[$i])) { 'Green' } else { 'DarkGray' }
-            Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($i + 1), $Items[$i]) -ForegroundColor $colour
+        if ($null -ne $Groups) {
+            $i = 0
+            foreach ($heading in $Groups.Keys) {
+                $groupItems = @(@($Groups[$heading]) | Where-Object { $_ })
+                if ($groupItems.Count -eq 0) { continue }
+                Write-Host ''
+                Write-Host "    ── $heading ──" -ForegroundColor Cyan
+                for ($j = 0; $j -lt $groupItems.Count; $j++) { & $writeItemLine -Index $i; $i++ }
+            }
+        }
+        else {
+            for ($i = 0; $i -lt $Items.Count; $i++) { & $writeItemLine -Index $i }
         }
         Write-Host ''
         Write-Host '   Toggle with numbers (e.g. "3" or "3,5,9"), a = all, n = none,' -ForegroundColor DarkGray

@@ -213,6 +213,90 @@ Describe 'Wizard — checklist primitive' {
     }
 }
 
+Describe 'Wizard — grouped assessment checklist (AB#7188)' {
+    BeforeAll {
+        $script:RegistryKeys = @((Import-PowerShellDataFile (Join-Path $script:ModuleRoot 'manifests/assessments.psd1')).Keys)
+    }
+
+    It 'puts every registry key under exactly one heading' {
+        $keys = $script:RegistryKeys
+        $groups = & $script:Module { param($n) Group-AZSCWizardAssessment -Names $n } $keys
+        $flattened = @(foreach ($h in $groups.Keys) { $groups[$h] })
+        $flattened.Count | Should -Be $keys.Count
+        ($flattened | Sort-Object) | Should -Be ($keys | Sort-Object)
+    }
+
+    It 'orders the headings CAF, WAF, Specialized, deep-dives' {
+        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('LandingZone') }
+        @($groups.Keys) | Should -Be @(
+            'Cloud Adoption Framework (CAF)',
+            'Well-Architected Framework (WAF)',
+            'Specialized reviews',
+            'Service category deep-dives'
+        )
+    }
+
+    It 'sorts each prefix family into its own group' {
+        $groups = & $script:Module {
+            Group-AZSCWizardAssessment -Names @('CAF: Security', 'WAF: Security', 'Assess: Security', 'LandingZone')
+        }
+        $groups['Cloud Adoption Framework (CAF)']   | Should -Be @('CAF: Security')
+        $groups['Well-Architected Framework (WAF)'] | Should -Be @('WAF: Security')
+        $groups['Service category deep-dives']      | Should -Be @('Assess: Security')
+        $groups['Specialized reviews']              | Should -Be @('LandingZone')
+    }
+
+    It 'never hides an unknown/future key — it lands under Specialized reviews' {
+        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('LandingZone', 'Some Future Review') }
+        $groups['Specialized reviews'] | Should -Contain 'Some Future Review'
+        $groups['Specialized reviews'] | Should -Contain 'LandingZone'
+    }
+
+    It 'a grouped checklist returns the same raw keys as the flat form' {
+        $keys = $script:RegistryKeys
+        $grouped = & $script:Module {
+            param($n)
+            Mock -CommandName Read-Host -MockWith { '' }
+            Read-AZSCWizardChecklist -Title 'x' -Groups (Group-AZSCWizardAssessment -Names $n)
+        } $keys
+        $grouped.Count | Should -Be $keys.Count
+        ($grouped | Sort-Object) | Should -Be ($keys | Sort-Object)
+        # Raw registry keys, verbatim — no display decoration leaks into the return.
+        $grouped | Where-Object { $_ -match '^\s|──' } | Should -BeNullOrEmpty
+    }
+
+    It 'grouped toggling still returns raw keys with continuous numbering' {
+        $result = & $script:Module {
+            $script:calls = 0
+            Mock -CommandName Read-Host -MockWith {
+                $script:calls++
+                if ($script:calls -eq 1) { 'n' } elseif ($script:calls -eq 2) { '2,4' } else { '' }
+            }
+            Read-AZSCWizardChecklist -Title 'x' -Groups ([ordered]@{
+                'Cloud Adoption Framework (CAF)'   = @('CAF: A', 'CAF: B')
+                'Well-Architected Framework (WAF)' = @('WAF: A')
+                'Specialized reviews'              = @('LandingZone')
+                'Service category deep-dives'      = @()
+            })
+        }
+        $result | Should -Be @('CAF: B', 'LandingZone')
+    }
+
+    It 'LandingZone is still the default selection at the wizard call site' {
+        $source = Get-Content (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1') -Raw
+        $source | Should -Match "Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups \`$assessmentGroups -DefaultSelected @\('LandingZone'\)"
+    }
+
+    It 'a grouped checklist honours -DefaultSelected on a bare Enter' {
+        $result = & $script:Module {
+            param($n)
+            Mock -CommandName Read-Host -MockWith { '' }
+            Read-AZSCWizardChecklist -Title 'x' -Groups (Group-AZSCWizardAssessment -Names $n) -DefaultSelected @('LandingZone')
+        } $script:RegistryKeys
+        $result | Should -Be @('LandingZone')
+    }
+}
+
 Describe 'Wizard — equivalent command rendering' {
     It 'renders the answers as a runnable Invoke-AzureScout line' {
         $line = & $script:Module {
