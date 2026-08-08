@@ -795,6 +795,16 @@ Function Invoke-AzureScout {
     $DiagramCache = $ReportingPath.DiagramCache
     $ReportCache = $ReportingPath.ReportCache
 
+    # AB#7185 -- $deferredAssessArgs.OutputPath was captured back at the "-Assessment" block
+    # (line ~601) as the bare $ReportDir, before this timestamped per-run folder existed.
+    # Invoke-ScoutAssessmentCore then created ITS OWN run folder directly under that bare root
+    # instead of writing into the folder the inventory pass (Excel/Markdown/AsciiDoc/PowerBI)
+    # just wrote to -- a "Both" run produced two sibling output folders, with the React report
+    # (the only renderer the assessment side of a combined run actually produces) landing in the
+    # one the operator had no reason to go looking in. Retarget it to the real run folder now
+    # that Set-AZSCReportPath has created it.
+    if ($deferredAssessArgs) { $deferredAssessArgs.OutputPath = $DefaultPath }
+
     if (-not $Force.IsPresent)
         {
             Write-Host '  Run folder   : ' -NoNewline -ForegroundColor DarkGray
