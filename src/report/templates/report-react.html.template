@@ -1153,14 +1153,235 @@ function diagSeverity(){
   });
   return svgWrap('sev','Gaps by design area — '+esc(a.name), 'Not-met checks per area, split high / medium / low. Click to open the assessment register.', out, w, 12+areas.length*rowH+8);
 }
+/* ---- AB#7050-7058 four additional network diagrams (VNet connectivity,
+   hybrid site-to-site, private link & DNS, internet exposure). Ported from
+   src/report/renderers/react/diagram-*.mjs -- esc/catId/svgWrap/safeArr are
+   already defined above in this same script, so the modules' own duplicate
+   copies of those helpers are dropped here; everything else is a direct
+   port reading straight off the global `inventory` bag. ---- */
+function diagVnetTopology(){
+  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
+  var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
+  if(!vnets.length) return '';
+
+  var gwRg = gws.length ? gws[0].resourceGroup : null;
+  var hub = vnets.find(function(v){ return gwRg && v.resourceGroup === gwRg; })
+    || vnets.find(function(v){ return subnets.some(function(s){ return s.vnet === v.name && /gateway/i.test(s.subnet); }); })
+    || vnets[0];
+  var spokes = vnets.filter(function(v){ return v !== hub; });
+
+  var w = 860, cx = w/2, cy = 210, hubW = 240, hubH = 78;
+  var out = '';
+
+  if(gws.length){
+    var g = gws[0];
+    out += '<g class="diag-node" data-gopane="'+catId('networking.vpnGateways')+'">'+
+      '<rect x="'+(cx-110)+'" y="14" width="220" height="52" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 3"/>'+
+      '<text x="'+cx+'" y="34" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12">'+esc(g.name)+'</text>'+
+      '<text x="'+cx+'" y="50" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+esc(g.gatewayType)+' · '+esc(g.sku)+' · BGP '+(g.bgp?'on':'off')+' · '+(g.activeActive?'active-active':'⚠ single instance')+'</text></g>'+
+      '<path d="M '+cx+' 66 V '+(cy-hubH/2)+'" stroke="var(--accent)" stroke-width="2" fill="none"/>';
+  }
+
+  var hubSubs = subnets.filter(function(s){ return s.vnet === hub.name; });
+  out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'">'+
+    '<rect x="'+(cx-hubW/2)+'" y="'+(cy-hubH/2)+'" width="'+hubW+'" height="'+hubH+'" rx="9" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="2.5"/>'+
+    '<text x="'+cx+'" y="'+(cy-16)+'" text-anchor="middle" fill="var(--primary)" font-weight="800" font-size="10">HUB</text>'+
+    '<text x="'+cx+'" y="'+(cy+2)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12">'+esc(hub.name)+'</text>'+
+    '<text x="'+cx+'" y="'+(cy+19)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+hubSubs.length+' subnet'+(hubSubs.length===1?'':'s')+' · '+(hub.peeringCount||0)+' peering'+((hub.peeringCount||0)===1?'':'s')+' · DDoS '+(hub.ddosEnabled?'on':'off')+'</text></g>';
+
+  var sw = 210, gap = 22, totalW = spokes.length*sw + (spokes.length-1)*gap;
+  var sx = cx - totalW/2, sy = cy + 130;
+  spokes.forEach(function(s){
+    var subs = subnets.filter(function(x){ return x.vnet === s.name; });
+    var peered = (s.peeringCount||0) > 0;
+    var mx = sx + sw/2;
+    out += peered
+      ? '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--primary)" stroke-width="2" fill="none"/>'
+      : '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--band-crit)" stroke-width="2" stroke-dasharray="4 4" fill="none" opacity=".55"/>'+
+        '<text x="'+mx+'" y="'+(sy-32)+'" text-anchor="middle" fill="var(--band-crit)" font-size="10" font-weight="700">no peering</text>';
+    out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'">'+
+      '<rect x="'+sx+'" y="'+sy+'" width="'+sw+'" height="66" rx="8" fill="var(--surface)" stroke="'+(peered?'var(--primary)':'var(--band-crit)')+'" stroke-width="1.5"/>'+
+      '<text x="'+(sx+sw/2)+'" y="'+(sy+24)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11.5">'+esc(s.name)+'</text>'+
+      '<text x="'+(sx+sw/2)+'" y="'+(sy+41)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+subs.length+' subnet'+(subs.length===1?'':'s')+' · '+(s.peeringCount||0)+' peering'+((s.peeringCount||0)===1?'':'s')+'</text>'+
+      '<text x="'+(sx+sw/2)+'" y="'+(sy+56)+'" text-anchor="middle" fill="var(--faint)" font-size="9.5">'+esc(s.resourceGroup)+'</text></g>';
+    sx += sw + gap;
+  });
+
+  return svgWrap('vnettopo', 'VNet connectivity — hub and spoke',
+    vnets.length+' VNets. The hub is identified by the gateway it hosts; an edge is drawn where a peering exists and marked in red where a VNet has none. <b>Peering direction and the remote end of each edge need the collector extension</b> — today the payload carries a peering count per VNet, not the pairs.',
+    out, w, sy+90);
+}
+function diagHybrid(){
+  var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
+  var azl = safeArr((inventory['domains.hybrid.azureLocalClusters']||{}).rows);
+  var lnets = safeArr((inventory['domains.hybrid.logicalNetworks']||{}).rows);
+  var arc = safeArr((inventory['domains.hybrid.arcServers']||{}).rows);
+  if(!gws.length && !azl.length && !arc.length) return '';
+
+  var w = 860;
+  var out = '';
+  var y = 16;
+
+  out += '<rect x="12" y="'+y+'" width="330" height="'+(azl.length?210:96)+'" rx="10" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 4"/>'+
+    '<text x="26" y="'+(y+22)+'" fill="var(--muted)" font-weight="700" font-size="11">ON-PREMISES / EDGE</text>';
+
+  var oy = y + 40;
+  azl.forEach(function(c){
+    out += '<g class="diag-node" data-gopane="'+catId('domains.hybrid.azureLocalClusters')+'">'+
+      '<rect x="26" y="'+oy+'" width="302" height="48" rx="7" fill="var(--primary-tint)" stroke="var(--primary)"/>'+
+      '<text x="38" y="'+(oy+20)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(c.name)+'</text>'+
+      '<text x="38" y="'+(oy+36)+'" fill="var(--muted)" font-size="10.5">Azure Local '+esc(c.clusterVersion)+' · '+esc(c.connectivityStatus)+'</text></g>';
+    oy += 56;
+  });
+
+  if(lnets.length){
+    var shown = lnets.slice(0,4);
+    out += '<text x="26" y="'+(oy+12)+'" fill="var(--faint)" font-size="10" font-weight="700">LOGICAL NETWORKS ('+lnets.length+')</text>';
+    oy += 22;
+    shown.forEach(function(l){
+      out += '<g class="diag-node" data-gopane="'+catId('domains.hybrid.logicalNetworks')+'">'+
+        '<rect x="26" y="'+oy+'" width="302" height="20" rx="4" fill="var(--surface)" stroke="var(--border)"/>'+
+        '<text x="34" y="'+(oy+14)+'" fill="var(--ink)" font-size="10">'+esc(l.name)+' <tspan fill="var(--faint)">'+esc(l.addressPrefix||'no prefix')+(l.vlan?' · VLAN '+esc(l.vlan):'')+'</tspan></text></g>';
+      oy += 24;
+    });
+  }
+
+  if(arc.length){
+    out += '<text x="26" y="'+(oy+14)+'" fill="var(--muted)" font-size="10.5">+ '+arc.length+' Arc-connected server'+(arc.length===1?'':'s')+' projecting into Azure</text>';
+  }
+
+  var midY = y + 96;
+  if(gws.length){
+    var g = gws[0];
+    out += '<path d="M 342 '+midY+' H 518" stroke="var(--accent)" stroke-width="3" fill="none"/>'+
+      '<text x="430" y="'+(midY-10)+'" text-anchor="middle" fill="var(--accent)" font-weight="700" font-size="10.5">SITE-TO-SITE '+esc(String(g.gatewayType||'').toUpperCase())+'</text>'+
+      '<text x="430" y="'+(midY+18)+'" text-anchor="middle" fill="var(--muted)" font-size="10">BGP '+(g.bgp?'enabled':'disabled')+'</text>';
+    if(!g.activeActive){
+      out += '<text x="430" y="'+(midY+54)+'" text-anchor="middle" fill="var(--band-crit)" font-weight="700" font-size="10">⚠ single instance — no active-active</text>';
+    }
+    out += '<g class="diag-node" data-gopane="'+catId('networking.vpnGateways')+'">'+
+      '<rect x="518" y="'+(midY-32)+'" width="240" height="64" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>'+
+      '<text x="638" y="'+(midY-12)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(g.name)+'</text>'+
+      '<text x="638" y="'+(midY+5)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+esc(g.sku)+'</text>'+
+      '<text x="638" y="'+(midY+22)+'" text-anchor="middle" fill="var(--faint)" font-size="10">'+esc(g.resourceGroup)+'</text></g>';
+  }
+
+  var h = Math.max(oy+40, midY+70);
+  return svgWrap('hybrid', 'Hybrid connectivity — on-premises to Azure',
+    'The tunnel, its gateway and the on-premises estate that reaches Azure through it. <b>The connections themselves, the local network gateways and their on-premises address spaces need the collector extension</b> — the gateway is collected today, what it connects to is not.',
+    out, w, h);
+}
+function diagPrivateLink(){
+  var pes = safeArr((inventory['networking.privateEndpoints']||{}).rows);
+  var dns = safeArr((inventory['networking.privateDnsZones']||{}).rows);
+  if(!pes.length) return '';
+
+  var w = 860, rowH = 54;
+  var out = '';
+  var shortType = function(r){ return String(r.targetProvider||'').replace(/^microsoft\./i,'')+'/'+(r.targetType||''); };
+  var targetName = function(r){ return String(r.targetResourceId||'').split('/').pop(); };
+
+  pes.forEach(function(pe, i){
+    var y = 18 + i*rowH;
+    out += '<g class="diag-node" data-gopane="'+catId('networking.privateEndpoints')+'">'+
+      '<rect x="12" y="'+y+'" width="300" height="40" rx="7" fill="var(--surface)" stroke="var(--primary)"/>'+
+      '<text x="24" y="'+(y+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(pe.name)+'</text>'+
+      '<text x="24" y="'+(y+32)+'" fill="var(--faint)" font-size="10">'+esc(pe.resourceGroup)+'</text>'+
+      '<path d="M 312 '+(y+20)+' H 470" stroke="var(--accent)" stroke-width="2" fill="none" marker-end="url(#arw)"/>'+
+      '<rect x="470" y="'+y+'" width="370" height="40" rx="7" fill="var(--primary-tint)" stroke="var(--border)"/>'+
+      '<text x="484" y="'+(y+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(targetName(pe))+'</text>'+
+      '<text x="484" y="'+(y+32)+'" fill="var(--muted)" font-size="10">'+esc(shortType(pe))+'</text></g>';
+  });
+
+  var y2 = 18 + pes.length*rowH + 10;
+  out += '<text x="12" y="'+(y2+12)+'" fill="var(--faint)" font-size="10" font-weight="700">PRIVATE DNS ZONES ('+dns.length+') — resolution for the endpoints above</text>';
+  y2 += 22;
+
+  var uniq = dns.map(function(z){ return z.name; }).filter(function(v,i,a){ return a.indexOf(v)===i; });
+  uniq.forEach(function(z, i){
+    var x = 12 + (i%3)*280;
+    var yy = y2 + Math.floor(i/3)*28;
+    out += '<g class="diag-node" data-gopane="'+catId('networking.privateDnsZones')+'"><rect x="'+x+'" y="'+yy+'" width="268" height="22" rx="4" fill="var(--surface)" stroke="var(--border)"/>'+
+      '<text x="'+(x+10)+'" y="'+(yy+15)+'" fill="var(--ink)" font-size="10.5" class="mono">'+esc(z)+'</text></g>';
+  });
+
+  var h = y2 + Math.ceil(uniq.length/3)*28 + 20;
+  var defs = '<defs><marker id="arw" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="var(--accent)"/></marker></defs>';
+
+  return svgWrap('plink', 'Private link — endpoints and the services they front',
+    pes.length+' private endpoints and the '+uniq.length+' DNS zones that resolve them. Drawn from measured data: each endpoint\'s target resource is collected today.',
+    defs+out, w, h);
+}
+function diagExposure(){
+  var rules = safeArr((inventory['networking.nsgPublicInbound']||{}).rows);
+  if(!rules.length) return '';
+
+  var byNsg = {}; var order = [];
+  rules.forEach(function(r){
+    if(!byNsg[r.nsg]){ byNsg[r.nsg] = []; order.push(r.nsg); }
+    byNsg[r.nsg].push(r);
+  });
+
+  var w = 860;
+  var out = '<text x="20" y="26" fill="var(--band-crit)" font-weight="800" font-size="11">INTERNET</text>'+
+    '<path d="M 20 34 V '+(30+order.length*76)+'" stroke="var(--band-crit)" stroke-width="2.5" stroke-dasharray="5 4" fill="none"/>';
+
+  var y = 20;
+  order.forEach(function(nsg){
+    var rs = byNsg[nsg];
+    out += '<path d="M 20 '+(y+30)+' H 130" stroke="var(--band-crit)" stroke-width="2" fill="none"/>'+
+      '<g class="diag-node" data-gopane="'+catId('networking.nsgPublicInbound')+'">'+
+      '<rect x="130" y="'+y+'" width="710" height="62" rx="8" fill="var(--surface)" stroke="var(--band-crit)" stroke-width="1.5"/>'+
+      '<text x="146" y="'+(y+22)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(nsg)+'</text>'+
+      '<text x="146" y="'+(y+38)+'" fill="var(--faint)" font-size="10">'+esc(rs[0].resourceGroup)+'</text>';
+
+    rs.slice(0,6).forEach(function(r, i){
+      var x = 150 + i*115;
+      out += '<rect x="'+x+'" y="'+(y+44)+'" width="106" height="14" rx="3" fill="color-mix(in srgb,var(--band-crit) 16%,transparent)"/>'+
+        '<text x="'+(x+6)+'" y="'+(y+55)+'" fill="var(--band-crit)" font-size="9.5" font-weight="600">:'+esc(r.port)+' '+esc(String(r.rule||'').slice(0,14))+'</text>';
+    });
+
+    out += '</g>';
+    y += 76;
+  });
+
+  return svgWrap('exposure', 'Internet exposure — inbound paths from outside',
+    rules.length+' NSG rules across '+order.length+' network security groups permit inbound traffic from the internet, with the ports each one opens. Every one should be intentional; this is the estate\'s front door.',
+    out, w, y+16);
+}
+function diagVnetTopoBlade(){
+  var d = diagVnetTopology();
+  return d || '<p class="lede">No virtual networks collected for hub-and-spoke topology in this run.</p>';
+}
+function diagHybridBlade(){
+  var d = diagHybrid();
+  return d || '<p class="lede">No hybrid connectivity (VPN gateways, Azure Local clusters, or Arc-connected servers) collected in this run.</p>';
+}
+function diagPrivateLinkBlade(){
+  var d = diagPrivateLink();
+  return d || '<p class="lede">No private endpoints collected in this run.</p>';
+}
+function diagExposureBlade(){
+  var d = diagExposure();
+  return d || '<p class="lede">No public-inbound NSG rules collected in this run.</p>';
+}
+
 function pageDiagrams(){
   var side = '<nav class="side"><div class="sidehead">Diagrams</div>'+
     '<a class="sideitem dgmgo on" data-dpane="dgm-ov" href="#"><span>Overview</span></a>'+
     '<div class="sidehead">Tenant</div><a class="sideitem dgmgo" data-dpane="dgm-mg" href="#"><span>MG hierarchy</span></a>'+
     '<div class="sidehead">Networking</div><a class="sideitem dgmgo" data-dpane="dgm-net" href="#"><span>VNets &amp; subnets</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-vnettopo" href="#"><span>VNet connectivity</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-plink" href="#"><span>Private link &amp; DNS</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-exposure" href="#"><span>Internet exposure</span></a>'+
+    '<div class="sidehead">Hybrid</div><a class="sideitem dgmgo" data-dpane="dgm-hybrid" href="#"><span>Site-to-site</span></a>'+
     '<div class="sidehead">Estate</div><a class="sideitem dgmgo" data-dpane="dgm-estate" href="#"><span>Top categories</span></a>'+
     '<div class="sidehead">Assessments</div><a class="sideitem dgmgo" data-dpane="dgm-sev" href="#"><span>Gaps by area</span></a></nav>';
-  var dgms = [['mg','Management-group hierarchy','Tenant'],['net','Virtual networks & subnets','Networking'],['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
+  var dgms = [['mg','Management-group hierarchy','Tenant'],['net','Virtual networks & subnets','Networking'],
+    ['vnettopo','VNet connectivity — hub &amp; spoke','Networking'],['hybrid','Hybrid / site-to-site','Hybrid'],
+    ['plink','Private link &amp; DNS','Networking'],['exposure','Internet exposure','Networking'],
+    ['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
   var ov = '<h2>Diagrams</h2><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
     '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div>';
 
@@ -1196,7 +1417,10 @@ function pageDiagrams(){
       '<p class="lede small">Longer bars = more gaps in that design area; red segments are high severity. This is the same data as the register — the figure just shows where remediation effort concentrates.</p>';
   }
 
-  var panes = [['dgm-ov', ov], ['dgm-mg', mgCtx+diagMgTreeBlade()], ['dgm-net', netCtx+diagNetworkBlade()], ['dgm-estate', estateCtx+diagEstateBars()], ['dgm-sev', sevCtx+diagSeverity()]];
+  var panes = [['dgm-ov', ov], ['dgm-mg', mgCtx+diagMgTreeBlade()], ['dgm-net', netCtx+diagNetworkBlade()],
+    ['dgm-vnettopo', diagVnetTopoBlade()], ['dgm-hybrid', diagHybridBlade()],
+    ['dgm-plink', diagPrivateLinkBlade()], ['dgm-exposure', diagExposureBlade()],
+    ['dgm-estate', estateCtx+diagEstateBars()], ['dgm-sev', sevCtx+diagSeverity()]];
   return '<div class="invlayout">'+side+'<div class="invbody">'+panes.map(function(p,i){ return '<div class="dgmpane'+(i===0?' on':'')+'" id="pane-'+p[0]+'">'+p[1]+'</div>'; }).join('')+'</div></div>';
 }
 
@@ -1540,7 +1764,8 @@ if(document.readyState === 'loading'){
 window.__SCOUT_DIAGRAM_KERNEL__ = {
   measureText: measureText, wrapText: wrapText, autoSizeBox: autoSizeBox,
   routeOrthogonal: routeOrthogonal, layoutTree: layoutTree, placeRingLabels: placeRingLabels,
-  diagramNetworkTopology: diagramNetworkTopology, diagramMgHierarchy: diagramMgHierarchy
+  diagramNetworkTopology: diagramNetworkTopology, diagramMgHierarchy: diagramMgHierarchy,
+  diagVnetTopology: diagVnetTopology, diagHybrid: diagHybrid, diagPrivateLink: diagPrivateLink, diagExposure: diagExposure
 };
 })();
 </script>
