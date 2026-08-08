@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **244 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **245 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -190,7 +190,7 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` |
 
-### Identity (19 modules)
+### Identity (20 modules)
 
 Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.
 
@@ -202,6 +202,7 @@ Entra ID via Microsoft Graph — users, groups, app registrations, Conditional A
 | CrossTenantAccess | `entra/crosstenantaccess` |
 | DirectoryRoles | `entra/directoryroles` |
 | Domains | `entra/domains` |
+| ExternalIdentities | `entra/externalidentities` |
 | Groups | `entra/groups` |
 | Licensing | `entra/subscribedskus` |
 | ManagedIdentities | `entra/managedidentities` |

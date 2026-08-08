@@ -1,5 +1,5 @@
 ---
-description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's 242 collectors.
+description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's 245 collectors.
 ---
 
 # Service Coverage Gap

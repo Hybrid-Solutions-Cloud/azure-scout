@@ -41,7 +41,11 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.5.1 — Three things v3.5.0 said were fine
+## Current Release — v3.6.0 — The collector-payload wiring audit, closed out
+
+Released 8 August 2026. Nearly 100 collector manifests existed, were fully tested, and produced Excel-only rows — but never reached the assessment collect (`collect.json`) the React report actually renders from. This release closes that gap: 95 collectors wired across Networking, Hybrid, Monitor, Defender, Databases, DevOps, Management, Security, Storage, and Update Manager categories (coverage moves from 77 to 172 of 245 tracked manifests), plus 3 genuinely new collectors authored from scratch for services that had none — Microsoft Entra Verified ID and Microsoft Entra External ID (the governance/landing-zone-relevant one), both Graph-backed rather than ARM/ARG. Along the way, a real defect in the test suite's own infrastructure was found and fixed: a shared mock-cleanup idiom silently no-opped, letting mock state leak across test files — corrected everywhere it appeared.
+
+## Previous Release — v3.5.1 — Three things v3.5.0 said were fine
 
 Released 4 August 2026. Three things v3.5.0 said were fine — each found by *using* the product, not by reading test results. The wizard offered every format except the one it renders: picking inventory + assessment (the commonest path) fell through to the inventory-only list, which has no React, while the list it skipped still offered six held renderers with Html as the default; a menu-honesty test now fails if the wizard ever offers a format the product declines to produce. One tenant in eight could not render: dotted member enumeration over an *empty* collection resolves against the array object, so a tenant with management groups but no policy assignments threw and produced nothing — all eight corpus tenants now render. The diagram-overlap gate was green because it inspected nothing — the fixture wrote flat keys while the payload uses dotted paths, so every diagram hit its empty guard; the gate now reads real topology and was proved to fail on a manufactured overlap.
 

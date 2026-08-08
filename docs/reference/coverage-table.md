@@ -24,7 +24,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DevOps | 17 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 5 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
 | Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
-| Identity | 19 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
+| Identity | 20 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 7 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
 | Management | 16 | Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors. |
@@ -34,7 +34,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Security | 17 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 11 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **244** | across all 18 of Microsoft's published service categories |
+| **Total** | **245** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (27 modules)
 
@@ -178,7 +178,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` | AzLocal VMs |
 
-## Identity Category (19 modules)
+## Identity Category (20 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -188,6 +188,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | CrossTenantAccess | `entra/crosstenantaccess` | Cross-Tenant Access |
 | DirectoryRoles | `entra/directoryroles` | Directory Roles |
 | Domains | `entra/domains` | Entra Domains |
+| ExternalIdentities | `entra/externalidentities` | External Identities |
 | Groups | `entra/groups` | Entra Groups |
 | Licensing | `entra/subscribedskus` | Licensing |
 | ManagedIdentities | `entra/managedidentities` | Managed Identities |

@@ -25,7 +25,7 @@ features:
     details: Run bare for a wide inventory of everything in the tenant. Add -Assessment for a scored CAF/WAF review. Run with no parameters at all and a guided wizard walks you through it.
     link: /guide/overview
     linkText: How the modes differ
-  - title: 242 collectors, 18 categories
+  - title: 245 collectors, 18 categories
     details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph.
     link: /reference/arm-modules
     linkText: Browse the collectors

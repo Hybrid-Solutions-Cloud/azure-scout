@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Microsoft Entra External ID now has a collector** — the governance/landing-zone-relevant
+  Identity gap: `ExternalIdentities` (`GET /v1.0/policies/crossTenantAccessPolicy/default`),
+  the tenant-wide default B2B collaboration/direct-connect/inbound-trust/tenant-restrictions
+  policy governing every external organization not covered by a `CrossTenantAccess` partner
+  override. Wired into both the inventory export and the assessment collect / React payload as
+  `domains.identity.externalIdentitiesPolicy`. Confirmed zero overlap with the existing
+  `CrossTenantAccess` (partner overrides only) and `SecurityPolicies` (`authorizationPolicy`)
+  collectors. AB#7098.
+- **Microsoft Entra Verified ID now has a collector** — `VerifiedIDProfiles`
+  (`/v1.0/identity/verifiedId/profiles`) and `VerifiedIDConfiguration`
+  (`/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials`).
+  The separate Verified ID Admin API (issuer DIDs, authorities, contracts) lives on a
+  different host and OAuth resource than every other Entra collector in this repo and is
+  documented as a known, deliberate gap rather than reached. AB#7097.
 - **49 more collectors now reach the assessment payload** across Databases (10: CosmosDB,
   MariaDB, MySQL, MySQLflexible, POSTGREFlexible, RedisCache, SQLMI, SQLMIDB, SQLPOOL,
   SQLVM), DevOps (7: ApiConnections, AppConfiguration, DeploymentEnvironments, DevBoxPools,
@@ -75,6 +89,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   zero extra Azure calls (reused from the existing `TenantWideDefinitionsOnly` sweep). A new
   regression test (AB#7067) pins all three keys through both collection paths. See
   [Collector-to-payload wiring audit](docs/reference/collector-payload-coverage.md).
+
+### Docs
+
+- Re-verified `docs/reference/service-coverage-gap.md` against Microsoft's current published
+  service catalogue — 10 categories re-fetched live, zero drift since 2026-08-04. Four
+  collectors found running but previously undocumented added to their category footnotes
+  (`ContentModerator`, `SQLSERVER`, `DevOpsServiceConnections`, `ArtifactSigning`), and an
+  arithmetic error in Identity's own Microsoft Entra ID row corrected. AB#7092.
+
+## [3.6.0] - 2026-08-08 — the collector-payload wiring audit, closed out
+
+Nearly 100 collector manifests existed, were fully tested, and produced Excel-only rows —
+but never reached the assessment collect (`collect.json`) the React report actually renders
+from. This release closes that gap: **95 collectors wired** across Networking, Hybrid,
+Monitor, Defender, Databases, DevOps, Management, Security, Storage, and Update Manager
+categories (coverage moves from 77 to 172 of 245 tracked manifests), plus **3 genuinely new
+collectors** authored from scratch for services that had none — Microsoft Entra Verified ID
+and Microsoft Entra External ID (the governance/landing-zone-relevant one), both Graph-backed
+rather than ARM/ARG. Along the way, a real defect in the test suite's own infrastructure was
+found and fixed: a shared mock-cleanup idiom (`Remove-Item function:global:Search-AzGraph`)
+silently no-opped, letting mock state leak across test files — corrected everywhere it
+appeared, restoring a genuinely clean full test run rather than one with a known, tolerated
+false-positive.
 
 ## [3.5.1] - 2026-08-04 — three things v3.5.0 said were fine
 

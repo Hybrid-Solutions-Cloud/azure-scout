@@ -4,7 +4,7 @@ description: The worksheet and columns each Azure Scout collector produces.
 
 # Collector Fields
 
-What each collector actually returns. **All 242 collectors** declare a worksheet and an
+What each collector actually returns. **All 245 collectors** declare a worksheet and an
 ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -167,7 +167,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **StorageContainers** | AzLocal Storage | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Status`, `Path`, `Available Size GB`, `Container Size GB`, `Resource U` |
 | **VirtualMachines** | AzLocal VMs | `Subscription`, `Resource Group`, `Name`, `Location`, `Power State`, `Provisioning State`, `VM Size`, `OS Type`, `Computer Name`, `Processor Count`, `Memory MB`, `Dynamic Memory`, `Dynamic Mem Min MB`, `Dynamic Mem Max MB`, `Data Disk Count`, `Image Reference`, `Network Interfaces`, `Status`, `Resource U` |
 
-## Identity (17 collectors)
+## Identity (20 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -177,6 +177,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **CrossTenantAccess** | Cross-Tenant Access | `Display Name`, `Partner Tenant ID`, `Inbound Trust`, `B2B Collaboration`, `B2B Direct Connect`, `Is Service Provider`, `Resource U` |
 | **DirectoryRoles** | Directory Roles | `Display Name`, `Role Template ID`, `Description`, `Resource U` |
 | **Domains** | Entra Domains | `Domain Name`, `Is Verified`, `Is Default`, `Is Admin Managed`, `Authentication Type`, `Supported Services`, `Resource U` |
+| **ExternalIdentities** | External Identities | `Is Service Default`, `B2B Collaboration Inbound`, `B2B Collaboration Outbound`, `B2B Direct Connect Inbound`, `B2B Direct Connect Outbound`, `Inbound Trust`, `Tenant Restrictions`, `Resource U` |
 | **Groups** | Entra Groups | `Display Name`, `Group Type`, `Security Enabled`, `Mail Enabled`, `Is Role Assignable`, `Dynamic Membership`, `Dynamic Rule`, `On-Premises Sync`, `Description`, `Resource U` |
 | **Licensing** | Licensing | `SKU Part Number`, `SKU ID`, `Consumed Units`, `Prepaid Enabled`, `Prepaid Suspended`, `Prepaid Warning`, `Applies To`, `Capability Status`, `Resource U` |
 | **ManagedIdentities** | Managed Identities | `Display Name`, `Application ID`, `Identity Type`, `Associated Resource`, `Resource U` |
@@ -188,6 +189,8 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **SecurityPolicies** | Security Policies | `Display Name`, `Guest User Role ID`, `Allow Invites From`, `Allow Email Subscriptions`, `Allow Email Verified Join`, `Allow SSPR`, `Block MSOL PowerShell`, `Allow Create Apps`, `Allow Create Security Groups`, `Allow Read Other Users`, `Resource U` |
 | **ServicePrincipals** | Service Principals | `Display Name`, `Application ID`, `Service Principal Type`, `Account Enabled`, `App Owner Organization ID`, `Key Credential Expiry`, `Password Credential Expiry`, `Tags`, `Resource U` |
 | **Users** | Entra Users | `Display Name`, `User Principal Name`, `User Type`, `Account Enabled`, `Created DateTime`, `Last Password Change`, `Assigned License Count`, `On-Premises Sync`, `Department`, `Job Title`, `Mail`, `Resource U` |
+| **VerifiedIDConfiguration** | Verified ID Config | `State`, `Excluded Group Count`, `Excluded Group IDs`, `Resource U` |
+| **VerifiedIDProfiles** | Verified ID Profiles | `Display Name`, `Description`, `State`, `Priority`, `Verifier DID`, `Accepted Issuer`, `Usage Purpose`, `Face Check State`, `Last Modified`, `Resource U` |
 
 ## Integration (9 collectors)
 
