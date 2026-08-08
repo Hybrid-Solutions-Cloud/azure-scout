@@ -137,6 +137,17 @@ $ErrorActionPreference = 'Stop'
                                Story AB#7059, Feature AB#7069, Epic AB#7099 -- Identity had no
                                existing canonical domains section; ManagedIds is the only ARG-
                                indexed, non-Graph collector in the Identity(16) coverage gap)
+                      identity{externalIdentitiesPolicy{Collected,IsServiceDefault,
+                               B2BCollaborationInboundAccessType,B2BCollaborationOutboundAccessType,
+                               B2BDirectConnectInboundAccessType,B2BDirectConnectOutboundAccessType,
+                               InboundTrustMfa,InboundTrustCompliantDevice,
+                               InboundTrustHybridAzureADJoined,TenantRestrictionsAccessType}},
+                               (AB#7098, Story AB#7071, Feature AB#7069, Epic AB#7099 -- Microsoft
+                               Entra External ID's default cross-tenant access policy; the ONE
+                               Graph-backed field in this section, collected directly by
+                               Get-ScoutExternalIdentitiesPolicy.ps1 rather than through the
+                               `entra/*` manifest/inventory path -- see the note above the `entra/*`
+                               exclusion list further up this header)
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[{patchMode,assessmentMode}],                        (AB#7109)
                              arcExtensions[{machineId,extensionType}],
@@ -266,10 +277,17 @@ $ErrorActionPreference = 'Stop'
     other query in this file. Deliberately EXCLUDED from this pass (confirmed non-ARG or
     synthetic, not a plumbing gap):
       - `entra/*` Identity manifests (AdminUnits, AppRegistrations, ConditionalAccess,
-        CrossTenantAccess, DirectoryRoles, Domains, Groups, Licensing, ManagedIdentities
-        (the Graph-scoped manifest, distinct from `ManagedIds`/`microsoft.managedidentity/
-        userassignedidentities` below), NamedLocations, PIMAssignments, RiskyUsers,
-        SecurityPolicies, ServicePrincipals, Users) -- Microsoft Graph API, not ARM/ARG.
+        CrossTenantAccess, DirectoryRoles, Domains, ExternalIdentities, Groups, Licensing,
+        ManagedIdentities (the Graph-scoped manifest, distinct from `ManagedIds`/
+        `microsoft.managedidentity/userassignedidentities` below), NamedLocations,
+        PIMAssignments, RiskyUsers, SecurityPolicies, ServicePrincipals, Users) -- Microsoft
+        Graph API, not ARM/ARG, so none of them gets a KQL entry in `$q` below. ExternalIdentities
+        (AB#7098) is the one exception that still reaches this file's OUTPUT: it is collected by a
+        direct `Get-ScoutExternalIdentitiesPolicy.ps1` call, the same live-REST-call pattern
+        `Get-ScoutDefenderPlanSweep.ps1` already established for Defender, and folded into
+        `domains.identity.externalIdentitiesPolicy` below -- see that block for why. Every OTHER `entra/*`
+        manifest still reaches only the Excel/PPTX inventory export (Start-ScoutEntraExtraction),
+        not this file; wiring the rest of them is future work, not this Story's scope.
       - `devops/*` org-level DevOps manifests (DevOpsAgentPools, DevOpsPipelines,
         DevOpsProjects, DevOpsRepositories, DevOpsServiceConnections) -- Azure DevOps REST
         API, not ARM/ARG; the `devops` canonical section's `agentPools`/`projects`/etc
@@ -2572,6 +2590,30 @@ resources
         $defenderPlans = @()
     }
 
+    # ---- Microsoft Entra External ID default cross-tenant access policy (AB#7098) ----
+    # domains.identity.externalIdentitiesPolicy shipped as a top-level Identity domain gap
+    # (docs/reference/service-coverage-gap.md: "Microsoft Entra External ID -- Not collected").
+    # Graph-backed, not ARM/ARG-indexed -- see this file's header for why every other `entra/*`
+    # Identity manifest is deliberately excluded from the KQL pack above. One Graph call, gated on
+    # -Scope not being 'ArmOnly' (the one place in this function that switch is honoured today):
+    # an ArmOnly run has no reason to attempt Graph auth, and a tenant without Graph consent must
+    # not fail the whole collect over one optional field. `Collected = $false` (never a thrown
+    # exception or a missing key) is what a rule -- or a report renderer -- reading this field sees
+    # on any failure, same contract as `devops.available`/`finops.available`.
+    $externalIdentitiesPolicy = [pscustomobject]@{ Collected = $false }
+    if ($Scope -ne 'ArmOnly') {
+        try {
+            if (-not (Get-Command Get-ScoutExternalIdentitiesPolicy -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'Get-ScoutExternalIdentitiesPolicy.ps1')
+            }
+            $externalIdentitiesPolicy = Get-ScoutExternalIdentitiesPolicy
+        }
+        catch {
+            Write-Warning "Invoke-Collect: the External Identities policy collection failed; domains.identity.externalIdentitiesPolicy will report Collected = `$false for this run: $($_.Exception.Message)"
+            $externalIdentitiesPolicy = [pscustomobject]@{ Collected = $false }
+        }
+    }
+
     # ---- every declared dataset exists, even when nothing populated it ----
     #
     # `$r` is a hashtable, and under Set-StrictMode -Version Latest reading a key that was never
@@ -2782,6 +2824,10 @@ resources
             # in the Identity(16) coverage gap.
             identity     = [pscustomobject]@{
                 managedIdentities = $r.managedIdentities
+                # AB#7098 -- Microsoft Entra External ID's default cross-tenant access policy,
+                # the first Graph-backed field this section carries. See the collection block
+                # above for the -Scope 'ArmOnly' gate and the Collected-flag failure contract.
+                externalIdentitiesPolicy = $externalIdentitiesPolicy
             }
             # mlWorkspaces/searchServices (AB#6818) are the custom-build and grounding-pipeline
             # halves of the AI workload assessment that cognitiveAccounts alone doesn't cover.

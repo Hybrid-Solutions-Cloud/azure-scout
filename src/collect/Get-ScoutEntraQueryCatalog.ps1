@@ -129,6 +129,25 @@ function Get-ScoutEntraQueryCatalog {
             Permission   = 'Policy.Read.All'
         },
         @{
+            # AB#7098 -- Microsoft Entra External ID, the second named Identity gap
+            # (docs/reference/service-coverage-gap.md). This is the tenant-wide DEFAULT
+            # cross-tenant access configuration -- b2b collaboration/direct connect and inbound
+            # trust settings applied to every external organization NOT covered by a specific
+            # 'Cross-Tenant Access' (above) partner override. GA in v1.0, distinct from both the
+            # partner list above and 'Security Policies' (authorizationPolicy) below, and
+            # currently uncollected: this is the actual "is our tenant open to external/guest
+            # identities by default" surface, not a narrower per-partner or per-invite setting.
+            # `/v1.0/policies/externalIdentitiesPolicy` (the self-service tenant-leave toggle)
+            # was considered and rejected -- it is /beta-only and does not carry the B2B/guest
+            # access posture this Story's owner named as the reason this item matters.
+            Name         = 'External Identities'
+            Uri          = '/v1.0/policies/crossTenantAccessPolicy/default'
+            Type         = 'entra/externalidentities'
+            NameProperty = 'isServiceDefault'
+            SingleObject = $true
+            Permission   = 'Policy.Read.All'
+        },
+        @{
             Name         = 'Security Policies'
             Uri          = '/v1.0/policies/authorizationPolicy'
             Type         = 'entra/securitypolicies'
