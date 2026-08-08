@@ -60,7 +60,7 @@ Invoke-AzureScout
 Invoke-AzureScout -Scope All
 
 # Scored CAF/WAF assessment
-Invoke-AzureScout -Assessment LandingZone
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'
 
 # Check what you have access to, before running anything
 Invoke-AzureScout -PermissionAudit

@@ -67,7 +67,7 @@ $ErrorActionPreference = 'Stop'
     already run its own permission check, e.g. earlier in the same pipeline).
 
 .EXAMPLE
-    Invoke-ScoutPipeline -Assessment LandingZone -OutputFormat All -OutputPath ./output -ManagementGroupId 'contoso-root-mg'
+    Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputFormat All -OutputPath ./output -ManagementGroupId 'contoso-root-mg'
 
     Full unattended landing-zone run, every reporter tier, scoped to a management group.
 
@@ -119,7 +119,7 @@ $ErrorActionPreference = 'Stop'
 function Invoke-ScoutPipeline {
     [CmdletBinding()]
     param(
-        [string[]] $Assessment = @('LandingZone'),
+        [string[]] $Assessment = @('CAF: Azure Landing Zone'),
         [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'All')]
         [string[]] $OutputFormat = @('All'),
         [string]   $OutputPath = './output',

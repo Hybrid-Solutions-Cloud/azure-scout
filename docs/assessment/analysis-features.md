@@ -90,6 +90,6 @@ subscription than its template declares.
 The Collect layer's IoT queries (`Invoke-Collect`, AB#330) now go beyond IoT
 Hub device registries to include **Device Provisioning Service** (DPS) and
 **Azure Digital Twins** instances, scored by the `caf.iot` rule file — so
-`-Assessment 'Assess: IoT'` (and `LandingZone`) picks up DPS/Digital Twins findings
+`-Assessment 'Assess: IoT'` (and `CAF: Azure Landing Zone`) picks up DPS/Digital Twins findings
 without any extra configuration.
 

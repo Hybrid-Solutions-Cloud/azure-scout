@@ -87,7 +87,9 @@ Describe 'AB#6826 -- Invoke-Rule assert.gate' {
 
 Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
     It 'unavailable when Az.CostManagement is not installed at all' {
-        # No Invoke-AzCostManagementQuery function defined -- Get-Command must not find it.
+        # Hermetic: the dev/CI machine may genuinely have Az.CostManagement installed, so hide
+        # exactly that one command from the importer's Get-Command probe.
+        Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
         $result = Import-ScoutCostInventory -Collect $collect -WarningAction SilentlyContinue
         $result.finops.available | Should -BeFalse
@@ -119,6 +121,7 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
         Remove-Item function:Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue
     }
     It 'trivially available on an estate with zero subscriptions -- an empty estate is not a blocked one' {
+        Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
         $collect = [pscustomobject]@{ subscriptions = @() }
         $result = Import-ScoutCostInventory -Collect $collect -WarningAction SilentlyContinue
         # No module installed AND no subscriptions -- module absence still wins (deterministic
@@ -242,17 +245,17 @@ Describe 'AB#6826/AB#6827 -- rule files load, cite real items, and gate every ac
 
 Describe 'AB#6826/AB#6827 -- registry entries exist and route to the right rule file' {
     It 'FinOps Review is registered and points at exactly finops.review' {
-        $script:Manifest.Keys | Should -Contain 'FinOps Review'
-        $script:Manifest['FinOps Review'].Rules | Should -Be @('finops.review')
-        $script:Manifest['FinOps Review'].Ingest | Should -Contain 'CostInventory'
+        $script:Manifest.Keys | Should -Contain 'Microsoft: FinOps Review'
+        $script:Manifest['Microsoft: FinOps Review'].Rules | Should -Be @('finops.review')
+        $script:Manifest['Microsoft: FinOps Review'].Ingest | Should -Contain 'CostInventory'
     }
     It 'DevOps Capability Assessment is registered and points at exactly devops.capability' {
-        $script:Manifest.Keys | Should -Contain 'DevOps Capability Assessment'
-        $script:Manifest['DevOps Capability Assessment'].Rules | Should -Be @('devops.capability')
-        $script:Manifest['DevOps Capability Assessment'].Ingest | Should -Contain 'DevOpsCapability'
+        $script:Manifest.Keys | Should -Contain 'Microsoft: DevOps Capability'
+        $script:Manifest['Microsoft: DevOps Capability'].Rules | Should -Be @('devops.capability')
+        $script:Manifest['Microsoft: DevOps Capability'].Ingest | Should -Contain 'DevOpsCapability'
     }
     It 'both Description fields state the enumeration is inferred, not Microsoft-published' {
-        $script:Manifest['FinOps Review'].Description | Should -Match '(?i)inferred'
-        $script:Manifest['DevOps Capability Assessment'].Description | Should -Match '(?i)inferred'
+        $script:Manifest['Microsoft: FinOps Review'].Description | Should -Match '(?i)inferred'
+        $script:Manifest['Microsoft: DevOps Capability'].Description | Should -Match '(?i)inferred'
     }
 }

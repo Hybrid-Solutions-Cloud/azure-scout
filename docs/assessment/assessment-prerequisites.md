@@ -45,7 +45,7 @@ first assessment run (below).
 | `Az.ResourceGraph` | The Collect layer's Resource Graph queries | All | Yes |
 | `Az.Resources` | Role assignment reads (permission pre-flight) | All | Yes |
 | `powershell-yaml` | Parses the `caf.*`/`waf.*` rule YAML files (`Get-RuleSet`) | All scoring (any assessment with `Rules`) | **No — install manually** |
-| `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`LandingZone`, `Management`, `Security`, `Compute`, `Cost`) | **No — install manually** |
+| `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | **No — install manually** |
 | `ImportExcel` | Excel evidence-tier report (`Export-Excel`) | `-OutputFormat Excel` | Yes |
 | `AzAPICall` | Dependency of the third-party Azure Governance Visualizer | Assessments whose `Ingest` includes `AzGovViz` | No — `Import-AzGovViz.ps1` installs it itself at first use (`Install-Module AzAPICall -Scope CurrentUser -Force`) if not already present |
 

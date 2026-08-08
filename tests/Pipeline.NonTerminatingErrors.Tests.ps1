@@ -56,24 +56,24 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
         }
 
         It 'does not throw' {
-            { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Not -Throw
+            { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Not -Throw
         }
 
         It 'records hadNonTerminatingErrors = true even though nothing threw' {
-            $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+            $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
             $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.hadNonTerminatingErrors | Should -BeTrue
             $summary.assessmentError | Should -BeNullOrEmpty
         }
 
         It 'degrades the outcome to PartialSuccess despite a clean (non-throwing) return' {
-            $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+            $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
             $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.outcome | Should -Be 'PartialSuccess'
         }
 
         It 'notes the non-terminating errors in pipeline-summary.md' {
-            $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+            $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
             $md = Get-Content (Join-Path $runFolder 'pipeline-summary.md') -Raw
             $md | Should -Match 'Non-terminating errors: yes'
         }
@@ -95,7 +95,7 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
         }
 
         It 'records permissionAudit.HadNonTerminatingErrors = true and degrades to PartialSuccess' {
-            $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+            $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
             $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.permissionAudit.HadNonTerminatingErrors | Should -BeTrue
             $summary.outcome | Should -Be 'PartialSuccess'
@@ -115,7 +115,7 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
         }
 
         It 'records hadNonTerminatingErrors = false and outcome Success' {
-            $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+            $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
             $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.hadNonTerminatingErrors | Should -BeFalse
             $summary.outcome | Should -Be 'Success'

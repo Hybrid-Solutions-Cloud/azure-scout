@@ -36,10 +36,10 @@ BeforeAll {
     # advisor row (subscription NAME not guid), cross-resource join (leftOnly), and a
     # diagnostic-coverage aggregate row (type-level, not a resource).
     $script:Findings = @(
-        (New-ReactTestFinding 'net-1' 'CAF' 'Networking' 'Pass' 'LandingZone' @(
+        (New-ReactTestFinding 'net-1' 'CAF' 'Networking' 'Pass' 'CAF: Azure Landing Zone' @(
             [pscustomobject]@{ name = 'vnet-hub'; resourceGroup = 'rg-hub'; subscriptionId = 'sub-0001'; peeringCount = 1 }
         ))
-        (New-ReactTestFinding 'net-2' 'CAF' 'Networking' 'Fail' 'LandingZone' @(
+        (New-ReactTestFinding 'net-2' 'CAF' 'Networking' 'Fail' 'CAF: Azure Landing Zone' @(
             [pscustomobject]@{ vnet = 'vnet-hub'; subnet = 'snet-app'; prefix = '10.0.0.0/24'; total = 251; used = 3; ipUtilizationPct = 1.2 }
         ) 'high')
         (New-ReactTestFinding 'sec-1' 'WAF' 'Security' 'Fail' 'Assess: Security' @(
@@ -57,8 +57,8 @@ BeforeAll {
         (New-ReactTestFinding 'diag-1' 'CAF' 'Management' 'Partial' 'Assess: Monitor' @(
             [pscustomobject]@{ type = 'microsoft.compute/disks'; total = 3; withDiag = 1; coveragePct = 33.3 }
         ))
-        (New-ReactTestFinding 'man-1' 'CAF' 'Governance' 'Manual' 'LandingZone')
-        (New-ReactTestFinding 'unk-1' 'CAF' 'Governance' 'Unknown' 'LandingZone')
+        (New-ReactTestFinding 'man-1' 'CAF' 'Governance' 'Manual' 'CAF: Azure Landing Zone')
+        (New-ReactTestFinding 'unk-1' 'CAF' 'Governance' 'Unknown' 'CAF: Azure Landing Zone')
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
@@ -142,14 +142,14 @@ Describe 'Export-React — payload contract shape (AB#6929)' {
 
     It 'assessments groups findings by the Assessment property Invoke-Assessment stamps on each' {
         $names = @($script:Payload.assessments.name | Sort-Object)
-        $names | Should -Contain 'LandingZone'
+        $names | Should -Contain 'CAF: Azure Landing Zone'
         $names | Should -Contain 'Assess: Security'
     }
 
     It 'each assessment finding id is globally unique via the slug:originalId composite' {
         $allIds = @($script:Payload.assessments | ForEach-Object { $_.findings.id })
         ($allIds | Select-Object -Unique).Count | Should -Be $allIds.Count
-        $allIds | Should -Contain 'landingzone:net-1'
+        $allIds | Should -Contain 'caf-azure-landing-zone:net-1'
     }
 }
 
@@ -200,17 +200,17 @@ Describe 'Export-React — every assessment has a real name, no "(unassigned)" b
         . "$script:Root/src/assess/Invoke-Assessment.ps1"
 
         $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests' 'assessments.psd1')
-        $spec = $manifest['LandingZone']
+        $spec = $manifest['CAF: Azure Landing Zone']
         $spec.ContainsKey('Benchmark') | Should -BeTrue -Because 'this test specifically exercises the benchmark-attribution path'
         $ruleSet = Get-RuleSet -Patterns $spec.Rules
         $benchmark = Get-Content (Join-Path $script:Root 'src' 'assess' 'benchmarks' $spec.Benchmark) -Raw | ConvertFrom-Json -Depth 100
 
-        $liveFindings = Invoke-Assessment -Collect $script:Collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment 'LandingZone'
+        $liveFindings = Invoke-Assessment -Collect $script:Collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment 'CAF: Azure Landing Zone'
         $benchmarkFindings = @($liveFindings | Where-Object { $_.Id -like 'BENCH-*' })
         $benchmarkFindings.Count | Should -BeGreaterThan 0 -Because 'sample-collect.json carries governance data, so Compare-Benchmark should produce real findings, not the BENCH-GOV-DATA guard'
         foreach ($f in $benchmarkFindings) {
             $f.PSObject.Properties['Assessment'] | Should -Not -BeNullOrEmpty
-            $f.Assessment | Should -Be 'LandingZone'
+            $f.Assessment | Should -Be 'CAF: Azure Landing Zone'
         }
 
         # And end to end: exactly one "LandingZone" assessment in the payload, no separate
@@ -218,11 +218,11 @@ Describe 'Export-React — every assessment has a real name, no "(unassigned)" b
         $liveScored = Get-Score -Findings $liveFindings
         $path = Export-React -Findings $liveScored -Collect $script:Collect -OutputPath $script:OutDir
         $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
-        @($payload.assessments | Where-Object name -eq 'LandingZone').Count | Should -Be 1
+        @($payload.assessments | Where-Object name -eq 'CAF: Azure Landing Zone').Count | Should -Be 1
         $payload.assessments.name | Should -Not -Contain '(unassigned)'
         $payload.assessments.name | Should -Not -Contain ''
-        $lzFindingIds = ($payload.assessments | Where-Object name -eq 'LandingZone').findings.id
-        $lzFindingIds | Where-Object { $_ -like 'landingzone:BENCH-*' } | Should -Not -BeNullOrEmpty
+        $lzFindingIds = ($payload.assessments | Where-Object name -eq 'CAF: Azure Landing Zone').findings.id
+        $lzFindingIds | Where-Object { $_ -like 'caf-azure-landing-zone:BENCH-*' } | Should -Not -BeNullOrEmpty
     }
 }
 
@@ -230,7 +230,7 @@ Describe 'Export-React — score formulas (AB#6929)' {
     BeforeAll {
         $script:ReportPath = Export-React -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
         $script:Payload = Get-EmbeddedPayload -Html (Get-Content $script:ReportPath -Raw)
-        $script:Lz = $script:Payload.assessments | Where-Object name -eq 'LandingZone'
+        $script:Lz = $script:Payload.assessments | Where-Object name -eq 'CAF: Azure Landing Zone'
     }
 
     It 'never emits a bare score number -- numerator/denominator/weight/excludedCount/formula all present' {
@@ -317,7 +317,7 @@ Describe 'Export-React — learnUrl resolves for every finding, never to an unre
     }
 
     It 'each finding carries its area weight, denormalised from areas[]' {
-        $lz = $script:Payload.assessments | Where-Object name -eq 'LandingZone'
+        $lz = $script:Payload.assessments | Where-Object name -eq 'CAF: Azure Landing Zone'
         $areaWeights = @{}
         foreach ($a in $lz.areas) { $areaWeights[$a.name] = $a.weight }
         foreach ($f in $lz.findings) {
@@ -339,14 +339,14 @@ Describe 'Export-React — evidence shape normalisation (AB#6929)' {
     }
 
     It 'a plain ARM-id row normalises name/id/subscriptionId directly' {
-        $f = Get-FindingById 'landingzone:net-1'
+        $f = Get-FindingById 'caf-azure-landing-zone:net-1'
         $ev = $f.evidence[0]
         $ev.resourceName | Should -Be 'vnet-hub'
         $ev.subscriptionId | Should -Be 'sub-0001'
     }
 
     It 'a subnet row (no name/id/subscription at all) still resolves resourceName from vnet/subnet' {
-        $f = Get-FindingById 'landingzone:net-2'
+        $f = Get-FindingById 'caf-azure-landing-zone:net-2'
         $ev = $f.evidence[0]
         $ev.resourceName | Should -Be 'vnet-hub/snet-app'
     }
@@ -401,7 +401,7 @@ Describe 'Export-React — evidence shape normalisation (AB#6929)' {
             Status = 'Fail'; EvidenceCount = 1
             Evidence = [pscustomobject]@{ name = 'solo-resource'; resourceGroup = 'rg-hub'; subscriptionId = 'sub-0001' }
             Remediation = 'fix it'; Manual = $false; AreaWeight = 1.0
-        } | Add-Member -NotePropertyName Assessment -NotePropertyValue 'LandingZone' -PassThru
+        } | Add-Member -NotePropertyName Assessment -NotePropertyValue 'CAF: Azure Landing Zone' -PassThru
         $bareScored = Get-Score -Findings @($bareFinding)
         { Export-React -Findings $bareScored -Collect $script:Collect -OutputPath $script:OutDir } | Should -Not -Throw
     }
@@ -416,7 +416,7 @@ Describe 'Export-React — resourceIndex + subscription attribution' {
     It 'inverts evidence into resourceIndex keyed by resourceName' {
         $script:Payload.resourceIndex.'vnet-hub' | Should -Not -BeNullOrEmpty
         $script:Payload.resourceIndex.'vnet-hub'.subscriptionId | Should -Be 'sub-0001'
-        @($script:Payload.resourceIndex.'vnet-hub'.findingIds) | Should -Contain 'landingzone:net-1'
+        @($script:Payload.resourceIndex.'vnet-hub'.findingIds) | Should -Contain 'caf-azure-landing-zone:net-1'
     }
 
     It 'a resource named by two different findings accumulates both finding ids' {
@@ -614,9 +614,9 @@ Describe 'Export-React — live (un-round-tripped) Newtonsoft JToken evidence, A
 
         $manifestPath = Join-Path $script:Root 'manifests' 'assessments.psd1'
         $script:LiveManifest = Import-PowerShellDataFile $manifestPath
-        $script:LiveSpec = $script:LiveManifest['LandingZone']
+        $script:LiveSpec = $script:LiveManifest['CAF: Azure Landing Zone']
         $script:LiveRuleSet = Get-RuleSet -Patterns $script:LiveSpec.Rules
-        $script:LiveFindings = Invoke-Assessment -Collect $script:Collect -RuleSet $script:LiveRuleSet -Assessment 'LandingZone'
+        $script:LiveFindings = Invoke-Assessment -Collect $script:Collect -RuleSet $script:LiveRuleSet -Assessment 'CAF: Azure Landing Zone'
         $script:LiveScored = Get-Score -Findings $script:LiveFindings
     }
 

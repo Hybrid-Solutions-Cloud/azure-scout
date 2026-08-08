@@ -95,11 +95,11 @@ Describe 'AB#6879 -- each assessment renders into its own folder' {
 Describe 'AB#6879 -- the slug is a valid folder name' {
 
     It 'turns the shipped assessment names into safe slugs' -ForEach @(
-        @{ Name = 'LandingZone';              Expected = 'landingzone' }
+        @{ Name = 'CAF: Azure Landing Zone';   Expected = 'caf-azure-landing-zone' }
         @{ Name = 'Assess: Cloud Governance'; Expected = 'assess-cloud-governance' }
         @{ Name = 'CAF: Governance';          Expected = 'caf-governance' }
         @{ Name = 'WAF: Cost Optimization';   Expected = 'waf-cost-optimization' }
-        @{ Name = 'AVS Landing Zone';         Expected = 'avs-landing-zone' }
+        @{ Name = 'Workload: AVS Landing Zone'; Expected = 'workload-avs-landing-zone' }
     ) {
         # The same expression the core uses.
         $Slug = ($Name.ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
@@ -219,7 +219,7 @@ Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED docume
             $script:LiveOut = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_MasterFile_" + [System.IO.Path]::GetRandomFileName())
             $script:LiveRun = & $script:LiveModule {
                 param($Fixture, $OutPath)
-                Invoke-ScoutAssessmentCore -Assessment 'LandingZone', 'Assess: Security' -FromCollect $Fixture -OutputFormat React -OutputPath $OutPath
+                Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone', 'Assess: Security' -FromCollect $Fixture -OutputFormat React -OutputPath $OutPath
             } $script:LiveFixture $script:LiveOut 3>$null
         }
         AfterAll {
@@ -244,17 +244,17 @@ Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED docume
             $end | Should -BeGreaterThan $start
             $payload = $html.Substring($start, $end - $start) | ConvertFrom-Json -Depth 100
             $names = @($payload.assessments.name)
-            $names | Should -Contain 'LandingZone'
+            $names | Should -Contain 'CAF: Azure Landing Zone'
             $names | Should -Contain 'Assess: Security'
         }
 
         It 'writes findings.json per assessment (the data R-01 kept)' {
-            Test-Path (Join-Path $script:LiveRun 'assessments/landingzone/findings.json') | Should -BeTrue
+            Test-Path (Join-Path $script:LiveRun 'assessments/caf-azure-landing-zone/findings.json') | Should -BeTrue
             Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/findings.json') | Should -BeTrue
         }
 
         It 'does NOT write a per-assessment report-react.html (the render R-01 dropped)' {
-            Test-Path (Join-Path $script:LiveRun 'assessments/landingzone/report-react.html') | Should -BeFalse
+            Test-Path (Join-Path $script:LiveRun 'assessments/caf-azure-landing-zone/report-react.html') | Should -BeFalse
             Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/report-react.html') | Should -BeFalse
         }
 

@@ -42,19 +42,19 @@ BeforeAll {
 
 Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (StrictMode sweep)' {
     It 'does not throw when -Assessment names a value that is not a key in -Manifest at all' {
-        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
+        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
         $results = Test-ScoutPermission -Assessment @('NotARealAssessmentName') -Manifest $manifest 6>$null
         @($results).Count | Should -BeGreaterThan 0
     }
 
     It 'does not throw when -Manifest itself is $null' {
-        $results = Test-ScoutPermission -Assessment @('LandingZone') -Manifest $null 6>$null
+        $results = Test-ScoutPermission -Assessment @('CAF: Azure Landing Zone') -Manifest $null 6>$null
         @($results).Count | Should -BeGreaterThan 0
     }
 
     It 'still detects the AzGovViz ingest requirement for an assessment that IS a valid manifest key' {
-        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
-        $results = Test-ScoutPermission -Assessment @('LandingZone') -Manifest $manifest 6>$null
+        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
+        $results = Test-ScoutPermission -Assessment @('CAF: Azure Landing Zone') -Manifest $manifest 6>$null
         # @() wrap is load-bearing here too: a Where-Object match of zero items
         # collapses the bare expression to $null, and $null.Count is exactly the
         # crash class this whole test file exists to guard against.
@@ -62,7 +62,7 @@ Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (Stri
     }
 
     It 'reports no Graph checks when every named assessment is missing/unknown (no AzGovViz ingest found)' {
-        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
+        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
         $results = Test-ScoutPermission -Assessment @('DoesNotExist1', 'DoesNotExist2') -Manifest $manifest 6>$null
         @($results | Where-Object Check -like 'Graph:*').Count | Should -Be 0
         # The ARM Reader @ MG root check always runs regardless.

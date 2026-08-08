@@ -5,7 +5,7 @@
 Every `caf.*.yaml` rule file previously carried `weight: 1.0`. `Get-Score` computes the CAF
 framework score as a weighted average of each area's score, weighted by `weight`
 (`src/assess/engine/Get-Score.ps1`, AB#5087). A flat weight of 1.0 across all eight CAF landing
-zone design areas means Scout's `LandingZone` roll-up treats the Governance design area (10
+zone design areas means Scout's `CAF: Azure Landing Zone` roll-up treats the Governance design area (10
 verified recommendations) as carrying exactly as much weight in the overall CAF score as the
 Network topology and connectivity design area (123 verified recommendations, ~155 counting
 numbered task steps in pages mid-rewrite). Microsoft does not publish a numeric weighting for the
@@ -60,7 +60,7 @@ has a clear place to recompute from.
 - **It does not change per-area scoring.** Each design-area assessment (see the registry entries
   added under `manifests/assessments.psd1` for AB#6797) scores only its own rules at 100% weight
   internally — the weighting only changes how the eight area scores combine into the single CAF
-  framework number inside the `LandingZone` roll-up and inside `Get-Score`'s `Frameworks` output.
+  framework number inside the `CAF: Azure Landing Zone` roll-up and inside `Get-Score`'s `Frameworks` output.
 - **It is not a coverage weight.** Scout's own rule-count-per-area (6-7 rules per file today) is
   intentionally NOT used as the weighting basis — that would reward files that happen to be
   under-built with a lower influence on the score, which is the opposite of what an honest
@@ -70,7 +70,7 @@ has a clear place to recompute from.
 ## Reconciliation
 
 Because `Get-Score`'s framework score is *computed from* the area scores it weights (not scored
-independently), the `LandingZone` roll-up's CAF framework score is guaranteed, by construction, to
+independently), the `CAF: Azure Landing Zone` roll-up's CAF framework score is guaranteed, by construction, to
 equal the weighted average of the eight `CAF: <design area>` assessments' own framework scores
 when run against the same collect.json. `tests/Assessment.Restructure.Tests.ps1` pins this with a
 non-vacuous test (break the weight, watch the reconciliation assertion fail, restore).

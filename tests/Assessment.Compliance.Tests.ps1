@@ -236,13 +236,13 @@ Describe 'AB#6795 — the assessment registry is clean' {
         $script:Manifest.Keys | Should -Not -Contain 'Policy'
     }
 
-    It 'still has Governance, the entry Policy duplicated' {
-        $script:Manifest.Keys | Should -Contain 'Governance'
+    It 'still has the Governance baseline, the entry Policy duplicated' {
+        $script:Manifest.Keys | Should -Contain 'Scout: Governance Baseline'
     }
 
-    It 'names UpdateManager and Monitoring as subsets in their own description' {
-        $script:Manifest.UpdateManager.Description | Should -Match '(?i)subset'
-        $script:Manifest.Monitoring.Description | Should -Match '(?i)subset'
+    It 'names Update Manager and Monitoring as subsets in their own description' {
+        $script:Manifest['Scout: Update Manager'].Description | Should -Match '(?i)subset'
+        $script:Manifest['Scout: Monitoring Baseline'].Description | Should -Match '(?i)subset'
     }
 
     It 'offers Assess: Compliance, routed through the compliance engine, not the YAML rule engine' {

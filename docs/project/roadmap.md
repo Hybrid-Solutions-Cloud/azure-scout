@@ -92,7 +92,7 @@ Released 3 August 2026. Every fix in this release came from running Scout agains
 Advisor ingestion is contained per subscription instead of failing tenant-wide on one unregistered
 `Microsoft.Advisor` provider; Entra ID P2-gated Graph features report `NOT LICENSED` instead of a
 misleading `DENIED`; Recovery Services vaults are collected instead of hardcoded to an empty
-array; the LandingZone assessment scores its own 13 areas instead of sweeping in every workload
+array; the `CAF: Azure Landing Zone` assessment scores its own 13 areas instead of sweeping in every workload
 rule set; `GovernanceReport` is reachable from `-OutputFormat All`; and evidence truncation is
 visible in every renderer. The v3.3 line (3.3.0 → 3.3.2) delivered the reporting rebuild of Epic
 AB#6450: conformance-gated Word/Excel/PowerPoint/PDF deliverables, managed-code figure
@@ -123,11 +123,11 @@ enumerated. See **Epic AB#6741**.
 ## CAF/WAF assessment programme
 
 **Planned, from the Epic AB#6731 audit. Scout ships one real assessment
-today: `LandingZone`.** Everything else in
+today: `CAF: Azure Landing Zone`.** Everything else in
 `manifests/assessments.psd1` is either a filtered slice of that same rule set
 (the 15 per-category entries, prefixed `Assess: ` as of this release — see the
 [Assessment Registry](../design/assessment-registry.md)), a sub-bundle, or
-`Cost`. Microsoft's own [assessment catalogue](https://learn.microsoft.com/assessments/browse/)
+`Scout: Cost Optimization`. Microsoft's own [assessment catalogue](https://learn.microsoft.com/assessments/browse/)
 lists 56 published assessments; of those, an owner-decided set of **14** are
 Scout's build targets for the next several releases — chosen because Scout
 already collects data for most of them, or is uniquely positioned to score
@@ -136,7 +136,7 @@ them (Azure Local, in particular — see below).
 | # | Target | Scout's starting position |
 |---|---|---|
 | 1 | Azure Well-Architected Review | `waf.*` rule files exist, tagged by pillar — **~15% solid coverage** against the WAF checklist's ~26 machine-assessable items |
-| 2 | Azure Landing Zone Review | `LandingZone` already aims at this — **~10%** of CAF's ~365 verified design-area recommendations |
+| 2 | Azure Landing Zone Review | `CAF: Azure Landing Zone` already aims at this — **~10%** of CAF's ~365 verified design-area recommendations |
 | 3 | Azure Local \| Well-Architected Review | **Scout's strongest differentiator** — 16 Hybrid collectors, no WAF-shaped rule output yet |
 | 4 | WAF AI workload | AI is Scout's best-inventoried category; rules are thin (`caf.ai`, 5 rules) |
 | 5 | WAF Azure Virtual Desktop workload | 7 AVD collectors exist; no AVD-specific rule file |

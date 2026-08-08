@@ -593,9 +593,9 @@ Function Invoke-AzureScout {
             $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
-        # AB#6795 -- 'Estate' no longer exists in the registry; 'LandingZone' is the same default
-        # used everywhere else an assessment name is needed and none was given.
-        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('LandingZone') } }
+        # AB#6795 -- 'Estate' no longer exists in the registry; 'CAF: Azure Landing Zone' is the
+        # same default used everywhere else an assessment name is needed and none was given.
+        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('CAF: Azure Landing Zone') } }
         if ($PSBoundParameters.ContainsKey('Scope'))        { $assessArgs.Scope = $Scope }
         if ($PSBoundParameters.ContainsKey('OutputFormat')) { $assessArgs.OutputFormat = @($OutputFormat) }
         if ($ReportDir)                                     { $assessArgs.OutputPath = $ReportDir }
@@ -606,7 +606,7 @@ Function Invoke-AzureScout {
         if ($PermissionAudit.IsPresent)                     { $assessArgs.PermissionAudit = $true }
         if ($CollectOnly.IsPresent)                         { $assessArgs.CollectOnly = $true }
         if ($FromCollect)                                   { $assessArgs.FromCollect = $FromCollect }
-        # AB#6827 -- a standalone `-Assessment 'DevOps Capability Assessment' -IncludeDevOps` run
+        # AB#6827 -- a standalone `-Assessment 'Microsoft: DevOps Capability' -IncludeDevOps` run
         # (no -InventoryAndAssessment) needs these threaded through too, not just the deferred/
         # combined path below.
         if ($IncludeDevOps.IsPresent)                       { $assessArgs.IncludeDevOps = $true }
@@ -623,7 +623,7 @@ Function Invoke-AzureScout {
         # bag, so running it first and handing those rows to the assessment collects once.
         # AB#6775 -- $wizardRunBoth used to be set from exactly one source, $wizard.RunBoth, so
         # the combined run was reachable only by answering a prompt. `Invoke-AzureScout
-        # -Assessment LandingZone -InventoryAndAssessment` had no equivalent at all, which meant
+        # -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment` had no equivalent at all, which meant
         # CI and every scripted caller were locked out of the collect-once path and had to run
         # the command twice, collecting from Azure twice, to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }

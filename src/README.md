@@ -31,17 +31,17 @@ without re-scanning. **Read-only throughout** (Reader RBAC + read-only Graph).
 
 ```powershell
 # Landing zone audit only, HTML + deck
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Html,Pptx
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html,Pptx
 
 # Two assessments at once
-Invoke-AzureScout -Assessment LandingZone,Identity
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone','Assess: Identity'
 
 # Everything, every format
 Invoke-AzureScout -Assessment All -OutputFormat All
 
 # Collect once, assess later (no re-scan)
-Invoke-AzureScout -Assessment LandingZone -CollectOnly
-Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/<run>/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/<run>/collect.json -OutputFormat PowerBi
 
 # Pre-flight permission check
 Invoke-AzureScout -Assessment All -PermissionAudit

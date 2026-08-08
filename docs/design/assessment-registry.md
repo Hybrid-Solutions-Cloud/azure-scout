@@ -13,7 +13,7 @@ count written in prose. This page explains how the entries are *structured*.
 
 ::: warning What those entries actually break down into
 Since the AB#6746 restructure the per-pillar and per-design-area entries are **real scored
-assessments in their own right**, not views over a single roll-up. `LandingZone` remains the
+assessments in their own right**, not views over a single roll-up. `CAF: Azure Landing Zone` remains the
 roll-up that pulls in every CAF and WAF rule file at once. What is left to explain is the rest:
 
 - **19 per-category slices**, prefixed `Assess: ` (`Assess: Compute`,
@@ -28,11 +28,11 @@ roll-up that pulls in every CAF and WAF rule file at once. What is left to expla
   and per-CAF-design-area assessments exist to replace them (see the
   14-target programme on the
   [Roadmap](../project/roadmap.md#caf-waf-assessment-programme)).
-- **3 sub-bundles**, narrower still than a category (`Governance`,
-  `UpdateManager`, `Monitoring`). `UpdateManager` and `Monitoring` are each a
+- **3 sub-bundles**, narrower still than a category (`Scout: Governance Baseline`,
+  `Scout: Update Manager`, `Scout: Monitoring Baseline`). `Scout: Update Manager` and `Scout: Monitoring Baseline` are each a
   strict subset of a broader entry above (`Assess: Management` and
   `Assess: Monitor` respectively) and now say so in their description
-  (AB#6795). `Policy`, which used to sit here byte-identical to `Governance`
+  (AB#6795). `Policy`, which used to sit here byte-identical to `Scout: Governance Baseline`
   (same `Category`/`Collect`/`Ingest`/`Rules`), was deleted rather than
   fixed — script `-Assessment Governance` instead.
 - **`Estate` was removed entirely (AB#6795)** — it declared no `Rules`, so it
@@ -51,9 +51,9 @@ roll-up that pulls in every CAF and WAF rule file at once. What is left to expla
   `src/assess/engine/Get-ScoutComplianceScore.ps1` and
   `src/assess/engine/Resolve-ScoutAssignedInitiative.ps1`.
 
-That leaves **4 genuinely distinct rule-scored assessments**: `LandingZone`
-(the roll-up), `Cost` (targeted cost/TCO pull), `CrossResource` (findings
-that need two collected datasets correlated), and `SMART` (migration
+That leaves **4 genuinely distinct rule-scored assessments**: `CAF: Azure Landing Zone`
+(the roll-up), `Scout: Cost Optimization` (targeted cost/TCO pull), `Scout: Cross-Resource` (findings
+that need two collected datasets correlated), and `Microsoft: SMART Migration` (migration
 readiness, scored against its own enumerated source — see
 [SMART's framework page](../frameworks/smart-question-set.md)) — plus the one
 compliance-engine assessment above.
@@ -65,7 +65,7 @@ layer (`Invoke-Collect.ps1`) **does** use it to filter which Resource Graph
 queries run — every query is tagged with the category name(s) whose rule
 files reference its output, including cross-domain references, and
 `subscriptions` always runs as base data. Passing `Collect = @('*')` (as
-`LandingZone` does) runs every query. What else differs
+`CAF: Azure Landing Zone` does) runs every query. What else differs
 between assessments: which **ingestors** run (`Ingest` — `Governance`,
 native and the default for the 5 governance-data assessments; `AdvisorScores`;
 or the opt-in third-party `AzGovViz`), and which **rule files** are scored
@@ -86,8 +86,8 @@ permissions): [Auth & permissions per scan type](../assessment/assessment-permis
 
 | Assessment | Description | Category | Rules | Frameworks | Default report tiers | Tags |
 |---|---|---|---|---|---|---|
-| `LandingZone` | CAF/WAF landing zone audit (all areas) | `*` | `caf.*`, `waf.*`, `xr.*` | CAF: all 8 areas · WAF: all 5 pillars · XR: Cross-resource posture | PowerBi, Html, Pptx, React | caf, waf, landing-zone, cross-resource |
-| `Cost` | Cost / TCO data pull | `*` | `waf.cost` | WAF: Cost optimization | Excel, PowerBi | waf, cost |
+| `CAF: Azure Landing Zone` | CAF/WAF landing zone audit (all areas) | `*` | `caf.*`, `waf.*`, `xr.*` | CAF: all 8 areas · WAF: all 5 pillars · XR: Cross-resource posture | PowerBi, Html, Pptx, React | caf, waf, landing-zone, cross-resource |
+| `Scout: Cost Optimization` | Cost / TCO data pull | `*` | `waf.cost` | WAF: Cost optimization | Excel, PowerBi | waf, cost |
 
 ## Compliance (engine-scored, not a YAML rule set)
 
@@ -122,9 +122,9 @@ Legacy unprefixed names (`Management`, `Compute`, …) still resolve — see the
 
 | Assessment | Description | Parent category | Rules | Default report tiers |
 |---|---|---|---|---|
-| `Governance` | Management sub-bundle — policy assignments, locks, budgets | Management | `caf.governance` | Html |
-| `UpdateManager` | Management sub-bundle (subset of `Assess: Management`) — patch/update compliance only | Management | `caf.management` | Html |
-| `Monitoring` | Monitor sub-bundle (subset of `Assess: Monitor`) — diagnostic settings coverage only | Monitor | `waf.operational` | Html |
+| `Scout: Governance Baseline` | Management sub-bundle — policy assignments, locks, budgets | Management | `caf.governance` | Html |
+| `Scout: Update Manager` | Management sub-bundle (subset of `Assess: Management`) — patch/update compliance only | Management | `caf.management` | Html |
+| `Scout: Monitoring Baseline` | Monitor sub-bundle (subset of `Assess: Monitor`) — diagnostic settings coverage only | Monitor | `waf.operational` | Html |
 
 ## Migration readiness and cross-resource correlation
 
@@ -132,10 +132,10 @@ Two entries that don't fit the roll-up/category/sub-bundle shape above.
 
 | Assessment | Description | Category | Rules | Frameworks | Default report tiers | Tags |
 |---|---|---|---|---|---|---|
-| `SMART` | Strategic Migration Assessment — migration readiness, scored against its own enumerated source (see [SMART's framework page](../frameworks/smart-question-set.md)) | Migration | `smart.*` | CAF: Migrate · SMART: readiness | Html, Excel | caf, migration, smart |
-| `CrossResource` | Findings that require two collected datasets correlated (e.g. "which VMs have no backup") | `*` | `xr.*` | XR: Cross-resource posture | Html, Excel | cross-resource, waf, caf |
+| `Microsoft: SMART Migration` | Strategic Migration Assessment — migration readiness, scored against its own enumerated source (see [SMART's framework page](../frameworks/smart-question-set.md)) | Migration | `smart.*` | CAF: Migrate · SMART: readiness | Html, Excel | caf, migration, smart |
+| `Scout: Cross-Resource` | Findings that require two collected datasets correlated (e.g. "which VMs have no backup") | `*` | `xr.*` | XR: Cross-resource posture | Html, Excel | cross-resource, waf, caf |
 
-`SMART` additionally declares `RequiresData` — the wizard hides it unless the
+`Microsoft: SMART Migration` additionally declares `RequiresData` — the wizard hides it unless the
 current tenant's `collect.json` actually has Azure Migrate project,
 discovery-site, or migration-service data, so a tenant that hasn't started a
 migration doesn't get a manufactured "Unknown" result offered as a real
@@ -147,8 +147,8 @@ choice.
 Invoke-AzureScout -Assessment 'Assess: Management'                    # governance + policy + update manager, scored
 Invoke-AzureScout -Assessment 'Assess: Monitor'                       # monitoring/diagnostics only
 Invoke-AzureScout -Assessment 'Assess: Networking','Assess: Security' -OutputFormat Html
-Invoke-AzureScout -Assessment LandingZone -OutputFormat PowerBi,Html,Pptx
-Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment      # collect once, get both reports
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat PowerBi,Html,Pptx
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment      # collect once, get both reports
 ```
 
 ## Adding an assessment

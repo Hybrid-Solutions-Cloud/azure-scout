@@ -641,14 +641,24 @@ function Export-React {
         'assess-web'           = 'https://learn.microsoft.com/azure/app-service/overview'
     }
     $specialtyLinks = @{
+        # Old (pre-namespace) slugs kept beside the new ones -- a payload rendered from an
+        # older run's findings still carries the old assessment names.
         'cost'                            = 'https://learn.microsoft.com/azure/well-architected/cost-optimization/'
+        'scout-cost-optimization'         = 'https://learn.microsoft.com/azure/well-architected/cost-optimization/'
         'crossresource'                   = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
+        'scout-cross-resource'            = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
         'devops-capability-assessment'    = 'https://learn.microsoft.com/azure/devops/'
+        'microsoft-devops-capability'     = 'https://learn.microsoft.com/azure/devops/'
         'finops-review'                   = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
+        'microsoft-finops-review'         = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
         'governance'                      = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
+        'scout-governance-baseline'       = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
         'monitoring'                      = 'https://learn.microsoft.com/azure/azure-monitor/overview'
+        'scout-monitoring-baseline'       = 'https://learn.microsoft.com/azure/azure-monitor/overview'
         'smart'                           = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
+        'microsoft-smart-migration'       = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
         'updatemanager'                   = 'https://learn.microsoft.com/azure/update-manager/overview'
+        'scout-update-manager'            = 'https://learn.microsoft.com/azure/update-manager/overview'
     }
     # Finding id/title overrides -- ordered list, first match wins. Checked BEFORE the
     # assessment-level map (see precedence note above).
@@ -691,12 +701,12 @@ function Export-React {
     # the owner's team already hit once and corrected in the mockup).
     function Get-ReactAssessmentLearnUrl {
         param([string] $Slug)
-        if ($Slug -eq 'landingzone') { return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/' }
+        if ($Slug -in @('landingzone', 'caf-azure-landing-zone')) { return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/' }
         if ($cafDesignAreaLinks.ContainsKey($Slug)) { return $cafDesignAreaLinks[$Slug] }
         if ($wafPillarLinks.ContainsKey($Slug)) { return $wafPillarLinks[$Slug] }
         if ($domainLinks.ContainsKey($Slug)) { return $domainLinks[$Slug] }
-        if ($Slug -like 'avs-*') { return 'https://learn.microsoft.com/azure/azure-vmware/' }
-        if ($Slug -eq 'casa') { return 'https://learn.microsoft.com/security/' }
+        if ($Slug -like 'avs-*' -or $Slug -like 'workload-avs*') { return 'https://learn.microsoft.com/azure/azure-vmware/' }
+        if ($Slug -in @('casa', 'microsoft-casa')) { return 'https://learn.microsoft.com/security/' }
         if ($specialtyLinks.ContainsKey($Slug)) { return $specialtyLinks[$Slug] }
         return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
     }

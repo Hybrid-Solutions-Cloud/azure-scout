@@ -64,13 +64,13 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
     }
 
     It 'returns the run folder path' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $runFolder | Should -Not -BeNullOrEmpty
         Test-Path $runFolder | Should -BeTrue
     }
 
     It 'writes pipeline-summary.json with every documented schema key' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $summaryPath = Join-Path $runFolder 'pipeline-summary.json'
         Test-Path $summaryPath | Should -BeTrue
 
@@ -85,19 +85,19 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
     }
 
     It 'writes a human-readable pipeline-summary.md' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         Test-Path (Join-Path $runFolder 'pipeline-summary.md') | Should -BeTrue
     }
 
     It 'computes outcome Success when the audit passes and the orchestrator returns cleanly' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'Success'
         $summary.assessmentError | Should -BeNullOrEmpty
     }
 
     It 'computes findings counts by Status from findings.json' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.findingsByStatus.Pass   | Should -Be 2
         $summary.findingsByStatus.Fail   | Should -Be 1
@@ -105,17 +105,17 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
     }
 
     It 'sets non-interactive preferences for the duration of the orchestrator call' {
-        Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath | Out-Null
+        Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath | Out-Null
         "$script:seenConfirm"  | Should -Be 'None'
         "$script:seenProgress" | Should -Be 'SilentlyContinue'
     }
 
     It 'does not throw' {
-        { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Not -Throw
+        { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Not -Throw
     }
 
     It 'threads -ManagementGroupId and -Category through to the orchestrator call' {
-        Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath -ManagementGroupId 'contoso-root-mg' -Category 'Security' | Out-Null
+        Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath -ManagementGroupId 'contoso-root-mg' -Category 'Security' | Out-Null
         Should -Invoke Invoke-ScoutAssessmentCore -ParameterFilter {
             -not $PermissionAudit -and $ManagementGroupId -eq 'contoso-root-mg' -and ($Category -contains 'Security')
         } -Times 1
@@ -135,12 +135,12 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
     }
 
     It 'never calls the assessment core -PermissionAudit mode' {
-        Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath -SkipPermissionAudit | Out-Null
+        Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath -SkipPermissionAudit | Out-Null
         Should -Invoke Invoke-ScoutAssessmentCore -ParameterFilter { $PermissionAudit } -Times 0 -Exactly
     }
 
     It 'records the audit as Skipped in the summary' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath -SkipPermissionAudit
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath -SkipPermissionAudit
         $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.permissionAudit.Skipped | Should -BeTrue
         $summary.permissionAudit.Ran     | Should -BeFalse
@@ -162,17 +162,17 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
     }
 
     It 'does not throw -- degrades to PartialSuccess instead of killing the run' {
-        { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Not -Throw
+        { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Not -Throw
     }
 
     It 'recovers the run folder the orchestrator had already created before it threw' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $runFolder | Should -Not -BeNullOrEmpty
         Test-Path (Join-Path $runFolder 'collect.json') | Should -BeTrue
     }
 
     It 'computes outcome PartialSuccess and captures the error message' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'PartialSuccess'
         $summary.assessmentError | Should -Match 'simulated exporter failure'
@@ -193,11 +193,11 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)
     }
 
     It 'does not throw even when the permission audit hard-fails' {
-        { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Not -Throw
+        { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Not -Throw
     }
 
     It 'computes outcome PartialSuccess despite a clean orchestrator run' {
-        $runFolder = Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath
+        $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'PartialSuccess'
         $summary.permissionAudit.Ok | Should -BeFalse
@@ -215,16 +215,16 @@ Describe 'Invoke-ScoutPipeline -- Failed (assess returns nothing)' {
     }
 
     It 'throws' {
-        { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Throw
+        { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Throw
     }
 
     It 'sets $global:LASTEXITCODE to 1' {
-        try { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath }
+        try { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath }
         catch { Write-Verbose "Expected failure captured: $_" -Verbose:$false }
         $global:LASTEXITCODE | Should -Be 1
     }
 
     It 'the thrown message mentions the run produced no output' {
-        { Invoke-ScoutPipeline -Assessment LandingZone -OutputPath $script:outPath } | Should -Throw -ExpectedMessage '*produced no output*'
+        { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Throw -ExpectedMessage '*produced no output*'
     }
 }

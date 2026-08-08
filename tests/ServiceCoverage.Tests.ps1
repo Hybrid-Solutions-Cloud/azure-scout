@@ -232,7 +232,7 @@ Describe 'SMART is gated on real data (AB#6832)' {
 
     It 'reports Unknown, not Pass, when the Migration collectors returned nothing' {
         $Empty = [pscustomobject]@{ domains = [pscustomobject]@{ migration = [pscustomobject]@{ migrateProjects = @() } } }
-        $Findings = @(Invoke-Assessment -Collect $Empty -RuleSet @($script:SmartSet) -Assessment 'SMART')
+        $Findings = @(Invoke-Assessment -Collect $Empty -RuleSet @($script:SmartSet) -Assessment 'Microsoft: SMART Migration')
         $Findings.Count | Should -Be 1
         $Findings[0].Status | Should -Be 'Unknown'
         $Findings[0].Remediation | Should -Match 'Azure Migrate projects'
@@ -243,7 +243,7 @@ Describe 'SMART is gated on real data (AB#6832)' {
         # scores anything.
         $Populated = [pscustomobject]@{ domains = [pscustomobject]@{ migration = [pscustomobject]@{
             migrateProjects = @([pscustomobject]@{ id = '/subscriptions/s1/x'; name = 'proj-1' }) } } }
-        $Findings = @(Invoke-Assessment -Collect $Populated -RuleSet @($script:SmartSet) -Assessment 'SMART')
+        $Findings = @(Invoke-Assessment -Collect $Populated -RuleSet @($script:SmartSet) -Assessment 'Microsoft: SMART Migration')
         $Findings[0].Status | Should -Be 'Pass'
     }
 

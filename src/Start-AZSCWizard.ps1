@@ -253,7 +253,7 @@ function Start-AZSCWizard {
         # release. Found while adding the SMART entry below (AB#6832).
         $moduleRoot = Split-Path $PSScriptRoot -Parent
         $manifestPath = Join-Path $moduleRoot 'manifests/assessments.psd1'
-        $assessmentNames = @('LandingZone')
+        $assessmentNames = @('CAF: Azure Landing Zone')
         $assessmentManifest = $null
         if (Test-Path $manifestPath) {
             try {
@@ -266,11 +266,11 @@ function Start-AZSCWizard {
                 # product from an assessment, not a broken one.)
                 $assessmentNames = @(Get-ScoutAvailableAssessment -Manifest $assessmentManifest)
                 if ($assessmentNames.Count -eq 0) {
-                    Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering LandingZone only.'
-                    $assessmentNames = @('LandingZone')
+                    Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering ''CAF: Azure Landing Zone'' only.'
+                    $assessmentNames = @('CAF: Azure Landing Zone')
                 }
             }
-            catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to LandingZone: $_" }
+            catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to 'CAF: Azure Landing Zone': $_" }
         }
         else {
             # AB#6754 -- this used to be reached on every run, because the path climbed three
@@ -279,7 +279,7 @@ function Start-AZSCWizard {
             # noticed for several releases. It is a warning now: reaching it means the module
             # layout is wrong, and the operator should see a short menu explained rather than a
             # short menu asserted.
-            Write-Warning "Start-AZSCWizard: the assessment registry was not found at '$manifestPath' — offering LandingZone only. This is a packaging fault, not an empty catalogue."
+            Write-Warning "Start-AZSCWizard: the assessment registry was not found at '$manifestPath' — offering 'CAF: Azure Landing Zone' only. This is a packaging fault, not an empty catalogue."
         }
 
         # An assessment declaring RequiresData is hidden until the data it scores actually exists
@@ -322,7 +322,7 @@ function Start-AZSCWizard {
         # Registry keys and the returned selection are untouched — grouping changes
         # what the operator SEES, never what the checklist RETURNS.
         $assessmentGroups = Group-AZSCWizardAssessment -Names $assessmentNames
-        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups $assessmentGroups -DefaultSelected @('LandingZone')
+        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups $assessmentGroups -DefaultSelected @('CAF: Azure Landing Zone')
         if ($null -eq $chosen) { return $null }
         $answers.Assessment = $chosen
     }

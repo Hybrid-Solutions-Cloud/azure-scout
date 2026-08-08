@@ -73,7 +73,7 @@ Describe 'Single entry point — parameter surface' {
 Import-Module '$modulePath' -Force -ErrorAction Stop
 `$PSModuleAutoloadingPreference = 'None'
 try {
-    Invoke-ScoutAssessment -Assessment LandingZone
+    Invoke-ScoutAssessment -Assessment 'CAF: Azure Landing Zone'
     exit 1
 }
 catch [System.Management.Automation.CommandNotFoundException] {
@@ -90,7 +90,7 @@ catch {
 
 Describe 'Single entry point — output format guards' {
     It 'rejects an inventory-only format in assessment mode' {
-        { Invoke-AzureScout -Assessment LandingZone -OutputFormat Markdown } |
+        { Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Markdown } |
             Should -Throw -ExpectedMessage '*inventory-only*'
     }
 
@@ -227,7 +227,7 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
     }
 
     It 'orders the headings CAF, WAF, Specialized, deep-dives' {
-        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('LandingZone') }
+        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('CAF: Azure Landing Zone') }
         @($groups.Keys) | Should -Be @(
             'Cloud Adoption Framework (CAF)',
             'Well-Architected Framework (WAF)',
@@ -238,18 +238,18 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
 
     It 'sorts each prefix family into its own group' {
         $groups = & $script:Module {
-            Group-AZSCWizardAssessment -Names @('CAF: Security', 'WAF: Security', 'Assess: Security', 'LandingZone')
+            Group-AZSCWizardAssessment -Names @('CAF: Security', 'WAF: Security', 'Assess: Security', 'Scout: Cost Optimization')
         }
         $groups['Cloud Adoption Framework (CAF)']   | Should -Be @('CAF: Security')
         $groups['Well-Architected Framework (WAF)'] | Should -Be @('WAF: Security')
         $groups['Service category deep-dives']      | Should -Be @('Assess: Security')
-        $groups['Specialized reviews']              | Should -Be @('LandingZone')
+        $groups['Specialized reviews']              | Should -Be @('Scout: Cost Optimization')
     }
 
     It 'never hides an unknown/future key — it lands under Specialized reviews' {
-        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('LandingZone', 'Some Future Review') }
+        $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('Scout: Cost Optimization', 'Some Future Review') }
         $groups['Specialized reviews'] | Should -Contain 'Some Future Review'
-        $groups['Specialized reviews'] | Should -Contain 'LandingZone'
+        $groups['Specialized reviews'] | Should -Contain 'Scout: Cost Optimization'
     }
 
     It 'a grouped checklist returns the same raw keys as the flat form' {
@@ -275,25 +275,25 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
             Read-AZSCWizardChecklist -Title 'x' -Groups ([ordered]@{
                 'Cloud Adoption Framework (CAF)'   = @('CAF: A', 'CAF: B')
                 'Well-Architected Framework (WAF)' = @('WAF: A')
-                'Specialized reviews'              = @('LandingZone')
+                'Specialized reviews'              = @('Scout: Cost Optimization')
                 'Service category deep-dives'      = @()
             })
         }
-        $result | Should -Be @('CAF: B', 'LandingZone')
+        $result | Should -Be @('CAF: B', 'Scout: Cost Optimization')
     }
 
-    It 'LandingZone is still the default selection at the wizard call site' {
+    It 'CAF: Azure Landing Zone is still the default selection at the wizard call site' {
         $source = Get-Content (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1') -Raw
-        $source | Should -Match "Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups \`$assessmentGroups -DefaultSelected @\('LandingZone'\)"
+        $source | Should -Match "Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups \`$assessmentGroups -DefaultSelected @\('CAF: Azure Landing Zone'\)"
     }
 
     It 'a grouped checklist honours -DefaultSelected on a bare Enter' {
         $result = & $script:Module {
             param($n)
             Mock -CommandName Read-Host -MockWith { '' }
-            Read-AZSCWizardChecklist -Title 'x' -Groups (Group-AZSCWizardAssessment -Names $n) -DefaultSelected @('LandingZone')
+            Read-AZSCWizardChecklist -Title 'x' -Groups (Group-AZSCWizardAssessment -Names $n) -DefaultSelected @('CAF: Azure Landing Zone')
         } $script:RegistryKeys
-        $result | Should -Be @('LandingZone')
+        $result | Should -Be @('CAF: Azure Landing Zone')
     }
 }
 
@@ -302,12 +302,12 @@ Describe 'Wizard — equivalent command rendering' {
         $line = & $script:Module {
             Format-AZSCWizardCommand -Answers @{
                 TenantID     = '00000000-0000-0000-0000-000000000000'
-                Assessment   = @('LandingZone')
+                Assessment   = @('CAF: Azure Landing Zone')
                 OutputFormat = @('Html')
             }
         }
         $line | Should -BeLike 'Invoke-AzureScout *'
-        $line | Should -BeLike '*-Assessment LandingZone*'
+        $line | Should -BeLike "*-Assessment 'CAF: Azure Landing Zone'*"
         $line | Should -BeLike '*-OutputFormat Html*'
         $line | Should -BeLike '*-TenantID 00000000-0000-0000-0000-000000000000*'
     }

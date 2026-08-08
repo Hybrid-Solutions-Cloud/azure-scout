@@ -39,15 +39,15 @@ $script:ScoutHeldRenderers = @(
     re-scanning. Read-only throughout.
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment LandingZone -OutputFormat Html,Pptx
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html,Pptx
 
 .EXAMPLE
     Invoke-AzureScout -Assessment 'Assess: Management'   # governance/policy/update-manager, scored
     Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat Html
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment LandingZone -CollectOnly
-    Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
 
 .NOTES
     Tracks ADO Epic AB#5023 (Feature AB#5024, Story AB#5026) and Epic AB#5056.
@@ -79,10 +79,10 @@ function Invoke-ScoutAssessmentCore {
     param(
         # AB#6795 -- 'Estate' (Rules = @(), a full-inventory pull with no scoring) was removed
         # from the assessment registry entirely; it is not this platform's job to double as the
-        # inventory tool. 'LandingZone' is the existing pre-checked default everywhere else
-        # (Get-ScoutAvailableAssessment, the wizard), so a bare -CollectOnly / -FromCollect call
-        # with no explicit -Assessment now defaults to the same entry an interactive run would.
-        [string[]] $Assessment = @('LandingZone'),   # one, many, or 'All'
+        # inventory tool. 'CAF: Azure Landing Zone' is the existing pre-checked default everywhere
+        # else (Get-ScoutAvailableAssessment, the wizard), so a bare -CollectOnly / -FromCollect
+        # call with no explicit -Assessment now defaults to the same entry an interactive run would.
+        [string[]] $Assessment = @('CAF: Azure Landing Zone'),   # one, many, or 'All'
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Assessment registry keys renamed into namespaces (AB#7188 phase 2).** Twelve entries
+  gained a source prefix so the wizard menu groups by who owns the checklist:
+  `LandingZone` → `CAF: Azure Landing Zone`; `CASA` → `Microsoft: CASA`;
+  `DevOps Capability Assessment` → `Microsoft: DevOps Capability`; `SMART` →
+  `Microsoft: SMART Migration`; `FinOps Review` → `Microsoft: FinOps Review`; `Cost` →
+  `Scout: Cost Optimization`; `CrossResource` → `Scout: Cross-Resource`; `Monitoring` →
+  `Scout: Monitoring Baseline`; `UpdateManager` → `Scout: Update Manager`; `Governance` →
+  `Scout: Governance Baseline`; `AVS Workload` → `Workload: AVS`; `AVS Landing Zone` →
+  `Workload: AVS Landing Zone`. All `CAF: *`, `WAF: *`, and `Assess: *` keys are unchanged.
+  **Every old name keeps working**: `Resolve-ScoutAssessmentName` aliases each old key onto
+  its new entry with a one-line deprecation warning naming the replacement, so
+  `-Assessment LandingZone` still runs the (renamed) landing-zone audit end to end. The
+  default assessment everywhere (`Invoke-AzureScout`, `Invoke-ScoutPipeline`, the wizard's
+  pre-checked selection) is now spelled `CAF: Azure Landing Zone`. The alias contract is
+  pinned by `tests/Assessment.NameAliases.Tests.ps1`.
+
 ## [3.7.0] - 2026-08-08 - the network picture, completed
 
 ### Added

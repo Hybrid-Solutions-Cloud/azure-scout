@@ -52,7 +52,7 @@ arithmetic is Scout's.
 each Area and Framework — it does not run a second rule pass, and no rule file is duplicated for
 the `WAF Maturity Model` registry entry (`manifests/assessments.psd1`), which uses the exact same
 `Rules` glob (`waf.reliability`, `waf.security`, `waf.cost`, `waf.operational`, `waf.performance`)
-as the five per-pillar assessments and the `LandingZone` roll-up. Running the WAF Maturity Model
+as the five per-pillar assessments and the `CAF: Azure Landing Zone` roll-up. Running the WAF Maturity Model
 assessment and running the five WAF pillar assessments against the same collect.json produces
 identical percentage scores; the maturity model assessment differs only in that its report
 surfaces `MaturityLevel` alongside the percentage, per pillar.

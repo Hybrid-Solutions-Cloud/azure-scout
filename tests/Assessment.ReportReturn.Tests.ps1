@@ -33,7 +33,7 @@ Describe 'Assessment core return value with the React renderer' {
     It 'returns a single run-folder path (string), not an array, when React is included' {
         $result = & $script:Module {
             param($fixture, $outRoot)
-            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React, Json -OutputPath $outRoot
+            Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $fixture -OutputFormat React, Json -OutputPath $outRoot
         } $script:fixture $script:outRoot
 
         @($result).Count | Should -Be 1
@@ -45,7 +45,7 @@ Describe 'Assessment core return value with the React renderer' {
     It 'produces a self-contained React report with no external CDN references' {
         $run  = & $script:Module {
             param($fixture, $outRoot)
-            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
+            Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
         } $script:fixture $script:outRoot
         $html = Join-Path $run 'report-react.html'
 
@@ -59,7 +59,7 @@ Describe 'Assessment core return value with the React renderer' {
         # second record, proving the drift wiring runs inside the orchestrator.
         & $script:Module {
             param($fixture, $outRoot)
-            Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
+            Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
         } $script:fixture $script:outRoot | Out-Null
         $histFile = Join-Path $script:outRoot '.scout-history/findings-history.json'
         Test-Path $histFile | Should -BeTrue

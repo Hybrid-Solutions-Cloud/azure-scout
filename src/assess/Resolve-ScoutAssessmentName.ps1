@@ -53,9 +53,34 @@ function Resolve-ScoutAssessmentName {
     $known = [System.Collections.Generic.HashSet[string]]::new(
         [string[]] @($Manifest.Keys), [System.StringComparer]::OrdinalIgnoreCase)
 
+    # The registry-key namespace rename: twelve entries gained a namespace prefix
+    # (CAF: / Microsoft: / Scout: / Workload:). Same contract as the AB#6762 layer below —
+    # every old key keeps working, with a warning naming the replacement.
+    $aliasMap = @{
+        'LandingZone'                    = 'CAF: Azure Landing Zone'
+        'CASA'                           = 'Microsoft: CASA'
+        'DevOps Capability Assessment'   = 'Microsoft: DevOps Capability'
+        'SMART'                          = 'Microsoft: SMART Migration'
+        'FinOps Review'                  = 'Microsoft: FinOps Review'
+        'Cost'                           = 'Scout: Cost Optimization'
+        'CrossResource'                  = 'Scout: Cross-Resource'
+        'Monitoring'                     = 'Scout: Monitoring Baseline'
+        'UpdateManager'                  = 'Scout: Update Manager'
+        'Governance'                     = 'Scout: Governance Baseline'
+        'AVS Workload'                   = 'Workload: AVS'
+        'AVS Landing Zone'               = 'Workload: AVS Landing Zone'
+    }
+
     foreach ($n in @($Name)) {
         if ([string]::IsNullOrWhiteSpace($n)) { continue }
         if ($known.Contains($n)) { $n; continue }
+
+        if ($aliasMap.ContainsKey($n) -and $known.Contains($aliasMap[$n])) {
+            $new = $aliasMap[$n]
+            Write-Warning "'$n' is now '$new'; the old name keeps working."
+            $new
+            continue
+        }
 
         $prefixed = "Assess: $n"
         if ($known.Contains($prefixed)) {

@@ -68,7 +68,7 @@ Describe 'The React-only report hold (AB#6922)' {
             $script:OutAll = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_Hold_All_" + [System.IO.Path]::GetRandomFileName())
             $script:RunAll = & $script:Module {
                 param($Fixture, $OutPath)
-                Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $Fixture -OutputFormat All -OutputPath $OutPath
+                Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $Fixture -OutputFormat All -OutputPath $OutPath
             } $script:Fixture $script:OutAll 3>$null
         }
         AfterAll {
@@ -105,7 +105,7 @@ Describe 'The React-only report hold (AB#6922)' {
             # warning stream into the output stream and partition it by record type instead.
             $captured = & $script:Module {
                 param($Fixture, $OutPath)
-                Invoke-ScoutAssessmentCore -Assessment LandingZone -FromCollect $Fixture -OutputFormat Word -OutputPath $OutPath
+                Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $Fixture -OutputFormat Word -OutputPath $OutPath
             } $script:Fixture $out 3>&1
             $warnings = @($captured | Where-Object { $_ -is [System.Management.Automation.WarningRecord] } | ForEach-Object { [string]$_ })
             $run = @($captured | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] }) | Select-Object -Last 1

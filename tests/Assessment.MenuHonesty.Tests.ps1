@@ -66,9 +66,9 @@ Describe 'AB#6762 — a scripted call using a legacy name still works' {
 
     It 'leaves a name that is already a registry key untouched, and warns about nothing' {
         $warnings = @()
-        $resolved = Resolve-ScoutAssessmentName -Name @('LandingZone') -Manifest $script:Manifest -WarningVariable warnings -WarningAction SilentlyContinue
+        $resolved = Resolve-ScoutAssessmentName -Name @('CAF: Azure Landing Zone') -Manifest $script:Manifest -WarningVariable warnings -WarningAction SilentlyContinue
 
-        $resolved | Should -Be 'LandingZone'
+        $resolved | Should -Be 'CAF: Azure Landing Zone'
         $warnings | Should -BeNullOrEmpty
     }
 
@@ -81,9 +81,9 @@ Describe 'AB#6762 — a scripted call using a legacy name still works' {
     }
 
     It 'preserves order and handles several names at once' {
-        $resolved = @(Resolve-ScoutAssessmentName -Name @('LandingZone', 'IoT', 'Cost') -Manifest $script:Manifest -WarningAction SilentlyContinue)
+        $resolved = @(Resolve-ScoutAssessmentName -Name @('CAF: Azure Landing Zone', 'IoT', 'Cost') -Manifest $script:Manifest -WarningAction SilentlyContinue)
 
-        $resolved | Should -Be @('LandingZone', 'Assess: IoT', 'Cost')
+        $resolved | Should -Be @('CAF: Azure Landing Zone', 'Assess: IoT', 'Scout: Cost Optimization')
     }
 }
 
@@ -97,8 +97,8 @@ Describe 'AB#6763 — the menu lists only assessments Scout can actually run' {
         $script:Available.Count | Should -BeGreaterThan 0
     }
 
-    It 'keeps LandingZone, which is the pre-checked default' {
-        $script:Available | Should -Contain 'LandingZone'
+    It 'keeps CAF: Azure Landing Zone, which is the pre-checked default' {
+        $script:Available | Should -Contain 'CAF: Azure Landing Zone'
     }
 
     It 'drops Estate, which declares no rules and therefore scores nothing' {

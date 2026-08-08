@@ -16,7 +16,7 @@ Connect-AzAccount
 
 Invoke-AzureScout                              # guided wizard — pick everything from a menu
 Invoke-AzureScout -NoWizard                    # inventory, default settings
-Invoke-AzureScout -Assessment LandingZone      # CAF/WAF assessment
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'      # CAF/WAF assessment
 ```
 
 ## Just run it
@@ -80,7 +80,7 @@ An assessment scores your estate, so it needs to know what's in it. To get the r
 `-InventoryAndAssessment` (alias `-Both`) alongside `-Assessment`:
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment -ReportDir ./scout
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment -ReportDir ./scout
 ```
 
 The wizard's **Both** choice sets the same switch behind the scenes. Before this switch
@@ -89,7 +89,7 @@ or CI pipeline had no equivalent, and had to invoke the command twice back to ba
 
 ```powershell
 Invoke-AzureScout -ReportDir ./scout                          # inventory — collects from Azure
-Invoke-AzureScout -Assessment LandingZone -ReportDir ./scout  # assessment — collects again
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -ReportDir ./scout  # assessment — collects again
 ```
 
 That still works, but it pays for two collections against Azure instead of one.
@@ -120,10 +120,10 @@ earlier. It was removed in v3.0.0. Use the unified switch:
 
 ```powershell
 # Before
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
 
 # After
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
 ```
 
 Every parameter maps across unchanged, except `-OutputPath`, which is `-ReportDir` on

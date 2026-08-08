@@ -11,7 +11,7 @@ a report never puts them on the same axis as if they were comparable.
 | Framework | Well-Architected Framework (5 pillars) | CAF Govern (7 risk categories) |
 | Scale | 1-5, Microsoft-published level **names** and focus descriptions | 1-10, entirely Scout's own scale |
 | Source of the banding | `Get-MaturityLevel.ps1` — Scout's own even 20-point split of the 0-100 pillar score (Microsoft publishes no numeric threshold; see `docs/design/waf-maturity-model-mapping.md`) | `Get-GovernanceDomainScore.ps1` — Scout's own linear /10 mapping of the 0-100 domain score |
-| Underlying evaluation | The same WAF pillar rule files (`waf.reliability`, `waf.security`, `waf.cost`, `waf.operational`, `waf.performance`) `Get-Score` already scores for the five WAF pillar assessments and `LandingZone` | The seven `caf.govern.*.yaml` rule files (`docs/frameworks/cloud-governance-question-set.md`, AB#6811) |
+| Underlying evaluation | The same WAF pillar rule files (`waf.reliability`, `waf.security`, `waf.cost`, `waf.operational`, `waf.performance`) `Get-Score` already scores for the five WAF pillar assessments and `CAF: Azure Landing Zone` | The seven `caf.govern.*.yaml` rule files (`docs/frameworks/cloud-governance-question-set.md`, AB#6811) |
 | Why this scale | WAF publishes qualitative level names ("Establish a solid foundation on Azure" … "Future-proof with agility") that Scout relabels a percentage into | CAF Govern publishes **no** maturity model or level scheme at all — there is nothing Microsoft-published to relabel, so Scout had to invent a scale outright |
 
 **Both are relabelings of a percentage `Get-Score` already computed — neither runs a second

@@ -17,7 +17,7 @@
 #
 @{
     # ---- cross-category roll-ups ----
-    LandingZone = @{
+    'CAF: Azure Landing Zone' = @{
         Description = 'CAF/WAF landing zone audit (all areas)'
         Category    = '*'
         # Rules = caf.*, waf.* pulls in every rule file (all 8 CAF areas + all 5 WAF
@@ -214,7 +214,7 @@
     # 'Policy' used to sit here too, byte-identical to 'Governance' (same Category, Collect,
     # Ingest, Rules, Frameworks — literally the same assessment under two names). Removed by
     # AB#6795; script an explicit -Assessment Governance instead of -Assessment Policy.
-    Governance = @{
+    'Scout: Governance Baseline' = @{
         Description = 'Management sub-bundle — policy assignments, locks, budgets'
         Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance')
         Rules = @('caf.governance'); Frameworks = @('CAF: Governance'); Tags = @('caf', 'governance', 'sub-bundle'); Reporters = @('Html')
@@ -224,12 +224,12 @@
     # same Collect list, just offered again under a narrower name. AB#6795 requires a subset to
     # say so; the description now names the entry it is a subset of rather than leaving that
     # implicit in the rule-file overlap.
-    UpdateManager = @{
+    'Scout: Update Manager' = @{
         Description = 'Management sub-bundle (subset of "Assess: Management") — patch/update compliance only'
         Category    = 'Management'; Collect = @('Management'); Ingest = @()
         Rules = @('caf.management'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'update-manager', 'sub-bundle'); Reporters = @('Html')
     }
-    Monitoring = @{
+    'Scout: Monitoring Baseline' = @{
         Description = 'Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only'
         Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
         Rules = @('waf.operational'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'monitoring', 'sub-bundle'); Reporters = @('Html')
@@ -302,7 +302,7 @@
     # (`requires:`), so a direct -Assessment SMART run on an empty estate reports Unknown rather
     # than a manufactured pass. Both halves are needed -- the menu gate is a courtesy, the rule
     # gate is the correctness guarantee.
-    SMART = @{
+    'Microsoft: SMART Migration' = @{
         Description  = 'Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md)'
         Category     = 'Migration'
         Collect      = @('Migration', 'Management', 'Security', 'Compute')
@@ -324,7 +324,7 @@
     # rule files' own `requires:` block repeats (AB#6832's pattern) -- the wizard menu hides the
     # entry, and a direct -Assessment run on an empty estate reports Unknown rather than a
     # manufactured pass either way.
-    'AVS Workload' = @{
+    'Workload: AVS' = @{
         Description  = 'Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md)'
         Category     = '*'
         Collect      = @('*')
@@ -337,7 +337,7 @@
         )
         Reporters    = @('Html', 'Excel')
     }
-    'AVS Landing Zone' = @{
+    'Workload: AVS Landing Zone' = @{
         Description  = 'Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md)'
         Category     = '*'
         Collect      = @('*')
@@ -357,7 +357,7 @@
     # role assignments or zero key vaults is a genuine (if unusual) finding, not a signal the
     # assessment does not apply. Description says plainly that the question text is inferred, per
     # docs/frameworks/casa-question-set.md's own header.
-    CASA = @{
+    'Microsoft: CASA' = @{
         Description = 'Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout''s own inference from the published CAF Secure checklist, not Microsoft''s numbered CASA questions; see docs/frameworks/casa-question-set.md)'
         Category    = '*'
         Collect     = @('*')
@@ -374,7 +374,7 @@
     # each rule file's own header before quoting a coverage figure from either. Both assessments
     # degrade the same way when their gated data source is unavailable: `assert.gate` on the
     # affected rules reports NotAssessed, never a scored zero (Invoke-Rule.ps1, AB#6826).
-    'FinOps Review' = @{
+    'Microsoft: FinOps Review' = @{
         Description = 'FinOps Review -- scores against the FinOps Framework''s 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
         Collect     = @('FinOps', 'Cost', 'Management')
@@ -384,7 +384,7 @@
         Tags        = @('finops', 'cost', 'inferred-enumeration')
         Reporters   = @('Html', 'Excel')
     }
-    'DevOps Capability Assessment' = @{
+    'Microsoft: DevOps Capability' = @{
         Description = 'DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center''s five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
         Collect     = @('DevOps', 'Management')
@@ -398,7 +398,7 @@
     # ---- cross-resource correlation (AB#6835) ----
     # Every rule here spans TWO datasets, so Collect must gather both halves or a rule silently
     # passes on an empty right-hand side. Both categories of every pair are listed deliberately.
-    CrossResource = @{
+    'Scout: Cross-Resource' = @{
         Description = 'Findings that require two collected datasets correlated'
         Category    = '*'
         Collect     = @('Compute', 'Storage', 'Security', 'Networking', 'Management')
@@ -410,7 +410,7 @@
     }
 
     # ---- targeted cost pull ----
-    Cost = @{
+    'Scout: Cost Optimization' = @{
         Description = 'Cost / TCO data pull'
         Category    = '*'; Collect = @('Cost', 'Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.cost'); Frameworks = @('WAF: Cost optimization'); Tags = @('waf', 'cost'); Reporters = @('Excel', 'PowerBi')

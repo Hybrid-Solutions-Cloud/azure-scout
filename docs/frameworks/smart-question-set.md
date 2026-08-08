@@ -84,7 +84,7 @@ Re-verify before quoting, and re-date this page when you do.
 
 | # | Item | Source | Scout can evidence? |
 |---|---|---|---|
-| SMART-D1 | An Azure landing zone exists before workloads are migrated into it | `migrate/plan-migration` prerequisites | ✅ via the LandingZone assessment |
+| SMART-D1 | An Azure landing zone exists before workloads are migrated into it | `migrate/plan-migration` prerequisites | ✅ via the `CAF: Azure Landing Zone` assessment |
 | SMART-D2 | Target subscriptions are organised under a management group hierarchy | CAF Ready | ✅ `Management/ManagementGroups` |
 
 ### E — Security (SMART subject area 3)
