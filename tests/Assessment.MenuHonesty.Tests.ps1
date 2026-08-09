@@ -26,12 +26,23 @@ BeforeAll {
 
     . (Join-Path $script:Root 'src/assess/Get-ScoutAvailableAssessment.ps1')
     . (Join-Path $script:Root 'src/assess/Resolve-ScoutAssessmentName.ps1')
+    . (Join-Path $script:Root 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:Root 'src/pipeline/Get-ScoutCategoryCoverage.ps1')
 
     # The fifteen inventory categories the assessment entries used to collide with.
     $script:InventoryCategories = @(
         'Management', 'Monitor', 'Networking', 'Identity', 'Security', 'Compute', 'Storage',
         'Databases', 'Containers', 'Web', 'Analytics', 'AI', 'Integration', 'Hybrid', 'IoT'
     )
+
+    # The wizard's eighteen -- see $inventoryCategories in Start-AZSCWizard.ps1.
+    $script:WizardCategories = @(
+        'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid',
+        'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking',
+        'Security', 'Storage', 'Web'
+    )
+
+    $script:CollectorRoot = Join-Path $script:Root 'manifests/collectors'
 }
 
 Describe 'AB#6762 — no menu entry shares a name with an inventory category' {
@@ -233,5 +244,105 @@ Describe 'AB#6922 — the format menu lists only renderers a run will actually p
         # Inventory AND Assessment -- to the inventory-only list, which contains no React.
         $script:WizardSrc | Should -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\)'
         $script:WizardSrc | Should -Not -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\s+-and\s+-not\s+\$wantsInventory\)'
+    }
+}
+
+Describe 'AB#7101/AB#7102/AB#7103 — the category checklist tells the truth about coverage' {
+
+    BeforeAll {
+        if (-not $script:WizardSrc) {
+            $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
+        }
+        $script:LiveCoverage = @(Get-ScoutCategoryCoverage -CollectorRoot $script:CollectorRoot)
+        $script:LiveByName   = @{}
+        foreach ($c in $script:LiveCoverage) { $script:LiveByName[$c.Category] = $c }
+    }
+
+    It 'the wizard calls Get-ScoutCategoryCoverage rather than hand-typing a figure' {
+        $script:WizardSrc | Should -Match 'Get-ScoutCategoryCoverage'
+        # No hand-typed "N/N"-shaped coverage literal anywhere near the category checklist.
+        $script:WizardSrc | Should -Not -Match "'\w+\s*\(\d+/\d+\)'"
+    }
+
+    It 'offers a way to see per-category detail without leaving the checklist' {
+        $script:WizardSrc | Should -Match 'ItemDetail'
+        $script:WizardSrc | Should -Match 'i<n> = detail'
+    }
+
+    It 'every category the wizard offers exists in the live manifest tree' {
+        foreach ($cat in $script:WizardCategories) {
+            $script:LiveByName.ContainsKey($cat) | Should -BeTrue -Because "the wizard offers '$cat' but manifests/collectors/$cat has no folder"
+        }
+    }
+
+    It 'never offers a category with zero collectors as though it collects something' {
+        # The regression this guards: a category folder emptied out (collectors retired) while
+        # the wizard's hard-coded name list still lists it as a live, selectable source of data.
+        foreach ($cat in $script:WizardCategories) {
+            $coverage = $script:LiveByName[$cat]
+            $coverage.Published | Should -BeGreaterThan 0 -Because "'$cat' is offered in the checklist, so it must collect at least one thing"
+        }
+    }
+
+    It 'a category folder with zero manifests is reported as zero, not hidden or defaulted' {
+        # Proven against a synthetic tree, not by inspection of the real one.
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "scout-coverage-$([guid]::NewGuid())"
+        $emptyCat = Join-Path $tempRoot 'Empty'
+        New-Item -ItemType Directory -Path $emptyCat -Force | Out-Null
+        try {
+            $result = @(Get-ScoutCategoryCoverage -CollectorRoot $tempRoot)
+            $result.Count | Should -Be 1
+            $result[0].Category  | Should -Be 'Empty'
+            $result[0].Published | Should -Be 0
+            $result[0].Collected | Should -Be 0
+        }
+        finally {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'the coverage figure agrees with a live, independently-counted manifest total' {
+        # Guards against the function itself drifting into a cached/hand-typed number: recompute
+        # Published from disk with a completely separate code path and compare.
+        foreach ($cat in $script:WizardCategories) {
+            $independentCount = @(Get-ChildItem -LiteralPath (Join-Path $script:CollectorRoot $cat) -Filter '*.psd1' -File).Count
+            $script:LiveByName[$cat].Published | Should -Be $independentCount -Because "the displayed figure for '$cat' must match manifests/collectors/$cat on disk"
+        }
+    }
+
+    It 'Collected never exceeds Published for any category' {
+        foreach ($c in $script:LiveCoverage) {
+            $c.Collected | Should -BeLessOrEqual $c.Published
+        }
+    }
+}
+
+Describe 'AB#7104 — the "Optional inventory data" checklist does not offer dead controls' {
+
+    BeforeAll {
+        if (-not $script:WizardSrc) {
+            $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
+        }
+        $script:CoreSrc = Get-Content (Join-Path $script:Root 'src/Invoke-AzureScout.ps1') -Raw
+    }
+
+    It 'detects the absence of Az.CostManagement before letting Cost data be picked' {
+        $script:WizardSrc | Should -Match "'Cost data'\s*\)\s*\{"
+        $script:WizardSrc | Should -Match 'Get-Module -ListAvailable -Name Az\.CostManagement'
+    }
+
+    It 'does not emit -QuotaUsage, which Invoke-AzureScout never reads' {
+        # Invoke-AzureScout declares -QuotaUsage but no code path in the pipeline consumes it --
+        # VM quota usage is gathered unconditionally as part of VM details. Emitting the flag
+        # from the wizard would print a command that looks like it controls something it does
+        # not; the honest fix is to say so and never set the answer.
+        ($script:CoreSrc -match '\$QuotaUsage\b[^\r\n]*(\r?\n(?!.*\$QuotaUsage).*){0,400}') | Out-Null
+        $quotaUsageReads = @([regex]::Matches($script:CoreSrc, '\$QuotaUsage\b')).Count
+        # Exactly one read: the parameter declaration itself. Any second occurrence would mean
+        # the pipeline now consumes it and this test (and the wizard's note) are stale.
+        $quotaUsageReads | Should -Be 1 -Because 'if this fails, -QuotaUsage is wired now -- update the wizard to actually gate on the answer instead of only warning'
+
+        $script:WizardSrc | Should -Not -Match '\$answers\.QuotaUsage'
+        $script:WizardSrc | Should -Match 'AB#7104'
     }
 }

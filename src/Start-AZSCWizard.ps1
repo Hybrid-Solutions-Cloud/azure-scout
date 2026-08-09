@@ -202,7 +202,25 @@ function Start-AZSCWizard {
 
     if ($wantsInventory) {
         Write-Host ''
-        $categories = Read-AZSCWizardChecklist -Title 'Resource categories to inventory' -Items $inventoryCategories
+        # AB#7101/AB#7102 -- label each category with its live collector coverage
+        # (Collected/Published, from the manifest tree) instead of a bare name, and let the
+        # operator drill into which specific collectors are behind that figure without leaving
+        # the checklist. A coverage read failure (e.g. a packaging fault that hides the
+        # manifest tree) degrades to bare names rather than blocking the step.
+        $categoryLabels = @{}
+        $categoryDetail = @{}
+        try {
+            foreach ($coverage in @(Get-ScoutCategoryCoverage -Category $inventoryCategories)) {
+                $categoryLabels[$coverage.Category] = "$($coverage.Category) ($($coverage.Collected)/$($coverage.Published))"
+                $categoryDetail[$coverage.Category] = @(@($coverage.Services) | ForEach-Object {
+                    $status = if ($_.Collected) { 'collected' } else { 'NOT collected' }
+                    "$($_.Name): $status"
+                })
+            }
+        }
+        catch { Write-Verbose "Start-AZSCWizard: could not compute category coverage, showing bare names: $_" }
+
+        $categories = Read-AZSCWizardChecklist -Title 'Resource categories to inventory' -Items $inventoryCategories -ItemLabels $categoryLabels -ItemDetail $categoryDetail
         if ($null -eq $categories) { return $null }
         # All 15 selected is exactly what -Category All means — keep the command
         # line short and let the default sentinel through instead.
@@ -241,7 +259,15 @@ function Start-AZSCWizard {
                 $answers.IncludeCosts = [switch]$true
             }
         }
-        if ($extras -contains 'Quota usage')               { $answers.QuotaUsage = [switch]$true }
+        # AB#7104 -- Invoke-AzureScout's -QuotaUsage switch is declared but never read anywhere
+        # in the pipeline: VM quota usage is gathered unconditionally as part of VM details
+        # (gated only by the undocumented -SkipVMDetails, which the wizard does not offer). So
+        # this checkbox cannot no-op the way an uninstalled Az.CostManagement can -- it is
+        # already a no-op in BOTH directions, and setting -QuotaUsage on the command line would
+        # print a flag that does nothing. Tell the operator the truth instead of the flag.
+        Write-Host ''
+        Write-Host '  Note: VM quota usage is already gathered on every run as part of VM details' -ForegroundColor DarkGray
+        Write-Host '  (this checkbox does not change that yet -- AB#7104).' -ForegroundColor DarkGray
         if ($extras -notcontains 'Network diagrams')       { $answers.SkipDiagram = [switch]$true }
     }
 
@@ -553,13 +579,26 @@ function Group-AZSCWizardAssessment {
     Numbering stays continuous across groups and toggling/select-all/return
     values are identical to the flat form — the items ARE the flattened groups,
     in group order. Empty groups render nothing.
+
+    Pass -ItemLabels (item → display string) to show something richer than the
+    bare item next to its checkbox -- e.g. a category's collector coverage,
+    "Analytics (12/12)" (AB#7101) -- without changing what gets toggled,
+    counted, or returned: selection and the answer hashtable always deal in
+    the plain item names.
+
+    Pass -ItemDetail (item → string[] of detail lines) to let the operator type
+    `i<n>` and see those lines inline -- e.g. which collectors in a category
+    are/aren't working -- without leaving the checklist. Omit it and the `i`
+    command is simply not offered.
 #>
 function Read-AZSCWizardChecklist {
     param(
         [string]$Title,
         [string[]]$Items,
         [string[]]$DefaultSelected,
-        [System.Collections.Specialized.OrderedDictionary]$Groups
+        [System.Collections.Specialized.OrderedDictionary]$Groups,
+        [hashtable]$ItemLabels,
+        [hashtable]$ItemDetail
     )
 
     if ($null -ne $Groups) {
@@ -577,7 +616,9 @@ function Read-AZSCWizardChecklist {
         param([int]$Index)
         $mark = if ($selected.Contains($Items[$Index])) { 'x' } else { ' ' }
         $colour = if ($selected.Contains($Items[$Index])) { 'Green' } else { 'DarkGray' }
-        Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($Index + 1), $Items[$Index]) -ForegroundColor $colour
+        $label = $Items[$Index]
+        if ($ItemLabels -and $ItemLabels.ContainsKey($label)) { $label = $ItemLabels[$label] }
+        Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($Index + 1), $label) -ForegroundColor $colour
     }
 
     while ($true) {
@@ -598,7 +639,11 @@ function Read-AZSCWizardChecklist {
         }
         Write-Host ''
         Write-Host '   Toggle with numbers (e.g. "3" or "3,5,9"), a = all, n = none,' -ForegroundColor DarkGray
-        Write-Host '   Enter = accept, q = quit' -ForegroundColor DarkGray
+        if ($ItemDetail) {
+            Write-Host '   i<n> = detail on an item (e.g. "i3"), Enter = accept, q = quit' -ForegroundColor DarkGray
+        } else {
+            Write-Host '   Enter = accept, q = quit' -ForegroundColor DarkGray
+        }
 
         $raw = (Read-Host '  >').Trim()
 
@@ -613,6 +658,22 @@ function Read-AZSCWizardChecklist {
         if ($raw -match '^(q|quit)$') { return $null }
         if ($raw -match '^a(ll)?$')   { foreach ($item in $Items) { [void]$selected.Add($item) }; continue }
         if ($raw -match '^n(one)?$')  { $selected.Clear(); continue }
+        if ($ItemDetail -and $raw -match '^i\s*(\d+)$') {
+            $n = [int]$Matches[1]
+            if ($n -ge 1 -and $n -le $Items.Count) {
+                $item = $Items[$n - 1]
+                Write-Host ''
+                Write-Host "    $item detail:" -ForegroundColor White
+                if ($ItemDetail.ContainsKey($item) -and @($ItemDetail[$item]).Count -gt 0) {
+                    foreach ($line in @($ItemDetail[$item])) { Write-Host "      $line" -ForegroundColor DarkGray }
+                } else {
+                    Write-Host '      (no detail available)' -ForegroundColor DarkGray
+                }
+            } else {
+                Write-Host "   Enter a number between 1 and $($Items.Count)." -ForegroundColor Yellow
+            }
+            continue
+        }
 
         foreach ($token in ($raw -split '[,\s]+' | Where-Object { $_ })) {
             $n = 0
