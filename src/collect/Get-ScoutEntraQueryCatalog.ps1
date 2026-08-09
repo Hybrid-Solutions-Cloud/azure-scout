@@ -80,8 +80,13 @@ function Get-ScoutEntraQueryCatalog {
             Permission   = 'RoleManagement.Read.Directory'
         },
         @{
+            # AB#7190. Graph v1.0 rejects TWO $expand items with nested $select on this endpoint
+            # with 400 Bad Request -- one navigation property per $expand is the service's limit,
+            # observed live (owner's run: '[SKIP] PIM Assignments: 400'). roleDefinition is the
+            # expand worth keeping (it names the role); the principal side already flows through
+            # principalId, which is this row's NameProperty and what downstream joins use.
             Name         = 'PIM Assignments'
-            Uri          = '/v1.0/roleManagement/directory/roleAssignments?$expand=principal($select=id,displayName),roleDefinition($select=id,displayName)'
+            Uri          = '/v1.0/roleManagement/directory/roleAssignments?$expand=roleDefinition($select=id,displayName)'
             Type         = 'entra/pimassignments'
             NameProperty = 'principalId'
             Permission   = 'RoleManagement.Read.Directory'

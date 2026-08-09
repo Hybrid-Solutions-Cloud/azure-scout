@@ -728,7 +728,11 @@ function Invoke-AZSCPermissionAudit {
         Write-Host "  Collectors that will produce NO data ($($emptyCollectors.Count)):" -ForegroundColor Yellow
         Write-Host ''
         foreach ($row in ($emptyCollectors | Sort-Object Collector)) {
-            Write-Host ('    {0,-40} {1} — needs {2}' -f $row.Collector, $row.Reason, $row.Permission) -ForegroundColor Yellow
+            # AB#7189 follow-up: the CLI-sign-in reason already names the permission; appending
+                    # ' — needs X' repeated it. Only append when the reason does not carry it.
+                    $line = if ($row.Reason -like ('*' + $row.Permission + '*')) { '    {0,-40} {1}' -f $row.Collector, $row.Reason }
+                            else { '    {0,-40} {1} — needs {2}' -f $row.Collector, $row.Reason, $row.Permission }
+                    Write-Host $line -ForegroundColor Yellow
         }
         Write-Host ''
     }
