@@ -785,12 +785,28 @@ function Export-React {
         # conformance clause R-04 bans, so the grouping is a plain count over scored rows: no
         # finding is re-derived, no status is re-decided, and the percent arithmetic below is
         # the same visible formula the rest of this payload already uses.
+        # AB#6938 -- ALZ benchmark findings (Compare-Benchmark's BENCH-MG-*/BENCH-POL-*) are
+        # EXCLUDED from the area-scoring tally below. Without this, BENCH-POL-* rows (Area =
+        # 'Governance (policy & compliance)') silently blend into the caf.governance design
+        # area's OWN scorecard -- the exact "merged silently into the CAF chapters" defect the
+        # acceptance criteria calls out -- and BENCH-MG-* rows (Area = 'Management group &
+        # subscription org', which no caf.*.yaml design area claims) would otherwise surface as
+        # a phantom 9th "design area" chapter indistinguishable from the real eight. The
+        # benchmark's own tally is computed separately just below and rendered by the template
+        # as its own named section. `findingsOut` (built further down) still carries every
+        # BENCH-* finding untouched -- exports and the register keep seeing them; only the
+        # per-design-area SCORE stops counting them.
+        $benchFindingRows = @($assessmentFindingRows | Where-Object { $_.Id -like 'BENCH-*' })
+        $scorableFindingRows = @($assessmentFindingRows | Where-Object { $_.Id -notlike 'BENCH-*' })
+
         $areaBuckets = [ordered]@{}
-        foreach ($row in $assessmentFindingRows) {
-            $bKey = '{0}|{1}' -f (Get-ReactSafeProp $row @('Framework')), (Get-ReactSafeProp $row @('Area'))
+        foreach ($row in $scorableFindingRows) {
+            $rowFramework = Get-ReactSafeProp $row @('Framework')
+            $bKey = '{0}|{1}' -f $rowFramework, (Get-ReactSafeProp $row @('Area'))
             if (-not $areaBuckets.Contains($bKey)) {
                 $areaBuckets[$bKey] = [pscustomobject]@{
-                    Area = (Get-ReactSafeProp $row @('Area'))
+                    Area      = (Get-ReactSafeProp $row @('Area'))
+                    Framework = $rowFramework
                     Pass = 0; Partial = 0; Fail = 0; Manual = 0; Unknown = 0; Error = 0; NotAssessed = 0
                     Score = $null; Weight = 0.0
                 }
@@ -828,6 +844,7 @@ function Export-React {
             }
             $areas.Add([pscustomobject]@{
                 name          = $a.Area
+                framework     = $a.Framework
                 percent       = $a.Score
                 numerator     = $num
                 denominator   = $den
@@ -852,6 +869,37 @@ function Export-React {
         if ($scoreDen -eq 0 -and $assessmentFindingRows.Count -gt 0) {
             $unknownRow = $assessmentFindingRows | Where-Object { $_.Status -eq 'Unknown' } | Select-Object -First 1
             if ($unknownRow) { $excludedReason = [string]$unknownRow.Remediation }
+        }
+
+        # AB#6938 -- the ALZ benchmark's own scorecard, tallied separately from the eight CAF
+        # design-area scorecards above (same pass/partial/fail-weighted formula, so the two
+        # never disagree about arithmetic, just about what they're arithmetic OVER). $null when
+        # this assessment produced no BENCH-* findings at all (every non-LandingZone assessment,
+        # and LandingZone itself when Compare-Benchmark short-circuited on BENCH-GOV-DATA), so
+        # the template only renders the section when there is something real to show.
+        $benchmark = $null
+        if ($benchFindingRows.Count -gt 0) {
+            $bmPass = @($benchFindingRows | Where-Object Status -eq 'Pass').Count
+            $bmFail = @($benchFindingRows | Where-Object Status -eq 'Fail').Count
+            $bmManual = @($benchFindingRows | Where-Object Status -eq 'Manual').Count
+            $bmUnknown = @($benchFindingRows | Where-Object { $_.Status -in 'Unknown', 'Error', 'NotAssessed' }).Count
+            $bmDen = $bmPass + $bmFail
+            $bmPercent = if ($bmDen -gt 0) { [math]::Round($bmPass / $bmDen * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+            $bmFormula = if ($bmDen -gt 0) {
+                "$bmPass pass / $bmDen assessed = $bmPercent%; $($bmManual + $bmUnknown) of $($benchFindingRows.Count) excluded (manual/not-assessed)."
+            } else {
+                "No ALZ benchmark check could be assessed ($($bmUnknown) unknown) -- governance data was likely unavailable for this run."
+            }
+            $benchmark = [pscustomobject]@{
+                label   = 'ALZ benchmark conformance'
+                percent = $bmPercent
+                pass    = $bmPass
+                fail    = $bmFail
+                manual  = $bmManual
+                unknown = $bmUnknown
+                total   = $benchFindingRows.Count
+                formula = $bmFormula
+            }
         }
 
         # Area weight, denormalised onto each finding below (AB#6928 follow-up). The scoring
@@ -885,6 +933,7 @@ function Export-React {
                 severity      = $f.Severity
                 status        = $f.Status
                 area          = $f.Area
+                framework     = (Get-ReactSafeProp $f @('Framework'))
                 remediation   = $f.Remediation
                 learnUrl      = (Get-ReactFindingLearnUrl -Id $f.Id -Title $f.Title -AssessmentSlug $slug)
                 # AB#6928 follow-up -- the area's own weight, denormalised here so the CSV export
@@ -924,6 +973,7 @@ function Export-React {
                 formula       = $scoreFormula
             }
             areas      = @($areas)
+            benchmark  = $benchmark
             findings   = $findingsOut
         })
     }

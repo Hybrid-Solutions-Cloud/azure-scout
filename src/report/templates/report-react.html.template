@@ -190,6 +190,9 @@ a.sidehead:hover{color:var(--accent)}
 .depth-exec{display:none}
 body[data-view="exec"] .depth-exec{display:block}
 body[data-view="exec"] .depth-cons{display:none}
+.depth-data{display:none}
+body[data-view="data"] .depth-data{display:block}
+body[data-view="data"] tr.depth-data{display:table-row}
 /* diagrams */
 .dgm{margin-bottom:10px}
 .dgmhead{display:flex;align-items:center;gap:10px;margin:8px 0 4px}
@@ -300,6 +303,12 @@ function sevPill(s){ return '<span class="pill s-'+(s==='high'?'high':s==='mediu
 function statusPill(s){ return '<span class="pill p-'+lc(s)+'">'+(s==='Fail'?'Not met':s==='Pass'?'Met':'Manual')+'</span>'; }
 function anchorId(id){ return String(id).replace(/[^A-Za-z0-9_-]+/g,'-'); }
 function shortId(id){ return id && id.indexOf(':')!==-1 ? id.split(':').pop() : id; }
+/* AB#6938 -- a finding whose short id starts with BENCH- came from Compare-Benchmark's ALZ
+   reference-architecture diff (management groups / required policy assignments), not from a
+   caf.*.yaml design-area rule file. It is excluded from every design-area chapter (areaStats
+   below) and rendered once, on its own, by benchmarkSection -- so it is never silently blended
+   into a CAF chapter's own scorecard, and never doubles as a phantom design area. */
+function isBenchFinding(f){ return /^BENCH-/.test(shortId(f.id)); }
 function catId(k){ return 'cat-'+k.replace(/[^A-Za-z0-9_-]+/g,'-'); }
 function catLeaf(label){ return String(label||'').split('→').pop().trim(); }
 function catPath(label){
@@ -367,16 +376,22 @@ function bandChip(pct){
   var b = band(pct);
   return b ? '<span class="bandchip b-'+b+'">'+bandLabel[b]+'</span>' : '<span class="bandchip b-na">MANUAL ONLY</span>';
 }
+function areaKey(ar){ return (ar.framework||'')+'|'+ar.name; }
 function dedupeAreas(areasIn){
-  var byName = {}, order = [];
+  var byKey = {}, order = [];
   safeArr(areasIn).forEach(function(ar){
-    var prev = byName[ar.name];
-    if(!prev || (prev.percent==null && ar.percent!=null)){ if(!prev) order.push(ar.name); byName[ar.name]=ar; }
+    var k = areaKey(ar);
+    var prev = byKey[k];
+    if(!prev || (prev.percent==null && ar.percent!=null)){ if(!prev) order.push(k); byKey[k]=ar; }
   });
-  return order.map(function(nm){ return byName[nm]; });
+  return order.map(function(k){ return byKey[k]; });
 }
-function areaStats(a, areaName){
-  var fs = safeArr(a.findings).filter(function(f){ return f.area===areaName; });
+function areaStats(a, area){
+  var areaName = area && area.name!=null ? area.name : area;
+  var areaFramework = area && area.name!=null ? area.framework : undefined;
+  var fs = safeArr(a.findings).filter(function(f){
+    return f.area===areaName && (areaFramework===undefined || f.framework===areaFramework) && !isBenchFinding(f);
+  });
   return {
     findings: fs,
     pass: fs.filter(function(f){return f.status==='Pass';}).length,
@@ -390,10 +405,10 @@ function evidenceTable(f){
     return '<p class="absence">This check failed because the required configuration was <b>not found anywhere in scope</b> — the gap is the absence itself, so there is no individual resource to name. The fix below creates what is missing.</p>';
   }
   var cap = 12;
-  var rows = ev.slice(0,cap).map(function(e){
-    return '<tr><td class="mono">'+esc(e.resourceName||'(scope-level)')+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
+  var rows = ev.map(function(e,i){
+    return '<tr'+(i>=cap?' class="depth-data"':'')+'><td class="mono">'+esc(e.resourceName||'(scope-level)')+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
   }).join('');
-  var capNote = ev.length>cap ? '<div class="capnote">Showing 12 of '+ev.length+' — the full list is on the Data &amp; Drift page and in the CSV export.</div>' : '';
+  var capNote = ev.length>cap ? '<div class="capnote">Showing 12 of '+ev.length+' by default — switch to the Data view for every affected resource, or export the CSV.</div>' : '';
   return '<div class="fx">Current configuration — '+ev.length+' affected resource'+(ev.length===1?'':'s')+'</div><div class="twrap"><table><tr><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+rows+'</table></div>'+capNote;
 }
 function frameworkOf(f){
@@ -435,6 +450,94 @@ function manualAgenda(fs){
   return '<div class="eyebrow">Manual review agenda — '+ms.length+' item'+(ms.length===1?'':'s')+' the platform cannot measure remotely</div><div class="twrap"><table><tr><th>Check</th><th>Question for the platform team</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
 }
 
+/* ============================================================
+   AB#6938 -- the per-design-area CHAPTER building blocks: a
+   "Current State" paragraph generated from the actual scored
+   results (reads differently for a passing area than a failing
+   one), 1-3 findings tables grouped by outcome rather than one
+   flat dump, and a per-chapter figure reusing the same inline-SVG
+   idiom the rest of this file's diagrams already use (svgWrap +
+   rect/text bars -- no new rendering path).
+   ============================================================ */
+function currentStateProse(area, st){
+  var scored = st.pass + st.fail, pct = area.percent;
+  if(!scored){
+    return '<p class="lede">Every check in <b>'+esc(area.name)+'</b> is manual-only in this run — Azure Resource Graph carries no automatable signal for this design area yet, so all '+st.manual+' item'+(st.manual===1?' sits':'s sit')+' on the review agenda below rather than a score.</p>';
+  }
+  if(pct>=67){
+    return '<p class="lede"><b>'+esc(area.name)+'</b> is in good shape: '+st.pass+' of '+scored+' automated checks pass'+(st.manual?', and '+st.manual+' more need a manual look':'')+'. The gaps below are the last mile, not a foundational problem.</p>';
+  }
+  if(pct>=34){
+    return '<p class="lede"><b>'+esc(area.name)+'</b> is partially conformant: '+st.pass+' of '+scored+' automated checks pass and '+st.fail+' do not'+(st.manual?', plus '+st.manual+' manual item'+(st.manual===1?'':'s')+' still to review':'')+'. The failures below are concentrated enough to close in a focused pass.</p>';
+  }
+  return '<p class="lede"><b>'+esc(area.name)+'</b> has not been operationalised yet: only '+st.pass+' of '+scored+' automated checks pass and '+st.fail+' fail'+(st.manual?' ('+st.manual+' more await manual review)':'')+'. Treat this design area as something to build, not patch.</p>';
+}
+function chapterFindingsTables(fs, gopage){
+  var fails = fs.filter(function(f){ return f.status==='Fail'; });
+  var manuals = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail'; });
+  var passes = fs.filter(function(f){ return f.status==='Pass'; });
+  var out = '';
+  if(fails.length) out += '<div class="eyebrow">Findings — not met ('+fails.length+')</div>'+registerTable(fails,gopage);
+  if(manuals.length) out += '<div class="eyebrow">Findings — manual review ('+manuals.length+')</div>'+registerTable(manuals,gopage);
+  if(passes.length) out += '<div class="eyebrow">Findings — compliant ('+passes.length+')</div>'+registerTable(passes,gopage);
+  return out;
+}
+function areaStatusFigure(a, area, idx, st){
+  var w = 560, lw = 130, y = 14;
+  var segs = [['Met',st.pass,'var(--band-exc)'],['Not met',st.fail,'var(--band-crit)'],['Manual',st.manual,'var(--muted)']].filter(function(s){ return s[1]>0; });
+  var total = st.pass+st.fail+st.manual;
+  if(!total) return '<p class="lede">No checks scored in this area.</p>';
+  var xcur = lw+12, bars = '', legend = '';
+  segs.forEach(function(s){
+    var wid = Math.max(2,(w-lw-40)*s[1]/total);
+    bars += '<rect x="'+xcur+'" y="'+y+'" width="'+wid+'" height="26" rx="4" fill="'+s[2]+'"></rect>'+
+      '<text x="'+(xcur+wid/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="11" fill="#fff">'+s[1]+'</text>';
+    xcur += wid;
+    legend += '<span style="color:'+s[2]+'">■</span> '+s[0]+' ('+s[1]+') &nbsp; ';
+  });
+  var inner = '<text x="0" y="'+(y+18)+'" fill="var(--ink)" font-size="11.5" font-weight="600">'+esc(catLeaf(area.name))+'</text>'+bars;
+  return svgWrap('area-'+anchorId(a.slug)+'-'+idx, area.name+' — check outcomes', legend+' — '+total+' check'+(total===1?'':'s')+' evaluated', inner, w, y+26+12);
+}
+function areaFigure(a, area, idx, st){
+  // One figure per chapter, generated through the SAME svgWrap + rect/text bar idiom every
+  // other diagram in this file already uses (diagSeverity, diagEstateBars) -- deliberately the
+  // SAME figure shape for every design area in every assessment (not special-cased to Landing
+  // Zone) so this generalises as the template the remaining assessments are worked against.
+  // The richer MG-hierarchy/network-topology diagrams already live on the Diagrams page with
+  // fixed element ids; reusing them here too would duplicate those ids in the same document.
+  return areaStatusFigure(a, area, idx, st);
+}
+/* ============================================================
+   AB#6938 -- the ALZ benchmark conformance section: Compare-
+   Benchmark's diff against the ALZ reference architecture
+   (management groups + required policy assignments), rendered
+   as its OWN clearly labelled section rather than folded into
+   any CAF design-area chapter (see isBenchFinding/areaStats
+   above for the exclusion this depends on).
+   ============================================================ */
+function benchmarkSection(a){
+  var fs = safeArr(a.findings).filter(isBenchFinding);
+  if(!fs.length) return '';
+  var b = a.benchmark || {};
+  var mg = fs.filter(function(f){ return /^BENCH-MG-/.test(shortId(f.id)); });
+  var pol = fs.filter(function(f){ return /^BENCH-POL-/.test(shortId(f.id)); });
+  var other = fs.filter(function(f){ return mg.indexOf(f)===-1 && pol.indexOf(f)===-1; });
+  var out = '';
+  if(mg.length) out += '<div class="eyebrow">Management groups ('+mg.length+')</div>'+registerTable(mg,'a-'+a.slug+'-benchmark');
+  if(pol.length) out += '<div class="eyebrow">Required policy assignments ('+pol.length+')</div>'+registerTable(pol,'a-'+a.slug+'-benchmark');
+  if(other.length) out += '<div class="eyebrow">Other benchmark checks ('+other.length+')</div>'+registerTable(other,'a-'+a.slug+'-benchmark');
+  var fails = fs.filter(function(f){ return f.status==='Fail'; }).sort(function(x,y){
+    return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3) - (sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3);
+  });
+  return '<details class="chapter" id="a-'+a.slug+'-benchmark" open><summary><span class="chsum">ALZ benchmark conformance</span> '+bandChip(b.percent)+
+    '<span class="chstats"><b class="okc">'+(b.pass||0)+'✓</b> <b class="badc">'+(b.fail||0)+'✗</b> '+((b.manual||0)+(b.unknown||0))+'👁</span></summary>'+
+    '<p class="lede">Diffed against the Azure Landing Zone reference architecture — the management-group hierarchy and the policy assignments a conformant landing zone is expected to carry — independent of the eight CAF design-area checks above.</p>'+
+    '<div class="gaugebox slim">'+(b.percent!=null?'<b>'+b.percent+' / 100</b> ':'')+'<span class="mono faintt">'+esc(b.formula||'')+'</span>'+(b.percent!=null?gauge(b.percent,false):'')+'</div>'+
+    out+
+    (fails.length?'<div class="eyebrow">Gaps — a block for every "Not met" ('+fails.length+')</div>':'')+
+    fails.map(gapBlock).join('')+manualAgenda(fs)+'</details>';
+}
+
 /* ---- inventory facts ---- */
 var invEntries = Object.keys(inventory).map(function(k){ return [k, inventory[k]]; }).filter(function(p){ return p[1] && p[1].count>0; });
 var invTotal = invEntries.reduce(function(s,p){ return s+(p[1].count||0); },0);
@@ -471,7 +574,11 @@ function categoryBlocksFor(k, v){
     cols = scored.slice(0,7).map(function(p){ return p[0]; });
   }
   var cap = 50;
-  var trs = rows.slice(0,cap).map(function(r){
+  if(!rows.length){
+    return v.count ? '<p class="lede small">Count only — no per-item rows collected for this category.</p>'
+      : '<p class="lede small">The collector ran and found <b>0 items</b> of this type in scope — listed so absence is visible, not hidden.</p>';
+  }
+  var trs = rows.map(function(r,i){
     var cells = cols.map(function(c){
       var val = r[c];
       if(val && typeof val==='object') val = JSON.stringify(val);
@@ -480,16 +587,14 @@ function categoryBlocksFor(k, v){
       if(val.length>80) val = val.slice(0,77)+'…';
       return '<td class="mono"'+full+'>'+esc(val)+'</td>';
     }).join('');
-    return '<tr>'+cells+'<td class="mono">'+esc(subName(r.subscriptionId))+'</td></tr>';
+    return '<tr'+(i>=cap?' class="depth-data"':'')+'>'+cells+'<td class="mono">'+esc(subName(r.subscriptionId))+'</td></tr>';
   }).join('');
-  var capNote = rows.length>cap ? '<div class="capnote">Showing '+cap+' of '+n(v.count)+' — the full set is in the CSV export.</div>'
+  var capNote = rows.length>cap ? '<div class="capnote">Showing '+cap+' of '+n(v.count)+' by default — switch to the Data view for every row, or use the CSV export.</div>'
     : (v.count>rows.length ? '<div class="capnote">'+n(v.count)+' total; '+rows.length+' sampled rows collected.</div>' : '');
-  if(!rows.length){
-    return v.count ? '<p class="lede small">Count only — no per-item rows collected for this category.</p>'
-      : '<p class="lede small">The collector ran and found <b>0 items</b> of this type in scope — listed so absence is visible, not hidden.</p>';
-  }
   var headCells = cols.map(function(c){ return '<th>'+esc(c)+' ⇅</th>'; }).join('')+'<th>subscription ⇅</th>';
-  return '<div class="catwrap"><input class="tfilter" placeholder="Filter '+esc(catLeaf(v.label||k)).toLowerCase()+'… (any column)"><div class="twrap"><table><tr>'+headCells+'</tr>'+trs+'</table></div>'+capNote+'</div>';
+  var table = '<div class="catwrap"><input class="tfilter" placeholder="Filter '+esc(catLeaf(v.label||k)).toLowerCase()+'… (any column)"><div class="twrap"><table><tr>'+headCells+'</tr>'+trs+'</table></div>'+capNote+'</div>';
+  var execNote = '<p class="lede small depth-exec">'+n(v.count)+' item'+(v.count===1?'':'s')+' collected. Switch to <b>Consultant</b> to browse a sample of '+Math.min(cap,rows.length)+', or <b>Data</b> for every row.</p>';
+  return execNote+'<div class="depth-cons">'+table+'</div>';
 }
 function categoryPane(k, v){
   var block = categoryBlocksFor(k, v);
@@ -541,7 +646,19 @@ function pageOverview(){
   '<a class="mtile goto" data-gopage="as" href="#top"><div class="mt">📋 Assessments</div><div class="md">'+assessments.length+' assessments · '+counts.total+' checks · the complete conformance register</div></a>'+
   '<a class="mtile goto" data-gopage="data" href="#top"><div class="mt">🗃️ Data &amp; drift</div><div class="md">Every finding and evidence row · change since the previous run</div></a>'+
   '<a class="mtile goto" data-gopage="road" href="#top"><div class="mt">🛠️ Remediation plan</div><div class="md">All '+counts.fail+' gaps, by team, with windows</div></a></div>'+
-  '<div class="eyebrow">Assessment results — click any to open its full register</div>'+gauges+spotBlock;
+  '<div class="depth-exec"><div class="eyebrow">Assessment scores — Executive view</div>'+
+  assessments.map(function(a){ var s=a.score||{}; return '<div class="arearow"><a class="goto" data-gopage="a-'+a.slug+'" href="#top">'+esc(a.name)+'</a>'+(s.percent!=null?gauge(s.percent,false):'<span class="mono faintt manualonly">manual only</span>')+bandChip(s.percent)+'</div>'; }).join('')+
+  spotBlock+'</div>'+
+  '<div class="depth-cons"><div class="eyebrow">Assessment results — click any to open its full register</div>'+gauges+spotBlock+'</div>'+
+  '<div class="depth-data"><div class="eyebrow">Every gap tenant-wide, ranked — Data view</div>'+
+  (function(){
+    var allFails = allFindings.filter(function(f){return f.status==='Fail';}).sort(function(a,b){
+      return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3) || ((b.evidenceCount||0)-(a.evidenceCount||0));
+    });
+    return '<div class="twrap"><table><tr><th>Check</th><th>Assessment</th><th>Area</th><th>Severity</th><th class="num">Evidence</th><th></th></tr>'+
+      allFails.map(function(f){ return '<tr><td>'+esc(f.title)+'</td><td>'+esc(f.assessment)+'</td><td>'+esc(f.area)+'</td><td>'+sevPill(f.severity)+'</td><td class="num">'+(f.evidenceCount||0)+'</td><td><a class="jump goto" data-gopage="a-'+f.slug+'" href="#g-'+anchorId(f.id)+'">open →</a></td></tr>'; }).join('')+
+      '</table></div>';
+  })()+'</div>';
 }
 
 /* ============================================================
@@ -598,8 +715,11 @@ function pageInventory(){
     '<div class="kpi"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div><div class="f">all enabled</div></div>'+
     '<div class="kpi"><div class="l">Categories</div><div class="v">'+invEntries.length+'</div><div class="f">of '+Object.keys(inventory).length+' collected have data</div></div>'+
     '<div class="kpi"><div class="l">Virtual machines</div><div class="v">'+((inventory['compute.virtualMachines']||{}).count||0)+'</div><div class="f">select Compute on the left</div></div></div>'+
+    '<div class="depth-exec"><div class="eyebrow">Top 5 categories — Executive view</div><div class="twrap"><table><tr><th>Category</th><th class="num">Items</th></tr>'+
+    invSorted.slice(0,5).map(function(p){ return '<tr><td>'+esc(catLeaf(p[1].label||p[0]))+'</td><td class="num">'+n(p[1].count)+'</td></tr>'; }).join('')+
+    '</table></div><p class="lede small">Switch to Consultant to browse the top categories, or Data for every category collected.</p></div>'+
     '<div class="eyebrow">Top categories — click a card to open its items</div><div class="cards">'+
-    invSorted.slice(0,12).map(function(p){ var k=p[0], v=p[1]; return '<a class="card invgo" data-pane="'+catId(k)+'" href="#"><div class="c">'+n(v.count)+'</div><div class="l"><b>'+esc(catLeaf(v.label||k))+'</b></div>'+(catPath(v.label)?'<div class="lp">'+esc(catPath(v.label))+'</div>':'')+'<div class="go">view items →</div></a>'; }).join('')+
+    invSorted.map(function(p,i){ var k=p[0], v=p[1]; return '<a class="card invgo '+(i<12?'depth-cons':'depth-data')+'" data-pane="'+catId(k)+'" href="#"><div class="c">'+n(v.count)+'</div><div class="l"><b>'+esc(catLeaf(v.label||k))+'</b></div>'+(catPath(v.label)?'<div class="lp">'+esc(catPath(v.label))+'</div>':'')+'<div class="go">view items →</div></a>'; }).join('')+
     '</div><div class="prov">Pricing as of Aug 2026 — <a href="'+AZURE_PRICING_URL+'" rel="noopener">official pricing</a>. Every figure shows its arithmetic.</div>';
 
   var groups = {};
@@ -679,7 +799,7 @@ function pageAssessments(){
     var fails = fs.filter(function(f){return f.status==='Fail';}).length;
     var passes = fs.filter(function(f){return f.status==='Pass';}).length;
     var manuals = fs.length - fails - passes;
-    var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar.name).findings.length; });
+    var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar).findings.length; });
     var preview = areas.slice(0,6).map(function(ar){
       var b = band(ar.percent);
       return '<div class="arearow"><span>'+esc(ar.name)+'</span>'+(ar.percent!=null?gauge(ar.percent,false):'<span class="mono faintt manualonly">manual only</span>')+'<span class="bandlab" style="color:'+(b?bandVar[b]:'var(--faint)')+'">'+(b?bandLabel[b]:'MANUAL')+'</span></div>';
@@ -699,35 +819,44 @@ function pageAssessments(){
    PAGE: one assessment (the complete register)
    ============================================================ */
 function areaChapter(a, area, idx){
-  var st = areaStats(a, area.name);
+  var st = areaStats(a, area);
   if(!st.findings.length) return '';
-  var scored = st.pass + st.fail;
   var scoreLine = area.percent!=null ? '<b>'+area.percent+' / 100</b> <span class="mono faintt">'+esc(area.formula)+'</span>' : '<span class="mono faintt">'+esc(area.formula)+'</span>';
-  var meetLine = scored ? 'You meet <b>'+st.pass+' of '+scored+'</b> automated checks in this area'+(st.manual?'; '+st.manual+' more need manual review':'')+'.'
-    : 'All '+st.manual+' checks in this area need manual review — nothing here is automated yet.';
   var fails = st.findings.filter(function(f){ return f.status==='Fail'; }).sort(function(x,y){
     return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3) - (sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3) || ((y.evidenceCount||0)-(x.evidenceCount||0));
   });
+  // AB#6938 chapter shape: scorecard -> Current State prose -> 1-3 grouped findings tables ->
+  // one figure -> (consultant-depth) a gap block per failure + the manual review agenda.
   return '<details class="chapter" id="a-'+a.slug+'-'+idx+'" open><summary><span class="chsum">'+esc(area.name)+'</span> '+bandChip(area.percent)+
     '<span class="chstats"><b class="okc">'+st.pass+'✓</b> <b class="badc">'+st.fail+'✗</b> '+st.manual+'👁</span></summary>'+
-    '<div class="gaugebox slim">'+scoreLine+gauge(area.percent,false)+'<p class="meet">'+meetLine+'</p></div>'+
-    '<div class="eyebrow">The register — every check evaluated in this area</div>'+registerTable(st.findings,'a-'+a.slug)+
+    '<div class="gaugebox slim">'+scoreLine+gauge(area.percent,false)+'</div>'+
+    '<div class="eyebrow">Current state</div>'+currentStateProse(area, st)+
+    chapterFindingsTables(st.findings, 'a-'+a.slug)+
+    areaFigure(a, area, idx, st)+
     (fails.length?'<div class="eyebrow">Gaps — a block for every "Not met" ('+fails.length+')</div>':'')+
     fails.map(gapBlock).join('')+manualAgenda(st.findings)+'</details>';
 }
 function pageAssessment(a){
   var s = a.score || {};
-  var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar.name).findings.length; });
+  var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar).findings.length; });
   var fs = safeArr(a.findings);
   var fails = fs.filter(function(f){return f.status==='Fail';}).length;
   var passes = fs.filter(function(f){return f.status==='Pass';}).length;
   var manuals = fs.length - fails - passes;
   var bandRows = areas.map(function(ar,i){
-    var st = areaStats(a, ar.name);
+    var st = areaStats(a, ar);
     var b = band(ar.percent);
     return '<div class="arearow"><a href="#a-'+a.slug+'-'+i+'">'+esc(ar.name)+'</a>'+(ar.percent!=null?gauge(ar.percent,false):'<span class="mono faintt manualonly">no automated checks — '+st.manual+' manual</span>')+
       '<span class="bandlab" style="color:'+(b?bandVar[b]:'var(--faint)')+'">'+(b?bandLabel[b]:'MANUAL')+'</span></div>';
   }).join('');
+  // AB#6938 -- the ALZ benchmark is its own named section (benchmarkSection below), never one of
+  // the design-area chapters above, but it still gets a row here so it is one click away.
+  var benchFs = safeArr(a.findings).filter(isBenchFinding);
+  if(benchFs.length){
+    var bb = a.benchmark || {}, bband = band(bb.percent);
+    bandRows += '<div class="arearow"><a href="#a-'+a.slug+'-benchmark"><b>ALZ benchmark conformance</b></a>'+(bb.percent!=null?gauge(bb.percent,false):'<span class="mono faintt manualonly">manual only</span>')+
+      '<span class="bandlab" style="color:'+(bband?bandVar[bband]:'var(--faint)')+'">'+(bband?bandLabel[bband]:'MANUAL')+'</span></div>';
+  }
   var top = fs.filter(function(f){return f.status==='Fail';}).sort(function(x,y){
     return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3) - (sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3) || ((y.evidenceCount||0)-(x.evidenceCount||0));
   }).slice(0,5);
@@ -740,7 +869,7 @@ function pageAssessment(a){
     '<div class="gl"><span>CRITICAL 0–33</span><span>MODERATE 34–66</span><span>EXCELLENT 67–100</span></div><div class="mono faintt" style="margin-top:5px">'+esc(s.formula||'')+'</div></div>'+
     '<div class="eyebrow">Design areas — click a name to jump to its chapter; chapters collapse</div><div class="gaugebox">'+bandRows+'</div>'+
     '<div class="depth-exec"><div class="eyebrow">Top gaps in this assessment — Executive view</div>'+execBlock+'</div>'+
-    '<div class="depth-cons">'+areas.map(function(ar,i){ return areaChapter(a,ar,i); }).join('')+'</div>'+
+    '<div class="depth-cons">'+areas.map(function(ar,i){ return areaChapter(a,ar,i); }).join('')+benchmarkSection(a)+'</div>'+
     assessmentNext(a);
 }
 function assessmentNext(a){
@@ -776,11 +905,12 @@ function pageData(){
     return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3) || ((b.weight||0)-(a.weight||0));
   });
   var prio = {}; failsRanked.forEach(function(f,i){ prio[f.id]=i+1; });
-  var rows = allFindings.map(function(f){
-    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(f.title)+'</a></td><td>'+esc(f.assessment)+'</td><td>'+esc(f.area)+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(prio[f.id]!=null?prio[f.id]:'—')+'</td><td class="num">'+(f.evidenceCount||0)+'</td><td><input class="noteb" placeholder="Add a note…"></td></tr>';
+  var rowCap = 60;
+  var rows = allFindings.map(function(f,i){
+    return '<tr'+(i>=rowCap?' class="depth-data"':'')+'><td class="mono">'+esc(shortId(f.id))+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(f.title)+'</a></td><td>'+esc(f.assessment)+'</td><td>'+esc(f.area)+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(prio[f.id]!=null?prio[f.id]:'—')+'</td><td class="num">'+(f.evidenceCount||0)+'</td><td><input class="noteb" placeholder="Add a note…"></td></tr>';
   }).join('');
-  var evRows = namedEvidence.map(function(e){
-    return '<tr><td class="mono">'+esc(shortId(e.fid))+'</td><td class="mono">'+esc(e.resourceName)+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
+  var evRows = namedEvidence.map(function(e,i){
+    return '<tr'+(i>=rowCap?' class="depth-data"':'')+'><td class="mono">'+esc(shortId(e.fid))+'</td><td class="mono">'+esc(e.resourceName)+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
   }).join('');
   var d = drift || {};
   var dsum = d.Summary || {};
@@ -788,18 +918,31 @@ function pageData(){
     var col = f.Drift==='Regressed' ? 'var(--fail)' : f.Drift==='Resolved' ? 'var(--pass)' : 'var(--ink)';
     return '<tr><td class="mono">'+esc(f.Id)+'</td><td>'+esc(f.Title)+'</td><td>'+esc(f.Area)+'</td><td>'+statusPill(f.PreviousStatus)+'</td><td>'+statusPill(f.CurrentStatus)+'</td><td><b style="color:'+col+'">'+esc(f.Drift)+'</b></td></tr>';
   }).join('');
-  return '<h2>Data &amp; drift</h2>'+
+  var execTop = failsRanked.slice(0,10).map(function(f){
+    return '<tr><td>'+esc(f.title)+'</td><td>'+esc(f.assessment)+'</td><td>'+sevPill(f.severity)+'</td><td class="num">'+(f.evidenceCount||0)+'</td></tr>';
+  }).join('');
+  return '<div class="depth-exec"><h2>Data &amp; drift — executive summary</h2>'+
+    '<div class="kpis"><div class="kpi bad"><div class="l">Regressed</div><div class="v">'+(dsum.Regressed||0)+'</div></div>'+
+    '<div class="kpi good"><div class="l">Resolved</div><div class="v">'+(dsum.Resolved||0)+'</div></div>'+
+    '<div class="kpi"><div class="l">New</div><div class="v">'+(dsum.New||0)+'</div></div>'+
+    '<div class="kpi"><div class="l">Unchanged</div><div class="v">'+(dsum.Unchanged||0)+'</div></div></div>'+
+    '<div class="eyebrow">Top '+Math.min(10,failsRanked.length)+' priority gaps of '+counts.fail+'</div>'+
+    '<div class="twrap"><table><tr><th>Check</th><th>Assessment</th><th>Severity</th><th class="num">Evidence</th></tr>'+execTop+'</table></div>'+
+    '<p class="lede small">Switch to Consultant for the full findings and evidence register, or Data for every row plus drift.</p></div>'+
+    '<div class="depth-cons"><h2>Data &amp; drift</h2>'+
     '<details class="sect" open><summary><span class="part">All '+counts.total+' findings</span><span class="hint">every check · Priority ranks the '+counts.fail+' gaps · check titles link to their specific Microsoft guidance</span></summary>'+
-    '<div class="twrap"><table><tr><th>Id</th><th>Check</th><th>Assessment</th><th>Area</th><th>Severity</th><th>Result</th><th class="num">Priority</th><th class="num">Evidence</th><th>Notes</th></tr>'+rows+'</table></div></details>'+
+    '<div class="twrap"><table><tr><th>Id</th><th>Check</th><th>Assessment</th><th>Area</th><th>Severity</th><th>Result</th><th class="num">Priority</th><th class="num">Evidence</th><th>Notes</th></tr>'+rows+'</table></div>'+
+    (allFindings.length>rowCap?'<div class="capnote">Showing '+rowCap+' of '+allFindings.length+' by default — switch to the Data view for every row.</div>':'')+'</details>'+
     '<details class="sect" open><summary><span class="part">Evidence — every named resource ('+namedEvidence.length+' rows)</span></summary>'+
-    '<div class="twrap"><table><tr><th>Check</th><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+evRows+'</table></div></details>'+
+    '<div class="twrap"><table><tr><th>Check</th><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+evRows+'</table></div>'+
+    (namedEvidence.length>rowCap?'<div class="capnote">Showing '+rowCap+' of '+namedEvidence.length+' by default — switch to the Data view for every row.</div>':'')+'</details>'+
     '<details class="sect" open><summary><span class="part">Drift since previous run</span><span class="hint">'+esc(d.PreviousRunId||'')+' → '+esc(d.RunId||'')+', score '+(d.PreviousScore!=null?d.PreviousScore:'—')+' → '+(d.OverallScore!=null?d.OverallScore:'—')+'</span></summary>'+
     '<div class="kpis"><div class="kpi bad"><div class="l">Regressed</div><div class="v">'+(dsum.Regressed||0)+'</div></div>'+
     '<div class="kpi good"><div class="l">Resolved</div><div class="v">'+(dsum.Resolved||0)+'</div></div>'+
     '<div class="kpi"><div class="l">New</div><div class="v">'+(dsum.New||0)+'</div></div>'+
     '<div class="kpi"><div class="l">Unchanged</div><div class="v">'+(dsum.Unchanged||0)+'</div></div></div>'+
     (dRows ? '<div class="twrap"><table><tr><th>Check</th><th>Title</th><th>Area</th><th>Was</th><th>Now</th><th>Drift</th></tr>'+dRows+'</table></div>' : '<p class="lede small">No checks changed state between the two runs.</p>')+'</details>'+
-    '<div class="prov">Data provenance: Azure Resource Graph + ARM, read-only · run '+esc(meta.runId||'')+' generated '+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+' · Azure Scout '+esc(meta.productVersion||'')+'.</div>';
+    '<div class="prov">Data provenance: Azure Resource Graph + ARM, read-only · run '+esc(meta.runId||'')+' generated '+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+' · Azure Scout '+esc(meta.productVersion||'')+'.</div></div>';
 }
 
 /* ============================================================
@@ -808,15 +951,17 @@ function pageData(){
 function pageRoadmap(){
   var groups = {}, order = [];
   allFindings.filter(function(f){return f.status==='Fail';}).forEach(function(f){ if(!groups[f.area]){groups[f.area]=[];order.push(f.area);} groups[f.area].push(f); });
+  function actionLabel(f){
+    var evn = safeArr(f.evidence).filter(function(e){return e.resourceName;}).length;
+    var names = safeArr(f.evidence).filter(function(e){return e.resourceName;}).slice(0,2).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
+    return esc((f.title||'').replace(/\.$/,'')) + (evn?' ('+evn+' resource'+(evn===1?'':'s')+': '+names+(evn>2?', …':'')+')':'');
+  }
   var rows = order.map(function(area){
     var fs = groups[area].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
-    var top = fs.slice(0,3).map(function(f){
-      var evn = safeArr(f.evidence).filter(function(e){return e.resourceName;}).length;
-      var names = safeArr(f.evidence).filter(function(e){return e.resourceName;}).slice(0,2).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
-      return esc((f.title||'').replace(/\.$/,'')) + (evn?' ('+evn+' resource'+(evn===1?'':'s')+': '+names+(evn>2?', …':'')+')':'');
-    }).join(' · ');
-    var more = fs.length>3 ? ' · +'+(fs.length-3)+' more in the register' : '';
-    return { area:area, cell: top+more, owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
+    var top = fs.slice(0,3).map(actionLabel).join(' · ');
+    var rest = fs.length>3 ? '<span class="depth-data"> · '+fs.slice(3).map(actionLabel).join(' · ')+'</span>' : '';
+    var count = fs.length>3 ? ' <span class="faintt">('+fs.length+' total)</span>' : '';
+    return { area:area, cell: top+rest+count, owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
   }).sort(function(a,b){ return a.sev-b.sev || b.count-a.count; });
   var trs = rows.map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b><div class="q">'+r.count+' gap'+(r.count===1?'':'s')+'</div></td><td>'+r.cell+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('');
 
@@ -829,13 +974,22 @@ function pageRoadmap(){
   var ws = wsOrder.map(function(team){
     var fs = wsGroups[team].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
     var size = fs.length>12?'XL':fs.length>6?'M':'S';
-    return '<tr><td><b>'+esc(team)+'</b></td><td>'+sevPill(fs[0].severity)+'</td><td>'+fs.slice(0,3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ')+(fs.length>3?' · +'+(fs.length-3)+' more':'')+'</td><td class="num">'+size+'</td><td class="num">'+fs.length+'</td></tr>';
+    var top = fs.slice(0,3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ');
+    var rest = fs.length>3 ? '<span class="depth-data"> · '+fs.slice(3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ')+'</span>' : '';
+    var count = fs.length>3 ? ' <span class="faintt">('+fs.length+' total)</span>' : '';
+    return '<tr><td><b>'+esc(team)+'</b></td><td>'+sevPill(fs[0].severity)+'</td><td>'+top+rest+count+'</td><td class="num">'+size+'</td><td class="num">'+fs.length+'</td></tr>';
   }).join('');
 
-  return '<h2>Remediation plan</h2><p class="lede">All '+counts.fail+' gaps appear here — grouped by design area for the 90-day plan, and by accountable team for the workstream view. Nothing is curated out.</p>'+
+  var execRows = rows.slice(0,5).map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b></td><td class="num">'+r.count+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('');
+
+  return '<div class="depth-exec"><h2>Remediation plan — executive summary</h2>'+
+    '<p class="lede">'+counts.fail+' gaps across '+order.length+' design areas. The top '+Math.min(5,order.length)+' by severity and volume:</p>'+
+    '<div class="twrap"><table><tr><th>Domain</th><th class="num">Gaps</th><th>Owner</th><th>Window</th></tr>'+execRows+'</table></div>'+
+    '<p class="lede small">Switch to Consultant for the full 90-day plan and workstream breakdown, or Data for every action in every domain.</p></div>'+
+    '<div class="depth-cons"><h2>Remediation plan</h2><p class="lede">All '+counts.fail+' gaps appear here — grouped by design area for the 90-day plan, and by accountable team for the workstream view. Nothing is curated out.</p>'+
     '<details class="sect" open><summary><span class="part">90-day roadmap — by design area</span></summary><div class="twrap"><table><tr><th>Domain</th><th>Action</th><th>Owner</th><th>Window</th></tr>'+trs+'</table></div>'+
     '<div class="prov">Owner defaults from the design-area → team mapping; windows derive from the area\'s highest severity.</div></details>'+
-    '<details class="sect" open><summary><span class="part">Workstreams — by accountable team</span></summary><div class="twrap"><table><tr><th>Workstream</th><th>Priority</th><th>Top actions</th><th class="num">Size</th><th class="num">Gaps</th></tr>'+ws+'</table></div></details>';
+    '<details class="sect" open><summary><span class="part">Workstreams — by accountable team</span></summary><div class="twrap"><table><tr><th>Workstream</th><th>Priority</th><th>Top actions</th><th class="num">Size</th><th class="num">Gaps</th></tr>'+ws+'</table></div></details></div>';
 }
 
 /* ============================================================
@@ -1130,7 +1284,7 @@ function diagEstateBars(){
 function diagSeverity(){
   var a = assessments[0];
   if(!a) return '<p class="lede">No assessments ran in this run.</p>';
-  var areas = dedupeAreas(a.areas).map(function(ar){ return { ar:ar, st:areaStats(a,ar.name) }; }).filter(function(x){ return x.st.fail>0; })
+  var areas = dedupeAreas(a.areas).map(function(ar){ return { ar:ar, st:areaStats(a,ar) }; }).filter(function(x){ return x.st.fail>0; })
     .sort(function(x,y){ return y.st.fail-x.st.fail; }).slice(0,10);
   if(!areas.length) return '<p class="lede">No gaps in '+esc(a.name)+'.</p>';
   var max = Math.max.apply(null, areas.map(function(x){return x.st.fail;})), rowH = 30, w = 720, lw = 250;
@@ -1603,8 +1757,12 @@ function pageDiagrams(){
     ['plink','Private link &amp; DNS','Networking'],['exposure','Internet exposure','Networking'],
     ['edge','Edge &amp; delivery','Networking'],['routing','Routing &amp; forced tunnelling','Networking'],
     ['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
-  var ov = '<h2>Diagrams</h2><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
-    '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div>';
+  var keyDgms = [['sev','Gaps by design area','Assessment'],['estate','Estate — top categories','Estate'],['mg','Management-group hierarchy','Tenant']];
+  var ov = '<h2>Diagrams</h2>'+
+    '<div class="depth-exec"><p class="lede">The three figures below are the ones that matter most at a glance. Switch to <b>Consultant</b> to browse every diagram.</p>'+
+    '<div class="menutiles">'+keyDgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div></div>'+
+    '<div class="depth-cons"><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
+    '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div></div>';
 
   var mgRows = safeArr((inventory['governance.managementGroups']||{}).rows);
   function depthOf(m){ var d=0, cur=m; var byName={}; mgRows.forEach(function(x){byName[x.name]=x;}); while(cur && cur.parent && byName[cur.parent]){ cur=byName[cur.parent]; d++; } return d; }
@@ -1626,7 +1784,9 @@ function pageDiagrams(){
 
   var estateCtx = invSorted.length ? '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div></div>'+
     '<div class="kpi"><div class="l">Largest category</div><div class="v">'+n(invSorted[0][1].count)+'</div><div class="f">'+esc(catLeaf(invSorted[0][1].label))+'</div></div></div>'+
-    '<p class="lede small">Where the estate\'s volume actually sits — policy compliance records dominate because every resource is evaluated by every assigned policy.</p>' : '';
+    '<p class="lede small">Where the estate\'s volume actually sits — policy compliance records dominate because every resource is evaluated by every assigned policy.</p>'+
+    '<div class="depth-data"><div class="eyebrow">Every category, not just the top of the chart — Data view</div><div class="twrap"><table><tr><th>Category</th><th class="num">Items</th></tr>'+
+    invSorted.map(function(p){ return '<tr><td>'+esc(catLeaf(p[1].label||p[0]))+'</td><td class="num">'+n(p[1].count)+'</td></tr>'; }).join('')+'</table></div></div>' : '';
 
   var a0 = assessments[0];
   var sevCtx = '';
@@ -1635,7 +1795,8 @@ function pageDiagrams(){
     sevCtx = '<div class="kpis"><div class="kpi bad"><div class="l">Not met</div><div class="v">'+a0fails.length+'</div><div class="f">'+esc(a0.name)+'</div></div>'+
       '<div class="kpi"><div class="l">High severity</div><div class="v">'+a0fails.filter(function(f){return f.severity==='high';}).length+'</div></div>'+
       '<div class="kpi"><div class="l">Areas affected</div><div class="v">'+(function(){var s={};a0fails.forEach(function(f){s[f.area]=1;});return Object.keys(s).length;})()+'</div></div></div>'+
-      '<p class="lede small">Longer bars = more gaps in that design area; red segments are high severity. This is the same data as the register — the figure just shows where remediation effort concentrates.</p>';
+      '<p class="lede small">Longer bars = more gaps in that design area; red segments are high severity. This is the same data as the register — the figure just shows where remediation effort concentrates.</p>'+
+      '<div class="depth-data"><div class="eyebrow">Every check behind this chart — Data view</div>'+registerTable(safeArr(a0.findings),'a-'+a0.slug)+'</div>';
   }
 
   var panes = [['dgm-ov', ov], ['dgm-mg', mgCtx+diagMgTreeBlade()], ['dgm-net', netCtx+diagNetworkBlade()],
@@ -1737,7 +1898,7 @@ function buildMarkdownExport(){
     md.push('\n'+(a.framework||''));
     if(s.percent!=null) md.push('\nScore: **'+s.percent+' / 100** — '+(s.formula||''));
     dedupeAreas(a.areas).forEach(function(ar){
-      var st = areaStats(a, ar.name);
+      var st = areaStats(a, ar);
       if(!st.findings.length) return;
       md.push('\n### '+ar.name+(ar.percent!=null?' — '+ar.percent+' / 100':' — manual only'));
       md.push('\n| Check | Title | Severity | Result | Evidence |\n|---|---|---|---|---|');

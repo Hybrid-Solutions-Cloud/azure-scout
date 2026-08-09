@@ -79,7 +79,7 @@ function Invoke-Rule {
             # other single-match shape (a row, a string, ...) is treated as "present" -- the
             # gate is a data-availability check, not a second assert.
             try { if ($gateMatches[0].ToObject([bool]) -eq $false) { $gateOpen = $false } }
-            catch { }   # not a boolean token -- presence alone means the gate is open
+            catch { Write-Verbose "Rule $($Rule.id): gate value for '$gatePath' is not a boolean token -- presence alone means the gate is open." }
         }
         if (-not $gateOpen) {
             return [pscustomobject]@{
@@ -113,11 +113,11 @@ function Invoke-Rule {
             # array enumerates to nothing -- and the very next line reads `.Count`, which then
             # throws under StrictMode. A join that legitimately found no unmatched rows (the PASS
             # case, and the common one) hit that on every rule.
-            $matches = $null
+            $ruleMatches = $null
             if ($hasJoin) {
-                $matches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
+                $ruleMatches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
             } else {
-                $matches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+                $ruleMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
             }
         }
         catch {
@@ -138,9 +138,26 @@ function Invoke-Rule {
         # EvidenceCount already held the true total; EvidenceTruncated is what lets a renderer
         # tell "these are all of them" from "these are the first 25 of many". Same class as the
         # empty-cell-versus-None-found problem the audit called out: the omission was invisible.
-        $evidenceCount = $matches.Count
+        $evidenceCount = $ruleMatches.Count
         $evidenceCap = 25
-        $evidence = $matches | Select-Object -First $evidenceCap
+        # @(...) wrap is load-bearing (AB#6938). `$ruleMatches | Select-Object -First N` is a PIPE:
+        # when a rule's query matches exactly ONE row, Select-Object emits that ONE object and a
+        # bare `$evidence = ...` assignment of a single-item pipeline collapses it from a 1-element
+        # array down to the bare element itself -- here, a live run's element is a raw Newtonsoft
+        # JObject/JArray token (Resolve-JsonPath's own output shape), not a deserialized
+        # PSCustomObject. A bare JObject stored as Evidence is a ticking bomb three layers down:
+        # Export-React's Get-ReactSafeProp reads it back out via a plain `return $cur`, and
+        # PowerShell's own pipeline/output semantics enumerate ANY IEnumerable object crossing a
+        # return/output boundary -- INCLUDING a .NET type nobody asked to have enumerated. JObject
+        # implements IEnumerable<JToken> (its own child JProperty tokens), so returning the bare
+        # JObject silently exploded one NSG-rule finding into five orphan one-field rows (nsg=...,
+        # rule=..., sourceAddressPrefix=..., ...) instead of the single named resource it actually
+        # was -- the "40% named" evidence-identity defect. `@(...)` around the whole pipeline
+        # forces the (possibly single) result back into a real array BEFORE it is ever stored on
+        # the finding, so every later stage that hands it through a `return`/pipeline boundary
+        # keeps unwrapping one array level at a time instead of reaching all the way into a single
+        # match's own fields. Same class of bug as the join-assignment guard immediately above.
+        $evidence = @($ruleMatches | Select-Object -First $evidenceCap)
         $evidenceTruncated = $evidenceCount -gt $evidenceCap
         # ConvertFrom-Yaml returns `assert:` as a Hashtable (test fixtures often use a
         # pscustomobject instead), and 'exists'/'notExists' rules legitimately omit a
