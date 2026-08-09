@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.4] - 2026-08-08 - the run folder reads like a deliverable
+
+### Fixed
+
+- **The assessment run folder is named `assessment-report`** instead of a bare timestamp -
+  collision-suffixed (`assessment-report_01`) so the AB#6902 same-second rule holds. AB#7225.
+- **A combined run no longer sprays inventory documents nobody chose.** Selecting all three
+  assessment formats collapsed to `All`, which the inventory phase read as *every inventory
+  document* - Excel, Markdown, AsciiDoc and Power BI appeared on a run whose operator had
+  explicitly held the non-React formats. The collapse now applies only on the inventory-only
+  path. AB#7226.
+
 ## [3.8.3] - 2026-08-08 - the deliverable announces itself
 
 ### Fixed
