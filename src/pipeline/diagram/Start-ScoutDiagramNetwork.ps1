@@ -19,6 +19,11 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramNetwork {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'AZSCModule', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'XMLFiles', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Advisories', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($Subscriptions,$Job,$Advisories,$DiagramCache,$FullEnvironment,$DDFile,$XMLFiles,$LogFile,$Automation,$AZSCModule)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -168,7 +173,7 @@ Function Start-AZSCDiagramNetwork {
         }
 
         <# Function to create the Visio document and import each stencil #>
-        Function Publish-AZSCDiagramStensils {
+        Function Publish-AZSCDiagramStensil {
             $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
 
             $Script:IconConnections = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Connections.svg;" #width="68" height="68"
@@ -1462,7 +1467,7 @@ Function Start-AZSCDiagramNetwork {
 
                                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Stensils')
 
-                                    Publish-AZSCDiagramStensils
+                                    Publish-AZSCDiagramStensil
 
                                     if($Job.AZLGWs -or $Job.AZEXPROUTEs -or $Job.AZVERs -or $Job.AZVPNSITES)
                                         {

@@ -257,6 +257,8 @@
 #>
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
+        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers and is forwarded as-is to Connect-AZSCLoginSession; changing the parameter type is a breaking change for every existing caller.')]
     param (
         [ValidateSet(1, 2, 3)]
         [int]$Overview = 1,
@@ -907,21 +909,21 @@ Function Invoke-AzureScout {
     if ($WantMarkdown)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Markdown report export.')
-        $MarkdownFile = Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+        Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
     }
 
     # ── AsciiDoc Report ──────────────────────────────────────────────────
     if ($WantAsciiDoc)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting AsciiDoc report export.')
-        $AsciiDocFile = Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+        Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
     }
 
     # ── Power BI CSV Report ───────────────────────────────────────────────
     if ($WantPowerBI)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Power BI CSV export.')
-        $PowerBIDir = Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+        Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
     }
 
     $ReportingRunTime.Stop()

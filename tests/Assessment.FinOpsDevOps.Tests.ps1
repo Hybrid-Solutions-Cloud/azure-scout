@@ -35,7 +35,7 @@ BeforeAll {
     . "$script:Root/src/collect/Get-ScoutCostInventory.ps1"
     Import-Module powershell-yaml -ErrorAction Stop
 
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
     function New-ScoutRule {
         param($Id = 'X', $Query = '$.a[*]', $AssertType = 'exists', $Value = $null, $Gate = $null, $DenominatorQuery = $null)
@@ -97,7 +97,8 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
     }
     It 'available when the module resolves and returns real cost rows' {
         function Invoke-AzCostManagementQuery {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             return [pscustomobject]@{ Row = @(, @(42.5, '20260701', 'Microsoft.Compute/virtualMachines', 'rg-1', 'eastus', 'Virtual Machines', 'USD')) }
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -110,7 +111,8 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
     }
     It 'unavailable (blocked) when the module resolves but every subscription errors -- never reads as zero-spend' {
         function Invoke-AzCostManagementQuery {
-            param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
             throw "Forbidden: the caller does not have permission to perform action 'Microsoft.CostManagement/query/action' for subscription '$Scope'"
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -147,7 +149,8 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
         $result.devops.attempted | Should -BeFalse
     }
     It 'unavailable when -IncludeDevOps is set but the extraction finds zero resources of any type' {
-        function Start-AZSCDevOpsExtraction { param([Parameter(ValueFromRemainingArguments)] $Rest) return [pscustomobject]@{ DevOpsResources = @() } }
+        function Start-AZSCDevOpsExtraction {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return [pscustomobject]@{ DevOpsResources = @() } }
         $collect = [pscustomobject]@{}
         $result = Import-ScoutDevOpsCapability -Collect $collect -IncludeDevOps
         $result.devops.available | Should -BeFalse -Because 'attempted but zero resources came back must not read as a clean zero'
@@ -156,7 +159,8 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
     }
     It 'available and shapes projects/pipelines/serviceConnections when resources come back' {
         function Start-AZSCDevOpsExtraction {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             return [pscustomobject]@{
                 DevOpsResources = @(
                     [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{ state = 'wellFormed' } }
@@ -176,7 +180,8 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
     }
     It 'reuses -FromInventory rows (devops/* types only) without calling Start-AZSCDevOpsExtraction again' {
         $calledExtraction = $false
-        function Start-AZSCDevOpsExtraction { param([Parameter(ValueFromRemainingArguments)] $Rest) $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
+        function Start-AZSCDevOpsExtraction {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
         $fromInventory = @(
             [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{} }
             [pscustomobject]@{ name = 'vm1'; type = 'microsoft.compute/virtualmachines'; properties = [pscustomobject]@{} }
@@ -197,8 +202,8 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
 
 Describe 'AB#6826/AB#6827 -- rule files load, cite real items, and gate every access-restricted automated rule' {
     BeforeAll {
-        $script:FinOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path $script:Root 'src/assess/rules/finops.review.yaml') -Raw)
-        $script:DevOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path $script:Root 'src/assess/rules/devops.capability.yaml') -Raw)
+        $script:FinOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:Root -ChildPath 'src/assess/rules/finops.review.yaml') -Raw)
+        $script:DevOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:Root -ChildPath 'src/assess/rules/devops.capability.yaml') -Raw)
     }
     It 'finops.review.yaml loads under Get-RuleSet with a non-empty frameworkversion' {
         $set = Get-RuleSet -Patterns @('finops.review')

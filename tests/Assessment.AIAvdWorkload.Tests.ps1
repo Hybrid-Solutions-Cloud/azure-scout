@@ -184,7 +184,11 @@ Describe 'waf.ai.yaml rule set (AB#6818)' {
         $collect = [pscustomobject]@{ domains = [pscustomobject]@{ ai = [pscustomobject]@{ searchServices = @([pscustomobject]@{ name = 'srch-prod'; resourceGroup = 'rg-ai'; sku = 'standard' }) } } }
         $finding = Invoke-Rule -Rule $rule -Collect $collect -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Pass'
-        $finding.Evidence['name'].ToString() | Should -Be 'srch-prod'
+        # AB#6938: Evidence is now always a real array (Invoke-Rule.ps1 wraps the single-match
+        # case in @()), never a bare Newtonsoft JObject -- indexing with a string key relied on
+        # JObject's OWN property indexer, which is exactly the shape that fragmented into orphan
+        # one-field rows three layers down in Export-React. Index the array, then read the field.
+        $finding.Evidence[0].name.ToString() | Should -Be 'srch-prod'
     }
 
     It 'WAF-AI-MLOPS-01 fails when no ML workspace was collected, passes and names it when one exists' {
@@ -197,7 +201,8 @@ Describe 'waf.ai.yaml rule set (AB#6818)' {
         $populated = [pscustomobject]@{ domains = [pscustomobject]@{ ai = [pscustomobject]@{ mlWorkspaces = @([pscustomobject]@{ name = 'mlw-prod'; workspaceKind = 'Default' }) } } }
         $finding = Invoke-Rule -Rule $rule -Collect $populated -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Pass'
-        $finding.Evidence['name'].ToString() | Should -Be 'mlw-prod'
+        # AB#6938: see the note on WAF-AI-GROUND-02 above -- Evidence is a real array now.
+        $finding.Evidence[0].name.ToString() | Should -Be 'mlw-prod'
     }
 
     It 'a manual rule with a real query still resolves and surfaces evidence (WAF-AI-APPD-06)' {
@@ -266,7 +271,8 @@ Describe 'waf.avd.yaml rule set (AB#6819)' {
         $rule = $script:ruleSet.Rules | Where-Object id -eq 'WAF-AVD-RE-01'
         $finding = Invoke-Rule -Rule $rule -Collect $script:collect -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Fail'
-        $finding.Evidence['name'].ToString() | Should -Be 'cluster1'
+        # AB#6938: see the note on WAF-AI-GROUND-02 above -- Evidence is a real array now.
+        $finding.Evidence[0].name.ToString() | Should -Be 'cluster1'
     }
 
     It 'WAF-AVD-RE-01 passes when the cluster reports 2+ nodes, and does not misreport an unreported cluster as single-node' {
@@ -282,7 +288,8 @@ Describe 'waf.avd.yaml rule set (AB#6819)' {
         $rule = $script:ruleSet.Rules | Where-Object id -eq 'WAF-AVD-RE-03'
         $finding = Invoke-Rule -Rule $rule -Collect $script:collect -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Fail'
-        $finding.Evidence['name'].ToString() | Should -Be 'sh2.contoso.com'
+        # AB#6938: see the note on WAF-AI-GROUND-02 above -- Evidence is a real array now.
+        $finding.Evidence[0].name.ToString() | Should -Be 'sh2.contoso.com'
     }
 
     It 'WAF-AVD-RE-03 passes when every session host is Available' {
@@ -298,7 +305,8 @@ Describe 'waf.avd.yaml rule set (AB#6819)' {
         $withLn = [pscustomobject]@{ domains = [pscustomobject]@{ hybrid = [pscustomobject]@{ logicalNetworks = @([pscustomobject]@{ name = 'ln1' }) } } }
         $finding = Invoke-Rule -Rule $rule -Collect $withLn -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Pass'
-        $finding.Evidence['name'].ToString() | Should -Be 'ln1'
+        # AB#6938: see the note on WAF-AI-GROUND-02 above -- Evidence is a real array now.
+        $finding.Evidence[0].name.ToString() | Should -Be 'ln1'
     }
 
     It 'WAF-AVD-CO-06 fails with no scaling plan, passes and names it once one is collected' {
@@ -308,7 +316,8 @@ Describe 'waf.avd.yaml rule set (AB#6819)' {
         $withSp = [pscustomobject]@{ compute = [pscustomobject]@{ avdScalingPlans = @([pscustomobject]@{ name = 'sp1'; hostPoolRefCount = 1 }) } }
         $finding = Invoke-Rule -Rule $rule -Collect $withSp -Area $script:ruleSet.Area -Framework $script:ruleSet.Framework
         $finding.Status | Should -Be 'Pass'
-        $finding.Evidence['name'].ToString() | Should -Be 'sp1'
+        # AB#6938: see the note on WAF-AI-GROUND-02 above -- Evidence is a real array now.
+        $finding.Evidence[0].name.ToString() | Should -Be 'sp1'
     }
 
     It 'WAF-AVD-OE-03 fails with no Arc extension, passes once one exists' {
@@ -338,7 +347,7 @@ Describe 'waf.avd.yaml rule set (AB#6819)' {
 
 Describe 'manifests/assessments.psd1 — AI/AVD workload entries (AB#6818/AB#6819)' {
     BeforeAll {
-        $script:Manifest = Import-PowerShellDataFile (Join-Path $root 'manifests/assessments.psd1')
+        $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $root -ChildPath 'manifests/assessments.psd1')
     }
 
     It 'has an AI Workload entry collecting only AI and scoring waf.ai' {
@@ -360,8 +369,8 @@ Describe 'manifests/assessments.psd1 — AI/AVD workload entries (AB#6818/AB#681
     }
 
     It 'both entries have a rule file behind them, so Get-ScoutAvailableAssessment would offer them (AB#6763)' {
-        . (Join-Path $root 'src/assess/Get-ScoutAvailableAssessment.ps1')
-        $ruleDir = Join-Path $root 'src/assess/rules'
+        . (Join-Path -Path $root -ChildPath 'src/assess/Get-ScoutAvailableAssessment.ps1')
+        $ruleDir = Join-Path -Path $root -ChildPath 'src/assess/rules'
         $available = @(Get-ScoutAvailableAssessment -Manifest $script:Manifest -RuleDirectory $ruleDir)
         $available | Should -Contain 'Assess: AI Workload'
         $available | Should -Contain 'Assess: AVD Workload'

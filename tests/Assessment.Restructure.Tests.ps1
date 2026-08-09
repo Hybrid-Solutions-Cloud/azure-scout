@@ -22,12 +22,12 @@
 
 BeforeAll {
     $script:Root     = Split-Path $PSScriptRoot -Parent
-    $script:RuleDir  = Join-Path $script:Root 'src/assess/rules'
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+    $script:RuleDir  = Join-Path -Path $script:Root -ChildPath 'src/assess/rules'
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
-    . (Join-Path $script:Root 'src/assess/engine/Get-RuleSet.ps1')
-    . (Join-Path $script:Root 'src/assess/engine/Get-Score.ps1')
-    . (Join-Path $script:Root 'src/assess/engine/Get-MaturityLevel.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Get-RuleSet.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Get-Score.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Get-MaturityLevel.ps1')
 
     Import-Module powershell-yaml -ErrorAction Stop
 
@@ -72,6 +72,9 @@ BeforeAll {
     )
 
     function Get-AllRuleDocs {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         Get-ChildItem -LiteralPath $script:RuleDir -Filter '*.yaml' -File | ForEach-Object {
             $doc = ConvertFrom-Yaml (Get-Content $_.FullName -Raw)
             [pscustomobject]@{ File = $_.Name; Doc = $doc }
@@ -81,7 +84,7 @@ BeforeAll {
 
 Describe 'AB#6798 — waf.storage.yaml is retired' {
     It 'no longer exists as a rule file' {
-        Test-Path (Join-Path $script:RuleDir 'waf.storage.yaml') | Should -BeFalse
+        Test-Path (Join-Path -Path $script:RuleDir -ChildPath 'waf.storage.yaml') | Should -BeFalse
     }
     It 'no rule file claims framework WAF with an area that is not one of the five pillars' {
         $offenders = Get-AllRuleDocs | Where-Object {
@@ -151,11 +154,11 @@ Describe 'AB#6796 — WAF roll-up reconciles with the sum of the five pillar ass
         # Five pillars with distinct scores -- proves the reconciliation isn't an artifact of
         # every pillar scoring identically.
         $script:AllFindings = @(
-            (New-Finding 'WAF' 'Reliability' 'Pass'); (New-Finding 'WAF' 'Reliability' 'Fail')            # 50
-            (New-Finding 'WAF' 'Security' 'Pass'); (New-Finding 'WAF' 'Security' 'Pass')                  # 100
-            (New-Finding 'WAF' 'Cost optimization' 'Fail'); (New-Finding 'WAF' 'Cost optimization' 'Fail') # 0
-            (New-Finding 'WAF' 'Operational excellence' 'Pass')                                            # 100
-            (New-Finding 'WAF' 'Performance efficiency' 'Partial')                                          # 50
+            (New-Finding -Framework 'WAF' -Area 'Reliability' -Status 'Pass'); (New-Finding -Framework 'WAF' -Area 'Reliability' -Status 'Fail')            # 50
+            (New-Finding -Framework 'WAF' -Area 'Security' -Status 'Pass'); (New-Finding -Framework 'WAF' -Area 'Security' -Status 'Pass')                  # 100
+            (New-Finding -Framework 'WAF' -Area 'Cost optimization' -Status 'Fail'); (New-Finding -Framework 'WAF' -Area 'Cost optimization' -Status 'Fail') # 0
+            (New-Finding -Framework 'WAF' -Area 'Operational excellence' -Status 'Pass')                                            # 100
+            (New-Finding -Framework 'WAF' -Area 'Performance efficiency' -Status 'Partial')                                          # 50
         )
     }
 
@@ -229,8 +232,8 @@ Describe 'AB#6796 — WAF pillar assessments are additive registry entries' {
 
 Describe 'AB#6798 — the two false-pass rules no longer report Pass without evaluating anything' {
     BeforeAll {
-        $script:Gov = ConvertFrom-Yaml (Get-Content (Join-Path $script:RuleDir 'caf.governance.yaml') -Raw)
-        $script:Aut = ConvertFrom-Yaml (Get-Content (Join-Path $script:RuleDir 'caf.platformauto.yaml') -Raw)
+        $script:Gov = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'caf.governance.yaml') -Raw)
+        $script:Aut = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'caf.platformauto.yaml') -Raw)
     }
     It 'CAF-GOV-05 is manual, not an automated exists-check on "has any parameters"' {
         $rule = $script:Gov.rules | Where-Object id -eq 'CAF-GOV-05'
@@ -252,12 +255,12 @@ Describe 'AB#6798 — the two false-pass rules no longer report Pass without eva
 
 Describe 'AB#6798 — caf.billing.yaml no longer duplicates waf.cost.yaml' {
     It 'has no automated (non-manual) rules -- Scout collects no EA/MCA/tenant-billing data' {
-        $doc = ConvertFrom-Yaml (Get-Content (Join-Path $script:RuleDir 'caf.billing.yaml') -Raw)
+        $doc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'caf.billing.yaml') -Raw)
         $auto = @($doc.rules | Where-Object { -not $_.manual })
         $auto | Should -BeNullOrEmpty
     }
     It 'the cost-optimization rules formerly in caf.billing.yaml now live in waf.cost.yaml' {
-        $doc = ConvertFrom-Yaml (Get-Content (Join-Path $script:RuleDir 'waf.cost.yaml') -Raw)
+        $doc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'waf.cost.yaml') -Raw)
         $ids = @($doc.rules.id)
         $ids | Should -Contain 'WAF-CO-08'   # budget scope granularity
         $ids | Should -Contain 'WAF-CO-09'   # cost anomalies reviewed
@@ -279,7 +282,7 @@ Describe 'AB#6799 — every rule file records the guidance version it was verifi
 
 Describe 'AB#6799 — no rule requires a dedicated AI landing zone' {
     It 'caf.ai.yaml has no rule whose title/remediation demands a separate AI landing zone' {
-        $doc = ConvertFrom-Yaml (Get-Content (Join-Path $script:RuleDir 'caf.ai.yaml') -Raw)
+        $doc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'caf.ai.yaml') -Raw)
         $offenders = $doc.rules | Where-Object {
             ($_.title -match '(?i)ai landing zone') -or ($_.remediation -match '(?i)(dedicated|separate|own) .*landing zone')
         }
@@ -311,7 +314,7 @@ Describe 'AB#6800 — WAF Maturity Model reuses the pillar rules with no duplica
             [pscustomobject]@{ Id = 'X'; Title = 't'; Framework = $Framework; Area = $Area; Severity = 'medium'
                 Status = $Status; EvidenceCount = 0; Evidence = @(); Remediation = 'r'; Manual = $false; AreaWeight = 1.0 }
         }
-        $s = Get-Score -Findings @((New-Finding 'WAF' 'Security' 'Pass'), (New-Finding 'WAF' 'Security' 'Fail'))
+        $s = Get-Score -Findings @((New-Finding -Framework 'WAF' -Area 'Security' -Status 'Pass'), (New-Finding -Framework 'WAF' -Area 'Security' -Status 'Fail'))
         $area = $s.Areas | Where-Object Area -eq 'Security'
         $area.MaturityLevel.Level | Should -Be 3   # score 50 -> band 2 (40-59) -> Level 3
         ($s.Frameworks | Where-Object Framework -eq 'WAF').MaturityLevel.Level | Should -Be 3

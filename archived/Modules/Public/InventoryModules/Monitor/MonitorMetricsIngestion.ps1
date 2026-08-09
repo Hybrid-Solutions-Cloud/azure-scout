@@ -24,6 +24,10 @@ Authors: AzureScout Contributors
 
 <######## Default Parameters. Don't modify this ########>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Intag', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Retirements', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Unsupported', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -49,9 +53,6 @@ If ($Task -eq 'Processing')
                                   $data.workspaceCapping.dailyQuotaGb
                                } else { 'Unlimited' }
             $dataIngestionStatus = if ($data.workspaceCapping.dataIngestionStatus) { $data.workspaceCapping.dataIngestionStatus } else { 'N/A' }
-
-            # Customer-managed key
-            $cmkEnabled     = if ($data.features.enableDataExport -eq $true) { 'Yes' } else { 'No' }
 
             # Public network access
             $publicIngestion = if ($data.publicNetworkAccessForIngestion)   { $data.publicNetworkAccessForIngestion }   else { 'N/A' }

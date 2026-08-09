@@ -56,6 +56,8 @@
     Azure Scout is read-only. Every call here is a GET.
 #>
 function Start-AZSCDevOpsExtraction {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID',
+        Justification = 'False positive: read inside the nested Add-NormalizedDevOpsResource closure (line 151), not in the outer function body.')]
     [CmdletBinding()]
     param(
         [string]$TenantID,

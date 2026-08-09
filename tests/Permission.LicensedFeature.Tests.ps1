@@ -26,7 +26,8 @@ BeforeAll {
     # not dot-source (it drags in the whole collect layer). A stub with the same name and shape is
     # enough: every test below replaces it wholesale.
     if (-not (Get-Command Invoke-AZSCGraphRequest -ErrorAction SilentlyContinue)) {
-        function Invoke-AZSCGraphRequest { param([string]$Uri, [switch]$SinglePage) }
+        function Invoke-AZSCGraphRequest {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string]$Uri, [switch]$SinglePage) }
     }
 }
 

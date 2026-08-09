@@ -22,10 +22,10 @@
 
 BeforeAll {
     $script:ModuleRoot   = Split-Path -Parent $PSScriptRoot
-    $script:MainPath     = Join-Path $script:ModuleRoot 'src'
-    $script:FunctionFile = Join-Path $script:MainPath 'Test-AZSCModuleUpdate.ps1'
-    $script:ManifestPath = Join-Path $script:ModuleRoot 'AzureScout.psd1'
-    $script:ThrottleFile = Join-Path ([System.IO.Path]::GetTempPath()) 'azurescout-update-check.txt'
+    $script:MainPath     = Join-Path -Path $script:ModuleRoot -ChildPath 'src'
+    $script:FunctionFile = Join-Path -Path $script:MainPath -ChildPath 'Test-AZSCModuleUpdate.ps1'
+    $script:ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1'
+    $script:ThrottleFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath 'azurescout-update-check.txt'
 
     # Find-Module/Update-Module are function exports of PowerShellGet, loaded on demand.
     # Import explicitly so Pester's Mock can find a command to shim -- without this,

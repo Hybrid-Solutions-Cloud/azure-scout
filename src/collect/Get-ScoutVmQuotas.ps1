@@ -48,6 +48,8 @@ $ErrorActionPreference = 'Stop'
     once (AB#368); this keeps that fix.
 #>
 function Get-ScoutVmQuotas {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+        Justification = 'Public function name is load-bearing across tests; renaming is an API break out of scope for a lint-only pass.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] [object[]] $Subscriptions,

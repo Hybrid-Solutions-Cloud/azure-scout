@@ -10,7 +10,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$DefinitionRoot = (Join-Path $PSScriptRoot '..' 'manifests' 'collectors'),
+    [string]$DefinitionRoot = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'manifests', 'collectors'),
     [switch]$AsJson
 )
 
@@ -18,7 +18,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $DefinitionRoot = (Resolve-Path -LiteralPath $DefinitionRoot -ErrorAction Stop).Path
-. (Join-Path $PSScriptRoot '..' 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
+. (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
 
 $files = @(Get-ChildItem -LiteralPath $DefinitionRoot -Recurse -Filter '*.psd1' -File | Sort-Object FullName)
 $typeHits = @{}

@@ -18,6 +18,7 @@ Authors: Claudio Merola
 #>
 
 function Out-AZSCReportResults {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Called by name from src/Invoke-AzureScout.ps1 (outside this task''s src/report+src/assess scope) plus tests; renaming would break out-of-scope callers.')]
     param (
         [string]$Measure,
         [string]$ResourcesCount,

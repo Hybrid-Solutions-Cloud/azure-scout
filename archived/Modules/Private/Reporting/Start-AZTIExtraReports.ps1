@@ -21,6 +21,7 @@ function Start-AZSCExtraReports {
     # $ExtraData is the hashtable returned by Start-AZSCExtraJobs — Security, Policy, Advisory
     # and Subscriptions. It replaces the Receive-Job harvest that used to sit in this function
     # (AB#5649); see the note at each use site.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param($File, $Quotas, $SecurityCenter, $SkipPolicy, $SkipAdvisory, $IncludeCosts, $TableStyle, $ReportCache, $ExtraData)
 
     if ($null -eq $ExtraData) { $ExtraData = @{} }

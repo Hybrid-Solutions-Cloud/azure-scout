@@ -17,6 +17,8 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
 function Get-AZSCSubscriptions {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+        Justification = 'Public function name is load-bearing across tests and the legacy extraction path; renaming is an API break out of scope for a lint-only pass.')]
     Param ($TenantID,$SubscriptionID,$PlatOS)
     if($PlatOS -eq 'Azure CloudShell')
         {

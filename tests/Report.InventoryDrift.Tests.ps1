@@ -53,7 +53,7 @@ BeforeAll {
 
 Describe 'Get-ScoutInventoryDrift — first-ever run (baseline)' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
         $collect1 = New-InventoryTestCollect -VirtualNetworks @((New-Vnet 'vnetA'), (New-Vnet 'vnetB')) -VirtualMachines @((New-Vm 'vm1'))
         $script:Drift1 = Get-ScoutInventoryDrift -Collect $collect1 -HistoryPath $script:HistoryPath -RunId 'run1'
     }
@@ -83,13 +83,13 @@ Describe 'Get-ScoutInventoryDrift — first-ever run (baseline)' {
     }
 
     It 'creates the inventory-history file and folder' {
-        (Join-Path $script:HistoryPath 'inventory-history.json') | Should -Exist
+        (Join-Path -Path $script:HistoryPath -ChildPath 'inventory-history.json') | Should -Exist
     }
 }
 
 Describe 'Get-ScoutInventoryDrift — second run: added / removed / changed / unchanged' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
 
         # run1: vnetA (peeringCount 1), vnetB, vm1 unchanged-to-be, one nsg rule
         $collect1 = New-InventoryTestCollect `
@@ -153,14 +153,14 @@ Describe 'Get-ScoutInventoryDrift — second run: added / removed / changed / un
 
     It 'a rerun of the same RunId replaces its own history record instead of duplicating it' {
         Get-ScoutInventoryDrift -Collect $collect2 -HistoryPath $script:HistoryPath -RunId 'run2' | Out-Null
-        $historyRaw = Get-Content (Join-Path $script:HistoryPath 'inventory-history.json') -Raw | ConvertFrom-Json -Depth 100
+        $historyRaw = Get-Content (Join-Path -Path $script:HistoryPath -ChildPath 'inventory-history.json') -Raw | ConvertFrom-Json -Depth 100
         @($historyRaw | Where-Object RunId -eq 'run2').Count | Should -Be 1
     }
 }
 
 Describe 'Get-ScoutInventoryDrift — stable id matching' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
     }
 
     AfterAll {
@@ -215,9 +215,9 @@ Describe 'Get-ScoutInventoryDrift — stable id matching' {
 
 Describe 'Get-ScoutInventoryDrift — malformed/corrupt history is tolerated' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutInvDriftTest_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $script:HistoryPath -Force | Out-Null
-        'this is not { valid json at all' | Out-File (Join-Path $script:HistoryPath 'inventory-history.json') -Encoding utf8
+        'this is not { valid json at all' | Out-File (Join-Path -Path $script:HistoryPath -ChildPath 'inventory-history.json') -Encoding utf8
 
         $collect = New-InventoryTestCollect -VirtualNetworks @((New-Vnet 'vnetA'))
         $script:DriftBlock = { Get-ScoutInventoryDrift -Collect $collect -HistoryPath $script:HistoryPath -RunId 'run1' }
@@ -239,7 +239,7 @@ Describe 'Get-ScoutInventoryDrift — malformed/corrupt history is tolerated' {
 
     It 'overwrites the malformed file with valid JSON afterward' {
         & $script:DriftBlock | Out-Null
-        { Get-Content (Join-Path $script:HistoryPath 'inventory-history.json') -Raw | ConvertFrom-Json -Depth 100 } | Should -Not -Throw
+        { Get-Content (Join-Path -Path $script:HistoryPath -ChildPath 'inventory-history.json') -Raw | ConvertFrom-Json -Depth 100 } | Should -Not -Throw
     }
 }
 

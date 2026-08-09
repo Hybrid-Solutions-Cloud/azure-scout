@@ -21,23 +21,23 @@
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Write-ScoutCacheFile.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutProcessing.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Write-ScoutCacheFile.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
     # ── Fixture collector tree ───────────────────────────────────────────────────────────
     # Mirrors the retired collector layout: one directory per category, each holding
     # collectors that take the ten positional parameters and switch on $Task.
-    $script:FixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-pipeline-" + [guid]::NewGuid().ToString('N'))
-    $script:DefinitionRoot = Join-Path $script:FixtureRoot 'definitions'
+    $script:FixtureRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-pipeline-" + [guid]::NewGuid().ToString('N'))
+    $script:DefinitionRoot = Join-Path -Path $script:FixtureRoot -ChildPath 'definitions'
 
     function New-FixtureCollector {
         Param($Category, $Name, $Body, $DeclaredCategory)
 
-        $Dir = Join-Path $script:FixtureRoot $Category
+        $Dir = Join-Path -Path $script:FixtureRoot -ChildPath $Category
         if (-not (Test-Path -LiteralPath $Dir)) { $null = New-Item -Path $Dir -ItemType Directory -Force }
 
         # Built by concatenation, not -replace: the collector bodies contain $_ and $1-style
@@ -54,12 +54,13 @@ BeforeAll {
         $Lines += $Body
         $Lines += '}'
 
-        Set-Content -LiteralPath (Join-Path $Dir "$Name.ps1") -Value ($Lines -join "`n") -Encoding UTF8
+        Set-Content -LiteralPath (Join-Path -Path $Dir -ChildPath "$Name.ps1") -Value ($Lines -join "`n") -Encoding UTF8
     }
 
     function New-FixtureDefinition {
-        param([string]$Category, [string]$Name, [string]$ResourceType, [string]$Kind, [switch]$Throws)
-        $Dir = Join-Path $script:DefinitionRoot $Category
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string]$Category, [string]$Name, [string]$ResourceType, [string]$Kind, [switch]$Throws)
+        $Dir = Join-Path -Path $script:DefinitionRoot -ChildPath $Category
         $null = New-Item -ItemType Directory -Path $Dir -Force
         $Preamble = if ($Throws) { "throw 'this collector is broken'" } else { '$ResUCount = 1' }
         $Text = @"
@@ -77,7 +78,7 @@ $Preamble
     Export = @{ WorksheetName = '$Name'; Columns = @('Name', 'Kind'); TagColumns = @() }
 }
 "@
-        Set-Content -LiteralPath (Join-Path $Dir "$Name.psd1") -Value $Text -Encoding utf8
+        Set-Content -LiteralPath (Join-Path -Path $Dir -ChildPath "$Name.psd1") -Value $Text -Encoding utf8
     }
 
     # Compute: two healthy collectors.
@@ -171,7 +172,7 @@ Describe 'Get-ScoutCollector — discovery' {
     }
 
     It 'warns rather than throwing when the root does not exist' {
-        $Found = @(Get-ScoutCollector -InventoryRoot (Join-Path $script:FixtureRoot 'no-such-dir') -WarningAction SilentlyContinue)
+        $Found = @(Get-ScoutCollector -InventoryRoot (Join-Path -Path $script:FixtureRoot -ChildPath 'no-such-dir') -WarningAction SilentlyContinue)
         $Found.Count | Should -Be 0
     }
 }
@@ -226,7 +227,7 @@ Describe 'Invoke-ScoutCollector — per-collector failure containment' {
 Describe 'Write-ScoutCacheFile' {
 
     BeforeEach {
-        $script:CacheDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-cache-" + [guid]::NewGuid().ToString('N'))
+        $script:CacheDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-cache-" + [guid]::NewGuid().ToString('N'))
     }
 
     AfterEach {
@@ -244,7 +245,7 @@ Describe 'Write-ScoutCacheFile' {
 
         $Result.Written  | Should -BeTrue
         $Result.RowCount | Should -Be 1
-        Test-Path -LiteralPath (Join-Path $script:CacheDir 'Compute.json') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $script:CacheDir -ChildPath 'Compute.json') | Should -BeTrue
     }
 
     It 'writes no file at all for an empty category' {
@@ -253,7 +254,7 @@ Describe 'Write-ScoutCacheFile' {
         $Result = Write-ScoutCacheFile -Category 'Empty' -CachePath $script:CacheDir -Data @{ Nothing = @() }
 
         $Result.Written | Should -BeFalse
-        Test-Path -LiteralPath (Join-Path $script:CacheDir 'Empty.json') | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path -Path $script:CacheDir -ChildPath 'Empty.json') | Should -BeFalse
     }
 
     It 'round-trips the collector rows' {
@@ -261,7 +262,7 @@ Describe 'Write-ScoutCacheFile' {
             VirtualMachines = @([PSCustomObject]@{ Name = 'vm-a'; Kind = 'vm' })
         }
 
-        $Read = Get-Content -LiteralPath (Join-Path $script:CacheDir 'Compute.json') -Raw | ConvertFrom-Json
+        $Read = Get-Content -LiteralPath (Join-Path -Path $script:CacheDir -ChildPath 'Compute.json') -Raw | ConvertFrom-Json
         $Read.VirtualMachines[0].Name | Should -Be 'vm-a'
     }
 }
@@ -269,8 +270,8 @@ Describe 'Write-ScoutCacheFile' {
 Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
     BeforeEach {
-        $script:RunPath = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-run-" + [guid]::NewGuid().ToString('N'))
-        $null = New-Item -Path (Join-Path $script:RunPath 'ReportCache') -ItemType Directory -Force
+        $script:RunPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-run-" + [guid]::NewGuid().ToString('N'))
+        $null = New-Item -Path (Join-Path -Path $script:RunPath -ChildPath 'ReportCache') -ItemType Directory -Force
     }
 
     AfterEach {
@@ -285,11 +286,11 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
         $Summary.CollectorCount | Should -Be 6
 
-        $Cache = Join-Path $script:RunPath 'ReportCache'
-        Test-Path -LiteralPath (Join-Path $Cache 'Compute.json')    | Should -BeTrue
-        Test-Path -LiteralPath (Join-Path $Cache 'Storage.json')    | Should -BeTrue
-        Test-Path -LiteralPath (Join-Path $Cache 'Networking.json') | Should -BeTrue
-        Test-Path -LiteralPath (Join-Path $Cache 'Empty.json')      | Should -BeFalse
+        $Cache = Join-Path -Path $script:RunPath -ChildPath 'ReportCache'
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Compute.json')    | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Storage.json')    | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Networking.json') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Empty.json')      | Should -BeFalse
     }
 
     It 'completes the run despite a broken collector, and reports it' {
@@ -301,31 +302,31 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 
         # …and its healthy sibling in the SAME category still made it to the cache. Under the
         # old pipeline the throw took the whole category with it.
-        $Storage = Get-Content -LiteralPath (Join-Path $script:RunPath 'ReportCache/Storage.json') -Raw | ConvertFrom-Json
+        $Storage = Get-Content -LiteralPath (Join-Path -Path $script:RunPath -ChildPath 'ReportCache/Storage.json') -Raw | ConvertFrom-Json
         $Storage.Accounts[0].Name | Should -Be 'sa-a'
     }
 
     It 'produces byte-identical cache files across two runs of the same input' {
         # This is the property the old pipeline could not offer: Compute.json came back 5,158
         # bytes on one run and 470 on the next against the same tenant (AB#5629).
-        $RunA = Join-Path $script:RunPath 'a'
-        $RunB = Join-Path $script:RunPath 'b'
-        $null = New-Item -Path (Join-Path $RunA 'ReportCache') -ItemType Directory -Force
-        $null = New-Item -Path (Join-Path $RunB 'ReportCache') -ItemType Directory -Force
+        $RunA = Join-Path -Path $script:RunPath -ChildPath 'a'
+        $RunB = Join-Path -Path $script:RunPath -ChildPath 'b'
+        $null = New-Item -Path (Join-Path -Path $RunA -ChildPath 'ReportCache') -ItemType Directory -Force
+        $null = New-Item -Path (Join-Path -Path $RunB -ChildPath 'ReportCache') -ItemType Directory -Force
 
         $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunA `
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
         $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $RunB `
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
 
-        $FilesA = @(Get-ChildItem -LiteralPath (Join-Path $RunA 'ReportCache') | Sort-Object Name)
-        $FilesB = @(Get-ChildItem -LiteralPath (Join-Path $RunB 'ReportCache') | Sort-Object Name)
+        $FilesA = @(Get-ChildItem -LiteralPath (Join-Path -Path $RunA -ChildPath 'ReportCache') | Sort-Object Name)
+        $FilesB = @(Get-ChildItem -LiteralPath (Join-Path -Path $RunB -ChildPath 'ReportCache') | Sort-Object Name)
 
         @($FilesA | ForEach-Object { $_.Name }) | Should -Be @($FilesB | ForEach-Object { $_.Name })
 
         foreach ($File in $FilesA) {
             $Hash = (Get-FileHash -LiteralPath $File.FullName).Hash
-            $Other = (Get-FileHash -LiteralPath (Join-Path $RunB 'ReportCache' $File.Name)).Hash
+            $Other = (Get-FileHash -LiteralPath (Join-Path -Path $RunB -ChildPath 'ReportCache' -AdditionalChildPath $File.Name)).Hash
             $Hash | Should -Be $Other -Because "$($File.Name) must be identical across runs"
         }
     }
@@ -335,7 +336,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -Category 'Compute' -WarningAction SilentlyContinue
 
         $Summary.CollectorCount | Should -Be 2
-        Test-Path -LiteralPath (Join-Path $script:RunPath 'ReportCache/Storage.json') | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path -Path $script:RunPath -ChildPath 'ReportCache/Storage.json') | Should -BeFalse
     }
 
     It 'starts no background jobs' {
@@ -376,19 +377,24 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
 Describe 'Start-AZSCExtraJobs — security, policy, advisory and subscriptions, in-process' {
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'src/pipeline/Start-ScoutExtraJobs.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Start-ScoutExtraJobs.ps1')
 
         # Stand-ins for the four real processing functions and the diagram wrapper. Each
         # records what it was handed so the argument-passing can be asserted.
         $script:Seen = @{}
 
-        function Start-AZSCSecCenterJob    { Param($Subscriptions, $Security)
+        function Start-AZSCSecCenterJob    {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Subscriptions, $Security)
                                              $script:Seen['SecArg'] = $Security; 'sec-rows' }
-        function Start-AZSCPolicyJob       { Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
+        function Start-AZSCPolicyJob       {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
                                              'pol-rows' }
-        function Start-AZSCAdvisoryJob     { Param($Advisories) 'adv-rows' }
-        function Start-AZSCSubscriptionJob { Param($Subscriptions, $Resources, $CostData) 'sub-rows' }
-        function Invoke-AZSCDrawIOJob      { Param($Subscriptions, $Resources, $Advisories, $DDFile,
+        function Start-AZSCAdvisoryJob     {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Advisories) 'adv-rows' }
+        function Start-AZSCSubscriptionJob {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Subscriptions, $Resources, $CostData) 'sub-rows' }
+        function Invoke-AZSCDrawIOJob      {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Subscriptions, $Resources, $Advisories, $DDFile,
                                                    $DiagramCache, $FullEnv, $ResourceContainers,
                                                    $Automation, $AZSCModule) }
     }
@@ -431,7 +437,8 @@ Describe 'Start-AZSCExtraJobs — security, policy, advisory and subscriptions, 
     }
 
     It 'completes the remaining steps when one of them throws' {
-        function Start-AZSCPolicyJob { Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
+        function Start-AZSCPolicyJob {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+Param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
                                        throw 'policy processing exploded' }
 
         $Result = Start-AZSCExtraJobs -SkipDiagram $true -SkipAdvisory $false -SkipPolicy $false `
@@ -471,13 +478,13 @@ Describe 'Excel reporting only invokes collectors that have data' {
     }
 
     It 'Start-AZSCExcelJob filters nulls out of definition-indexed cache rows' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
         $Source | Should -Match '\$SmaResources\s*=\s*if\s*\(\$CacheProperty\)\s*\{\s*@\(\$CacheProperty\.Value\)\.Where'
         $Source | Should -Not -Match '\$CacheData\.\$ModName'
     }
 
     It 'Start-AZSCExcelJob runs only definitions with rows' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
         $Source | Should -Match '\$SmaResources\.Count -gt 0'
         $Source | Should -Match 'Invoke-ScoutDeclarativeReporting'
     }
@@ -486,7 +493,7 @@ Describe 'Excel reporting only invokes collectors that have data' {
         # `Modules/` was the imperative collector root and no longer exists. Scanning a path that
         # is gone must not throw -- the whole point of this gate is that its ABSENCE is the pass.
         $Roots = @('src', 'Modules') |
-            ForEach-Object { Join-Path $script:RepoRoot $_ } |
+            ForEach-Object { Join-Path -Path $script:RepoRoot -ChildPath $_ } |
             Where-Object { Test-Path -LiteralPath $_ }
         $Users = @($Roots | ForEach-Object {
             Get-ChildItem -LiteralPath $_ -Filter '*.ps1' -Recurse -File |
@@ -514,7 +521,7 @@ Describe 'Every report exporter tolerates a cache with no entry for a collector'
     )
 
     It '<_> checks the property exists before reading it' -ForEach $ExporterFiles {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot $_) -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath $_) -Raw
 
         $Source | Should -Not -Match '(?m)^\s*\$ModResources\s*=\s*\$CacheData\.\$ModName\s*$'
         # The original guard checked the dynamic name against .Properties.Name.  Manifest-backed
@@ -547,7 +554,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     # no-op wait. It is now one bucket-sorting pass over $Resources.
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1')
 
         $script:DiagramResources = @(
             [PSCustomObject]@{ Type = 'microsoft.network/virtualnetworks'; name = 'vnet1' }
@@ -606,7 +613,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     }
 
     It 'no longer contains the runspace fan-out or the no-op wait' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/diagram/Start-ScoutDiagramJob.ps1') -Raw
         $Tokens = $null
         $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
         $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
@@ -618,7 +625,7 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
     }
 
     It 'Start-AZSCDrawIODiagram takes the lookup as a value instead of harvesting a job' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDrawIoDiagram.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/diagram/Start-ScoutDrawIoDiagram.ps1') -Raw
         $Tokens = $null
         $null = [System.Management.Automation.Language.Parser]::ParseInput($Source, [ref]$Tokens, [ref]$null)
         $Code = ($Tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { $_.Text }) -join ' '
@@ -631,12 +638,12 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
 Describe 'The processing path no longer depends on background jobs' {
 
     It 'Start-AZSCProcessOrchestration calls the deterministic pipeline' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Start-AZTIProcessOrchestration.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/Start-AZTIProcessOrchestration.ps1') -Raw
         $Source | Should -Match 'Invoke-ScoutProcessing'
     }
 
     It 'Start-AZSCProcessOrchestration no longer creates, waits on or harvests jobs' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Start-AZTIProcessOrchestration.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/Start-AZTIProcessOrchestration.ps1') -Raw
 
         # Comments explaining the history are allowed; executable calls are not.
         $Code = ($Source -split "`r?`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"

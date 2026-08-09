@@ -20,6 +20,7 @@ Authors: Claudio Merola
 #>
 
 Function Build-AZSCDiagramSubnet {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Job', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($SubnetLocation,$VNET,$IDNum,$DiagramCache,$ContainerID,$Job,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -65,7 +66,7 @@ Function Build-AZSCDiagramSubnet {
 
         ###################################################### STENCILS ####################################################
 
-        Function Publish-AZSCDiagramStensils {
+        Function Publish-AZSCDiagramStensil {
             $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
 
             $Script:IconConnections = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Connections.svg;" #width="68" height="68"
@@ -948,6 +949,7 @@ Function Build-AZSCDiagramSubnet {
             }
 
         Function Get-AZSCDiagramSubnetResourceType {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
             Param($Sub,$LogFile)
 
             <# Every branch below guards the collection ($sub.properties.delegations, etc.)
@@ -1079,6 +1081,7 @@ Function Build-AZSCDiagramSubnet {
         }
 
         Function Get-AZSCDiagramSubnetResourcesName {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
             Param($sub,$TrueTemp,$LogFile)
 
             # Predeclare: $TrueTemp values that match none of the branches below (e.g.
@@ -1242,7 +1245,7 @@ Function Build-AZSCDiagramSubnet {
 
         ######################################################## SUBNET #######################################################
 
-        Publish-AZSCDiagramStensils
+        Publish-AZSCDiagramStensil
 
         $XmlTempWriter = New-Object System.XMl.XmlTextWriter($SubFile,$Null)
 

@@ -37,10 +37,10 @@ Describe 'Resolve-JsonPath' {
 Describe 'Get-Score' {
     It 'excludes Manual and Unknown from the denominator but surfaces the counts' {
         $f = @(
-            New-Finding CAF 'Net' 'Pass'
-            New-Finding CAF 'Net' 'Fail'
-            New-Finding CAF 'Net' 'Manual'
-            New-Finding CAF 'Net' 'Unknown'
+            New-Finding -Framework CAF -Area 'Net' -Status 'Pass'
+            New-Finding -Framework CAF -Area 'Net' -Status 'Fail'
+            New-Finding -Framework CAF -Area 'Net' -Status 'Manual'
+            New-Finding -Framework CAF -Area 'Net' -Status 'Unknown'
         )
         $s = Get-Score -Findings $f
         $area = $s.Areas | Where-Object Area -eq 'Net'
@@ -51,8 +51,8 @@ Describe 'Get-Score' {
 
     It 'weights the framework score by AreaWeight, not a flat mean' {
         $f = @(
-            (New-Finding CAF 'Big'   'Fail' 'high' 3.0)   # area score 0, weight 3
-            (New-Finding CAF 'Small' 'Pass' 'low'  1.0)   # area score 100, weight 1
+            (New-Finding -Framework CAF -Area 'Big' -Status 'Fail' -Severity 'high' -Weight 3.0)   # area score 0, weight 3
+            (New-Finding -Framework CAF -Area 'Small' -Status 'Pass' -Severity 'low' -Weight 1.0)   # area score 100, weight 1
         )
         $s = Get-Score -Findings $f
         # weighted: (0*3 + 100*1)/4 = 25, not the flat mean of 50
@@ -61,8 +61,8 @@ Describe 'Get-Score' {
 
     It 'sorts unknown/missing severity LAST in the gap list' {
         $f = @(
-            (New-Finding CAF 'A' 'Fail' 'bogus')
-            (New-Finding CAF 'B' 'Fail' 'high')
+            (New-Finding -Framework CAF -Area 'A' -Status 'Fail' -Severity 'bogus')
+            (New-Finding -Framework CAF -Area 'B' -Status 'Fail' -Severity 'high')
         )
         $s = Get-Score -Findings $f
         $s.Gaps[0].Severity | Should -Be 'high'

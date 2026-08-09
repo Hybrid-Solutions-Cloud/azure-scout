@@ -46,8 +46,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($SpecPath))   { $SpecPath   = Join-Path $RepoRoot 'manifests' 'specs' 'service-collectors.psd1' }
-if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = Join-Path $RepoRoot 'manifests' 'collectors' }
+if ([string]::IsNullOrWhiteSpace($SpecPath))   { $SpecPath   = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'specs', 'service-collectors.psd1' }
+if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors' }
 
 if (-not (Test-Path -LiteralPath $SpecPath)) { throw "Collector spec not found: $SpecPath" }
 

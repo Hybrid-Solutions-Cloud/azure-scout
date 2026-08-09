@@ -16,7 +16,7 @@
 
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
-    $script:ProcessingPath  = Join-Path $script:ModuleRoot 'src' 'pipeline'
+    $script:ProcessingPath  = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline'
 
     # Return a file's executable code with ALL comments removed, using the PowerShell
     # tokenizer. A line regex is not good enough here: these files document the machinery they
@@ -48,7 +48,7 @@ Describe 'v3 pipeline module files exist' {
     )
 
     It '<_> exists' -ForEach $processingFiles {
-        Join-Path $script:ProcessingPath $_ | Should -Exist
+        Join-Path -Path $script:ProcessingPath -ChildPath $_ | Should -Exist
     }
 }
 
@@ -66,7 +66,7 @@ Describe 'v3 pipeline script syntax validation' {
     )
 
     It '<_> parses without errors' -ForEach $processingFiles {
-        $filePath = Join-Path $script:ProcessingPath $_
+        $filePath = Join-Path -Path $script:ProcessingPath -ChildPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
         $errors | Should -BeNullOrEmpty
@@ -79,12 +79,12 @@ Describe 'v3 pipeline script syntax validation' {
 Describe 'v3 pipeline function definitions' {
 
     It 'Invoke-ScoutDrawIoJob.ps1 defines Invoke-AZSCDrawIOJob' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Invoke-ScoutDrawIoJob.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:ProcessingPath -ChildPath 'Invoke-ScoutDrawIoJob.ps1') -Raw
         $content | Should -Match 'function\s+Invoke-AZSCDrawIOJob'
     }
 
     It 'Start-ScoutExtraJobs.ps1 defines Start-AZSCExtraJobs' {
-        $content = Get-Content (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:ProcessingPath -ChildPath 'Start-ScoutExtraJobs.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExtraJobs'
     }
 }
@@ -112,7 +112,7 @@ Describe 'Resource-processing background jobs stay deleted' {
         'Invoke-AZTISecurityCenterJob.ps1',
         'Invoke-AZTISubJob.ps1'
     ) {
-        Join-Path $script:ProcessingPath $_ | Should -Not -Exist
+        Join-Path -Path $script:ProcessingPath -ChildPath $_ | Should -Not -Exist
     }
 
     It 'no v3 pipeline file starts a ResourceJob_* background job' {
@@ -126,7 +126,7 @@ Describe 'Resource-processing background jobs stay deleted' {
         # Comments describing the old design are allowed; executable calls are not. Stripped
         # with the tokenizer rather than a line regex: the design note in that file is a
         # <# … #> block, whose inner lines do not start with '#'.
-        $Code = Get-StrippedCode (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1')
+        $Code = Get-StrippedCode (Join-Path -Path $script:ProcessingPath -ChildPath 'Start-ScoutExtraJobs.ps1')
 
         $Code | Should -Not -Match 'Start-Job'
         $Code | Should -Not -Match 'Start-ThreadJob'
@@ -144,14 +144,14 @@ Describe 'Resource-processing background jobs stay deleted' {
         # $args for a simple function, so $null crossed the job boundary as -Security and
         # `foreach ($1 in $Security)` iterated nothing — the Security Center sheet was empty in
         # every release that had one. (AB#5649)
-        $Source = Get-Content (Join-Path $script:ProcessingPath 'Start-ScoutExtraJobs.ps1') -Raw
+        $Source = Get-Content (Join-Path -Path $script:ProcessingPath -ChildPath 'Start-ScoutExtraJobs.ps1') -Raw
         $Source | Should -Match 'Start-AZSCSecCenterJob\s+-Subscriptions\s+\$Subscriptions\s+-Security\s+\$Security'
     }
 
     It 'Start-AZSCExtraReports no longer harvests background jobs' {
         # AB#5662: moved from Modules/Private/Reporting to src/report/renderers/inventory.
-        $ReportingPath = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
-        $Code = Get-StrippedCode (Join-Path $ReportingPath 'Start-AZSCExtraReports.ps1')
+        $ReportingPath = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'renderers', 'inventory'
+        $Code = Get-StrippedCode (Join-Path -Path $ReportingPath -ChildPath 'Start-AZSCExtraReports.ps1')
 
         $Code | Should -Not -Match 'Receive-Job'
         $Code | Should -Not -Match 'Remove-Job'

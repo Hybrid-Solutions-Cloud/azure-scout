@@ -35,19 +35,19 @@
 
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
-    $script:ManifestPath = Join-Path $script:ModuleRoot 'AzureScout.psd1'
-    $script:DiagramPath = Join-Path $script:ModuleRoot 'src' 'pipeline' 'diagram'
+    $script:ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1'
+    $script:DiagramPath = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'diagram'
 
     Import-Module $script:ManifestPath -Force
 
-    $script:TestRoot = Join-Path $script:ModuleRoot 'tests' 'test-output' 'DiagramCache'
+    $script:TestRoot = Join-Path -Path $script:ModuleRoot -ChildPath 'tests' -AdditionalChildPath 'test-output', 'DiagramCache'
     if (Test-Path $script:TestRoot) { Remove-Item -Path $script:TestRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $script:TestRoot | Out-Null
 
-    $script:CacheDir = Join-Path $script:TestRoot 'DiagramCache'
+    $script:CacheDir = Join-Path -Path $script:TestRoot -ChildPath 'DiagramCache'
     New-Item -ItemType Directory -Path $script:CacheDir | Out-Null
-    $script:LogFile = Join-Path $script:TestRoot 'log.txt'
-    $script:DDFile = Join-Path $script:TestRoot 'AzureScout.drawio'
+    $script:LogFile = Join-Path -Path $script:TestRoot -ChildPath 'log.txt'
+    $script:DDFile = Join-Path -Path $script:TestRoot -ChildPath 'AzureScout.drawio'
 
     $script:LongVnetName = 'vnet-hub-prod-westus2-shared-services-connectivity-platform-team-01'
     $script:LongMgName = 'Very Long Management Group Display Name Used To Exercise The New Truncation Helper 001'
@@ -137,11 +137,11 @@ Describe 'Diagram module files exist and parse cleanly' {
     )
 
     It '<_> exists' -ForEach $diagramFiles {
-        Join-Path $script:DiagramPath $_ | Should -Exist
+        Join-Path -Path $script:DiagramPath -ChildPath $_ | Should -Exist
     }
 
     It '<_> parses without errors' -ForEach $diagramFiles {
-        $filePath = Join-Path $script:DiagramPath $_
+        $filePath = Join-Path -Path $script:DiagramPath -ChildPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors) | Out-Null
         $errors | Should -BeNullOrEmpty
@@ -156,11 +156,11 @@ Describe 'Draw.io diagram generation end-to-end' {
     It 'Start-AZSCDiagramOrganization generates Organization.xml without throwing' {
         { Start-AZSCDiagramOrganization -ResourceContainers $script:ResourceContainers -DiagramCache $script:CacheDir -LogFile $script:LogFile } |
             Should -Not -Throw
-        Join-Path $script:CacheDir 'Organization.xml' | Should -Exist
+        Join-Path -Path $script:CacheDir -ChildPath 'Organization.xml' | Should -Exist
     }
 
     It 'Organization.xml is well-formed XML with an mxfile root' {
-        $orgFile = Join-Path $script:CacheDir 'Organization.xml'
+        $orgFile = Join-Path -Path $script:CacheDir -ChildPath 'Organization.xml'
         { [xml](Get-Content -Path $orgFile -Raw) } | Should -Not -Throw
         [xml]$orgXml = Get-Content -Path $orgFile -Raw
         $orgXml.mxfile | Should -Not -BeNullOrEmpty
@@ -183,11 +183,11 @@ Describe 'Draw.io diagram generation end-to-end' {
     It 'Start-AZSCDiagramSubscription generates Subscriptions.xml without throwing' {
         { Start-AZSCDiagramSubscription -Subscriptions $script:Subscriptions -Resources $script:Resources `
             -DiagramCache $script:CacheDir -LogFile $script:LogFile } | Should -Not -Throw
-        Join-Path $script:CacheDir 'Subscriptions.xml' | Should -Exist
+        Join-Path -Path $script:CacheDir -ChildPath 'Subscriptions.xml' | Should -Exist
     }
 
     It 'Subscriptions.xml is well-formed XML with one page per subscription' {
-        $subFile = Join-Path $script:CacheDir 'Subscriptions.xml'
+        $subFile = Join-Path -Path $script:CacheDir -ChildPath 'Subscriptions.xml'
         { [xml](Get-Content -Path $subFile -Raw) } | Should -Not -Throw
         [xml]$subXml = Get-Content -Path $subFile -Raw
         $subXml.mxfile.diagram.name | Should -Be 'Sub One'
@@ -195,15 +195,15 @@ Describe 'Draw.io diagram generation end-to-end' {
 
     It 'Set-AZSCDiagramFile merges Organization.xml and Subscriptions.xml into the main file as additional pages' {
         $xmlFiles = @(
-            (Join-Path $script:CacheDir 'Organization.xml'),
-            (Join-Path $script:CacheDir 'Subscriptions.xml')
+            (Join-Path -Path $script:CacheDir -ChildPath 'Organization.xml'),
+            (Join-Path -Path $script:CacheDir -ChildPath 'Subscriptions.xml')
         )
 
         { Set-AZSCDiagramFile -XMLFiles $xmlFiles -DDFile $script:DDFile -LogFile $script:LogFile } | Should -Not -Throw
 
         # The merge function deletes each source cache file once merged.
-        Join-Path $script:CacheDir 'Organization.xml' | Should -Not -Exist
-        Join-Path $script:CacheDir 'Subscriptions.xml' | Should -Not -Exist
+        Join-Path -Path $script:CacheDir -ChildPath 'Organization.xml' | Should -Not -Exist
+        Join-Path -Path $script:CacheDir -ChildPath 'Subscriptions.xml' | Should -Not -Exist
 
         $mergeErrors = Get-Content $script:LogFile | Select-String -Pattern 'Error merging'
         $mergeErrors | Should -BeNullOrEmpty

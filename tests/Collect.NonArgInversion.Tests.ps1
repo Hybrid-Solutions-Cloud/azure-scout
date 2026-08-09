@@ -44,7 +44,8 @@ BeforeAll {
     # Get-Scout* functions directly; these helpers preserve the retired v2 envelope so the
     # reference implementation below remains a meaningful field-by-field oracle.
     function Get-AZSCAPIResources {
-        param($Subscriptions, $AzureEnvironment, $SkipPolicy)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($Subscriptions, $AzureEnvironment, $SkipPolicy)
         if (-not $Subscriptions) { return }
         $rows = Get-ScoutApiResources -Subscriptions @($Subscriptions) -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy
         foreach ($row in @($rows)) {
@@ -73,19 +74,21 @@ BeforeAll {
     function Get-AZSCCostInventory {
         param($Subscriptions, $Days, $Granularity)
         if (-not $Subscriptions) { return }
-        $args = @{ Subscriptions = @($Subscriptions) }
-        if ($PSBoundParameters.ContainsKey('Days')) { $args.Days = $Days }
-        if ($PSBoundParameters.ContainsKey('Granularity')) { $args.Granularity = $Granularity }
-        foreach ($row in @(Get-ScoutCostInventory @args)) {
+        $splatArgs = @{ Subscriptions = @($Subscriptions) }
+        if ($PSBoundParameters.ContainsKey('Days')) { $splatArgs.Days = $Days }
+        if ($PSBoundParameters.ContainsKey('Granularity')) { $splatArgs.Granularity = $Granularity }
+        foreach ($row in @(Get-ScoutCostInventory @splatArgs)) {
             @{ SubscriptionId = $row.SubscriptionId; SubscriptionName = $row.SubscriptionName; CostData = $row.CostData }
         }
     }
     function Get-AZSCVMQuotas {
-        param($Subscriptions, $Resources)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($Subscriptions, $Resources)
         if (-not $Subscriptions) { return [pscustomobject]@{ type = 'AZSC/VM/Quotas'; properties = @() } }
         Get-ScoutVmQuotas -Subscriptions @($Subscriptions) -Resources $Resources
     }
-    function Get-AZSCVMSkuDetails { param($Resources) Get-ScoutVmSkuDetails -Resources $Resources }
+    function Get-AZSCVMSkuDetails {         [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($Resources) Get-ScoutVmSkuDetails -Resources $Resources }
 
 
     # ---------------------------------------------------------------- fixtures ----
@@ -100,6 +103,9 @@ BeforeAll {
     # those. A bare `$_.subscriptionId` on one of the latter aborts the pipeline under
     # StrictMode and collects NO quota for ANY subscription (AB#5633).
     function Get-FixtureMixedResources {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{ id = '/vm1'; type = 'microsoft.compute/virtualmachines'
                 subscriptionId = 'sub-1'; location = 'eastus' }
@@ -120,7 +126,8 @@ BeforeAll {
     # ---------------------------------------------------------------- Azure stubs ----
 
     function Install-ScoutAzureStubs {
-        param([switch] $FailPolicyForSub2, [switch] $FailAdvisorForSub2)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([switch] $FailPolicyForSub2, [switch] $FailAdvisorForSub2)
 
         $script:restCalls = [System.Collections.Generic.List[string]]::new()
         $script:vmUsageCalls = [System.Collections.Generic.List[string]]::new()
@@ -130,15 +137,19 @@ BeforeAll {
         $script:failAdvisor = [bool]$FailAdvisorForSub2
 
         # Sleeps are pure pacing; the functions under test spend ~1.7s in them per run.
-        function global:Start-Sleep { param([int] $Milliseconds, [int] $Seconds) }
+        function global:Start-Sleep {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([int] $Milliseconds, [int] $Seconds) }
 
         function global:Get-AzAccessToken {
-            param([switch] $AsSecureString, $InformationAction, $WarningAction, $Debug)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Synthetic fake-credential value used only to satisfy a SecureString-typed mock return in this test -- not a real secret.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([switch] $AsSecureString, $InformationAction, $WarningAction, $Debug)
             [pscustomobject]@{ Token = (ConvertTo-SecureString 'fake-token-value' -AsPlainText -Force) }
         }
 
         function global:Invoke-RestMethod {
-            param($Uri, $Headers, $Method, $Body, $ContentType, $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Uri, $Headers, $Method, $Body, $ContentType, $ErrorAction)
             $script:restCalls.Add("$Method $Uri")
             $sub = if ($Uri -match '/subscriptions/([^/]+)/') { $Matches[1] } else { 'unknown' }
 
@@ -176,15 +187,18 @@ BeforeAll {
         }
 
         function global:Get-AzContext {
-            param($ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($ErrorAction)
             [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = 'original-sub' } }
         }
         function global:Set-AzContext {
-            param($Subscription, $SubscriptionId, $ErrorAction, $WarningAction, $InformationAction, $Debug)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Subscription, $SubscriptionId, $ErrorAction, $WarningAction, $InformationAction, $Debug)
         }
 
         function global:Get-AzVMUsage {
-            param($Location, $ErrorAction, $Debug)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Location, $ErrorAction, $Debug)
             $script:vmUsageCalls.Add($Location)
             @(
                 [pscustomobject]@{ Name = [pscustomobject]@{ Value = 'standardDSv3Family' }; CurrentValue = 4; Limit = 100 }
@@ -193,23 +207,29 @@ BeforeAll {
         }
 
         function global:Get-AzComputeResourceSku {
-            param($Location, $ErrorAction, $Debug)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Location, $ErrorAction, $Debug)
             $script:skuCalls.Add($Location)
             @([pscustomobject]@{ Name = 'Standard_D2s_v3'; Family = 'standardDSv3Family'; Locations = @($Location) })
         }
 
         function global:Invoke-AzCostManagementQuery {
-            param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
                 $DatasetAggregation, $TimePeriodFrom, $TimePeriodTo, $ErrorAction, $Debug)
             $script:costCalls.Add("$Scope|$DatasetGranularity|$($TimePeriodFrom.ToString('yyyy-MM-dd'))|$($TimePeriodTo.ToString('yyyy-MM-dd'))")
             @([pscustomobject]@{ Row = @(, @('ResourceType', 'rg-1', 'eastus', 'Virtual Machines', 12.34)) })
         }
 
         # The legacy cost function wrote to the run log; the shim path does too, guarded.
-        function global:Write-AZSCLog { param($Message, $Level, $Color) }
+        function global:Write-AZSCLog {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Message, $Level, $Color) }
     }
 
     function Remove-ScoutAzureStubs {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         # `Remove-Item function:global:X` is a SILENT NO-OP -- `global:` is not a scope
         # qualifier inside a provider path, so the item is never found and -ErrorAction
         # SilentlyContinue hides that. The stubs then leak into every later test file in the
@@ -227,7 +247,8 @@ BeforeAll {
     # evidence of what the product used to do.
 
     function Get-ReferenceApiResources {
-        Param($Subscriptions, $AzureEnvironment, $SkipPolicy)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+Param($Subscriptions, $AzureEnvironment, $SkipPolicy)
         Set-StrictMode -Off
 
         try {
@@ -291,7 +312,8 @@ BeforeAll {
     }
 
     function Get-ReferenceVmQuotas {
-        Param ($Subscriptions, $Resources)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+Param ($Subscriptions, $Resources)
         Set-StrictMode -Off
 
         $OriginalContext = Get-AzContext -ErrorAction SilentlyContinue
@@ -338,7 +360,8 @@ BeforeAll {
     }
 
     function Get-ReferenceVmSkuDetails {
-        Param ($Resources)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+Param ($Resources)
         Set-StrictMode -Off
 
         $VMTypes = @('microsoft.compute/virtualmachines', 'microsoft.compute/virtualmachinescalesets')
@@ -523,7 +546,7 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
         $allowed = @(
             'src\Invoke-AZTIGraphRequest.ps1'
         )
-        $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'Modules') -CommandName 'Invoke-RestMethod', 'Get-AzAccessToken' |
+        $hits = @(Get-ScoutCommandNode -Path (Join-Path -Path $script:repo -ChildPath 'Modules') -CommandName 'Invoke-RestMethod', 'Get-AzAccessToken' |
                 Where-Object { $_.File -notin $allowed })
         ($hits | ForEach-Object { "$($_.File) -> $($_.Command)" }) -join "`n" | Should -BeNullOrEmpty
     }
@@ -541,17 +564,17 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
             'Modules/Private/Extraction/ResourceDetails/Get-AZTIVMSkuDetails.ps1'
         )
         foreach ($relative in $retired) {
-            Test-Path (Join-Path $script:repo $relative) | Should -BeFalse
+            Test-Path (Join-Path -Path $script:repo -ChildPath $relative) | Should -BeFalse
         }
     }
 
     It 'no file under Modules/ calls Get-AzVMUsage or Get-AzComputeResourceSku any more' {
-        $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'Modules') -CommandName 'Get-AzVMUsage', 'Get-AzComputeResourceSku')
+        $hits = @(Get-ScoutCommandNode -Path (Join-Path -Path $script:repo -ChildPath 'Modules') -CommandName 'Get-AzVMUsage', 'Get-AzComputeResourceSku')
         ($hits | ForEach-Object { "$($_.File) -> $($_.Command)" }) -join "`n" | Should -BeNullOrEmpty
     }
 
     It 'no file under Modules/ calls Invoke-AzCostManagementQuery any more' {
-        $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'Modules') -CommandName 'Invoke-AzCostManagementQuery')
+        $hits = @(Get-ScoutCommandNode -Path (Join-Path -Path $script:repo -ChildPath 'Modules') -CommandName 'Invoke-AzCostManagementQuery')
         ($hits | ForEach-Object { "$($_.File) -> $($_.Command)" }) -join "`n" | Should -BeNullOrEmpty
     }
 
@@ -563,14 +586,14 @@ Describe 'AB#5648 — the non-ARG collection cmdlets are reachable from src/coll
             'Invoke-AzCostManagementQuery' = 'Get-ScoutCostInventory.ps1'
         }
         foreach ($cmd in $expected.Keys) {
-            $hits = @(Get-ScoutCommandNode -Path (Join-Path $script:repo 'src') -CommandName $cmd)
+            $hits = @(Get-ScoutCommandNode -Path (Join-Path -Path $script:repo -ChildPath 'src') -CommandName $cmd)
             $owned = @($hits | Where-Object { (Split-Path $_.File -Leaf) -eq $expected[$cmd] })
             $owned.Count | Should -Be 1 -Because "$cmd must have one owning call site in $($expected[$cmd])"
         }
     }
 
     It 'the extraction orchestrator calls src/collect directly' {
-        $path = Join-Path $script:repo 'src/Start-AZTIExtractionOrchestration.ps1'
+        $path = Join-Path -Path $script:repo -ChildPath 'src/Start-AZTIExtractionOrchestration.ps1'
         $code = Get-Content -LiteralPath $path -Raw
         foreach ($command in 'Get-ScoutApiResources', 'Get-ScoutCostInventory', 'Get-ScoutVmQuotas', 'Get-ScoutVmSkuDetails') {
             $code | Should -Match $command
@@ -740,7 +763,8 @@ Describe 'AB#5648 — VM quotas: the shim and the retired implementation agree' 
         # subscriptions followed by the restored one -- 'original-sub' being present is the
         # contract, not the list being a single element.
         function global:Set-AzContext {
-            param($Subscription, $SubscriptionId, $Tenant, $ErrorAction, $WarningAction, $InformationAction, $Debug)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Subscription, $SubscriptionId, $Tenant, $ErrorAction, $WarningAction, $InformationAction, $Debug)
             if ($SubscriptionId) { $restored.Add([string]$SubscriptionId) }
             elseif ($Subscription) { $restored.Add([string]$Subscription) }
         }
@@ -830,7 +854,8 @@ Describe 'AB#5648 — cost inventory: the shim and the retired implementation ag
 
     It 'never throws and never returns $null CostData when Cost Management fails (AB#5636)' {
         function global:Invoke-AzCostManagementQuery {
-            param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
                 $DatasetAggregation, $TimePeriodFrom, $TimePeriodTo, $ErrorAction, $Debug)
             throw 'Subscription is not enrolled for Cost Management'
         }

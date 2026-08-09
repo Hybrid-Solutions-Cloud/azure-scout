@@ -33,7 +33,7 @@ Describe 'Import-ScoutConfig' {
     }
 
     It 'loads a valid config file and surfaces benchmark, rulePatterns, and ruleOverrides' {
-        $path = Join-Path $TestDrive 'valid-config.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'valid-config.json'
         @{
             benchmark = @{
                 managementGroups          = @{ expected = @('platform', 'sandbox') }
@@ -54,7 +54,7 @@ Describe 'Import-ScoutConfig' {
     }
 
     It 'applies a loaded config end to end: rulePatterns select the rule set, ruleOverrides patch a threshold, and benchmark drives Compare-Benchmark' {
-        $path = Join-Path $TestDrive 'applied-config.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'applied-config.json'
         @{
             benchmark = @{
                 managementGroups          = @{ expected = @('only-this-mg') }
@@ -92,7 +92,7 @@ Describe 'Import-ScoutConfig' {
     }
 
     It 'falls back to the built-in default (with a warning, no throw) when -ConfigPath does not exist' {
-        $missing = Join-Path $TestDrive 'does-not-exist.json'
+        $missing = Join-Path -Path $TestDrive -ChildPath 'does-not-exist.json'
         { Import-ScoutConfig -ConfigPath $missing -WarningAction SilentlyContinue } | Should -Not -Throw
 
         $warnings = @()
@@ -103,7 +103,7 @@ Describe 'Import-ScoutConfig' {
     }
 
     It 'falls back to the built-in default (with a warning, no throw) when the config file is corrupt JSON' {
-        $path = Join-Path $TestDrive 'corrupt.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'corrupt.json'
         '{ this is not valid json,,, ' | Out-File -LiteralPath $path -Encoding utf8
 
         { Import-ScoutConfig -ConfigPath $path -WarningAction SilentlyContinue } | Should -Not -Throw
@@ -116,7 +116,7 @@ Describe 'Import-ScoutConfig' {
     }
 
     It 'falls back to the built-in default (with a warning, no throw) when the JSON parses but is not an object (e.g. a bare array)' {
-        $path = Join-Path $TestDrive 'not-an-object.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'not-an-object.json'
         '[1, 2, 3]' | Out-File -LiteralPath $path -Encoding utf8
 
         { Import-ScoutConfig -ConfigPath $path -WarningAction SilentlyContinue } | Should -Not -Throw
@@ -131,7 +131,7 @@ Describe 'Import-ScoutConfig' {
 Describe 'Export-ScoutConfig' {
 
     It 'writes the schema Import-ScoutConfig reads, round-tripping load -> save -> load to an equal config' {
-        $srcPath = Join-Path $TestDrive 'roundtrip-source.json'
+        $srcPath = Join-Path -Path $TestDrive -ChildPath 'roundtrip-source.json'
         @{
             benchmark = @{
                 managementGroups          = @{ expected = @('platform', 'connectivity') }
@@ -143,7 +143,7 @@ Describe 'Export-ScoutConfig' {
         } | ConvertTo-Json -Depth 10 | Out-File -LiteralPath $srcPath -Encoding utf8
 
         $loaded1     = Import-ScoutConfig -ConfigPath $srcPath
-        $exportPath  = Join-Path $TestDrive 'roundtrip-export.json'
+        $exportPath  = Join-Path -Path $TestDrive -ChildPath 'roundtrip-export.json'
         $written     = Export-ScoutConfig -Path $exportPath -Config $loaded1
         $written | Should -Be (Resolve-Path $exportPath).ProviderPath
 
@@ -158,7 +158,7 @@ Describe 'Export-ScoutConfig' {
     }
 
     It 'accepts the Parts parameter set (Benchmark/RulePatterns/RuleOverrides) built from scratch' {
-        $exportPath = Join-Path $TestDrive 'parts-export.json'
+        $exportPath = Join-Path -Path $TestDrive -ChildPath 'parts-export.json'
         $bench = @{ managementGroups = @{ expected = @('platform') }; requiredPolicyAssignments = @(); network = @{} }
 
         Export-ScoutConfig -Path $exportPath -Benchmark $bench -RulePatterns @('caf.security') -RuleOverrides @{ 'X-1' = 2 } | Out-Null
@@ -170,7 +170,7 @@ Describe 'Export-ScoutConfig' {
     }
 
     It 'does not overwrite an existing file without -Force' {
-        $path = Join-Path $TestDrive 'no-clobber.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'no-clobber.json'
         Export-ScoutConfig -Path $path -Benchmark @{ managementGroups = @{ expected = @('a') } } -RulePatterns @() -RuleOverrides @{} | Out-Null
 
         { Export-ScoutConfig -Path $path -Benchmark @{ managementGroups = @{ expected = @('b') } } -RulePatterns @() -RuleOverrides @{} -WarningAction SilentlyContinue } | Should -Not -Throw
@@ -181,7 +181,7 @@ Describe 'Export-ScoutConfig' {
     }
 
     It 'overwrites an existing file with -Force' {
-        $path = Join-Path $TestDrive 'clobber.json'
+        $path = Join-Path -Path $TestDrive -ChildPath 'clobber.json'
         Export-ScoutConfig -Path $path -Benchmark @{ managementGroups = @{ expected = @('a') } } -RulePatterns @() -RuleOverrides @{} | Out-Null
         Export-ScoutConfig -Path $path -Benchmark @{ managementGroups = @{ expected = @('b') } } -RulePatterns @() -RuleOverrides @{} -Force | Out-Null
 
@@ -227,7 +227,7 @@ Describe 'Get-RuleSet -- malformed rule file crash class (StrictMode sweep)' {
     }
 
     It 'does not throw and skips an empty (blank) rule YAML file, with a warning' {
-        $tempFile = Join-Path $script:MalformedRuleDir 'zzz-test-empty.yaml'
+        $tempFile = Join-Path -Path $script:MalformedRuleDir -ChildPath 'zzz-test-empty.yaml'
         try {
             '' | Out-File -LiteralPath $tempFile -Encoding utf8
 
@@ -251,7 +251,7 @@ Describe 'Get-RuleSet -- malformed rule file crash class (StrictMode sweep)' {
     }
 
     It 'does not throw on a rule file missing the top-level rules/area/framework/weight keys' {
-        $tempFile = Join-Path $script:MalformedRuleDir 'zzz-test-nokeys.yaml'
+        $tempFile = Join-Path -Path $script:MalformedRuleDir -ChildPath 'zzz-test-nokeys.yaml'
         try {
             'someOtherKey: true' | Out-File -LiteralPath $tempFile -Encoding utf8
 

@@ -25,17 +25,17 @@
 
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:Root 'src/ingest/Import-AdvisorScores.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/ingest/Import-AdvisorScores.ps1')
 }
 
 Describe 'AB#6774 — ArgQueryPack is retired' {
 
     It 'no longer exists as a file' {
-        Test-Path (Join-Path $script:Root 'src/ingest/Invoke-ArgQueryPack.ps1') | Should -BeFalse
+        Test-Path (Join-Path -Path $script:Root -ChildPath 'src/ingest/Invoke-ArgQueryPack.ps1') | Should -BeFalse
     }
 
     It 'is named by no registry entry' {
-        $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+        $manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
         foreach ($name in $manifest.Keys) {
             @($manifest[$name].Ingest) | Should -Not -Contain 'ArgQueryPack' -Because "'$name' would pay for six duplicate Resource Graph queries"
@@ -45,7 +45,7 @@ Describe 'AB#6774 — ArgQueryPack is retired' {
     It 'is ignored rather than fatal if a copied manifest still names it' {
         # The value lives in a data file a customer may have copied out of the repo, so the
         # retirement must not turn their manifest into a hard error.
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
         $branch = ([regex]"'ArgQueryPack'\s*\{[^}]*\}").Match($source).Value
 
         $branch | Should -Not -BeNullOrEmpty
@@ -56,7 +56,7 @@ Describe 'AB#6774 — ArgQueryPack is retired' {
     It 'leaves every dataset it used to supply produced by Invoke-Collect' {
         # The whole safety argument for deleting it. If any of these six stops being produced by
         # the collector, retiring the pack silently empties a rule input.
-        $collect = Get-Content -Raw (Join-Path $script:Root 'src/collect/Invoke-Collect.ps1')
+        $collect = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/collect/Invoke-Collect.ps1')
 
         foreach ($key in 'subnets', 'nsgPublicInbound', 'orphanedDisks', 'orphanedPips', 'diagnosticCoverage') {
             $collect | Should -Match "(?m)^\s+$key\s*=\s*@'" -Because "ArgQueryPack used to supply '$key' and no longer does"
@@ -67,14 +67,14 @@ Describe 'AB#6774 — ArgQueryPack is retired' {
 Describe 'AB#6775 — the combined run is reachable from the command line' {
 
     It 'exposes a parameter, not only the wizard answer' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         $source | Should -Match '\[switch\]\$InventoryAndAssessment'
         $source | Should -Match '\$wizardRunBoth -or \$InventoryAndAssessment\.IsPresent'
     }
 
     It 'keeps -Both as the short form' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         $source | Should -Match "\[Alias\('Both'\)\]\s*\r?\n\s*\[switch\]\`$InventoryAndAssessment"
     }
@@ -87,7 +87,7 @@ Describe 'AB#6776 — the collect-once handoff keeps its tags' {
         # canonical `tags` key is aggregated from the raw container row, which omits the column
         # unless asked. The inventory pass had no such rule, so the combined run produced an
         # empty tags aggregation while the slower path produced the real one.
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         $source | Should -Match '\$extractionIncludeTags = \$IncludeTags'
         $source | Should -Match 'if \(\$deferredAssessArgs -and -not \$IncludeTags\)'
@@ -95,7 +95,7 @@ Describe 'AB#6776 — the collect-once handoff keeps its tags' {
     }
 
     It 'does not force it on an inventory-only run' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         # The override is gated on $deferredAssessArgs, so a plain inventory run is untouched
         # and keeps paying nothing for a column its report was not asked to show.
@@ -107,10 +107,13 @@ Describe 'AB#6777 — AdvisorScores reuses the inventory rows' {
 
     BeforeEach {
         $script:CmdletCalled = $false
-        function Get-AzSubscription { param([Parameter(ValueFromRemainingArguments)] $Rest) $script:CmdletCalled = $true; @() }
-        function Get-AzAdvisorRecommendation { param([Parameter(ValueFromRemainingArguments)] $Rest) $script:CmdletCalled = $true; @() }
+        function Get-AzSubscription {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) $script:CmdletCalled = $true; @() }
+        function Get-AzAdvisorRecommendation {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) $script:CmdletCalled = $true; @() }
         function Get-AzContext { $null }
-        function Set-AzContext { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        function Set-AzContext {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
         $script:Rows = @(
             [pscustomobject]@{
@@ -183,11 +186,14 @@ Describe 'AB#6777 — AdvisorScores reuses the inventory rows' {
             }
         }
         function Get-AzSubscription {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             @([pscustomobject]@{ Id = 'other-sub'; Name = 'Other'; State = 'Enabled'; TenantId = 'tenant-1' })
         }
-        function Get-AzAdvisorRecommendation { param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
-        function Set-AzContext { param($Subscription, $Tenant, $ErrorAction) $script:Restored += [string]$Subscription }
+        function Get-AzAdvisorRecommendation {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
+        function Set-AzContext {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Subscription, $Tenant, $ErrorAction) $script:Restored += [string]$Subscription }
 
         $null = Import-AdvisorScores -Collect ([pscustomobject]@{})
 
@@ -202,8 +208,10 @@ Describe 'AB#6777 — AdvisorScores reuses the inventory rows' {
                 Subscription = [pscustomobject]@{ Id = 'original-sub' }
             }
         }
-        function Get-AzSubscription { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'boom' }
-        function Set-AzContext { param($Subscription, $Tenant, $ErrorAction) $script:Restored += [string]$Subscription }
+        function Get-AzSubscription {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'boom' }
+        function Set-AzContext {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Subscription, $Tenant, $ErrorAction) $script:Restored += [string]$Subscription }
 
         { Import-AdvisorScores -Collect ([pscustomobject]@{}) } | Should -Throw
 
@@ -214,7 +222,7 @@ Describe 'AB#6777 — AdvisorScores reuses the inventory rows' {
 Describe 'AB#6777 — the assessment core hands the inventory advisories over' {
 
     It 'passes $FromInventory.Advisories into the ingest' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
 
         $source | Should -Match "\`$advisorArgs\.FromInventory = @\(\`$FromInventory\.Advisories\)"
     }
@@ -228,7 +236,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
     # build (or frees $ExtractionData before the call can use it) fails this test even though
     # nothing here executes the run.
     BeforeAll {
-        $script:Source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $script:Source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         function Get-ScoutSourceIndex {
             param([string]$Pattern)
@@ -290,7 +298,7 @@ Describe 'AB#7185 — the deferred assessment writes into the SAME run folder as
     # after the deferred call already ran, fails this test even though nothing here executes the
     # run.
     BeforeAll {
-        $script:Source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $script:Source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
         function Get-ScoutSourceIndex {
             param([string]$Pattern)
@@ -324,7 +332,6 @@ Describe 'AB#7185 — the deferred assessment writes into the SAME run folder as
         # retarget line without deleting the seed assignment still fails obviously.
         $assignments = [regex]::Matches($script:Source, '\$deferredAssessArgs\.OutputPath\s*=')
         $assignments.Count | Should -BeGreaterThan 0
-        $outputPathAssignments = [regex]::Matches($script:Source, '\$assessArgs\.OutputPath\s*=\s*\$ReportDir')
         $retargetAssignments   = [regex]::Matches($script:Source, '\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath')
         $retargetAssignments.Count | Should -BeGreaterThan 0
     }

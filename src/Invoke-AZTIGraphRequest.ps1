@@ -132,6 +132,7 @@ function Invoke-AZSCGraphRequest {
                         }
                         catch {
                             # Header not present — use backoff
+                            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Retry-After header not present: ' + $_.Exception.Message)
                         }
                     }
 

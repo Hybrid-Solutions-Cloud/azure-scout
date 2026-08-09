@@ -29,16 +29,16 @@ BeforeAll {
     # Six of the seven domains carry a mix of Pass/Fail; Artificial Intelligence is entirely
     # Manual, so it must render as "Not assessed", never a fabricated score (AB#6844/#6845).
     $script:Findings = @(
-        (New-GovFinding 'CGOV-RC-01' 'Regulatory Compliance' 'Pass')
-        (New-GovFinding 'CGOV-RC-02' 'Regulatory Compliance' 'Manual' $true)
-        (New-GovFinding 'CGOV-SC-02' 'Security' 'Pass')
-        (New-GovFinding 'CGOV-CM-02' 'Cost Management' 'Fail')
-        (New-GovFinding 'CGOV-CM-03' 'Cost Management' 'Pass')
-        (New-GovFinding 'CGOV-OP-01' 'Operations' 'Pass')
-        (New-GovFinding 'CGOV-DG-01' 'Data' 'Fail')
-        (New-GovFinding 'CGOV-RM-01' 'Resource Management' 'Pass')
-        (New-GovFinding 'CGOV-AI-01' 'Artificial Intelligence' 'Manual' $true)
-        (New-GovFinding 'CGOV-AI-02' 'Artificial Intelligence' 'Manual' $true)
+        (New-GovFinding -Id 'CGOV-RC-01' -Area 'Regulatory Compliance' -Status 'Pass')
+        (New-GovFinding -Id 'CGOV-RC-02' -Area 'Regulatory Compliance' -Status 'Manual' -Manual $true)
+        (New-GovFinding -Id 'CGOV-SC-02' -Area 'Security' -Status 'Pass')
+        (New-GovFinding -Id 'CGOV-CM-02' -Area 'Cost Management' -Status 'Fail')
+        (New-GovFinding -Id 'CGOV-CM-03' -Area 'Cost Management' -Status 'Pass')
+        (New-GovFinding -Id 'CGOV-OP-01' -Area 'Operations' -Status 'Pass')
+        (New-GovFinding -Id 'CGOV-DG-01' -Area 'Data' -Status 'Fail')
+        (New-GovFinding -Id 'CGOV-RM-01' -Area 'Resource Management' -Status 'Pass')
+        (New-GovFinding -Id 'CGOV-AI-01' -Area 'Artificial Intelligence' -Status 'Manual' -Manual $true)
+        (New-GovFinding -Id 'CGOV-AI-02' -Area 'Artificial Intelligence' -Status 'Manual' -Manual $true)
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
@@ -46,7 +46,7 @@ BeforeAll {
         _meta = [pscustomobject]@{ scope = 'ArmOnly'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o') }
     }
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'governance-report'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'governance-report'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 

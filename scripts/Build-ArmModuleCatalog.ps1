@@ -34,9 +34,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $RepoRoot 'docs' 'reference' 'arm-modules.md' }
+if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'reference', 'arm-modules.md' }
 
-. (Join-Path $RepoRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
 
 # The one thing that cannot be derived: what a category is FOR, in a sentence.
 $CategoryBlurb = @{
@@ -60,7 +60,7 @@ $CategoryBlurb = @{
     Web         = 'App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services.'
 }
 
-$DefinitionRoot = Join-Path $RepoRoot 'manifests' 'collectors'
+$DefinitionRoot = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
 $Folders = @(Get-ChildItem -LiteralPath $DefinitionRoot -Directory | Sort-Object Name)
 
 $Total = 0

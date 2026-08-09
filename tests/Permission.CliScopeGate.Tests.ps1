@@ -15,10 +15,11 @@ $ErrorActionPreference = 'Stop'
 
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:Root 'src' 'Invoke-AZTIPermissionAudit.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src' -AdditionalChildPath 'Invoke-AZTIPermissionAudit.ps1')
 
     function New-FakeJwtHeaders {
-        param([hashtable]$Claims)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([hashtable]$Claims)
         $b64url = {
             param($obj)
             [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($obj | ConvertTo-Json -Compress))).TrimEnd('=').Replace('+', '-').Replace('/', '_')
@@ -66,7 +67,7 @@ Describe 'Get-ScoutGraphTokenClaim — decodes what the STS actually issued' {
 Describe 'AB#7187 — probe-loop branch placement (source analysis)' {
 
     BeforeAll {
-        $script:Source = Get-Content -Raw (Join-Path $script:Root 'src' 'Invoke-AZTIPermissionAudit.ps1')
+        $script:Source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src' -AdditionalChildPath 'Invoke-AZTIPermissionAudit.ps1')
 
         function Get-AuditSourceIndex {
             param([string]$Pattern)

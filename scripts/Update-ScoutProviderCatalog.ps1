@@ -47,7 +47,7 @@ $ErrorActionPreference = 'Stop'
 
 if ([string]::IsNullOrWhiteSpace($Path)) {
     $repoRoot = Split-Path -Parent $PSScriptRoot
-    $Path = Join-Path $repoRoot 'manifests' 'azure-provider-types.json'
+    $Path = Join-Path -Path $repoRoot -ChildPath 'manifests' -AdditionalChildPath 'azure-provider-types.json'
 }
 
 $context = Get-AzContext -ErrorAction SilentlyContinue

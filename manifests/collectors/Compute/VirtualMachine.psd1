@@ -121,14 +121,14 @@ $ResUCount = 1
                         {
                             if ($Retirement.id -eq $1.id) { $Retirement }
                         }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [PSCustomObject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -140,13 +140,13 @@ $ResUCount = 1
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
                         }
 
-                    #Extensions 
+                    #Extensions
                     $ext = @()
                     $AzDiag = ''
                     $Azinsights = ''
@@ -166,9 +166,9 @@ $ResUCount = 1
                         {
                             if (($vmextension.id -split "/")[8] -eq $1.name) { $vmextension.properties.Publisher }
                         }
-                    if ($null -ne $ext) 
+                    if ($null -ne $ext)
                         {
-                            $ext = foreach ($ex in $ext) 
+                            $ext = foreach ($ex in $ext)
                                 {
                                     if ($ex | Where-Object { $_ -eq 'Microsoft.Azure.Performance.Diagnostics' }) { $AzDiag = $true }
                                     if ($ex | Where-Object { $_ -eq 'Microsoft.EnterpriseCloud.Monitoring' }) { $Azinsights = $true }

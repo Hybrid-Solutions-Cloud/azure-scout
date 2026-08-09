@@ -34,6 +34,7 @@
 #>
 function Start-AZSCEntraExtraction {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID', Justification = 'Read via closure inside the nested Add-NormalizedResource function, not directly in this scope -- the analyzer cannot see across the nested function boundary.')]
     param(
         [Parameter(Mandatory)]
         [string]$TenantID

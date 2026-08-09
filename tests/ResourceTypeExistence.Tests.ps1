@@ -29,7 +29,7 @@
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
-    $catalogPath = Join-Path $script:Root 'manifests/azure-provider-types.json'
+    $catalogPath = Join-Path -Path $script:Root -ChildPath 'manifests/azure-provider-types.json'
     $script:Catalog = Get-Content -Raw -LiteralPath $catalogPath | ConvertFrom-Json
     $script:Known = [System.Collections.Generic.HashSet[string]]::new(
         [string[]] @($script:Catalog.Types), [System.StringComparer]::OrdinalIgnoreCase)
@@ -58,7 +58,8 @@ BeforeAll {
     # the gate strict where it matters: a child of a provider/type pair that does not exist is
     # still rejected, and every string this gate was built to catch is a two-segment type.
     function Test-ScoutTypeExists {
-        param([string] $Type)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([string] $Type)
         $t = $Type.ToLowerInvariant()
         if ($script:Known.Contains($t)) { return $true }
 
@@ -69,7 +70,7 @@ BeforeAll {
         return $false
     }
 
-    $script:Declared = foreach ($file in Get-ChildItem (Join-Path $script:Root 'manifests/collectors') -Filter '*.psd1' -Recurse -File) {
+    $script:Declared = foreach ($file in Get-ChildItem (Join-Path -Path $script:Root -ChildPath 'manifests/collectors') -Filter '*.psd1' -Recurse -File) {
         $definition = Import-PowerShellDataFile -LiteralPath $file.FullName
         if (-not $definition.ContainsKey('ResourceTypes')) { continue }
         foreach ($type in @($definition.ResourceTypes)) {

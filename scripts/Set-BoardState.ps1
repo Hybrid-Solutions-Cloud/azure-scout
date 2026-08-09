@@ -66,7 +66,7 @@ $patchHeaders   = @{ Authorization = "Bearer $token"; 'Content-Type' = 'applicat
 $commentHeaders = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json' }
 
 function Set-WorkItemState {
-    param([int] $Id, [string] $TargetState)
+    param([int] $Id, [string] $TargetState, [string] $Organization, [string] $ProjectId)
 
     $uri  = 'https://dev.azure.com/{0}/{1}/_apis/wit/workitems/{2}?api-version=7.0' -f $Organization, $ProjectId, $Id
     $body = ConvertTo-Json @(@{ op = 'add'; path = '/fields/System.State'; value = $TargetState }) -Depth 5
@@ -81,7 +81,7 @@ function Set-WorkItemState {
 }
 
 function Add-WorkItemComment {
-    param([int] $Id, [string] $Text)
+    param([int] $Id, [string] $Text, [string] $Organization, [string] $ProjectId)
 
     $uri  = 'https://dev.azure.com/{0}/{1}/_apis/wit/workItems/{2}/comments?api-version=7.0-preview.3' -f $Organization, $ProjectId, $Id
     $body = @{ text = $Text } | ConvertTo-Json
@@ -103,13 +103,13 @@ foreach ($entry in $State.GetEnumerator()) {
 
     if (-not $PSCmdlet.ShouldProcess("work item $id", "set state to $target")) { continue }
 
-    $ok = Set-WorkItemState -Id $id -TargetState $target
+    $ok = Set-WorkItemState -Id $id -TargetState $target -Organization $Organization -ProjectId $ProjectId
 
     if (-not $ok -and $target -eq 'Closed') {
         # Some work-item types refuse a direct New -> Closed transition.
-        Set-WorkItemState -Id $id -TargetState 'Active'   | Out-Null
-        Set-WorkItemState -Id $id -TargetState 'Resolved' | Out-Null
-        $ok = Set-WorkItemState -Id $id -TargetState 'Closed'
+        Set-WorkItemState -Id $id -TargetState 'Active'   -Organization $Organization -ProjectId $ProjectId | Out-Null
+        Set-WorkItemState -Id $id -TargetState 'Resolved' -Organization $Organization -ProjectId $ProjectId | Out-Null
+        $ok = Set-WorkItemState -Id $id -TargetState 'Closed' -Organization $Organization -ProjectId $ProjectId
     }
 
     if (-not $ok) { $failed++ }
@@ -122,7 +122,7 @@ foreach ($entry in $Comment.GetEnumerator()) {
 
     if (-not $PSCmdlet.ShouldProcess("work item $id", 'add comment')) { continue }
 
-    $ok = Add-WorkItemComment -Id $id -Text $text
+    $ok = Add-WorkItemComment -Id $id -Text $text -Organization $Organization -ProjectId $ProjectId
     if (-not $ok) { $failed++ }
     'comment {0} : {1}' -f $id, $(if ($ok) { 'OK' } else { 'FAILED' })
 }

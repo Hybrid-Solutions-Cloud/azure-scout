@@ -18,7 +18,7 @@ Describe 'StrictMode weakening guard (AB#5672)' {
 
     BeforeAll {
         $script:RepoRoot   = Split-Path -Parent $PSScriptRoot
-        $script:GuardPath  = Join-Path $script:RepoRoot 'scripts' 'Test-StrictModeGuard.ps1'
+        $script:GuardPath  = Join-Path -Path $script:RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'Test-StrictModeGuard.ps1'
     }
 
     It 'the guard script exists and is where CI expects it' {
@@ -39,11 +39,11 @@ Describe 'StrictMode weakening guard (AB#5672)' {
     It 'catches a weakening that is NOT on the allow-list' {
         # A guard nobody has ever seen fail is not known to work. This proves the teeth by adding a
         # violation to a throwaway copy of the repo layout rather than trusting the happy path.
-        $Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
+        $Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
         try {
-            $ModuleDir = Join-Path $Sandbox 'Modules'
+            $ModuleDir = Join-Path -Path $Sandbox -ChildPath 'Modules'
             New-Item -ItemType Directory -Path $ModuleDir -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $ModuleDir 'Offender.ps1') -Value @(
+            Set-Content -LiteralPath (Join-Path -Path $ModuleDir -ChildPath 'Offender.ps1') -Value @(
                 'function Test-Offender {'
                 '    Set-StrictMode -Off'
                 '}'
@@ -63,11 +63,11 @@ Describe 'StrictMode weakening guard (AB#5672)' {
     It 'ignores the words "Set-StrictMode -Off" in a comment' {
         # The collectors are full of comments discussing this exact defect class, so a grep-based
         # guard would fire on prose. The scanner parses the AST for that reason.
-        $Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
+        $Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
         try {
-            $ModuleDir = Join-Path $Sandbox 'Modules'
+            $ModuleDir = Join-Path -Path $Sandbox -ChildPath 'Modules'
             New-Item -ItemType Directory -Path $ModuleDir -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $ModuleDir 'Innocent.ps1') -Value @(
+            Set-Content -LiteralPath (Join-Path -Path $ModuleDir -ChildPath 'Innocent.ps1') -Value @(
                 '# This used to call Set-StrictMode -Off, which is exactly the thing AB#5672 forbids.'
                 'Set-StrictMode -Version Latest'
                 '$Note = "do not Set-StrictMode -Off here"'
@@ -90,11 +90,11 @@ Describe 'StrictMode weakening guard (AB#5672)' {
     ) {
         # -Version 2.0 already catches unset variables, so it LOOKS strict enough. It does not catch
         # an out-of-range array index, which is the fault that emptied the Security worksheet.
-        $Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
+        $Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
         try {
-            $ModuleDir = Join-Path $Sandbox 'Modules'
+            $ModuleDir = Join-Path -Path $Sandbox -ChildPath 'Modules'
             New-Item -ItemType Directory -Path $ModuleDir -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $ModuleDir 'Downgrade.ps1') -Value "Set-StrictMode $Argument"
+            Set-Content -LiteralPath (Join-Path -Path $ModuleDir -ChildPath 'Downgrade.ps1') -Value "Set-StrictMode $Argument"
 
             $null     = & pwsh -NoProfile -File $script:GuardPath -RepoRoot $Sandbox -IgnoreStaleAllowList 2>&1
             $LASTEXITCODE | Should -Be 1 -Because "Set-StrictMode $Argument is weaker than Latest"
@@ -108,9 +108,9 @@ Describe 'StrictMode weakening guard (AB#5672)' {
         # The allow-list can only be trusted if it cannot rot. The collector StrictMode baseline once
         # shipped EMPTY while 24 collectors were failing; an allow-list naming files that no longer
         # weaken anything is the same failure mode pointing the other way.
-        $Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
+        $Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_StrictModeGuard_" + [guid]::NewGuid().ToString('N'))
         try {
-            New-Item -ItemType Directory -Path (Join-Path $Sandbox 'Modules') -Force | Out-Null
+            New-Item -ItemType Directory -Path (Join-Path -Path $Sandbox -ChildPath 'Modules') -Force | Out-Null
 
             # An empty tree weakens nothing at all, so EVERY allow-list entry is stale. This is the
             # one sandbox case that must NOT pass -IgnoreStaleAllowList, since the stale check is

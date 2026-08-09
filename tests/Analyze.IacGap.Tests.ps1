@@ -27,15 +27,15 @@ Describe 'Get-ScoutIacGap -- graceful degradation with no -TemplatePath' {
     }
 
     It 'returns HasTemplates = $false when -TemplatePath does not exist' {
-        $result = Get-ScoutIacGap -CollectData $script:Resources -TemplatePath (Join-Path $env:TEMP "ScoutIacGapMissing_$([guid]::NewGuid().ToString('N'))")
+        $result = Get-ScoutIacGap -CollectData $script:Resources -TemplatePath (Join-Path -Path $env:TEMP -ChildPath "ScoutIacGapMissing_$([guid]::NewGuid().ToString('N'))")
         $result.HasTemplates | Should -BeFalse
     }
 
     It 'returns HasTemplates = $false when -TemplatePath has no .bicep/.json files' {
-        $emptyFolder = Join-Path $env:TEMP "ScoutIacGapEmpty_$([guid]::NewGuid().ToString('N'))"
+        $emptyFolder = Join-Path -Path $env:TEMP -ChildPath "ScoutIacGapEmpty_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $emptyFolder -Force | Out-Null
         try {
-            'not a template' | Out-File (Join-Path $emptyFolder 'notes.txt')
+            'not a template' | Out-File (Join-Path -Path $emptyFolder -ChildPath 'notes.txt')
             $result = Get-ScoutIacGap -CollectData $script:Resources -TemplatePath $emptyFolder
             $result.HasTemplates | Should -BeFalse
         }
@@ -51,7 +51,7 @@ Describe 'Get-ScoutIacGap -- graceful degradation with no -TemplatePath' {
 
 Describe 'Get-ScoutIacGap -- unmanaged vs matched detection' {
     BeforeAll {
-        $script:TemplateFolder = Join-Path $env:TEMP "ScoutIacGapTemplates_$([guid]::NewGuid().ToString('N'))"
+        $script:TemplateFolder = Join-Path -Path $env:TEMP -ChildPath "ScoutIacGapTemplates_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $script:TemplateFolder -Force | Out-Null
 
         # Bicep template declaring vnet-hub (a literal, resolvable name)
@@ -61,7 +61,7 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
   location: 'eastus'
   properties: {}
 }
-"@ | Out-File (Join-Path $script:TemplateFolder 'network.bicep') -Encoding utf8
+"@ | Out-File (Join-Path -Path $script:TemplateFolder -ChildPath 'network.bicep') -Encoding utf8
 
         # ARM JSON template declaring stgprod01 (a literal, resolvable name)
         @'
@@ -81,7 +81,7 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
     }
   ]
 }
-'@ | Out-File (Join-Path $script:TemplateFolder 'storage.json') -Encoding utf8
+'@ | Out-File (Join-Path -Path $script:TemplateFolder -ChildPath 'storage.json') -Encoding utf8
 
         # discovered resources: vnet-hub (templated), stgprod01 (templated),
         # kv-prod01 (type present in templates but name is parameter-driven/unresolved),
@@ -133,7 +133,7 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 
 Describe 'Get-ScoutIacGap -- -IncludeTemplatedButMissing' {
     BeforeAll {
-        $script:TemplateFolder = Join-Path $env:TEMP "ScoutIacGapMissing2_$([guid]::NewGuid().ToString('N'))"
+        $script:TemplateFolder = Join-Path -Path $env:TEMP -ChildPath "ScoutIacGapMissing2_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $script:TemplateFolder -Force | Out-Null
 
         @"
@@ -141,7 +141,7 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
   name: 'vnet-never-deployed'
   properties: {}
 }
-"@ | Out-File (Join-Path $script:TemplateFolder 'network.bicep') -Encoding utf8
+"@ | Out-File (Join-Path -Path $script:TemplateFolder -ChildPath 'network.bicep') -Encoding utf8
 
         $script:Resources = @(
             [pscustomobject]@{ Type = 'Microsoft.Network/virtualNetworks'; Name = 'vnet-hub'; ResourceGroup = 'rg-connectivity' }
@@ -164,16 +164,16 @@ resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 
 Describe 'Get-ScoutIacGap -- consumes the nested collect.json shape directly' {
     BeforeAll {
-        $script:TemplateFolder = Join-Path $env:TEMP "ScoutIacGapNested_$([guid]::NewGuid().ToString('N'))"
+        $script:TemplateFolder = Join-Path -Path $env:TEMP -ChildPath "ScoutIacGapNested_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $script:TemplateFolder -Force | Out-Null
         @"
 resource vnetHub 'Microsoft.Network/virtualNetworks@2023-05-01' = {
   name: 'vnet-hub'
   properties: {}
 }
-"@ | Out-File (Join-Path $script:TemplateFolder 'network.bicep') -Encoding utf8
+"@ | Out-File (Join-Path -Path $script:TemplateFolder -ChildPath 'network.bicep') -Encoding utf8
 
-        $script:SampleCollectPath = Join-Path $script:Root 'tests/datadump/sample-collect.json'
+        $script:SampleCollectPath = Join-Path -Path $script:Root -ChildPath 'tests/datadump/sample-collect.json'
         $script:Collect = Get-Content $script:SampleCollectPath -Raw | ConvertFrom-Json
     }
 

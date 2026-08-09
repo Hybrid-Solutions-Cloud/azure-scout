@@ -31,8 +31,8 @@ Describe 'Committed capture fixtures are provably anonymous (AB#5667)' {
 
     BeforeAll {
         $script:RepoRoot    = Split-Path -Parent $PSScriptRoot
-        $script:FixtureRoot = Join-Path $script:RepoRoot 'tests' 'fixtures'
-        $script:ScriptPath  = Join-Path $script:RepoRoot 'scripts' 'Export-ScoutFixture.ps1'
+        $script:FixtureRoot = Join-Path -Path $script:RepoRoot -ChildPath 'tests' -AdditionalChildPath 'fixtures'
+        $script:ScriptPath  = Join-Path -Path $script:RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'Export-ScoutFixture.ps1'
 
         # Export-ScoutFixture.ps1 is a SCRIPT, not a module: running it would try to capture. Its
         # anonymisation half is pulled in here by parsing the file and executing only its
@@ -167,7 +167,7 @@ Describe 'The fixture anonymiser is default-deny (AB#5667)' {
 
     BeforeAll {
         $script:RepoRoot   = Split-Path -Parent $PSScriptRoot
-        $script:ScriptPath = Join-Path $script:RepoRoot 'scripts' 'Export-ScoutFixture.ps1'
+        $script:ScriptPath = Join-Path -Path $script:RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'Export-ScoutFixture.ps1'
 
         $ast    = [System.Management.Automation.Language.Parser]::ParseFile($script:ScriptPath, [ref]$null, [ref]$null)
         $wanted = $ast.FindAll({

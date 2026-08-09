@@ -8,13 +8,13 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/Write-AZTIRunLog.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Write-AZTIRunLog.ps1')
 }
 
 Describe 'Start-AZSCRunLog' {
 
     BeforeEach {
-        $script:LogDir = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-log-" + [guid]::NewGuid().ToString('N'))
+        $script:LogDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-log-" + [guid]::NewGuid().ToString('N'))
     }
 
     AfterEach {
@@ -24,7 +24,7 @@ Describe 'Start-AZSCRunLog' {
 
     It 'creates scout-run.log inside the run folder' {
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
-        Test-Path (Join-Path $script:LogDir 'scout-run.log') | Should -BeTrue
+        Test-Path (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log') | Should -BeTrue
     }
 
     It 'creates the run folder when it does not already exist' {
@@ -38,14 +38,14 @@ Describe 'Start-AZSCRunLog' {
             Tenant = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
             Scope  = 'All'
         }
-        $Text = Get-Content -Raw (Join-Path $script:LogDir 'scout-run.log')
+        $Text = Get-Content -Raw (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')
         $Text | Should -Match 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
         $Text | Should -Match 'Scope'
     }
 
     It 'joins array metadata rather than printing a type name' {
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript -Metadata @{ Category = @('Compute', 'Storage') }
-        $Text = Get-Content -Raw (Join-Path $script:LogDir 'scout-run.log')
+        $Text = Get-Content -Raw (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')
         $Text | Should -Match 'Compute, Storage'
         $Text | Should -Not -Match 'System\.Object\[\]'
     }
@@ -60,9 +60,9 @@ Describe 'Start-AZSCRunLog' {
 Describe 'Write-AZSCLog' {
 
     BeforeEach {
-        $script:LogDir = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-log-" + [guid]::NewGuid().ToString('N'))
+        $script:LogDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-log-" + [guid]::NewGuid().ToString('N'))
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
-        $script:LogFile = Join-Path $script:LogDir 'scout-run.log'
+        $script:LogFile = Join-Path -Path $script:LogDir -ChildPath 'scout-run.log'
     }
 
     AfterEach {
@@ -115,9 +115,9 @@ Describe 'Write-AZSCLog' {
 Describe 'Write-AZSCLogError' {
 
     BeforeEach {
-        $script:LogDir = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-log-" + [guid]::NewGuid().ToString('N'))
+        $script:LogDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-log-" + [guid]::NewGuid().ToString('N'))
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
-        $script:LogFile = Join-Path $script:LogDir 'scout-run.log'
+        $script:LogFile = Join-Path -Path $script:LogDir -ChildPath 'scout-run.log'
 
         # A real ErrorRecord with a real stack trace, produced the way the crash was.
         try {
@@ -163,7 +163,7 @@ Describe 'Write-AZSCLogError' {
 Describe 'Stop-AZSCRunLog' {
 
     BeforeEach {
-        $script:LogDir = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-log-" + [guid]::NewGuid().ToString('N'))
+        $script:LogDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-log-" + [guid]::NewGuid().ToString('N'))
     }
 
     AfterEach {
@@ -173,13 +173,13 @@ Describe 'Stop-AZSCRunLog' {
     It 'returns the log path so the caller can surface it' {
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
         $Path = Stop-AZSCRunLog -Quiet
-        $Path | Should -Be (Join-Path $script:LogDir 'scout-run.log')
+        $Path | Should -Be (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')
     }
 
     It 'records the terminal status in the log' {
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
         $null = Stop-AZSCRunLog -Status 'FAILED' -Quiet
-        (Get-Content -Raw (Join-Path $script:LogDir 'scout-run.log')) | Should -Match 'Run FAILED after'
+        (Get-Content -Raw (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')) | Should -Match 'Run FAILED after'
     }
 
     It 'is safe to call when no log was ever started' {
@@ -190,7 +190,7 @@ Describe 'Stop-AZSCRunLog' {
 Describe 'Invoke-AzureScout wiring' {
 
     BeforeAll {
-        $script:EntryPoint = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/Invoke-AzureScout.ps1')
+        $script:EntryPoint = Get-Content -Raw -Path (Join-Path -Path $script:RepoRoot -ChildPath 'src/Invoke-AzureScout.ps1')
     }
 
     It 'starts the run log once the run folder exists' {

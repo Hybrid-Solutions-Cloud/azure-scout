@@ -74,7 +74,7 @@ function Export-AZSCPowerBIReport {
 
     # ── Resolve output folder ────────────────────────────────────────────
     $BaseDir   = Split-Path $File -Parent
-    $PowerBIDir = Join-Path $BaseDir 'PowerBI'
+    $PowerBIDir = Join-Path -Path $BaseDir -ChildPath 'PowerBI'
 
     if (Test-Path $PowerBIDir) {
         Remove-Item $PowerBIDir -Recurse -Force
@@ -169,7 +169,7 @@ function Export-AZSCPowerBIReport {
     $totalRows = 0
 
     # ── 1. Metadata CSV ──────────────────────────────────────────────────
-    $metadataFile = Join-Path $PowerBIDir '_metadata.csv'
+    $metadataFile = Join-Path -Path $PowerBIDir -ChildPath '_metadata.csv'
     $subCount = if ($Subscriptions) { @($Subscriptions).Count } else { 0 }
 
     $metadataRows = @(
@@ -186,7 +186,7 @@ function Export-AZSCPowerBIReport {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Metadata CSV written.')
 
     # ── 2. Subscriptions dimension table ─────────────────────────────────
-    $subsFile = Join-Path $PowerBIDir 'Subscriptions.csv'
+    $subsFile = Join-Path -Path $PowerBIDir -ChildPath 'Subscriptions.csv'
     if ($Subscriptions -and @($Subscriptions).Count -gt 0) {
         $subRows = foreach ($sub in $Subscriptions) {
             [PSCustomObject][ordered]@{
@@ -207,7 +207,7 @@ function Export-AZSCPowerBIReport {
 
     # ── 3. Discover inventory module folders ─────────────────────────────
     $ParentPath          = (Get-Item $PSScriptRoot).Parent.Parent
-    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
+    $InventoryModulesPath = Join-Path -Path $ParentPath -ChildPath 'Public' -AdditionalChildPath 'InventoryModules'
     $ModuleFolders       = Get-ChildItem -Path $InventoryModulesPath -Directory -ErrorAction SilentlyContinue
 
     $EntraFolders = @('Identity')
@@ -253,7 +253,7 @@ function Export-AZSCPowerBIReport {
 
         $CacheData = $RawJson | ConvertFrom-Json
 
-        $ModulePath  = Join-Path $ModuleFolder.FullName '*.ps1'
+        $ModulePath  = Join-Path -Path $ModuleFolder.FullName -ChildPath '*.ps1'
         $ModuleFiles = Get-ChildItem -Path $ModulePath -ErrorAction SilentlyContinue
 
         $isEntra = $FolderName -in $EntraFolders
@@ -274,7 +274,7 @@ function Export-AZSCPowerBIReport {
             # Build filename: Resources_ModuleName.csv or Entra_ModuleName.csv
             $prefix  = if ($isEntra) { 'Entra' } else { 'Resources' }
             $csvName = "${prefix}_${ModName}.csv"
-            $csvPath = Join-Path $PowerBIDir $csvName
+            $csvPath = Join-Path -Path $PowerBIDir -ChildPath $csvName
 
             $categoryDisplay = if ($isEntra) { 'Identity' } else { $FolderName }
             $rowCount = Export-FlatCsv -FilePath $csvPath -Data @($ModResources) -Category $categoryDisplay -Module $ModName
@@ -290,7 +290,7 @@ function Export-AZSCPowerBIReport {
     }
 
     # ── 5. Relationships manifest ────────────────────────────────────────
-    $relationshipsFile = Join-Path $PowerBIDir '_relationships.json'
+    $relationshipsFile = Join-Path -Path $PowerBIDir -ChildPath '_relationships.json'
 
     # Build star-schema relationships: each resource table links to Subscriptions via Subscription
     $relationships = [System.Collections.Generic.List[PSCustomObject]]::new()

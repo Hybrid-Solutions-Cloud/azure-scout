@@ -18,11 +18,11 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
 
     # The shape Resource Graph really returns: every projected COLUMN present (they come from the
     # `| project` list, so they are always there, usually $null), and `properties` holding only the
@@ -51,7 +51,7 @@ BeforeAll {
 
     function Invoke-CollectorOnRow {
         param([string]$Category, [string]$Name, $Row)
-        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1")
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1")
         $Context = @{
             ScriptRoot   = $script:RepoRoot
             Subscriptions = @([pscustomobject]@{ id = '00000000-0000-0000-0000-000000000001'; Name = 'sub-one' })

@@ -32,6 +32,7 @@ $ErrorActionPreference = 'Stop'
     Read-only. Tracks ADO Story AB#5040; collect-once rework AB#6777 (Story AB#6773).
 #>
 function Import-AdvisorScores {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Public function name referenced by exact spelling across src/Invoke-ScoutAssessmentCore.ps1, tests, and docs -- renaming is a breaking API change out of scope for a lint-only pass.')]
     param(
         $Collect,
         [object[]] $FromInventory

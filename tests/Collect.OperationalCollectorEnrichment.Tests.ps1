@@ -12,6 +12,9 @@ BeforeAll {
         [pscustomobject]@{ id='/subscriptions/sub-1/resourceGroups/rg-rg'; type='microsoft.resources/subscriptions/resourcegroups'; name='rg-rg'; subscriptionId='sub-1'; resourceGroup='rg-rg' }
     )
     function Initialize-OperationalStubs {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         $script:Calls.Clear()
         $script:ContextCalls = [System.Collections.Generic.List[object]]::new()
         $script:FailStorageContext = $false
@@ -24,7 +27,10 @@ BeforeAll {
         function global:Get-AzStorageFileServiceProperty { param($ResourceGroupName,$Name,$ErrorAction) $null=$ResourceGroupName,$ErrorAction; $script:FileCalls++; [pscustomobject]@{ Name=$Name; ShareDeleteRetentionPolicy=[pscustomobject]@{Enabled=$true} } }
         function global:Search-AzGraph { param($Query,$First,$ErrorAction) $null=$Query,$First,$ErrorAction; [pscustomobject]@{subscriptionId='sub-1';mgChain=@([pscustomobject]@{displayName='Platform'},[pscustomobject]@{displayName='Root'})} }
     }
-    function Clear-OperationalStubs { foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
+    function Clear-OperationalStubs {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+ foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
 }
 Describe 'Get-ScoutOperationalCollectorEnrichment' {
     BeforeEach { Initialize-OperationalStubs }

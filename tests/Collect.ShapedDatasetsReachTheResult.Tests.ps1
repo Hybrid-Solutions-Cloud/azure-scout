@@ -23,14 +23,14 @@ $ErrorActionPreference = 'Stop'
 #>
 
 BeforeAll {
-    $script:CollectDir = Join-Path $PSScriptRoot '..' 'src' 'collect'
-    . (Join-Path $script:CollectDir 'ConvertFrom-ScoutInventory.ps1')
+    $script:CollectDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'collect'
+    . (Join-Path -Path $script:CollectDir -ChildPath 'ConvertFrom-ScoutInventory.ps1')
 
     # Comment lines are stripped before any pattern scan below. The file explains these traps in
     # prose, quoting the very expressions being banned, and a scan over the raw text flags the
     # explanation as the offence.
     $script:InvokeCollectCode = (
-        Get-Content (Join-Path $script:CollectDir 'Invoke-Collect.ps1') |
+        Get-Content (Join-Path -Path $script:CollectDir -ChildPath 'Invoke-Collect.ps1') |
             Where-Object { $_ -notmatch '^\s*#' }
     ) -join "`n"
 

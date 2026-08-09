@@ -23,6 +23,7 @@ Authors: AzureScout Contributors
 
 function Export-AZSCAsciiDocReport {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,

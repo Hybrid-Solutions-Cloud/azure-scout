@@ -2,15 +2,15 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
 }
 
 Describe 'v3 declarative collector cutover' {
     It 'discovers the shipped manifest catalog without a retired collector tree' {
-        $Definitions = Join-Path $script:RepoRoot 'manifests/collectors'
+        $Definitions = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
         $Collectors = @(Get-ScoutCollector -DefinitionRoot $Definitions)
 
         # 174 through v3.0.9; 242 after AB#6741 added 68; 236 after AB#6767/AB#6842 retired six
@@ -39,17 +39,17 @@ Describe 'v3 declarative collector cutover' {
         $Command.Parameters.ContainsKey('Imperative') | Should -BeFalse
         $Command.Parameters.ContainsKey('ForceImperativeCollectors') | Should -BeFalse
 
-        $Runtime = Get-Content (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1') -Raw
+        $Runtime = Get-Content (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1') -Raw
         $Runtime | Should -Not -Match 'Set-StrictMode\s+-Off'
         $Runtime | Should -Not -Match 'ImperativeCapture|ImperativeFallback'
     }
 
     It 'contains an invalid definition as a declarative failure rather than executing another path' {
-        $Root = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-v3-cutover-" + [guid]::NewGuid().ToString('N'))
+        $Root = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-v3-cutover-" + [guid]::NewGuid().ToString('N'))
         try {
-            $Dir = Join-Path $Root 'Fixture'; $null = New-Item -ItemType Directory -Path $Dir -Force
+            $Dir = Join-Path -Path $Root -ChildPath 'Fixture'; $null = New-Item -ItemType Directory -Path $Dir -Force
             "@{ ResourceTypes = @('widget'); RowLoopVariable = '1'; Export = @{ WorksheetName = 'Bad'; Columns = @('ID') } }" |
-                Set-Content -LiteralPath (Join-Path $Dir 'Malformed.psd1') -Encoding utf8
+                Set-Content -LiteralPath (Join-Path -Path $Dir -ChildPath 'Malformed.psd1') -Encoding utf8
             $Collector = @(Get-ScoutCollector -DefinitionRoot $Root)[0]
             $Result = Invoke-ScoutCollector -Collector $Collector -Context @{ Resources = @(); Task = 'Processing' } -WarningAction SilentlyContinue
 

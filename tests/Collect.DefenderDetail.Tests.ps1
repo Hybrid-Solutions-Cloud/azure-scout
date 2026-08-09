@@ -50,6 +50,9 @@ BeforeAll {
     }
 
     function Get-FixtureDefenderDetailRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa/resourceGroups/rg1/providers/microsoft.network/applicationgatewaywebapplicationfirewallpolicies/waf1'
@@ -170,7 +173,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
 
     It 'the typed-query path (-Source TypedQueries) populates collect.security.wafPolicies/ddosProtectionPlans/applicationSecurityGroups' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -216,7 +220,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
         }
 
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -242,7 +247,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
     It 'every Defender-detail key is present, even as an empty array, on a completely empty estate' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -263,7 +269,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
     It 'carries exactly defenderPlans plus the AB#7063/AB#7059 keys under security -- no DefenderPricing key was force-fitted' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -280,7 +287,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
 
     It 'reads defenderAlerts/defenderAssessments/defenderSecureScores from the same sweep call that already produces policyComplianceStates (AB#7059)' {
         function global:Get-ScoutSubscriptionSecurityPolicySweep {
-            param([object[]] $Subscriptions)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $Subscriptions)
             @(
                 [pscustomobject]@{
                     subscriptionId   = 'aaa'
@@ -296,7 +304,8 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
         }
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @(New-MockSubscriptionRow) }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )

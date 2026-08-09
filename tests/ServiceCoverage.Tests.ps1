@@ -9,10 +9,10 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    $script:DefinitionRoot = Join-Path $script:RepoRoot 'manifests/collectors'
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    $script:DefinitionRoot = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
 
-    $script:Spec = Import-PowerShellDataFile -Path (Join-Path $script:RepoRoot 'manifests/specs/service-collectors.psd1')
+    $script:Spec = Import-PowerShellDataFile -Path (Join-Path -Path $script:RepoRoot -ChildPath 'manifests/specs/service-collectors.psd1')
 
     # Microsoft's eighteen published service categories (portal -> All services, captured
     # 2026-07-31 and recorded in pmo/audits/AZURE-SCOUT-AUDIT.md §2).
@@ -40,7 +40,7 @@ Describe 'Category taxonomy (AB#6741)' {
     }
 
     It 'offers exactly those categories on -Category, plus All' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Invoke-AzureScout.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/Invoke-AzureScout.ps1') -Raw
         $Match = [regex]::Match($Source, "\[ValidateSet\(('All'[^\)]*)\)\]\s*\r?\n\s*\[string\[\]\]\`$Category")
         $Match.Success | Should -BeTrue -Because 'the -Category ValidateSet must be findable to be checked'
         $Values = @([regex]::Matches($Match.Groups[1].Value, "'([^']+)'") | ForEach-Object { $_.Groups[1].Value })
@@ -50,7 +50,7 @@ Describe 'Category taxonomy (AB#6741)' {
     It 'offers the same eighteen in the wizard as on the command line' {
         # A wizard that offers a category -Invoke-AzureScout would reject is a dead end the user
         # only discovers after answering every other question.
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Start-AZSCWizard.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/Start-AZSCWizard.ps1') -Raw
         $Match = [regex]::Match($Source, '\$inventoryCategories = @\(([^\)]*)\)')
         $Match.Success | Should -BeTrue
         $Values = @([regex]::Matches($Match.Groups[1].Value, "'([^']+)'") | ForEach-Object { $_.Groups[1].Value })
@@ -60,7 +60,7 @@ Describe 'Category taxonomy (AB#6741)' {
     It 'no longer aliases DevOps or Migration onto Management' {
         # Both are real categories now. Leaving the aliases in place would route `-Category Migration`
         # to the Management collectors -- the wrong data, with no error.
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/Invoke-AzureScout.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/Invoke-AzureScout.ps1') -Raw
         $Map = [regex]::Match($Source, '\$_categoryAliasMap = @\{(.*?)\n    \}', 'Singleline')
         $Map.Success | Should -BeTrue
         $Map.Groups[1].Value | Should -Not -Match "'DevOps'\s*="
@@ -73,14 +73,14 @@ Describe 'Logic Apps are collected (AB#6836)' {
     It 'does not exclude microsoft.logic/workflows from the resources query' {
         # This exclusion made Integration -- Scout's thinnest category -- miss one of the most
         # common resources in Azure, with no way to opt back in.
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/collect/Get-ScoutRawInventory.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutRawInventory.ps1') -Raw
         $Clause = [regex]::Match($Source, '\$excludedTypesClause = "([^"]*)"')
         $Clause.Success | Should -BeTrue -Because 'the exclusion clause must be findable to be checked'
         $Clause.Groups[1].Value | Should -Not -Match 'microsoft\.logic/workflows'
     }
 
     It 'has a collector that consumes them' {
-        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:DefinitionRoot 'Integration/LogicApps.psd1')
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:DefinitionRoot -ChildPath 'Integration/LogicApps.psd1')
         @($Definition.ResourceTypes) | Should -Contain 'microsoft.logic/workflows'
     }
 }
@@ -89,7 +89,7 @@ Describe 'Generated collectors match their spec (AB#6741)' {
 
     It 'has a definition file for every spec entry' {
         foreach ($Collector in @($script:Spec.Collectors)) {
-            $Path = Join-Path $script:DefinitionRoot "$($Collector.Category)/$($Collector.Name).psd1"
+            $Path = Join-Path -Path $script:DefinitionRoot -ChildPath "$($Collector.Category)/$($Collector.Name).psd1"
             Test-Path -LiteralPath $Path | Should -BeTrue -Because "the spec declares $($Collector.Category)/$($Collector.Name)"
         }
     }
@@ -101,7 +101,7 @@ Describe 'Generated collectors match their spec (AB#6741)' {
         # change the estate Scout looks at. AB#6444 found three fabricated type strings shipped
         # this way, so the two are pinned together.
         foreach ($Collector in @($script:Spec.Collectors)) {
-            $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:DefinitionRoot "$($Collector.Category)/$($Collector.Name).psd1")
+            $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:DefinitionRoot -ChildPath "$($Collector.Category)/$($Collector.Name).psd1")
             @($Definition.ResourceTypes) | Should -Be @($Collector.ResourceTypes) -Because "$($Collector.Category)/$($Collector.Name) must collect what the spec says it collects"
         }
     }
@@ -121,8 +121,8 @@ Describe 'Generated collectors match their spec (AB#6741)' {
 Describe 'Cross-resource joins (AB#6835)' {
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'src/assess/engine/Resolve-JsonPath.ps1')
-        . (Join-Path $script:RepoRoot 'src/assess/engine/Resolve-RuleJoin.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-RuleJoin.ps1')
 
         $script:JoinCollect = [pscustomobject]@{
             compute = [pscustomobject]@{
@@ -204,7 +204,7 @@ Describe 'Cross-resource joins (AB#6835)' {
     }
 
     It 'ships at least four cross-resource rules, each with a join block' {
-        $Yaml = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/assess/rules/xr.crossresource.yaml') -Raw
+        $Yaml = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/rules/xr.crossresource.yaml') -Raw
         $Ids = @([regex]::Matches($Yaml, '(?m)^\s*-\s+id:\s*(\S+)') | ForEach-Object { $_.Groups[1].Value })
         $Ids.Count | Should -BeGreaterOrEqual 4
         @([regex]::Matches($Yaml, '(?m)^\s{4}join:')).Count | Should -Be $Ids.Count -Because 'a cross-resource rule without a join is a single-dataset rule in the wrong file'
@@ -214,10 +214,10 @@ Describe 'Cross-resource joins (AB#6835)' {
 Describe 'SMART is gated on real data (AB#6832)' {
 
     BeforeAll {
-        . (Join-Path $script:RepoRoot 'src/assess/engine/Resolve-JsonPath.ps1')
-        . (Join-Path $script:RepoRoot 'src/assess/engine/Resolve-RuleJoin.ps1')
-        . (Join-Path $script:RepoRoot 'src/assess/engine/Invoke-Rule.ps1')
-        . (Join-Path $script:RepoRoot 'src/assess/Invoke-Assessment.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-RuleJoin.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Invoke-Rule.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/Invoke-Assessment.ps1')
 
         $script:SmartSet = [pscustomobject]@{
             Area = 'Migration readiness (SMART)'; Framework = 'SMART'; Weight = 1.0
@@ -248,10 +248,10 @@ Describe 'SMART is gated on real data (AB#6832)' {
     }
 
     It 'cites an enumerated SMART item in every rule id and remediation' {
-        $Yaml = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/assess/rules/smart.migration.yaml') -Raw
+        $Yaml = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/rules/smart.migration.yaml') -Raw
         $Ids = @([regex]::Matches($Yaml, '(?m)^\s*-\s+id:\s*(\S+)') | ForEach-Object { $_.Groups[1].Value })
         $Ids.Count | Should -BeGreaterThan 0
-        $Enumeration = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'docs/frameworks/smart-question-set.md') -Raw
+        $Enumeration = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'docs/frameworks/smart-question-set.md') -Raw
         foreach ($Id in $Ids) {
             $Id | Should -Match '^SMART-[A-F]\d+$'
             # The id must exist in the enumeration, not just look like one. This is the check that

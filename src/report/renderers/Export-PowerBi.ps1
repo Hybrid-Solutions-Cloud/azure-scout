@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
     Tracks ADO Story AB#5046.
 #>
 function Export-PowerBi {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Collect', Justification = 'Kept for the uniform renderer signature dispatched by src/report/Export-Report.ps1 (all renderers take Findings/Collect/OutputPath).')]
     param($Findings, $Collect, [string] $OutputPath)
     $pbiDir = Join-Path $OutputPath 'powerbi'
     New-Item -ItemType Directory -Path $pbiDir -Force | Out-Null

@@ -295,6 +295,8 @@ function Test-AZSCWizardEligible {
 
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
+        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers and is forwarded as-is to Connect-AZSCLoginSession; changing the parameter type is a breaking change for every existing caller.')]
     param (
         [ValidateSet(1, 2, 3)]
         [int]$Overview = 1,
@@ -526,9 +528,15 @@ Function Invoke-AzureScout {
         $WarningPreference = 'SilentlyContinue'
         $env:SuppressAzurePowerShellBreakingChangeWarnings = 'true'
         function Write-Warning {
+            # Deliberately shadows the built-in: every existing Write-Warning call in this
+            # call tree (collectors, modules, this function itself) must be redirected to the
+            # structured log without touching every call site individually (AB#5410).
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Deliberate shadow (AB#5410): redirects every Write-Warning call in this call tree to the structured log instead of the console, without editing every call site.')]
             param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
-            if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
-                Write-AZSCLog -Level Warn -Message $Message
+            process {
+                if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                    Write-AZSCLog -Level Warn -Message $Message
+                }
             }
         }
     }
@@ -1103,7 +1111,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Markdown report export.')
-            $MarkdownFile = Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+            Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
         }
         catch {
             Write-Warning "Markdown report generation failed: $($_.Exception.Message)"
@@ -1116,7 +1124,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting AsciiDoc report export.')
-            $AsciiDocFile = Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+            Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
         }
         catch {
             Write-Warning "AsciiDoc report generation failed: $($_.Exception.Message)"
@@ -1129,7 +1137,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Power BI CSV export.')
-            $PowerBIDir = Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
+            Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
         }
         catch {
             Write-Warning "Power BI report generation failed: $($_.Exception.Message)"

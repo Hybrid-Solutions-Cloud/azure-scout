@@ -76,7 +76,7 @@ function Get-ScoutDrift {
         throw 'Get-ScoutDrift: -RunId is required (pass the caller-controlled run id, e.g. the assessment run-folder name).'
     }
     if ([string]::IsNullOrWhiteSpace($HistoryPath)) {
-        $HistoryPath = Join-Path (Get-Location) 'output' '.scout-history'
+        $HistoryPath = Join-Path -Path (Get-Location) -ChildPath 'output' -AdditionalChildPath '.scout-history'
     }
 
     if (-not (Test-Path $HistoryPath)) {

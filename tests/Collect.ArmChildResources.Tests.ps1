@@ -11,7 +11,7 @@
 Describe 'Get-ScoutArmChildResource' {
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutArmChildResource.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutArmChildResource.ps1')
 
     function Get-TestParent {
         param(

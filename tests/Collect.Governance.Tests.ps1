@@ -29,20 +29,21 @@ BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
     Import-Module Az.ResourceGraph -ErrorAction Stop
-    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutGovernanceDataset.ps1')
-    . (Join-Path $script:RepoRoot 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
-    . (Join-Path $script:RepoRoot 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')
-    . (Join-Path $script:RepoRoot 'src/ingest/Import-Governance.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutGovernanceDataset.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/ingest/Import-Governance.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
 
     # Present so the Get-Command probe in both functions finds it and Pester can mock it, exactly
     # as tests/Assessment.Governance.Tests.ps1 already does.
     if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
-        function Invoke-AzRestMethod { param([string] $Method, [string] $Path) }
+        function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Method, [string] $Path) }
     }
 
     $script:SubA = '00000000-0000-0000-0000-00000000000a'
@@ -253,7 +254,7 @@ BeforeAll {
         param([string] $Category, [string] $Name, [string] $Type)
 
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1"
+            Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1"
         )
         $context = @{
             ScriptRoot    = $script:RepoRoot
@@ -485,7 +486,7 @@ Describe 'AB#6779 -- Search-AzGraph returns a wrapper, not rows' {
         )[0]
 
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors/Identity/RoleAssignments.psd1'
         )
         $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
                 ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions
@@ -907,7 +908,7 @@ Describe 'AB#6456 -- Identity/RoleAssignments renders the resolution columns end
     It 'renders Principal Resolution and Principal Display Name through the real interpreter' {
         $envelope = Get-ScoutGovernanceEnvelopeWithResolution
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors/Identity/RoleAssignments.psd1'
         )
         $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
                 ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions

@@ -144,29 +144,25 @@ function Invoke-AZSCPermissionAudit {
         if ($SubscriptionID -and $SubscriptionID.Count -gt 0) {
             $subs = @($allSubs | Where-Object { $_.Id -in $SubscriptionID -or $_.Name -in $SubscriptionID })
             if ($subs.Count -eq 0) {
-                $r = New-CheckResult 'ARM: Subscription Enumeration' 'Fail' `
-                    "None of the specified subscription(s) ($($SubscriptionID -join ', ')) were found in the $($allSubs.Count) accessible subscription(s)" `
-                    'Verify the -SubscriptionID value matches an accessible subscription ID or name.'
+                $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Fail' -Message "None of the specified subscription(s) ($($SubscriptionID -join ', ')) were found in the $($allSubs.Count) accessible subscription(s)" -Remediation 'Verify the -SubscriptionID value matches an accessible subscription ID or name.'
                 Write-AuditLine -Status Fail -Text $r.Message
                 $armAccess = $false
                 $recommendations.Add('Verify -SubscriptionID matches an accessible subscription ID or name.')
             }
             else {
-                $r = New-CheckResult 'ARM: Subscription Enumeration' 'Pass' `
-                    "Scoped to $($subs.Count) of $($allSubs.Count) accessible subscription(s)"
+                $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Pass' -Message "Scoped to $($subs.Count) of $($allSubs.Count) accessible subscription(s)"
                 Write-AuditLine -Status Pass -Text $r.Message
             }
         }
         else {
             $subs = $allSubs
-            $r = New-CheckResult 'ARM: Subscription Enumeration' 'Pass' "Found $($subs.Count) subscription(s) accessible to this identity"
+            $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Pass' -Message "Found $($subs.Count) subscription(s) accessible to this identity"
             Write-AuditLine -Status Pass -Text $r.Message
         }
     }
     catch {
         $armAccess = $false
-        $r = New-CheckResult 'ARM: Subscription Enumeration' 'Fail' $_.Exception.Message `
-            'Grant the identity at least Reader role on one or more subscriptions.'
+        $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Fail' -Message $_.Exception.Message -Remediation 'Grant the identity at least Reader role on one or more subscriptions.'
         Write-AuditLine -Status Fail -Text $r.Message
         $recommendations.Add("Grant Reader role: New-AzRoleAssignment -ObjectId <principalId> -RoleDefinitionName 'Reader' -Scope '/subscriptions/<subId>'")
     }
@@ -175,14 +171,12 @@ function Invoke-AZSCPermissionAudit {
     # 1b — Root Management Group access
     try {
         $mgScope = "/providers/Microsoft.Management/managementGroups/$tenantId"
-        $mgAssign = @(Get-AzRoleAssignment -Scope $mgScope -ErrorAction Stop) | Select-Object -First 1
-        $r = New-CheckResult 'ARM: Root Management Group Access' 'Pass' 'Can read root management group role assignments (broadest scope)'
+        $null = @(Get-AzRoleAssignment -Scope $mgScope -ErrorAction Stop) | Select-Object -First 1
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message 'Can read root management group role assignments (broadest scope)'
         Write-AuditLine -Status Pass -Text $r.Message
     }
     catch {
-        $r = New-CheckResult 'ARM: Root Management Group Access' 'Warn' `
-            "Cannot read root MG role assignments — inventory will run per-subscription instead" `
-            "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot read root MG role assignments — inventory will run per-subscription instead" -Remediation "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
         Write-AuditLine -Status Warn -Text $r.Message
     }
     $armDetails.Add($r)
@@ -224,17 +218,6 @@ function Invoke-AZSCPermissionAudit {
                     $subMsg = "[$($sub.Name)] $rolesDisplay"
                     Write-AuditLine -Status $status -Text $subMsg
 
-                    $subResult = [PSCustomObject]@{
-                        SubscriptionId   = $sub.Id
-                        SubscriptionName = $sub.Name
-                        State            = $sub.State
-                        AssignedRoles    = $foundRoles
-                        HasReader        = 'Reader' -in $foundRoles
-                        HasSecurityReader     = 'Security Reader' -in $foundRoles
-                        HasMonitoringReader   = 'Monitoring Reader' -in $foundRoles
-                        HasCostMgmtReader     = 'Cost Management Reader' -in $foundRoles
-                        Status           = $status
-                    }
                     $armDetails.Add([PSCustomObject]@{
                         Check       = "ARM: Subscription [$($sub.Name)]"
                         Status      = $status
@@ -380,8 +363,7 @@ function Invoke-AZSCPermissionAudit {
         }
         catch {
             Write-AuditLine -Status Fail -Text "Cannot acquire Microsoft Graph token: $($_.Exception.Message)"
-            $graphDetails.Add(( New-CheckResult 'Graph: Token Acquisition' 'Fail' $_.Exception.Message `
-                "Ensure the identity has Graph API permissions. For SPNs: grant app permissions in Entra ID app registration. For users: ensure Directory Readers or Global Reader directory role." ))
+            $graphDetails.Add(( New-CheckResult -Check 'Graph: Token Acquisition' -Status 'Fail' -Message $_.Exception.Message -Remediation "Ensure the identity has Graph API permissions. For SPNs: grant app permissions in Entra ID app registration. For users: ensure Directory Readers or Global Reader directory role." ))
             $recommendations.Add('Grant Graph permissions — in Entra ID portal: App Registrations > API Permissions > Microsoft Graph > Directory.Read.All (application permission, requires admin consent)')
         }
 
@@ -403,15 +385,13 @@ function Invoke-AZSCPermissionAudit {
                 $check = $graphChecks[$checkName]
                 try {
                     $null = Invoke-AZSCGraphRequest -Uri $check.Uri -SinglePage
-                    $r = New-CheckResult $checkName 'Pass' "$($check.Permission)  — $($check.Purpose)"
+                    $r = New-CheckResult -Check $checkName -Status 'Pass' -Message "$($check.Permission)  — $($check.Purpose)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($check.Permission)]"
                 }
                 catch {
                     $isCritical = $checkName -in 'Graph: Organization Read', 'Graph: Users Read', 'Graph: Groups Read', 'Graph: Applications Read'
                     $status = if ($isCritical) { 'Fail'; $graphAccess = $false } else { 'Warn' }
-                    $r = New-CheckResult $checkName $status `
-                        "DENIED — $($check.Permission)  ($($check.Purpose))" `
-                        "Grant '$($check.Permission)' in Entra ID > Enterprise Applications > API Permissions"
+                    $r = New-CheckResult -Check $checkName -Status $status -Message "DENIED — $($check.Permission)  ($($check.Purpose))" -Remediation "Grant '$($check.Permission)' in Entra ID > Enterprise Applications > API Permissions"
                     Write-AuditLine -Status $status -Text "$checkName  [$($check.Permission)] — DENIED"
                     $recommendations.Add("Grant Graph permission '$($check.Permission)' for: $($check.Purpose)")
                 }

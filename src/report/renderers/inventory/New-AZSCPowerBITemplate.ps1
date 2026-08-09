@@ -47,6 +47,7 @@ No extra modules required.
 #>
 function New-AZSCPowerBITemplate {
     [CmdletBinding()]
+    [OutputType([System.Array], [string])]
     param(
         [Parameter(Mandatory)]
         [string] $PowerBIDir,

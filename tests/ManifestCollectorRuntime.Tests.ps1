@@ -6,12 +6,12 @@
 #>
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollector.ps1')
 }
 
 Describe 'Manifest collector runtime catalog' {
     It 'discovers every shipped collector without a retired collector root' {
-        $DefinitionRoot = Join-Path $script:RepoRoot 'manifests/collectors'
+        $DefinitionRoot = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
         $Expected = @(Get-ChildItem -LiteralPath $DefinitionRoot -Recurse -Filter '*.psd1' -File)
         $Actual = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot)
 
@@ -25,7 +25,7 @@ Describe 'Manifest collector runtime catalog' {
     }
 
     It 'orders and filters the manifest catalog by category and collector name' {
-        $DefinitionRoot = Join-Path $script:RepoRoot 'manifests/collectors'
+        $DefinitionRoot = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
         $All = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot)
         $Compute = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot -Category Compute)
 

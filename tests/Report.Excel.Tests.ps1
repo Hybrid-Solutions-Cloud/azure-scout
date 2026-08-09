@@ -40,15 +40,15 @@ BeforeAll {
     }
 
     $script:RawFindings = @(
-        (New-ExcelTestFinding 'net-1' 'CAF' 'Networking' 'Pass' 'low')
-        (New-ExcelTestFinding 'net-2' 'CAF' 'Networking' 'Fail' 'high')
-        (New-ExcelTestFinding 'sec-1' 'WAF' 'Security' 'Partial' 'medium')
-        (New-ExcelTestFinding 'sec-2' 'WAF' 'Security' 'Manual')
-        (New-ExcelTestFinding 'sec-3' 'WAF' 'Security' 'Unknown')
+        (New-ExcelTestFinding -Id 'net-1' -Framework 'CAF' -Area 'Networking' -Status 'Pass' -Severity 'low')
+        (New-ExcelTestFinding -Id 'net-2' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'high')
+        (New-ExcelTestFinding -Id 'sec-1' -Framework 'WAF' -Area 'Security' -Status 'Partial' -Severity 'medium')
+        (New-ExcelTestFinding -Id 'sec-2' -Framework 'WAF' -Area 'Security' -Status 'Manual')
+        (New-ExcelTestFinding -Id 'sec-3' -Framework 'WAF' -Area 'Security' -Status 'Unknown')
     )
     $script:Scored = Get-Score -Findings $script:RawFindings
 
-    $script:CollectPath = Join-Path $script:Root 'tests' 'datadump' 'sample-collect.json'
+    $script:CollectPath = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-collect.json'
     $script:Collect = Get-Content $script:CollectPath -Raw | ConvertFrom-Json -Depth 100
 
     function Get-ExcelDashboardName {
@@ -68,12 +68,12 @@ BeforeAll {
 
 Describe 'Export-Excel -- dashboard tabs (AB#322)' -Skip:(-not $script:HasImportExcel) {
     BeforeAll {
-        $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'excel-dashboards'
+        $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'excel-dashboards'
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
         Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
-        $script:Xlsx = Join-Path $script:OutDir 'assessment_evidence.xlsx'
+        $script:Xlsx = Join-Path -Path $script:OutDir -ChildPath 'assessment_evidence.xlsx'
     }
     AfterAll {
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force -ErrorAction SilentlyContinue }
@@ -141,12 +141,12 @@ Describe 'Export-Excel -- dashboard tabs (AB#322)' -Skip:(-not $script:HasImport
 
 Describe 'Export-Excel -- dashboards omit when data is absent (no empty dashboards)' -Skip:(-not $script:HasImportExcel) {
     BeforeAll {
-        $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'excel-dashboards-nocollect'
+        $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'excel-dashboards-nocollect'
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
         Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $null -OutputPath $script:OutDir
-        $script:Xlsx = Join-Path $script:OutDir 'assessment_evidence.xlsx'
+        $script:Xlsx = Join-Path -Path $script:OutDir -ChildPath 'assessment_evidence.xlsx'
     }
     AfterAll {
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force -ErrorAction SilentlyContinue }
@@ -172,7 +172,7 @@ Describe 'Export-Excel -- $null -Findings crash class (StrictMode sweep)' {
     # -Version Latest instead of degrading gracefully like every other
     # renderer in this folder (which all read through Get-ScoutExcelProp).
     It 'does not throw when -Findings is $null' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'excel-null-findings'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'excel-null-findings'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             { Export-ScoutEvidenceWorkbook -Findings $null -Collect $null -OutputPath $dir } | Should -Not -Throw

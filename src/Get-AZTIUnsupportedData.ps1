@@ -22,7 +22,7 @@ function Get-AZSCUnsupportedData {
     # AB#5662: Support.json moved from Modules/Private/Reporting/StyleFunctions to
     # src/report/renderers/inventory/style as part of the reporting-layer consolidation.
     $RepoRoot = Split-Path -Parent $PSScriptRoot
-    $SupportFile = Join-Path $RepoRoot 'src' 'report' 'renderers' 'inventory' 'style' 'Support.json'
+    $SupportFile = Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'report', 'renderers', 'inventory', 'style', 'Support.json'
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Validating file: '+$SupportFile)
 
     $Unsupported = Get-Content -Path $SupportFile | ConvertFrom-Json

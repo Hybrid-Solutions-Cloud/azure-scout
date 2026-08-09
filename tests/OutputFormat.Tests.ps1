@@ -29,21 +29,21 @@ BeforeAll {
     # chain (which throws when an intermediate segment is genuinely ABSENT rather than $null), and
     # Get-AZSCCollectedValue is its member-ENUMERATION counterpart for a read over a collection
     # that may be empty. Both are needed here from AB#5671 onwards.
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZTICollectedValue.ps1')
     # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
     # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
     # without it the same expression quietly returned $null.
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCIdSegment.ps1')
-    $script:InvokeScript    = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCIdSegment.ps1')
+    $script:InvokeScript    = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AzureScout.ps1'
     # AB#5662: the inventory report renderers moved from Modules/Private/Reporting to
     # src/report/renderers/inventory, and the files took the AZSC name their functions
     # already used (Export-AZTIMarkdownReport.ps1 -> Export-AZSCMarkdownReport.ps1).
-    $script:RendererRoot    = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
-    $script:MarkdownScript  = Join-Path $script:RendererRoot 'Export-AZSCMarkdownReport.ps1'
-    $script:AsciiDocScript  = Join-Path $script:RendererRoot 'Export-AZSCAsciiDocReport.ps1'
-    $script:PowerBIScript   = Join-Path $script:RendererRoot 'Export-AZSCPowerBIReport.ps1'
-    $script:TempDir         = Join-Path $env:TEMP 'AZSC_OutputFormatTests'
+    $script:RendererRoot    = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'renderers', 'inventory'
+    $script:MarkdownScript  = Join-Path -Path $script:RendererRoot -ChildPath 'Export-AZSCMarkdownReport.ps1'
+    $script:AsciiDocScript  = Join-Path -Path $script:RendererRoot -ChildPath 'Export-AZSCAsciiDocReport.ps1'
+    $script:PowerBIScript   = Join-Path -Path $script:RendererRoot -ChildPath 'Export-AZSCPowerBIReport.ps1'
+    $script:TempDir         = Join-Path -Path $env:TEMP -ChildPath 'AZSC_OutputFormatTests'
 
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
@@ -53,8 +53,8 @@ BeforeAll {
     $script:Cmd = Get-Command -Name Invoke-AzureScout -ErrorAction SilentlyContinue
 
     # Dot-source the reporting helpers
-    . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:ModuleRoot 'src' 'report' 'Get-ScoutReportSectionIndex.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'Get-ScoutReportSectionIndex.ps1')
     . $script:MarkdownScript
     . $script:AsciiDocScript
     . $script:PowerBIScript
@@ -74,14 +74,14 @@ BeforeAll {
     )
 
     # Build a minimal ReportCache folder with a stub JSON file for Markdown/AsciiDoc to read
-    $script:CacheDir = Join-Path $script:TempDir 'cache'
+    $script:CacheDir = Join-Path -Path $script:TempDir -ChildPath 'cache'
     New-Item -ItemType Directory -Path $script:CacheDir -Force | Out-Null
 
     $cacheData = @{
         VirtualMachine = $script:MockSmaResources.VirtualMachine
         VirtualNetwork = $script:MockSmaResources.VirtualNetwork
     }
-    $cacheData | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $script:CacheDir 'inventory.json') -Encoding UTF8
+    $cacheData | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $script:CacheDir -ChildPath 'inventory.json') -Encoding UTF8
 }
 
 AfterAll {
@@ -208,7 +208,7 @@ Describe 'Report Generation Functions Exist' {
 # ===================================================================
 Describe 'Export-AZSCMarkdownReport — Output File Generation' {
     BeforeAll {
-        $script:MdFile = Join-Path $script:TempDir 'AzureScout_Report.xlsx'  # function changes extension to .md
+        $script:MdFile = Join-Path -Path $script:TempDir -ChildPath 'AzureScout_Report.xlsx'  # function changes extension to .md
     }
 
     It 'Export-AZSCMarkdownReport does not throw with minimal inputs' {
@@ -251,7 +251,7 @@ Describe 'Export-AZSCMarkdownReport — Output File Generation' {
 # ===================================================================
 Describe 'Export-AZSCAsciiDocReport — Output File Generation' {
     BeforeAll {
-        $script:AdocFile = Join-Path $script:TempDir 'AzureScout_Report_adoc.xlsx'
+        $script:AdocFile = Join-Path -Path $script:TempDir -ChildPath 'AzureScout_Report_adoc.xlsx'
     }
 
     It 'Export-AZSCAsciiDocReport does not throw with minimal inputs' {
@@ -311,10 +311,10 @@ Describe 'OutputFormat routing logic in Invoke-AzureScout source' {
 # ===================================================================
 Describe 'Export-AZSCPowerBIReport — Output File Generation' {
     BeforeAll {
-        $script:PbiBaseFile = Join-Path $script:TempDir 'AzureScout_PBI_Report.xlsx'
+        $script:PbiBaseFile = Join-Path -Path $script:TempDir -ChildPath 'AzureScout_PBI_Report.xlsx'
 
         # Build a minimal ReportCache that matches the retired collector folder structure
-        $script:PbiCacheDir = Join-Path $script:TempDir 'pbi-cache'
+        $script:PbiCacheDir = Join-Path -Path $script:TempDir -ChildPath 'pbi-cache'
         if (Test-Path $script:PbiCacheDir) { Remove-Item $script:PbiCacheDir -Recurse -Force }
         New-Item -ItemType Directory -Path $script:PbiCacheDir -Force | Out-Null
 
@@ -324,7 +324,7 @@ Describe 'Export-AZSCPowerBIReport — Output File Generation' {
                 [ordered]@{ Name = 'vm-pbi-01'; Subscription = 'Test Dev'; 'Resource Group' = 'rg-pbi'; Location = 'eastus'; 'Resource U' = 1 }
             )
         }
-        $computeCache | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $script:PbiCacheDir 'Compute.json') -Encoding UTF8
+        $computeCache | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $script:PbiCacheDir -ChildPath 'Compute.json') -Encoding UTF8
 
         # Create an Identity.json cache file for Entra
         $identityCache = @{
@@ -332,7 +332,7 @@ Describe 'Export-AZSCPowerBIReport — Output File Generation' {
                 [ordered]@{ 'Display Name' = 'Test User'; 'User Principal Name' = 'test@contoso.com'; 'Resource U' = 1 }
             )
         }
-        $identityCache | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $script:PbiCacheDir 'Identity.json') -Encoding UTF8
+        $identityCache | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path -Path $script:PbiCacheDir -ChildPath 'Identity.json') -Encoding UTF8
     }
 
     It 'Export-AZSCPowerBIReport does not throw with minimal inputs' {
@@ -347,46 +347,46 @@ Describe 'Export-AZSCPowerBIReport — Output File Generation' {
     }
 
     It 'PowerBI output directory is created' {
-        $pbiDir = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI'
+        $pbiDir = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI'
         $pbiDir | Should -Exist
     }
 
     It '_metadata.csv is created' {
-        $metaFile = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI' '_metadata.csv'
+        $metaFile = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI' -AdditionalChildPath '_metadata.csv'
         $metaFile | Should -Exist
     }
 
     It '_metadata.csv contains TenantId' {
-        $metaFile = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI' '_metadata.csv'
+        $metaFile = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI' -AdditionalChildPath '_metadata.csv'
         $content = Import-Csv $metaFile
         ($content | Where-Object { $_.Property -eq 'TenantId' }).Value | Should -Be 'tenant-pbi-001'
     }
 
     It 'Subscriptions.csv is created' {
-        $subsFile = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI' 'Subscriptions.csv'
+        $subsFile = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI' -AdditionalChildPath 'Subscriptions.csv'
         $subsFile | Should -Exist
     }
 
     It '_relationships.json is created with valid JSON' {
-        $relFile = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI' '_relationships.json'
+        $relFile = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI' -AdditionalChildPath '_relationships.json'
         $relFile | Should -Exist
         { Get-Content $relFile -Raw | ConvertFrom-Json } | Should -Not -Throw
     }
 
     It 'At least one Resources_*.csv file is created' {
-        $pbiDir = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI'
+        $pbiDir = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI'
         $csvFiles = Get-ChildItem -Path $pbiDir -Filter 'Resources_*.csv' -ErrorAction SilentlyContinue
         @($csvFiles).Count | Should -BeGreaterThan 0
     }
 
     It 'At least one Entra_*.csv file is created' {
-        $pbiDir = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI'
+        $pbiDir = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI'
         $csvFiles = Get-ChildItem -Path $pbiDir -Filter 'Entra_*.csv' -ErrorAction SilentlyContinue
         @($csvFiles).Count | Should -BeGreaterThan 0
     }
 
     It 'Resource CSV files contain _Category and _Module columns' {
-        $pbiDir = Join-Path (Split-Path $script:PbiBaseFile -Parent) 'PowerBI'
+        $pbiDir = Join-Path -Path (Split-Path $script:PbiBaseFile -Parent) -ChildPath 'PowerBI'
         $csvFile = Get-ChildItem -Path $pbiDir -Filter 'Resources_*.csv' | Select-Object -First 1
         $data = Import-Csv $csvFile.FullName
         $data[0].PSObject.Properties.Name | Should -Contain '_Category'

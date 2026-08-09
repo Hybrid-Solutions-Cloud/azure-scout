@@ -263,29 +263,25 @@ function Invoke-AZSCPermissionAudit {
         if ($SubscriptionID -and $SubscriptionID.Count -gt 0) {
             $subs = @($allSubs | Where-Object { $_.Id -in $SubscriptionID -or $_.Name -in $SubscriptionID })
             if ($subs.Count -eq 0) {
-                $r = New-CheckResult 'ARM: Subscription Enumeration' 'Fail' `
-                    "None of the specified subscription(s) ($($SubscriptionID -join ', ')) were found in the $($allSubs.Count) accessible subscription(s)" `
-                    'Verify the -SubscriptionID value matches an accessible subscription ID or name.'
+                $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Fail' -Message "None of the specified subscription(s) ($($SubscriptionID -join ', ')) were found in the $($allSubs.Count) accessible subscription(s)" -Remediation 'Verify the -SubscriptionID value matches an accessible subscription ID or name.'
                 Write-AuditLine -Status Fail -Text $r.Message
                 $armAccess = $false
                 $recommendations.Add('Verify -SubscriptionID matches an accessible subscription ID or name.')
             }
             else {
-                $r = New-CheckResult 'ARM: Subscription Enumeration' 'Pass' `
-                    "Scoped to $($subs.Count) of $($allSubs.Count) accessible subscription(s)"
+                $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Pass' -Message "Scoped to $($subs.Count) of $($allSubs.Count) accessible subscription(s)"
                 Write-AuditLine -Status Pass -Text $r.Message
             }
         }
         else {
             $subs = $allSubs
-            $r = New-CheckResult 'ARM: Subscription Enumeration' 'Pass' "Found $($subs.Count) subscription(s) accessible to this identity"
+            $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Pass' -Message "Found $($subs.Count) subscription(s) accessible to this identity"
             Write-AuditLine -Status Pass -Text $r.Message
         }
     }
     catch {
         $armAccess = $false
-        $r = New-CheckResult 'ARM: Subscription Enumeration' 'Fail' $_.Exception.Message `
-            'Grant the identity at least Reader role on one or more subscriptions.'
+        $r = New-CheckResult -Check 'ARM: Subscription Enumeration' -Status 'Fail' -Message $_.Exception.Message -Remediation 'Grant the identity at least Reader role on one or more subscriptions.'
         Write-AuditLine -Status Fail -Text $r.Message
         $recommendations.Add("Grant Reader role: New-AzRoleAssignment -ObjectId <principalId> -RoleDefinitionName 'Reader' -Scope '/subscriptions/<subId>'")
     }
@@ -294,14 +290,12 @@ function Invoke-AZSCPermissionAudit {
     # 1b — Root Management Group access
     try {
         $mgScope = "/providers/Microsoft.Management/managementGroups/$tenantId"
-        $mgAssign = @(Get-AzRoleAssignment -Scope $mgScope -ErrorAction Stop) | Select-Object -First 1
-        $r = New-CheckResult 'ARM: Root Management Group Access' 'Pass' 'Can read root management group role assignments (broadest scope)'
+        $null = @(Get-AzRoleAssignment -Scope $mgScope -ErrorAction Stop) | Select-Object -First 1
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message 'Can read root management group role assignments (broadest scope)'
         Write-AuditLine -Status Pass -Text $r.Message
     }
     catch {
-        $r = New-CheckResult 'ARM: Root Management Group Access' 'Warn' `
-            "Cannot read root MG role assignments — inventory will run per-subscription instead" `
-            "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot read root MG role assignments — inventory will run per-subscription instead" -Remediation "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
         Write-AuditLine -Status Warn -Text $r.Message
     }
     $armDetails.Add($r)
@@ -326,10 +320,6 @@ function Invoke-AZSCPermissionAudit {
         # Cost data in particular was never gated on Cost Management Reader: it is gated on
         # the EA "AO view charges" / MCA "Azure charges" billing setting, which no RBAC role
         # can grant. Recommending the role was advice that could not work.
-        $requiredRoles = @{
-            'Reader' = 'Core inventory (required)'
-        }
-
         # AB#368 — try/finally, not a scriptblock, so the loop body keeps writing to the
         # enclosing scope's $armAccess/$armDetails/$recommendations while the caller's
         # subscription context is still restored on both the normal and the error path.
@@ -379,14 +369,6 @@ function Invoke-AZSCPermissionAudit {
                     $subMsg = "[$($sub.Name)] $rolesDisplay"
                     Write-AuditLine -Status $status -Text $subMsg
 
-                    $subResult = [PSCustomObject]@{
-                        SubscriptionId   = $sub.Id
-                        SubscriptionName = $sub.Name
-                        State            = $sub.State
-                        AssignedRoles    = $foundRoles
-                        HasReader        = [bool]$readCapableRole
-                        Status           = $status
-                    }
                     $armDetails.Add([PSCustomObject]@{
                         Check       = "ARM: Subscription [$($sub.Name)]"
                         Status      = $status
@@ -537,8 +519,7 @@ function Invoke-AZSCPermissionAudit {
         }
         catch {
             Write-AuditLine -Status Fail -Text "Cannot acquire Microsoft Graph token: $($_.Exception.Message)"
-            $graphDetails.Add(( New-CheckResult 'Graph: Token Acquisition' 'Fail' $_.Exception.Message `
-                "Ensure the identity has Graph API permissions. For SPNs: grant app permissions in Entra ID app registration. For users: ensure Directory Readers or Global Reader directory role." ))
+            $graphDetails.Add(( New-CheckResult -Check 'Graph: Token Acquisition' -Status 'Fail' -Message $_.Exception.Message -Remediation "Ensure the identity has Graph API permissions. For SPNs: grant app permissions in Entra ID app registration. For users: ensure Directory Readers or Global Reader directory role." ))
             $recommendations.Add('Grant Graph permissions — in Entra ID portal: App Registrations > API Permissions > Microsoft Graph > Directory.Read.All (application permission, requires admin consent)')
         }
 
@@ -578,9 +559,7 @@ function Invoke-AZSCPermissionAudit {
                 if (-not $impact.IsConsumed) {
                     # A permission no collector consumes is not worth failing, warning, or even
                     # asking for. Say so rather than quietly probing it every run.
-                    $r = New-CheckResult $checkName 'Warn' `
-                        "$($impact.Permission) — queried ($purpose) but NO collector reads the result. Do not grant it." `
-                        "Remove '$($impact.Permission)' from the access request — nothing consumes it."
+                    $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "$($impact.Permission) — queried ($purpose) but NO collector reads the result. Do not grant it." -Remediation "Remove '$($impact.Permission)' from the access request — nothing consumes it."
                     Write-AuditLine -Status Warn -Text "$checkName — queried but unused by every collector"
                     $graphDetails.Add($r)
                     continue
@@ -588,7 +567,7 @@ function Invoke-AZSCPermissionAudit {
 
                 try {
                     $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId
-                    $r = New-CheckResult $checkName 'Pass' "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
+                    $r = New-CheckResult -Check $checkName -Status 'Pass' -Message "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
@@ -613,9 +592,7 @@ function Invoke-AZSCPermissionAudit {
                                         Permission = $impact.Permission
                                     })
                             }
-                            $r = New-CheckResult $checkName 'Warn' `
-                                "NOT LICENSED — $($impact.Permission) ($purpose) requires $($req.Product), which this tenant does not have. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" `
-                                "No action needed unless you intend to license $($req.Product). Granting the permission alone will not populate these collectors."
+                            $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "NOT LICENSED — $($impact.Permission) ($purpose) requires $($req.Product), which this tenant does not have. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "No action needed unless you intend to license $($req.Product). Granting the permission alone will not populate these collectors."
                             Write-AuditLine -Status Warn -Text "$checkName — not licensed ($($req.Product)); reported as Not assessed"
                             $graphDetails.Add($r)
                             continue
@@ -636,9 +613,7 @@ function Invoke-AZSCPermissionAudit {
                                     Permission = $impact.Permission
                                 })
                         }
-                        $r = New-CheckResult $checkName 'Warn' `
-                            "UNAVAILABLE WITH CLI SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes Azure CLI tokens carry, and az cannot request it, so this fails for every user regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" `
-                            "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help."
+                        $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "UNAVAILABLE WITH CLI SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes Azure CLI tokens carry, and az cannot request it, so this fails for every user regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help."
                         Write-AuditLine -Status Warn -Text "$checkName — unavailable with CLI sign-in; reported as Not assessed"
                         $graphDetails.Add($r)
                         continue
@@ -662,9 +637,7 @@ function Invoke-AZSCPermissionAudit {
                     } else {
                         "Grant '$($impact.Permission)' in Entra ID > Enterprise Applications > API Permissions"
                     }
-                    $r = New-CheckResult $checkName 'Fail' `
-                        "DENIED — $($impact.Permission) ($purpose). $($impact.CollectorCount) collectors will be empty: $($impact.Collectors -join ', ')" `
-                        $deniedRemediation
+                    $r = New-CheckResult -Check $checkName -Status 'Fail' -Message "DENIED — $($impact.Permission) ($purpose). $($impact.CollectorCount) collectors will be empty: $($impact.Collectors -join ', ')" -Remediation $deniedRemediation
                     Write-AuditLine -Status Fail -Text "$checkName — DENIED; $($impact.CollectorCount) collectors will be empty"
                     # AB#6765 -- this used to be a coloured Write-Host and nothing else, so a
                     # denied permission never reached the warning stream and never reached the

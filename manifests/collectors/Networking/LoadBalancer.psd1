@@ -26,14 +26,14 @@ $ResUCount = 1
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -45,15 +45,15 @@ $ResUCount = 1
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null
                     }
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
-                $FrontEnds = foreach ($2 in $data.frontendIPConfigurations) 
+                $FrontEnds = foreach ($2 in $data.frontendIPConfigurations)
                     {
-                        if (![string]::IsNullOrEmpty($2.properties.subnet.id)) 
+                        if (![string]::IsNullOrEmpty($2.properties.subnet.id))
                             {
                                 $tmps = [pscustomobject]@{
                                     Name             = $2.name
@@ -63,7 +63,7 @@ $ResUCount = 1
                                 }
                                 $tmps
                             }
-                        elseif (![string]::IsNullOrEmpty($2.properties.publicIPAddress.id)) 
+                        elseif (![string]::IsNullOrEmpty($2.properties.publicIPAddress.id))
                             {
                                 $tmps = [pscustomobject]@{
                                     Name              = $2.name

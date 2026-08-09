@@ -22,9 +22,9 @@
 
 BeforeAll {
     $script:Root     = Split-Path $PSScriptRoot -Parent
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
-    . (Join-Path $script:Root 'src/assess/Resolve-ScoutAssessmentName.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/Resolve-ScoutAssessmentName.ps1')
 
     # The decided rename map, verbatim. Changing either column is a product
     # decision, not a refactor -- this literal table is the point of the test.
@@ -129,7 +129,7 @@ Describe 'v3.8.0 rename -- -Assessment LandingZone still runs, end to end' {
         Import-Module "$script:Root/AzureScout.psd1" -Force -ErrorAction Stop
         $script:Module  = Get-Module AzureScout | Where-Object { $_.ModuleBase -eq $script:Root } | Select-Object -First 1
         $script:Fixture = "$script:Root/tests/datadump/sample-collect.json"
-        $script:OutRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_NameAlias_" + [System.IO.Path]::GetRandomFileName())
+        $script:OutRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_NameAlias_" + [System.IO.Path]::GetRandomFileName())
     }
 
     AfterAll {
@@ -145,7 +145,7 @@ Describe 'v3.8.0 rename -- -Assessment LandingZone still runs, end to end' {
         } $script:Fixture $script:OutRoot 3>$null
 
         @($run).Count | Should -Be 1
-        $findingsPath = Join-Path $run 'findings.json'
+        $findingsPath = Join-Path -Path $run -ChildPath 'findings.json'
         Test-Path $findingsPath | Should -BeTrue
 
         $findings = (Get-Content $findingsPath -Raw | ConvertFrom-Json -Depth 100).Findings

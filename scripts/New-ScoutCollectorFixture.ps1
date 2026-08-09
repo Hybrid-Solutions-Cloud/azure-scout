@@ -292,7 +292,7 @@ function Resolve-ShapePath {
     if ($Node -is [System.Management.Automation.Language.PipelineAst] -and $Node.PipelineElements.Count -eq 2) {
         # `$data | Get-AZSCSafeProperty -Path 'x'` -- the accessor's subject arrives by pipeline
         # rather than by -InputObject, so the two-element pipeline IS the property path. Handled
-        # here and not in Add-ShapeUsageFromPipelines, which binds $_ and would learn nothing:
+        # here and not in Add-ShapeUsageFromPipeline, which binds $_ and would learn nothing:
         # the accessor names its property in a string, not as a member of $_.
         $Accessor = Resolve-ShapeAccessorPath -Command $Node.PipelineElements[1] `
             -Subject $Node.PipelineElements[0] -Aliases $Aliases
@@ -407,7 +407,7 @@ function Resolve-ShapePath {
     return $null
 }
 
-function Add-ShapeUsageFromOperators {
+function Add-ShapeUsageFromOperator {
     <# Arithmetic and string operators tell us whether a leaf must be numeric. #>
     param([System.Management.Automation.Language.Ast]$Ast, [hashtable]$Aliases)
 
@@ -432,7 +432,7 @@ function Add-ShapeUsageFromOperators {
     }
 }
 
-function Add-ShapeUsageFromCommands {
+function Add-ShapeUsageFromCommand {
     <#
         A path handed to a date cmdlet or a [datetime] parse has to BE a date. `Analytics/EvtHub.ps1`
         writes `[string](get-date($data.createdAt))`, whose property name ('createdAt') gives no hint
@@ -462,7 +462,7 @@ function Add-ShapeUsageFromCommands {
     }
 }
 
-function Add-ShapeUsageFromPipelines {
+function Add-ShapeUsageFromPipeline {
     <#
         Resolve `$_` inside a script block that is piped a property path.
 
@@ -506,14 +506,14 @@ function Add-ShapeUsageFromPipelines {
                     }, $true)) {
                     $null = Resolve-ShapePath -Node $Node -Aliases $Local
                 }
-                Add-ShapeUsageFromOperators -Ast $Block -Aliases $Local
-                Add-ShapeUsageFromCommands  -Ast $Block -Aliases $Local
+                Add-ShapeUsageFromOperator -Ast $Block -Aliases $Local
+                Add-ShapeUsageFromCommand  -Ast $Block -Aliases $Local
             }
         }
     }
 }
 
-function Get-DefinitionSecondarySets {
+function Get-DefinitionSecondarySet {
     <#
         The resource sets a definition's SetupPreamble derives from `$Resources` for a type OTHER
         than the one it iterates -- the join half of the 13 collectors converted under AB#5659.
@@ -565,7 +565,7 @@ function Get-DefinitionSecondarySets {
     return @($Sets)
 }
 
-function Get-JoinCorrelationPaths {
+function Get-JoinCorrelationPath {
     <#
         The property of a secondary resource that has to carry the PRIMARY resource's id for the
         collector's own join predicate to match, e.g. Web/APPServicePlan's
@@ -680,9 +680,9 @@ function Build-CollectorShape {
             }, $true)) {
             $null = Resolve-ShapePath -Node $Member -Aliases $Aliases
         }
-        Add-ShapeUsageFromOperators -Ast $Ast -Aliases $Aliases
-        Add-ShapeUsageFromCommands  -Ast $Ast -Aliases $Aliases
-        Add-ShapeUsageFromPipelines -Ast $Ast -Aliases $Aliases
+        Add-ShapeUsageFromOperator -Ast $Ast -Aliases $Aliases
+        Add-ShapeUsageFromCommand  -Ast $Ast -Aliases $Aliases
+        Add-ShapeUsageFromPipeline -Ast $Ast -Aliases $Aliases
     }
 
     return [PSCustomObject]@{ Root = $Root; Secondary = $SecondaryRoots }
@@ -1010,7 +1010,7 @@ function New-FixtureJoinedResource {
     return $Body
 }
 
-$DefinitionDir = Join-Path $RepoRoot 'manifests' 'collectors' $Category
+$DefinitionDir = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors', $Category
 if (-not (Test-Path -LiteralPath $DefinitionDir)) { throw "No definitions for category '$Category' at $DefinitionDir" }
 
 $Subscriptions = @(
@@ -1042,13 +1042,13 @@ $Variants = @(
 
 foreach ($File in (Get-ChildItem -LiteralPath $DefinitionDir -Filter '*.psd1' | Sort-Object Name)) {
     $Definition     = Get-ScoutCollectorDefinition -Path $File.FullName
-    $SecondarySets  = @(Get-DefinitionSecondarySets -Definition $Definition)
+    $SecondarySets  = @(Get-DefinitionSecondarySet -Definition $Definition)
     $ShapeResult    = Build-CollectorShape -Definition $Definition -SecondarySets $SecondarySets
     $Shape          = $ShapeResult.Root
     $RowScriptText  = Build-ScoutDeclarativeRowScript -Definition $Definition
     $Correlations   = @{}
     foreach ($Set in $SecondarySets) {
-        $Correlations[$Set.Variable] = @(Get-JoinCorrelationPaths -ScriptText $RowScriptText `
+        $Correlations[$Set.Variable] = @(Get-JoinCorrelationPath -ScriptText $RowScriptText `
             -RowLoopVariable $Definition.RowLoopVariable -SetVariable $Set.Variable)
     }
 
@@ -1167,7 +1167,7 @@ $Fixture = [ordered]@{
 }
 
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $RepoRoot 'tests' 'fixtures' 'collector-equivalence' "$Category.json"
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'fixtures', 'collector-equivalence', "$Category.json"
 }
 $OutputDir = Split-Path -Parent $OutputPath
 if (-not (Test-Path -LiteralPath $OutputDir)) { New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null }

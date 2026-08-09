@@ -217,7 +217,7 @@ Describe 'AB#6794 — every assigned regulatory initiative is its own assessment
     It 'a real MCSB run reports no findings, not a crash, when nothing is assigned at all' {
         $empty = [pscustomobject]@{ domains = [pscustomobject]@{ management = [pscustomobject]@{ policyComplianceStates = @(); policyInitiatives = @() } } }
 
-        { $result = @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue) } | Should -Not -Throw
+        { $null = @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue) } | Should -Not -Throw
         @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue).Count | Should -Be 0
     }
 }
@@ -225,7 +225,7 @@ Describe 'AB#6794 — every assigned regulatory initiative is its own assessment
 Describe 'AB#6795 — the assessment registry is clean' {
 
     BeforeAll {
-        $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+        $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
     }
 
     It 'has no Estate entry — a full-estate inventory pull is not an assessment' {

@@ -35,19 +35,26 @@ BeforeAll {
 
     # Neutralise Import-Module so `Import-Module Az.ResourceGraph` inside the functions under
     # test cannot pull the real cmdlet into the session and make a live call.
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
     . "$script:root/src/collect/Invoke-Collect.ps1"
     . "$script:root/src/collect/Start-ScoutGraphExtraction.ps1"
 
-    function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) return $Subscriptions }
+    function Get-AZSCManagementGroups {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($ManagementGroup, $Subscriptions) return $Subscriptions }
 
     # ---- the one fixture estate both paths are driven from ----
     # Raw rows carry the full properties bag exactly as Resource Graph indexes it; the typed
     # responses further down are the projections ARG would return for these same resources.
     function Get-FixtureContainerRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa'; name = 'demo-sub'; type = 'microsoft.resources/subscriptions'
@@ -69,6 +76,9 @@ BeforeAll {
     }
 
     function Get-FixtureResourceRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/virtualnetworks/vnet1'
@@ -189,7 +199,8 @@ BeforeAll {
     function New-CountingSearchAzGraph {
         $script:argQueries = [System.Collections.Generic.List[string]]::new()
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -425,7 +436,8 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
 
     It 'still populates sqlDefenderPricing from the live query on the inverted path' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -448,7 +460,8 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
 
     It 'falls back to the typed pack when the raw pass throws, rather than returning nothing' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )

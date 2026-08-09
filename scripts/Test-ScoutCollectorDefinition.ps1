@@ -137,7 +137,7 @@ function Test-AllowedBlankColumn {
     return $false
 }
 
-function Test-DefinitionParses {
+function Test-DefinitionParse {
     <# Parse a fragment of lifted source and return its first error message, or $null. #>
     param([string]$Text)
     if ([string]::IsNullOrWhiteSpace($Text)) { return $null }
@@ -199,7 +199,7 @@ foreach ($File in $Files) {
     # --- 2. ROW SCRIPT -----------------------------------------------------------------------
     try {
         $RowScript = Build-ScoutDeclarativeRowScript -Definition $Definition
-        $RowError  = Test-DefinitionParses -Text $RowScript
+        $RowError  = Test-DefinitionParse -Text $RowScript
         if ($RowError) {
             Add-Violation -Path $Relative -Message "the per-resource script the interpreter builds from this definition does not parse, so every field of this collector would be unreachable at run time: $RowError"
         }
@@ -212,11 +212,11 @@ foreach ($File in $Files) {
             @{ Label = 'SetupPreamble';  Text = $Definition.SetupPreamble }
             @{ Label = 'FilterPreamble'; Text = $Definition.FilterPreamble }
             @{ Label = 'Preamble';       Text = $Definition.Preamble })) {
-        $FragmentError = Test-DefinitionParses -Text $Fragment.Text
+        $FragmentError = Test-DefinitionParse -Text $Fragment.Text
         if ($FragmentError) { Add-Violation -Path $Relative -Message "$($Fragment.Label) does not parse: $FragmentError" }
     }
     foreach ($Loop in @($Definition.AdditionalRowLoops)) {
-        $LoopError = Test-DefinitionParses -Text $Loop.Preamble
+        $LoopError = Test-DefinitionParse -Text $Loop.Preamble
         if ($LoopError) { Add-Violation -Path $Relative -Message "the Preamble of AdditionalRowLoops entry '$($Loop.Variable)' does not parse: $LoopError" }
     }
 

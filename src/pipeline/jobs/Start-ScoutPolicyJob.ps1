@@ -19,6 +19,7 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCPolicyJob {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = 'Fixed dispatcher signature shared with sibling job functions (Start-AZSCAdvisoryJob, Start-AZSCSecCenterJob, etc.) -- not every job function reads every slot.')]
     param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
     # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads

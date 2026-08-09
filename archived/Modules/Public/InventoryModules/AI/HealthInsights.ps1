@@ -22,6 +22,8 @@ Authors: Claudio Merola
 
 <######## Default Parameters. Don't modify this ########>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Unsupported', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 
@@ -51,7 +53,6 @@ If ($Task -eq 'Processing')
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
-                                $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredFeature.RetiringFeature
                                         'RetiredDate'               = $Retired.RetirementDate

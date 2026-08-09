@@ -20,7 +20,7 @@ BeforeAll {
         $_.ModuleBase -eq $script:root
     } | Select-Object -First 1
     $script:fixture = "$script:root/tests/datadump/sample-collect.json"
-    $script:outRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_ReportReturn_" + [System.IO.Path]::GetRandomFileName())
+    $script:outRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_ReportReturn_" + [System.IO.Path]::GetRandomFileName())
 }
 
 AfterAll {
@@ -39,7 +39,7 @@ Describe 'Assessment core return value with the React renderer' {
         @($result).Count | Should -Be 1
         $result          | Should -BeOfType [string]
         Test-Path $result | Should -BeTrue
-        Test-Path (Join-Path $result 'report-react.html') | Should -BeTrue
+        Test-Path (Join-Path -Path $result -ChildPath 'report-react.html') | Should -BeTrue
     }
 
     It 'produces a self-contained React report with no external CDN references' {
@@ -47,7 +47,7 @@ Describe 'Assessment core return value with the React renderer' {
             param($fixture, $outRoot)
             Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
         } $script:fixture $script:outRoot
-        $html = Join-Path $run 'report-react.html'
+        $html = Join-Path -Path $run -ChildPath 'report-react.html'
 
         Test-Path $html | Should -BeTrue
         (Select-String -Path $html -Pattern '(src|href)="https?://' -Quiet) | Should -Not -BeTrue
@@ -61,7 +61,7 @@ Describe 'Assessment core return value with the React renderer' {
             param($fixture, $outRoot)
             Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $fixture -OutputFormat React -OutputPath $outRoot
         } $script:fixture $script:outRoot | Out-Null
-        $histFile = Join-Path $script:outRoot '.scout-history/findings-history.json'
+        $histFile = Join-Path -Path $script:outRoot -ChildPath '.scout-history/findings-history.json'
         Test-Path $histFile | Should -BeTrue
         $records = Get-Content $histFile -Raw | ConvertFrom-Json
         @($records).Count | Should -BeGreaterThan 1

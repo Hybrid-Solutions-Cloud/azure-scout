@@ -3,24 +3,24 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/Get-ScoutReportSectionIndex.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCJsonReport.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCMarkdownReport.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCAsciiDocReport.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCPowerBIReport.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/Get-ScoutReportSectionIndex.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCJsonReport.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCMarkdownReport.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCAsciiDocReport.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCPowerBIReport.ps1')
 
-    $script:TempRoot = Join-Path ([System.IO.Path]::GetTempPath()) (
+    $script:TempRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (
         'AZSC_ManifestRenderer_' + [guid]::NewGuid().ToString('N')
     )
-    $script:DefinitionRoot = Join-Path $script:TempRoot 'definitions'
-    $script:CacheRoot = Join-Path $script:TempRoot 'cache'
+    $script:DefinitionRoot = Join-Path -Path $script:TempRoot -ChildPath 'definitions'
+    $script:CacheRoot = Join-Path -Path $script:TempRoot -ChildPath 'cache'
     New-Item -ItemType Directory -Path $script:DefinitionRoot, $script:CacheRoot -Force | Out-Null
 
     function Write-RendererDefinition {
         param([string]$Category, [string]$Name)
 
-        $Directory = Join-Path $script:DefinitionRoot $Category
+        $Directory = Join-Path -Path $script:DefinitionRoot -ChildPath $Category
         New-Item -ItemType Directory -Path $Directory -Force | Out-Null
         @"
 @{
@@ -29,7 +29,7 @@ BeforeAll {
     Fields = @(@{ Name = 'Name'; Expression = '`$1.Name' })
     Export = @{ WorksheetName = '$Name'; Columns = @('Name') }
 }
-"@ | Set-Content -LiteralPath (Join-Path $Directory "$Name.psd1") -Encoding utf8
+"@ | Set-Content -LiteralPath (Join-Path -Path $Directory -ChildPath "$Name.psd1") -Encoding utf8
     }
 
     Write-RendererDefinition -Category 'Compute' -Name 'Widget'
@@ -37,10 +37,10 @@ BeforeAll {
 
     @{ Widget = @([ordered]@{ Name = 'widget-01'; Location = 'eastus' }); Unlisted = @([ordered]@{ Name = 'must-not-render' }) } |
         ConvertTo-Json -Depth 8 |
-        Set-Content -LiteralPath (Join-Path $script:CacheRoot 'Compute.json') -Encoding utf8
+        Set-Content -LiteralPath (Join-Path -Path $script:CacheRoot -ChildPath 'Compute.json') -Encoding utf8
     @{ Users = @([ordered]@{ Name = 'user-01'; 'User Principal Name' = 'user@example.test' }) } |
         ConvertTo-Json -Depth 8 |
-        Set-Content -LiteralPath (Join-Path $script:CacheRoot 'Identity.json') -Encoding utf8
+        Set-Content -LiteralPath (Join-Path -Path $script:CacheRoot -ChildPath 'Identity.json') -Encoding utf8
 }
 
 AfterAll {
@@ -51,7 +51,7 @@ AfterAll {
 
 Describe 'Manifest-backed inventory JSON and Markdown renderers' {
     It 'JSON renders only definition-indexed cache keys and preserves ARM/Entra grouping' {
-        $OutputBase = Join-Path $script:TempRoot 'inventory.xlsx'
+        $OutputBase = Join-Path -Path $script:TempRoot -ChildPath 'inventory.xlsx'
         $JsonPath = Export-AZSCJsonReport -ReportCache $script:CacheRoot -File $OutputBase `
             -DefinitionRoot $script:DefinitionRoot -TenantID 'tenant-test'
         $Report = Get-Content -LiteralPath $JsonPath -Raw | ConvertFrom-Json
@@ -62,7 +62,7 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
     }
 
     It 'Markdown honors scope using definition categories, without a collector-script walk' {
-        $OutputBase = Join-Path $script:TempRoot 'inventory-markdown.xlsx'
+        $OutputBase = Join-Path -Path $script:TempRoot -ChildPath 'inventory-markdown.xlsx'
         $MarkdownPath = Export-AZSCMarkdownReport -ReportCache $script:CacheRoot -File $OutputBase `
             -DefinitionRoot $script:DefinitionRoot -Scope ArmOnly
         $Markdown = Get-Content -LiteralPath $MarkdownPath -Raw
@@ -74,7 +74,7 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
     }
 
     It 'AsciiDoc renders only definition-indexed cache keys and honors scope' {
-        $OutputBase = Join-Path $script:TempRoot 'inventory-asciidoc.xlsx'
+        $OutputBase = Join-Path -Path $script:TempRoot -ChildPath 'inventory-asciidoc.xlsx'
         $AsciiDocPath = Export-AZSCAsciiDocReport -ReportCache $script:CacheRoot -File $OutputBase `
             -DefinitionRoot $script:DefinitionRoot -Scope ArmOnly
         $AsciiDoc = Get-Content -LiteralPath $AsciiDocPath -Raw
@@ -87,22 +87,22 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
     }
 
     It 'Power BI exports only definition-indexed cache keys and honors scope' {
-        $OutputBase = Join-Path $script:TempRoot 'inventory-powerbi.xlsx'
+        $OutputBase = Join-Path -Path $script:TempRoot -ChildPath 'inventory-powerbi.xlsx'
         $PowerBIDirectory = Export-AZSCPowerBIReport -ReportCache $script:CacheRoot -File $OutputBase `
             -DefinitionRoot $script:DefinitionRoot -Scope EntraOnly
 
-        Test-Path -LiteralPath (Join-Path $PowerBIDirectory 'Entra_Users.csv') | Should -BeTrue
-        Test-Path -LiteralPath (Join-Path $PowerBIDirectory 'Resources_Widget.csv') | Should -BeFalse
-        Test-Path -LiteralPath (Join-Path $PowerBIDirectory 'Resources_Unlisted.csv') | Should -BeFalse
-        (Get-Content -LiteralPath (Join-Path $PowerBIDirectory 'Entra_Users.csv') -Raw) | Should -Match 'user@example.test'
+        Test-Path -LiteralPath (Join-Path -Path $PowerBIDirectory -ChildPath 'Entra_Users.csv') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $PowerBIDirectory -ChildPath 'Resources_Widget.csv') | Should -BeFalse
+        Test-Path -LiteralPath (Join-Path -Path $PowerBIDirectory -ChildPath 'Resources_Unlisted.csv') | Should -BeFalse
+        (Get-Content -LiteralPath (Join-Path -Path $PowerBIDirectory -ChildPath 'Entra_Users.csv') -Raw) | Should -Match 'user@example.test'
     }
 
     It 'renderers have no legacy collector-tree path literal and call the section index' {
         foreach ($Path in @(
-            (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCJsonReport.ps1'),
-            (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCMarkdownReport.ps1'),
-            (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCAsciiDocReport.ps1'),
-            (Join-Path $script:RepoRoot 'src/report/renderers/inventory/Export-AZSCPowerBIReport.ps1')
+            (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCJsonReport.ps1'),
+            (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCMarkdownReport.ps1'),
+            (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCAsciiDocReport.ps1'),
+            (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Export-AZSCPowerBIReport.ps1')
         )) {
             $Source = Get-Content -LiteralPath $Path -Raw
             $Source | Should -Match 'Get-ScoutReportSectionIndex'

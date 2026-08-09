@@ -28,7 +28,7 @@ $ResUCount = 1
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
@@ -46,8 +46,8 @@ $ResUCount = 1
                         $RetiringDate = if (@($RetiredFeature.RetiredDate).count -gt 1) { $RetiredFeature.RetiredDate | ForEach-Object { $_ + ' ,' } }else { $RetiredFeature.RetiredDate}
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
-                    } 
-                else 
+                    }
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null

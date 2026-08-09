@@ -55,6 +55,7 @@ function Start-AZSCWizard {
     # caller (Invoke-AzureScout) is what acts on the answers.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
     param(
         [string]$AzureEnvironment = 'AzureCloud',
         [string]$PlatOS
@@ -338,7 +339,7 @@ function Start-AZSCWizard {
                     # Not wrapped in @() — Resolve-JsonPath returns via Write-Output -NoEnumerate,
                     # so @() would count the wrapper and every gate would read as satisfied.
                     try { $rows = Resolve-JsonPath -InputObject $collectObject -Path $path; if ($null -ne $rows -and $rows.Count -gt 0) { return $true } }
-                    catch { }
+                    catch { Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - RequiresData path '$path' could not be resolved: " + $_.Exception.Message) }
                 }
                 return $false
             })

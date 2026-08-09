@@ -76,6 +76,7 @@ $script:ScoutHeldRenderers = @(
 #>
 function Invoke-ScoutAssessmentCore {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Return shape genuinely varies by branch (void on -Help, Test-ScoutPermission''s result array on -CheckPermissions, a collect.json path string on -CollectOnly, the run-folder path string otherwise) -- a single OutputType would be misleading.')]
     param(
         # AB#6795 -- 'Estate' (Rules = @(), a full-inventory pull with no scoring) was removed
         # from the assessment registry entirely; it is not this platform's job to double as the

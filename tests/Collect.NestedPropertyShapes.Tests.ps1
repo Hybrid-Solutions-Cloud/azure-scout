@@ -42,7 +42,7 @@ $script:Shapes = @('pscustomobject', 'dictionary') +
 # the fixture builders have to be defined in `BeforeAll` to exist at run time -- only the
 # `-ForEach` list above is needed during discovery.
 BeforeAll {
-    . (Join-Path $PSScriptRoot '..' 'src' 'collect' 'ConvertFrom-ScoutInventory.ps1')
+    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'collect', 'ConvertFrom-ScoutInventory.ps1')
 
     $script:VnetJson = @'
 {

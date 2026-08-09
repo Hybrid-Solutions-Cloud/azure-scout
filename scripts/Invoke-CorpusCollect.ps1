@@ -26,6 +26,10 @@
     Collect ONLY. If a .docx/.pptx/.xlsx or figures/ ever appears under a run stamp, something
     ran a report pass against the corpus -- see the corpus README.
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CredentialPath',
+    Justification = 'CredentialPath is a filesystem path to a credentials file, not a secret value; it is never a password.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '',
+    Justification = 'Secret arrives as plaintext from the credential JSON file (see .DESCRIPTION); no SecureString input path exists for building the SPN PSCredential Connect-AzAccount requires.')]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $CredentialPath,

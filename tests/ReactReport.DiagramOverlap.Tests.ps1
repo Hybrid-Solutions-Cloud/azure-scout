@@ -33,7 +33,7 @@ Describe 'React report diagram kernel — no collisions on a real banked corpus'
 
     BeforeAll {
         $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-        $script:TemplatePath = Join-Path $script:RepoRoot 'src' 'report' 'templates' 'report-react.html.template'
+        $script:TemplatePath = Join-Path -Path $script:RepoRoot -ChildPath 'src' -AdditionalChildPath 'report', 'templates', 'report-react.html.template'
         $script:CorpusRoot = 'D:\azure-scout-corpus'
         $script:NodeAvailable = [bool](Get-Command node -ErrorAction SilentlyContinue)
 
@@ -43,7 +43,7 @@ Describe 'React report diagram kernel — no collisions on a real banked corpus'
             $runDirs = Get-ChildItem -Path $script:CorpusRoot -Directory -Filter '*-run*' -ErrorAction SilentlyContinue |
                 Sort-Object Name -Descending
             foreach ($run in $runDirs) {
-                $aliasDir = Join-Path $run.FullName $Alias
+                $aliasDir = Join-Path -Path $run.FullName -ChildPath $Alias
                 if (-not (Test-Path $aliasDir)) { continue }
                 $collect = Get-ChildItem -Path $aliasDir -Recurse -Filter 'collect.json' -ErrorAction SilentlyContinue |
                     Select-Object -First 1
@@ -65,9 +65,9 @@ Describe 'React report diagram kernel — no collisions on a real banked corpus'
                 return
             }
 
-            $fixturePath = Join-Path ([System.IO.Path]::GetTempPath()) "scout-react-fixture-$Alias.json"
-            $fixtureBuilder = Join-Path $script:RepoRoot 'tests' 'diagram-fixture-build.mjs'
-            $checker = Join-Path $script:RepoRoot 'tests' 'diagram-overlap-checker.mjs'
+            $fixturePath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "scout-react-fixture-$Alias.json"
+            $fixtureBuilder = Join-Path -Path $script:RepoRoot -ChildPath 'tests' -AdditionalChildPath 'diagram-fixture-build.mjs'
+            $checker = Join-Path -Path $script:RepoRoot -ChildPath 'tests' -AdditionalChildPath 'diagram-overlap-checker.mjs'
 
             & node $fixtureBuilder $collectPath | Out-File -FilePath $fixturePath -Encoding utf8NoBOM
             $LASTEXITCODE | Should -Be 0 -Because 'the fixture builder must succeed against a real collect.json'

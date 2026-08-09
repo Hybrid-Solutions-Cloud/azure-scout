@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Get-AZSCUnsupportedData {
 
     $SupportedDataPath = (get-item $PSScriptRoot).parent
-    $SupportFile = Join-Path $SupportedDataPath 'Reporting' 'StyleFunctions' 'Support.json'
+    $SupportFile = Join-Path -Path $SupportedDataPath -ChildPath 'Reporting' -AdditionalChildPath 'StyleFunctions', 'Support.json'
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Validating file: '+$SupportFile)
 
     $Unsupported = Get-Content -Path $SupportFile | ConvertFrom-Json

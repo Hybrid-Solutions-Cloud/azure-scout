@@ -18,6 +18,7 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCReporOrchestration {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($ReportCache,
     $SecurityCenter,
     $File,

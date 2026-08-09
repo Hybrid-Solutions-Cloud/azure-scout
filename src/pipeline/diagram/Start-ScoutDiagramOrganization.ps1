@@ -19,6 +19,8 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramOrganization {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ResourceContainers', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($ResourceContainers,$DiagramCache,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job

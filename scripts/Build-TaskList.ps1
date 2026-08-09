@@ -39,7 +39,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $OutputPath   = (Join-Path $PSScriptRoot '..' 'pmo' 'task-list.md'),
+    [string] $OutputPath   = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'pmo', 'task-list.md'),
     [string] $Organization = 'https://dev.azure.com/hybridcloudsolutions',
     [string] $ProjectId    = '85b6e47e-a666-4a38-8c43-de87dd21aa56',
     [string] $Repository   = 'thisismydemo/azure-scout'
@@ -106,9 +106,9 @@ function ConvertTo-Row {
         Type     = Get-Field $WorkItem 'System.WorkItemType'
         State    = Get-Field $WorkItem 'System.State'
         Title    = Get-Field $WorkItem 'System.Title'
-        Priority = Get-Field $WorkItem 'Microsoft.VSTS.Common.Priority' 3
-        Area     = (Get-Field $WorkItem 'System.AreaPath' '') -replace '^.*\\', ''
-        Tags     = @(((Get-Field $WorkItem 'System.Tags' '') -split ';') | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        Priority = Get-Field -WorkItem $WorkItem -Name 'Microsoft.VSTS.Common.Priority' -Default 3
+        Area     = (Get-Field -WorkItem $WorkItem -Name 'System.AreaPath' -Default '') -replace '^.*\\', ''
+        Tags     = @(((Get-Field -WorkItem $WorkItem -Name 'System.Tags' -Default '') -split ';') | ForEach-Object { $_.Trim() } | Where-Object { $_ })
         Parent   = $parent
         Github   = ($ghIssues | Sort-Object -Unique)
     }

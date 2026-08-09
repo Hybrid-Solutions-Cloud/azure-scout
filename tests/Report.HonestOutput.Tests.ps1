@@ -24,11 +24,11 @@
 
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:Root 'src/Export-ScoutRawInventoryDump.ps1')
-    . (Join-Path $script:Root 'src/collect/Get-ScoutEntraQueryCatalog.ps1')
-    . (Join-Path $script:Root 'src/Get-ScoutGraphPermissionImpact.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/Export-ScoutRawInventoryDump.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/collect/Get-ScoutEntraQueryCatalog.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/Get-ScoutGraphPermissionImpact.ps1')
 
-    $script:Work = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-honest-" + [guid]::NewGuid().ToString('N'))
+    $script:Work = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-honest-" + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $script:Work -Force | Out-Null
 }
 
@@ -114,7 +114,7 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
 
     It 'is called before the processing phase filters anything' {
         # "Before any manifest filtering" has to be a property of the call site, not a claim.
-        $source   = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AzureScout.ps1')
+        $source   = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
         $dumpAt   = $source.IndexOf('Export-ScoutRawInventoryDump -ExtractionData')
         $processAt = $source.IndexOf('Start-AZSCProcessOrchestration -Subscriptions')
 
@@ -126,42 +126,42 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
 Describe 'AB#6766 — the row-count artifact survives the run' {
 
     BeforeAll {
-        . (Join-Path $script:Root 'src/pipeline/Invoke-ScoutProcessing.ps1')
-        . (Join-Path $script:Root 'src/pipeline/Get-ScoutCollector.ps1')
-        . (Join-Path $script:Root 'src/Clear-AZTICacheFolder.ps1')
+        . (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
+        . (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Get-ScoutCollector.ps1')
+        . (Join-Path -Path $script:Root -ChildPath 'src/Clear-AZTICacheFolder.ps1')
     }
 
     It 'writes counts outside the folder Clear-AZSCCacheFolder deletes' {
-        $runFolder = Join-Path $script:Work 'run1'
-        $cache     = Join-Path $runFolder 'ReportCache'
+        $runFolder = Join-Path -Path $script:Work -ChildPath 'run1'
+        $cache     = Join-Path -Path $runFolder -ChildPath 'ReportCache'
         New-Item -ItemType Directory -Path $cache -Force | Out-Null
-        'x' | Out-File (Join-Path $cache 'Compute.json')
-        '{"Schema":"azure-scout/collector-rowcounts/v1"}' | Out-File (Join-Path $runFolder 'collector-rowcounts.json')
+        'x' | Out-File (Join-Path -Path $cache -ChildPath 'Compute.json')
+        '{"Schema":"azure-scout/collector-rowcounts/v1"}' | Out-File (Join-Path -Path $runFolder -ChildPath 'collector-rowcounts.json')
 
         Clear-AZSCCacheFolder -ReportCache $cache
 
-        Test-Path (Join-Path $cache 'Compute.json')             | Should -BeFalse
-        Test-Path (Join-Path $runFolder 'collector-rowcounts.json') | Should -BeTrue
+        Test-Path (Join-Path -Path $cache -ChildPath 'Compute.json')             | Should -BeFalse
+        Test-Path (Join-Path -Path $runFolder -ChildPath 'collector-rowcounts.json') | Should -BeTrue
     }
 
     It 'gives every collector one of three verdicts, never two' {
         # "0 rows" alone is the ambiguity the whole audit is about: it can mean the collector
         # broke, or that the tenant genuinely has none of that type. The pipeline must never
         # report the count without saying which.
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/pipeline/Invoke-ScoutProcessing.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
         $source | Should -Match "if \(-not \`$Result\.Success\) \{ 'Failed' \} elseif \(\`$rowCount -gt 0\) \{ 'Rows' \} else \{ 'Empty' \}"
     }
 
     It 'writes the artifact to the run folder' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/pipeline/Invoke-ScoutProcessing.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
         $source | Should -Match "\`$RowCountPath = Join-Path \`$DefaultPath 'collector-rowcounts\.json'"
         $source | Should -Not -Match "Join-Path \`$CachePath 'collector-rowcounts"
     }
 
     It 'sorts the rows so two runs diff cleanly' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/pipeline/Invoke-ScoutProcessing.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
         $source | Should -Match 'Sort-Object Category, Collector'
     }
@@ -181,7 +181,7 @@ Describe 'AB#6766 — the row-count artifact survives the run' {
 Describe 'AB#6765 — criticality is derived, not listed' {
 
     BeforeAll {
-        $script:Impact = @(Get-ScoutGraphPermissionImpact -CollectorRoot (Join-Path $script:Root 'manifests/collectors'))
+        $script:Impact = @(Get-ScoutGraphPermissionImpact -CollectorRoot (Join-Path -Path $script:Root -ChildPath 'manifests/collectors'))
     }
 
     It 'finds the collectors behind every consumed permission' {
@@ -215,7 +215,7 @@ Describe 'AB#6765 — criticality is derived, not listed' {
     }
 
     It 'has no hardcoded critical list left in the pre-flight' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AZTIPermissionAudit.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AZTIPermissionAudit.ps1')
 
         $source | Should -Not -Match "\`$isCritical = \`$checkName -in"
         $source | Should -Match 'Get-ScoutGraphPermissionImpact'
@@ -224,18 +224,18 @@ Describe 'AB#6765 — criticality is derived, not listed' {
     It 'changes its answer when a collector is added, with no list to edit' {
         # The property that makes this derived rather than restated. A tree containing one
         # collector for one entra type must yield consumers for exactly that type's permission.
-        $fakeRoot = Join-Path $script:Work 'fake-collectors/Identity'
+        $fakeRoot = Join-Path -Path $script:Work -ChildPath 'fake-collectors/Identity'
         New-Item -ItemType Directory -Path $fakeRoot -Force | Out-Null
-        "@{ ResourceTypes = @('entra/domains') }" | Out-File (Join-Path $fakeRoot 'OnlyDomains.psd1')
+        "@{ ResourceTypes = @('entra/domains') }" | Out-File (Join-Path -Path $fakeRoot -ChildPath 'OnlyDomains.psd1')
 
-        $impact = @(Get-ScoutGraphPermissionImpact -CollectorRoot (Join-Path $script:Work 'fake-collectors'))
+        $impact = @(Get-ScoutGraphPermissionImpact -CollectorRoot (Join-Path -Path $script:Work -ChildPath 'fake-collectors'))
 
         @($impact | Where-Object Permission -eq 'Domain.Read.All')[0].Collectors | Should -Be @('Identity/OnlyDomains')
         @($impact | Where-Object Permission -eq 'User.Read.All')[0].IsConsumed   | Should -BeFalse
     }
 
     It 'routes a denied Graph permission to the warning stream' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AZTIPermissionAudit.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AZTIPermissionAudit.ps1')
 
         $source | Should -Match "Write-Warning .*Graph permission.*is DENIED"
     }
@@ -244,13 +244,13 @@ Describe 'AB#6765 — criticality is derived, not listed' {
         # The pre-flight is optional. The extraction's own SKIP branch was a coloured
         # Write-Host and nothing else, so a run that skipped the pre-flight had no capturable
         # record at all.
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/collect/Start-ScoutEntraExtraction.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/collect/Start-ScoutEntraExtraction.ps1')
 
         $source | Should -Match 'Write-Warning .*will be EMPTY'
     }
 
     It 'exposes the impact on the result object, not only on the console' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-AZTIPermissionAudit.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AZTIPermissionAudit.ps1')
 
         $source | Should -Match 'EmptyCollectors  = @\(\$emptyCollectors'
     }
@@ -259,7 +259,7 @@ Describe 'AB#6765 — criticality is derived, not listed' {
 Describe 'AB#6765 — the query catalog is the single source both sides read' {
 
     It 'is used by the extraction loop rather than a second literal' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/collect/Start-ScoutEntraExtraction.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/collect/Start-ScoutEntraExtraction.ps1')
 
         $source | Should -Match '\$entraQueries = @\(Get-ScoutEntraQueryCatalog\)'
         $source | Should -Not -Match "Name         = 'Conditional Access Policies'"

@@ -112,7 +112,7 @@ Describe 'AB#6890 — LandingZone scope is enumerated, not globbed' {
         # An enumerated list can go stale in a way a glob cannot: a renamed file just stops being
         # scored, silently. Same nil-result-is-invisible problem the audit was raised on.
         foreach ($p in @($script:Manifest.'CAF: Azure Landing Zone'.Rules | Where-Object { $_ -notmatch '\*' })) {
-            (Join-Path $script:RuleDir "$p.yaml") | Should -Exist -Because "LandingZone names $p explicitly, so a rename must fail loudly here rather than silently drop it"
+            (Join-Path -Path $script:RuleDir -ChildPath "$p.yaml") | Should -Exist -Because "LandingZone names $p explicitly, so a rename must fail loudly here rather than silently drop it"
         }
     }
 }

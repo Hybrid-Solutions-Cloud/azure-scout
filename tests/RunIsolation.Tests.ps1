@@ -17,16 +17,16 @@
 
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
-    $script:MainPath   = Join-Path $script:ModuleRoot 'src'
-    $script:TempDir    = Join-Path $env:TEMP 'AZSC_RunIsolationTests'
+    $script:MainPath   = Join-Path -Path $script:ModuleRoot -ChildPath 'src'
+    $script:TempDir    = Join-Path -Path $env:TEMP -ChildPath 'AZSC_RunIsolationTests'
 
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
 
-    . (Join-Path $script:MainPath 'Set-AZTIReportPath.ps1')
-    . (Join-Path $script:MainPath 'Clear-AZTICacheFolder.ps1')
-    . (Join-Path $script:MainPath 'Invoke-AZTISubscriptionContext.ps1')
-    . (Join-Path $script:MainPath 'Test-AZTIManagementGroupAccess.ps1')
+    . (Join-Path -Path $script:MainPath -ChildPath 'Set-AZTIReportPath.ps1')
+    . (Join-Path -Path $script:MainPath -ChildPath 'Clear-AZTICacheFolder.ps1')
+    . (Join-Path -Path $script:MainPath -ChildPath 'Invoke-AZTISubscriptionContext.ps1')
+    . (Join-Path -Path $script:MainPath -ChildPath 'Test-AZTIManagementGroupAccess.ps1')
 }
 
 AfterAll {
@@ -50,8 +50,8 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
 
     It 'Nests DiagramCache and ReportCache inside the run folder, not the base path' {
         $result = Set-AZSCReportPath -ReportDir $script:TempDir
-        $result.DiagramCache | Should -Be (Join-Path $result.DefaultPath 'DiagramCache')
-        $result.ReportCache  | Should -Be (Join-Path $result.DefaultPath 'ReportCache')
+        $result.DiagramCache | Should -Be (Join-Path -Path $result.DefaultPath -ChildPath 'DiagramCache')
+        $result.ReportCache  | Should -Be (Join-Path -Path $result.DefaultPath -ChildPath 'ReportCache')
     }
 
     It 'Does not reuse a previous run folder — two runs never collide' {
@@ -65,7 +65,7 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
     It 'Uses the supplied RunName as the folder name' {
         $result = Set-AZSCReportPath -ReportDir $script:TempDir -RunName 'Production-TenantA'
         $result.RunFolder   | Should -Be 'Production-TenantA'
-        $result.DefaultPath | Should -Be (Join-Path $script:TempDir 'Production-TenantA')
+        $result.DefaultPath | Should -Be (Join-Path -Path $script:TempDir -ChildPath 'Production-TenantA')
     }
 
     It 'Replaces invalid path characters in a RunName' {
@@ -93,7 +93,7 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
         $result = Set-AZSCReportPath -ReportDir $script:TempDir -Force
         $result.DefaultPath  | Should -Be $script:TempDir
         $result.RunFolder    | Should -BeNullOrEmpty
-        $result.ReportCache  | Should -Be (Join-Path $script:TempDir 'ReportCache')
+        $result.ReportCache  | Should -Be (Join-Path -Path $script:TempDir -ChildPath 'ReportCache')
     }
 
     It 'Still resolves a default base path when no ReportDir is given' {
@@ -106,12 +106,12 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
 Describe 'Clear-AZSCCacheFolder — prune mode (AB#331)' {
 
     BeforeEach {
-        $script:PruneBase = Join-Path $script:TempDir 'prune'
+        $script:PruneBase = Join-Path -Path $script:TempDir -ChildPath 'prune'
         if (Test-Path $script:PruneBase) { Remove-Item $script:PruneBase -Recurse -Force }
         New-Item -ItemType Directory -Path $script:PruneBase -Force | Out-Null
 
-        $script:OldRun = Join-Path $script:PruneBase '2020-01-01_000000'
-        $script:NewRun = Join-Path $script:PruneBase '2026-07-25_120000'
+        $script:OldRun = Join-Path -Path $script:PruneBase -ChildPath '2020-01-01_000000'
+        $script:NewRun = Join-Path -Path $script:PruneBase -ChildPath '2026-07-25_120000'
         New-Item -ItemType Directory -Path $script:OldRun -Force | Out-Null
         New-Item -ItemType Directory -Path $script:NewRun -Force | Out-Null
         (Get-Item $script:OldRun).LastWriteTime = (Get-Date).AddDays(-90)
@@ -128,14 +128,14 @@ Describe 'Clear-AZSCCacheFolder — prune mode (AB#331)' {
     }
 
     It 'Does not throw when the base path does not exist' {
-        { Clear-AZSCCacheFolder -OlderThan 30 -BasePath (Join-Path $script:TempDir 'nope') } | Should -Not -Throw
+        { Clear-AZSCCacheFolder -OlderThan 30 -BasePath (Join-Path -Path $script:TempDir -ChildPath 'nope') } | Should -Not -Throw
     }
 
     It 'Still clears a single cache folder in the original mode' {
-        $cache = Join-Path $script:TempDir 'legacy_cache'
+        $cache = Join-Path -Path $script:TempDir -ChildPath 'legacy_cache'
         New-Item -ItemType Directory -Path $cache -Force | Out-Null
-        'x' | Out-File (Join-Path $cache 'a.json')
-        'y' | Out-File (Join-Path $cache 'b.json')
+        'x' | Out-File (Join-Path -Path $cache -ChildPath 'a.json')
+        'y' | Out-File (Join-Path -Path $cache -ChildPath 'b.json')
 
         Clear-AZSCCacheFolder -ReportCache $cache
 
@@ -143,7 +143,7 @@ Describe 'Clear-AZSCCacheFolder — prune mode (AB#331)' {
     }
 
     It 'Does not throw when the cache folder does not exist' {
-        { Clear-AZSCCacheFolder -ReportCache (Join-Path $script:TempDir 'missing_cache') } | Should -Not -Throw
+        { Clear-AZSCCacheFolder -ReportCache (Join-Path -Path $script:TempDir -ChildPath 'missing_cache') } | Should -Not -Throw
     }
 }
 

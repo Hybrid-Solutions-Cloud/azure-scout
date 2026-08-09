@@ -23,6 +23,7 @@ Authors: Claudio Merola and Renato Gregio
 
 <######## Default Parameters. Don't modify this ########>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -408,7 +409,7 @@ If ($Task -eq 'Processing')
                                 $vals    = $cpuData.value[0].timeseries[0].data.average | Where-Object { $_ -ne $null }
                                 if ($vals) { $avgCpu = [math]::Round(($vals | Measure-Object -Average).Average, 1) }
                             }
-                        } catch {}
+                        } catch { Write-Debug ('VirtualMachine: failed to read CPU performance metrics: ' + $_.Exception.Message) }
                         try {
                             $memUri  = "/subscriptions/$($1.subscriptionId)/resourceGroups/$($1.RESOURCEGROUP)/providers/Microsoft.Compute/virtualMachines/$($1.NAME)/providers/microsoft.insights/metrics?api-version=2019-07-01&metricnames=Available+Memory+Bytes&timespan=$monStart/$monEnd&interval=P1D&aggregation=Average"
                             $memResp = Invoke-AzRestMethod -Path $memUri -Method GET -ErrorAction SilentlyContinue
@@ -421,7 +422,7 @@ If ($Task -eq 'Processing')
                                     $avgMem = [math]::Round((($ramBytes - $avgAvailBytes) / $ramBytes) * 100, 1)
                                 }
                             }
-                        } catch {}
+                        } catch { Write-Debug ('VirtualMachine: failed to read memory performance metrics: ' + $_.Exception.Message) }
 
                         # ── Phase 17: DR Status (Azure Site Recovery) ─────────────────────
                         $drReplicated  = 'N/A'
@@ -459,7 +460,7 @@ If ($Task -eq 'Processing')
                                     }
                                 }
                             }
-                        } catch {}
+                        } catch { Write-Debug ('VirtualMachine: failed to read DR replication status: ' + $_.Exception.Message) }
 
                         # ── Phase 17: Cost Estimate (Cost Management) ─────────────────────
                         $estMonthlyCost = 'N/A'
@@ -480,9 +481,9 @@ If ($Task -eq 'Processing')
                             if ($costResp.StatusCode -eq 200) {
                                 $costData = $costResp.Content | ConvertFrom-Json
                                 $rawCost  = $costData.properties.rows[0][0]
-                                if ($rawCost -ne $null) { $estMonthlyCost = [math]::Round([double]$rawCost, 2) }
+                                if ($null -ne $rawCost) { $estMonthlyCost = [math]::Round([double]$rawCost, 2) }
                             }
-                        } catch {}
+                        } catch { Write-Debug ('VirtualMachine: failed to read monthly cost estimate: ' + $_.Exception.Message) }
 
                         foreach ($Tag in $Tags)
                             {

@@ -37,6 +37,8 @@
     Authors: thisismydemo
 #>
 function Start-AZSCEntraExtraction {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID',
+        Justification = 'False positive: read inside the nested Add-NormalizedResource closure (line 91), not in the outer function body.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]

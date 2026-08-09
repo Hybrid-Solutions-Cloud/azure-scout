@@ -43,12 +43,12 @@ function Get-ScoutGraphPermissionImpact {
 
     if ([string]::IsNullOrWhiteSpace($CollectorRoot)) {
         $moduleRoot   = Split-Path -Parent $PSScriptRoot
-        $CollectorRoot = Join-Path $moduleRoot 'manifests' 'collectors'
+        $CollectorRoot = Join-Path -Path $moduleRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
     }
 
     # Same standalone-dot-source contract as the pre-flight that calls this.
     if (-not (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue)) {
-        . (Join-Path $PSScriptRoot 'collect/Get-ScoutEntraQueryCatalog.ps1')
+        . (Join-Path -Path $PSScriptRoot -ChildPath 'collect/Get-ScoutEntraQueryCatalog.ps1')
     }
 
     $catalog = @(Get-ScoutEntraQueryCatalog)

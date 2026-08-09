@@ -71,7 +71,7 @@ function Get-InnerExpr {
     return $Current
 }
 
-function Get-ProcessingAndReportingBlocks {
+function Get-ProcessingAndReportingBlock {
     param([System.Management.Automation.Language.Ast]$Ast)
     $IfStatements = $Ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.IfStatementAst] }, $true)
     foreach ($If in $IfStatements) {
@@ -182,7 +182,7 @@ if (@($Errors).Count -gt 0) { throw "Parse errors in $FullPath`: $($Errors -join
 $Name     = [System.IO.Path]::GetFileNameWithoutExtension($FullPath)
 $Category = Split-Path -Leaf (Split-Path -Parent $FullPath)
 
-$Blocks = Get-ProcessingAndReportingBlocks -Ast $Ast
+$Blocks = Get-ProcessingAndReportingBlock -Ast $Ast
 if (-not $Blocks.Processing) { throw "Could not find the '`$Task -eq ''Processing''' branch in $FullPath -- is this a Standard-contract collector?" }
 
 $ExternalCalls = @(Get-ExternalAccessCall -Block $Blocks.Processing)
@@ -584,7 +584,7 @@ $ObjAssignments = $RowLoop.Body.FindAll({
 }, $true)
 if (@($ObjAssignments).Count -eq 0) { throw "$FullPath -- no `$obj = @{...}` hashtable literal found." }
 
-function Get-ObjectFields {
+function Get-ObjectField {
     param([System.Management.Automation.Language.AssignmentStatementAst]$Assignment)
     $HashtableNode = Get-InnerExpr -Node $Assignment.Right
     if ($HashtableNode -isnot [System.Management.Automation.Language.HashtableAst]) { throw "$FullPath -- `$obj`'s right-hand side is not a plain hashtable literal; this collector needs manual conversion." }
@@ -605,15 +605,15 @@ function ConvertTo-StrictSafeCollectorText {
 }
 
 $FirstObj = $ObjAssignments[0]
-$FirstFields = Get-ObjectFields -Assignment $FirstObj
+$FirstFields = Get-ObjectField -Assignment $FirstObj
 $Fields = [System.Collections.Generic.List[hashtable]]::new()
 if ($Expansion.ConditionalFieldIf) {
     $If = $Expansion.ConditionalFieldIf
     $ThenObjects = @($If.Clauses[0].Item2.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true))
     $ElseObjects = @($If.ElseClause.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.Left.VariablePath.UserPath -ieq 'obj' }, $true))
     if ($ThenObjects.Count -ne 1 -or $ElseObjects.Count -ne 1) { throw "$FullPath -- conditional row branches must each contain exactly one `$obj` literal; this collector needs manual conversion." }
-    $ThenFields = Get-ObjectFields -Assignment $ThenObjects[0]
-    $ElseFields = Get-ObjectFields -Assignment $ElseObjects[0]
+    $ThenFields = Get-ObjectField -Assignment $ThenObjects[0]
+    $ElseFields = Get-ObjectField -Assignment $ElseObjects[0]
     if ((@($ThenFields.Keys) -join "`0") -ne (@($ElseFields.Keys) -join "`0")) { throw "$FullPath -- conditional row branches declare different fields; this collector needs manual conversion." }
     $Condition = $If.Clauses[0].Item1.Extent.Text.Trim()
     foreach ($FieldName in $ThenFields.Keys) {
@@ -786,7 +786,7 @@ if ($Show -or $WhatIfPreference) {
 
 if (-not $OutputPath) {
     $RepoRoot = Split-Path -Parent $PSScriptRoot
-    $OutputPath = Join-Path $RepoRoot 'manifests' 'collectors' $Category "$Name.psd1"
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors', $Category, "$Name.psd1"
 }
 
 $OutputDir = Split-Path -Parent $OutputPath

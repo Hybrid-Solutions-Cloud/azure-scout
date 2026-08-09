@@ -44,17 +44,17 @@ BeforeAll {
     # chain (which throws when an intermediate segment is genuinely ABSENT rather than $null), and
     # Get-AZSCCollectedValue is its member-ENUMERATION counterpart for a read over a collection
     # that may be empty. Both are needed here from AB#5671 onwards.
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZTICollectedValue.ps1')
     # Get-AZSCIdSegment (AB#5671) guards the FIXED .split('/')[8] index ~30 collectors use to pull
     # a name out of a related resource id -- an out-of-range index THROWS under StrictMode, where
     # without it the same expression quietly returned $null.
-    . (Join-Path $script:ModuleRoot 'src' 'Get-AZSCIdSegment.ps1')
-    $script:InventoryPath    = Join-Path $script:ModuleRoot 'src' 'report' 'renderers' 'inventory'
-    $script:StylePath        = Join-Path $script:InventoryPath 'style'
+    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCIdSegment.ps1')
+    $script:InventoryPath    = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'renderers', 'inventory'
+    $script:StylePath        = Join-Path -Path $script:InventoryPath -ChildPath 'style'
     # Unique per run -- a fixed folder that BeforeAll deletes lets two concurrent runs of this
     # suite on one machine destroy each other's workbooks mid-assertion (AB#5666).
-    $script:TempDir          = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_InventoryReportingTests_" + [guid]::NewGuid().ToString('N'))
+    $script:TempDir          = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_InventoryReportingTests_" + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
 }
 
@@ -89,7 +89,7 @@ Describe 'src/report/renderers/inventory Module Files Exist' {
     )
 
     It '<_> exists' -ForEach $reportingFiles {
-        Join-Path $script:InventoryPath $_ | Should -Exist
+        Join-Path -Path $script:InventoryPath -ChildPath $_ | Should -Exist
     }
 }
 
@@ -104,19 +104,19 @@ Describe 'src/report/renderers/inventory/style Files Exist' {
     )
 
     It '<_> exists' -ForEach $styleFiles {
-        Join-Path $script:StylePath $_ | Should -Exist
+        Join-Path -Path $script:StylePath -ChildPath $_ | Should -Exist
     }
 
     It 'Retirement.kql exists' {
-        Join-Path $script:StylePath 'Retirement.kql' | Should -Exist
+        Join-Path -Path $script:StylePath -ChildPath 'Retirement.kql' | Should -Exist
     }
 
     It 'Support.json exists' {
-        Join-Path $script:StylePath 'Support.json' | Should -Exist
+        Join-Path -Path $script:StylePath -ChildPath 'Support.json' | Should -Exist
     }
 
     It 'The retired COM-based Build-AZSCExcelComObject.ps1 is gone (AB#5665)' {
-        Join-Path $script:StylePath 'Build-AZSCExcelComObject.ps1' | Should -Not -Exist
+        Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelComObject.ps1' | Should -Not -Exist
     }
 }
 
@@ -145,7 +145,7 @@ Describe 'src/report/renderers/inventory Script Syntax Validation' {
     )
 
     It '<_> parses without errors' -ForEach $reportingFiles {
-        $filePath = Join-Path $script:InventoryPath $_
+        $filePath = Join-Path -Path $script:InventoryPath -ChildPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
         $errors | Should -BeNullOrEmpty
@@ -161,7 +161,7 @@ Describe 'src/report/renderers/inventory Script Syntax Validation' {
     )
 
     It 'style/<_> parses without errors' -ForEach $styleScripts {
-        $filePath = Join-Path $script:StylePath $_
+        $filePath = Join-Path -Path $script:StylePath -ChildPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
         $errors | Should -BeNullOrEmpty
@@ -174,87 +174,87 @@ Describe 'src/report/renderers/inventory Script Syntax Validation' {
 Describe 'src/report/renderers/inventory Function Definitions' {
 
     It 'Build-AZSCAdvisoryReport.ps1 defines Build-AZSCAdvisoryReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCAdvisoryReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCAdvisoryReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCAdvisoryReport'
     }
 
     It 'Build-AZSCCostManagementReport.ps1 defines Build-AZSCCostManagementReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCCostManagementReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCCostManagementReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCCostManagementReport'
     }
 
     It 'Build-AZSCMonitorReport.ps1 defines Build-AZSCMonitorReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCMonitorReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCMonitorReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCMonitorReport'
     }
 
     It 'Build-AZSCPolicyReport.ps1 defines Build-AZSCPolicyReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCPolicyReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCPolicyReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCPolicyReport'
     }
 
     It 'Build-AZSCQuotaReport.ps1 defines Build-AZSCQuotaReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCQuotaReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCQuotaReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCQuotaReport'
     }
 
     It 'Build-AZSCSecCenterReport.ps1 defines Build-AZSCSecCenterReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCSecCenterReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCSecCenterReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCSecCenterReport'
     }
 
     It 'Build-AZSCSecurityOverviewReport.ps1 defines Build-AZSCSecurityOverviewReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCSecurityOverviewReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCSecurityOverviewReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCSecurityOverviewReport'
     }
 
     It 'Build-AZSCSubsReport.ps1 defines Build-AZSCSubsReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCSubsReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCSubsReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCSubsReport'
     }
 
     It 'Build-AZSCUpdateManagerReport.ps1 defines Build-AZSCUpdateManagerReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Build-AZSCUpdateManagerReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCUpdateManagerReport.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCUpdateManagerReport'
     }
 
     It 'Export-AZSCJsonReport.ps1 defines Export-AZSCJsonReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Export-AZSCJsonReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Export-AZSCJsonReport.ps1') -Raw
         $content | Should -Match 'function\s+Export-AZSCJsonReport'
     }
 
     It 'Export-AZSCMarkdownReport.ps1 defines Export-AZSCMarkdownReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Export-AZSCMarkdownReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Export-AZSCMarkdownReport.ps1') -Raw
         $content | Should -Match 'function\s+Export-AZSCMarkdownReport'
     }
 
     It 'Export-AZSCAsciiDocReport.ps1 defines Export-AZSCAsciiDocReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Export-AZSCAsciiDocReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Export-AZSCAsciiDocReport.ps1') -Raw
         $content | Should -Match 'function\s+Export-AZSCAsciiDocReport'
     }
 
     It 'Export-AZSCPowerBIReport.ps1 defines Export-AZSCPowerBIReport' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Export-AZSCPowerBIReport.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Export-AZSCPowerBIReport.ps1') -Raw
         $content | Should -Match 'function\s+Export-AZSCPowerBIReport'
     }
 
     It 'New-AZSCPowerBITemplate.ps1 defines New-AZSCPowerBITemplate' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'New-AZSCPowerBITemplate.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'New-AZSCPowerBITemplate.ps1') -Raw
         $content | Should -Match 'function\s+New-AZSCPowerBITemplate'
     }
 
     It 'Start-AZSCExcelExtraData.ps1 defines Start-AZSCExcelExtraData' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Start-AZSCExcelExtraData.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExcelExtraData.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExcelExtraData'
     }
 
     It 'Start-AZSCExcelJob.ps1 defines Start-AZSCExcelJob' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Start-AZSCExcelJob.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExcelJob.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExcelJob'
     }
 
     It 'Start-AZSCExtraReports.ps1 defines Start-AZSCExtraReports' {
-        $content = Get-Content (Join-Path $script:InventoryPath 'Start-AZSCExtraReports.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExtraReports.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExtraReports'
     }
 }
@@ -262,32 +262,32 @@ Describe 'src/report/renderers/inventory Function Definitions' {
 Describe 'src/report/renderers/inventory/style Function Definitions' {
 
     It 'Build-AZSCExcelChart.ps1 defines Build-AZSCExcelChart' {
-        $content = Get-Content (Join-Path $script:StylePath 'Build-AZSCExcelChart.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChart.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCExcelChart'
     }
 
     It 'Build-AZSCExcelChartStyle.ps1 defines Build-AZSCExcelChartStyle' {
-        $content = Get-Content (Join-Path $script:StylePath 'Build-AZSCExcelChartStyle.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChartStyle.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCExcelChartStyle'
     }
 
     It 'Build-AZSCExcelInitialBlock.ps1 defines Build-AZSCInitialBlock' {
-        $content = Get-Content (Join-Path $script:StylePath 'Build-AZSCExcelInitialBlock.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelInitialBlock.ps1') -Raw
         $content | Should -Match 'function\s+Build-AZSCInitialBlock'
     }
 
     It 'Out-AZSCReportResults.ps1 defines Out-AZSCReportResults' {
-        $content = Get-Content (Join-Path $script:StylePath 'Out-AZSCReportResults.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Out-AZSCReportResults.ps1') -Raw
         $content | Should -Match 'function\s+Out-AZSCReportResults'
     }
 
     It 'Start-AZSCExcelCustomization.ps1 defines Start-AZSCExcelCustomization' {
-        $content = Get-Content (Join-Path $script:StylePath 'Start-AZSCExcelCustomization.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Start-AZSCExcelCustomization.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExcelCustomization'
     }
 
     It 'Start-AZSCExcelOrdening.ps1 defines Start-AZSCExcelOrdening' {
-        $content = Get-Content (Join-Path $script:StylePath 'Start-AZSCExcelOrdening.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:StylePath -ChildPath 'Start-AZSCExcelOrdening.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExcelOrdening'
     }
 }
@@ -297,13 +297,13 @@ Describe 'src/report/renderers/inventory/style Function Definitions' {
 # =====================================================================
 Describe 'Support.json — valid JSON structure' {
     It 'Is valid JSON' {
-        $jsonPath = Join-Path $script:StylePath 'Support.json'
+        $jsonPath = Join-Path -Path $script:StylePath -ChildPath 'Support.json'
         $content = Get-Content $jsonPath -Raw
         { $content | ConvertFrom-Json } | Should -Not -Throw
     }
 
     It 'Contains retirement/support data' {
-        $jsonPath = Join-Path $script:StylePath 'Support.json'
+        $jsonPath = Join-Path -Path $script:StylePath -ChildPath 'Support.json'
         $data = Get-Content $jsonPath -Raw | ConvertFrom-Json
         $data | Should -Not -BeNullOrEmpty
     }
@@ -331,30 +331,30 @@ Describe 'Inventory Excel end-to-end (real ReportCache -> real workbook)' -Skip:
         # Only what this test needs -- not the whole module (no Azure auth, no
         # dependency-install bootstrap). Order doesn't matter: these are all
         # function definitions, resolved at call time.
-        . (Join-Path $script:ModuleRoot 'src' 'Clear-AZTIMemory.ps1')
-        . (Join-Path $script:ModuleRoot 'src' 'Start-AZTIReporOrchestration.ps1')
-        . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
-        . (Join-Path $script:ModuleRoot 'src' 'pipeline' 'Invoke-ScoutDeclarativeCollector.ps1')
-        . (Join-Path $script:ModuleRoot 'src' 'report' 'Get-ScoutReportSectionIndex.ps1')
-        . (Join-Path $script:InventoryPath 'Start-AZSCExcelJob.ps1')
-        . (Join-Path $script:InventoryPath 'Start-AZSCExcelExtraData.ps1')
-        . (Join-Path $script:InventoryPath 'Start-AZSCExtraReports.ps1')
-        . (Join-Path $script:InventoryPath 'Build-AZSCSubsReport.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Clear-AZTIMemory.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Start-AZTIReporOrchestration.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Invoke-ScoutDeclarativeCollector.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'Get-ScoutReportSectionIndex.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExcelJob.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExcelExtraData.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Start-AZSCExtraReports.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCSubsReport.ps1')
         # Start-AZSCExtraReports' Phase 10 (specialized tabs) runs unconditionally whenever
         # $ReportCache is truthy -- these four are always dot-sourced by the real module,
         # so the test needs them too even though this fixture has no data for any of them.
-        . (Join-Path $script:InventoryPath 'Build-AZSCCostManagementReport.ps1')
-        . (Join-Path $script:InventoryPath 'Build-AZSCSecurityOverviewReport.ps1')
-        . (Join-Path $script:InventoryPath 'Build-AZSCUpdateManagerReport.ps1')
-        . (Join-Path $script:InventoryPath 'Build-AZSCMonitorReport.ps1')
-        . (Join-Path $script:StylePath 'Start-AZSCExcelCustomization.ps1')
-        . (Join-Path $script:StylePath 'Start-AZSCExcelOrdening.ps1')
-        . (Join-Path $script:StylePath 'Build-AZSCExcelChart.ps1')
-        . (Join-Path $script:StylePath 'Build-AZSCExcelChartStyle.ps1')
-        . (Join-Path $script:StylePath 'Build-AZSCExcelInitialBlock.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCCostManagementReport.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCSecurityOverviewReport.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCUpdateManagerReport.ps1')
+        . (Join-Path -Path $script:InventoryPath -ChildPath 'Build-AZSCMonitorReport.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Start-AZSCExcelCustomization.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Start-AZSCExcelOrdening.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChart.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChartStyle.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelInitialBlock.ps1')
 
-        $script:RunDir       = Join-Path $script:TempDir 'e2e'
-        $script:ReportCache  = Join-Path $script:RunDir 'ReportCache'
+        $script:RunDir       = Join-Path -Path $script:TempDir -ChildPath 'e2e'
+        $script:ReportCache  = Join-Path -Path $script:RunDir -ChildPath 'ReportCache'
         New-Item -ItemType Directory -Path $script:ReportCache -Force | Out-Null
 
         # Real Reporting-mode row shape for the retired IoT/IOTHubs collector
@@ -382,7 +382,7 @@ Describe 'Inventory Excel end-to-end (real ReportCache -> real workbook)' -Skip:
             }
         )
         @{ IOTHubs = $script:IotHubRows } | ConvertTo-Json -Depth 10 |
-            Out-File (Join-Path $script:ReportCache 'IoT.json') -Encoding utf8
+            Out-File (Join-Path -Path $script:ReportCache -ChildPath 'IoT.json') -Encoding utf8
 
         # Start-AZSCExtraReports always builds the Subscriptions sheet (Build-AZSCSubsReport),
         # regardless of Quotas/SecurityCenter/Policy/Advisory flags -- give it the ExtraData
@@ -397,7 +397,7 @@ Describe 'Inventory Excel end-to-end (real ReportCache -> real workbook)' -Skip:
             )
         }
 
-        $script:Xlsx = Join-Path $script:RunDir 'inventory-e2e.xlsx'
+        $script:Xlsx = Join-Path -Path $script:RunDir -ChildPath 'inventory-e2e.xlsx'
 
         Start-AZSCReporOrchestration -ReportCache $script:ReportCache -SecurityCenter ([switch]::new($false)) `
             -File $script:Xlsx -Quotas $null -SkipPolicy ([switch]::new($true)) -SkipAdvisory ([switch]::new($true)) `
@@ -486,9 +486,9 @@ Describe 'Build-AZSCExcelChartStyle (EPPlus-native, no COM)' -Skip:(-not $script
 
     BeforeAll {
         Import-Module ImportExcel
-        . (Join-Path $script:StylePath 'Build-AZSCExcelChartStyle.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChartStyle.ps1')
 
-        $script:StyleXlsx = Join-Path $script:TempDir 'chartstyle-unit.xlsx'
+        $script:StyleXlsx = Join-Path -Path $script:TempDir -ChildPath 'chartstyle-unit.xlsx'
         if (Test-Path $script:StyleXlsx) { Remove-Item $script:StyleXlsx -Force }
 
         1..3 | ForEach-Object { [pscustomobject]@{ Cat = "C$_"; Val = $_ * 2 } } |
@@ -562,7 +562,7 @@ Describe 'Build-AZSCExcelChart P6 pivot (AB#5666)' -Skip:(-not $script:HasImport
 
     BeforeAll {
         Import-Module ImportExcel
-        . (Join-Path $script:StylePath 'Build-AZSCExcelChart.ps1')
+        . (Join-Path -Path $script:StylePath -ChildPath 'Build-AZSCExcelChart.ps1')
 
         # Builds a workbook shaped like the real one at the point Build-AZSCExcelChart runs:
         # an 'Overview' sheet carrying the TP00/TP0..TP9 title shapes
@@ -631,7 +631,7 @@ Describe 'Build-AZSCExcelChart P6 pivot (AB#5666)' -Skip:(-not $script:HasImport
     }
 
     It 'Skips P6 cleanly when the Subscriptions worksheet exists but is empty (no pivot warning)' {
-        $xlsx = script:New-P6Workbook -Path (Join-Path $script:TempDir 'p6-empty.xlsx') -Rows @()
+        $xlsx = script:New-P6Workbook -Path (Join-Path -Path $script:TempDir -ChildPath 'p6-empty.xlsx') -Rows @()
 
         $pkg = Open-ExcelPackage -Path $xlsx
         try {
@@ -650,7 +650,7 @@ Describe 'Build-AZSCExcelChart P6 pivot (AB#5666)' -Skip:(-not $script:HasImport
     }
 
     It 'Builds the P6 pivot and its ChartP6 chart when the Subscriptions worksheet has rows' {
-        $xlsx = script:New-P6Workbook -Path (Join-Path $script:TempDir 'p6-populated.xlsx') -Rows $script:P6Rows
+        $xlsx = script:New-P6Workbook -Path (Join-Path -Path $script:TempDir -ChildPath 'p6-populated.xlsx') -Rows $script:P6Rows
 
         $pkg = Open-ExcelPackage -Path $xlsx
         try {

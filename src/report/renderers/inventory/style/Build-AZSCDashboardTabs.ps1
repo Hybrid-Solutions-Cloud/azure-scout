@@ -16,8 +16,8 @@ First Release Date: February 25, 2026
 Authors: AzureScout Contributors
 #>
 
-function Build-AZSCDashboardTabs {
-    Param($File, $TableStyle, $IncludeCosts)
+function Build-AZSCDashboardTab {
+    Param($File, $TableStyle)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Building visual dashboard tabs.')
 
@@ -226,7 +226,7 @@ function Build-AZSCDashboardTabs {
                 $SecTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { }
+        } catch { Write-Verbose "Build-AZSCDashboardTab: could not read the Security Overview table map ($($_.Exception.Message)); security charts are skipped." }
 
         if ($SecTableMap.Count -gt 0) {
             # Chart 1: Assessments by Severity
@@ -581,7 +581,7 @@ function Build-AZSCDashboardTabs {
                 $MonTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { }
+        } catch { Write-Verbose "Build-AZSCDashboardTab: could not read the Azure Monitor table map ($($_.Exception.Message)); monitor charts are skipped." }
 
         if ($MonTableMap.Count -gt 0) {
             # Chart 1: Alert Rules by Subscription (MetricAlerts table)

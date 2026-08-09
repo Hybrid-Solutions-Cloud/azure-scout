@@ -21,8 +21,8 @@
 
 BeforeAll {
     $script:ModuleRoot      = Split-Path -Parent $PSScriptRoot
-    $script:InvokeScript    = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
-    $script:AuditScript     = Join-Path $script:ModuleRoot 'src' 'Invoke-AZTIPermissionAudit.ps1'
+    $script:InvokeScript    = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AzureScout.ps1'
+    $script:AuditScript     = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AZTIPermissionAudit.ps1'
 
     # Dot-source both scripts to inspect function metadata
     . $script:InvokeScript
@@ -272,8 +272,8 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
     BeforeAll {
         # Bring the private Graph helper functions into scope so they can be mocked
         # (they are dot-sourced by the module but not by this test's BeforeAll).
-        . (Join-Path $script:ModuleRoot 'src' 'Get-AZTIGraphToken.ps1')
-        . (Join-Path $script:ModuleRoot 'src' 'Invoke-AZTIGraphRequest.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZTIGraphToken.ps1')
+        . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AZTIGraphRequest.ps1')
 
         # Exactly ONE enabled subscription — the precise shape that collapses
         # $subs | Where-Object {...} | Select-Object -First 3 to a scalar.

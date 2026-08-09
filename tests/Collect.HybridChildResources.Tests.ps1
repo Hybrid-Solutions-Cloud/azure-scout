@@ -28,7 +28,9 @@
 
 BeforeAll {
     $script:root = Split-Path $PSScriptRoot -Parent
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
@@ -52,6 +54,9 @@ BeforeAll {
     }
 
     function Get-FixtureHybridChildRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa/resourceGroups/rg1/providers/microsoft.azurearcdata/datacontrollers/dc1'
@@ -267,7 +272,8 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
 
     It 'the typed-query path (-Source TypedQueries) populates collect.hybrid.*' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -346,7 +352,8 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
         }
 
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -372,7 +379,8 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
     It 'every Azure Local child key is present, even as an empty array, on a completely empty estate' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -393,7 +401,8 @@ Describe 'Invoke-Collect -- Azure Local child resource keys reach collect.hybrid
     It 'existing hybrid keys (arcServers, arcSites, azureLocalVirtualMachineInstances) are unaffected' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )

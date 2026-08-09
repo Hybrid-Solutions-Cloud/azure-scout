@@ -18,7 +18,7 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    $script:CorePath = Join-Path $script:RepoRoot 'src/Invoke-ScoutAssessmentCore.ps1'
+    $script:CorePath = Join-Path -Path $script:RepoRoot -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1'
     $script:Source = Get-Content -LiteralPath $script:CorePath -Raw
 }
 
@@ -216,7 +216,7 @@ Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED docume
             Import-Module "$script:LiveRoot/AzureScout.psd1" -Force -ErrorAction Stop
             $script:LiveModule = Get-Module AzureScout | Where-Object { $_.ModuleBase -eq $script:LiveRoot } | Select-Object -First 1
             $script:LiveFixture = "$script:LiveRoot/tests/datadump/sample-collect.json"
-            $script:LiveOut = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_MasterFile_" + [System.IO.Path]::GetRandomFileName())
+            $script:LiveOut = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_MasterFile_" + [System.IO.Path]::GetRandomFileName())
             $script:LiveRun = & $script:LiveModule {
                 param($Fixture, $OutPath)
                 Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone', 'Assess: Security' -FromCollect $Fixture -OutputFormat React -OutputPath $OutPath
@@ -229,11 +229,11 @@ Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED docume
         }
 
         It 'writes exactly one report-react.html at the run root' {
-            Test-Path (Join-Path $script:LiveRun 'report-react.html') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'report-react.html') | Should -BeTrue
         }
 
         It 'the run-root master file contains BOTH selected assessments as sections' {
-            $html = Get-Content (Join-Path $script:LiveRun 'report-react.html') -Raw
+            $html = Get-Content (Join-Path -Path $script:LiveRun -ChildPath 'report-react.html') -Raw
             # Bounded by the literal marker (not a greedy `.*` regex, which over-matches into
             # later <script> blocks that also contain `;` -- the same trap Export-React's own
             # test helper (Get-EmbeddedPayload) already avoids).
@@ -249,18 +249,18 @@ Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED docume
         }
 
         It 'writes findings.json per assessment (the data R-01 kept)' {
-            Test-Path (Join-Path $script:LiveRun 'assessments/caf-azure-landing-zone/findings.json') | Should -BeTrue
-            Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/findings.json') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'assessments/caf-azure-landing-zone/findings.json') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'assessments/assess-security/findings.json') | Should -BeTrue
         }
 
         It 'does NOT write a per-assessment report-react.html (the render R-01 dropped)' {
-            Test-Path (Join-Path $script:LiveRun 'assessments/caf-azure-landing-zone/report-react.html') | Should -BeFalse
-            Test-Path (Join-Path $script:LiveRun 'assessments/assess-security/report-react.html') | Should -BeFalse
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'assessments/caf-azure-landing-zone/report-react.html') | Should -BeFalse
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'assessments/assess-security/report-react.html') | Should -BeFalse
         }
 
         It 'writes rollup.json but no executive report-react.html' {
-            Test-Path (Join-Path $script:LiveRun 'executive/rollup.json') | Should -BeTrue
-            Test-Path (Join-Path $script:LiveRun 'executive/report-react.html') | Should -BeFalse
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'executive/rollup.json') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:LiveRun -ChildPath 'executive/report-react.html') | Should -BeFalse
         }
     }
 }

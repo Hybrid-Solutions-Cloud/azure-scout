@@ -18,6 +18,7 @@ Authors: Claudio Merola
 #>
 
 function Out-AZSCReportResults {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     param (
         [string]$Measure,
         [string]$ResourcesCount,

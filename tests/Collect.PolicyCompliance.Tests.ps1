@@ -29,7 +29,8 @@ Describe 'AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect' {
         }
         $script:SweepCalls = 0
         function Get-ScoutSubscriptionSecurityPolicySweep {
-            param([object[]] $Subscriptions)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $Subscriptions)
             $script:SweepCalls++
             @(
                 [pscustomobject]@{
@@ -64,9 +65,10 @@ Describe 'AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect' {
     }
 
     It 'a sweep failure degrades to empty compliance data, never throws the whole collect' {
-        function Get-ScoutSubscriptionSecurityPolicySweep { param([object[]] $Subscriptions) throw 'Azure is having a day' }
+        function Get-ScoutSubscriptionSecurityPolicySweep {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $Subscriptions) throw 'Azure is having a day' }
 
-        { $collect = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue } | Should -Not -Throw
+        { $null = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue } | Should -Not -Throw
         $collect = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue
         @($collect.domains.management.policyComplianceStates).Count | Should -Be 0
     }

@@ -27,6 +27,9 @@ BeforeAll {
     . "$root/src/collect/Invoke-Collect.ps1"
 
     function Get-MockSubscriptions {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{ id = 'sub-1'; name = 'sub-1'; state = 'Enabled'; tags = $null }
             [pscustomobject]@{ id = 'sub-2'; name = 'sub-2'; state = 'Enabled'; tags = $null }

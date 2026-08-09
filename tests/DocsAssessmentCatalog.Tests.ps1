@@ -19,7 +19,7 @@ BeforeAll {
 Describe 'docs/reference/assessment-catalogue.md is generated, not hand-written' {
 
     It 'matches a fresh regeneration from the registry and rule files' {
-        $Script = Join-Path $script:Root 'scripts/Build-AssessmentCatalog.ps1'
+        $Script = Join-Path -Path $script:Root -ChildPath 'scripts/Build-AssessmentCatalog.ps1'
         & pwsh -NoProfile -File $Script -Check 2>&1 | Out-String -OutVariable Output | Out-Null
         $LASTEXITCODE | Should -Be 0 -Because "adding an assessment or a rule file must be followed by ``pwsh scripts/Build-AssessmentCatalog.ps1``. Output:`n$Output"
     }
@@ -27,14 +27,14 @@ Describe 'docs/reference/assessment-catalogue.md is generated, not hand-written'
     It 'states the same assessment count the registry holds' {
         # Independent of the generator: compares the page against the manifest directly, so a
         # regression in the generator itself cannot pass by agreeing with its own output.
-        $Expected = (Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')).Keys.Count
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/assessment-catalogue.md') -Raw
+        $Expected = (Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')).Keys.Count
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/assessment-catalogue.md') -Raw
         $Page | Should -Match "\*\*$Expected assessments\*\*"
     }
 
     It 'states the same rule-file count the rules directory holds' {
-        $Expected = @(Get-ChildItem -LiteralPath (Join-Path $script:Root 'src/assess/rules') -Filter '*.yaml' -File).Count
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/assessment-catalogue.md') -Raw
+        $Expected = @(Get-ChildItem -LiteralPath (Join-Path -Path $script:Root -ChildPath 'src/assess/rules') -Filter '*.yaml' -File).Count
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/assessment-catalogue.md') -Raw
         $Page | Should -Match "\*\*$Expected rule files\*\*"
     }
 }
@@ -42,8 +42,8 @@ Describe 'docs/reference/assessment-catalogue.md is generated, not hand-written'
 Describe 'every assessment resolves to at least one rule file' {
 
     It 'has no dangling Rules glob in the registry' {
-        $Registry = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
-        $Have = @(Get-ChildItem -LiteralPath (Join-Path $script:Root 'src/assess/rules') -Filter '*.yaml' -File).BaseName
+        $Registry = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
+        $Have = @(Get-ChildItem -LiteralPath (Join-Path -Path $script:Root -ChildPath 'src/assess/rules') -Filter '*.yaml' -File).BaseName
 
         $Dangling = foreach ($name in $Registry.Keys) {
             $entry = $Registry[$name]

@@ -132,14 +132,17 @@ Describe 'Get-ScoutExternalIdentitiesPolicy (AB#7098)' {
 
 Describe 'Invoke-Collect -- domains.identity.externalIdentitiesPolicy reaches the canonical contract (AB#7098)' {
     BeforeAll {
-        function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        function Import-Module {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
         . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
         . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
         . "$script:root/src/collect/Invoke-Collect.ps1"
     }
 
     It 'populates the shaped policy on a normal (-Scope All) run' {
-        function global:Search-AzGraph { param([string] $Query) return @() }
+        function global:Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query) return @() }
         Mock Invoke-AZSCGraphRequest { New-DefaultCrossTenantAccessResponse }
 
         try {
@@ -153,7 +156,8 @@ Describe 'Invoke-Collect -- domains.identity.externalIdentitiesPolicy reaches th
     }
 
     It 'skips the Graph call and reports Collected = $false on an -Scope ArmOnly run' {
-        function global:Search-AzGraph { param([string] $Query) return @() }
+        function global:Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query) return @() }
         Mock Invoke-AZSCGraphRequest { throw 'must not be called for an ArmOnly run' }
 
         try {
@@ -166,7 +170,8 @@ Describe 'Invoke-Collect -- domains.identity.externalIdentitiesPolicy reaches th
     }
 
     It 'never omits domains.identity.externalIdentitiesPolicy, even when the Graph call fails' {
-        function global:Search-AzGraph { param([string] $Query) return @() }
+        function global:Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query) return @() }
         Mock Invoke-AZSCGraphRequest { throw 'simulated Graph failure' }
 
         try {

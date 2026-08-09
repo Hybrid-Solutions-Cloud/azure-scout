@@ -22,6 +22,8 @@ Authors: Claudio Merola
 
 function Export-AZSCJsonReport {
     [CmdletBinding()]
+    [OutputType([string])]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = 'Called with -IncludeCosts from src/Invoke-AzureScout.ps1 (outside this task''s src/report+src/assess scope) for interface parity with sibling renderers; removing it would break that caller.')]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,

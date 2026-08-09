@@ -142,6 +142,7 @@ function Write-AZSCLog {
     }
     catch {
         # Deliberately silent: a failed log write must not derail the run.
+        Write-Debug ('Write-AZSCLog: failed to write to the run log: ' + $_.Exception.Message)
     }
 }
 
@@ -213,6 +214,7 @@ function Write-AZSCLogError {
     }
     catch {
         # Never let error logging raise a second error on top of the first.
+        Write-Debug ('Write-AZSCLogError: failed while logging the original error: ' + $_.Exception.Message)
     }
 }
 
@@ -239,11 +241,12 @@ function Stop-AZSCRunLog {
         }
         catch {
             # nothing useful left to do here
+            Write-Debug ('Stop-AZSCRunLog: failed to write the closing log entry: ' + $_.Exception.Message)
         }
     }
 
     if ($script:AZSCTranscriptPath) {
-        try { Stop-Transcript -ErrorAction Stop | Out-Null } catch { }
+        try { Stop-Transcript -ErrorAction Stop | Out-Null } catch { Write-Debug ('Stop-AZSCRunLog: Stop-Transcript failed (no transcript running?): ' + $_.Exception.Message) }
         $script:AZSCTranscriptPath = $null
     }
 

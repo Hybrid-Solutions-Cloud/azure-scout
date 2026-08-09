@@ -20,6 +20,7 @@ Authors: Claudio Merola
 #>
 
 Function Start-AZSCDiagramJob {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($Resources, $Automation)
     # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads

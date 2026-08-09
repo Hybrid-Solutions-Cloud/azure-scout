@@ -40,14 +40,14 @@ $ResUCount = $null
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [pscustomobject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -59,14 +59,14 @@ $ResUCount = $null
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
                         }
                     $Threat = if($data.threatintelmode -eq 'deny'){'Alert and deny'}elseif($data.threatintelmode -eq 'alert'){'Alert only'}else{'Off'}
                     $Tags = if ($null -ne $1.PSObject.Properties['tags'] -and $1.tags -and @($1.tags.PSObject.Properties).Count -gt 0) { $1.tags.PSObject.Properties } else { '0' }
-                    
+
                     $VNETs = @()
                     $PIPs = @()
                     $PrivIPs = @()
@@ -76,7 +76,7 @@ $ResUCount = $null
                             $VNETs += if(![string]::IsNullOrEmpty($2.properties.subnet.id)){(Get-AZSCIdSegment -Id $2.properties.subnet.id -Index 8)}else{$null}
                             $PrivIPs += $2.properties.privateIPAddress
                         }
-                    
+
                     $Policy = $AzureFWPolicies | Where-Object {$_.id -eq $data.firewallpolicy.id}
                     $Policy = if(![string]::IsNullOrEmpty($Policy)){$Policy}else{'0'}
                     $PolicyRuleCollectionGroupIds = Get-AZSCSafeProperty -InputObject $Policy -Path 'properties.rulecollectiongroups.id' -Enumerate

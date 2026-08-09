@@ -36,39 +36,39 @@ BeforeAll {
     # advisor row (subscription NAME not guid), cross-resource join (leftOnly), and a
     # diagnostic-coverage aggregate row (type-level, not a resource).
     $script:Findings = @(
-        (New-ReactTestFinding 'net-1' 'CAF' 'Networking' 'Pass' 'CAF: Azure Landing Zone' @(
+        (New-ReactTestFinding -Id 'net-1' -Framework 'CAF' -Area 'Networking' -Status 'Pass' -Assessment 'CAF: Azure Landing Zone' -Evidence @(
             [pscustomobject]@{ name = 'vnet-hub'; resourceGroup = 'rg-hub'; subscriptionId = 'sub-0001'; peeringCount = 1 }
         ))
-        (New-ReactTestFinding 'net-2' 'CAF' 'Networking' 'Fail' 'CAF: Azure Landing Zone' @(
+        (New-ReactTestFinding -Id 'net-2' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Assessment 'CAF: Azure Landing Zone' -Evidence @(
             [pscustomobject]@{ vnet = 'vnet-hub'; subnet = 'snet-app'; prefix = '10.0.0.0/24'; total = 251; used = 3; ipUtilizationPct = 1.2 }
-        ) 'high')
-        (New-ReactTestFinding 'sec-1' 'WAF' 'Security' 'Fail' 'Assess: Security' @(
+        ) -Severity 'high')
+        (New-ReactTestFinding -Id 'sec-1' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Assessment 'Assess: Security' -Evidence @(
             [pscustomobject]@{ id = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.KeyVault/vaults/kv-hub/secrets/db-pass'; keyVaultName = 'kv-hub'; keyVaultId = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.KeyVault/vaults/kv-hub'; subscriptionId = 'sub-0001'; resourceGroup = 'rg-hub'; contentType = $null; enabled = $true; expires = $null }
         ))
-        (New-ReactTestFinding 'sec-2' 'WAF' 'Security' 'Fail' 'Assess: Security' @(
+        (New-ReactTestFinding -Id 'sec-2' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Assessment 'Assess: Security' -Evidence @(
             [pscustomobject]@{ nsg = 'vm1-nsg'; resourceGroup = 'rg-hub'; rule = 'default-allow-ssh'; port = '22' }
         ))
-        (New-ReactTestFinding 'cost-1' 'WAF' 'Cost optimization' 'Fail' 'WAF: Cost Optimization' @(
+        (New-ReactTestFinding -Id 'cost-1' -Framework 'WAF' -Area 'Cost optimization' -Status 'Fail' -Assessment 'WAF: Cost Optimization' -Evidence @(
             [pscustomobject]@{ Category = 'Cost'; Impact = 'Medium'; ImpactedField = 'Microsoft.Compute/disks'; ImpactedValue = 'osdisk-orphan-01'; Subscription = 'sub-prod'; ShortDescriptionProblem = 'orphaned disk'; ShortDescriptionSolution = 'delete it' }
         ))
-        (New-ReactTestFinding 'bak-1' 'WAF' 'Reliability' 'Fail' 'WAF: Reliability' @(
+        (New-ReactTestFinding -Id 'bak-1' -Framework 'WAF' -Area 'Reliability' -Status 'Fail' -Assessment 'WAF: Reliability' -Evidence @(
             [pscustomobject]@{ JoinMode = 'leftOnly'; Key = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.Compute/virtualMachines/vm1'; Left = [pscustomobject]@{ id = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.Compute/virtualMachines/vm1'; name = 'vm1'; resourceGroup = 'rg-hub'; subscriptionId = 'sub-0001'; size = 'Standard_B2s' }; Right = $null; LeftLabel = 'virtual machine'; RightLabel = 'backup protected item' }
         ))
-        (New-ReactTestFinding 'diag-1' 'CAF' 'Management' 'Partial' 'Assess: Monitor' @(
+        (New-ReactTestFinding -Id 'diag-1' -Framework 'CAF' -Area 'Management' -Status 'Partial' -Assessment 'Assess: Monitor' -Evidence @(
             [pscustomobject]@{ type = 'microsoft.compute/disks'; total = 3; withDiag = 1; coveragePct = 33.3 }
         ))
-        (New-ReactTestFinding 'man-1' 'CAF' 'Governance' 'Manual' 'CAF: Azure Landing Zone')
-        (New-ReactTestFinding 'unk-1' 'CAF' 'Governance' 'Unknown' 'CAF: Azure Landing Zone')
+        (New-ReactTestFinding -Id 'man-1' -Framework 'CAF' -Area 'Governance' -Status 'Manual' -Assessment 'CAF: Azure Landing Zone')
+        (New-ReactTestFinding -Id 'unk-1' -Framework 'CAF' -Area 'Governance' -Status 'Unknown' -Assessment 'CAF: Azure Landing Zone')
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
-    $script:CollectPath = Join-Path $script:Root 'tests' 'datadump' 'sample-collect.json'
+    $script:CollectPath = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-collect.json'
     $script:Collect = Get-Content $script:CollectPath -Raw | ConvertFrom-Json -Depth 100
     $script:Collect | Add-Member -NotePropertyName _meta -NotePropertyValue ([pscustomobject]@{
             scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o')
         }) -Force
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'react'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'react'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
@@ -199,11 +199,11 @@ Describe 'Export-React — every assessment has a real name, no "(unassigned)" b
         . "$script:Root/src/assess/engine/Get-RuleSet.ps1"
         . "$script:Root/src/assess/Invoke-Assessment.ps1"
 
-        $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests' 'assessments.psd1')
+        $manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests' -AdditionalChildPath 'assessments.psd1')
         $spec = $manifest['CAF: Azure Landing Zone']
         $spec.ContainsKey('Benchmark') | Should -BeTrue -Because 'this test specifically exercises the benchmark-attribution path'
         $ruleSet = Get-RuleSet -Patterns $spec.Rules
-        $benchmark = Get-Content (Join-Path $script:Root 'src' 'assess' 'benchmarks' $spec.Benchmark) -Raw | ConvertFrom-Json -Depth 100
+        $benchmark = Get-Content (Join-Path -Path $script:Root -ChildPath 'src' -AdditionalChildPath 'assess', 'benchmarks', $spec.Benchmark) -Raw | ConvertFrom-Json -Depth 100
 
         $liveFindings = Invoke-Assessment -Collect $script:Collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment 'CAF: Azure Landing Zone'
         $benchmarkFindings = @($liveFindings | Where-Object { $_.Id -like 'BENCH-*' })
@@ -307,7 +307,7 @@ Describe 'Export-React — learnUrl resolves for every finding, never to an unre
     # CSV specifically. The column lists in exportCsv() are plain string arrays, so dropping one is
     # a silent, test-invisible regression unless asserted against the shipped template directly.
     It 'the CSV export column lists include learnUrl and weight' {
-        $template = Get-Content (Join-Path $PSScriptRoot '..\src\report\templates\report-react.html.template') -Raw
+        $template = Get-Content (Join-Path -Path $PSScriptRoot -ChildPath '..\src\report\templates\report-react.html.template') -Raw
         $colLines = @([regex]::Matches($template, "cols = \[[^\]]*'remediation'[^\]]*\]"))
         $colLines.Count | Should -BeGreaterThan 1 -Because 'both the per-assessment and all-findings CSV column lists should be found'
         foreach ($line in $colLines) {
@@ -422,7 +422,7 @@ Describe 'Export-React — resourceIndex + subscription attribution' {
     It 'a resource named by two different findings accumulates both finding ids' {
         # vm1 is named by the bak-1 join finding only in this fixture, but exercising the merge
         # path: re-render with a second finding also naming vm1 and confirm both ids appear.
-        $extra = New-ReactTestFinding 'bak-2' 'WAF' 'Reliability' 'Fail' 'WAF: Reliability' @(
+        $extra = New-ReactTestFinding -Id 'bak-2' -Framework 'WAF' -Area 'Reliability' -Status 'Fail' -Assessment 'WAF: Reliability' -Evidence @(
             [pscustomobject]@{ name = 'vm1'; resourceGroup = 'rg-hub'; subscriptionId = 'sub-0001'; note = 'second finding on the same VM' }
         )
         $merged = Get-Score -Findings (@($script:Findings) + @($extra))
@@ -663,7 +663,7 @@ Describe 'Export-React — live (un-round-tripped) Newtonsoft JToken evidence, A
         . "$script:Root/src/assess/engine/Resolve-RuleJoin.ps1"
         . "$script:Root/src/assess/engine/Get-RuleSet.ps1"
 
-        $manifestPath = Join-Path $script:Root 'manifests' 'assessments.psd1'
+        $manifestPath = Join-Path -Path $script:Root -ChildPath 'manifests' -AdditionalChildPath 'assessments.psd1'
         $script:LiveManifest = Import-PowerShellDataFile $manifestPath
         $script:LiveSpec = $script:LiveManifest['CAF: Azure Landing Zone']
         $script:LiveRuleSet = Get-RuleSet -Patterns $script:LiveSpec.Rules
@@ -720,9 +720,75 @@ Describe 'Export-React — live (un-round-tripped) Newtonsoft JToken evidence, A
         $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
         $allEvidence = @($payload.assessments | ForEach-Object { $_.findings } | ForEach-Object { $_.evidence })
         $withName = @($allEvidence | Where-Object { $_.resourceName })
-        # Measured on this exact fixture post-fix: 55 of 136 (40%). Floor set well below that so a
-        # future rule-set change doesn't make this test flaky, while still catching a regression
-        # back toward the pre-fix ~3%.
-        ($withName.Count / $allEvidence.Count) | Should -BeGreaterThan 0.25 -Because 'a regression back to the array-metadata bug would drop this near zero'
+        # Measured on this exact fixture post AB#6938 fix: 55 of 78 (~70.5%). Floor set well below
+        # that so a future rule-set change doesn't make this test flaky, while still catching a
+        # regression back toward either the original pre-AB#6928 ~3% (.NET array metadata) or the
+        # post-AB#6928/pre-AB#6938 ~40% (single-match evidence fragmented into one-field orphans,
+        # see the AB#6938 Describe block below).
+        ($withName.Count / $allEvidence.Count) | Should -BeGreaterThan 0.5 -Because 'a regression back to either the array-metadata bug or the single-match evidence-fragmentation bug would drop this well below 50%'
+    }
+}
+
+<#
+    AB#6938. A rule whose JSONPath query resolves to EXACTLY ONE match is the case that broke:
+    `$evidence = $matches | Select-Object -First $evidenceCap` in Invoke-Rule.ps1 is a pipe, and
+    piping a single object through Select-Object -First N and assigning the result to a bare
+    variable collapses a 1-element array down to the bare element itself -- on a live run, that
+    element is a raw Newtonsoft JObject/JArray token, not a deserialized PSCustomObject. A bare
+    JObject stored as Evidence detonates three layers down: Export-React's Get-ReactSafeProp
+    reads it back out via a plain `return $cur`, and PowerShell enumerates ANY IEnumerable
+    object crossing a function return/output boundary -- including a JObject, whose own
+    IEnumerable<JToken> implementation yields its child JProperty tokens. One NSG-rule resource
+    (5 fields) fragmented into 5 orphan one-field evidence rows (nsg=..., rule=...,
+    sourceAddressPrefix=..., ...) with only the field that happened to double as a name alias
+    surviving as a resourceName -- the exact shape the AB#6938 investigation found live. Fixed by
+    wrapping the assignment in `@(...)` so a single match is stored as a genuine 1-element array,
+    the same defensive idiom already used one branch up for Resolve-RuleJoin's output.
+
+    This Describe block pins that fix directly against the real single-match rules in the
+    fixture (CAF-SEC-01/CAF-NET-03/WAF-SE-01/CAF-SEC-04/WAF-RE-11 among others) so a future edit
+    to Invoke-Rule.ps1's evidence-capping line can't silently reintroduce the collapse.
+#>
+Describe 'Export-React — AB#6938 single-match evidence is never fragmented into orphan fields' {
+    BeforeAll {
+        . "$script:Root/src/assess/Invoke-Assessment.ps1"
+        . "$script:Root/src/assess/engine/Invoke-Rule.ps1"
+        . "$script:Root/src/assess/engine/Resolve-JsonPath.ps1"
+        . "$script:Root/src/assess/engine/Resolve-RuleJoin.ps1"
+        . "$script:Root/src/assess/engine/Get-RuleSet.ps1"
+
+        $manifestPath = Join-Path -Path $script:Root -ChildPath 'manifests' -AdditionalChildPath 'assessments.psd1'
+        $manifest = Import-PowerShellDataFile $manifestPath
+        $spec = $manifest['CAF: Azure Landing Zone']
+        $ruleSet = Get-RuleSet -Patterns $spec.Rules
+        $findings = Invoke-Assessment -Collect $script:Collect -RuleSet $ruleSet -Assessment 'CAF: Azure Landing Zone'
+        $script:SingleMatchScored = Get-Score -Findings $findings
+
+        $path = Export-React -Findings $script:SingleMatchScored -Collect $script:Collect -OutputPath $script:OutDir
+        $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
+        $script:AllFindings = @($payload.assessments | ForEach-Object { $_.findings })
+    }
+
+    # A rule matching exactly one NSG-inbound-rule object must produce exactly ONE evidence row
+    # carrying that NSG's name -- not five rows, one per JSON field, with the name surviving only
+    # because 'nsg' happens to double as a name-alias.
+    It 'CAF-SEC-01 (single NSG match) produces exactly one named evidence row, not five orphan fields' {
+        $finding = $script:AllFindings | Where-Object { $_.id -like '*CAF-SEC-01' } | Select-Object -First 1
+        $finding | Should -Not -BeNullOrEmpty -Because 'CAF-SEC-01 must be present in this rule set'
+        @($finding.evidence).Count | Should -Be 1
+        $finding.evidence[0].resourceName | Should -Be 'nsg-legacy'
+        $finding.evidence[0].detail | Should -Match 'rule=Allow-RDP-Any'
+    }
+
+    # Every one of these was directly observed fragmenting into N one-field orphan rows (N = its
+    # own property count) before the AB#6938 fix, on this exact fixture. Each rule's query
+    # resolves to exactly one JSON object on this fixture, so EvidenceCount must be exactly 1.
+    It 'every other single-match rule found fragmented pre-fix now produces exactly one evidence row' {
+        $previouslyFragmented = @('CAF-NET-03', 'WAF-SE-01', 'CAF-IDN-03', 'WAF-CO-02', 'CAF-SEC-04', 'WAF-RE-11')
+        foreach ($ruleId in $previouslyFragmented) {
+            $finding = $script:AllFindings | Where-Object { $_.id -like "*$ruleId" } | Select-Object -First 1
+            $finding | Should -Not -BeNullOrEmpty -Because "$ruleId must be present in this rule set"
+            @($finding.evidence).Count | Should -Be 1 -Because "$ruleId resolved to exactly one JSON object on this fixture pre-fix, and fragmented into more than one evidence row -- it must not do that anymore"
+        }
     }
 }

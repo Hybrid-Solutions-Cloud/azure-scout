@@ -27,6 +27,7 @@
 #>
 function Get-AZSCGraphToken {
     [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
     param()
 
     # Script-scope cache — persists across calls within the same module session

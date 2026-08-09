@@ -15,7 +15,8 @@ BeforeAll {
     . "$root/src/collect/Get-ScoutVmSkuDetails.ps1"
 
     function Get-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = 'original-sub' } } }
-    function Set-AzContext { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Set-AzContext {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     # Mixed array: Resource Graph rows carrying subscriptionId/type, alongside a REST-API row
     # (e.g. from Get-ScoutApiResources) that carries neither -- the exact AB#5633 shape.
@@ -30,7 +31,8 @@ BeforeAll {
 
 Describe 'Get-ScoutVmQuotas' {
     It 'does not throw on a mixed array missing type/subscriptionId on some rows (AB#5633)' {
-        function Get-AzVMUsage { param([string] $Location) return @() }
+        function Get-AzVMUsage {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Location) return @() }
         { Get-ScoutVmQuotas -Subscriptions $script:subs -Resources $script:mixedResources } | Should -Not -Throw
     }
 
@@ -47,7 +49,8 @@ Describe 'Get-ScoutVmQuotas' {
 
     It 'preserves the AZSC/VM/Quotas type tag and filters to CurrentValue >= 1' {
         function Get-AzVMUsage {
-            param([string] $Location)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Location)
             return @(
                 [pscustomobject]@{ Name = [pscustomobject]@{ Value = 'cores' }; CurrentValue = 4; Limit = 100 }
                 [pscustomobject]@{ Name = [pscustomobject]@{ Value = 'unused' }; CurrentValue = 0; Limit = 100 }
@@ -63,10 +66,12 @@ Describe 'Get-ScoutVmQuotas' {
     It 'restores the original Az context even when a quota lookup throws' {
         $script:restoredTo = $null
         function Set-AzContext {
-            param([string] $Subscription, [string] $Tenant, [Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Subscription, [string] $Tenant, [Parameter(ValueFromRemainingArguments)] $Rest)
             if ($Subscription -eq 'original-sub') { $script:restoredTo = $Subscription }
         }
-        function Get-AzVMUsage { param([string] $Location) throw 'transient quota API error' }
+        function Get-AzVMUsage {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Location) throw 'transient quota API error' }
         { Get-ScoutVmQuotas -Subscriptions $script:subs -Resources $script:mixedResources -WarningAction SilentlyContinue } | Should -Not -Throw
         $script:restoredTo | Should -Be 'original-sub'
     }
@@ -74,7 +79,8 @@ Describe 'Get-ScoutVmQuotas' {
 
 Describe 'Get-ScoutVmSkuDetails' {
     It 'does not throw on a mixed array missing type on some rows' {
-        function Get-AzComputeResourceSku { param([string] $Location) return @() }
+        function Get-AzComputeResourceSku {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Location) return @() }
         { Get-ScoutVmSkuDetails -Resources $script:mixedResources } | Should -Not -Throw
     }
 

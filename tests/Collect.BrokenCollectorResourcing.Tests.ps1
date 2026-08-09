@@ -20,7 +20,9 @@ BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
     # Get-ScoutRawInventory's `Import-Module Az.ResourceGraph` must not pull the real module in.
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:Root/src/collect/Get-ScoutRawInventory.ps1"
     . "$script:Root/src/collect/Get-ScoutArmChildResource.ps1"
@@ -73,7 +75,8 @@ Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
 
     It 'turns an event carried on the ARM REST sweep into an AZSC/Monitor/Outage envelope' {
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
         }
@@ -93,7 +96,8 @@ Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
         # inventory path, where Start-AZTIExtractionOrchestration already adds them from the
         # ApiResources field this function returns.
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
         }
@@ -108,7 +112,8 @@ Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
         # An EMPTY value on every element is what makes member enumeration throw under
         # StrictMode (AB#5633); a subscription with no incidents is the normal case.
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             @(
                 [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @() }
@@ -127,7 +132,8 @@ Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
         # when the transform runs, so the envelope count is zero no matter what the sweep returns.
         $script:SweepRan = $false
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             $script:SweepRan = $true
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
@@ -160,7 +166,8 @@ Describe 'AB#6771 -- Management/LighthouseDelegations has a table to read' {
             }
             return @()
         }
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; @() }
+        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; @() }
         function ConvertTo-ScoutManagementGroupHierarchy { param($Root) $null = $Root; @() }
         function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $null = $ApiResources; @() }
     }
@@ -220,7 +227,8 @@ Describe 'AB#6771 -- the production splat turns the pass on' {
                 Security = @(); Retirements = @(); ApiResources = @()
             }
         }
-        function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) $null = $ManagementGroup; $Subscriptions }
+        function Get-AZSCManagementGroups {             [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($ManagementGroup, $Subscriptions) $null = $ManagementGroup; $Subscriptions }
     }
 
     It 'sets -IncludeLighthouseDelegations' {
@@ -461,7 +469,8 @@ Describe 'AB#6801 -- Hybrid/ArcSites is re-sourced via ARM REST' {
 
     It 'turns the per-subscription Microsoft.Edge/sites sweep into AZSC/ARMChild/ArcSites rows, not a Resource Graph query' {
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{
                 Subscription = 'sub-1'
@@ -494,7 +503,8 @@ Describe 'AB#6801 -- Hybrid/ArcSites is re-sourced via ARM REST' {
 
     It 'survives a subscription whose sweep returned no sites at all' {
         function Get-ScoutApiResources {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             @(
                 [pscustomobject]@{ Subscription = 'sub-1'; ArcSites = @() }

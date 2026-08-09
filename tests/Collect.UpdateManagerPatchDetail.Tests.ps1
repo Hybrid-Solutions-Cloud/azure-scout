@@ -25,7 +25,9 @@
 
 BeforeAll {
     $script:root = Split-Path $PSScriptRoot -Parent
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
@@ -43,6 +45,9 @@ BeforeAll {
     }
 
     function Get-FixturePatchRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             # ---- Azure VM (Windows), with a patch orchestration setting on the resource itself
             [pscustomobject]@{
@@ -232,7 +237,8 @@ Describe 'Invoke-Collect -- Update Manager keys reach the canonical contract on 
 
     It 'the typed-query path (-Source TypedQueries) populates collect.updateManager.* and compute/hybrid patchMode' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -294,7 +300,8 @@ Describe 'Invoke-Collect -- Update Manager keys reach the canonical contract on 
         }
 
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
@@ -322,7 +329,8 @@ Describe 'Invoke-Collect -- Update Manager keys reach the canonical contract on 
     It 'updateManager.* is present, even as an empty array, on a completely empty estate' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )

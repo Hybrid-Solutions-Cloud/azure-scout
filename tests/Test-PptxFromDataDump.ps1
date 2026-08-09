@@ -56,10 +56,10 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 
 if (-not $DataDumpPath) {
-    $DataDumpPath = Join-Path $RepoRoot 'tests' 'datadump'
+    $DataDumpPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'datadump'
 }
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $RepoRoot 'tests' 'test-output'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'test-output'
 }
 
 Write-Host "`n═══════════════════════════════════════════════════════════" -ForegroundColor DarkCyan
@@ -67,7 +67,7 @@ Write-Host "  AzureScout — PPTX Report Test Harness" -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════════════`n" -ForegroundColor DarkCyan
 
 # Find the JSON report file — prefer the synthetic sample if present
-$SampleFile = Join-Path $DataDumpPath 'sample-report.json'
+$SampleFile = Join-Path -Path $DataDumpPath -ChildPath 'sample-report.json'
 if (Test-Path $SampleFile) {
     $JsonFile = Get-Item $SampleFile
 } else {
@@ -83,8 +83,8 @@ Write-Host $JsonFile.Name -ForegroundColor White
 
 # ── Load only what Export-Pptx needs (no Az.*/ImportExcel bootstrap) ────
 Write-Host "  Loading assessment engine + renderer..." -ForegroundColor Gray
-. (Join-Path $RepoRoot 'src' 'assess' 'engine' 'Get-Score.ps1')
-. (Join-Path $RepoRoot 'src' 'report' 'renderers' 'Export-Pptx.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'assess', 'engine', 'Get-Score.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'report', 'renderers', 'Export-Pptx.ps1')
 
 # ── Parse the JSON Report ────────────────────────────────────────────────
 Write-Host "  Parsing JSON report..." -ForegroundColor Gray

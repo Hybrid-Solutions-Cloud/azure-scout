@@ -170,7 +170,7 @@ Function Start-AZSCGraphExtraction {
 
     $RootPath = (get-item $PSScriptRoot).parent
 
-    $RetirementPath = Join-Path $RootPath 'Reporting' 'StyleFunctions' 'Retirement.kql'
+    $RetirementPath = Join-Path -Path $RootPath -ChildPath 'Reporting' -AdditionalChildPath 'StyleFunctions', 'Retirement.kql'
 
     $RetirementQuery = Get-Content -Path $RetirementPath | Out-String
 

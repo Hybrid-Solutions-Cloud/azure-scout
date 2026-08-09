@@ -3,10 +3,10 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/report/Get-ScoutReportSectionIndex.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/Get-ScoutReportSectionIndex.ps1')
 
-    $script:FixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) (
+    $script:FixtureRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (
         'AZSC_ReportSectionIndex_' + [guid]::NewGuid().ToString('N')
     )
     New-Item -ItemType Directory -Path $script:FixtureRoot -Force | Out-Null
@@ -19,7 +19,7 @@ BeforeAll {
             [string[]]$ResourceTypes = @('microsoft.example/widgets')
         )
 
-        $Directory = Join-Path $script:FixtureRoot $Category
+        $Directory = Join-Path -Path $script:FixtureRoot -ChildPath $Category
         New-Item -ItemType Directory -Path $Directory -Force | Out-Null
         $QuotedTypes = @($ResourceTypes | ForEach-Object { "        '$($_ -replace "'", "''")'" }) -join "`n"
         $DefinitionText = @"
@@ -37,7 +37,7 @@ $QuotedTypes
     }
 }
 "@
-        Set-Content -LiteralPath (Join-Path $Directory "$Name.psd1") -Value $DefinitionText -Encoding utf8
+        Set-Content -LiteralPath (Join-Path -Path $Directory -ChildPath "$Name.psd1") -Value $DefinitionText -Encoding utf8
     }
 
     # Deliberately create these out of lexical order. Filesystem creation order must not affect
@@ -46,7 +46,7 @@ $QuotedTypes
     Write-SectionIndexDefinition -Category 'Alpha' -Name 'ZuluName' -WorksheetName 'Alpha Zulu'
     Write-SectionIndexDefinition -Category 'Alpha' -Name 'AlphaName' -WorksheetName 'Alpha First' `
         -ResourceTypes @('AZSC/Example/Synthetic', 'microsoft.example/widgets')
-    Set-Content -LiteralPath (Join-Path $script:FixtureRoot 'Alpha/README.txt') -Value 'not a definition'
+    Set-Content -LiteralPath (Join-Path -Path $script:FixtureRoot -ChildPath 'Alpha/README.txt') -Value 'not a definition'
 }
 
 AfterAll {
@@ -61,7 +61,7 @@ Describe 'Get-ScoutReportSectionIndex' {
     }
 
     It 'fails loudly when the definition root is missing' {
-        $Missing = Join-Path $script:FixtureRoot 'missing'
+        $Missing = Join-Path -Path $script:FixtureRoot -ChildPath 'missing'
         { Get-ScoutReportSectionIndex -DefinitionRoot $Missing } |
             Should -Throw '*Collector definition root not found*'
     }
@@ -108,7 +108,7 @@ Describe 'Get-ScoutReportSectionIndex' {
     }
 
     It 'indexes the shipped manifests without consulting the legacy collector tree' {
-        $ShippedRoot = Join-Path $script:RepoRoot 'manifests/collectors'
+        $ShippedRoot = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
         $Shipped = @(Get-ScoutReportSectionIndex -DefinitionRoot $ShippedRoot)
         $DefinitionCount = @(
             Get-ChildItem -LiteralPath $ShippedRoot -Recurse -Filter '*.psd1' -File
@@ -118,7 +118,7 @@ Describe 'Get-ScoutReportSectionIndex' {
         @($Shipped | Select-Object -ExpandProperty CacheKey -Unique).Count |
             Should -Be $DefinitionCount
 
-        $IndexPath = Join-Path $script:RepoRoot 'src/report/Get-ScoutReportSectionIndex.ps1'
+        $IndexPath = Join-Path -Path $script:RepoRoot -ChildPath 'src/report/Get-ScoutReportSectionIndex.ps1'
         $Tokens = $null
         $ParseErrors = $null
         $Ast = [System.Management.Automation.Language.Parser]::ParseFile(

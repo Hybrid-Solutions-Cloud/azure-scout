@@ -17,8 +17,8 @@
 
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
-    $script:MainPath   = Join-Path $script:ModuleRoot 'src'
-    $script:TempDir    = Join-Path $env:TEMP 'AZSC_PrivateMainTests'
+    $script:MainPath   = Join-Path -Path $script:ModuleRoot -ChildPath 'src'
+    $script:TempDir    = Join-Path -Path $env:TEMP -ChildPath 'AZSC_PrivateMainTests'
 
     if (Test-Path $script:TempDir) { Remove-Item $script:TempDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:TempDir -Force | Out-Null
@@ -49,7 +49,7 @@ Describe 'Private/Main Module Files Exist' {
     )
 
     It '<_> exists' -ForEach $mainFiles {
-        Join-Path $script:MainPath $_ | Should -Exist
+        Join-Path -Path $script:MainPath -ChildPath $_ | Should -Exist
     }
 }
 
@@ -74,7 +74,7 @@ Describe 'Private/Main Script Syntax Validation' {
     )
 
     It '<_> parses without errors' -ForEach $mainFiles {
-        $filePath = Join-Path $script:MainPath $_
+        $filePath = Join-Path -Path $script:MainPath -ChildPath $_
         $errors = $null
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors)
         $errors | Should -BeNullOrEmpty
@@ -87,67 +87,67 @@ Describe 'Private/Main Script Syntax Validation' {
 Describe 'Private/Main Function Definitions' {
 
     It 'Clear-AZTICacheFolder.ps1 defines Clear-AZSCCacheFolder' {
-        $content = Get-Content (Join-Path $script:MainPath 'Clear-AZTICacheFolder.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Clear-AZTICacheFolder.ps1') -Raw
         $content | Should -Match 'function\s+Clear-AZSCCacheFolder'
     }
 
     It 'Clear-AZTIMemory.ps1 defines Clear-AZSCMemory' {
-        $content = Get-Content (Join-Path $script:MainPath 'Clear-AZTIMemory.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Clear-AZTIMemory.ps1') -Raw
         $content | Should -Match 'function\s+Clear-AZSCMemory'
     }
 
     It 'Set-AZTIFolder.ps1 defines Set-AZSCFolder' {
-        $content = Get-Content (Join-Path $script:MainPath 'Set-AZTIFolder.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Set-AZTIFolder.ps1') -Raw
         $content | Should -Match 'function\s+Set-AZSCFolder'
     }
 
     It 'Set-AZTIReportPath.ps1 defines Set-AZSCReportPath' {
-        $content = Get-Content (Join-Path $script:MainPath 'Set-AZTIReportPath.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Set-AZTIReportPath.ps1') -Raw
         $content | Should -Match 'function\s+Set-AZSCReportPath'
     }
 
     It 'Test-AZTIPS.ps1 defines Test-AZSCPS' {
-        $content = Get-Content (Join-Path $script:MainPath 'Test-AZTIPS.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Test-AZTIPS.ps1') -Raw
         $content | Should -Match 'function\s+Test-AZSCPS'
     }
 
     It 'Get-AZTIUnsupportedData.ps1 defines Get-AZSCUnsupportedData' {
-        $content = Get-Content (Join-Path $script:MainPath 'Get-AZTIUnsupportedData.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Get-AZTIUnsupportedData.ps1') -Raw
         $content | Should -Match 'function\s+Get-AZSCUnsupportedData'
     }
 
     It 'Get-AZTIGraphToken.ps1 defines Get-AZSCGraphToken' {
-        $content = Get-Content (Join-Path $script:MainPath 'Get-AZTIGraphToken.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Get-AZTIGraphToken.ps1') -Raw
         $content | Should -Match 'function\s+Get-AZSCGraphToken'
     }
 
     It 'Start-AZTIExtractionOrchestration.ps1 defines Start-AZSCExtractionOrchestration' {
-        $content = Get-Content (Join-Path $script:MainPath 'Start-AZTIExtractionOrchestration.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Start-AZTIExtractionOrchestration.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCExtractionOrchestration'
     }
 
     It 'Start-AZTIProcessOrchestration.ps1 defines Start-AZSCProcessOrchestration' {
-        $content = Get-Content (Join-Path $script:MainPath 'Start-AZTIProcessOrchestration.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Start-AZTIProcessOrchestration.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCProcessOrchestration'
     }
 
     It 'Start-AZTIReporOrchestration.ps1 defines Start-AZSCReporOrchestration' {
-        $content = Get-Content (Join-Path $script:MainPath 'Start-AZTIReporOrchestration.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Start-AZTIReporOrchestration.ps1') -Raw
         $content | Should -Match 'function\s+Start-AZSCRepor[Ot]rchestration'
     }
 
     It 'Connect-AZTILoginSession.ps1 defines Connect-AZSCLoginSession' {
-        $content = Get-Content (Join-Path $script:MainPath 'Connect-AZTILoginSession.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Connect-AZTILoginSession.ps1') -Raw
         $content | Should -Match 'function\s+Connect-AZSCLoginSession'
     }
 
     It 'Invoke-AZTIGraphRequest.ps1 defines Invoke-AZSCGraphRequest' {
-        $content = Get-Content (Join-Path $script:MainPath 'Invoke-AZTIGraphRequest.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Invoke-AZTIGraphRequest.ps1') -Raw
         $content | Should -Match 'function\s+Invoke-AZSCGraphRequest'
     }
 
     It 'Invoke-AZTIPermissionAudit.ps1 defines Invoke-AZSCPermissionAudit' {
-        $content = Get-Content (Join-Path $script:MainPath 'Invoke-AZTIPermissionAudit.ps1') -Raw
+        $content = Get-Content (Join-Path -Path $script:MainPath -ChildPath 'Invoke-AZTIPermissionAudit.ps1') -Raw
         $content | Should -Match 'function\s+Invoke-AZSCPermissionAudit'
     }
 }
@@ -157,7 +157,7 @@ Describe 'Private/Main Function Definitions' {
 # =====================================================================
 Describe 'Clear-AZSCMemory — runs without error' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Clear-AZTIMemory.ps1')
+        . (Join-Path -Path $script:MainPath -ChildPath 'Clear-AZTIMemory.ps1')
     }
 
     It 'Executes without throwing' {
@@ -167,12 +167,12 @@ Describe 'Clear-AZSCMemory — runs without error' {
 
 Describe 'Clear-AZSCCacheFolder — deletes files in cache folder' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Clear-AZTICacheFolder.ps1')
-        $script:CacheDir = Join-Path $script:TempDir 'cache_test'
+        . (Join-Path -Path $script:MainPath -ChildPath 'Clear-AZTICacheFolder.ps1')
+        $script:CacheDir = Join-Path -Path $script:TempDir -ChildPath 'cache_test'
         New-Item -ItemType Directory -Path $script:CacheDir -Force | Out-Null
         # Create test files
-        'data1' | Out-File (Join-Path $script:CacheDir 'file1.json')
-        'data2' | Out-File (Join-Path $script:CacheDir 'file2.json')
+        'data1' | Out-File (Join-Path -Path $script:CacheDir -ChildPath 'file1.json')
+        'data2' | Out-File (Join-Path -Path $script:CacheDir -ChildPath 'file2.json')
     }
 
     It 'Removes files from cache folder' {
@@ -184,10 +184,10 @@ Describe 'Clear-AZSCCacheFolder — deletes files in cache folder' {
 
 Describe 'Set-AZSCFolder — creates directories' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Set-AZTIFolder.ps1')
-        $script:TestDefaultPath  = Join-Path $script:TempDir 'default_folder'
-        $script:TestDiagramCache = Join-Path $script:TempDir 'diagram_cache'
-        $script:TestReportCache  = Join-Path $script:TempDir 'report_cache'
+        . (Join-Path -Path $script:MainPath -ChildPath 'Set-AZTIFolder.ps1')
+        $script:TestDefaultPath  = Join-Path -Path $script:TempDir -ChildPath 'default_folder'
+        $script:TestDiagramCache = Join-Path -Path $script:TempDir -ChildPath 'diagram_cache'
+        $script:TestReportCache  = Join-Path -Path $script:TempDir -ChildPath 'report_cache'
     }
 
     It 'Creates directories that do not exist' {
@@ -204,7 +204,7 @@ Describe 'Set-AZSCFolder — creates directories' {
 
 Describe 'Set-AZSCReportPath — returns path hashtable' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Set-AZTIReportPath.ps1')
+        . (Join-Path -Path $script:MainPath -ChildPath 'Set-AZTIReportPath.ps1')
     }
 
     It 'Returns a hashtable with DefaultPath, DiagramCache, ReportCache' {
@@ -229,7 +229,7 @@ Describe 'Set-AZSCReportPath — returns path hashtable' {
 
 Describe 'Test-AZSCPS — detects platform' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Test-AZTIPS.ps1')
+        . (Join-Path -Path $script:MainPath -ChildPath 'Test-AZTIPS.ps1')
     }
 
     It 'Returns a non-empty string' {
@@ -245,11 +245,11 @@ Describe 'Test-AZSCPS — detects platform' {
 
 Describe 'Get-AZSCUnsupportedData — loads Support.json' {
     BeforeAll {
-        . (Join-Path $script:MainPath 'Get-AZTIUnsupportedData.ps1')
+        . (Join-Path -Path $script:MainPath -ChildPath 'Get-AZTIUnsupportedData.ps1')
     }
 
     It 'Returns parsed data from Support.json' {
-        $result = Get-AZSCUnsupportedData
+        $null = Get-AZSCUnsupportedData
         # Might return null if Support.json path resolution fails outside module context
         # At minimum it should not throw
     }

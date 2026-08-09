@@ -18,7 +18,7 @@
 
 BeforeAll {
     $script:ModuleRoot    = Split-Path -Parent $PSScriptRoot
-    $script:InvokeScript  = Join-Path $script:ModuleRoot 'src' 'Invoke-AzureScout.ps1'
+    $script:InvokeScript  = Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Invoke-AzureScout.ps1'
 
     # Dot-source the script to load the function into scope without a full module import
     . $script:InvokeScript
@@ -113,20 +113,6 @@ Describe 'Category Alias Normalization — alias map in Invoke-AzureScout body' 
 
 Describe 'Category alias resolution logic — unit test of normalization block' {
     BeforeAll {
-        # Extract and run just the alias-map block using a controlled $Category input
-        $aliasMap = @{
-            'AI + machine learning'     = 'AI'
-            'AI+machine learning'       = 'AI'
-            'Machine Learning'          = 'AI'
-            'Internet of Things'        = 'IoT'
-            'Monitoring'                = 'Monitor'
-            'Management and governance' = 'Management'
-            'Management & governance'   = 'Management'
-            'Web & Mobile'              = 'Web'
-            'Hybrid + multicloud'       = 'Hybrid'
-            'Hybrid+multicloud'         = 'Hybrid'
-        }
-
         function Resolve-CategoryAlias {
             param([string[]]$Category)
             $map = @{

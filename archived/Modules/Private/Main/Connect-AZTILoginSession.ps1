@@ -51,6 +51,8 @@ function Connect-AZSCLoginSession {
     # no SecureString input path for these non-interactive service-principal flows.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '',
         Justification = 'Headless SPN/cert auth: secret arrives as a plain string arg; no SecureString input path exists.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
+        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers with no SecureString input path; changing the parameter type is a breaking change for every existing caller.')]
     [CmdletBinding()]
     param(
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud', 'AzureGermanCloud')]

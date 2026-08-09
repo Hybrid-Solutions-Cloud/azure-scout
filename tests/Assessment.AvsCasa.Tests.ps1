@@ -20,13 +20,13 @@
 
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:Root 'src/assess/engine/Get-RuleSet.ps1')
-    . (Join-Path $script:Root 'src/assess/engine/Resolve-JsonPath.ps1')
-    . (Join-Path $script:Root 'src/assess/engine/Resolve-RuleJoin.ps1')
-    . (Join-Path $script:Root 'src/assess/engine/Invoke-Rule.ps1')
-    . (Join-Path $script:Root 'src/assess/Invoke-Assessment.ps1')
-    . (Join-Path $script:Root 'src/collect/ConvertFrom-ScoutInventory.ps1')
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Get-RuleSet.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Resolve-RuleJoin.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Invoke-Rule.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/Invoke-Assessment.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/collect/ConvertFrom-ScoutInventory.ps1')
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
     function New-EmptyCollect {
         [pscustomobject]@{
@@ -208,15 +208,18 @@ Describe 'AB#6820 -- compute.privateClouds: the typed-query and inventory-shapin
 Describe 'AB#6821 -- Invoke-Collect extracts Key Vault secrets/keys from the ARM-child sweep' {
 
     BeforeAll {
-        function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
-        . (Join-Path $script:Root 'src/collect/Invoke-Collect.ps1')
+        function Import-Module {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        . (Join-Path -Path $script:Root -ChildPath 'src/collect/Invoke-Collect.ps1')
     }
 
     It 'shapes AZSC/ARMChild/KeyVaultSecrets and KeyVaultKeys rows into domains.security, and requests the scoped ArmChildDataset' {
         $script:capturedIncludeArmChild = $null
         $script:capturedArmChildDataset = $null
         function Get-ScoutRawInventory {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [switch] $IncludeArmChildResources,
                 [string[]] $ArmChildDataset,
                 [Parameter(ValueFromRemainingArguments)] $Rest
@@ -245,7 +248,8 @@ Describe 'AB#6821 -- Invoke-Collect extracts Key Vault secrets/keys from the ARM
                 ResourceContainers = @()
             }
         }
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
 
         $collect = Invoke-Collect -Categories @('*')
 

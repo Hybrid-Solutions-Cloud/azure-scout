@@ -55,7 +55,7 @@ BeforeDiscovery {
     # The reason travels IN the case data. A -ForEach case is built during discovery and read back
     # during run, and a variable set in BeforeDiscovery is not in scope inside an It body.
     $script:LoopCases = @(
-        Get-ChildItem -LiteralPath (Join-Path $DiscoveryRoot 'manifests/collectors') -Recurse -Filter *.psd1 |
+        Get-ChildItem -LiteralPath (Join-Path -Path $DiscoveryRoot -ChildPath 'manifests/collectors') -Recurse -Filter *.psd1 |
             Sort-Object FullName |
             ForEach-Object {
                 $Raw = Import-PowerShellDataFile $_.FullName
@@ -118,11 +118,11 @@ BeforeDiscovery {
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
 
     # Must match scripts/New-ScoutCollectorGolden.ps1 and the golden suite, so a collector with a
     # time-relative column behaves here exactly as it does when its record is captured.
@@ -133,9 +133,9 @@ BeforeAll {
         param([string]$CategoryName)
         # Databases predates the per-category convention and keeps its original fixture name.
         $Path = if ($CategoryName -eq 'Databases') {
-            Join-Path $script:RepoRoot 'tests/fixtures/databases-collector-input.json'
+            Join-Path -Path $script:RepoRoot -ChildPath 'tests/fixtures/databases-collector-input.json'
         } else {
-            Join-Path $script:RepoRoot "tests/fixtures/collector-equivalence/$CategoryName.json"
+            Join-Path -Path $script:RepoRoot -ChildPath "tests/fixtures/collector-equivalence/$CategoryName.json"
         }
         if (-not $script:FixtureCache.ContainsKey($Path)) {
             $script:FixtureCache[$Path] = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
@@ -239,7 +239,7 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
 Describe 'The guard is expressed in the definition, not in the interpreter (AB#6845)' {
 
     BeforeAll {
-        $script:SyntheticDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-ab6845-" + [guid]::NewGuid().ToString('N'))
+        $script:SyntheticDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-ab6845-" + [guid]::NewGuid().ToString('N'))
         $null = New-Item -Path $script:SyntheticDir -ItemType Directory -Force
 
         # Written to disk and loaded through Get-ScoutCollectorDefinition rather than hand-built as
@@ -248,7 +248,7 @@ Describe 'The guard is expressed in the definition, not in the interpreter (AB#6
         function New-SyntheticDefinitionFile {
             param([string]$FileName, [bool]$Emit)
             $EmitLine = if ($Emit) { "            EmitNullWhenEmpty = `$true`n" } else { '' }
-            $Path = Join-Path $script:SyntheticDir $FileName
+            $Path = Join-Path -Path $script:SyntheticDir -ChildPath $FileName
             Set-Content -LiteralPath $Path -Encoding utf8 -Value @"
 @{
     ResourceTypes = @('microsoft.test/things')

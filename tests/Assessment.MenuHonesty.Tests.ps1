@@ -21,13 +21,13 @@
 
 BeforeAll {
     $script:Root     = Split-Path $PSScriptRoot -Parent
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
-    $script:RuleDir  = Join-Path $script:Root 'src/assess/rules'
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
+    $script:RuleDir  = Join-Path -Path $script:Root -ChildPath 'src/assess/rules'
 
-    . (Join-Path $script:Root 'src/assess/Get-ScoutAvailableAssessment.ps1')
-    . (Join-Path $script:Root 'src/assess/Resolve-ScoutAssessmentName.ps1')
-    . (Join-Path $script:Root 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:Root 'src/pipeline/Get-ScoutCategoryCoverage.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/Get-ScoutAvailableAssessment.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/assess/Resolve-ScoutAssessmentName.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Get-ScoutCategoryCoverage.ps1')
 
     # The fifteen inventory categories the assessment entries used to collide with.
     $script:InventoryCategories = @(
@@ -42,7 +42,7 @@ BeforeAll {
         'Security', 'Storage', 'Web'
     )
 
-    $script:CollectorRoot = Join-Path $script:Root 'manifests/collectors'
+    $script:CollectorRoot = Join-Path -Path $script:Root -ChildPath 'manifests/collectors'
 }
 
 Describe 'AB#6762 — no menu entry shares a name with an inventory category' {
@@ -156,7 +156,7 @@ Describe 'AB#6763 — the menu lists only assessments Scout can actually run' {
 Describe 'AB#6754 / AB#6763 — the wizard consumes the availability list, not the raw registry' {
 
     It 'filters the menu through Get-ScoutAvailableAssessment' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Start-AZSCWizard.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1')
 
         $source | Should -Match 'Get-ScoutAvailableAssessment'
         $source | Should -Not -Match '\$assessmentManifest\.Keys \| Sort-Object'
@@ -166,13 +166,13 @@ Describe 'AB#6754 / AB#6763 — the wizard consumes the availability list, not t
         # The original defect: three Split-Path calls landed outside the repository, Test-Path
         # returned false on every run, and the wizard fell back to a hard-coded single entry
         # without saying so.
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Start-AZSCWizard.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1')
 
         $source | Should -Match '\$moduleRoot\s*=\s*Split-Path \$PSScriptRoot -Parent\s*\r?\n\s*\$manifestPath'
     }
 
     It 'warns instead of falling back silently when the manifest cannot be resolved' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Start-AZSCWizard.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1')
         $block  = ([regex]'(?s)if \(Test-Path \$manifestPath\).*?\n        \}\r?\n        else \{.*?\n        \}').Match($source).Value
 
         $block | Should -Match 'Write-Warning'
@@ -180,8 +180,8 @@ Describe 'AB#6754 / AB#6763 — the wizard consumes the availability list, not t
 
     It 'resolves the manifest from the real repository layout' {
         # Proves the path arithmetic against the actual tree rather than against a comment.
-        $moduleRoot   = Join-Path $script:Root 'src'
-        $manifestPath = Join-Path (Split-Path $moduleRoot -Parent) 'manifests/assessments.psd1'
+        $moduleRoot   = Join-Path -Path $script:Root -ChildPath 'src'
+        $manifestPath = Join-Path -Path (Split-Path $moduleRoot -Parent) -ChildPath 'manifests/assessments.psd1'
 
         Test-Path $manifestPath | Should -BeTrue
     }
@@ -190,7 +190,7 @@ Describe 'AB#6754 / AB#6763 — the wizard consumes the availability list, not t
 Describe 'AB#6762 — the assessment core resolves legacy names before indexing the manifest' {
 
     It 'calls Resolve-ScoutAssessmentName before the first manifest lookup' {
-        $source = Get-Content -Raw (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1')
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
 
         $resolveAt = $source.IndexOf('Resolve-ScoutAssessmentName -Name $Assessment')
         $lookupAt  = $source.IndexOf('$manifest[$_].Collect')
@@ -206,8 +206,8 @@ Describe 'AB#6922 — the format menu lists only renderers a run will actually p
     # the wizard, because the defect is in the two lists and the branch that chooses between
     # them -- driving an interactive checklist would test the prompt, not the offer.
     BeforeAll {
-        $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
-        $script:CoreSrc   = Get-Content (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1') -Raw
+        $script:WizardSrc = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1') -Raw
+        $script:CoreSrc   = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1') -Raw
 
         $m = [regex]::Match($script:CoreSrc, '\$script:ScoutHeldRenderers\s*=\s*@\(([^)]*)\)')
         $script:Held = @($m.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
@@ -251,7 +251,7 @@ Describe 'AB#7101/AB#7102/AB#7103 — the category checklist tells the truth abo
 
     BeforeAll {
         if (-not $script:WizardSrc) {
-            $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
+            $script:WizardSrc = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1') -Raw
         }
         $script:LiveCoverage = @(Get-ScoutCategoryCoverage -CollectorRoot $script:CollectorRoot)
         $script:LiveByName   = @{}
@@ -286,8 +286,8 @@ Describe 'AB#7101/AB#7102/AB#7103 — the category checklist tells the truth abo
 
     It 'a category folder with zero manifests is reported as zero, not hidden or defaulted' {
         # Proven against a synthetic tree, not by inspection of the real one.
-        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) "scout-coverage-$([guid]::NewGuid())"
-        $emptyCat = Join-Path $tempRoot 'Empty'
+        $tempRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "scout-coverage-$([guid]::NewGuid())"
+        $emptyCat = Join-Path -Path $tempRoot -ChildPath 'Empty'
         New-Item -ItemType Directory -Path $emptyCat -Force | Out-Null
         try {
             $result = @(Get-ScoutCategoryCoverage -CollectorRoot $tempRoot)
@@ -305,7 +305,7 @@ Describe 'AB#7101/AB#7102/AB#7103 — the category checklist tells the truth abo
         # Guards against the function itself drifting into a cached/hand-typed number: recompute
         # Published from disk with a completely separate code path and compare.
         foreach ($cat in $script:WizardCategories) {
-            $independentCount = @(Get-ChildItem -LiteralPath (Join-Path $script:CollectorRoot $cat) -Filter '*.psd1' -File).Count
+            $independentCount = @(Get-ChildItem -LiteralPath (Join-Path -Path $script:CollectorRoot -ChildPath $cat) -Filter '*.psd1' -File).Count
             $script:LiveByName[$cat].Published | Should -Be $independentCount -Because "the displayed figure for '$cat' must match manifests/collectors/$cat on disk"
         }
     }
@@ -321,9 +321,9 @@ Describe 'AB#7104 — the "Optional inventory data" checklist does not offer dea
 
     BeforeAll {
         if (-not $script:WizardSrc) {
-            $script:WizardSrc = Get-Content (Join-Path $script:Root 'src/Start-AZSCWizard.ps1') -Raw
+            $script:WizardSrc = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Start-AZSCWizard.ps1') -Raw
         }
-        $script:CoreSrc = Get-Content (Join-Path $script:Root 'src/Invoke-AzureScout.ps1') -Raw
+        $script:CoreSrc = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1') -Raw
     }
 
     It 'detects the absence of Az.CostManagement before letting Cost data be picked' {

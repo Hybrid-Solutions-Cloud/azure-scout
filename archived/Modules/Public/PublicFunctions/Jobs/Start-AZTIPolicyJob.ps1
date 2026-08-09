@@ -18,6 +18,7 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCPolicyJob {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
     # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads

@@ -18,9 +18,9 @@ Describe 'Export-PowerBi (.pbit generation) AB#5046' {
                 [pscustomobject]@{ Framework = 'CAF'; Area = 'Governance'; Id = 'CAF-GOV-01'; Severity = 'High'; Status = 'Fail'; EvidenceCount = 2; Title = 'x'; Remediation = 'y'; Manual = $false }
             )
         }
-        $script:Out = Join-Path ([System.IO.Path]::GetTempPath()) ("pbit-pester-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        $script:Out = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("pbit-pester-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
         Export-PowerBi -Findings $script:Findings -Collect ([pscustomobject]@{}) -OutputPath $script:Out | Out-Null
-        $script:PbiDir = Join-Path $script:Out 'powerbi'
+        $script:PbiDir = Join-Path -Path $script:Out -ChildPath 'powerbi'
     }
     AfterAll {
         if ($script:Out -and (Test-Path $script:Out)) { Remove-Item $script:Out -Recurse -Force }
@@ -28,16 +28,16 @@ Describe 'Export-PowerBi (.pbit generation) AB#5046' {
 
     It 'emits the four star-schema CSVs' {
         foreach ($csv in 'fact_area_scores', 'fact_framework', 'dim_gaps', 'fact_findings') {
-            Join-Path $script:PbiDir "$csv.csv" | Should -Exist
+            Join-Path -Path $script:PbiDir -ChildPath "$csv.csv" | Should -Exist
         }
     }
 
     It 'generates report.pbit' {
-        Join-Path $script:PbiDir 'report.pbit' | Should -Exist
+        Join-Path -Path $script:PbiDir -ChildPath 'report.pbit' | Should -Exist
     }
 
     It 'produces a report.pbit containing all required OPC parts' {
-        $pbit = Join-Path $script:PbiDir 'report.pbit'
+        $pbit = Join-Path -Path $script:PbiDir -ChildPath 'report.pbit'
         $zip = [System.IO.Compression.ZipFile]::OpenRead($pbit)
         try { $names = @($zip.Entries.FullName) } finally { $zip.Dispose() }
         foreach ($part in '[Content_Types].xml', 'Version', 'DataModelSchema', 'Mashup', 'Report/Layout') {
@@ -46,8 +46,8 @@ Describe 'Export-PowerBi (.pbit generation) AB#5046' {
     }
 
     It 'writes a README describing the star schema' {
-        Join-Path $script:PbiDir 'README.txt' | Should -Exist
-        (Get-Content (Join-Path $script:PbiDir 'README.txt') -Raw) | Should -Match 'star schema'
+        Join-Path -Path $script:PbiDir -ChildPath 'README.txt' | Should -Exist
+        (Get-Content (Join-Path -Path $script:PbiDir -ChildPath 'README.txt') -Raw) | Should -Match 'star schema'
     }
 }
 
@@ -61,12 +61,12 @@ Describe 'Export-PowerBi -- $null -Findings crash class (StrictMode sweep)' {
     }
 
     It 'does not throw and still emits empty star-schema CSVs when -Findings is $null' {
-        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ("pbit-null-pester-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        $dir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("pbit-null-pester-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
         try {
             Export-PowerBi -Findings $null -Collect ([pscustomobject]@{}) -OutputPath $dir
-            $pbiDir = Join-Path $dir 'powerbi'
+            $pbiDir = Join-Path -Path $dir -ChildPath 'powerbi'
             foreach ($csv in 'fact_area_scores', 'fact_framework', 'dim_gaps', 'fact_findings') {
-                Join-Path $pbiDir "$csv.csv" | Should -Exist
+                Join-Path -Path $pbiDir -ChildPath "$csv.csv" | Should -Exist
             }
         }
         finally {

@@ -9,7 +9,9 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
     . "$root/src/collect/Get-ScoutRawInventory.ps1"
     . "$root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$root/src/collect/Invoke-Collect.ps1"
@@ -24,7 +26,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'always queries resources, networkresources and resourcecontainers' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -37,7 +40,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'does not query SupportResources/recoveryservicesresources/desktopvirtualizationresources/advisorresources/securityresources unless asked' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -52,7 +56,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'queries every extra table when every -Include switch is supplied' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -65,7 +70,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     }
 
     It 'returns the Start-AZTIGraphExtraction-compatible shape' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         $result = Get-ScoutRawInventory
         $result.PSObject.Properties.Name | Should -Contain 'Resources'
         $result.PSObject.Properties.Name | Should -Contain 'ResourceContainers'
@@ -80,7 +86,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         function Get-ScoutArmChildResource { $script:armChildCalls++ }
         function Get-ScoutSubscriptionSecurityPolicySweep { $script:subscriptionSweepCalls++ }
         function Get-ScoutOperationalCollectorEnrichment { $script:operationalEnrichmentCalls++ }
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
 
         Get-ScoutRawInventory | Out-Null
 
@@ -95,10 +102,15 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         # datasets it produces are what a governance assessment scores, and an assessment reading
         # an empty array reports a false pass. There is no switch to supply.
         $script:tenantWideCalls = 0
-        function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $script:tenantWideCalls++ }
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
-        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Get-ScoutTenantWideResource {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $ApiResources) $script:tenantWideCalls++ }
+        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Root) @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
 
         Get-ScoutRawInventory | Out-Null
 
@@ -109,7 +121,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
 Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
     BeforeEach {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') { return @((New-MockSubscriptionRow -Id 'sub-1')) }
             if ($Query -match '^resources\b') {
                 return @([pscustomobject]@{
@@ -159,11 +172,14 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
     It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
         $script:apiSubscriptions = @()
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([object[]] $Subscriptions, [string] $AzureEnvironment)
             $script:apiSubscriptions += , @($Subscriptions)
             [pscustomobject]@{ PolicyDefinitions = @([pscustomobject]@{ id = 'policy-1' }); PolicySetDefinitions = @() }
         }
-        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Root) @() }
         function Get-ScoutTenantWideResource {
             param([object[]] $ApiResources)
             @(
@@ -211,7 +227,8 @@ Describe 'Get-ScoutRawInventory -- SkipToken paging' {
         # pattern) -- Add-Member on an array instance reproduces that shape for the mock.
         $script:callNumber = 0
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -notmatch '^resources\b') { return @() }
             $script:callNumber++
             if ($script:callNumber -eq 1) {
@@ -234,7 +251,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
         $ids = 1..2500 | ForEach-Object { "sub-$_" }
         $script:batchSizes = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') { $script:batchSizes += @($Subscription).Count }
             return @()
         }
@@ -245,7 +263,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
 
     It 'derives the subscription list from resourcecontainers when none is supplied' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @((New-MockSubscriptionRow -Id 'aaa'), (New-MockSubscriptionRow -Id 'bbb'))
             }
@@ -263,7 +282,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
         # either way, which is exactly why this one checks the -Subscription argument.
         $script:resourceCallSubscriptions = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @((New-MockSubscriptionRow -Id 'aaa'), (New-MockSubscriptionRow -Id 'bbb'))
             }
@@ -281,7 +301,8 @@ Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
         $script:attempts = 0
         Mock Start-Sleep { }
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') {
                 $script:attempts++
                 if ($script:attempts -lt 2) { throw 'Status: 429 (Too Many Requests)' }
@@ -296,7 +317,8 @@ Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
 
     It 'warns and skips (without throwing) a non-throttling failure' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') { throw 'AuthorizationFailed: access denied' }
             return @()
         }
@@ -305,7 +327,8 @@ Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
     }
 
     It 'warns with a diagnostic hint when literally nothing came back' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         Get-ScoutRawInventory -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match 'zero resources'
     }
@@ -319,7 +342,8 @@ Describe 'Get-ScoutRawInventory -- Invoke-Collect -FromInventory interoperabilit
 
     It 'produces a row set Invoke-Collect can shape without going back to Resource Graph' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @([pscustomobject]@{
                         id = '/subscriptions/aaa'; name = 'demo-sub'; type = 'microsoft.resources/subscriptions'
@@ -363,7 +387,8 @@ Describe 'Get-ScoutRawInventory -- Invoke-Collect -FromInventory interoperabilit
 Describe 'Get-ScoutRawInventory -- management group scoping' {
     It 'passes -ManagementGroup on the tenant-wide call when no subscription list is known yet' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') { $script:sawMg = $ManagementGroup }
             return @()
         }

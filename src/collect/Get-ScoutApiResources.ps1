@@ -73,6 +73,8 @@ $ErrorActionPreference = 'Stop'
     `Import-Governance` and the legacy function -- no separate authentication path.
 #>
 function Get-ScoutApiResources {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+        Justification = 'Public function name is load-bearing across tests, docs, and manifests; renaming is an API break out of scope for a lint-only pass.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] [object[]] $Subscriptions,

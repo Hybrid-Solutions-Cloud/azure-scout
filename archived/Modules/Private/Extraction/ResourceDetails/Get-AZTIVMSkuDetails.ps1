@@ -17,6 +17,7 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola, Olli Uronen (Seppohto)
 #>
 function Get-AZSCVMSkuDetails {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param ($Resources)
 
     # Same exposure as Get-AZSCVMQuotas: this runs in module scope, where StrictMode is in

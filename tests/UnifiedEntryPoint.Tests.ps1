@@ -23,7 +23,7 @@
 
 BeforeAll {
     $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
-    Import-Module (Join-Path $script:ModuleRoot 'AzureScout.psd1') -Force
+    Import-Module (Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1') -Force
     $script:Module = Get-Module AzureScout
     $script:Cmd    = Get-Command Invoke-AzureScout
 }
@@ -52,7 +52,7 @@ Describe 'Single entry point — parameter surface' {
         # developer may already have loaded. This makes the command-not-found
         # assertion a release-contract test rather than a machine-state test.
         Remove-Module AzureScout -Force -ErrorAction SilentlyContinue
-        Import-Module (Join-Path $script:ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
+        Import-Module (Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
         $script:Module = Get-Module AzureScout | Where-Object {
             $_.ModuleBase -eq $script:ModuleRoot
         } | Select-Object -First 1
@@ -66,7 +66,7 @@ Describe 'Single entry point — parameter surface' {
         # Run the invocation assertion in a clean process: Pester shares one
         # PowerShell session with other suites, which may have loaded a prior
         # gallery version for compatibility tests.
-        $modulePath = (Join-Path $script:ModuleRoot 'AzureScout.psd1').Replace("'", "''")
+        $modulePath = (Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1').Replace("'", "''")
         $probe = @"
 `$env:AZURESCOUT_SKIP_UPDATE_CHECK = '1'
 `$ErrorActionPreference = 'Stop'
@@ -215,7 +215,7 @@ Describe 'Wizard — checklist primitive' {
 
 Describe 'Wizard — grouped assessment checklist (AB#7188)' {
     BeforeAll {
-        $script:RegistryKeys = @((Import-PowerShellDataFile (Join-Path $script:ModuleRoot 'manifests/assessments.psd1')).Keys)
+        $script:RegistryKeys = @((Import-PowerShellDataFile (Join-Path -Path $script:ModuleRoot -ChildPath 'manifests/assessments.psd1')).Keys)
     }
 
     It 'puts every registry key under exactly one heading' {
@@ -283,7 +283,7 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
     }
 
     It 'CAF: Azure Landing Zone is still the default selection at the wizard call site' {
-        $source = Get-Content (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1') -Raw
+        $source = Get-Content (Join-Path -Path $script:ModuleRoot -ChildPath 'src/Start-AZSCWizard.ps1') -Raw
         $source | Should -Match "Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups \`$assessmentGroups -DefaultSelected @\('CAF: Azure Landing Zone'\)"
     }
 

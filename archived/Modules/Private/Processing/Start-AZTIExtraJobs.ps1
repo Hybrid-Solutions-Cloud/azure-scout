@@ -20,6 +20,8 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCExtraJobs {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param ($SkipDiagram,
             $SkipAdvisory,
             $SkipPolicy,

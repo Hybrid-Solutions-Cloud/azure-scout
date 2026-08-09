@@ -78,7 +78,7 @@ function Import-ScoutDocxOpenXmlAssembly {
     if ($loaded) { return }
 
     $repoRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-    $cacheDir = Join-Path $repoRoot 'output' '.tools' 'openxml' $Script:ScoutDocxOpenXmlVersion
+    $cacheDir = Join-Path -Path $repoRoot -ChildPath 'output' -AdditionalChildPath '.tools', 'openxml', $Script:ScoutDocxOpenXmlVersion
     $requiredDlls = @('DocumentFormat.OpenXml.Framework.dll', 'System.IO.Packaging.dll', 'DocumentFormat.OpenXml.dll')
 
     $haveAll = -not ($requiredDlls | Where-Object { -not (Test-Path (Join-Path $cacheDir $_)) })
@@ -140,7 +140,7 @@ function New-ScoutDocxList {
     return , ([System.Collections.Generic.List[object]]::new())
 }
 
-function Add-ScoutDocxStyleDefinitions {
+function Add-ScoutDocxStyleDefinition {
     <#
     .SYNOPSIS
         Create the StyleDefinitionsPart and declare the named styles the document uses.
@@ -497,7 +497,7 @@ function Add-ScoutDocxFooterPart {
     return $part
 }
 
-function Add-ScoutDocxBlankHeaderFooterParts {
+function Add-ScoutDocxBlankHeaderFooterPart {
     <#
     .SYNOPSIS
         Empty first-page header and footer, so the cover carries no running furniture.
@@ -895,11 +895,12 @@ function Get-ScoutDocxSeverityColor {
 #region HTML fallback (non-fatal-on-failure companion, mirrors Export-Pdf.ps1's pattern)
 
 function Export-ScoutDocxHtmlFallback {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Collect', Justification = 'Kept for signature parity -- mirrors Export-Pdf.ps1''s Export-ScoutPdfHtmlFallback pattern (see this function''s region header).')]
     param($Findings, $Collect, [string] $OutputPath, [string] $Reason)
     if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
     $json = ($Findings | ConvertTo-Json -Depth 100) -replace '</', '<\/'
     $safeReason = $Reason -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    $generatedOn = Get-ScoutDocxProp $Findings 'GeneratedOn' '(unknown)'
+    $generatedOn = Get-ScoutDocxProp -Obj $Findings -Name 'GeneratedOn' -Default '(unknown)'
     $html = @"
 <!DOCTYPE html>
 <html>
@@ -931,7 +932,7 @@ function Export-ScoutDocxHtmlFallback {
 
 #region Section builders
 
-function New-ScoutDocxCoverParagraphs {
+function New-ScoutDocxCoverParagraph {
     <#
     .SYNOPSIS
         The cover page — the four facts that make a deliverable read as "for them".
@@ -1027,7 +1028,7 @@ function New-ScoutDocxDocumentInformation {
     $labelRuns.Add((New-ScoutDocxRun -Text 'Document Information' -SizePt 16 -Hex $Script:ScoutDocxNavy -Bold $true -Font 'Segoe UI Semibold'))
     $Body.Append((New-ScoutDocxPara -Runs $labelRuns -SpaceBeforePt 12 -SpaceAfterPt 8 -KeepNext $true))
 
-    $fwNames = @(@($Frameworks) | ForEach-Object { "$(Get-ScoutDocxProp $_ 'Framework')" } | Where-Object { $_ })
+    $fwNames = @(@($Frameworks) | ForEach-Object { "$(Get-ScoutDocxProp -Obj $_ -Name 'Framework')" } | Where-Object { $_ })
     $fwText = if ($fwNames.Count -gt 0) { [string]::Join(', ', $fwNames) } else { 'None scored for this run' }
 
     $rowSpec = [ordered]@{
@@ -1068,6 +1069,7 @@ function New-ScoutDocxTableOfContents {
         Word itself resolves against the heading styles, which is why W-01/W-02 had to land
         first -- a TOC field over an unstyled document collects nothing.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = '"Table of Contents" is a fixed English term with no valid singular form.')]
     param($Body)
 
     $headRuns = New-ScoutDocxList
@@ -1119,10 +1121,10 @@ function New-ScoutDocxExecSummary {
         foreach ($fw in @($Frameworks)) {
             $r++
             $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
-            $score = Get-ScoutDocxProp $fw 'Score'
+            $score = Get-ScoutDocxProp -Obj $fw -Name 'Score'
             $scoreText = if ($null -eq $score) { 'Not scored' } else { "$score / 100" }
             $cells = New-ScoutDocxList
-            $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $fw 'Framework')" -WidthIn 3.0 -FillHex $bg))
+            $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $fw -Name 'Framework')" -WidthIn 3.0 -FillHex $bg))
             $cells.Add((New-ScoutDocxCell -Text $scoreText -WidthIn 3.0 -Bold $true -Hex (Get-ScoutDocxScoreColor $score) -FillHex $bg -Align 'center'))
             $rows.Add((New-ScoutDocxRow -Cells $cells))
         }
@@ -1130,12 +1132,12 @@ function New-ScoutDocxExecSummary {
     }
 
     $areaArr = @($Areas)
-    $passSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp $_ 'Pass' 0 } | Measure-Object -Sum).Sum
-    $partialSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp $_ 'Partial' 0 } | Measure-Object -Sum).Sum
-    $failSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp $_ 'Fail' 0 } | Measure-Object -Sum).Sum
+    $passSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp -Obj $_ -Name 'Pass' -Default 0 } | Measure-Object -Sum).Sum
+    $partialSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp -Obj $_ -Name 'Partial' -Default 0 } | Measure-Object -Sum).Sum
+    $failSum = ($areaArr | ForEach-Object { Get-ScoutDocxProp -Obj $_ -Name 'Fail' -Default 0 } | Measure-Object -Sum).Sum
     $manualCount = @($Manual).Count
     $errorCount = @($Errors).Count
-    $highGaps = @($Gaps | Where-Object { (Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp $_ 'Severity')) -eq 'HIGH' }).Count
+    $highGaps = @($Gaps | Where-Object { (Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp -Obj $_ -Name 'Severity')) -eq 'HIGH' }).Count
 
     Add-ScoutDocxParagraph -Body $Body -Text ' ' -SizePt 4
     foreach ($line in @(
@@ -1164,12 +1166,12 @@ function New-ScoutDocxAreaScorecard {
     #>
     param($Body, $Area)
 
-    $score = Get-ScoutDocxProp $Area 'Score'
+    $score = Get-ScoutDocxProp -Obj $Area -Name 'Score'
     $scoreText = if ($null -eq $score) { 'Not assessed' } else { "$score / 100" }
-    $pass = Get-ScoutDocxProp $Area 'Pass' 0
-    $partial = Get-ScoutDocxProp $Area 'Partial' 0
-    $fail = Get-ScoutDocxProp $Area 'Fail' 0
-    $notAssessed = Get-ScoutDocxProp $Area 'Manual' 0
+    $pass = Get-ScoutDocxProp -Obj $Area -Name 'Pass' -Default 0
+    $partial = Get-ScoutDocxProp -Obj $Area -Name 'Partial' -Default 0
+    $fail = Get-ScoutDocxProp -Obj $Area -Name 'Fail' -Default 0
+    $notAssessed = Get-ScoutDocxProp -Obj $Area -Name 'Manual' -Default 0
 
     $spec = [ordered]@{
         'Alignment score' = $scoreText
@@ -1208,10 +1210,10 @@ function Get-ScoutDocxCurrentState {
     [OutputType([string])]
     param($Area)
 
-    $pass = [int](Get-ScoutDocxProp $Area 'Pass' 0)
-    $partial = [int](Get-ScoutDocxProp $Area 'Partial' 0)
-    $fail = [int](Get-ScoutDocxProp $Area 'Fail' 0)
-    $manual = [int](Get-ScoutDocxProp $Area 'Manual' 0)
+    $pass = [int](Get-ScoutDocxProp -Obj $Area -Name 'Pass' -Default 0)
+    $partial = [int](Get-ScoutDocxProp -Obj $Area -Name 'Partial' -Default 0)
+    $fail = [int](Get-ScoutDocxProp -Obj $Area -Name 'Fail' -Default 0)
+    $manual = [int](Get-ScoutDocxProp -Obj $Area -Name 'Manual' -Default 0)
     $automated = $pass + $partial + $fail
 
     if ($automated -eq 0 -and $manual -eq 0) {
@@ -1232,7 +1234,7 @@ function Get-ScoutDocxCurrentState {
     return $sentence
 }
 
-function New-ScoutDocxActionItems {
+function New-ScoutDocxActionItem {
     <#
     .SYNOPSIS
         The action items closing a chapter — owner and effort per row, so it can be assigned.
@@ -1246,9 +1248,9 @@ function New-ScoutDocxActionItems {
     param($Body, $AreaFindings)
 
     $actionable = @(@($AreaFindings) | Where-Object {
-            $s = "$(Get-ScoutDocxProp $_ 'Status')"
+            $s = "$(Get-ScoutDocxProp -Obj $_ -Name 'Status')"
             $s -eq 'Fail' -or $s -eq 'Partial'
-        } | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Id)
+        } | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp -Obj $_ -Name 'Severity') } }, Id)
 
     Add-ScoutDocxHeading -Body $Body -Text 'Action items' -Level 3
     if ($actionable.Count -eq 0) {
@@ -1268,16 +1270,16 @@ function New-ScoutDocxActionItems {
     foreach ($f in $actionable) {
         $r++
         $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
-        $remediation = "$(Get-ScoutDocxProp $f 'Remediation')"
-        if (-not $remediation.Trim()) { $remediation = "$(Get-ScoutDocxProp $f 'Title')" }
-        $effort = switch (Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $f 'Severity')) {
+        $remediation = "$(Get-ScoutDocxProp -Obj $f -Name 'Remediation')"
+        if (-not $remediation.Trim()) { $remediation = "$(Get-ScoutDocxProp -Obj $f -Name 'Title')" }
+        $effort = switch (Get-ScoutDocxSeverityRank (Get-ScoutDocxProp -Obj $f -Name 'Severity')) {
             0 { 'High' }
             1 { 'Medium' }
             2 { 'Low' }
             default { 'Unsized' }
         }
         $cells = New-ScoutDocxList
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Id')" -WidthIn 1.2 -SizePt 9 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $f -Name 'Id')" -WidthIn 1.2 -SizePt 9 -FillHex $bg))
         $cells.Add((New-ScoutDocxCell -Text $remediation -WidthIn 3.3 -SizePt 9 -FillHex $bg))
         $cells.Add((New-ScoutDocxCell -Text $effort -WidthIn 1.0 -SizePt 9 -FillHex $bg -Align 'center'))
         $cells.Add((New-ScoutDocxCell -Text 'Unassigned' -WidthIn 1.0 -SizePt 9 -Hex $Script:ScoutDocxGray -FillHex $bg -Align 'center'))
@@ -1301,19 +1303,19 @@ function New-ScoutDocxFindingsTable {
     $rows.Add((New-ScoutDocxRow -Cells $header -Header $true))
 
     $r = 0
-    foreach ($f in (@($AreaFindings) | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Id)) {
+    foreach ($f in (@($AreaFindings) | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp -Obj $_ -Name 'Severity') } }, Id)) {
         $r++
         $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
-        $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp $f 'Severity')
-        $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp $f 'Severity')
+        $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp -Obj $f -Name 'Severity')
+        $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp -Obj $f -Name 'Severity')
         # Clause W-17: a manual control is Not assessed, never a zero and never a pass.
-        $status = "$(Get-ScoutDocxProp $f 'Status')"
+        $status = "$(Get-ScoutDocxProp -Obj $f -Name 'Status')"
         if ($status -eq 'Manual') { $status = 'Not assessed' }
         $cells = New-ScoutDocxList
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Id')" -WidthIn 1.3 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $f -Name 'Id')" -WidthIn 1.3 -FillHex $bg))
         $cells.Add((New-ScoutDocxCell -Text $sevLabel -WidthIn 1.0 -Bold $true -Hex $Script:ScoutDocxPaper -FillHex $sevColor -Align 'center'))
         $cells.Add((New-ScoutDocxCell -Text $status -WidthIn 1.0 -FillHex $bg -Align 'center'))
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $f 'Title')" -WidthIn 3.2 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $f -Name 'Title')" -WidthIn 3.2 -FillHex $bg))
         $rows.Add((New-ScoutDocxRow -Cells $cells))
     }
     return , (New-ScoutDocxTable -ColWidthsIn @(1.3, 1.0, 1.0, 3.2) -Rows $rows)
@@ -1350,9 +1352,9 @@ function New-ScoutDocxAreaFindingsSection {
     }
 
     foreach ($area in $sortedAreas) {
-        $framework = Get-ScoutDocxProp $area 'Framework'
-        $areaName = Get-ScoutDocxProp $area 'Area'
-        $score = Get-ScoutDocxProp $area 'Score'
+        $framework = Get-ScoutDocxProp -Obj $area -Name 'Framework'
+        $areaName = Get-ScoutDocxProp -Obj $area -Name 'Area'
+        $score = Get-ScoutDocxProp -Obj $area -Name 'Score'
         $scoreText = if ($null -eq $score) { 'not scored' } else { "$score / 100" }
         Add-ScoutDocxHeading -Body $Body -Text "$framework — $areaName (Score: $scoreText)" -Level 2
 
@@ -1362,14 +1364,14 @@ function New-ScoutDocxAreaFindingsSection {
         Add-ScoutDocxParagraph -Body $Body -Text (Get-ScoutDocxCurrentState -Area $area)
 
         $areaFindings = @($AllFindings | Where-Object {
-                (Get-ScoutDocxProp $_ 'Framework') -eq $framework -and (Get-ScoutDocxProp $_ 'Area') -eq $areaName
+                (Get-ScoutDocxProp -Obj $_ -Name 'Framework') -eq $framework -and (Get-ScoutDocxProp -Obj $_ -Name 'Area') -eq $areaName
             })
 
         Add-ScoutDocxHeading -Body $Body -Text 'Findings' -Level 3
 
         if ($areaFindings.Count -eq 0) {
             Add-ScoutDocxParagraph -Body $Body -Text 'No individual findings recorded for this area.' -Hex $Script:ScoutDocxGray -Italic $true
-            New-ScoutDocxActionItems -Body $Body -AreaFindings $areaFindings
+            New-ScoutDocxActionItem -Body $Body -AreaFindings $areaFindings
             continue
         }
 
@@ -1388,14 +1390,14 @@ function New-ScoutDocxAreaFindingsSection {
             $Body.Append((New-ScoutDocxFindingsTable -AreaFindings $areaFindings))
         }
 
-        New-ScoutDocxActionItems -Body $Body -AreaFindings $areaFindings
+        New-ScoutDocxActionItem -Body $Body -AreaFindings $areaFindings
         Add-ScoutDocxParagraph -Body $Body -Text ' ' -SizePt 4
     }
 
     return , $appendix
 }
 
-function New-ScoutDocxAppendices {
+function New-ScoutDocxAppendix {
     <#
     .SYNOPSIS
         Emit the long tables the body deferred.
@@ -1439,8 +1441,8 @@ function Get-ScoutDocxEvidenceSummary {
     [OutputType([string])]
     param($Gap)
 
-    $count = Get-ScoutDocxProp $Gap 'EvidenceCount'
-    $denom = Get-ScoutDocxProp $Gap 'Denominator'
+    $count = Get-ScoutDocxProp -Obj $Gap -Name 'EvidenceCount'
+    $denom = Get-ScoutDocxProp -Obj $Gap -Name 'Denominator'
 
     if ($null -eq $count) { return '' }
 
@@ -1467,7 +1469,7 @@ function New-ScoutDocxGapsSection {
 
     # @() wraps the whole pipeline for the same reason New-ScoutDocxAreaFindingsSection
     # wraps its Sort-Object above -- zero-input Sort-Object collapses to $null otherwise.
-    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp $_ 'Severity') } }, Area)
+    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutDocxSeverityRank (Get-ScoutDocxProp -Obj $_ -Name 'Severity') } }, Area)
     $top = @($sorted | Select-Object -First $Script:ScoutDocxMaxGaps)
 
     if ($top.Count -eq 0) {
@@ -1494,12 +1496,12 @@ function New-ScoutDocxGapsSection {
     foreach ($gap in $top) {
         $r++
         $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
-        $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp $gap 'Severity')
-        $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp $gap 'Severity')
+        $sevLabel = Get-ScoutDocxSeverityLabel (Get-ScoutDocxProp -Obj $gap -Name 'Severity')
+        $sevColor = Get-ScoutDocxSeverityColor (Get-ScoutDocxProp -Obj $gap -Name 'Severity')
         $cells = New-ScoutDocxList
         $cells.Add((New-ScoutDocxCell -Text $sevLabel -WidthIn 1.0 -Bold $true -Hex $Script:ScoutDocxPaper -FillHex $sevColor -Align 'center'))
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $gap 'Area')" -WidthIn 1.4 -FillHex $bg))
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $gap 'Title')" -WidthIn 2.6 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $gap -Name 'Area')" -WidthIn 1.4 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $gap -Name 'Title')" -WidthIn 2.6 -FillHex $bg))
         $cells.Add((New-ScoutDocxCell -Text (Get-ScoutDocxEvidenceSummary $gap) -WidthIn 1.5 -FillHex $bg -SizePt 9))
         $rows.Add((New-ScoutDocxRow -Cells $cells))
     }
@@ -1534,8 +1536,8 @@ function New-ScoutDocxManualSection {
         $r++
         $bg = if ($r % 2 -eq 0) { $Script:ScoutDocxMist } else { $Script:ScoutDocxPaper }
         $cells = New-ScoutDocxList
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $m 'Area')" -WidthIn 2.0 -FillHex $bg))
-        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp $m 'Title')" -WidthIn 4.5 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $m -Name 'Area')" -WidthIn 2.0 -FillHex $bg))
+        $cells.Add((New-ScoutDocxCell -Text "$(Get-ScoutDocxProp -Obj $m -Name 'Title')" -WidthIn 4.5 -FillHex $bg))
         $rows.Add((New-ScoutDocxRow -Cells $cells))
     }
     $Body.Append((New-ScoutDocxTable -ColWidthsIn @(2.0, 4.5) -Rows $rows))
@@ -1676,7 +1678,7 @@ function Add-ScoutDocxFigureSection {
     }
 }
 
-function New-ScoutDocxSectionProperties {
+function New-ScoutDocxSectionProperty {
     # US Letter, portrait, 1" top/bottom, 0.75" left/right — twips (dxa) throughout.
     #
     # AB#6875, clauses W-03/W-04: the header and footer parts exist only if the SECTION
@@ -1754,20 +1756,20 @@ function Export-Word {
         $outFile = Join-Path $OutputPath 'assessment_report.docx'
         if (Test-Path $outFile) { Remove-Item $outFile -Force }
 
-        $frameworks = @(Get-ScoutDocxProp $Findings 'Frameworks')
-        $areas = @(Get-ScoutDocxProp $Findings 'Areas')
-        $gaps = @(Get-ScoutDocxProp $Findings 'Gaps')
-        $manual = @(Get-ScoutDocxProp $Findings 'Manual')
-        $errors = @(Get-ScoutDocxProp $Findings 'Errors')
-        $allFindings = @(Get-ScoutDocxProp $Findings 'Findings')
-        $generatedOn = Get-ScoutDocxProp $Findings 'GeneratedOn'
+        $frameworks = @(Get-ScoutDocxProp -Obj $Findings -Name 'Frameworks')
+        $areas = @(Get-ScoutDocxProp -Obj $Findings -Name 'Areas')
+        $gaps = @(Get-ScoutDocxProp -Obj $Findings -Name 'Gaps')
+        $manual = @(Get-ScoutDocxProp -Obj $Findings -Name 'Manual')
+        $errors = @(Get-ScoutDocxProp -Obj $Findings -Name 'Errors')
+        $allFindings = @(Get-ScoutDocxProp -Obj $Findings -Name 'Findings')
+        $generatedOn = Get-ScoutDocxProp -Obj $Findings -Name 'GeneratedOn'
         $generatedText = if ($generatedOn) {
             try { ([datetime]$generatedOn).ToString('yyyy-MM-dd') } catch { "$generatedOn" }
         } else { (Get-Date).ToString('yyyy-MM-dd') }
 
-        $meta = Get-ScoutDocxProp $Collect '_meta'
-        $scope = Get-ScoutDocxProp $meta 'scope'
-        $mgId = Get-ScoutDocxProp $meta 'managementGroupId'
+        $meta = Get-ScoutDocxProp -Obj $Collect -Name '_meta'
+        $scope = Get-ScoutDocxProp -Obj $meta -Name 'scope'
+        $mgId = Get-ScoutDocxProp -Obj $meta -Name 'managementGroupId'
         $metaParts = [System.Collections.Generic.List[string]]::new()
         $metaParts.Add("Generated $generatedText")
         if ($scope) { $metaParts.Add("Scope: $scope") }
@@ -1781,7 +1783,7 @@ function Export-Word {
         # clause exists to catch.
         $clientName = $null
         foreach ($key in 'tenantDisplayName', 'tenantName', 'tenantDomain', 'tenant', 'tenantId') {
-            $v = Get-ScoutDocxProp $meta $key
+            $v = Get-ScoutDocxProp -Obj $meta -Name $key
             if ($v) { $clientName = "$v"; break }
         }
         if (-not $clientName) { $clientName = 'Azure tenant (not identified in this run)' }
@@ -1794,7 +1796,7 @@ function Export-Word {
         # AB#6874 (W-01). Added BEFORE the body is populated so every heading emitted below has a
         # style to reference. Phase 0 measured the absence of this part as the root formatting
         # defect -- no styles means no navigation pane, no TOC field, and no rebranding.
-        $null = Add-ScoutDocxStyleDefinitions -MainPart $mainPart
+        $null = Add-ScoutDocxStyleDefinition -MainPart $mainPart
         # AB#6875 (W-06/W-07 and the TOC's supporting settings). Same ordering rule: every part a
         # body element references has to exist before the body is written.
         $null = Add-ScoutDocxNumberingPart -MainPart $mainPart
@@ -1805,14 +1807,14 @@ function Export-Word {
         # numbering start on the first content page, the way a bound deliverable does.
         $headerPart = Add-ScoutDocxHeaderPart -MainPart $mainPart -Title $assessmentName -Classification $Script:ScoutDocxClassification
         $footerPart = Add-ScoutDocxFooterPart -MainPart $mainPart -Provenance "$clientName  ·  Scanned $generatedText"
-        $blank = Add-ScoutDocxBlankHeaderFooterParts -MainPart $mainPart
+        $blank = Add-ScoutDocxBlankHeaderFooterPart -MainPart $mainPart
 
         $mainPart.Document = New-ScoutDocxEl "$Script:ScoutDocxWNs.Document"
         $body = New-ScoutDocxEl "$Script:ScoutDocxWNs.Body"
         $mainPart.Document.Append($body)
 
         # ---- Cover (W-08) ----
-        New-ScoutDocxCoverParagraphs -Body $body -Title $assessmentName `
+        New-ScoutDocxCoverParagraph -Body $body -Title $assessmentName `
             -Subtitle 'Executive Assessment — CAF & WAF Alignment' -MetaLine $metaLine `
             -ClientName $clientName -ScanDate $generatedText
         Add-ScoutDocxPageBreak -Body $body
@@ -1847,10 +1849,10 @@ function Export-Word {
         New-ScoutDocxManualSection -Body $body -Manual $manual
 
         # ---- Appendices (W-13) ----
-        New-ScoutDocxAppendices -Body $body -Appendix $appendix
+        New-ScoutDocxAppendix -Body $body -Appendix $appendix
 
         # ---- Section properties (must be the last child of w:body) ----
-        $body.Append((New-ScoutDocxSectionProperties `
+        $body.Append((New-ScoutDocxSectionProperty `
                     -HeaderRelId $mainPart.GetIdOfPart($headerPart) `
                     -FooterRelId $mainPart.GetIdOfPart($footerPart) `
                     -FirstHeaderRelId $mainPart.GetIdOfPart($blank.Header) `

@@ -39,7 +39,7 @@ BeforeAll {
 
 Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
     BeforeEach {
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
     }
 
     Context 'the collect/assess/report step swallowed an error internally' {
@@ -47,10 +47,10 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
             Mock Invoke-ScoutAssessmentCore {
                 if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
                 Add-SimulatedSwallowedError
-                $folder = Join-Path $OutputPath '20260101_000000'
+                $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
                 New-Item -ItemType Directory -Path $folder -Force | Out-Null
-                '{}' | Out-File (Join-Path $folder 'collect.json')
-                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path $folder 'findings.json')
+                '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
+                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
                 return $folder
             }
         }
@@ -61,20 +61,20 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
 
         It 'records hadNonTerminatingErrors = true even though nothing threw' {
             $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-            $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+            $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.hadNonTerminatingErrors | Should -BeTrue
             $summary.assessmentError | Should -BeNullOrEmpty
         }
 
         It 'degrades the outcome to PartialSuccess despite a clean (non-throwing) return' {
             $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-            $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+            $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.outcome | Should -Be 'PartialSuccess'
         }
 
         It 'notes the non-terminating errors in pipeline-summary.md' {
             $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-            $md = Get-Content (Join-Path $runFolder 'pipeline-summary.md') -Raw
+            $md = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.md') -Raw
             $md | Should -Match 'Non-terminating errors: yes'
         }
     }
@@ -86,17 +86,17 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
                     Add-SimulatedSwallowedError
                     return @(Get-OkPermissionCheck)
                 }
-                $folder = Join-Path $OutputPath '20260101_000000'
+                $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
                 New-Item -ItemType Directory -Path $folder -Force | Out-Null
-                '{}' | Out-File (Join-Path $folder 'collect.json')
-                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path $folder 'findings.json')
+                '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
+                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
                 return $folder
             }
         }
 
         It 'records permissionAudit.HadNonTerminatingErrors = true and degrades to PartialSuccess' {
             $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-            $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+            $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.permissionAudit.HadNonTerminatingErrors | Should -BeTrue
             $summary.outcome | Should -Be 'PartialSuccess'
         }
@@ -106,17 +106,17 @@ Describe 'Invoke-ScoutPipeline -- AB#402 non-terminating error surfacing' {
         BeforeEach {
             Mock Invoke-ScoutAssessmentCore {
                 if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
-                $folder = Join-Path $OutputPath '20260101_000000'
+                $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
                 New-Item -ItemType Directory -Path $folder -Force | Out-Null
-                '{}' | Out-File (Join-Path $folder 'collect.json')
-                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path $folder 'findings.json')
+                '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
+                @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
                 return $folder
             }
         }
 
         It 'records hadNonTerminatingErrors = false and outcome Success' {
             $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-            $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+            $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
             $summary.hadNonTerminatingErrors | Should -BeFalse
             $summary.outcome | Should -Be 'Success'
         }

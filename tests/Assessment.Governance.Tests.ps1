@@ -32,7 +32,8 @@ BeforeAll {
     # Stub Invoke-AzRestMethod so Import-Governance's Get-Command probe finds it
     # (skipping the Az.Accounts import) and Pester can mock it below.
     if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
-        function Invoke-AzRestMethod { param([string] $Method, [string] $Path) }
+        function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Method, [string] $Path) }
     }
 
     # Deterministic synthetic governance dataset used across the collector +

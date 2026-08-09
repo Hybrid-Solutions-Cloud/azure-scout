@@ -21,7 +21,7 @@
 #>
 
 $ModuleRoot = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path $ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
+Import-Module (Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
 
 Describe 'Invoke-AZSCGraphRequest' {
 

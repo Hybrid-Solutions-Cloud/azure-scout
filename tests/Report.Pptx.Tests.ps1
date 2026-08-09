@@ -33,10 +33,10 @@ BeforeAll {
     }
 
     $script:Findings = @(
-        (New-PptxTestFinding 'CAF-NET-01' 'CAF' 'Networking' 'Pass' 'low')
-        (New-PptxTestFinding 'CAF-NET-02' 'CAF' 'Networking' 'Fail' 'high')
-        (New-PptxTestFinding 'WAF-SEC-01' 'WAF' 'Security' 'Fail' $null)
-        (New-PptxTestFinding 'WAF-SEC-02' 'WAF' 'Security' 'Manual')
+        (New-PptxTestFinding -Id 'CAF-NET-01' -Framework 'CAF' -Area 'Networking' -Status 'Pass' -Severity 'low')
+        (New-PptxTestFinding -Id 'CAF-NET-02' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'high')
+        (New-PptxTestFinding -Id 'WAF-SEC-01' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity $null)
+        (New-PptxTestFinding -Id 'WAF-SEC-02' -Framework 'WAF' -Area 'Security' -Status 'Manual')
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
@@ -53,7 +53,8 @@ BeforeAll {
         # it into a one-element array-of-an-array. Capture directly instead
         # (`$slides = Get-PptxSlideEntries ...`), then @() that variable if
         # still-defensive re-wrapping is wanted.
-        param([string]$Path)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([string]$Path)
         Add-Type -AssemblyName System.IO.Compression -ErrorAction SilentlyContinue
         $bytes = [System.IO.File]::ReadAllBytes($Path)
         $ms = [System.IO.MemoryStream]::new($bytes)
@@ -70,7 +71,7 @@ BeforeAll {
 
 Describe 'Export-Pptx -- basic deck generation AB#5048' {
     BeforeAll {
-        $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'pptx'
+        $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pptx'
         if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
         $script:DeckPath = Export-Pptx -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     }
@@ -91,7 +92,7 @@ Describe 'Export-Pptx -- basic deck generation AB#5048' {
 
 Describe 'Export-Pptx -- empty-input crash class (StrictMode sweep)' {
     It 'does not throw when Areas/Gaps/Manual are all empty (fresh/all-Pass assessment)' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pptx-empty'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pptx-empty'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $emptyScored = Get-Score -Findings @()
@@ -113,10 +114,10 @@ Describe 'Export-Pptx -- empty-input crash class (StrictMode sweep)' {
     }
 
     It 'does not throw when Areas/Gaps/Manual each carry exactly one item (single-item pipeline collapse)' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pptx-single'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pptx-single'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
-            $oneFinding = @(New-PptxTestFinding 'CAF-SOLO-01' 'CAF' 'Solo' 'Fail' 'high')
+            $oneFinding = @(New-PptxTestFinding -Id 'CAF-SOLO-01' -Framework 'CAF' -Area 'Solo' -Status 'Fail' -Severity 'high')
             $singleScored = Get-Score -Findings $oneFinding
 
             $path = Export-Pptx -Findings $singleScored -Collect $null -OutputPath $dir
@@ -133,11 +134,11 @@ Describe 'Export-Pptx -- empty-input crash class (StrictMode sweep)' {
     }
 
     It 'New-ScoutGapsSlides does not throw on an empty -Gaps array directly' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pptx-gaps-unit'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pptx-gaps-unit'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            $shell = New-ScoutDeckShell -OutFile (Join-Path $dir 'unit.pptx')
+            $shell = New-ScoutDeckShell -OutFile (Join-Path -Path $dir -ChildPath 'unit.pptx')
             $pageRef = [ref] 3
             New-ScoutGapsSlides -Shell $shell -Gaps @() -PageCounter $pageRef -TotalPages 6
             $shell.Doc.Dispose()
@@ -148,11 +149,11 @@ Describe 'Export-Pptx -- empty-input crash class (StrictMode sweep)' {
     }
 
     It 'New-ScoutManualSlide does not throw on an empty -Manual array directly' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pptx-manual-unit'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pptx-manual-unit'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            $shell = New-ScoutDeckShell -OutFile (Join-Path $dir 'unit.pptx')
+            $shell = New-ScoutDeckShell -OutFile (Join-Path -Path $dir -ChildPath 'unit.pptx')
             $pageRef = [ref] 4
             New-ScoutManualSlide -Shell $shell -Manual @() -PageCounter $pageRef -TotalPages 6
             $shell.Doc.Dispose()

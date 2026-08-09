@@ -35,14 +35,14 @@ $ResUCount = 1
                 $vnlks = ($VNETLinks | Where-Object {$_.id -like ($1.id + '*')})
                 $vnlks = if (!$vnlks) {[pscustomobject]@{id = 'none'}} else {$vnlks | Select-Object @{Name="id";Expression={(Get-AZSCIdSegment -Id $_.properties.virtualNetwork.id -Index 8)}}}
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -54,7 +54,7 @@ $ResUCount = 1
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null

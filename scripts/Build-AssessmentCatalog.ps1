@@ -49,11 +49,11 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $OutputPath = Join-Path $RepoRoot 'docs' 'reference' 'assessment-catalogue.md'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'reference', 'assessment-catalogue.md'
 }
 
-$Registry = Import-PowerShellDataFile (Join-Path $RepoRoot 'manifests' 'assessments.psd1')
-$RulesDir = Join-Path $RepoRoot 'src' 'assess' 'rules'
+$Registry = Import-PowerShellDataFile (Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'assessments.psd1')
+$RulesDir = Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'assess', 'rules'
 $RuleFiles = @(Get-ChildItem -LiteralPath $RulesDir -Filter '*.yaml' -File)
 
 # Rule counts per file, read once. A rule is a top-level `- id:` entry; a manual rule declares
@@ -78,7 +78,7 @@ $Rows = [System.Collections.Generic.List[object]]::new()
 
 foreach ($name in ($Registry.Keys | Sort-Object)) {
     $entry = $Registry[$name]
-    $patterns = @(Get-Entry $entry 'Rules' @())
+    $patterns = @(Get-Entry -Table $entry -Key 'Rules' -Default @())
 
     $matched = [System.Collections.Generic.List[string]]::new()
     foreach ($pat in $patterns) {
@@ -92,22 +92,22 @@ foreach ($name in ($Registry.Keys | Sort-Object)) {
 
     $Rows.Add([pscustomobject]@{
             Name        = $name
-            Description = "$(Get-Entry $entry 'Description' '')"
-            Frameworks  = @(Get-Entry $entry 'Frameworks' @())
-            Category    = "$(Get-Entry $entry 'Category' '*')"
+            Description = "$(Get-Entry -Table $entry -Key 'Description' -Default '')"
+            Frameworks  = @(Get-Entry -Table $entry -Key 'Frameworks' -Default @())
+            Category    = "$(Get-Entry -Table $entry -Key 'Category' -Default '*')"
             Patterns    = $patterns
             RuleFiles   = $matched.ToArray()
             RuleCount   = $total
             ManualCount = $manual
             Automated   = $total - $manual
-            Tags        = @(Get-Entry $entry 'Tags' @())
-            Benchmark   = "$(Get-Entry $entry 'Benchmark' '')"
-            Compliance  = [bool](Get-Entry $entry 'Compliance' $false)
+            Tags        = @(Get-Entry -Table $entry -Key 'Tags' -Default @())
+            Benchmark   = "$(Get-Entry -Table $entry -Key 'Benchmark' -Default '')"
+            Compliance  = [bool](Get-Entry -Table $entry -Key 'Compliance' -Default $false)
             # Governance ingest decides the ARM scope an assessment needs: these require Reader
             # at the tenant-root management group to resolve fully, and degrade to an explicit
             # Unknown without it. Five separate pages hand-claimed "5 assessments" long after
             # the real number reached 26, so it is generated here rather than written anywhere.
-            Governance  = (@(Get-Entry $entry 'Ingest' @()) -contains 'Governance')
+            Governance  = (@(Get-Entry -Table $entry -Key 'Ingest' -Default @()) -contains 'Governance')
         })
 }
 

@@ -44,7 +44,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
         # name, and leftover folders from an earlier test in the same $TestDrive
         # would otherwise be mistaken for "already existed before this call" by the
         # exception-recovery directory scan.
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         $script:seenConfirm  = $null
         $script:seenProgress = $null
 
@@ -54,11 +54,11 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
             $script:seenConfirm  = $ConfirmPreference
             $script:seenProgress = $ProgressPreference
 
-            $folder = Join-Path $OutputPath '20260101_000000'
+            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
-            '{}' | Out-File (Join-Path $folder 'collect.json')
+            '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             @{ Findings = @(@{ Status = 'Pass' }, @{ Status = 'Pass' }, @{ Status = 'Fail' }, @{ Status = 'Manual' }) } |
-                ConvertTo-Json -Depth 5 | Out-File (Join-Path $folder 'findings.json')
+                ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
             return $folder
         }
     }
@@ -71,7 +71,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
 
     It 'writes pipeline-summary.json with every documented schema key' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        $summaryPath = Join-Path $runFolder 'pipeline-summary.json'
+        $summaryPath = Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json'
         Test-Path $summaryPath | Should -BeTrue
 
         $summary = Get-Content $summaryPath -Raw | ConvertFrom-Json
@@ -86,19 +86,19 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
 
     It 'writes a human-readable pipeline-summary.md' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        Test-Path (Join-Path $runFolder 'pipeline-summary.md') | Should -BeTrue
+        Test-Path (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.md') | Should -BeTrue
     }
 
     It 'computes outcome Success when the audit passes and the orchestrator returns cleanly' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'Success'
         $summary.assessmentError | Should -BeNullOrEmpty
     }
 
     It 'computes findings counts by Status from findings.json' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.findingsByStatus.Pass   | Should -Be 2
         $summary.findingsByStatus.Fail   | Should -Be 1
         $summary.findingsByStatus.Manual | Should -Be 1
@@ -124,12 +124,12 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
 
 Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
     BeforeEach {
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
-            $folder = Join-Path $OutputPath '20260101_000000'
+            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
-            '{}' | Out-File (Join-Path $folder 'collect.json')
+            '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             return $folder
         }
     }
@@ -141,7 +141,7 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
 
     It 'records the audit as Skipped in the summary' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath -SkipPermissionAudit
-        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.permissionAudit.Skipped | Should -BeTrue
         $summary.permissionAudit.Ran     | Should -BeFalse
     }
@@ -149,14 +149,14 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
 
 Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
     BeforeEach {
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             # Simulate the orchestrator getting partway through (collect.json written)
             # before an exporter throws -- the run folder exists but is incomplete.
-            $folder = Join-Path $OutputPath '20260101_000000'
+            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
-            '{}' | Out-File (Join-Path $folder 'collect.json')
+            '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             throw 'Export-Pptx: simulated exporter failure'
         }
     }
@@ -168,12 +168,12 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
     It 'recovers the run folder the orchestrator had already created before it threw' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $runFolder | Should -Not -BeNullOrEmpty
-        Test-Path (Join-Path $runFolder 'collect.json') | Should -BeTrue
+        Test-Path (Join-Path -Path $runFolder -ChildPath 'collect.json') | Should -BeTrue
     }
 
     It 'computes outcome PartialSuccess and captures the error message' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'PartialSuccess'
         $summary.assessmentError | Should -Match 'simulated exporter failure'
     }
@@ -181,13 +181,13 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
 
 Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)' {
     BeforeEach {
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-FailedPermissionCheck) }
-            $folder = Join-Path $OutputPath '20260101_000000'
+            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
             New-Item -ItemType Directory -Path $folder -Force | Out-Null
-            '{}' | Out-File (Join-Path $folder 'collect.json')
-            @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path $folder 'findings.json')
+            '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
+            @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
             return $folder
         }
     }
@@ -198,7 +198,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)
 
     It 'computes outcome PartialSuccess despite a clean orchestrator run' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
-        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        $summary = Get-Content (Join-Path -Path $runFolder -ChildPath 'pipeline-summary.json') -Raw | ConvertFrom-Json
         $summary.outcome | Should -Be 'PartialSuccess'
         $summary.permissionAudit.Ok | Should -BeFalse
     }
@@ -206,7 +206,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)
 
 Describe 'Invoke-ScoutPipeline -- Failed (assess returns nothing)' {
     BeforeEach {
-        $script:outPath = Join-Path $TestDrive "output-$([guid]::NewGuid())"
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             # Simulate total failure: no folder created, nothing returned.

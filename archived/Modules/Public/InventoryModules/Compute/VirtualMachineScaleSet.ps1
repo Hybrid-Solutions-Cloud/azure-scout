@@ -23,6 +23,7 @@ Authors: Claudio Merola and Renato Gregio
 
 <######## Default Parameters. Don't modify this ########>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task ,$File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -50,7 +51,7 @@ If ($Task -eq 'Processing')
                 $Scaling = ($AutoScale | Where-Object {$_.Properties.targetResourceUri -eq $1.id})
                 if([string]::IsNullOrEmpty($Scaling)){$AutoSc = $false}else{$AutoSc = $true}
                 $Diag = if($data.virtualMachineProfile.diagnosticsProfile){'Enabled'}else{'Disabled'}
-                if($OS -eq 'Linux'){$PWD = $data.virtualMachineProfile.osProfile.linuxConfiguration.disablePasswordAuthentication}Else{$PWD = 'N/A'}
+                if($OS -eq 'Linux'){$DisablePasswordAuth = $data.virtualMachineProfile.osProfile.linuxConfiguration.disablePasswordAuthentication}Else{$DisablePasswordAuth = 'N/A'}
                 $AcceleratedNet = if(![string]::IsNullOrEmpty($data.virtualMachineProfile.networkProfile.networkInterfaceConfigurations.properties.enableAcceleratedNetworking)){$true}else{$false}
 
                 # Extra Hardware Details
@@ -61,10 +62,6 @@ If ($Task -eq 'Processing')
                     if ($Capability.Name -eq 'vCPUs') {$vCPUs = $Capability.Value}
                     if ($Capability.Name -eq 'vCPUsPerCore') {$vCPUsPerCore = $Capability.Value}
                     if ($Capability.Name -eq 'MemoryGB') {$RAM = $Capability.Value}
-                    if ($Capability.Name -eq 'MaxDataDiskCount') {$MaxDataDiskCount = $Capability.Value}
-                    if ($Capability.Name -eq 'UncachedDiskIOPS') {$UncachedDiskIOPS = $Capability.Value}
-                    if ($Capability.Name -eq 'UncachedDiskBytesPerSecond') {$UncachedDiskBytesPerSecond = ([math]::Round($Capability.Value / 1024) / 1024)}
-                    if ($Capability.Name -eq 'MaxNetworkInterfaces') {$MaxNetworkInterfaces = $Capability.Value}
                 }
 
                 # Quotas
@@ -141,7 +138,7 @@ If ($Task -eq 'Processing')
                         'Image Version'                 = $data.virtualMachineProfile.storageProfile.imageReference.sku;
                         'VM OS Disk Size (GB)'          = $data.virtualMachineProfile.storageProfile.osDisk.diskSizeGB;
                         'Disk Storage Account Type'     = $data.virtualMachineProfile.storageProfile.osDisk.managedDisk.storageAccountType;
-                        'Disable Password Authentication'= $PWD;
+                        'Disable Password Authentication'= $DisablePasswordAuth;
                         'Custom DNS Servers'            = [string]$data.virtualMachineProfile.networkProfile.networkInterfaceConfigurations.properties.dnsSettings.dnsServers;
                         'Virtual Network'               = $VNET;
                         'Subnet'                        = $Subnet;

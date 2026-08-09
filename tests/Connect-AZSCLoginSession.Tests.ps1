@@ -21,7 +21,7 @@
 #>
 
 $ModuleRoot = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path $ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
+Import-Module (Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
 
 Describe 'Connect-AZSCLoginSession' {
 
@@ -143,7 +143,7 @@ Describe 'Connect-AZSCLoginSession' {
             Mock Get-AzConfig { return [PSCustomObject]@{ Value = 'On' } } -ModuleName AzureScout
             Mock Update-AzConfig { } -ModuleName AzureScout
 
-            $result = InModuleScope 'AzureScout' {
+            $null = InModuleScope 'AzureScout' {
                 Connect-AZSCLoginSession -TenantID 'tenant-new'
             }
             Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1

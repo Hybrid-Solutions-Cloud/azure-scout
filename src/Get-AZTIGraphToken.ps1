@@ -38,6 +38,7 @@
 #>
 function Get-AZSCGraphToken {
     [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
     param(
         [string]$TenantID
     )

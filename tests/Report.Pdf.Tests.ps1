@@ -26,11 +26,11 @@ BeforeAll {
     # multiple pages so the AB#394 header-repeat path actually exercises.
     $script:ManyFindings = 1..45 | ForEach-Object {
         $status = @('Pass', 'Fail', 'Partial')[$_ % 3]
-        New-PdfTestFinding "CAF-NET-$($_.ToString('00'))" 'CAF' 'Networking' $status 'medium'
+        New-PdfTestFinding -Id "CAF-NET-$($_.ToString('00'))" -Framework 'CAF' -Area 'Networking' -Status $status -Severity 'medium'
     }
     $script:ManyFindings += @(
-        (New-PdfTestFinding 'WAF-SEC-01' 'WAF' 'Security' 'Fail' 'high')
-        (New-PdfTestFinding 'WAF-SEC-02' 'WAF' 'Security' 'Manual')
+        (New-PdfTestFinding -Id 'WAF-SEC-01' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity 'high')
+        (New-PdfTestFinding -Id 'WAF-SEC-02' -Framework 'WAF' -Area 'Security' -Status 'Manual')
     )
     $script:Scored = Get-Score -Findings $script:ManyFindings
 
@@ -38,7 +38,7 @@ BeforeAll {
         _meta = [pscustomobject]@{ scope = 'ArmOnly'; managementGroupId = 'mg-test-01' }
     }
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'pdf'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
 
     # Reads the whole PDF as Latin-1 (ISO-8859-1) text -- a byte-for-byte
@@ -116,7 +116,7 @@ Describe 'Export-Pdf -- basic document structure AB#379/394/395' {
     }
 
     It 'is deterministic -- identical input renders byte-identical output' {
-        $repeatDir = Join-Path $script:Root 'tests' 'test-output' 'pdf-repeat'
+        $repeatDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-repeat'
         if (Test-Path $repeatDir) { Remove-Item $repeatDir -Recurse -Force }
         try {
             $repeatPath = Export-Pdf -Findings $script:Scored -Collect $script:Collect -OutputPath $repeatDir
@@ -132,7 +132,7 @@ Describe 'Export-Pdf -- basic document structure AB#379/394/395' {
 
 Describe 'Export-Pdf -- culture safety' {
     It 'never emits a comma decimal separator in content-stream numbers, even on a comma-decimal thread culture' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-culture'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-culture'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         $originalCulture = [System.Threading.Thread]::CurrentThread.CurrentCulture
         try {
@@ -171,14 +171,14 @@ Describe 'Export-Pdf -- AB#379 diagram embed' {
             return
         }
 
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-diagram'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-diagram'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
             $bmp = [System.Drawing.Bitmap]::new(80, 40)
             $g = [System.Drawing.Graphics]::FromImage($bmp)
             $g.Clear([System.Drawing.Color]::CornflowerBlue)
-            $bmp.Save((Join-Path $dir 'diagram.jpg'), [System.Drawing.Imaging.ImageFormat]::Jpeg)
+            $bmp.Save((Join-Path -Path $dir -ChildPath 'diagram.jpg'), [System.Drawing.Imaging.ImageFormat]::Jpeg)
             $g.Dispose(); $bmp.Dispose()
 
             $path = Export-Pdf -Findings $script:Scored -Collect $script:Collect -OutputPath $dir
@@ -195,11 +195,11 @@ Describe 'Export-Pdf -- AB#379 diagram embed' {
     }
 
     It 'skips a malformed diagram.jpg (not really a JPEG) without failing the whole render' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-bad-diagram'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-bad-diagram'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            'this is not a jpeg' | Out-File (Join-Path $dir 'diagram.jpg') -Encoding ascii
+            'this is not a jpeg' | Out-File (Join-Path -Path $dir -ChildPath 'diagram.jpg') -Encoding ascii
             # Redirect the warning stream (3) into the success stream so both the
             # returned path (a [string]) and any [WarningRecord]s come back on one
             # pipeline -- more robust than -WarningVariable against a plain (non
@@ -247,7 +247,7 @@ Describe 'Get-ScoutPdfJpegInfo (unit)' {
 
 Describe 'Export-Pdf -- edge cases' {
     It 'does not throw on an empty Findings set and still produces a valid PDF' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-empty'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-empty'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $emptyScored = Get-Score -Findings @()
@@ -263,7 +263,7 @@ Describe 'Export-Pdf -- edge cases' {
 
 Describe 'Export-ScoutPdfHtmlFallback (unit)' {
     It 'writes a clearly-labeled fallback HTML file, not a silently-renamed non-PDF' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-fallback'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-fallback'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $path = Export-ScoutPdfHtmlFallback -Findings $script:Scored -Collect $script:Collect -OutputPath $dir -Reason 'synthetic test failure'

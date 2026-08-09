@@ -22,6 +22,7 @@ Authors: AzureScout Contributors
 
 function Export-AZSCMarkdownReport {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,

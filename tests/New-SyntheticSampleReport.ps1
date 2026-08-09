@@ -20,10 +20,10 @@ param(
 
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 if (-not $OutputFile) {
-    $OutputFile = Join-Path $RepoRoot 'tests' 'datadump' 'sample-report.json'
+    $OutputFile = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-report.json'
 }
 
-$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
+$RetiredCollectorPath = Join-Path -Path $RepoRoot -ChildPath 'retired-collector-scripts'
 $EntraFolders = @('Identity')
 
 # ── Fake data pools ──────────────────────────────────────────────────────

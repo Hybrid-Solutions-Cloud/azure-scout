@@ -19,8 +19,8 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/assess/engine/Resolve-JsonPath.ps1')
-    . (Join-Path $script:RepoRoot 'src/assess/engine/Invoke-Rule.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Invoke-Rule.ps1')
 
     $script:Collect = [pscustomobject]@{
         storage = @(
@@ -91,7 +91,7 @@ Describe 'AB#6892 -- a finding that found nothing still says what it looked for'
 Describe 'AB#6892 -- the fields exist on every emission path' {
 
     It 'declares SearchedPath, AssertType and Denominator on the main finding object' {
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/assess/engine/Invoke-Rule.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Invoke-Rule.ps1') -Raw
 
         $Source | Should -Match 'SearchedPath\s*=\s*\$searchedPath'
         $Source | Should -Match 'AssertType\s*=\s*\$assertType'
@@ -101,7 +101,7 @@ Describe 'AB#6892 -- the fields exist on every emission path' {
     It 'initialises $denominator before the early returns can run' {
         # The gate-failure, query-failure and not-assessed paths build their own object and
         # return early. $denominator must already exist or those paths throw under StrictMode.
-        $Source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/assess/engine/Invoke-Rule.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Invoke-Rule.ps1') -Raw
 
         $InitIndex = $Source.IndexOf('$denominator = $null')
         $InitIndex | Should -BeGreaterThan 0

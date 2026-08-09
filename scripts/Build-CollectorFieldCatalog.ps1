@@ -33,10 +33,10 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $OutputPath = Join-Path $RepoRoot 'docs' 'reference' 'collector-fields.md'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'reference', 'collector-fields.md'
 }
 
-$CollectorRoot = Join-Path $RepoRoot 'manifests' 'collectors'
+$CollectorRoot = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
 $Categories = @(Get-ChildItem -LiteralPath $CollectorRoot -Directory | Sort-Object Name)
 
 $Rows = [System.Collections.Generic.List[object]]::new()

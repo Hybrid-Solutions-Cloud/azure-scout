@@ -54,6 +54,7 @@ $ErrorActionPreference = 'Stop'
 #>
 function Import-Governance {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ManagementGroupId', Justification = 'Accepted for call-site parity with Invoke-ScoutAssessmentCore -- Line 206 always passes it -- but every ARG query here runs tenant-wide; MG-scoped filtering is not implemented yet.')]
     param($Collect, [string] $ManagementGroupId)
 
     Import-Module Az.ResourceGraph -ErrorAction Stop

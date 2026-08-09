@@ -25,11 +25,11 @@
 
 BeforeAll {
     $script:RepoRoot   = Split-Path -Parent $PSScriptRoot
-    $script:Validator  = Join-Path $script:RepoRoot 'scripts/Test-ScoutCollectorDefinition.ps1'
+    $script:Validator  = Join-Path -Path $script:RepoRoot -ChildPath 'scripts/Test-ScoutCollectorDefinition.ps1'
 
     # A private sandbox root. NOT under $env:TEMP\AZSC_*: about eighteen test files share a fixed
     # path there and Remove-Item it in their own BeforeAll.
-    $script:Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-defschema-" + [guid]::NewGuid().ToString('N'))
+    $script:Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-defschema-" + [guid]::NewGuid().ToString('N'))
     $null = New-Item -ItemType Directory -Path $script:Sandbox -Force
 
     function New-BrokenDefinitionTree {
@@ -40,9 +40,9 @@ BeforeAll {
         #>
         param([Parameter(Mandatory)][string]$Body)
 
-        $Root = Join-Path $script:Sandbox ([guid]::NewGuid().ToString('N'))
-        $null = New-Item -ItemType Directory -Path (Join-Path $Root 'Probe') -Force
-        Set-Content -LiteralPath (Join-Path $Root 'Probe/Broken.psd1') -Value $Body -Encoding utf8
+        $Root = Join-Path -Path $script:Sandbox -ChildPath ([guid]::NewGuid().ToString('N'))
+        $null = New-Item -ItemType Directory -Path (Join-Path -Path $Root -ChildPath 'Probe') -Force
+        Set-Content -LiteralPath (Join-Path -Path $Root -ChildPath 'Probe/Broken.psd1') -Value $Body -Encoding utf8
 
         # -SkipDriftCheck / -SkipAllowListStaleCheck: a throwaway tree has no SourceCollector in
         # this repo, and contains none of the five allow-listed blank columns, so both of those
@@ -200,10 +200,10 @@ RowLoopVariable = '1'
         # The other AB#5661 criterion, and the only check that cannot be decided from one file.
         # Case differs deliberately: Excel compares sheet names case-insensitively, so 'Probe' and
         # 'PROBE' collide and a naive ordinal comparison would miss it.
-        $Root = Join-Path $script:Sandbox ([guid]::NewGuid().ToString('N'))
-        $null = New-Item -ItemType Directory -Path (Join-Path $Root 'Probe') -Force
-        Set-Content -LiteralPath (Join-Path $Root 'Probe/One.psd1') -Value $script:ValidBody -Encoding utf8
-        Set-Content -LiteralPath (Join-Path $Root 'Probe/Two.psd1') -Encoding utf8 `
+        $Root = Join-Path -Path $script:Sandbox -ChildPath ([guid]::NewGuid().ToString('N'))
+        $null = New-Item -ItemType Directory -Path (Join-Path -Path $Root -ChildPath 'Probe') -Force
+        Set-Content -LiteralPath (Join-Path -Path $Root -ChildPath 'Probe/One.psd1') -Value $script:ValidBody -Encoding utf8
+        Set-Content -LiteralPath (Join-Path -Path $Root -ChildPath 'Probe/Two.psd1') -Encoding utf8 `
             -Value ($script:ValidBody -replace "WorksheetName = 'Probe'", "WorksheetName = 'PROBE'")
 
         $Output = & pwsh -NoProfile -File $script:Validator -DefinitionRoot $Root `

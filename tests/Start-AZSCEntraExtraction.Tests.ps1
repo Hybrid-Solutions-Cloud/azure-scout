@@ -20,7 +20,7 @@
 #>
 
 $ModuleRoot = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path $ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
+Import-Module (Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
 
 InModuleScope 'AzureScout' {
 Describe 'Start-AZSCEntraExtraction' {
@@ -126,7 +126,7 @@ Describe 'Start-AZSCEntraExtraction' {
         }
 
         It 'Calls Invoke-AZSCGraphRequest for at least 15 entra queries' {
-            $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
+            $null = Start-AZSCEntraExtraction -TenantID 'test-tenant'
             Should -Invoke Invoke-AZSCGraphRequest -Times 15 -Scope It
         }
     }
@@ -138,6 +138,7 @@ Describe 'Start-AZSCEntraExtraction' {
             $script:failCallCount = 0
             Mock Invoke-AZSCGraphRequest {
                 param($Uri)
+                $null = $Uri
                 $script:failCallCount++
                 # Fail the first query, succeed all others
                 if ($script:failCallCount -eq 1) {

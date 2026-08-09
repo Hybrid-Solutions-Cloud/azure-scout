@@ -48,15 +48,15 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot        = Split-Path -Parent $PSScriptRoot
-$DefinitionRoot  = Join-Path $RepoRoot 'manifests' 'collectors'
-$GoldenRoot      = Join-Path $RepoRoot 'tests' 'fixtures' 'collector-golden'
+$DefinitionRoot  = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
+$GoldenRoot      = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'fixtures', 'collector-golden'
 
-. (Join-Path $RepoRoot 'scripts' 'CollectorGolden.Common.ps1')
-. (Join-Path $RepoRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
-. (Join-Path $RepoRoot 'src' 'pipeline' 'Invoke-ScoutDeclarativeCollector.ps1')
-. (Join-Path $RepoRoot 'src' 'Get-AZSCSafeProperty.ps1')
-. (Join-Path $RepoRoot 'src' 'Get-AZTICollectedValue.ps1')
-. (Join-Path $RepoRoot 'src' 'Get-AZSCIdSegment.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'CollectorGolden.Common.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Invoke-ScoutDeclarativeCollector.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCSafeProperty.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZTICollectedValue.ps1')
+. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCIdSegment.ps1')
 
 function Get-FixturePathFor {
     param([string]$CategoryName)
@@ -161,7 +161,7 @@ foreach ($Folder in $Folders) {
         }
 
         $Json   = ($Record | ConvertTo-Json -Depth 8)
-        $Target = Join-Path $GoldenRoot $CategoryName "$CollectorName.json"
+        $Target = Join-Path -Path $GoldenRoot -ChildPath $CategoryName -AdditionalChildPath "$CollectorName.json"
         $TargetDir = Split-Path -Parent $Target
         if (-not (Test-Path -LiteralPath $TargetDir)) { $null = New-Item -Path $TargetDir -ItemType Directory -Force }
 

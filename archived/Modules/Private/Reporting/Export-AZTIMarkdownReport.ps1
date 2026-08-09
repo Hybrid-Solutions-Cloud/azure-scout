@@ -22,6 +22,7 @@ Authors: AzureScout Contributors
 
 function Export-AZSCMarkdownReport {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,
@@ -62,7 +63,7 @@ function Export-AZSCMarkdownReport {
 
     # ── Discover module folders ───────────────────────────────────────────
     $ParentPath           = (Get-Item $PSScriptRoot).Parent.Parent
-    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
+    $InventoryModulesPath = Join-Path -Path $ParentPath -ChildPath 'Public' -AdditionalChildPath 'InventoryModules'
     $ModuleFolders        = Get-ChildItem -Path $InventoryModulesPath -Directory | Sort-Object Name
     $CacheFiles           = Get-ChildItem -Path $ReportCache -Recurse -Filter '*.json' -ErrorAction SilentlyContinue
 
@@ -84,7 +85,7 @@ function Export-AZSCMarkdownReport {
         if ([string]::IsNullOrWhiteSpace($RawJson)) { continue }
 
         $CacheData  = $RawJson | ConvertFrom-Json
-        $ModuleFiles = Get-ChildItem -Path (Join-Path $ModuleFolder.FullName '*.ps1') -ErrorAction SilentlyContinue | Sort-Object BaseName
+        $ModuleFiles = Get-ChildItem -Path (Join-Path -Path $ModuleFolder.FullName -ChildPath '*.ps1') -ErrorAction SilentlyContinue | Sort-Object BaseName
 
         $folderHasData = $false
         $folderSections = [System.Collections.Generic.List[string]]::new()

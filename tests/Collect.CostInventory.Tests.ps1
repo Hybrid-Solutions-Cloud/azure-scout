@@ -34,7 +34,8 @@ Describe 'Get-ScoutCostInventory -- Az.CostManagement not installed' {
 Describe 'Get-ScoutCostInventory -- happy path' {
     It 'returns CostData rows per subscription when Az.CostManagement succeeds' {
         function Invoke-AzCostManagementQuery {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             return @([pscustomobject]@{ PreTaxCost = 42.5 })
         }
         $result = @(Get-ScoutCostInventory -Subscriptions $script:subs)
@@ -47,7 +48,8 @@ Describe 'Get-ScoutCostInventory -- happy path' {
 Describe 'Get-ScoutCostInventory -- per-subscription resilience (AB#5636 regression guard)' {
     It 'degrades ONLY the failing subscription to empty CostData and keeps collecting the rest -- never throws' {
         function Invoke-AzCostManagementQuery {
-            param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
             if ($Scope -match 'sub-1') { throw 'Cost Management API transient error' }
             return @([pscustomobject]@{ PreTaxCost = 10 })
         }
@@ -65,7 +67,8 @@ Describe 'Get-ScoutCostInventory -- date range selection' {
         $script:capturedFrom = $null
         $script:capturedTo = $null
         function Invoke-AzCostManagementQuery {
-            param([datetime] $TimePeriodFrom, [datetime] $TimePeriodTo, [Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([datetime] $TimePeriodFrom, [datetime] $TimePeriodTo, [Parameter(ValueFromRemainingArguments)] $Rest)
             $script:capturedFrom = $TimePeriodFrom
             $script:capturedTo = $TimePeriodTo
             return @()

@@ -52,7 +52,7 @@ Describe 'AB#6779 — the four production call sites read .Data, not @(invocatio
         @{ File = 'src/collect/Get-ScoutGovernanceDataset.ps1' }
         @{ File = 'src/collect/Get-ScoutOperationalCollectorEnrichment.ps1' }
     ) {
-        $source = Get-Content -Raw (Join-Path $script:Root $File)
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath $File)
 
         # Comments naming the bug are expected and fine; executable code is not.
         $code = ($source -split "`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
@@ -66,7 +66,7 @@ Describe 'AB#6779 — the four production call sites read .Data, not @(invocatio
         @{ File = 'src/collect/Get-ScoutGovernanceDataset.ps1' }
         @{ File = 'src/collect/Get-ScoutOperationalCollectorEnrichment.ps1' }
     ) {
-        $source = Get-Content -Raw (Join-Path $script:Root $File)
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath $File)
 
         $source | Should -Match "PSObject\.Properties\['Data'\]" -Because 'reading .Data is the only shape that behaves the same when the result is empty'
     }
@@ -75,7 +75,8 @@ Describe 'AB#6779 — the four production call sites read .Data, not @(invocatio
 Describe 'AB#6779 — the shape itself, so the reason is testable and not just asserted' {
 
     It 'wrapping the INVOCATION yields one element — the wrapper' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @(1..111) }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @(1..111) }
 
         $wrapped = @(Search-AzGraph -Query 'x')
 
@@ -83,7 +84,8 @@ Describe 'AB#6779 — the shape itself, so the reason is testable and not just a
     }
 
     It 'reading .Data yields the rows' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @(1..111) }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @(1..111) }
 
         $response = Search-AzGraph -Query 'x'
         @($response.Data).Count | Should -Be 111
@@ -92,7 +94,8 @@ Describe 'AB#6779 — the shape itself, so the reason is testable and not just a
     It 'reading .Data on an EMPTY result yields zero, not one' {
         # The other half. `@($response)` on an empty result yields the wrapper, so a zero-row
         # answer reads as Count 1 — which is how "no rows" masquerades as "one row".
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) New-ArgResponse -Rows @() }
 
         $response = Search-AzGraph -Query 'x'
         @($response.Data).Count | Should -Be 0
@@ -108,7 +111,8 @@ Describe 'AB#6779 — pagination actually advances past the first page' {
     It 'a paging loop reading .Data walks every page' {
         $script:calls = 0
         function Search-AzGraph {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $script:calls++
             $n = switch ($script:calls) { 1 { 1000 } 2 { 1000 } default { 7 } }
             New-ArgResponse -Rows @(1..$n)
@@ -130,7 +134,8 @@ Describe 'AB#6779 — pagination actually advances past the first page' {
     It 'the OLD shape stops after one page — the regression this file exists to prevent' {
         $script:calls = 0
         function Search-AzGraph {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $script:calls++
             $n = switch ($script:calls) { 1 { 1000 } 2 { 1000 } default { 7 } }
             New-ArgResponse -Rows @(1..$n)

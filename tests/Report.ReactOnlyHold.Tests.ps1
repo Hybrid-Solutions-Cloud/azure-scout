@@ -51,12 +51,9 @@ Describe 'The React-only report hold (AB#6922)' {
     }
 
     It 'defaults -OutputFormat to React, not to a held format' {
-        $cmd = & $script:Module { Get-Command Invoke-ScoutAssessmentCore }
-        $default = $cmd.Parameters['OutputFormat'].Attributes |
-            Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] } | Select-Object -First 1
-        # The default value itself isn't exposed on the attribute; assert against the AST instead.
+        # The default value isn't exposed on the parameter attribute; assert against the AST instead.
         $ast = [System.Management.Automation.Language.Parser]::ParseFile(
-            (Join-Path $script:Root 'src/Invoke-ScoutAssessmentCore.ps1'), [ref]$null, [ref]$null)
+            (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1'), [ref]$null, [ref]$null)
         $param = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.ParameterAst] -and
                 $n.Name.VariablePath.UserPath -eq 'OutputFormat' }, $true) | Select-Object -First 1
         $param | Should -Not -BeNullOrEmpty
@@ -65,7 +62,7 @@ Describe 'The React-only report hold (AB#6922)' {
 
     Context 'end to end against the canonical fixture' {
         BeforeAll {
-            $script:OutAll = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_Hold_All_" + [System.IO.Path]::GetRandomFileName())
+            $script:OutAll = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_Hold_All_" + [System.IO.Path]::GetRandomFileName())
             $script:RunAll = & $script:Module {
                 param($Fixture, $OutPath)
                 Invoke-ScoutAssessmentCore -Assessment 'CAF: Azure Landing Zone' -FromCollect $Fixture -OutputFormat All -OutputPath $OutPath
@@ -78,7 +75,7 @@ Describe 'The React-only report hold (AB#6922)' {
         }
 
         It '-OutputFormat All renders the React report' {
-            Test-Path (Join-Path $script:RunAll 'report-react.html') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:RunAll -ChildPath 'report-react.html') | Should -BeTrue
         }
 
         It '-OutputFormat All renders NO held document format' {
@@ -87,18 +84,18 @@ Describe 'The React-only report hold (AB#6922)' {
             foreach ($artefact in 'report.html', 'assessment_report.docx', 'assessment_report.pdf',
                 'assessment_deck.pptx', 'assessment_evidence.xlsx', 'assessment_dashboard.html',
                 'governance_report.html') {
-                Test-Path (Join-Path $script:RunAll $artefact) | Should -BeFalse -Because "$artefact is a held format under AB#6922"
+                Test-Path (Join-Path -Path $script:RunAll -ChildPath $artefact) | Should -BeFalse -Because "$artefact is a held format under AB#6922"
             }
-            Test-Path (Join-Path $script:RunAll 'powerbi') | Should -BeFalse
+            Test-Path (Join-Path -Path $script:RunAll -ChildPath 'powerbi') | Should -BeFalse
         }
 
         It '-OutputFormat All still emits the machine-readable data exports' {
-            Test-Path (Join-Path $script:RunAll 'findings.json') | Should -BeTrue
+            Test-Path (Join-Path -Path $script:RunAll -ChildPath 'findings.json') | Should -BeTrue
         }
     }
 
     It 'warns and skips — never silently produces nothing — when a held format is asked for by name' {
-        $out = Join-Path ([System.IO.Path]::GetTempPath()) ("AZSC_Hold_Word_" + [System.IO.Path]::GetRandomFileName())
+        $out = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("AZSC_Hold_Word_" + [System.IO.Path]::GetRandomFileName())
         try {
             # -WarningVariable binds to the `&` call, not to the cmdlet running inside the module
             # scriptblock, so it comes back empty even when the warning was raised. Redirect the
@@ -115,8 +112,8 @@ Describe 'The React-only report hold (AB#6922)' {
             ($warnings -join ' ') | Should -Match 'Word'
 
             # And the run still produced a deliverable rather than an empty folder.
-            Test-Path (Join-Path $run 'assessment_report.docx') | Should -BeFalse
-            Test-Path (Join-Path $run 'report-react.html') | Should -BeTrue
+            Test-Path (Join-Path -Path $run -ChildPath 'assessment_report.docx') | Should -BeFalse
+            Test-Path (Join-Path -Path $run -ChildPath 'report-react.html') | Should -BeTrue
         }
         finally {
             if (Test-Path $out) { Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue }

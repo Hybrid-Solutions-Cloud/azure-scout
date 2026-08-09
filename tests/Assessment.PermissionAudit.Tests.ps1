@@ -35,7 +35,8 @@ BeforeAll {
             Account = [pscustomobject]@{ Id = 'test-user@contoso.com' }
         }
     }
-    function Get-AzRoleAssignment { param([string]$Scope, [string]$SignInName, [string]$ErrorAction) @() }
+    function Get-AzRoleAssignment {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string]$Scope, [string]$SignInName, [string]$ErrorAction) @() }
 
     . "$script:Root/src/assess/Test-ScoutPermission.ps1"
 }
