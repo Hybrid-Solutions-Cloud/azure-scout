@@ -775,6 +775,71 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # AB#7091 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Networking coverage-gap
+    # close-out. Route Server and Azure Enclave are deliberately not shaped here -- see the
+    # cdnProfiles KQL comment in Invoke-Collect.ps1 and docs/reference/service-coverage-gap.md.
+    $result['cdnProfiles'] = @(
+        Select-ByType 'microsoft.cdn/profiles' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                frontDoorId       = [string] (Get-ScoutProp $_ 'properties.frontDoorId')
+            }
+        }
+    )
+
+    $result['networkManagers'] = @(
+        Select-ByType 'microsoft.network/networkmanagers' | ForEach-Object {
+            $accessItems = Get-ScoutPropArray $_ 'properties.networkManagerScopeAccesses'
+            [pscustomobject]@{
+                id                     = [string] (Get-ScoutProp $_ 'id')
+                name                   = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup          = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId         = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location               = [string] (Get-ScoutProp $_ 'location')
+                provisioningState      = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                scopeSubscriptionCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.networkManagerScopes.subscriptions')
+                scopeAccesses          = (@(@($accessItems) | Where-Object { $null -ne $_ } | ForEach-Object { [string] $_ }) -join ',')
+            }
+        }
+    )
+
+    $result['firewallPolicies'] = @(
+        Select-ByType 'microsoft.network/firewallpolicies' | ForEach-Object {
+            [pscustomobject]@{
+                id                       = [string] (Get-ScoutProp $_ 'id')
+                name                     = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup            = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId           = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                 = [string] (Get-ScoutProp $_ 'location')
+                sku                      = [string] (Get-ScoutProp $_ 'properties.sku.tier')
+                provisioningState        = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                threatIntelMode          = [string] (Get-ScoutProp $_ 'properties.threatIntelMode')
+                ruleCollectionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.ruleCollectionGroups')
+            }
+        }
+    )
+
+    $result['networkFunctions'] = @(
+        Select-ByType 'microsoft.hybridnetwork/networkfunctions' | ForEach-Object {
+            [pscustomobject]@{
+                id                      = [string] (Get-ScoutProp $_ 'id')
+                name                    = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup           = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId          = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                = [string] (Get-ScoutProp $_ 'location')
+                provisioningState       = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                vendorProvisioningState = [string] (Get-ScoutProp $_ 'properties.vendorProvisioningState')
+                serviceKey              = [string] (Get-ScoutProp $_ 'properties.serviceKey')
+            }
+        }
+    )
+
     # ---- compute ----
     # Region list copied verbatim from the KQL zoneEligible projection.
     $zoneEligibleRegions = @(
@@ -833,6 +898,87 @@ function ConvertFrom-ScoutInventory {
                 internet                = [string] (Get-ScoutProp $_ 'properties.internet')
                 identitySourceCount     = $identitySourceCount
                 externalCloudLinkCount  = $externalCloudLinkCount
+            }
+        }
+    )
+
+    # ---- Compute coverage-gap close-out (AB#7088, folds in AB#7071) — mirrors
+    # Invoke-Collect.ps1's `computeFleets`/`batchAccounts`/`dedicatedHostGroups`/
+    # `vmImageTemplates`/`quantumWorkspaces`/`nutanixNodes` KQL fields field for field so the
+    # inverted (default) path costs no extra round-trip.
+    $result['computeFleets'] = @(
+        Select-ByType 'microsoft.azurefleet/fleets' | ForEach-Object {
+            [pscustomobject]@{
+                name                                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup                       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                identityType                        = [string] (Get-ScoutProp $_ 'identity.type')
+                regularPriorityAllocationStrategy    = [string] (Get-ScoutProp $_ 'properties.regularPriorityProfile.allocationStrategy')
+                spotPriorityAllocationStrategy       = [string] (Get-ScoutProp $_ 'properties.spotPriorityProfile.allocationStrategy')
+            }
+        }
+    )
+
+    $result['batchAccounts'] = @(
+        Select-ByType 'microsoft.batch/batchaccounts' | ForEach-Object {
+            [pscustomobject]@{
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                poolAllocationMode   = [string] (Get-ScoutProp $_ 'properties.poolAllocationMode')
+                publicNetworkAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                identityType         = [string] (Get-ScoutProp $_ 'identity.type')
+                encryptionKeySource  = [string] (Get-ScoutProp $_ 'properties.encryption.keySource')
+            }
+        }
+    )
+
+    $result['dedicatedHostGroups'] = @(
+        Select-ByType 'microsoft.compute/hostgroups' | ForEach-Object {
+            $faultDomainRaw = Get-ScoutProp $_ 'properties.platformFaultDomainCount'
+            $autoPlacementRaw = Get-ScoutProp $_ 'properties.supportAutomaticPlacement'
+            $ultraSsdRaw = Get-ScoutProp $_ 'properties.additionalCapabilities.ultraSSDEnabled'
+            [pscustomobject]@{
+                name                      = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup             = [string] (Get-ScoutProp $_ 'resourceGroup')
+                platformFaultDomainCount  = if ($null -eq $faultDomainRaw) { $null } else { [int] $faultDomainRaw }
+                supportAutomaticPlacement = if ($null -eq $autoPlacementRaw) { $null } else { [bool] $autoPlacementRaw }
+                ultraSsdEnabled           = if ($null -eq $ultraSsdRaw) { $null } else { [bool] $ultraSsdRaw }
+            }
+        }
+    )
+
+    $result['vmImageTemplates'] = @(
+        Select-ByType 'microsoft.virtualmachineimages/imagetemplates' | ForEach-Object {
+            $buildTimeoutRaw = Get-ScoutProp $_ 'properties.buildTimeoutInMinutes'
+            [pscustomobject]@{
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                sourceType          = [string] (Get-ScoutProp $_ 'properties.source.type')
+                buildTimeoutMinutes = if ($null -eq $buildTimeoutRaw) { $null } else { [int] $buildTimeoutRaw }
+                identityType        = [string] (Get-ScoutProp $_ 'identity.type')
+            }
+        }
+    )
+
+    $result['quantumWorkspaces'] = @(
+        Select-ByType 'microsoft.quantum/workspaces' | ForEach-Object {
+            $apiKeyRaw = Get-ScoutProp $_ 'properties.apiKeyEnabled'
+            $providerCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.providers')
+            [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                apiKeyEnabled  = if ($null -eq $apiKeyRaw) { $null } else { [bool] $apiKeyRaw }
+                identityType   = [string] (Get-ScoutProp $_ 'identity.type')
+                providerCount  = $providerCount
+            }
+        }
+    )
+
+    $result['nutanixNodes'] = @(
+        Select-ByType 'microsoft.nutanix/nodes' | ForEach-Object {
+            [pscustomobject]@{
+                name          = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                skuName       = [string] (Get-ScoutProp $_ 'sku.name')
             }
         }
     )
@@ -1310,6 +1456,10 @@ function ConvertFrom-ScoutInventory {
                 connectivityStatus = [string] (Get-ScoutProp $_ 'properties.connectivityStatus')
                 nodeCount          = Measure-ScoutArray $nodeCountRaw
                 clusterVersion     = [string] (Get-ScoutProp $_ 'properties.reportedProperties.clusterVersion')
+                # AB#7093 (WAF-AZLOCAL-CO-03/CO-04) -- same field the live ARG query now projects
+                # (Invoke-Collect.ps1's azureLocalClusters query); kept in parity here so a
+                # -FromInventory collect scores the same rules as a live collect.
+                softwareAssuranceStatus = [string] (Get-ScoutProp $_ 'properties.softwareAssuranceProperties.softwareAssuranceStatus')
             }
         }
     )
@@ -1446,6 +1596,24 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # AB#7083 -- Azure IoT Operations (Arc-enabled Kubernetes IoT workload). Mirrors
+    # Invoke-Collect.ps1's iotOperationsInstances KQL: description/schemaRegistryRef are
+    # documented top-level InstanceProperties fields, identity/extendedLocation are top-level
+    # resource columns.
+    $result['iotOperationsInstances'] = @(
+        Select-ByType 'microsoft.iotoperations/instances' | ForEach-Object {
+            [pscustomobject]@{
+                name                  = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup         = [string] (Get-ScoutProp $_ 'resourceGroup')
+                description           = [string] (Get-ScoutProp $_ 'properties.description')
+                schemaRegistryId      = [string] (Get-ScoutProp $_ 'properties.schemaRegistryRef.resourceId')
+                identityType          = [string] (Get-ScoutProp $_ 'identity.type')
+                extendedLocationName  = [string] (Get-ScoutProp $_ 'extendedLocation.name')
+                extendedLocationType  = [string] (Get-ScoutProp $_ 'extendedLocation.type')
+            }
+        }
+    )
+
     $result['synapseWorkspaces'] = @(
         Select-ByType 'microsoft.synapse/workspaces' | ForEach-Object {
             [pscustomobject]@{
@@ -1510,6 +1678,97 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- AB#7082 -- Analytics coverage-gap closeout. Mirrors Invoke-Collect.ps1's KQL field for
+    # field (Story AB#7059, Feature AB#7069, Epic AB#7099).
+    $result['analysisServicesServers'] = @(
+        Select-ByType 'microsoft.analysisservices/servers' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                state             = [string] (Get-ScoutProp $_ 'properties.state')
+            }
+        }
+    )
+
+    $result['dataFactories'] = @(
+        Select-ByType 'microsoft.datafactory/factories' | ForEach-Object {
+            [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location             = [string] (Get-ScoutProp $_ 'location')
+                provisioningState    = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                publicNetworkAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                identityType         = [string] (Get-ScoutProp $_ 'identity.type')
+            }
+        }
+    )
+
+    $result['dataShareAccounts'] = @(
+        Select-ByType 'microsoft.datashare/accounts' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                identityType      = [string] (Get-ScoutProp $_ 'identity.type')
+            }
+        }
+    )
+
+    $result['hdInsightClusters'] = @(
+        Select-ByType 'microsoft.hdinsight/clusters' | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                clusterVersion      = [string] (Get-ScoutProp $_ 'properties.clusterVersion')
+                clusterKind         = [string] (Get-ScoutProp $_ 'properties.clusterDefinition.kind')
+                clusterState        = [string] (Get-ScoutProp $_ 'properties.clusterState')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.networkProperties.publicNetworkAccess')
+            }
+        }
+    )
+
+    $result['powerBIEmbeddedCapacities'] = @(
+        Select-ByType 'microsoft.powerbidedicated/capacities' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                mode              = [string] (Get-ScoutProp $_ 'properties.mode')
+            }
+        }
+    )
+
+    $result['fabricCapacities'] = @(
+        Select-ByType 'microsoft.fabric/capacities' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+                sku            = [string] (Get-ScoutProp $_ 'sku.name')
+                state          = [string] (Get-ScoutProp $_ 'properties.state')
+            }
+        }
+    )
+
     $result['logAnalyticsWorkspaces'] = @(
         Select-ByType 'microsoft.operationalinsights/workspaces' | ForEach-Object {
             $retention = Get-ScoutProp $_ 'properties.retentionInDays'
@@ -1560,6 +1819,44 @@ function ConvertFrom-ScoutInventory {
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
                 sku           = [string] (Get-ScoutProp $_ 'sku.name')
+            }
+        }
+    )
+
+    # ---- AI + Machine Learning coverage-gap close-out (AB#7086, folds in AB#7071) — mirrors
+    # Invoke-Collect.ps1's `videoIndexerAccounts`/`healthBots`/`planetaryComputerGeoCatalogs`
+    # KQL fields field for field so the inverted (default) path costs no extra round-trip.
+    $result['videoIndexerAccounts'] = @(
+        Select-ByType 'microsoft.videoindexer/accounts' | ForEach-Object {
+            [pscustomobject]@{
+                name                          = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup                 = [string] (Get-ScoutProp $_ 'resourceGroup')
+                publicAccess                  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                identityType                  = [string] (Get-ScoutProp $_ 'identity.type')
+                privateEndpointConnectionCount = Measure-ScoutArray (Get-ScoutProp $_ 'properties.privateEndpointConnections')
+                openAiLinked                  = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.openAiServices.resourceId'))
+            }
+        }
+    )
+
+    $result['healthBots'] = @(
+        Select-ByType 'microsoft.healthbot/healthbots' | ForEach-Object {
+            [pscustomobject]@{
+                name          = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                skuName       = [string] (Get-ScoutProp $_ 'sku.name')
+                identityType  = [string] (Get-ScoutProp $_ 'identity.type')
+            }
+        }
+    )
+
+    $result['planetaryComputerGeoCatalogs'] = @(
+        Select-ByType 'microsoft.orbital/geocatalogs' | ForEach-Object {
+            [pscustomobject]@{
+                name          = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                tier          = [string] (Get-ScoutProp $_ 'properties.tier')
+                identityType  = [string] (Get-ScoutProp $_ 'identity.type')
             }
         }
     )
@@ -1739,10 +2036,26 @@ function ConvertFrom-ScoutInventory {
     )
 
     # ---- Azure Local child resources (AB#7061, Story AB#7059, Feature AB#7069, Epic AB#7099) ----
-    # Mirrors Invoke-Collect.ps1's arcDataControllers/arcGateways/arcKubernetes/
+    # Mirrors Invoke-Collect.ps1's customLocations/arcDataControllers/arcGateways/arcKubernetes/
     # arcResourceBridge/arcSqlManagedInstances/arcSqlServers/galleryImages/
     # marketplaceGalleryImages/storageContainers KQL field for field -- the inverted (default)
-    # `-FromInventory` path costs no extra Resource Graph round-trip for any of these nine.
+    # `-FromInventory` path costs no extra Resource Graph round-trip for any of these ten.
+    $result['customLocations'] = @(
+        Select-ByType 'microsoft.extendedlocation/customlocations' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                hostResourceId    = [string] (Get-ScoutProp $_ 'properties.hostResourceId')
+                hostType          = [string] (Get-ScoutProp $_ 'properties.hostType')
+                namespace         = [string] (Get-ScoutProp $_ 'properties.namespace')
+            }
+        }
+    )
+
     $result['arcDataControllers'] = @(
         Select-ByType 'microsoft.azurearcdata/datacontrollers' | ForEach-Object {
             [pscustomobject]@{
@@ -2278,6 +2591,38 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- AB#7090 (Story AB#7071/AB#7059, Feature AB#7069, Epic AB#7099) -- Databases
+    # coverage-gap close-out. Mirrors Invoke-Collect.ps1's KQL field for field.
+    $result['documentDbMongoClusters'] = @(
+        Select-ByType 'microsoft.documentdb/mongoclusters' | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                sku                 = [string] (Get-ScoutProp $_ 'properties.compute.tier')
+                provisioningState   = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+            }
+        }
+    )
+
+    $result['managedCassandraClusters'] = @(
+        Select-ByType 'microsoft.documentdb/cassandraclusters' | ForEach-Object {
+            [pscustomobject]@{
+                id                     = [string] (Get-ScoutProp $_ 'id')
+                name                   = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup          = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId         = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location               = [string] (Get-ScoutProp $_ 'location')
+                provisioningState      = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                cassandraVersion       = [string] (Get-ScoutProp $_ 'properties.cassandraVersion')
+                authenticationMethod   = [string] (Get-ScoutProp $_ 'properties.authenticationMethod')
+            }
+        }
+    )
+
     # ---- Web plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) --------------------
     # Mirrors Invoke-Collect.ps1's appServiceCertificates/appServiceDomains/appServiceEnvironments/
     # appServicePlans/communicationServices/webAppDeploymentSlots/fluidRelayServers/
@@ -2454,6 +2799,24 @@ function ConvertFrom-ScoutInventory {
     # Mirrors Invoke-Collect.ps1's appComplianceReports/applicationSecurityGroups/
     # artifactSigningAccounts/cloudHsmClusters/confidentialLedgers/ddosProtectionPlans/
     # entraDomainServices/managedHsms/sentinelWorkspaces/wafPolicies.
+    #
+    # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security coverage-gap
+    # close-out. Mirrors Invoke-Collect.ps1's attestationProviders.
+    $result['attestationProviders'] = @(
+        Select-ByType 'microsoft.attestation/attestationproviders' | ForEach-Object {
+            [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId       = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location             = [string] (Get-ScoutProp $_ 'location')
+                status               = [string] (Get-ScoutProp $_ 'properties.status')
+                trustModel           = [string] (Get-ScoutProp $_ 'properties.trustModel')
+                publicNetworkAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+            }
+        }
+    )
+
     $result['appComplianceReports'] = @(
         Select-ByAnyType @('microsoft.appcomplianceautomation/reports', 'microsoft.appcomplianceautomation/reports/snapshots') | ForEach-Object {
             [pscustomobject]@{
@@ -2618,6 +2981,70 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Storage coverage-gap close-out (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099) --
+    # Mirrors Invoke-Collect.ps1's managedLustreFilesystems/storageTasks/storageDiscoveryWorkspaces/
+    # storageMovers. Azure Data Share is cross-listed under Analytics and is already shaped above
+    # as 'dataShareAccounts' -- no separate Storage entry.
+    $result['managedLustreFilesystems'] = @(
+        Select-ByType 'microsoft.storagecache/amlfilesystems' | ForEach-Object {
+            $capacityRaw = Get-ScoutProp $_ 'properties.storageCapacityTiB'
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                storageCapacityTiB = if ($null -eq $capacityRaw) { $null } else { [double] $capacityRaw }
+            }
+        }
+    )
+
+    $result['storageTasks'] = @(
+        Select-ByType 'microsoft.storageactions/storagetasks' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                enabled           = [bool] (Get-ScoutProp $_ 'properties.storageTaskProperties.enabled')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
+    $result['storageDiscoveryWorkspaces'] = @(
+        Select-ByType 'microsoft.storagediscovery/storagediscoveryworkspaces' | ForEach-Object {
+            $rootsRaw = Get-ScoutProp $_ 'properties.workspaceRoots'
+            [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
+                name               = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location           = [string] (Get-ScoutProp $_ 'location')
+                sku                = [string] (Get-ScoutProp $_ 'properties.sku')
+                workspaceRootCount = @($rootsRaw).Count
+            }
+        }
+    )
+
+    $result['storageMovers'] = @(
+        Select-ByAnyType @('microsoft.storagemover/storagemovers', 'microsoft.storagemover/storagemovers/agents',
+                         'microsoft.storagemover/storagemovers/endpoints', 'microsoft.storagemover/storagemovers/projects') | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                type              = [string] (Get-ScoutProp $_ 'type')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
     # ---- Management plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) --------------
     # Mirrors Invoke-Collect.ps1's advisorScores/automationAccounts/recoveryVaultBackupPolicies/
     # lighthouseDelegations.
@@ -2668,6 +3095,69 @@ function ConvertFrom-ScoutInventory {
                 subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
                 provisioningState  = [string] (Get-ScoutProp $_ 'properties.provisioningState')
                 authorizationCount = $authCount
+            }
+        }
+    )
+
+    # ---- Management and governance coverage-gap plumbing (AB#7085, Story AB#7071, Feature
+    # AB#7069, Epic AB#7099) -- mirrors Invoke-Collect.ps1's automanageConfigurationProfiles/
+    # managedApplications/resourceMoverCollections/defenderEasmWorkspaces. managedGrafana is NOT
+    # mirrored here -- AB#7084 already shapes it (see the `microsoft.dashboard/grafana`
+    # Select-ByType block elsewhere in this file) under `devops.managedGrafana`.
+    $result['automanageConfigurationProfiles'] = @(
+        Select-ByType 'microsoft.automanage/configurationprofiles' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+            }
+        }
+    )
+
+    $result['managedApplications'] = @(
+        Select-ByType 'microsoft.solutions/applications' | ForEach-Object {
+            [pscustomobject]@{
+                id                      = [string] (Get-ScoutProp $_ 'id')
+                name                    = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup           = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId          = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                = [string] (Get-ScoutProp $_ 'location')
+                kind                    = [string] (Get-ScoutProp $_ 'kind')
+                managedBy               = [string] (Get-ScoutProp $_ 'managedBy')
+                managedResourceGroupId  = [string] (Get-ScoutProp $_ 'properties.managedResourceGroupId')
+                applicationDefinitionId = [string] (Get-ScoutProp $_ 'properties.applicationDefinitionId')
+                provisioningState       = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+        }
+    )
+
+    $result['resourceMoverCollections'] = @(
+        Select-ByType 'microsoft.migrate/movecollections' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+                sourceRegion   = [string] (Get-ScoutProp $_ 'properties.sourceRegion')
+                targetRegion   = [string] (Get-ScoutProp $_ 'properties.targetRegion')
+                moveType       = [string] (Get-ScoutProp $_ 'properties.moveType')
+            }
+        }
+    )
+
+    $result['defenderEasmWorkspaces'] = @(
+        Select-ByType 'microsoft.easm/workspaces' | ForEach-Object {
+            [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
+                name               = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId     = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location           = [string] (Get-ScoutProp $_ 'location')
+                dataPlaneEndpoint  = [string] (Get-ScoutProp $_ 'properties.dataPlaneEndpoint')
+                provisioningState  = [string] (Get-ScoutProp $_ 'properties.provisioningState')
             }
         }
     )
@@ -2777,6 +3267,21 @@ function ConvertFrom-ScoutInventory {
                 resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location       = [string] (Get-ScoutProp $_ 'location')
+            }
+        }
+    )
+
+    # AB#7084 -- Azure Managed Grafana coverage-gap collector. Mirrors Invoke-Collect.ps1's
+    # managedGrafana query.
+    $result['managedGrafana'] = @(
+        Select-ByType 'microsoft.dashboard/grafana' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
+                sku               = [string] (Get-ScoutProp $_ 'sku.name')
+                provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
             }
         }
     )

@@ -3,7 +3,7 @@
   "Category": "Databases",
   "Name": "SQLMIDB",
   "FixturePath": "tests/fixtures/databases-collector-input.json",
-  "FixtureSha256": "0eb3c4a919d8cc0d6bd5a89f1644dde080c2fe2de1741a4a0ace3a12eee943ca",
+  "FixtureSha256": "57835b14fb5f75c1d56a0bfed6bcafaf3377173fd0ffa6d15c781b67a0f5931d",
   "Rows": [
     "Collation=s:SQL_Latin1_General_CP1_CI_AS|CreationDate=j:\"2025-03-15T10:00:00Z\"|DefaultSecondaryLocation=s:westus|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/managedinstances/sqlmi-prod/databases/midb-app|MI parent=s:sqlmi-prod|Name=s:midb-app|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:Online|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test",
     "Collation=s:SQL_Latin1_General_CP1_CI_AS|CreationDate=j:\"2026-02-01T09:00:00Z\"|DefaultSecondaryLocation=s:northeurope|ID=s:/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sql/managedinstances/sqlmi-eu/databases/midb-nopec|MI parent=s:sqlmi-eu|Name=s:midb-nopec|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:Online|Subscription=s:Scout Sample Subscription 2|Tag Name=s:|Tag Value=s:"

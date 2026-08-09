@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "ConfidentialLedger",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "f6d62e0e7358688f3cbd2b3ef11e3eb82821ecea0db668135ab42d42028a834f",
+  "FixtureSha256": "48fc641403b55b20acc89c1dfd876e0439fccb8da0fd8795b63486bb8a38ac45",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1a-1|Identity Service=s:res-value|Ledger Type=s:res-value|Ledger URI=s:res-value|Location=s:res-value|Name=s:confidentialledger-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.confidentialledger/ledgers|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Running State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.confidentialledger/ledgers/confidentialledger-t1b-1|Identity Service=s:res-value|Ledger Type=s:res-value|Ledger URI=s:res-value|Location=s:res-value|Name=s:confidentialledger-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.confidentialledger/ledgers|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Running State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

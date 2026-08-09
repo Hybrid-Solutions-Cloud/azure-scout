@@ -4,7 +4,7 @@ description: The worksheet and columns each Azure Scout collector produces.
 
 # Collector Fields
 
-What each collector actually returns. **All 245 collectors** declare a worksheet and an
+What each collector actually returns. **All 279 collectors** declare a worksheet and an
 ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -25,7 +25,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 "none exist" or "not permitted".
 :::
 
-## AI (27 collectors)
+## AI (30 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -40,6 +40,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **CustomVision** | Custom Vision | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Kind`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **FaceAPI** | Face API | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **FormRecognizer** | Doc Intelligence | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
+| **HealthBots** | Health Bot | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Identity Type`, `CMK Key Vault`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **HealthInsights** | Health Insights | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Language Resource`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **ImmersiveReader** | Immersive Reader | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **MachineLearning** | Machine Learning | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Friendly Name`, `Description`, `HBI Workspace`, `Container Registry`, `Storage HNS Enabled`, `Private Link Count`, `Public Access Behind Vnet`, `Discovery Url`, `ML Flow Tracking Uri`, `Storage Account`, `Key Vault`, `Application Insight`, `Created Time`, `Resource U` |
@@ -51,24 +52,32 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **MLPipelines** | ML Pipelines | `Workspace Name`, `Subscription`, `Resource Group`, `Pipeline Name`, `Pipeline ID`, `Display Name`, `Status`, `Created Time`, `Last Modified`, `Description`, `Experiment Name`, `Compute ID`, `Resource U` |
 | **OpenAIAccounts** | OpenAI Accounts | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Endpoint`, `Custom Subdomain`, `Public Network Access`, `Private Endpoints`, `Network ACL Default`, `Disable Local Auth`, `Provisioning State`, `Resource U` |
 | **OpenAIDeployments** | OpenAI Deployments | `Account Name`, `Subscription`, `Resource Group`, `Location`, `Deployment Name`, `Model Name`, `Model Version`, `Model Format`, `Scale Type`, `Capacity (PTUs)`, `Dynamic Throttling`, `Provisioning State`, `Resource U` |
+| **PlanetaryComputerGeoCatalogs** | Planetary Computer | `Subscription`, `Resource Group`, `Name`, `Location`, `Tier`, `Identity Type`, `Domain Name Label Scope`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **SearchIndexes** | Search Indexes | `Service Name`, `Subscription`, `Resource Group`, `Index Name`, `Fields Count`, `Analyzers Count`, `Scoring Profiles`, `Suggesters Count`, `CORS Allowed Origins`, `Default Scoring Profile`, `Resource U` |
 | **SearchServices** | Search Services | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Status`, `Status Details`, `Public Network Access`, `Disable Local Authentication`, `Hosting Mode`, `Semantic Search`, `Encryption Compliance Status`, `Encryption Enforcement`, `Replica Count`, `Network Rule Set`, `Private Endpoint`, `Resource U` |
 | **SpeechService** | Speech Service | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **TextAnalytics** | Language | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Quota Limit`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
 | **Translator** | Translator | `Subscription`, `Resource Group`, `Name`, `SKU`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Creation Time`, `Is Migrated`, `Custom Domain Name`, `Endpoint`, `Network Default Action`, `IP Rules`, `Virtual Network Rules`, `Private Endpoint`, `Resource U` |
+| **VideoIndexerAccounts** | Video Indexer | `Subscription`, `Resource Group`, `Name`, `Location`, `Public Network Access`, `Identity Type`, `Private Endpoint Connections`, `OpenAI Services Linked`, `Storage Account`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Analytics (6 collectors)
+## Analytics (12 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
+| **AnalysisServices** | Analysis Services | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Provisioning State`, `Server State`, `Query Pool Connection Mode`, `Firewall State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Databricks** | Databricks | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Pricing Tier`, `Managed Resource Group`, `Storage Account`, `Storage Account SKU`, `Infrastructure Encryption`, `Prepare Encryption`, `Enable Public IP`, `Custom Virtual Network`, `Custom Private Subnet`, `Custom Public Subnet`, `URL`, `Created Time`, `Resource U` |
 | **DataExplorerCluster** | Data Explorer Clusters | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Compute specifications`, `Instance count`, `State`, `State Reason`, `Virtual Network`, `Subnet`, `Data Management Public IP`, `Engine Public IP`, `Tenants Permissions`, `Disk Encryption`, `Streaming Ingestion`, `Optimized Autoscale`, `Optimized Autoscale Min`, `Optimized Autoscale Max`, `URI`, `Data Ingestion Uri`, `Resource U` |
+| **DataFactory** | Data Factory | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Public Network Access`, `Repo Configuration Type`, `Identity Type`, `Create Time`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **DataShare** | Data Share | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **EvtHub** | Event Hubs | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Status`, `Geo-Rep`, `Throughput Units`, `Local Authentication`, `Auto-Inflate`, `Max Throughput Units`, `Kafka Enabled`, `Minimum TLS Version`, `Endpoint`, `Created Time`, `Resource U` |
+| **FabricCapacity** | Fabric Capacities | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `State`, `SKU Name`, `SKU Tier`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **HDInsight** | HDInsight | `Subscription`, `Resource Group`, `Name`, `Location`, `Cluster Version`, `Cluster Kind`, `Cluster State`, `OS Type`, `Min TLS Version`, `Public Network Access`, `Encryption In Transit`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **PowerBIEmbedded** | Power BI Embedded | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Mode`, `SKU Name`, `SKU Tier`, `SKU Capacity`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Purview** | Purview | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Capacity`, `Friendly Name`, `Cloud Connectors`, `Private Endpoints`, `Managed Resource Group`, `Managed Storage Account`, `Managed Event Hub`, `Public Network Access`, `Created By`, `Created Time`, `Resource U` |
 | **Streamanalytics** | Stream Analytics Jobs | `Cluster Subscription`, `Cluster Resource Group`, `Cluster Name`, `Cluster Location`, `Cluster SKU`, `Retiring Feature`, `Retiring Date`, `Capacity Allocated`, `Capacity Assigned`, `Cluster Creation Date`, `Job Subscription`, `Job Resource Group`, `Job Name`, `Job Location`, `Job Pricing Plan`, `Job State`, `Compatibility Level`, `Storage Account`, `Storage Account Auth Method`, `Content Storage Policy`, `Created Date`, `Data Locale`, `Late Arrival Max Delay in Seconds`, `Out of Order Max Delay in Seconds`, `Out of Order Policy`, `Job Type`, `Last Output Event Time`, `Output Start Time`, `Output Error Policy`, `Resource U` |
 | **Synapse** | Synapse | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Public Network Access`, `Private Endpoints`, `Double Encryption Enabled`, `Trusted Service Bypass Enabled`, `SQL Administrator Login`, `Scope Enabled`, `Workspace Type`, `Prevent Data Exfiltration`, `Managed Virtual Network`, `Managed ResourceGroup`, `Resource U` |
 
-## Compute (13 collectors)
+## Compute (19 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -80,9 +89,15 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **AVDScalingPlans** | AVD Scaling Plans | `Subscription`, `Resource Group`, `Name`, `Location`, `Friendly Name`, `Host Pool Type`, `Time Zone`, `Exclusion Tag`, `Schedules Count`, `Schedule Names`, `Host Pool References Count`, `Host Pools`, `Provisioning State`, `Resource U` |
 | **AVDSessionHosts** | AVD Session Hosts | `Subscription`, `Resource Group`, `Host Pool`, `Session Host`, `Status`, `Agent Version`, `OS Version`, `Sessions`, `Assigned User`, `Allow New Session`, `Update State`, `Last Heartbeat`, `Arc Enabled`, `Azure Local`, `Resource U` |
 | **AVDWorkspaces** | AVD Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `Friendly Name`, `Description`, `Application Groups Count`, `Application Groups`, `Public Network Access`, `Private Endpoints`, `Provisioning State`, `Resource U` |
+| **BatchAccounts** | Batch Accounts | `Subscription`, `Resource Group`, `Name`, `Location`, `Pool Allocation Mode`, `Public Network Access`, `Identity Type`, `Encryption Key Source`, `Auto Storage Account`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **ComputeFleet** | Compute Fleet | `Subscription`, `Resource Group`, `Name`, `Location`, `Identity Type`, `Zones`, `Regular Priority Allocation Strategy`, `Spot Priority Allocation Strategy`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **DedicatedHostGroups** | Dedicated Host Groups | `Subscription`, `Resource Group`, `Name`, `Location`, `Platform Fault Domain Count`, `Support Automatic Placement`, `Ultra SSD Enabled`, `Zones`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **NutanixNodes** | Nutanix Nodes | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU Name`, `Zones`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **QuantumWorkspaces** | Quantum Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `API Key Enabled`, `Providers Count`, `Identity Type`, `Storage Account`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **VirtualMachine** | Virtual Machines | `Subscription`, `Resource Group`, `VM Name`, `VM Size`, `Remaining Quota (vCPUs)`, `vCPUs`, `vCPUs Per Core`, `RAM (GiB)`, `Max Remote Storage Disks`, `Uncached Disk IOPS Limit`, `Uncached Disk Throughput Limit (MB/s)`, `Max Network Interfaces`, `Retiring Feature`, `Retiring Date`, `Availability Zone`, `Zones Available in the Region`, `Capabilities`, `Location`, `OS Type`, `OS Name`, `OS Version`, `Automatic Update`, `Image Reference`, `Image Version`, `Hybrid Benefit`, `Admin Username`, `Boot Diagnostics`, `Performance Agent`, `Azure Monitor`, `OS Disk Storage Type`, `OS Disk Size (GB)`, `Data Disk Storage Type`, `Data Disk Size (GB)`, `VM generation`, `Power State`, `Availability Set`, `Virtual Network`, `Subnet`, `DNS Servers`, `NSG`, `NIC Name`, `NIC Type`, `Accelerated Networking`, `IP Forwarding`, `Private IP Address`, `Private IP Allocation`, `Public IP`, `Creation Time`, `VM Extensions`, `Avg CPU % (7d)`, `Avg Memory % (7d)`, `DR Replicated`, `DR Target Region`, `DR Replication Health`, `Est. Monthly Cost (USD)`, `Resource U` |
 | **VirtualMachineScaleSet** | Virtual Machine Scale Sets | `Subscription`, `Resource Group`, `AKS / SFC`, `Name`, `Location`, `SKU Tier`, `Retiring Feature`, `Retiring Date`, `Fault Domain`, `Upgrade Policy`, `Diagnostics`, `VM Size`, `Instances`, `vCPUs (per Instance)`, `vCPUs per Core (per Instance)`, `Memory (GB) (per Instance)`, `Remaining Quota`, `Autoscale Enabled`, `VM OS`, `OS Image`, `Image Version`, `VM OS Disk Size (GB)`, `Disk Storage Account Type`, `Disable Password Authentication`, `Custom DNS Servers`, `Virtual Network`, `Subnet`, `Accelerated Networking Enabled`, `Network Security Group`, `Extensions`, `Admin Username`, `VM Name Prefix`, `Created Time`, `Resource U` |
 | **VMDisk** | Disks | `Subscription`, `Resource Group`, `Disk Name`, `Retiring Feature`, `Retiring Date`, `Disk State`, `Associated Resource`, `Location`, `Zone`, `SKU`, `Disk Size`, `Performance Tier`, `Disk IOPS Read / Write`, `Disk MBps Read / Write`, `Public Network Access`, `Connection Type`, `Hibernation Supported`, `Encryption`, `OS Type`, `Max Shares`, `Data Access Auth Mode`, `HyperV Generation`, `Created Time`, `Resource U` |
+| **VMImageTemplates** | VM Image Builder | `Subscription`, `Resource Group`, `Name`, `Location`, `Source Type`, `Build Timeout Minutes`, `Identity Type`, `Staging Resource Group`, `Last Run State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **VMOperationalData** | VM Operational Data | `Subscription`, `Resource Group`, `VM Name`, `Location`, `Power State`, `Extensions Count`, `Extensions Installed`, `Azure Monitor Agent`, `Defender Extension`, `Boot Diagnostics`, `Boot Diag Storage`, `Backup Enabled`, `Last Backup Time`, `Backup Vault`, `Backup Policy`, `Advisor Recs Total`, `Advisor Cost Recs`, `Advisor Security Recs`, `Pending Critical Patches`, `Pending Other Patches`, `Last Patch Assessment`, `Tag: Environment`, `Tag: Owner`, `Tag: Cost Center`, `Tag: Expiration Date`, `Resource U` |
 | **VMWare** | VMWare | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Availability Strategy`, `Zone`, `Express Route Circuit`, `Encryption`, `External Cloud Links`, `Identity Sources`, `Internet`, `Cluster Size`, `Management Network`, `Network Block`, `Provisioning Network`, `vMotion Network`, `HCX Cloud Manager`, `NSXT Manager`, `VCSA`, `Resource U` |
 
@@ -97,11 +112,13 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **ContainerGroups** | Containers | `Subscription`, `Resource Group`, `Instance Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Instance OS Type`, `Container Name`, `Container State`, `Container Image`, `Restart Count`, `Start Time`, `Command`, `Request CPU`, `Request Memory (GB)`, `IP`, `Protocol`, `Port`, `Resource U` |
 | **ContainerRegistries** | Registries | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Anonymous Pull Enabled`, `Encryption`, `Public Network Access`, `Zone Redundancy`, `Private Link`, `Soft Delete Policy`, `Trust Policy`, `Created Time`, `Resource U` |
 
-## Databases (12 collectors)
+## Databases (15 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
 | **CosmosDB** | Cosmos DB | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Enabled API Types`, `Backup Policy`, `Backup Storage Redundancy`, `Account Offer Type`, `Replicate Data Globally`, `VNET Filtering`, `Virtual Networks`, `Capacity`, `Free Tier Discount`, `Capabilities`, `Public Access`, `Default Consistency`, `Private Endpoint`, `Read Locations`, `Write Locations`, `CORS`, `URI`, `Resource U` |
+| **DocumentDB** | DocumentDB (vCore Mongo) | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU Tier`, `Provisioning State`, `Public Network Access`, `Server Version`, `High Availability Mode`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **ManagedCassandra** | Managed Cassandra | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Cassandra Version`, `Authentication Method`, `Audit Logging Enabled`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **MariaDB** | MariaDB | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU`, `SKU Family`, `Tier`, `Capacity`, `MariaDB Version`, `Private Endpoint`, `Backup Retention Days`, `Geo-Redundant Backup`, `Auto Grow`, `Storage MB`, `Public Network Access`, `Admin Login`, `Infrastructure Encryption`, `Minimum TLS Version`, `State`, `Replica Capacity`, `Replication Role`, `BYOK Enforcement`, `SSL Enforcement`, `Resource U` |
 | **MySQL** | MySQL | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `SKU Family`, `Tier`, `Retiring Feature`, `Retiring Date`, `Capacity`, `MySQL Version`, `Private Endpoint`, `Backup Retention Days`, `Geo-Redundant Backup`, `Auto Grow`, `Storage MB`, `Public Network Access`, `Admin Login`, `Infrastructure Encryption`, `Minimum TLS Version`, `State`, `Replica Capacity`, `Replication Role`, `BYOK Enforcement`, `SSL Enforcement`, `Resource U` |
 | **MySQLflexible** | MySQL Flexible | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Version`, `State`, `Zone`, `Administrator Login`, `Storage Size (GB)`, `Limit IOPs`, `Auto Grow`, `Storage Sku`, `Custom Maintenance Window`, `Replication Role`, `Replica Capacity`, `Public Network Access`, `Backup Retention Days`, `Geo Redundant Backup`, `High Availability`, `High Availability State`, `FQDN`, `Resource U` |
@@ -113,8 +130,9 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **SQLPOOL** | SQL Pools | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Capacity`, `Sku Name`, `Edition`, `License`, `DB Min DTU`, `DB Max DTU`, `Max Size (GB)`, `Zone Redundant`, `Resource U` |
 | **SQLSERVER** | SQL Servers | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Kind`, `Admin Login`, `Private Endpoint`, `FQDN`, `Public Network Access`, `minimalTlsVersion`, `State`, `Version`, `Zone Redundant`, `Resource U` |
 | **SQLVM** | SQL VMs | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Zone`, `SQL Server License Type`, `SQL Image`, `SQL Management`, `SQL Image Sku`, `Resource U` |
+| **StorageTables** | Storage Tables | `Subscription`, `Resource Group`, `Storage Account`, `Table`, `Metadata Keys`, `Resource U` |
 
-## DevOps (17 collectors)
+## DevOps (18 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -134,6 +152,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **LabServices** | Lab Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `State`, `SKU`, `Security Open Access`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **LoadTesting** | Load Testing | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Data Plane URI`, `Description`, `Identity Type`, `CMK Identity`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ManagedDevOpsPools** | Managed DevOps Pools | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Maximum Agents`, `Organisation Kind`, `Agent OS`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **ManagedGrafana** | Managed Grafana | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Provisioning State`, `Endpoint`, `Grafana Major Version`, `Public Network Access`, `Zone Redundancy`, `API Key`, `Deterministic Outbound IP`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **PlaywrightTesting** | Playwright Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Dashboard URI`, `Local Auth`, `Regional Affinity`, `Reporting`, `Scalable Execution`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
 ## General (5 collectors)
@@ -206,7 +225,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **Relays** | Relays | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `Provisioning State`, `Service Bus Endpoint`, `Public Network Access`, `Listener Count`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ServiceBUS** | Service BUS | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Status`, `Geo-Rep`, `Throughput Units`, `Endpoint`, `Created Time`, `Resource U` |
 
-## IoT (7 collectors)
+## IoT (8 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -216,21 +235,25 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **DigitalTwins** | Digital Twins | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Host Name`, `Public Network Access`, `Endpoint Type`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **IoTCentral** | IoT Central | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `State`, `Application Id`, `Subdomain`, `Template`, `Public Network Access`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **IOTHubs** | IOTHubs | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU`, `SKU Tier`, `Role`, `State`, `IP Filter Rules`, `Event Retention Time In Days`, `Event Partition Count`, `Events Path`, `Max Delivery Count`, `Host Name`, `Resource U` |
+| **IoTOperations** | IoT Operations | `Subscription`, `Resource Group`, `Name`, `Location`, `Description`, `Schema Registry Id`, `Identity Type`, `Extended Location`, `Extended Location Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Maps** | Azure Maps | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `SKU Tier`, `Provisioning State`, `Unique Id`, `Local Auth Disabled`, `Storage Units`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Management (16 collectors)
+## Management (20 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
 | **AdvisorScore** | AdvisorScore | `Subscription`, `Category`, `Latest Score (%)`, `Latest Refresh Score`, `Score Date`, `Score`, `Impacted Resources`, `Consumption Units`, `Potential Score Increase` |
 | **AllSubscriptions** | All Subscriptions | `Subscription Name`, `Subscription ID`, `State`, `Tenant ID`, `Management Group Path`, `Resource Groups Count`, `Resources Count`, `Spending Limit`, `Quota ID`, `Authorization Source`, `Tags`, `Resource U` |
+| **AutomanageConfigurationProfiles** | Automanage Profiles | `Subscription`, `Resource Group`, `Configuration Profile`, `Location`, `Antimalware`, `Backup`, `Update Management`, `Override Count`, `Resource U` |
 | **AutomationAccounts** | Runbooks | `Subscription`, `Resource Group`, `Automation Account Name`, `Retiring Feature`, `Retiring Date`, `Automation Account State`, `Automation Account SKU`, `Automation Account Created Time`, `Location`, `Runbook Name`, `Last Modified Time`, `Runbook State`, `Runbook Type`, `Runbook Description`, `Resource U` |
 | **Backup** | Backup | `Subscription`, `Resource Group`, `Backup Policy Name`, `Location`, `Datasource Type`, `Protected Items Count`, `Backup Compression`, `SQL Compression`, `Policy Type`, `Protected Item Type`, `Protected Item`, `Vault`, `Retention Period`, `Backup Frequency`, `Health Status`, `Protection Status`, `Archive Enabled`, `Last Backup Status`, `Last Backup Time`, `Days Since Last Backup`, `Last Recovery Point`, `Latest Recovery Point (Secondary Region)`, `Protection State`, `Protection State (Secondary Region)`, `Soft Delete Retention Period`, `Resource U` |
 | **BackupInstances** | Backup Instances | `Subscription`, `Resource Group`, `Backup Vault`, `Instance`, `Friendly Name`, `Datasource Type`, `Protected Resource`, `Protection State`, `Protection Status`, `Policy`, `Provisioning State`, `Resource U` |
 | **Budgets** | Budgets | `Subscription`, `Name`, `Category`, `Amount`, `Currency`, `Time Grain`, `Start Date`, `End Date`, `Current Spend`, `Forecast Spend`, `Budget Used %`, `Alerts Configured`, `Resource U` |
 | **CustomRoleDefinitions** | Custom Roles | `Role Name`, `Description`, `Role Type`, `Is Custom`, `Assignable Scopes`, `Actions`, `Not Actions`, `Data Actions`, `Not Data Actions`, `Created On`, `Updated On`, `Created By`, `Updated By`, `Resource U` |
+| **DefenderEasmWorkspaces** | Defender EASM | `Subscription`, `Resource Group`, `Workspace Name`, `Location`, `Data Plane Endpoint`, `Provisioning State`, `Resource U` |
 | **LighthouseDelegations** | Lighthouse Delegations | `Subscription`, `Registration Name`, `Description`, `Registration ID`, `Managed By Tenant ID`, `Managed By Tenant Name`, `Authorizations`, `Authorization Count`, `Eligible Authorizations`, `Provisioning State`, `Resource U` |
 | **MaintenanceConfigurations** | Maintenance Configs | `Subscription`, `Resource Group`, `Configuration Name`, `Location`, `Scope`, `Recurrence Pattern`, `Start Time (UTC)`, `Duration (hours)`, `Time Zone`, `OS Filter`, `Patch Classifications`, `Reboot Setting`, `KB Numbers (Include)`, `KB Numbers (Exclude)`, `Package Names (Include)`, `Package Names (Exclude)`, `Pre-Maintenance Tasks`, `Post-Maintenance Tasks`, `Visibility`, `Resource U` |
+| **ManagedApplications** | Managed Applications | `Subscription`, `Resource Group`, `Application Name`, `Location`, `Kind`, `Managed Resource Group`, `Application Definition ID`, `Managed By`, `Plan Name`, `Plan Publisher`, `Provisioning State`, `Resource U` |
 | **ManagementGroups** | Management Groups | `Management Group ID`, `Display Name`, `Display Name (Raw)`, `Full Path`, `Hierarchy Depth`, `Parent Management Group`, `Tenant ID`, `Direct Child MGs`, `Direct Subscriptions`, `Direct Subscription Names`, `Resource U` |
 | **PolicyAssignments** | Policy Assignments | `Subscription`, `Scope Type`, `Scope`, `Assignment Name`, `Display Name`, `Assigned`, `Definition`, `Enforcement Mode`, `Excluded Scopes`, `Parameters`, `Description`, `Resource U` |
 | **PolicyComplianceStates** | Policy Compliance | `Subscription`, `Subscription ID`, `Resource ID`, `Resource Type`, `Resource Location`, `Resource Group`, `Policy Assignment ID`, `Policy Assignment Name`, `Policy Definition ID`, `Policy Definition Name`, `Policy Set Definition ID`, `Compliance State`, `Is Compliant`, `Policy Definition Action`, `Policy Definition Category`, `Timestamp`, `Management Group IDs`, `Resource U` |
@@ -238,6 +261,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **PolicySetDefinitions** | Policy Initiatives | `Name`, `Display Name`, `Description`, `Policy Type`, `Category`, `Version`, `Policy Count`, `Policy Definition Groups`, `Policy References`, `Parameters`, `Management Group`, `Subscription`, `Resource U` |
 | **RecoveryVault** | Recovery Vaults | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU Name`, `SKU Tier`, `Private Endpoint State for Backup`, `Private Endpoint State for Site Recovery`, `Resource U` |
 | **ResourceLocks** | Resource Locks | `Subscription`, `Scope Type`, `Protects`, `Lock Name`, `Lock Level`, `Notes`, `Resource U` |
+| **ResourceMoverCollections** | Resource Mover | `Subscription`, `Resource Group`, `Move Collection`, `Location`, `Source Region`, `Target Region`, `Move Type`, `Identity Type`, `Resource U` |
 
 ## Migration (6 collectors)
 
@@ -277,19 +301,23 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **SubscriptionDiagnosticSettings** | Subscription Diagnostics | `Subscription`, `Diagnostic Setting Name`, `Enabled Log Categories`, `Categories Enabled`, `Destinations`, `Log Analytics Workspace`, `Storage Account`, `Event Hub`, `Partner Solution`, `Resource U` |
 | **Workspaces** | Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Retention Days`, `Daily Cap (GB)`, `Data Ingestion From Public Networks`, `Queries From Public Networks`, `Created Time`, `Resource U` |
 
-## Networking (21 collectors)
+## Networking (25 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
 | **ApplicationGateways** | App Gateway | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU Name`, `Retiring Feature`, `Retiring Date`, `State`, `WAF Enabled`, `Minimum TLS Version`, `Autoscale Min Capacity`, `Autoscale Max Capacity`, `Current Instances`, `Backend Pool State`, `Backend`, `Frontend`, `Frontend Ports`, `Gateways`, `HTTP Listeners`, `Request Routing Rules`, `Resource U` |
 | **AzureFirewall** | Azure Firewall | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Threat Intel Mode`, `Zone`, `Public IP Name`, `Firewall VNET`, `Firewall Private IP`, `Policy Name`, `DNS Proxy`, `DNS Servers`, `Rule Collection Group`, `Rule Collection Group Priority`, `Rule Collection`, `Rule Action`, `Rule Priority`, `Rule Type`, `Rule Name`, `Source Type`, `Source`, `Protocol`, `Destination Port`, `Destination Type`, `Destination`, `Resource U` |
 | **BastionHosts** | Bastion Hosts | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `DNS Name`, `Virtual Network`, `Public IP`, `Scale Units`, `Resource U` |
+| **CdnProfiles** | CDN Profiles | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU`, `Provisioning State`, `Front Door ID`, `Resource U` |
 | **Connections** | Connections | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Type`, `Status`, `Connection Protocol`, `Routing Weight`, `connectionMode`, `IPsec Encryption`, `IPsec Integrity`, `IKE Encryption`, `IKE Integrity`, `DH Group`, `PFS Group`, `SA Lifetime (sec)`, `SA Data Size (KB)`, `Use Policy-Based TS`, `Traffic Selectors`, `DPD Timeout (sec)`, `Ingress Bytes`, `Egress Bytes`, `Shared Key Set`, `Resource U` |
 | **ExpressRoute** | Express Route | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Provider Status`, `Provider`, `Peering Location`, `Bandwidth`, `SKU`, `Billing Model`, `Authorization`, `Circuit Status`, `GlobalReach Enabled`, `Resource U` |
+| **FirewallPolicies** | Firewall Policies | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU Tier`, `Provisioning State`, `Threat Intel Mode`, `Rule Collection Group Count`, `Resource U` |
 | **Frontdoor** | FrontDoor | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Friendly Name`, `cName`, `State`, `Web Application Firewall`, `Frontend`, `Backend`, `Health Probe`, `Load Balancing`, `Routing Rules`, `Resource U` |
 | **LoadBalancer** | Load Balancers | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Orphaned`, `Usage`, `Frontend Name`, `Frontend Target`, `Frontend Type`, `Frontend Subnet`, `Backend Count`, `Probe Count`, `Resource U` |
 | **NATGateway** | NAT Gateway | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Idle Timeout (Min)`, `Public IP`, `Public Prefixes`, `VNET`, `Subnet`, `Resource U` |
+| **NetworkFunctions** | Network Functions | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Provisioning State`, `Vendor Provisioning State`, `Service Key`, `Resource U` |
 | **NetworkInterface** | Network Interface | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Attached Resource Type`, `Attached Resource`, `Network Security Group`, `DNS Servers`, `Internal Domain Suffix`, `Accelerated Networking`, `IP Forwarding`, `MAC Address`, `IP Configurations`, `Virtual Network`, `Subnet`, `Primary`, `Private IP Version`, `Private IP`, `Private IP Method`, `Public IP Name`, `Public IP`, `Resource U` |
+| **NetworkManagers** | Network Managers | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Provisioning State`, `Scope Subscription Count`, `Scope Accesses`, `Resource U` |
 | **NetworkSecurityGroup** | Network Security Groups | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Orphaned`, `Security Rules`, `Direction`, `Action`, `Priority`, `Protocol`, `Source`, `Source Port`, `Destination`, `Destination Port`, `Related NICs`, `Related VNETs and Subnets`, `Flow Logs Enabled`, `Flow Logs Retention Days`, `Flow Logs Storage Account`, `Resource U` |
 | **NetworkWatchers** | Network Watchers | `Subscription`, `Resource Group`, `Network Watcher Name`, `Location`, `Provisioning State`, `Flow Logs Count`, `Flow Logs`, `Connection Monitors Count`, `Connection Monitors`, `Packet Captures Count`, `Capabilities`, `Resource U` |
 | **PrivateDNS** | Private DNS | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Number of Records`, `Virtual Network Links`, `Virtual Network`, `Network Links with Registration`, `Resource U` |
@@ -303,13 +331,14 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **VirtualWAN** | Virtual WAN | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Allow BranchToBranch Traffic`, `Allow VnetToVnet Traffic`, `Disable Vpn Encryption`, `HUB Name`, `HUB Location`, `HUB Address Prefix`, `HUB Gateway Preference`, `HUB Router ASN`, `HUB Router IPs`, `Virtual Site Name`, `Device Vendor`, `Device Vendor IpAddress`, `Link Provider name`, `Link Speed in Mbps`, `Virtual Site Private Address Space`, `Resource U` |
 | **vNETPeering** | Peering | `Subscription`, `Resource Group`, `Location`, `Zone`, `Peering Name`, `VNET Name`, `Address Space`, `Peering VNet`, `Peering Address Space`, `Peering State`, `Peering Use Remote Gateways`, `Peering Allow Gateway Transit`, `Peering Allow Forwarded Traffic`, `Peering Do Not Verify Remote Gateways`, `Peering Allow Virtual NetworkAccess`, `Resource U` |
 
-## Security (17 collectors)
+## Security (18 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
 | **AppComplianceAutomation** | App Compliance Automation | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Status`, `Trigger Time`, `Time Zone`, `Resource Count`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ApplicationSecurityGroups** | App Security Groups | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Resource GUID`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ArtifactSigning** | Artifact Signing | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Provisioning State`, `Account URI`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **Attestation** | Attestation | `Subscription`, `Resource Group`, `Name`, `Location`, `Trust Model`, `Status`, `Attest URI`, `Public Network Access`, `TPM Attestation Auth`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **CloudHSM** | Cloud HSM | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `Provisioning State`, `Public Network Access`, `Auto Generated Domain`, `Stamp Id`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ConfidentialLedger** | Confidential Ledger | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Ledger Type`, `Ledger URI`, `Identity Service`, `Running State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **DdosProtectionPlans** | DDoS Protection Plans | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Protected VNETs`, `Public IP Count`, `Resource GUID`, `Retiring Feature`, `Retiring Date`, `Resource U` |
@@ -325,7 +354,7 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **Vault** | Key Vaults | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU Family`, `SKU`, `Vault Uri`, `Public Network Access`, `Enable RBAC`, `Enable Soft Delete`, `Enable for Disk Encryption`, `Soft Delete Retention Days`, `Access Policy ObjectID`, `Certificate Permissions`, `Key Permissions`, `Secret Permissions`, `Resource U` |
 | **WafPolicies** | WAF Policies | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `Provisioning State`, `Enabled State`, `Mode`, `Managed Rule Sets`, `Custom Rules`, `Associations`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Storage (11 collectors)
+## Storage (16 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -335,10 +364,15 @@ produced nothing** — that file, not this page, tells you whether an empty work
 | **ElasticSan** | Elastic SAN | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `Provisioning State`, `Base Size (TiB)`, `Extended Size (TiB)`, `Protocol Type`, `Encryption`, `Public Network Access`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **FileShares** | File Shares | `Subscription`, `Resource Group`, `Storage Account`, `Share`, `Quota (GiB)`, `Access Tier`, `Protocols`, `Root Squash`, `Snapshot Count`, `Last Modified`, `Resource U` |
 | **LifecyclePolicies** | Storage Lifecycle Policies | `Subscription`, `Resource Group`, `Storage Account`, `Rule Count`, `Enabled Rules`, `Rule Names`, `Last Modified`, `Resource U` |
+| **ManagedLustre** | Managed Lustre | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Provisioning State`, `Storage Capacity (TiB)`, `Filesystem Subnet`, `Health State`, `Zones`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **NetApp** | NetApp | `Subscription`, `Resource Group`, `Location`, `NetApp Account`, `Retiring Feature`, `Retiring Date`, `Capacity Pool`, `Volume`, `Service Level`, `Quota (TB)`, `Protocol`, `Max Throughput MiB/s`, `Export Policy Count`, `Network Features`, `Security Style`, `SMB Encryption`, `UNIX Permissions`, `Cool Access`, `VMWare Solution`, `LDAP`, `VNET Name`, `Subnet Name`, `Resource U` |
 | **PartnerStorage** | Partner Storage Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Marketplace Plan`, `Publisher`, `Offer`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Snapshots** | Snapshots | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Disk State`, `Size (GB)`, `Incremental`, `Created`, `Source Disk`, `OS Type`, `Network Access`, `Public Network`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **StorageAccounts** | Storage Accounts | `Subscription`, `Resource Group`, `Name`, `Location`, `Zone`, `SKU`, `Tier`, `Storage Account Kind`, `Retiring Feature`, `Retiring Date`, `Secure Transfer Required`, `Allow Blob Anonymous Access`, `Minimum TLS Version`, `Microsoft Entra Authorization`, `Allow Storage Account Key Access`, `SFTP Enabled`, `Blob Soft Delete Days`, `Container Soft Delete Days`, `File Share Soft Delete Days`, `Hierarchical Namespace`, `NFSv3 Enabled`, `Large File Shares`, `Access Tier`, `Allow Cross Tenant Replication`, `Infrastructure Encryption Enabled`, `Public Network Access`, `Private Endpoints`, `Direct Access Resources`, `Virtual Networks`, `Subnet`, `Direct Access IPs`, `Firewall Exceptions`, `Primary Location`, `Status Of Primary Location`, `Secondary Location`, `Status Of Secondary Location`, `Created Time`, `Resource U` |
+| **StorageActions** | Storage Actions | `Subscription`, `Resource Group`, `Name`, `Location`, `Enabled`, `Description`, `Provisioning State`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **StorageDiscovery** | Storage Discovery | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Workspace Roots`, `Scope Count`, `Description`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **StorageMover** | Storage Mover | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Agent Status`, `Description`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **StorageQueues** | Storage Queues | `Subscription`, `Resource Group`, `Storage Account`, `Queue`, `Metadata Keys`, `Resource U` |
 | **StorageSync** | Storage Sync Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Incoming Traffic`, `Server Name`, `Server OS`, `Agent Version`, `Server Status`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
 ## Web (14 collectors)

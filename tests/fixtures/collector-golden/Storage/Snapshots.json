@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "Snapshots",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
+  "FixtureSha256": "12cb3bb1b7c042854d935c1291641c4020fae08cf2bc17ee3bd0115dc8f9d4d6",
   "Rows": [
     "Created=s:01/15/2026 10:30:00|Disk State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1a-1|Incremental=s:res-value|Location=s:res-value|Name=s:snapshots-t1a|Network Access=s:res-value|OS Type=s:res-value|Public Network=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Size (GB)=s:res-value|SKU=s:res-value|Source Disk=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Created=s:01/15/2026 10:30:00|Disk State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/snapshots/snapshots-t1b-1|Incremental=s:res-value|Location=s:res-value|Name=s:snapshots-t1b|Network Access=s:res-value|OS Type=s:res-value|Public Network=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Size (GB)=s:res-value|SKU=s:res-value|Source Disk=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

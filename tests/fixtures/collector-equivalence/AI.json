@@ -330,6 +330,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/translator-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -802,7 +838,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -836,7 +872,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -871,7 +907,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -903,7 +939,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -937,7 +973,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -971,7 +1007,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": "res-value",
             "publicnetworkaccess": "res-value",
             "ismigrated": "res-value",
@@ -1162,7 +1198,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1198,7 +1234,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1235,7 +1271,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1269,7 +1305,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1305,7 +1341,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1341,7 +1377,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1381,7 +1417,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1417,7 +1453,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1454,7 +1490,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1488,7 +1524,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1524,7 +1560,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1560,7 +1596,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1600,7 +1636,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1636,7 +1672,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1673,7 +1709,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1707,7 +1743,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1743,7 +1779,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1779,7 +1815,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1819,7 +1855,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1855,7 +1891,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1892,7 +1928,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1926,7 +1962,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1962,7 +1998,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -1998,7 +2034,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2038,7 +2074,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2074,7 +2110,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2111,7 +2147,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2145,7 +2181,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2181,7 +2217,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2217,7 +2253,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2257,7 +2293,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2293,7 +2329,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2330,7 +2366,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2364,7 +2400,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2400,7 +2436,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2436,7 +2472,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2472,11 +2508,146 @@
         }
       ]
     },
+    "HealthBots": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        },
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        },
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        },
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        },
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        },
+        {
+          "PROPERTIES": {
+            "keyVaultProperties": {
+              "keyVaultUri": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.healthbot/healthbots/healthbots-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "healthbots-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.healthbot/healthbots"
+        }
+      ]
+    },
     "HealthInsights": {
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2515,7 +2686,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2555,7 +2726,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2592,7 +2763,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2631,7 +2802,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2670,7 +2841,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "apiProperties": {
               "TA4HResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             },
@@ -2713,7 +2884,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2749,7 +2920,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2786,7 +2957,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2820,7 +2991,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2856,7 +3027,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2892,7 +3063,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -2932,7 +3103,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -2961,7 +3132,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -2991,7 +3162,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -3018,7 +3189,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -3047,7 +3218,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -3076,7 +3247,7 @@
         },
         {
           "PROPERTIES": {
-            "creationTime": "2026-01-15T10:30:00.0000000Z",
+            "creationTime": "2026-01-15T10:30:00Z",
             "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "keyVault": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
             "applicationInsights": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
@@ -3318,7 +3489,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3352,7 +3523,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3387,7 +3558,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3419,7 +3590,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3453,7 +3624,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3487,7 +3658,7 @@
                 "dataUri": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3884,7 +4055,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3917,7 +4088,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3951,7 +4122,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -3982,7 +4153,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -4015,7 +4186,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -4048,7 +4219,7 @@
                 "flavors": "res-value"
               },
               "systemData": {
-                "createdAt": "2026-01-15T10:30:00.0000000Z"
+                "createdAt": "2026-01-15T10:30:00Z"
               }
             }
           },
@@ -4082,8 +4253,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4114,8 +4285,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4147,8 +4318,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4177,8 +4348,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4209,8 +4380,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4241,8 +4412,8 @@
             "displayName": "res-value",
             "status": "res-value",
             "creationContext": {
-              "createdAt": "2026-01-15T10:30:00.0000000Z",
-              "lastModifiedAt": "2026-01-15T10:30:00.0000000Z"
+              "createdAt": "2026-01-15T10:30:00Z",
+              "lastModifiedAt": "2026-01-15T10:30:00Z"
             },
             "description": "res-value",
             "experimentName": "res-value",
@@ -4632,6 +4803,117 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "PlanetaryComputerGeoCatalogs": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
+        },
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
+        },
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
+        },
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
+        },
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
+        },
+        {
+          "PROPERTIES": {
+            "tier": "res-value",
+            "autoGeneratedDomainNameLabelScope": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.orbital/geocatalogs/planetarycomputergeocatalogs-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "planetarycomputergeocatalogs-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.orbital/geocatalogs"
         }
       ]
     },
@@ -5107,7 +5389,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5143,7 +5425,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5180,7 +5462,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5214,7 +5496,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5250,7 +5532,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5286,7 +5568,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5326,7 +5608,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5368,7 +5650,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5411,7 +5693,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5451,7 +5733,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5493,7 +5775,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5535,7 +5817,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5581,7 +5863,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5617,7 +5899,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5654,7 +5936,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5688,7 +5970,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5724,7 +6006,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5760,7 +6042,7 @@
         },
         {
           "PROPERTIES": {
-            "datecreated": "2026-01-15T10:30:00.0000000Z",
+            "datecreated": "2026-01-15T10:30:00Z",
             "privateendpointconnections": [
               "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
             ],
@@ -5793,6 +6075,171 @@
           "Kind": "TextTranslation",
           "TYPE": "microsoft.cognitiveservices/accounts",
           "LOCATION": "eastus"
+        }
+      ]
+    },
+    "VideoIndexerAccounts": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "storageServices": {
+              "resourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "openAiServices": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "videoindexeraccounts-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.videoindexer/accounts"
         }
       ]
     }

@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Databases",
+  "Name": "ManagedCassandra",
+  "FixturePath": "tests/fixtures/databases-collector-input.json",
+  "FixtureSha256": "57835b14fb5f75c1d56a0bfed6bcafaf3377173fd0ffa6d15c781b67a0f5931d",
+  "Rows": [
+    "Audit Logging Enabled=s:True|Authentication Method=s:Cassandra|Cassandra Version=s:4.0|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.documentdb/cassandraclusters/cassandra-prod|Identity Type=s:SystemAssigned|Location=s:eastus|Name=s:cassandra-prod|Provisioning State=s:Succeeded|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test",
+    "Audit Logging Enabled=s:False|Authentication Method=s:None|Cassandra Version=s:3.11|ID=s:/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.documentdb/cassandraclusters/cassandra-dev|Identity Type=s:None|Location=s:westeurope|Name=s:cassandra-dev|Provisioning State=s:Succeeded|Resource Group=s:rg-databases-2|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:Scout Sample Subscription 2|Tag Name=s:|Tag Value=s:"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tProvisioning State\tCassandra Version\tAuthentication Method\tAudit Logging Enabled\tIdentity Type\tRetiring Feature\tRetiring Date\tResource U\nScout Sample Subscription 1\trg-databases\tcassandra-prod\teastus\tSucceeded\t4\tCassandra\tTrue\tSystemAssigned\t\t\t1\nScout Sample Subscription 2\trg-databases-2\tcassandra-dev\twesteurope\tSucceeded\t3.11\tNone\tFalse\tNone\t\t\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tProvisioning State\tCassandra Version\tAuthentication Method\tAudit Logging Enabled\tIdentity Type\tRetiring Feature\tRetiring Date\tTag Name\tTag Value\tResource U\nScout Sample Subscription 1\trg-databases\tcassandra-prod\teastus\tSucceeded\t4\tCassandra\tTrue\tSystemAssigned\t\t\tenv\ttest\t1\nScout Sample Subscription 2\trg-databases-2\tcassandra-dev\twesteurope\tSucceeded\t3.11\tNone\tFalse\tNone\t\t\t\t\t1"
+    ]
+  }
+}

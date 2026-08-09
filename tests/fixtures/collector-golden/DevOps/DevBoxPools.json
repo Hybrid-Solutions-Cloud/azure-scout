@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "DevBoxPools",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
+  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
   "Rows": [
     "Admin Status=s:res-value|Definition Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/projects/devboxpools-t1a-1/pools/devboxpools-t1a-2|Local Admin=s:res-value|Location=s:res-value|Name=s:devboxpools-t1a|Network Connection=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Stop On Disconnect=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Admin Status=s:res-value|Definition Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devcenter/projects/devboxpools-t1b-1/pools/devboxpools-t1b-2|Local Admin=s:res-value|Location=s:res-value|Name=s:devboxpools-t1b|Network Connection=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Stop On Disconnect=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

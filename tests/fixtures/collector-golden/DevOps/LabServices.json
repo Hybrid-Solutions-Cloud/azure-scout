@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "LabServices",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
+  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.labservices/labs/labservices-t1a-1|Location=s:res-value|Name=s:labservices-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.labservices/labs|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Security Open Access=s:res-value|SKU=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.labservices/labplans/labservices-t2a-1|Location=s:res-value|Name=s:labservices-t2a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.labservices/labplans|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Security Open Access=s:res-value|SKU=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

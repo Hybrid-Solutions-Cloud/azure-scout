@@ -10,16 +10,18 @@
     WafPolicies, DdosProtectionPlans, ApplicationSecurityGroups -- the same class of defect and fix
     pattern AB#7064/AB#7065/AB#7066 already used.
 
-    DefenderAlerts.psd1, DefenderAssessments.psd1, DefenderSecureScore.psd1 and DefenderPricing.psd1
-    are deliberately NOT covered here -- they all declare the synthetic
-    AZSC/Subscription/SecurityPolicySweep type, and the only code that populates that sweep today
-    (Get-ScoutDefenderPlanSweep.ps1) calls exactly one REST endpoint
-    (Microsoft.Security/pricings), never /alerts, /assessments or /secureScores. There is no
-    existing data for those three to shape; DefenderPricing duplicates the plans/pricing data
-    `security.defenderPlans` already carries. See Invoke-Collect.ps1's query-pack comment above
-    `wafPolicies` for the full reasoning. This test file therefore also pins that `security`
-    carries exactly the four keys this pass produces -- defenderPlans plus the three new ones --
-    so a future change that silently adds/duplicates a Defender-detail key gets caught.
+    DefenderAlerts.psd1, DefenderAssessments.psd1 and DefenderSecureScore.psd1 were originally
+    left out of this pass -- they all declare the synthetic AZSC/Subscription/SecurityPolicySweep
+    type, and this file's comment claimed no code populated alerts/assessments/secure-score on
+    the sweep. That was stale: Get-ScoutSubscriptionSecurityPolicySweep.ps1 already collected all
+    three via Get-AzSecurityAlert/Get-AzSecurityAssessment/Get-AzSecuritySecureScore, but only its
+    PolicyComplianceStates output ever reached the canonical contract. AB#7059 reads the rest of
+    that same sweep result into `security.defenderAlerts`/`defenderAssessments`/
+    `defenderSecureScores` -- populated whenever -IncludePolicyCompliance drives the sweep, empty
+    otherwise, no new REST calls. DefenderPricing.psd1 is still NOT re-wired here -- it duplicates
+    the plans/pricing-tier-per-subscription data `security.defenderPlans` already carries. This
+    test file pins that `security` carries exactly these seven keys so a future change that
+    silently adds/duplicates a Defender-detail key gets caught.
 
     Two collection paths must both reach every key:
       - Invoke-Collect -Source TypedQueries (the live KQL query pack)
@@ -258,7 +260,7 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
         }
     }
 
-    It 'carries exactly defenderPlans plus the three AB#7063 keys under security -- no DefenderAlerts/Assessments/SecureScore/Pricing key was force-fitted' {
+    It 'carries exactly defenderPlans plus the AB#7063/AB#7059 keys under security -- no DefenderPricing key was force-fitted' {
         $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @() }
         function global:Search-AzGraph {
             param(
@@ -269,9 +271,52 @@ Describe 'Invoke-Collect -- Defender-detail keys reach the canonical contract on
         }
         try {
             $collect = Invoke-Collect -FromInventory $inventory -WarningAction SilentlyContinue
-            $collect.security.PSObject.Properties.Name | Should -Be @('defenderPlans', 'wafPolicies', 'ddosProtectionPlans', 'applicationSecurityGroups')
+            $collect.security.PSObject.Properties.Name | Should -Be @('defenderPlans', 'wafPolicies', 'ddosProtectionPlans', 'applicationSecurityGroups', 'defenderAlerts', 'defenderAssessments', 'defenderSecureScores')
         }
         finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'reads defenderAlerts/defenderAssessments/defenderSecureScores from the same sweep call that already produces policyComplianceStates (AB#7059)' {
+        function global:Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            @(
+                [pscustomobject]@{
+                    subscriptionId   = 'aaa'
+                    subscriptionName = 'sub-aaa'
+                    properties       = [pscustomobject]@{
+                        PolicyComplianceStates = @([pscustomobject]@{ policyAssignmentId = 'pa1' })
+                        DefenderAlerts         = @([pscustomobject]@{ AlertDisplayName = 'alert1'; Severity = 'High' })
+                        DefenderAssessments    = @([pscustomobject]@{ DisplayName = 'assessment1'; Status = [pscustomobject]@{ Code = 'Unhealthy' } })
+                        DefenderSecureScores   = @([pscustomobject]@{ DisplayName = 'ASC'; Score = [pscustomobject]@{ Current = 40; Max = 100 } })
+                    }
+                }
+            )
+        }
+        $inventory = [pscustomobject]@{ Resources = @(); ResourceContainers = @(New-MockSubscriptionRow) }
+        function global:Search-AzGraph {
+            param(
+                [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
+                [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
+            )
+            return @()
+        }
+        try {
+            $collect = Invoke-Collect -FromInventory $inventory -IncludePolicyCompliance -WarningAction SilentlyContinue
+
+            @($collect.security.defenderAlerts).Count | Should -Be 1
+            $collect.security.defenderAlerts[0].AlertDisplayName | Should -Be 'alert1'
+            $collect.security.defenderAlerts[0].SubscriptionId | Should -Be 'aaa'
+
+            @($collect.security.defenderAssessments).Count | Should -Be 1
+            $collect.security.defenderAssessments[0].DisplayName | Should -Be 'assessment1'
+
+            @($collect.security.defenderSecureScores).Count | Should -Be 1
+            $collect.security.defenderSecureScores[0].DisplayName | Should -Be 'ASC'
+        }
+        finally {
+            Remove-Item function:Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue
             Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
         }
     }

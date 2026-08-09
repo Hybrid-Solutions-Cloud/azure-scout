@@ -3,7 +3,7 @@
   "Category": "Networking",
   "Name": "TrafficManager",
   "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
-  "FixtureSha256": "ef0dda055f4d35746417ac0d6115f76721bc7adcb1a40671707442d8fe22f7be",
+  "FixtureSha256": "1147a9d5a79986dc0f2be0d88266bb68e3965f51134e498006256d9263bcee80",
   "Rows": [
     "DNS name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/trafficmanagerprofiles/trafficmanager-t1a-1|Monitor status=s:res-value|Name=s:trafficmanager-t1a|Orphaned=j:false|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Routing method=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "DNS name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/trafficmanagerprofiles/trafficmanager-t1b-1|Monitor status=s:res-value|Name=s:trafficmanager-t1b|Orphaned=j:false|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Routing method=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

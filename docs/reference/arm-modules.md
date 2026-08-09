@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **245 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **279 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -32,7 +32,7 @@ claimed to be generated and was 15 collectors out of date.
 
 ## Module Catalog
 
-### AI (27 modules)
+### AI (30 modules)
 
 Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search.
 
@@ -49,6 +49,7 @@ Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, an
 | CustomVision | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | FaceAPI | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | FormRecognizer | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| HealthBots | `microsoft.healthbot/healthbots` |
 | HealthInsights | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | ImmersiveReader | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | MachineLearning | `microsoft.machinelearningservices/workspaces` |
@@ -60,26 +61,34 @@ Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, an
 | MLPipelines | `AZSC/ARMChild/MLPipelines` |
 | OpenAIAccounts | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | OpenAIDeployments | `AZSC/ARMChild/OpenAIDeployments` |
+| PlanetaryComputerGeoCatalogs | `microsoft.orbital/geocatalogs` |
 | SearchIndexes | `AZSC/ARMChild/SearchIndexes` |
 | SearchServices | `microsoft.search/searchservices` |
 | SpeechService | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | TextAnalytics | `microsoft.cognitiveservices/accounts` *(filtered)* |
 | Translator | `microsoft.cognitiveservices/accounts` *(filtered)* |
+| VideoIndexerAccounts | `microsoft.videoindexer/accounts` |
 
-### Analytics (6 modules)
+### Analytics (12 modules)
 
 Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview.
 
 | Module | Resource Type |
 |--------|---------------|
+| AnalysisServices | `microsoft.analysisservices/servers` |
 | Databricks | `microsoft.databricks/workspaces` |
 | DataExplorerCluster | `microsoft.kusto/clusters` |
+| DataFactory | `microsoft.datafactory/factories` |
+| DataShare | `microsoft.datashare/accounts` |
 | EvtHub | `microsoft.eventhub/namespaces` |
+| FabricCapacity | `microsoft.fabric/capacities` |
+| HDInsight | `microsoft.hdinsight/clusters` |
+| PowerBIEmbedded | `microsoft.powerbidedicated/capacities` |
 | Purview | `microsoft.purview/accounts` |
 | Streamanalytics | `microsoft.streamanalytics/streamingjobs` |
 | Synapse | `microsoft.synapse/workspaces` |
 
-### Compute (13 modules)
+### Compute (19 modules)
 
 Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate.
 
@@ -93,9 +102,15 @@ Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop e
 | AVDScalingPlans | `microsoft.desktopvirtualization/scalingplans` |
 | AVDSessionHosts | `microsoft.desktopvirtualization/hostpools/sessionhosts` |
 | AVDWorkspaces | `microsoft.desktopvirtualization/workspaces` |
+| BatchAccounts | `microsoft.batch/batchaccounts` |
+| ComputeFleet | `microsoft.azurefleet/fleets` |
+| DedicatedHostGroups | `microsoft.compute/hostgroups` |
+| NutanixNodes | `microsoft.nutanix/nodes` |
+| QuantumWorkspaces | `microsoft.quantum/workspaces` |
 | VirtualMachine | `microsoft.compute/virtualmachines` |
 | VirtualMachineScaleSet | `microsoft.compute/virtualmachinescalesets` |
 | VMDisk | `microsoft.compute/disks` |
+| VMImageTemplates | `microsoft.virtualmachineimages/imagetemplates` |
 | VMOperationalData | `microsoft.compute/virtualmachines` |
 | VMWare | `Microsoft.AVS/privateClouds` |
 
@@ -112,13 +127,15 @@ AKS, ARO, Container Apps, container instances, and container registries.
 | ContainerGroups | `microsoft.containerinstance/containergroups` |
 | ContainerRegistries | `microsoft.containerregistry/registries` |
 
-### Databases (12 modules)
+### Databases (15 modules)
 
 Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 
 | Module | Resource Type |
 |--------|---------------|
 | CosmosDB | `microsoft.documentdb/databaseaccounts` |
+| DocumentDB | `microsoft.documentdb/mongoclusters` |
+| ManagedCassandra | `microsoft.documentdb/cassandraclusters` |
 | MariaDB | `microsoft.dbformariadb/servers` |
 | MySQL | `microsoft.dbformysql/servers` |
 | MySQLflexible | `Microsoft.DBforMySQL/flexibleServers` |
@@ -130,8 +147,9 @@ Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 | SQLPOOL | `microsoft.sql/servers/elasticPools` |
 | SQLSERVER | `microsoft.sql/servers` |
 | SQLVM | `microsoft.sqlvirtualmachine/sqlvirtualmachines` |
+| StorageTables | `AZSC/ARMChild/StorageTables` |
 
-### DevOps (17 modules)
+### DevOps (18 modules)
 
 Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces.
 
@@ -153,6 +171,7 @@ Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, M
 | LabServices | `microsoft.labservices/labs` · `microsoft.labservices/labplans` |
 | LoadTesting | `microsoft.loadtestservice/loadtests` |
 | ManagedDevOpsPools | `microsoft.devopsinfrastructure/pools` |
+| ManagedGrafana | `microsoft.dashboard/grafana` |
 | PlaywrightTesting | `microsoft.azureplaywrightservice/accounts` |
 
 ### General (5 modules)
@@ -233,7 +252,7 @@ Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API 
 | Relays | `microsoft.relay/namespaces` · `microsoft.relay/namespaces/hybridconnections` · `microsoft.relay/namespaces/wcfrelays` |
 | ServiceBUS | `microsoft.servicebus/namespaces` |
 
-### IoT (7 modules)
+### IoT (8 modules)
 
 IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT.
 
@@ -245,9 +264,10 @@ IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defe
 | DigitalTwins | `microsoft.digitaltwins/digitaltwinsinstances` · `microsoft.digitaltwins/digitaltwinsinstances/endpoints` · `microsoft.digitaltwins/digitaltwinsinstances/timeseriesdatabaseconnections` |
 | IoTCentral | `microsoft.iotcentral/iotapps` |
 | IOTHubs | `microsoft.devices/iothubs` |
+| IoTOperations | `microsoft.iotoperations/instances` |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
 
-### Management (16 modules)
+### Management (20 modules)
 
 Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.
 
@@ -255,13 +275,16 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 |--------|---------------|
 | AdvisorScore | `Microsoft.Advisor/advisorScore` |
 | AllSubscriptions | `AZSC/Management/SubscriptionEnrichment` |
+| AutomanageConfigurationProfiles | `microsoft.automanage/configurationprofiles` |
 | AutomationAccounts | `microsoft.automation/automationaccounts` |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` |
 | Budgets | `AZSC/Governance/Budget` |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
+| DefenderEasmWorkspaces | `microsoft.easm/workspaces` |
 | LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` |
+| ManagedApplications | `microsoft.solutions/applications` |
 | ManagementGroups | `AZSC/Management/ManagementGroup` |
 | PolicyAssignments | `AZSC/Governance/PolicyAssignment` |
 | PolicyComplianceStates | `AZSC/Subscription/SecurityPolicySweep` |
@@ -269,6 +292,7 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 | PolicySetDefinitions | `AZSC/Management/PolicySetDefinition` |
 | RecoveryVault | `microsoft.recoveryservices/vaults` |
 | ResourceLocks | `AZSC/Governance/ResourceLock` |
+| ResourceMoverCollections | `microsoft.migrate/movecollections` |
 
 ### Migration (6 modules)
 
@@ -312,7 +336,7 @@ Alert rules, Application Insights, data collection rules, diagnostic settings, a
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` |
 | Workspaces | `microsoft.operationalinsights/workspaces` |
 
-### Networking (21 modules)
+### Networking (25 modules)
 
 Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute.
 
@@ -321,12 +345,16 @@ Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion,
 | ApplicationGateways | `microsoft.network/applicationgateways` |
 | AzureFirewall | `microsoft.network/azurefirewalls` |
 | BastionHosts | `microsoft.network/bastionhosts` |
+| CdnProfiles | `microsoft.cdn/profiles` |
 | Connections | `microsoft.network/connections` |
 | ExpressRoute | `microsoft.network/expressroutecircuits` |
+| FirewallPolicies | `microsoft.network/firewallpolicies` |
 | Frontdoor | `microsoft.network/frontdoors` |
 | LoadBalancer | `microsoft.network/loadbalancers` |
 | NATGateway | `microsoft.network/natgateways` |
+| NetworkFunctions | `microsoft.hybridnetwork/networkfunctions` |
 | NetworkInterface | `microsoft.network/networkinterfaces` |
+| NetworkManagers | `microsoft.network/networkmanagers` |
 | NetworkSecurityGroup | `microsoft.network/networksecuritygroups` |
 | NetworkWatchers | `microsoft.network/networkwatchers` |
 | PrivateDNS | `microsoft.network/privatednszones` |
@@ -340,7 +368,7 @@ Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion,
 | VirtualWAN | `microsoft.network/virtualwans` |
 | vNETPeering | `microsoft.network/virtualnetworks` *(filtered)* |
 
-### Security (17 modules)
+### Security (18 modules)
 
 Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
 
@@ -349,6 +377,7 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | AppComplianceAutomation | `microsoft.appcomplianceautomation/reports` · `microsoft.appcomplianceautomation/reports/snapshots` |
 | ApplicationSecurityGroups | `microsoft.network/applicationsecuritygroups` |
 | ArtifactSigning | `microsoft.codesigning/codesigningaccounts` |
+| Attestation | `microsoft.attestation/attestationproviders` |
 | CloudHSM | `microsoft.hardwaresecuritymodules/cloudhsmclusters` |
 | ConfidentialLedger | `microsoft.confidentialledger/ledgers` |
 | DdosProtectionPlans | `microsoft.network/ddosprotectionplans` |
@@ -364,7 +393,7 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | Vault | `microsoft.keyvault/vaults` |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` |
 
-### Storage (11 modules)
+### Storage (16 modules)
 
 Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.
 
@@ -376,10 +405,15 @@ Storage accounts and their containers, shares and lifecycle policies; NetApp Fil
 | ElasticSan | `microsoft.elasticsan/elasticsans` · `microsoft.elasticsan/elasticsans/volumegroups` |
 | FileShares | `AZSC/ARMChild/StorageFileShares` |
 | LifecyclePolicies | `AZSC/ARMChild/StorageLifecyclePolicies` |
+| ManagedLustre | `microsoft.storagecache/amlfilesystems` |
 | NetApp | `Microsoft.NetApp/netAppAccounts/capacityPools/volumes` |
 | PartnerStorage | `purestorage.block/storagepools` · `purestorage.block/reservations` · `qumulo.storage/filesystems` |
 | Snapshots | `microsoft.compute/snapshots` |
 | StorageAccounts | `microsoft.storage/storageaccounts` |
+| StorageActions | `microsoft.storageactions/storagetasks` |
+| StorageDiscovery | `microsoft.storagediscovery/storagediscoveryworkspaces` |
+| StorageMover | `microsoft.storagemover/storagemovers` · `microsoft.storagemover/storagemovers/agents` · `microsoft.storagemover/storagemovers/endpoints` · `microsoft.storagemover/storagemovers/projects` |
+| StorageQueues | `AZSC/ARMChild/StorageQueues` |
 | StorageSync | `microsoft.storagesync/storagesyncservices` · `microsoft.storagesync/storagesyncservices/syncgroups` · `microsoft.storagesync/storagesyncservices/registeredservers` |
 
 ### Web (14 modules)

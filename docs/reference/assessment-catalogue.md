@@ -5,13 +5,13 @@ description: Every CAF, WAF and specialised assessment Azure Scout performs, wit
 # Assessment Catalogue
 
 Azure Scout ships **46 assessments** backed by **44 rule files** holding
-**395 rules**, of which **171 are evaluated automatically** and
-**224 require manual confirmation**.
+**395 rules**, of which **173 are evaluated automatically** and
+**222 require manual confirmation**.
 
 Run one, several, or all of them:
 
 ```powershell
-Invoke-AzureScout -TenantID '<guid>' -Assessment 'CAF: Azure Landing Zone'
+Invoke-AzureScout -TenantID '<guid>' -Assessment 'LandingZone'
 Invoke-AzureScout -TenantID '<guid>' -Assessment 'WAF: Security','Assess: Networking'
 Invoke-AzureScout -TenantID '<guid>' -Assessment 'All'
 ```
@@ -34,11 +34,12 @@ and they are reported separately. An assessment whose rules are largely manual p
 worklist, not a grade.
 :::
 
-## Cloud Adoption Framework (11)
+## Cloud Adoption Framework (9)
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
 | **CAF: Azure billing and Microsoft Entra tenant** | CAF landing zone design area — Azure billing and Microsoft Entra ID tenant setup | 6 | 0 | 6 | **Gov** | `caf.billing` |
+| **CAF: Azure Landing Zone** | CAF/WAF landing zone audit (all areas) | 93 | 58 | 35 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
 | **CAF: Governance** | CAF landing zone design area — Governance (policy & compliance) | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **CAF: Identity and access management** | CAF landing zone design area — Identity and access management | 7 | 4 | 3 | **Gov** | `caf.identity` |
 | **CAF: Management** | CAF landing zone design area — Management (monitoring, operations baseline) | 6 | 5 | 1 | **Gov** | `caf.management` |
@@ -46,17 +47,12 @@ worklist, not a grade.
 | **CAF: Platform automation and DevOps** | CAF landing zone design area — Platform automation and DevOps | 6 | 2 | 4 | **Gov** | `caf.platformauto` |
 | **CAF: Resource organization** | CAF landing zone design area — Resource organization (management groups, subscriptions, tags) | 6 | 4 | 2 | **Gov** | `caf.resourceorg` |
 | **CAF: Security** | CAF landing zone design area — Security | 7 | 6 | 1 | **Gov** | `caf.security` |
-| **Scout: Governance Baseline** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
-| **CAF: Azure Landing Zone** | CAF/WAF landing zone audit (all areas) | 93 | 58 | 35 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
-| **Scout: Update Manager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
 
-## Well-Architected Framework (9)
+## Well-Architected Framework (7)
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
-| **Scout: Cost Optimization** | Cost / TCO data pull | 9 | 6 | 3 |  | `waf.cost` |
-| **Scout: Monitoring Baseline** | Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only | 6 | 3 | 3 |  | `waf.operational` |
-| **WAF: Azure Local** | Well-Architected Framework — Azure Local (platform 2311+ and Azure Local VMs) workload review | 33 | 5 | 28 | **Gov** | `waf.azurelocal.cost`<br>`waf.azurelocal.operational`<br>`waf.azurelocal.performance`<br>`waf.azurelocal.reliability`<br>`waf.azurelocal.security` |
+| **WAF: Azure Local** | Well-Architected Framework — Azure Local (platform 2311+ and Azure Local VMs) workload review | 33 | 7 | 26 | **Gov** | `waf.azurelocal.cost`<br>`waf.azurelocal.operational`<br>`waf.azurelocal.performance`<br>`waf.azurelocal.reliability`<br>`waf.azurelocal.security` |
 | **WAF: Cost Optimization** | Well-Architected Framework — Cost Optimization pillar only | 9 | 6 | 3 | **Gov** | `waf.cost` |
 | **WAF: Maturity Model** | Well-Architected Framework — maturity levels per pillar (same rules as the five WAF pillar assessments, different output framing) | 35 | 21 | 14 | **Gov** | `waf.reliability`<br>`waf.security`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance` |
 | **WAF: Operational Excellence** | Well-Architected Framework — Operational Excellence pillar only | 6 | 3 | 3 | **Gov** | `waf.operational` |
@@ -88,17 +84,21 @@ worklist, not a grade.
 | **Assess: Storage** | Storage public access, TLS, encryption, redundancy | 6 | 4 | 2 |  | `caf.storage` |
 | **Assess: Web** | App Service HTTPS-only, TLS, managed identity | 6 | 4 | 2 |  | `caf.web` |
 
-## Specialised and workload assessments (7)
+## Specialised and workload assessments (11)
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
-| **Workload: AVS Landing Zone** | Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md) | 25 | 9 | 16 | **Gov** | `caf.avslandingzone` |
-| **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 27 | 9 | 18 | **Gov** | `avs.workload` |
 | **Microsoft: CASA** | Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout's own inference from the published CAF Secure checklist, not Microsoft's numbered CASA questions; see docs/frameworks/casa-question-set.md) | 32 | 8 | 24 | **Gov** | `casa.security` |
-| **Scout: Cross-Resource** | Findings that require two collected datasets correlated | 6 | 6 | 0 |  | `xr.crossresource` |
 | **Microsoft: DevOps Capability** | DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center's five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero. | 18 | 9 | 9 | **Gov** | `devops.capability` |
 | **Microsoft: FinOps Review** | FinOps Review -- scores against the FinOps Framework's 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 22 | 7 | 15 | **Gov** | `finops.review` |
 | **Microsoft: SMART Migration** | Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md) | 11 | 7 | 4 | **Gov** | `smart.migration` |
+| **Scout: Cost Optimization** | Cost / TCO data pull | 9 | 6 | 3 |  | `waf.cost` |
+| **Scout: Cross-Resource** | Findings that require two collected datasets correlated | 6 | 6 | 0 |  | `xr.crossresource` |
+| **Scout: Governance Baseline** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
+| **Scout: Monitoring Baseline** | Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only | 6 | 3 | 3 |  | `waf.operational` |
+| **Scout: Update Manager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
+| **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 27 | 9 | 18 | **Gov** | `avs.workload` |
+| **Workload: AVS Landing Zone** | Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md) | 25 | 9 | 16 | **Gov** | `caf.avslandingzone` |
 
 ## Rule files
 
@@ -139,7 +139,7 @@ Each file declares one framework area. An assessment selects files by glob.
 | `smart.migration` | 11 | 7 | 4 |
 | `waf.ai` | 34 | 2 | 32 |
 | `waf.avd` | 20 | 6 | 14 |
-| `waf.azurelocal.cost` | 6 | 0 | 6 |
+| `waf.azurelocal.cost` | 6 | 2 | 4 |
 | `waf.azurelocal.operational` | 6 | 4 | 2 |
 | `waf.azurelocal.performance` | 6 | 0 | 6 |
 | `waf.azurelocal.reliability` | 6 | 1 | 5 |
@@ -151,6 +151,6 @@ Each file declares one framework area. An assessment selects files by glob.
 | `waf.security` | 7 | 5 | 2 |
 | `xr.crossresource` | 6 | 6 | 0 |
 
-**Total — 44 files, 395 rules, 171 automated, 224 manual.**
+**Total — 44 files, 395 rules, 173 automated, 222 manual.**
 
 

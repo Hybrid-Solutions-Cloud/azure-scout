@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "ApiConnections",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
+  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
   "Rows": [
     "API Name=s:res-value|API Type=s:res-value|Changed Time=s:01/15/2026 10:30:00|Created Time=s:01/15/2026 10:30:00|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1a-1|Location=s:res-value|Name=s:apiconnections-t1a|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:res-value res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "API Name=s:res-value|API Type=s:res-value|Changed Time=s:01/15/2026 10:30:00|Created Time=s:01/15/2026 10:30:00|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.web/connections/apiconnections-t1b-1|Location=s:res-value|Name=s:apiconnections-t1b|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Status=s:res-value res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

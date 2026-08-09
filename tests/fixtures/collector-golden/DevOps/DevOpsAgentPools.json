@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "DevOpsAgentPools",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "a37091731da5f2fe2853d3f81b81d228644815d65d10edfd5e8efa8d56490025",
+  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
   "Rows": [
     "Agent Size=s:res-value|Auto Provision=s:res-value|Created On=s:01/15/2026 10:30|Hosting Model=s:Microsoft-hosted|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1a-1|Legacy=s:res-value|Organization=s:res-value|Owner=s:res-value|Pool ID=s:res-value|Pool Name=s:devopsagentpools-t1a|Pool Type=s:res-value|Resource U=j:1",
     "Agent Size=s:res-value|Auto Provision=s:res-value|Created On=s:01/15/2026 10:30|Hosting Model=s:Microsoft-hosted|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1b-1|Legacy=s:res-value|Organization=s:res-value|Owner=s:res-value|Pool ID=s:res-value|Pool Name=s:devopsagentpools-t1b|Pool Type=s:res-value|Resource U=j:1",

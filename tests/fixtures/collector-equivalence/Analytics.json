@@ -78,6 +78,78 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.synapse/workspaces/synapse-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -93,11 +165,146 @@
     }
   ],
   "collectors": {
+    "AnalysisServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value",
+            "querypoolConnectionMode": "res-value",
+            "ipV4FirewallSettings": {
+              "firewallState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.analysisservices/servers/analysisservices-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "analysisservices-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "TYPE": "microsoft.analysisservices/servers"
+        }
+      ]
+    },
     "Databricks": {
       "resources": [
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -142,7 +349,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -188,7 +395,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -231,7 +438,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -276,7 +483,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -321,7 +528,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDateTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDateTime": "2026-01-15T10:30:00Z",
             "parameters": {
               "customVirtualNetworkId": {
                 "value": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -585,11 +792,251 @@
         }
       ]
     },
+    "DataFactory": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "repoConfiguration": {
+              "type": "res-value"
+            },
+            "createTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datafactory/factories/datafactory-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datafactory-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datafactory/factories"
+        }
+      ]
+    },
+    "DataShare": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "datashare-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.datashare/accounts"
+        }
+      ]
+    },
     "EvtHub": {
       "resources": [
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -615,7 +1062,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -642,7 +1089,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -666,7 +1113,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -692,7 +1139,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -718,7 +1165,7 @@
         },
         {
           "PROPERTIES": {
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "disablelocalauth": "res-value",
             "status": "res-value",
             "zoneRedundant": "res-value",
@@ -744,6 +1191,405 @@
         }
       ]
     },
+    "FabricCapacity": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "state": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.fabric/capacities/fabriccapacity-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "fabriccapacity-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.fabric/capacities"
+        }
+      ]
+    },
+    "HDInsight": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "clusterVersion": "res-value",
+            "clusterDefinition": {
+              "kind": "res-value"
+            },
+            "clusterState": "res-value",
+            "osType": "res-value",
+            "minSupportedTlsVersion": "res-value",
+            "networkProperties": {
+              "publicNetworkAccess": "res-value"
+            },
+            "encryptionInTransitProperties": {
+              "isEncryptionInTransitEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hdinsight/clusters/hdinsight-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "hdinsight-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hdinsight/clusters"
+        }
+      ]
+    },
+    "PowerBIEmbedded": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "mode": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "powerbiembedded-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.powerbidedicated/capacities"
+        }
+      ]
+    },
     "Purview": {
       "resources": [
         {
@@ -756,7 +1602,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -790,7 +1636,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -825,7 +1671,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -857,7 +1703,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -891,7 +1737,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -925,7 +1771,7 @@
               "res-item-0",
               "res-item-1"
             ],
-            "createdAt": "2026-01-15T10:30:00.0000000Z",
+            "createdAt": "2026-01-15T10:30:00Z",
             "managedResources": {
               "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
               "eventHubNamespace": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
@@ -958,9 +1804,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },
@@ -1003,9 +1849,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },
@@ -1049,9 +1895,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },
@@ -1082,9 +1928,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },
@@ -1127,9 +1973,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },
@@ -1172,9 +2018,9 @@
             "cluster": {
               "id": "res-value"
             },
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
-            "lastOutputEventTime": "2026-01-15T10:30:00.0000000Z",
-            "outputStartTime": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
+            "lastOutputEventTime": "2026-01-15T10:30:00Z",
+            "outputStartTime": "2026-01-15T10:30:00Z",
             "sku": {
               "name": "res-value"
             },

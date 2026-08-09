@@ -44,8 +44,15 @@ $ErrorActionPreference = 'Stop'
                      vpnConnections[{gatewayName,connectionType,connectionStatus,
                                       localNetworkGatewayName,localAddressPrefixes,sharedKeyPresent}],
                      localNetworkGateways[{gatewayIpAddress,addressPrefixes}],
-                     virtualHubs[{addressPrefix,virtualWanName}] }   (AB#6928 -- connectivity
+                     virtualHubs[{addressPrefix,virtualWanName}],   (AB#6928 -- connectivity
                      relationship detail)
+                     cdnProfiles[{sku,provisioningState,frontDoorId}],
+                     networkManagers[{provisioningState,scopeSubscriptionCount,scopeAccesses}],
+                     firewallPolicies[{sku,provisioningState,threatIntelMode,
+                                        ruleCollectionGroupCount}],
+                     networkFunctions[{provisioningState,vendorProvisioningState,serviceKey}] }
+                     (AB#7091, Story AB#7059, Feature AB#7069, Epic AB#7099 -- Networking
+                     coverage-gap close-out)
         compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType,
                                        patchMode,assessmentMode}],                       (AB#7109)
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
@@ -59,8 +66,14 @@ $ErrorActionPreference = 'Stop'
                                                  timeZone,rebootSetting}],                (AB#7065)
                      advisorScores[{lastRefreshedScore}], automationAccounts[{sku}],
                      recoveryVaultBackupPolicies[{backupManagementType,scheduleFrequency}],
-                     lighthouseDelegations[{provisioningState,authorizationCount}] }   (AB#7110,
+                     lighthouseDelegations[{provisioningState,authorizationCount}],   (AB#7110,
                      Story AB#7059, Feature AB#7069, Epic AB#7099)
+                     automanageConfigurationProfiles[], managedApplications[{managedResourceGroupId,
+                     applicationDefinitionId,provisioningState}], resourceMoverCollections[{sourceRegion,
+                     targetRegion,moveType}], defenderEasmWorkspaces[{dataPlaneEndpoint,
+                     provisioningState}] }   (AB#7085, Story AB#7071, Feature AB#7069, Epic AB#7099 --
+                     Management and governance coverage-gap plumbing; managedGrafana is NOT here, see
+                     `devops.managedGrafana` (AB#7084))
         updateManager { patchAssessments[{machineId,platform,osType,rebootPending,
                                            patchServiceUsed,startDateTime,lastModifiedDateTime,
                                            availablePatchCountByClassification}],
@@ -81,11 +94,15 @@ $ErrorActionPreference = 'Stop'
         security   { defenderPlans[], wafPolicies[{type,sku,provisioningState,enabledState,mode,
                      managedRuleSetCount,customRuleCount}],
                      ddosProtectionPlans[{provisioningState,protectedVNetCount,resourceGuid}],
-                     applicationSecurityGroups[{provisioningState,resourceGuid}] }   (AB#7063,
+                     applicationSecurityGroups[{provisioningState,resourceGuid}],
+                     defenderAlerts[], defenderAssessments[], defenderSecureScores[] }   (AB#7063,
                      Story AB#7059, Feature AB#7069, Epic AB#7099 -- ordinary ARG-indexed
-                     Networking/Security types; DefenderAlerts/DefenderAssessments/
-                     DefenderSecureScore/DefenderPricing were deliberately left out of this pass,
-                     see the AB#7063 note above the query pack for why)
+                     Networking/Security types. defenderAlerts/defenderAssessments/
+                     defenderSecureScores (AB#7059) come from the same per-subscription
+                     Get-ScoutSubscriptionSecurityPolicySweep call as policyComplianceStates --
+                     populated only when -IncludePolicyCompliance is set, empty otherwise.
+                     DefenderPricing.psd1's synthetic type still duplicates defenderPlans'
+                     pricing-tier-per-subscription data and is deliberately not re-wired.)
         governance { managementGroups[], policyAssignments[], policyDefinitions[],
                      policySetDefinitions[], roleAssignments[], budgets[],
                      resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the
@@ -135,6 +152,7 @@ $ErrorActionPreference = 'Stop'
                          searchServices[{sku}]},                                           (AB#6818)
                       security{keyVaults[], keyVaultSecrets[{contentType,enabled,expires}],
                                keyVaultKeys[{enabled,expires}],
+                               attestationProviders[{status,trustModel,publicNetworkAccess}], (AB#7089)
                                appComplianceReports[{triggerType}],                        (AB#7110)
                                applicationSecurityGroups[],                                (AB#7110)
                                artifactSigningAccounts[{sku}],                             (AB#7110)
@@ -164,9 +182,11 @@ $ErrorActionPreference = 'Stop'
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[{patchMode,assessmentMode}],                        (AB#7109)
                              arcExtensions[{machineId,extensionType}],
-                             azureLocalClusters[{connectivityStatus,nodeCount,clusterVersion}],            (AB#6819)
+                             azureLocalClusters[{connectivityStatus,nodeCount,clusterVersion,             (AB#6819,
+                                                  softwareAssuranceStatus}],                                AB#7093)
                              logicalNetworks[{vmSwitchName,subnetCount,addressPrefix,vlan}],                (AB#6819)
                              arcSites[], azureLocalVirtualMachineInstances[{parentName,powerState}],
+                             customLocations[{provisioningState,hostResourceId,hostType,namespace}],
                              arcDataControllers[{infrastructure,k8sNamespace,provisioningState}],
                              arcGateways[{provisioningState,gatewayType,gatewayEndpoint}],
                              arcKubernetes[{provisioningState,connectivityStatus,distribution,
@@ -202,9 +222,17 @@ $ErrorActionPreference = 'Stop'
                       analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[],
                                 databricksWorkspaces[{sku,managedResourceGroupId}],
                                 dataExplorerClusters[{sku,state}],
-                                streamAnalyticsJobs[{sku,jobState}]} }   (per-category scalars,
+                                streamAnalyticsJobs[{sku,jobState}],
+                                analysisServicesServers[{sku,provisioningState,state}],
+                                dataFactories[{provisioningState,publicNetworkAccess,identityType}],
+                                dataShareAccounts[{provisioningState,identityType}],
+                                hdInsightClusters[{clusterVersion,clusterKind,clusterState,publicNetworkAccess}],
+                                powerBIEmbeddedCapacities[{sku,provisioningState,mode}],
+                                fabricCapacities[{sku,state}]} }   (per-category scalars,
                       Epic AB#5056; databricksWorkspaces/dataExplorerClusters/streamAnalyticsJobs
-                      AB#7110 -- 3 ordinary ARG-indexed Analytics types)
+                      AB#7110 -- 3 ordinary ARG-indexed Analytics types; analysisServicesServers
+                      through fabricCapacities AB#7082 -- Analytics coverage-gap closeout, Story
+                      AB#7059, Feature AB#7069, Epic AB#7099)
         advisor[]                                                                   (filled by ingest)
         finops     { available, moduleAvailable, costRows[], anomalies[], blockedSubscriptions[],
                      reservations[], reservationRecommendations[] }  (reservations from ARM/ARG
@@ -727,6 +755,46 @@ resources
           addressPrefix = tostring(properties.addressPrefix),
           virtualWanName = tostring(split(wanId, "/")[8])
 '@
+        # ---- AB#7091 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Networking coverage-gap
+        # close-out. Every type below is confirmed against the ARM template reference as an
+        # ordinary, non-preview resource type; Route Server (product-catalogue entry, no distinct
+        # ARM type -- see docs/reference/service-coverage-gap.md) and Azure Enclave (preview-only,
+        # no SLA per Microsoft Learn) are deliberately NOT queried here.
+        cdnProfiles = @'
+resources | where type =~ "microsoft.cdn/profiles"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name),
+          provisioningState = tostring(properties.provisioningState),
+          frontDoorId = tostring(properties.frontDoorId)
+'@
+        # AB#7091: Azure Virtual Network Manager -- the fleet-wide connectivity/security-admin
+        # manager, distinct from any individual VNet/NSG it governs.
+        networkManagers = @'
+resources | where type =~ "microsoft.network/networkmanagers"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          scopeSubscriptionCount = array_length(properties.networkManagerScopes.subscriptions),
+          scopeAccesses = coalesce(strcat_array(properties.networkManagerScopeAccesses, ","), "")
+'@
+        # AB#7091: Firewall Manager's policy object -- distinct from the `azureFirewalls` instance
+        # it attaches to (a policy can be shared across many firewalls/vHubs).
+        firewallPolicies = @'
+resources | where type =~ "microsoft.network/firewallpolicies"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(properties.sku.tier),
+          provisioningState = tostring(properties.provisioningState),
+          threatIntelMode = tostring(properties.threatIntelMode),
+          ruleCollectionGroupCount = array_length(properties.ruleCollectionGroups)
+'@
+        # AB#7091 (folds in AB#7071 -- zero collector anywhere for this type): Azure Network
+        # Function Manager's deployed network-function instance (telco/hybrid NF orchestration).
+        networkFunctions = @'
+resources | where type =~ "microsoft.hybridnetwork/networkfunctions"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          vendorProvisioningState = tostring(properties.vendorProvisioningState),
+          serviceKey = tostring(properties.serviceKey)
+'@
         virtualMachines = @'
 resources
 | where type =~ "microsoft.compute/virtualmachines"
@@ -818,6 +886,40 @@ resources | where type =~ "microsoft.managedservices/registrationdefinitions"
 | extend authorizationCount = array_length(properties.authorizations)
 | project id, name, subscriptionId, provisioningState, authorizationCount
 '@
+        # ---- Management and governance coverage (AB#7085, Story AB#7071, Feature AB#7069,
+        # Epic AB#7099) -- 4 ordinary ARG-indexed types the service-coverage-gap doc listed as
+        # real gaps: Automanage configuration profiles, Managed Applications, Resource Mover move
+        # collections, Defender EASM workspaces. Managed Grafana is NOT re-declared here -- AB#7084
+        # already collects it (query pack key `managedGrafana` above, tagged 'DevOps','Management').
+        # See each collector's manifest under manifests/collectors/Management/ for why the
+        # remaining gaps (Blueprints -- retiring Jan 2027, Site Recovery replication items /
+        # Update Management Center schedules -- nested per-parent REST enumerations, SRE Agent --
+        # preview, no public ARM surface) were not forced into this pass.
+        automanageConfigurationProfiles = @'
+resources | where type =~ "microsoft.automanage/configurationprofiles"
+| project id, name, resourceGroup, subscriptionId, location
+'@
+        managedApplications = @'
+resources | where type =~ "microsoft.solutions/applications"
+| extend managedResourceGroupId = tostring(properties.managedResourceGroupId)
+| extend applicationDefinitionId = tostring(properties.applicationDefinitionId)
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, kind, managedBy = tostring(managedBy),
+          managedResourceGroupId, applicationDefinitionId, provisioningState
+'@
+        resourceMoverCollections = @'
+resources | where type =~ "microsoft.migrate/movecollections"
+| extend sourceRegion = tostring(properties.sourceRegion)
+| extend targetRegion = tostring(properties.targetRegion)
+| extend moveType = tostring(properties.moveType)
+| project id, name, resourceGroup, subscriptionId, location, sourceRegion, targetRegion, moveType
+'@
+        defenderEasmWorkspaces = @'
+resources | where type =~ "microsoft.easm/workspaces"
+| extend dataPlaneEndpoint = tostring(properties.dataPlaneEndpoint)
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, dataPlaneEndpoint, provisioningState
+'@
         storageAccounts = @'
 resources | where type =~ "microsoft.storage/storageaccounts"
 | extend publicAccess = tobool(properties.allowBlobPublicAccess)
@@ -863,6 +965,39 @@ resources
                   "microsoft.storagesync/storagesyncservices/registeredservers")
 | extend incomingTrafficPolicy = tostring(properties.incomingTrafficPolicy)
 | project id, name, type, resourceGroup, subscriptionId, location, incomingTrafficPolicy
+'@
+        # ---- Storage coverage-gap close-out (AB#7087, Story AB#7059, Feature AB#7069, Epic
+        # AB#7099). Five ARG-indexed types the Storage coverage-gap doc listed as "not collected"
+        # with zero collector anywhere. Queue Storage (the sixth "not collected" service) has no
+        # ARG table of its own -- see Get-ScoutArmChildResource.ps1's 'StorageQueues' dataset.
+        managedLustreFilesystems = @'
+resources | where type =~ "microsoft.storagecache/amlfilesystems"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend storageCapacityTiB = todouble(properties.storageCapacityTiB)
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
+          provisioningState, storageCapacityTiB
+'@
+        # NOTE: Azure Data Share is cross-listed under Analytics (docs/reference/
+        # service-coverage-gap.md) and is already collected+wired there as 'dataShareAccounts'
+        # (see the AB#7082 Analytics coverage-gap block above) -- no separate Storage query.
+        storageTasks = @'
+resources | where type =~ "microsoft.storageactions/storagetasks"
+| extend enabled = tobool(properties.storageTaskProperties.enabled)
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, resourceGroup, subscriptionId, location, enabled, provisioningState
+'@
+        storageDiscoveryWorkspaces = @'
+resources | where type =~ "microsoft.storagediscovery/storagediscoveryworkspaces"
+| extend sku = tostring(properties.sku)
+| extend workspaceRootCount = array_length(properties.workspaceRoots)
+| project id, name, resourceGroup, subscriptionId, location, sku, workspaceRootCount
+'@
+        storageMovers = @'
+resources
+| where type in~ ("microsoft.storagemover/storagemovers", "microsoft.storagemover/storagemovers/agents",
+                  "microsoft.storagemover/storagemovers/endpoints", "microsoft.storagemover/storagemovers/projects")
+| extend provisioningState = tostring(properties.provisioningState)
+| project id, name, type, resourceGroup, subscriptionId, location, provisioningState
 '@
         sqlDatabases = @'
 resources | where type =~ "microsoft.sql/servers/databases"
@@ -956,6 +1091,31 @@ resources | where type =~ "microsoft.sqlvirtualmachine/sqlvirtualmachines"
 | extend sqlImageSku = tostring(properties.sqlImageSku)
 | extend sqlServerLicenseType = tostring(properties.sqlServerLicenseType)
 | project id, name, resourceGroup, subscriptionId, location, sqlImageSku, sqlServerLicenseType
+'@
+        # ---- Databases coverage gap (AB#7090, Story AB#7071/AB#7059, Feature AB#7069, Epic
+        # AB#7099). Two ordinary ARG-indexed types the Databases(15-published/10-collected)
+        # coverage-doc row listed as "Not collected", both zero-collector-anywhere gaps so this
+        # also folds in AB#7071. Resource type strings confirmed against the ARM template
+        # reference on Microsoft Learn (learn.microsoft.com/azure/templates/microsoft.documentdb).
+        # Azure DocumentDB is the 2025 rebrand of the vCore-based MongoDB service -- a distinct
+        # resource provider from the RU-based Cosmos DB collected above (`mongoClusters`, not
+        # `databaseAccounts`).
+        documentDbMongoClusters = @'
+resources | where type =~ "microsoft.documentdb/mongoclusters"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(properties.compute.tier), provisioningState, publicNetworkAccess
+'@
+        # Azure Managed Instance for Apache Cassandra -- `Microsoft.DocumentDB/cassandraClusters`,
+        # GA since the 2024-11-15 API version, distinct from both Cosmos DB and DocumentDB above.
+        managedCassandraClusters = @'
+resources | where type =~ "microsoft.documentdb/cassandraclusters"
+| extend provisioningState = tostring(properties.provisioningState)
+| extend cassandraVersion = tostring(properties.cassandraVersion)
+| extend authenticationMethod = tostring(properties.authenticationMethod)
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState, cassandraVersion, authenticationMethod
 '@
         webApps = @'
 resources | where type =~ "microsoft.web/sites"
@@ -1108,6 +1268,19 @@ resources
 | extend triggerType = tostring(properties.triggerTime)
 | project id, name, type, resourceGroup, subscriptionId, triggerType
 '@
+        # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security coverage-gap
+        # close-out: `microsoft.attestation/attestationproviders` is the one genuinely
+        # uncollected, ordinary ARG-indexed type left in the Security(19-published/14-collected)
+        # coverage-doc row (the doc's other "Not collected" EASM row is stale -- EASM is already
+        # collected as Management/DefenderEasmWorkspaces, AB#7085).
+        attestationProviders = @'
+resources | where type =~ "microsoft.attestation/attestationproviders"
+| extend status = tostring(properties.status)
+| extend trustModel = tostring(properties.trustModel)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, subscriptionId, location, status, trustModel,
+          publicNetworkAccess
+'@
         artifactSigningAccounts = @'
 resources | where type =~ "microsoft.codesigning/codesigningaccounts"
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name)
@@ -1161,21 +1334,16 @@ resources | where type =~ "microsoft.managedidentity/userassignedidentities"
         # AB#7064/7065/7066:
         #   wafPolicies / ddosProtectionPlans / applicationSecurityGroups
         #
-        # Deliberately DEFERRED (not a wiring gap -- a missing collection mechanism):
-        # DefenderAlerts.psd1, DefenderAssessments.psd1 and DefenderSecureScore.psd1 all declare
-        # the synthetic `AZSC/Subscription/SecurityPolicySweep` type -- their SourceCollector
-        # header points at Modules/Public/InventoryModules/Security/Defender*.ps1, but the ONLY
-        # code that ever populates that sweep on the assessment collect path is
-        # Get-ScoutDefenderPlanSweep.ps1, which calls exactly one REST endpoint
-        # (`/providers/Microsoft.Security/pricings`, i.e. plans/pricing tiers) and nothing else.
-        # Alerts/assessments/secure-score come from three DIFFERENT Defender-for-Cloud REST
-        # endpoints (`/alerts`, `/assessments`, `/secureScores`) that Resource Graph does not
-        # index under the default `resources` table and that today's collect makes zero calls
-        # to -- there is no existing data to project into the payload, and adding three new
-        # per-subscription REST round trips is a genuinely new collection mechanism, not a
-        # plumbing fix. Confirmed against scripts/Test-CollectorPayloadCoverage.ps1's
-        # $syntheticVerdicts entry for 'azsc/subscription/securitypolicysweep' (AB#7060), which
-        # already documents this same gap.
+        # RE-WIRED as of AB#7059: DefenderAlerts.psd1, DefenderAssessments.psd1 and
+        # DefenderSecureScore.psd1 all declare the synthetic `AZSC/Subscription/
+        # SecurityPolicySweep` type. This comment previously said the only code that ever
+        # populates that sweep is Get-ScoutDefenderPlanSweep.ps1 (pricing tiers only) -- that was
+        # stale: Get-ScoutSubscriptionSecurityPolicySweep.ps1 already calls Get-AzSecurityAlert/
+        # Get-AzSecurityAssessment/Get-AzSecuritySecureScore per subscription and returns all
+        # three datasets, but only its PolicyComplianceStates output was ever read into the
+        # canonical contract (the -IncludePolicyCompliance block below) -- the rest was collected
+        # and discarded on every run. See `security.defenderAlerts`/`defenderAssessments`/
+        # `defenderSecureScores` below: no new REST calls, just reading the rest of $sweepResults.
         #
         # DefenderPricing.psd1 ALSO declares that same synthetic type and reads from the same
         # single `/pricings` endpoint Get-ScoutDefenderPlanSweep already calls -- its columns
@@ -1433,6 +1601,21 @@ resources | where type =~ "microsoft.digitaltwins/digitaltwinsinstances"
 | extend identityType = tostring(identity.type)
 | project name, resourceGroup, publicAccess, privateEndpointConnectionCount, identityType
 '@
+        # AB#7083: Microsoft.IoTOperations/instances IS indexed by Resource Graph (confirmed
+        # against manifests/azure-provider-types.json and the ARM template reference). Arc-enabled
+        # Kubernetes IoT workload (2024+), deployed onto a customLocation extended location.
+        # description and schemaRegistryRef are documented top-level InstanceProperties fields;
+        # identity.type and extendedLocation.name/type are top-level resource columns, same
+        # pattern as digitalTwinsInstances.identityType above -- no sub-resource join needed.
+        iotOperationsInstances = @'
+resources | where type =~ "microsoft.iotoperations/instances"
+| extend schemaRegistryId = tostring(properties.schemaRegistryRef.resourceId)
+| extend identityType = tostring(identity.type)
+| extend extendedLocationName = tostring(extendedLocation.name)
+| extend extendedLocationType = tostring(extendedLocation.type)
+| project name, resourceGroup, description = tostring(properties.description),
+          schemaRegistryId, identityType, extendedLocationName, extendedLocationType
+'@
         synapseWorkspaces = @'
 resources | where type =~ "microsoft.synapse/workspaces"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
@@ -1473,6 +1656,51 @@ resources | where type =~ "microsoft.streamanalytics/streamingjobs"
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(properties.sku.name), jobState = tostring(properties.jobState)
 '@
+        # ---- AB#7082 -- Analytics coverage-gap closeout (Story AB#7059, Feature AB#7069, Epic
+        # AB#7099). Six ordinary ARG-indexed types the docs/reference/service-coverage-gap.md
+        # Analytics row listed as "Not collected" (Analysis Services, Data Factory, Data Share,
+        # HDInsight, Power BI Embedded, Microsoft Fabric capacity). Same declarative-collector
+        # provenance standard as the AB#7110 block above -- see
+        # manifests/collectors/Analytics/{AnalysisServices,DataFactory,DataShare,HDInsight,
+        # PowerBIEmbedded,FabricCapacity}.psd1.
+        analysisServicesServers = @'
+resources | where type =~ "microsoft.analysisservices/servers"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState),
+          state = tostring(properties.state)
+'@
+        dataFactories = @'
+resources | where type =~ "microsoft.datafactory/factories"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          identityType = tostring(identity.type)
+'@
+        dataShareAccounts = @'
+resources | where type =~ "microsoft.datashare/accounts"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          identityType = tostring(identity.type)
+'@
+        hdInsightClusters = @'
+resources | where type =~ "microsoft.hdinsight/clusters"
+| project id, name, resourceGroup, subscriptionId, location,
+          clusterVersion = tostring(properties.clusterVersion),
+          clusterKind = tostring(properties.clusterDefinition.kind),
+          clusterState = tostring(properties.clusterState),
+          publicNetworkAccess = tostring(properties.networkProperties.publicNetworkAccess)
+'@
+        powerBIEmbeddedCapacities = @'
+resources | where type =~ "microsoft.powerbidedicated/capacities"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), provisioningState = tostring(properties.provisioningState),
+          mode = tostring(properties.mode)
+'@
+        fabricCapacities = @'
+resources | where type =~ "microsoft.fabric/capacities"
+| project id, name, resourceGroup, subscriptionId, location,
+          sku = tostring(sku.name), state = tostring(properties.state)
+'@
         arcExtensions = @'
 resources | where type =~ "microsoft.hybridcompute/machines/extensions"
 | extend extensionType = tostring(properties.type)
@@ -1493,7 +1721,13 @@ resources | where type =~ "microsoft.azurestackhci/clusters"
 // (nodes absent) yields $null, not 0 — treated as "not yet known", not "single node".
 | extend nodeCount = array_length(properties.reportedProperties.clusterNodes)
 | extend clusterVersion = tostring(properties.reportedProperties.clusterVersion)
-| project name, resourceGroup, subscriptionId, connectivityStatus, nodeCount, clusterVersion
+// softwareAssuranceStatus (AB#7093, WAF-AZLOCAL-CO-03/CO-04) — Software Assurance is the
+// licensing vehicle Azure Local's Azure Hybrid Benefit rides on; properties.softwareAssuranceProperties
+// is the documented ARM shape (learn.microsoft.com/azure/templates/microsoft.azurestackhci/clusters),
+// enum 'Enabled'/'Disabled'. A cluster that has never set an intent reports $null, not 'Disabled' --
+// treated as "not yet configured", the same not-yet-known convention nodeCount/clusterVersion above use.
+| extend softwareAssuranceStatus = tostring(properties.softwareAssuranceProperties.softwareAssuranceStatus)
+| project name, resourceGroup, subscriptionId, connectivityStatus, nodeCount, clusterVersion, softwareAssuranceStatus
 '@
         # AB#6803 (WAF-AZLOCAL-RE-03/OE-03) — confirmed ARG-indexed
         # (microsoft.azurestackhci/logicalnetworks, learn.microsoft.com/azure/governance/
@@ -1522,6 +1756,19 @@ resources | where type =~ "microsoft.azurestackhci/logicalnetworks"
         # assessment, backup status) come from a separate per-machine REST envelope this collect
         # pass does not make, so only the base machine row (already covered by arcServers) is
         # in scope here.
+        # customLocations (AB#7059) -- microsoft.extendedlocation/customlocations is the ARM
+        # projection an Azure Local cluster's Arc Resource Bridge registers so AKS/Arc-enabled
+        # workloads can target the cluster; ordinary ARG-indexed type, same fix pattern as the
+        # other AB#7061 Azure Local child resources below.
+        customLocations = @'
+resources
+| where type =~ "microsoft.extendedlocation/customlocations"
+| project id, name, resourceGroup, subscriptionId, location,
+          provisioningState = tostring(properties.provisioningState),
+          hostResourceId = tostring(properties.hostResourceId),
+          hostType = tostring(properties.hostType),
+          namespace = tostring(properties.namespace)
+'@
         arcDataControllers = @'
 resources
 | where type =~ "microsoft.azurearcdata/datacontrollers"
@@ -1658,6 +1905,29 @@ resources | where type =~ "microsoft.machinelearningservices/workspaces"
 resources | where type =~ "microsoft.search/searchservices"
 | project name, resourceGroup, sku = tostring(sku.name)
 '@
+        # ---- AI + Machine Learning coverage-gap close-out (AB#7086, folds in AB#7071) ----------
+        # All three resource types below are confirmed ARG-indexed via the ARM template reference
+        # on Microsoft Learn (learn.microsoft.com/azure/templates/<provider>/<type>).
+        videoIndexerAccounts = @'
+resources | where type =~ "microsoft.videoindexer/accounts"
+| extend publicAccess = tostring(properties.publicNetworkAccess)
+| extend identityType = tostring(identity.type)
+| extend privateEndpointConnectionCount = array_length(properties.privateEndpointConnections)
+| extend openAiLinked = isnotempty(tostring(properties.openAiServices.resourceId))
+| project name, resourceGroup, publicAccess, identityType, privateEndpointConnectionCount, openAiLinked
+'@
+        healthBots = @'
+resources | where type =~ "microsoft.healthbot/healthbots"
+| extend skuName = tostring(sku.name)
+| extend identityType = tostring(identity.type)
+| project name, resourceGroup, skuName, identityType
+'@
+        planetaryComputerGeoCatalogs = @'
+resources | where type =~ "microsoft.orbital/geocatalogs"
+| extend tier = tostring(properties.tier)
+| extend identityType = tostring(identity.type)
+| project name, resourceGroup, tier, identityType
+'@
         # ---- AVD (on Azure Local) workload domain additions (AB#6819) --------------------------
         # microsoft.desktopvirtualization/* and microsoft.azurestackhci/logicalnetworks are both
         # confirmed ARG-indexed resource types (Azure Resource Graph supported-tables-and-
@@ -1715,6 +1985,52 @@ resources | where type =~ "microsoft.avs/privateclouds"
           availabilityStrategy, availabilityZone, clusterSize, expressRouteCircuitId,
           encryptionStatus, internet, identitySourceCount, externalCloudLinkCount
 '@
+        # ---- Compute coverage-gap close-out (AB#7088, folds in AB#7071) -------------------------
+        # All five types are confirmed ARG-indexed against manifests/azure-provider-types.json --
+        # Microsoft.Nutanix/nodes additionally confirmed via the Azure Resource Graph
+        # supported-tables-and-resource-types reference on Microsoft Learn (Nutanix Cloud Clusters
+        # on Azure has no dedicated cluster resource; the tenant-visible ARM surface is the node).
+        computeFleets = @'
+resources | where type =~ "microsoft.azurefleet/fleets"
+| extend identityType = tostring(identity.type)
+| extend regularPriorityAllocationStrategy = tostring(properties.regularPriorityProfile.allocationStrategy)
+| extend spotPriorityAllocationStrategy = tostring(properties.spotPriorityProfile.allocationStrategy)
+| project name, resourceGroup, identityType, regularPriorityAllocationStrategy, spotPriorityAllocationStrategy
+'@
+        batchAccounts = @'
+resources | where type =~ "microsoft.batch/batchaccounts"
+| extend poolAllocationMode = tostring(properties.poolAllocationMode)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| extend identityType = tostring(identity.type)
+| extend encryptionKeySource = tostring(properties.encryption.keySource)
+| project name, resourceGroup, poolAllocationMode, publicNetworkAccess, identityType, encryptionKeySource
+'@
+        dedicatedHostGroups = @'
+resources | where type =~ "microsoft.compute/hostgroups"
+| extend platformFaultDomainCount = toint(properties.platformFaultDomainCount)
+| extend supportAutomaticPlacement = tobool(properties.supportAutomaticPlacement)
+| extend ultraSsdEnabled = tobool(properties.additionalCapabilities.ultraSSDEnabled)
+| project name, resourceGroup, platformFaultDomainCount, supportAutomaticPlacement, ultraSsdEnabled
+'@
+        vmImageTemplates = @'
+resources | where type =~ "microsoft.virtualmachineimages/imagetemplates"
+| extend sourceType = tostring(properties.source.type)
+| extend buildTimeoutMinutes = toint(properties.buildTimeoutInMinutes)
+| extend identityType = tostring(identity.type)
+| project name, resourceGroup, sourceType, buildTimeoutMinutes, identityType
+'@
+        quantumWorkspaces = @'
+resources | where type =~ "microsoft.quantum/workspaces"
+| extend apiKeyEnabled = tobool(properties.apiKeyEnabled)
+| extend identityType = tostring(identity.type)
+| extend providerCount = array_length(properties.providers)
+| project name, resourceGroup, apiKeyEnabled, identityType, providerCount
+'@
+        nutanixNodes = @'
+resources | where type =~ "microsoft.nutanix/nodes"
+| extend skuName = tostring(sku.name)
+| project name, resourceGroup, skuName
+'@
         # ---- FinOps / DevOps Capability enumerations (AB#6826/AB#6827, Feature AB#6749) --------
         # Every query in this block is ARM/Resource Graph, Reader-scoped, and NEVER gated behind
         # the EA/MCA billing permission system or Azure DevOps org access -- that gate only
@@ -1755,6 +2071,14 @@ resources | where type =~ "microsoft.chaos/experiments"
         playwrightTesting = @'
 resources | where type =~ "microsoft.azureplaywrightservice/accounts"
 | project name, resourceGroup, subscriptionId
+'@
+        # AB#7084 -- Azure Managed Grafana (microsoft.dashboard/grafana), a real DevOps coverage
+        # gap the docs/reference/service-coverage-gap.md audit flagged: "no collector anywhere in
+        # the estate". Ordinary ARG-indexed ARM type, Reader-scoped, never gated.
+        managedGrafana = @'
+resources | where type =~ "microsoft.dashboard/grafana"
+| project name, resourceGroup, subscriptionId, sku = tostring(sku.name),
+          provisioningState = tostring(properties.provisioningState)
 '@
         # ---- DevOps plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ------------
         # Seven ordinary ARG-indexed DevOps types the DevOps(12) coverage-doc table listed as "not
@@ -1971,6 +2295,11 @@ resources
         vpnConnections      = @('Networking')
         localNetworkGateways = @('Networking')
         virtualHubs         = @('Networking')
+        # AB#7091 -- Networking coverage-gap close-out.
+        cdnProfiles         = @('Networking')
+        networkManagers     = @('Networking')
+        firewallPolicies    = @('Networking', 'Security')
+        networkFunctions    = @('Networking')
         virtualMachines     = @('Compute')
         # caf.billing (CAF-BIL-02/03) and waf.cost both need these under Management
         # and Compute/Cost respectively.
@@ -2019,6 +2348,7 @@ resources
         logicalNetworks     = @('Hybrid')
         # AB#7061 -- Azure Local child resources (gallery/marketplace images, storage containers,
         # remaining Arc-adjacent types).
+        customLocations          = @('Hybrid')
         arcDataControllers       = @('Hybrid')
         arcGateways              = @('Hybrid')
         arcKubernetes            = @('Hybrid')
@@ -2034,12 +2364,20 @@ resources
         iotHubs             = @('IoT')
         dpsInstances        = @('IoT')
         digitalTwinsInstances = @('IoT')
+        iotOperationsInstances = @('IoT')
         synapseWorkspaces   = @('Analytics')
         purviewAccounts     = @('Analytics')
         # AB#7110 -- 3 ordinary ARG-indexed Analytics types.
         databricksWorkspaces = @('Analytics')
         dataExplorerClusters = @('Analytics')
         streamAnalyticsJobs  = @('Analytics')
+        # AB#7082 -- Analytics coverage-gap closeout, 6 further ordinary ARG-indexed types.
+        analysisServicesServers   = @('Analytics')
+        dataFactories             = @('Analytics')
+        dataShareAccounts         = @('Analytics')
+        hdInsightClusters         = @('Analytics')
+        powerBIEmbeddedCapacities = @('Analytics')
+        fabricCapacities          = @('Analytics')
         logAnalyticsWorkspaces = @('Management', 'Monitor')
         # AB#7065 (Azure Update Manager) — patch-schedule coverage spans the ordinary Management
         # pillar and the Azure Local operational checklist (waf.azurelocal.operational.yaml's
@@ -2048,6 +2386,10 @@ resources
         # AB#6818 (AI workload assessment) — waf.ai.yaml's WAF-AI-* rules.
         mlWorkspaces        = @('AI')
         searchServices      = @('AI')
+        # AB#7086 (folds in AB#7071) -- AI + Machine Learning coverage-gap close-out.
+        videoIndexerAccounts = @('AI')
+        healthBots            = @('AI')
+        planetaryComputerGeoCatalogs = @('AI')
         # AB#6819 (AVD workload assessment) — waf.avd.yaml's WAF-AVD-* rules. AVD-on-Azure-Local
         # is Compute + Hybrid data, so both categories must gather these, not just one.
         avdHostPools        = @('Compute', 'Hybrid')
@@ -2057,12 +2399,20 @@ resources
         # re-declared here, see the AB#6803 collector-declaration comment for why.
         # avs.workload (WAF-AVS-*) and caf.avslandingzone (AVS-*) both read this -- AB#6820.
         privateClouds       = @('Compute')
+        # AB#7088 (folds in AB#7071) -- Compute coverage-gap close-out.
+        computeFleets       = @('Compute')
+        batchAccounts       = @('Compute')
+        dedicatedHostGroups = @('Compute')
+        vmImageTemplates    = @('Compute')
+        quantumWorkspaces   = @('Compute')
+        nutanixNodes        = @('Compute')
         reservations        = @('FinOps', 'Cost', 'Management')
         managedDevOpsPools  = @('DevOps', 'Management')
         devCenters          = @('DevOps', 'Management')
         loadTesting         = @('DevOps', 'Management')
         chaosExperiments    = @('DevOps', 'Management')
         playwrightTesting   = @('DevOps', 'Management')
+        managedGrafana      = @('DevOps', 'Management')
         # AB#7110 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Databases plumbing.
         cosmosDbAccounts         = @('Databases')
         mariaDbServers           = @('Databases')
@@ -2074,6 +2424,10 @@ resources
         sqlManagedInstanceDatabases = @('Databases')
         sqlElasticPools          = @('Databases')
         sqlVirtualMachines       = @('Databases')
+        # AB#7090 (Story AB#7071/AB#7059, Feature AB#7069, Epic AB#7099) -- Databases
+        # coverage-gap close-out.
+        documentDbMongoClusters  = @('Databases')
+        managedCassandraClusters = @('Databases')
         # AB#7110 -- Web plumbing.
         appServiceCertificates   = @('Web')
         appServiceDomains        = @('Web')
@@ -2089,6 +2443,8 @@ resources
         webPubSubServices        = @('Web')
         # AB#7110 -- Security plumbing (wafPolicies/ddosProtectionPlans/applicationSecurityGroups
         # already tagged above via AB#7063).
+        # AB#7089 -- Security coverage-gap close-out.
+        attestationProviders      = @('Security')
         appComplianceReports      = @('Security')
         artifactSigningAccounts   = @('Security')
         cloudHsmClusters          = @('Security')
@@ -2102,11 +2458,22 @@ resources
         netAppVolumes             = @('Storage')
         partnerStorageResources   = @('Storage')
         storageSyncServices       = @('Storage')
+        # AB#7087 -- Storage coverage-gap close-out.
+        managedLustreFilesystems   = @('Storage')
+        storageTasks               = @('Storage')
+        storageDiscoveryWorkspaces = @('Storage')
+        storageMovers              = @('Storage')
         # AB#7110 -- Management plumbing.
         advisorScores                = @('Management')
         automationAccounts           = @('Management')
         recoveryVaultBackupPolicies  = @('Management')
         lighthouseDelegations        = @('Management')
+        # AB#7085 -- Management and governance coverage-gap plumbing (managedGrafana already
+        # tagged 'DevOps','Management' above via AB#7084 -- not re-declared here).
+        automanageConfigurationProfiles   = @('Management')
+        managedApplications               = @('Management')
+        resourceMoverCollections          = @('Management')
+        defenderEasmWorkspaces            = @('Management')
         # AB#7110 -- Identity plumbing.
         managedIdentities         = @('Identity')
         # AB#7110 -- DevOps plumbing.
@@ -2666,6 +3033,15 @@ resources
     }
 
     $policyComplianceStates = @()
+    # AB#7059 -- the same sweep call already returns DefenderAlerts/DefenderAssessments/
+    # DefenderSecureScores (Get-ScoutSubscriptionSecurityPolicySweep queries Get-AzSecurityAlert/
+    # Get-AzSecurityAssessment/Get-AzSecuritySecureScore per subscription), but only
+    # PolicyComplianceStates was ever read out of its result -- the other three datasets were
+    # collected and then discarded on every run. This was a wiring gap, not a missing collection
+    # mechanism: no new REST/cmdlet calls, just reading the rest of $sweepResults.
+    $defenderAlerts = @()
+    $defenderAssessments = @()
+    $defenderSecureScores = @()
     if ($IncludePolicyCompliance) {
         try {
             if (-not (Get-Command Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue)) {
@@ -2683,10 +3059,52 @@ resources
                     }
                 }
             )
+            # AB#7191 verify-caught regression: unlike PolicyComplianceStates above, these three
+            # reads had no PSObject.Properties existence guard on the specific sub-property, so
+            # a sweep result whose .properties genuinely lacks DefenderAlerts/Assessments/
+            # SecureScores (AB#6792's own long-standing mock fixture is exactly this shape) threw
+            # under StrictMode -- caught by the outer catch, which then wiped
+            # $policyComplianceStates too even though ITS read had already succeeded.
+            $defenderAlerts = @(
+                foreach ($sweep in $sweepResults) {
+                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
+                    if (-not $sweep.properties.PSObject.Properties['DefenderAlerts']) { continue }
+                    foreach ($alert in @($sweep.properties.DefenderAlerts)) {
+                        if (-not $alert) { continue }
+                        $alert | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
+                        $alert | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
+                    }
+                }
+            )
+            $defenderAssessments = @(
+                foreach ($sweep in $sweepResults) {
+                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
+                    if (-not $sweep.properties.PSObject.Properties['DefenderAssessments']) { continue }
+                    foreach ($assessment in @($sweep.properties.DefenderAssessments)) {
+                        if (-not $assessment) { continue }
+                        $assessment | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
+                        $assessment | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
+                    }
+                }
+            )
+            $defenderSecureScores = @(
+                foreach ($sweep in $sweepResults) {
+                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
+                    if (-not $sweep.properties.PSObject.Properties['DefenderSecureScores']) { continue }
+                    foreach ($score in @($sweep.properties.DefenderSecureScores)) {
+                        if (-not $score) { continue }
+                        $score | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
+                        $score | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
+                    }
+                }
+            )
         }
         catch {
             Write-Warning "Invoke-Collect: the policy compliance sweep failed; the compliance assessment will report Not assessed rather than a fabricated score: $($_.Exception.Message)"
             $policyComplianceStates = @()
+            $defenderAlerts = @()
+            $defenderAssessments = @()
+            $defenderSecureScores = @()
         }
     }
 
@@ -2783,6 +3201,13 @@ resources
             vpnConnections           = $r.vpnConnections
             localNetworkGateways     = $r.localNetworkGateways
             virtualHubs              = $r.virtualHubs
+            # AB#7091 -- Networking coverage-gap close-out (Story AB#7059, Feature AB#7069,
+            # Epic AB#7099). Route Server and Azure Enclave are deliberately absent -- see the
+            # cdnProfiles query comment above and docs/reference/service-coverage-gap.md.
+            cdnProfiles              = $r.cdnProfiles
+            networkManagers          = $r.networkManagers
+            firewallPolicies         = $r.firewallPolicies
+            networkFunctions         = $r.networkFunctions
         }
         # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) and privateClouds (AB#6820) sit
         # under `compute`, not `domains`, alongside virtualMachines -- the existing pattern for
@@ -2793,6 +3218,13 @@ resources
             avdSessionHosts = $r.avdSessionHosts
             avdScalingPlans = $r.avdScalingPlans
             privateClouds   = $r.privateClouds
+            # AB#7088 (folds in AB#7071) -- Compute coverage-gap close-out.
+            computeFleets       = $r.computeFleets
+            batchAccounts       = $r.batchAccounts
+            dedicatedHostGroups = $r.dedicatedHostGroups
+            vmImageTemplates    = $r.vmImageTemplates
+            quantumWorkspaces   = $r.quantumWorkspaces
+            nutanixNodes        = $r.nutanixNodes
         }
         management    = [pscustomobject]@{
             # AB#6895: was hardcoded @(), so no run in the product's history ever reported a
@@ -2821,6 +3253,13 @@ resources
             automationAccounts = $r.automationAccounts
             recoveryVaultBackupPolicies = $r.recoveryVaultBackupPolicies
             lighthouseDelegations = $r.lighthouseDelegations
+            # AB#7085 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Management and governance
+            # coverage-gap plumbing. managedGrafana surfaces under `devops.managedGrafana`
+            # (AB#7084) -- also tagged 'Management' in the category map above, not duplicated here.
+            automanageConfigurationProfiles = $r.automanageConfigurationProfiles
+            managedApplications = $r.managedApplications
+            resourceMoverCollections = $r.resourceMoverCollections
+            defenderEasmWorkspaces = $r.defenderEasmWorkspaces
         }
         # AB#7107/AB#7108 -- Update Manager's own assessment/installation history, a new
         # top-level section for the same reason `monitor` is one: the data spans both Azure VMs
@@ -2840,6 +3279,12 @@ resources
             wafPolicies = $r.wafPolicies
             ddosProtectionPlans = $r.ddosProtectionPlans
             applicationSecurityGroups = $r.applicationSecurityGroups
+            # AB#7059 -- read out of the same policy-compliance sweep call above; empty (not
+            # missing) when -IncludePolicyCompliance was not requested for this run, same
+            # "Collected = never a thrown exception" contract every other gated dataset here uses.
+            defenderAlerts = $defenderAlerts
+            defenderAssessments = $defenderAssessments
+            defenderSecureScores = $defenderSecureScores
         }
         governance    = [pscustomobject]@{
             managementGroups = @()
@@ -2887,6 +3332,12 @@ resources
                 netAppVolumes = $r.netAppVolumes
                 partnerStorageResources = $r.partnerStorageResources
                 storageSyncServices = $r.storageSyncServices
+                # AB#7087 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Storage coverage-gap
+                # close-out.
+                managedLustreFilesystems = $r.managedLustreFilesystems
+                storageTasks = $r.storageTasks
+                storageDiscoveryWorkspaces = $r.storageDiscoveryWorkspaces
+                storageMovers = $r.storageMovers
             }
             databases    = [pscustomobject]@{
                 sqlDatabases = $r.sqlDatabases; sqlServers = $r.sqlServers
@@ -2902,6 +3353,11 @@ resources
                 sqlManagedInstanceDatabases = $r.sqlManagedInstanceDatabases
                 sqlElasticPools = $r.sqlElasticPools
                 sqlVirtualMachines = $r.sqlVirtualMachines
+                # AB#7090 (Story AB#7071/AB#7059, Feature AB#7069, Epic AB#7099) -- Databases
+                # coverage-gap close-out (also folds in AB#7071 -- zero collector anywhere for
+                # either type before this).
+                documentDbMongoClusters = $r.documentDbMongoClusters
+                managedCassandraClusters = $r.managedCassandraClusters
             }
             web          = [pscustomobject]@{
                 webApps = $r.webApps
@@ -2932,6 +3388,9 @@ resources
                 keyVaults = $r.keyVaults
                 keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
                 # AB#7110 -- Security plumbing.
+                # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security
+                # coverage-gap close-out.
+                attestationProviders = $r.attestationProviders
                 appComplianceReports = $r.appComplianceReports
                 applicationSecurityGroups = $r.applicationSecurityGroups
                 artifactSigningAccounts = $r.artifactSigningAccounts
@@ -2959,6 +3418,10 @@ resources
                 cognitiveAccounts = $r.cognitiveAccounts
                 mlWorkspaces      = $r.mlWorkspaces
                 searchServices    = $r.searchServices
+                # AB#7086 (folds in AB#7071) -- AI + Machine Learning coverage-gap close-out.
+                videoIndexerAccounts        = $r.videoIndexerAccounts
+                healthBots                   = $r.healthBots
+                planetaryComputerGeoCatalogs = $r.planetaryComputerGeoCatalogs
             }
             hybrid       = [pscustomobject]@{
                 arcServers = $r.arcServers; arcExtensions = $r.arcExtensions
@@ -2980,6 +3443,7 @@ resources
                 # resources. All nine are ordinary ARG-indexed types (see the $q declaration
                 # above), always populated on a normal collect, same as arcServers/
                 # azureLocalClusters/logicalNetworks -- no -IncludeAzureLocalArm gate needed.
+                customLocations = $r.customLocations
                 arcDataControllers = $r.arcDataControllers
                 arcGateways = $r.arcGateways
                 arcKubernetes = $r.arcKubernetes
@@ -2997,6 +3461,8 @@ resources
             iot          = [pscustomobject]@{
                 iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances
                 digitalTwinsInstances = $r.digitalTwinsInstances
+                # AB#7083 -- Azure IoT Operations (Arc-enabled Kubernetes IoT workload).
+                iotOperationsInstances = $r.iotOperationsInstances
             }
             migration    = [pscustomobject]@{
                 migrateProjects = $r.migrateProjects
@@ -3004,11 +3470,19 @@ resources
                 discoverySites = $r.discoverySites
             }
             # databricksWorkspaces/dataExplorerClusters/streamAnalyticsJobs AB#7110.
+            # analysisServicesServers/dataFactories/dataShareAccounts/hdInsightClusters/
+            # powerBIEmbeddedCapacities/fabricCapacities AB#7082.
             analytics    = [pscustomobject]@{
                 synapseWorkspaces = $r.synapseWorkspaces; purviewAccounts = $r.purviewAccounts
                 databricksWorkspaces = $r.databricksWorkspaces
                 dataExplorerClusters = $r.dataExplorerClusters
                 streamAnalyticsJobs = $r.streamAnalyticsJobs
+                analysisServicesServers = $r.analysisServicesServers
+                dataFactories = $r.dataFactories
+                dataShareAccounts = $r.dataShareAccounts
+                hdInsightClusters = $r.hdInsightClusters
+                powerBIEmbeddedCapacities = $r.powerBIEmbeddedCapacities
+                fabricCapacities = $r.fabricCapacities
             }
             # AB#6792/#6793/#6794 -- policyInitiatives is always populated (free, see above);
             # policyComplianceStates is only non-empty when -IncludePolicyCompliance was set.
@@ -3044,6 +3518,8 @@ resources
             devCenterNetworkConnections = $r.devCenterNetworkConnections
             devTestLabs = $r.devTestLabs
             labServicesLabs = $r.labServicesLabs
+            # AB#7084 -- Azure Managed Grafana coverage-gap collector.
+            managedGrafana = $r.managedGrafana
         }
         _meta         = [pscustomobject]@{
             generatedOn = (Get-Date).ToString('o'); scope = $Scope

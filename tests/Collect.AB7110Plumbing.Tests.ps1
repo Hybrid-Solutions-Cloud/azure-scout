@@ -14,6 +14,11 @@
       containerGroups.
       Analytics(3): databricksWorkspaces, dataExplorerClusters, streamAnalyticsJobs.
 
+    AB#7082 (Story AB#7059, Feature AB#7069, Epic AB#7099) extends this same file with the 6
+    further Analytics collectors that closed the Analytics coverage gap: analysisServicesServers,
+    dataFactories, dataShareAccounts, hdInsightClusters, powerBIEmbeddedCapacities,
+    fabricCapacities.
+
     Both collect paths are exercised: `ConvertFrom-ScoutInventory` (the default, single-pass
     shaping path) and `Invoke-Collect -Source TypedQueries` (the live KQL pack, still the
     per-field reference implementation these shapers are verified against -- same standard as
@@ -123,6 +128,28 @@ BeforeAll {
         (New-FixtureRow -Type 'microsoft.streamanalytics/streamingjobs' -Name 'saj1' -Properties @{
                 sku = [pscustomobject]@{ name = 'Standard' }; jobState = 'Running'
             })
+        # ---- AB#7082 -- Analytics coverage-gap closeout ----
+        (New-FixtureRow -Type 'microsoft.analysisservices/servers' -Name 'aas1' -Sku 'S1' -Properties @{
+                provisioningState = 'Succeeded'; state = 'Succeeded'
+            })
+        (New-FixtureRow -Type 'microsoft.datafactory/factories' -Name 'adf1' -Properties @{
+                provisioningState = 'Succeeded'; publicNetworkAccess = 'Enabled'
+            })
+        (New-FixtureRow -Type 'microsoft.datashare/accounts' -Name 'ds1' -Properties @{
+                provisioningState = 'Succeeded'
+            })
+        (New-FixtureRow -Type 'microsoft.hdinsight/clusters' -Name 'hdi1' -Properties @{
+                clusterVersion = '5.1'
+                clusterDefinition = [pscustomobject]@{ kind = 'Spark' }
+                clusterState = 'Running'
+                networkProperties = [pscustomobject]@{ publicNetworkAccess = 'Enabled' }
+            })
+        (New-FixtureRow -Type 'microsoft.powerbidedicated/capacities' -Name 'pbie1' -Sku 'A1' -Properties @{
+                provisioningState = 'Succeeded'; mode = 'Gen2'
+            })
+        (New-FixtureRow -Type 'microsoft.fabric/capacities' -Name 'fc1' -Sku 'F64' -Properties @{
+                state = 'Active'
+            })
     )
 
     # type -> typed-query response row (field names match each KQL block's `project` list).
@@ -147,6 +174,12 @@ BeforeAll {
         'microsoft.databricks/workspaces' = [pscustomobject]@{ id = $script:FixtureRows[17].id; name = 'dbw1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'premium'; managedResourceGroupId = '/subscriptions/aaa/resourceGroups/databricks-rg' }
         'microsoft.kusto/clusters' = [pscustomobject]@{ id = $script:FixtureRows[18].id; name = 'kc1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'Standard_D13_v2'; state = 'Running' }
         'microsoft.streamanalytics/streamingjobs' = [pscustomobject]@{ id = $script:FixtureRows[19].id; name = 'saj1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'Standard'; jobState = 'Running' }
+        'microsoft.analysisservices/servers' = [pscustomobject]@{ id = $script:FixtureRows[20].id; name = 'aas1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'S1'; provisioningState = 'Succeeded'; state = 'Succeeded' }
+        'microsoft.datafactory/factories' = [pscustomobject]@{ id = $script:FixtureRows[21].id; name = 'adf1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; provisioningState = 'Succeeded'; publicNetworkAccess = 'Enabled'; identityType = $null }
+        'microsoft.datashare/accounts' = [pscustomobject]@{ id = $script:FixtureRows[22].id; name = 'ds1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; provisioningState = 'Succeeded'; identityType = $null }
+        'microsoft.hdinsight/clusters' = [pscustomobject]@{ id = $script:FixtureRows[23].id; name = 'hdi1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; clusterVersion = '5.1'; clusterKind = 'Spark'; clusterState = 'Running'; publicNetworkAccess = 'Enabled' }
+        'microsoft.powerbidedicated/capacities' = [pscustomobject]@{ id = $script:FixtureRows[24].id; name = 'pbie1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'A1'; provisioningState = 'Succeeded'; mode = 'Gen2' }
+        'microsoft.fabric/capacities' = [pscustomobject]@{ id = $script:FixtureRows[25].id; name = 'fc1'; resourceGroup = 'rg-plumb'; subscriptionId = 'aaa'; location = 'eastus'; sku = 'F64'; state = 'Active' }
     }
 
     function New-PlumbingSearchAzGraph {
@@ -278,6 +311,38 @@ Describe 'ConvertFrom-ScoutInventory shapes the 20 AB#7110 datasets from a popul
         $row.sku | Should -Be 'Standard'
         $row.jobState | Should -Be 'Running'
     }
+    It 'shapes analysisServicesServers' {
+        $row = @($script:Shaped['analysisServicesServers'])[0]
+        $row.sku | Should -Be 'S1'
+        $row.provisioningState | Should -Be 'Succeeded'
+        $row.state | Should -Be 'Succeeded'
+    }
+    It 'shapes dataFactories' {
+        $row = @($script:Shaped['dataFactories'])[0]
+        $row.provisioningState | Should -Be 'Succeeded'
+        $row.publicNetworkAccess | Should -Be 'Enabled'
+    }
+    It 'shapes dataShareAccounts' {
+        $row = @($script:Shaped['dataShareAccounts'])[0]
+        $row.provisioningState | Should -Be 'Succeeded'
+    }
+    It 'shapes hdInsightClusters' {
+        $row = @($script:Shaped['hdInsightClusters'])[0]
+        $row.clusterVersion | Should -Be '5.1'
+        $row.clusterKind | Should -Be 'Spark'
+        $row.clusterState | Should -Be 'Running'
+        $row.publicNetworkAccess | Should -Be 'Enabled'
+    }
+    It 'shapes powerBIEmbeddedCapacities' {
+        $row = @($script:Shaped['powerBIEmbeddedCapacities'])[0]
+        $row.sku | Should -Be 'A1'
+        $row.mode | Should -Be 'Gen2'
+    }
+    It 'shapes fabricCapacities' {
+        $row = @($script:Shaped['fabricCapacities'])[0]
+        $row.sku | Should -Be 'F64'
+        $row.state | Should -Be 'Active'
+    }
 }
 
 Describe 'ConvertFrom-ScoutInventory seeds all 20 AB#7110 keys as empty arrays on an empty estate' {
@@ -293,7 +358,9 @@ Describe 'ConvertFrom-ScoutInventory seeds all 20 AB#7110 keys as empty arrays o
         @{ Key = 'publicDnsZones' }, @{ Key = 'routeTables' }, @{ Key = 'trafficManagerProfiles' },
         @{ Key = 'virtualWans' }, @{ Key = 'openShiftClusters' }, @{ Key = 'containerApps' },
         @{ Key = 'containerAppEnvironments' }, @{ Key = 'containerGroups' },
-        @{ Key = 'databricksWorkspaces' }, @{ Key = 'dataExplorerClusters' }, @{ Key = 'streamAnalyticsJobs' }
+        @{ Key = 'databricksWorkspaces' }, @{ Key = 'dataExplorerClusters' }, @{ Key = 'streamAnalyticsJobs' },
+        @{ Key = 'analysisServicesServers' }, @{ Key = 'dataFactories' }, @{ Key = 'dataShareAccounts' },
+        @{ Key = 'hdInsightClusters' }, @{ Key = 'powerBIEmbeddedCapacities' }, @{ Key = 'fabricCapacities' }
     ) {
         param($Key)
         $script:EmptyShaped.ContainsKey($Key) | Should -BeTrue
@@ -331,10 +398,16 @@ Describe 'Invoke-Collect (default, single-pass inverted path) reaches all 20 AB#
         $script:Collect.domains.containers.containerGroups[0].osType | Should -Be 'Linux'
     }
 
-    It 'places the 3 Analytics datasets under domains.analytics{}' {
+    It 'places the 9 Analytics datasets under domains.analytics{}' {
         $script:Collect.domains.analytics.databricksWorkspaces[0].sku | Should -Be 'premium'
         $script:Collect.domains.analytics.dataExplorerClusters[0].state | Should -Be 'Running'
         $script:Collect.domains.analytics.streamAnalyticsJobs[0].jobState | Should -Be 'Running'
+        $script:Collect.domains.analytics.analysisServicesServers[0].state | Should -Be 'Succeeded'
+        $script:Collect.domains.analytics.dataFactories[0].publicNetworkAccess | Should -Be 'Enabled'
+        $script:Collect.domains.analytics.dataShareAccounts[0].provisioningState | Should -Be 'Succeeded'
+        $script:Collect.domains.analytics.hdInsightClusters[0].clusterKind | Should -Be 'Spark'
+        $script:Collect.domains.analytics.powerBIEmbeddedCapacities[0].mode | Should -Be 'Gen2'
+        $script:Collect.domains.analytics.fabricCapacities[0].state | Should -Be 'Active'
     }
 
     It 'never issues an extra Resource Graph round-trip for these 20 datasets -- shaped from the raw pass' {
@@ -374,9 +447,15 @@ Describe 'Invoke-Collect -Source TypedQueries reaches the same 20 AB#7110 keys v
         $script:TypedCollect.domains.containers.containerGroups[0].osType | Should -Be 'Linux'
     }
 
-    It 'places the 3 Analytics datasets under domains.analytics{}' {
+    It 'places the 9 Analytics datasets under domains.analytics{}' {
         $script:TypedCollect.domains.analytics.databricksWorkspaces[0].sku | Should -Be 'premium'
         $script:TypedCollect.domains.analytics.dataExplorerClusters[0].state | Should -Be 'Running'
         $script:TypedCollect.domains.analytics.streamAnalyticsJobs[0].jobState | Should -Be 'Running'
+        $script:TypedCollect.domains.analytics.analysisServicesServers[0].state | Should -Be 'Succeeded'
+        $script:TypedCollect.domains.analytics.dataFactories[0].publicNetworkAccess | Should -Be 'Enabled'
+        $script:TypedCollect.domains.analytics.dataShareAccounts[0].provisioningState | Should -Be 'Succeeded'
+        $script:TypedCollect.domains.analytics.hdInsightClusters[0].clusterKind | Should -Be 'Spark'
+        $script:TypedCollect.domains.analytics.powerBIEmbeddedCapacities[0].mode | Should -Be 'Gen2'
+        $script:TypedCollect.domains.analytics.fabricCapacities[0].state | Should -Be 'Active'
     }
 }

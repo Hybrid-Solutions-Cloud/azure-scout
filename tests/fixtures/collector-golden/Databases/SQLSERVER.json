@@ -3,7 +3,7 @@
   "Category": "Databases",
   "Name": "SQLSERVER",
   "FixturePath": "tests/fixtures/databases-collector-input.json",
-  "FixtureSha256": "0eb3c4a919d8cc0d6bd5a89f1644dde080c2fe2de1741a4a0ace3a12eee943ca",
+  "FixtureSha256": "57835b14fb5f75c1d56a0bfed6bcafaf3377173fd0ffa6d15c781b67a0f5931d",
   "Rows": [
     "Admin Login=s:sqladmin|FQDN=s:sql-prod.database.windows.net|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod|Kind=s:v12.0|Location=s:eastus|minimalTlsVersion=s:1.2|Name=s:sql-prod|Private Endpoint=s:pe-sqlserver|Public Network Access=s:Disabled|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|State=s:Ready|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test|Version=s:12.0|Zone Redundant=j:[\"1\"]",
     "Admin Login=s:euadmin|FQDN=s:sql-eu.database.windows.net|ID=s:/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.sql/servers/sql-eu|Kind=s:v12.0|Location=s:westeurope|minimalTlsVersion=s:1.2|Name=s:sql-eu|Private Endpoint=s:NONE|Public Network Access=s:Enabled|Resource Group=s:rg-databases-2|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|State=s:Ready|Subscription=s:Scout Sample Subscription 2|Tag Name=s:|Tag Value=s:|Version=s:12.0|Zone Redundant=j:[\"1\"]"

@@ -8,18 +8,6 @@
   ],
   "retirements": [
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotsecurity/defendersettings/defenderforiot-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -149,6 +137,30 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -1920,6 +1932,153 @@
           "NAME": "iothubs-t1f",
           "TYPE": "microsoft.devices/iothubs",
           "LOCATION": "eastus"
+        }
+      ]
+    },
+    "IoTOperations": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "schemaRegistryRef": {
+              "resourceId": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotoperations/instances/iotoperations-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "iotoperations-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "extendedLocation": {
+            "name": "res-value",
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.iotoperations/instances"
         }
       ]
     },

@@ -69,6 +69,11 @@ BeforeAll {
         netAppVolumes              = @{ Path = 'domains.storage'; Type = 'microsoft.netapp/netappaccounts/capacitypools/volumes' }
         partnerStorageResources    = @{ Path = 'domains.storage'; Type = 'purestorage.block/storagepools' }
         storageSyncServices        = @{ Path = 'domains.storage'; Type = 'microsoft.storagesync/storagesyncservices' }
+        # Storage coverage-gap close-out (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099)
+        managedLustreFilesystems   = @{ Path = 'domains.storage'; Type = 'microsoft.storagecache/amlfilesystems' }
+        storageTasks               = @{ Path = 'domains.storage'; Type = 'microsoft.storageactions/storagetasks' }
+        storageDiscoveryWorkspaces = @{ Path = 'domains.storage'; Type = 'microsoft.storagediscovery/storagediscoveryworkspaces' }
+        storageMovers              = @{ Path = 'domains.storage'; Type = 'microsoft.storagemover/storagemovers' }
         # Management (management)
         advisorScores               = @{ Path = 'management'; Type = 'microsoft.advisor/advisorscore' }
         automationAccounts          = @{ Path = 'management'; Type = 'microsoft.automation/automationaccounts' }
@@ -84,6 +89,8 @@ BeforeAll {
         devCenterNetworkConnections = @{ Path = 'devops'; Type = 'microsoft.devcenter/networkconnections' }
         devTestLabs                 = @{ Path = 'devops'; Type = 'microsoft.devtestlab/labs' }
         labServicesLabs             = @{ Path = 'devops'; Type = 'microsoft.labservices/labs' }
+        # AB#7084 -- Azure Managed Grafana coverage-gap collector.
+        managedGrafana               = @{ Path = 'devops'; Type = 'microsoft.dashboard/grafana' }
     }
 
     function New-MockSubscriptionRow {
@@ -148,7 +155,7 @@ BeforeAll {
 
 Describe 'ConvertFrom-ScoutInventory -- AB#7110 Part 2 plumbing (Databases/DevOps/Identity/Management/Security/Storage/Web)' {
 
-    It 'shapes every one of the 49 new keys, populated from the raw rows' {
+    It 'shapes every one of the new keys, populated from the raw rows' {
         $shaped = ConvertFrom-ScoutInventory -Resources (Get-FixturePlumbingRows) -ResourceContainers @(New-MockSubscriptionRow)
         foreach ($key in $script:PlumbingSpecs.Keys) {
             $shaped.ContainsKey($key) | Should -BeTrue -Because "ConvertFrom-ScoutInventory must shape '$key'"

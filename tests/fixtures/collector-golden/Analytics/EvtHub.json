@@ -3,7 +3,7 @@
   "Category": "Analytics",
   "Name": "EvtHub",
   "FixturePath": "tests/fixtures/collector-equivalence/Analytics.json",
-  "FixtureSha256": "1d229368c3f69706f001a6c5bd9e6322035ab2a80c2aabc8dee730c0d2a65dda",
+  "FixtureSha256": "1cbb86c5035a1eb17e7b9d015662e4137dc385e6479ca6d3f426d931a29ba666",
   "Rows": [
     "Auto-Inflate=s:res-value|Created Time=s:01/15/2026 10:30:00|Endpoint=s:res-value|Geo-Replication=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/namespaces/evthub-t1a-1|Kafka Enabled=s:res-value|Local Authentication=j:false|Location=s:res-value|Max Throughput Units=s:res-value|Minimum TLS Version=s:res-value|Name=s:evthub-t1a|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Throughput Units=s:res-value",
     "Auto-Inflate=s:res-value|Created Time=s:01/15/2026 10:30:00|Endpoint=s:res-value|Geo-Replication=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventhub/namespaces/evthub-t1b-1|Kafka Enabled=s:res-value|Local Authentication=j:false|Location=s:res-value|Max Throughput Units=s:res-value|Minimum TLS Version=s:res-value|Name=s:evthub-t1b|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Throughput Units=s:res-value",

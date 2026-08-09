@@ -76,6 +76,8 @@ function Get-ScoutArmChildResource {
             'StorageBlobContainers',
             'StorageFileShares',
             'StorageLifecyclePolicies',
+            'StorageQueues',
+            'StorageTables',
             'BackupInstances',
             'ResourceDiagnosticSettings',
             'ReservationUtilization',
@@ -102,6 +104,8 @@ function Get-ScoutArmChildResource {
         'StorageBlobContainers',
         'StorageFileShares',
         'StorageLifecyclePolicies',
+        'StorageQueues',
+        'StorageTables',
         'BackupInstances',
         'ResourceDiagnosticSettings',
         'ReservationUtilization',
@@ -545,6 +549,43 @@ function Get-ScoutArmChildResource {
                     # Get-ArmChildContent already degrades to a warning and $null. The absence IS
                     # the finding, and the cross-resource rules read it as such.
                     $Content = Get-ArmChildContent -Path "$Base/managementPolicies/default?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Storage queues (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099) -------------
+            #
+            # Same reasoning as StorageBlobContainers/StorageFileShares directly above: Queue
+            # Storage has no Resource Graph table of its own -- `queueServices/default/queues` is
+            # a control-plane list under the storage account, `Microsoft.Storage/storageAccounts/
+            # queueServices/queues/read`, held by Reader. Returns metadata only (name + the
+            # `metadata` key/value bag a caller attached); no queue message is ever read.
+            'StorageQueues' {
+                foreach ($Parent in $StorageAccountParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/queueServices/default/queues?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Table Storage (AB#7090, Story AB#7071/AB#7059, Feature AB#7069, Epic AB#7099) ------
+            #
+            # Same reasoning as StorageQueues directly above: Table Storage has no Resource Graph
+            # table of its own -- `tableServices/default/tables` is a control-plane list under the
+            # storage account, `Microsoft.Storage/storageAccounts/tableServices/tables/read`, held
+            # by Reader. Returns table name and metadata only; no table entity/row is ever read.
+            'StorageTables' {
+                foreach ($Parent in $StorageAccountParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/tableServices/default/tables?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {

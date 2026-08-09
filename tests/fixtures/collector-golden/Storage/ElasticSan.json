@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "ElasticSan",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
+  "FixtureSha256": "12cb3bb1b7c042854d935c1291641c4020fae08cf2bc17ee3bd0115dc8f9d4d6",
   "Rows": [
     "Base Size (TiB)=s:res-value|Encryption=s:res-value|Extended Size (TiB)=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t1a-1|Location=s:res-value|Name=s:elasticsan-t1a|Protocol Type=s:res-value|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.elasticsan/elasticsans|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Base Size (TiB)=s:res-value|Encryption=s:res-value|Extended Size (TiB)=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elasticsan/elasticsans/elasticsan-t2a-1/volumegroups/elasticsan-t2a-2|Location=s:res-value|Name=s:elasticsan-t2a|Protocol Type=s:res-value|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.elasticsan/elasticsans/volumegroups|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

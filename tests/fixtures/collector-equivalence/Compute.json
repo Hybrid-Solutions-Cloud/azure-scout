@@ -104,15 +104,63 @@
       "ServiceID": "svc-2"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1e-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1e-1",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1f-1",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -149,6 +197,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/disks/vmdisk-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -1471,102 +1531,714 @@
         }
       ]
     },
-    "CloudServices": {
+    "BatchAccounts": {
       "resources": [
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1a-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1a-1",
           "tags": {
             "env": "prod"
           },
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1a",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
         },
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1b-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1b-1",
           "tags": {
             "env": "prod",
             "owner": "platform"
           },
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1b",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
         },
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1c-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1c-1",
           "tags": {},
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1c",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
         },
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1d-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1d-1",
           "tags": {
             "env": "dev"
           },
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1d",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
         },
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1e-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1e-1",
           "tags": {
             "env": "prod"
           },
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1e",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
         },
         {
           "PROPERTIES": {
-            "status": "res-value",
-            "label": "res-value",
-            "hostname": "res-value"
+            "autoStorage": {
+              "storageAccountId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "poolAllocationMode": "res-value",
+            "publicNetworkAccess": "res-value",
+            "encryption": {
+              "keySource": "res-value"
+            }
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.classiccompute/domainnames/cloudservices-t1f-1",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.batch/batchaccounts/batchaccounts-t1f-1",
           "tags": {
             "env": "prod"
           },
           "RESOURCEGROUP": "res-value",
-          "NAME": "cloudservices-t1f",
-          "location": "res-value",
-          "TYPE": "microsoft.classiccompute/domainnames"
+          "NAME": "batchaccounts-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.batch/batchaccounts"
+        }
+      ]
+    },
+    "ComputeFleet": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1a-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1b-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1c-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1d-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1e-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "regularPriorityProfile": {
+              "allocationStrategy": "res-value"
+            },
+            "spotPriorityProfile": {
+              "allocationStrategy": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1f-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computefleet-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.azurefleet/fleets"
+        }
+      ]
+    },
+    "DedicatedHostGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1a-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        },
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1b-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        },
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1c-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        },
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1d-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        },
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1e-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        },
+        {
+          "PROPERTIES": {
+            "platformFaultDomainCount": "res-value",
+            "supportAutomaticPlacement": "res-value",
+            "additionalCapabilities": {
+              "ultraSSDEnabled": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1f-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "dedicatedhostgroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/hostgroups"
+        }
+      ]
+    },
+    "NutanixNodes": {
+      "resources": [
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1a-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        },
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1b-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        },
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1c-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        },
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1d-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        },
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1e-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        },
+        {
+          "PROPERTIES": "res-value",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.nutanix/nodes/nutanixnodes-t1f-1",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "nutanixnodes-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.nutanix/nodes"
+        }
+      ]
+    },
+    "QuantumWorkspaces": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "storageAccount": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "apiKeyEnabled": "res-value",
+            "providers": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "quantumworkspaces-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.quantum/workspaces"
         }
       ]
     },
@@ -3437,6 +4109,153 @@
           "LOCATION": "res-value",
           "ZONES": "res-value",
           "TYPE": "microsoft.compute/disks"
+        }
+      ]
+    },
+    "VMImageTemplates": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "type": "res-value"
+            },
+            "buildTimeoutInMinutes": "res-value",
+            "stagingResourceGroup": "res-value",
+            "lastRunStatus": {
+              "runState": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.virtualmachineimages/imagetemplates/vmimagetemplates-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "vmimagetemplates-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.virtualmachineimages/imagetemplates"
         }
       ]
     },

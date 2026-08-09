@@ -234,6 +234,126 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1f-1/StorageLifecyclePolicies/lifecyclepolicies-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t2e-1/shares/datashare-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t2f-1/shares/datashare-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datashare/accounts/datashare-t2f-1/shares/datashare-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2e-1/agents/storagemover-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3e-1/endpoints/storagemover-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4e-1/projects/storagemover-t4e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2f-1/agents/storagemover-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2f-1/agents/storagemover-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3f-1/endpoints/storagemover-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3f-1/endpoints/storagemover-t3f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4f-1/projects/storagemover-t4f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4f-1/projects/storagemover-t4f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1e-1/StorageQueues/storagequeues-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1f-1/StorageQueues/storagequeues-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1f-1/StorageQueues/storagequeues-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -259,7 +379,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "blobcontainers-t1a",
@@ -280,7 +400,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "blobcontainers-t1b",
@@ -302,7 +422,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "blobcontainers-t1c",
@@ -321,7 +441,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "NAME": "blobcontainers-t1d",
@@ -342,7 +462,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "blobcontainers-t1e",
@@ -363,7 +483,7 @@
             "hasImmutabilityPolicy": "res-value",
             "hasLegalHold": "res-value",
             "isVersionLevelWormEnabled": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "blobcontainers-t1f",
@@ -375,117 +495,6 @@
           "tags": {
             "env": "prod"
           }
-        }
-      ]
-    },
-    "DataLakeStoreGen1": {
-      "resources": [
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1a-1",
-          "tags": {
-            "env": "prod"
-          },
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1a",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
-        },
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1b-1",
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          },
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1b",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
-        },
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1c-1",
-          "tags": {},
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1c",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
-        },
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1d-1",
-          "tags": {
-            "env": "dev"
-          },
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1d",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
-        },
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1e-1",
-          "tags": {
-            "env": "prod"
-          },
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1e",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
-        },
-        {
-          "PROPERTIES": {
-            "provisioningState": "res-value",
-            "state": "res-value",
-            "encryptionState": "res-value",
-            "firewallState": "res-value",
-            "endpoint": "res-value"
-          },
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datalakestore/accounts/datalakestoregen1-t1f-1",
-          "tags": {
-            "env": "prod"
-          },
-          "RESOURCEGROUP": "res-value",
-          "NAME": "datalakestoregen1-t1f",
-          "LOCATION": "res-value",
-          "TYPE": "microsoft.datalakestore/accounts"
         }
       ]
     },
@@ -1434,7 +1443,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "fileshares-t1a",
@@ -1454,7 +1463,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "fileshares-t1b",
@@ -1475,7 +1484,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "fileshares-t1c",
@@ -1493,7 +1502,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "NAME": "fileshares-t1d",
@@ -1513,7 +1522,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "fileshares-t1e",
@@ -1533,7 +1542,7 @@
             "enabledProtocols": "res-value",
             "rootSquash": "res-value",
             "snapshotCount": "res-value",
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "NAME": "fileshares-t1f",
@@ -1564,7 +1573,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1a-1/StorageLifecyclePolicies/lifecyclepolicies-t1a-2",
@@ -1591,7 +1600,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1b-1/StorageLifecyclePolicies/lifecyclepolicies-t1b-2",
@@ -1619,7 +1628,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1c-1/StorageLifecyclePolicies/lifecyclepolicies-t1c-2",
@@ -1644,7 +1653,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1d-1/StorageLifecyclePolicies/lifecyclepolicies-t1d-2",
@@ -1671,7 +1680,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1e-1/StorageLifecyclePolicies/lifecyclepolicies-t1e-2",
@@ -1698,7 +1707,7 @@
                 }
               ]
             },
-            "lastModifiedTime": "2026-01-15T10:30:00.0000000Z"
+            "lastModifiedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1f-1/StorageLifecyclePolicies/lifecyclepolicies-t1f-2",
@@ -1710,6 +1719,147 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "ManagedLustre": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "storageCapacityTiB": "res-value",
+            "filesystemSubnet": "res-value",
+            "health": {
+              "state": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagecache/amlfilesystems/managedlustre-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedlustre-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value"
+          },
+          "zones": "res-value",
+          "TYPE": "microsoft.storagecache/amlfilesystems"
         }
       ]
     },
@@ -2886,6 +3036,753 @@
           "LOCATION": "eastus",
           "PROPERTIES": {},
           "tags": {}
+        }
+      ]
+    },
+    "StorageActions": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        },
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        },
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        },
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        },
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        },
+        {
+          "PROPERTIES": {
+            "storageTaskProperties": {
+              "enabled": "res-value",
+              "description": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storageactions/storagetasks/storageactions-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storageactions-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.storageactions/storagetasks"
+        }
+      ]
+    },
+    "StorageDiscovery": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        },
+        {
+          "PROPERTIES": {
+            "sku": "res-value",
+            "workspaceRoots": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagediscovery/storagediscoveryworkspaces/storagediscovery-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagediscovery-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        }
+      ]
+    },
+    "StorageMover": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2a-1/agents/storagemover-t2a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3a-1/endpoints/storagemover-t3a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4a-1/projects/storagemover-t4a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2b-1/agents/storagemover-t2b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3b-1/endpoints/storagemover-t3b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4b-1/projects/storagemover-t4b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2c-1/agents/storagemover-t2c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3c-1/endpoints/storagemover-t3c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4c-1/projects/storagemover-t4c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2d-1/agents/storagemover-t2d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3d-1/endpoints/storagemover-t3d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4d-1/projects/storagemover-t4d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2e-1/agents/storagemover-t2e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3e-1/endpoints/storagemover-t3e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4e-1/projects/storagemover-t4e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t2f-1/agents/storagemover-t2f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/agents"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t3f-1/endpoints/storagemover-t3f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t3f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/endpoints"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value",
+            "agentStatus": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.storagemover/storagemovers/storagemover-t4f-1/projects/storagemover-t4f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "storagemover-t4f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.storagemover/storagemovers/projects"
+        }
+      ]
+    },
+    "StorageQueues": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "storagequeues-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1a-1/StorageQueues/storagequeues-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "storagequeues-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1b-1/StorageQueues/storagequeues-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "storagequeues-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1c-1/StorageQueues/storagequeues-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "storagequeues-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1d-1/StorageQueues/storagequeues-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "storagequeues-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1e-1/StorageQueues/storagequeues-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "metadata": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "storagequeues-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1f-1/StorageQueues/storagequeues-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "PARENTNAME": "res-value",
+          "TYPE": "AZSC/ARMChild/StorageQueues",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

@@ -3,7 +3,7 @@
   "Category": "IoT",
   "Name": "IoTCentral",
   "FixturePath": "tests/fixtures/collector-equivalence/IoT.json",
-  "FixtureSha256": "720083765c4eaa2bbaa06f4cade1fb1914551d9650e83685f9723af0e206c909",
+  "FixtureSha256": "701dcf074e5e6dcdf66f6a9ac7d374f1170eb61db8c0d67a1276e63cde984ccc",
   "Rows": [
     "Application Id=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:iotcentral-t1a|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|State=s:res-value|Subdomain=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Template=s:res-value",
     "Application Id=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.iotcentral/iotapps/iotcentral-t1b-1|Identity Type=s:res-value|Location=s:res-value|Name=s:iotcentral-t1b|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|State=s:res-value|Subdomain=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Template=s:res-value",

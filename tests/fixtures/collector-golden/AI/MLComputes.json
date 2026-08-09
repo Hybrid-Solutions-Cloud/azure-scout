@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "MLComputes",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "7ccd5d0452bc5e5dd1548cdfba1f78189c55ce619f4183a84150928cf4e2fcae",
+  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
   "Rows": [
     "Compute Name=s:mlcomputes-t1a|Compute Type=s:res-value|Description=s:res-value|Location=s:res-value|Max Nodes=s:res-value|Min Nodes=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|VM Priority=s:res-value|VM Size=s:res-value|Workspace Name=s:mlcomputes-t1a-parent",
     "Compute Name=s:mlcomputes-t1b|Compute Type=s:res-value|Description=s:res-value|Location=s:res-value|Max Nodes=s:res-value|Min Nodes=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|VM Priority=s:res-value|VM Size=s:res-value|Workspace Name=s:mlcomputes-t1b-parent",

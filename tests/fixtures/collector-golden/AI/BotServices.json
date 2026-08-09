@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "BotServices",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "7ccd5d0452bc5e5dd1548cdfba1f78189c55ce619f4183a84150928cf4e2fcae",
+  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
   "Rows": [
     "App ID=s:res-value|CMEK Enabled=s:No|Developer App Key=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.botservice/botservices/botservices-t1a-1|Location=s:res-value|Messaging Endpoint=s:res-value|MSA App Type=s:res-value|Name=s:botservices-t1a|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Schema Transformation Ver=s:res-value|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "App ID=s:res-value|CMEK Enabled=s:No|Developer App Key=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.botservice/botservices/botservices-t1b-1|Location=s:res-value|Messaging Endpoint=s:res-value|MSA App Type=s:res-value|Name=s:botservices-t1b|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Schema Transformation Ver=s:res-value|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

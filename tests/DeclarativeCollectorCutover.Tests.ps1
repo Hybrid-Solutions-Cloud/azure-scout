@@ -23,9 +23,13 @@ Describe 'v3 declarative collector cutover' {
         # utilization collector; 244 after AB#7097 added Identity/VerifiedIDProfiles and
         # Identity/VerifiedIDConfiguration (Microsoft Entra Verified ID); 245 after AB#7098 added
         # Identity/ExternalIdentities (Microsoft Entra External ID's default cross-tenant access
-        # policy). The number is pinned rather than derived so that a collector silently
-        # DISAPPEARING is a failure, not an invisible regression.
-        $Collectors.Count | Should -Be 245
+        # policy); 279 after the parallel AB#7059/AB#7069/AB#7099 coverage-gap-closeout sprint
+        # (multiple categories landed collectors in the same window -- see each category's own
+        # manifests for its AB# provenance) plus AB#7091's four Networking additions
+        # (Networking/CdnProfiles, Networking/NetworkManagers, Networking/FirewallPolicies,
+        # Networking/NetworkFunctions). The number is pinned rather than derived so that a
+        # collector silently DISAPPEARING is a failure, not an invisible regression.
+        $Collectors.Count | Should -Be 279
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

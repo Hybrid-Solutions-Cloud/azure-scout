@@ -368,6 +368,24 @@ $DeploymentTarget = if(![string]::IsNullOrEmpty($data.deploymentTargetId)){Get-A
             )
         }
         @{
+            # AB#7084 -- Azure Managed Grafana is a real coverage gap (docs/reference/service-coverage-gap.md's
+            # DevOps table): ordinary ARM/ARG type, no collector existed anywhere in the estate.
+            Category = 'DevOps'
+            Name = 'ManagedGrafana'
+            Worksheet = 'Managed Grafana'
+            ResourceTypes = @('microsoft.dashboard/grafana')
+            Fields = @(
+                @{ Name = 'SKU';                      Expression = '$1.sku.name' }
+                @{ Name = 'Provisioning State';       Expression = '$data.provisioningState' }
+                @{ Name = 'Endpoint';                 Expression = '$data.endpoint' }
+                @{ Name = 'Grafana Major Version';    Expression = '[string]$data.grafanaMajorVersion' }
+                @{ Name = 'Public Network Access';    Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Zone Redundancy';          Expression = '$data.zoneRedundancy' }
+                @{ Name = 'API Key';                  Expression = '$data.apiKey' }
+                @{ Name = 'Deterministic Outbound IP'; Expression = '$data.deterministicOutboundIP' }
+            )
+        }
+        @{
             Category = 'DevOps'
             Name = 'AppConfiguration'
             Worksheet = 'App Configuration'
@@ -834,7 +852,94 @@ $KeyVault = if(![string]::IsNullOrEmpty($data.activeKey.sourceVault.id)){Get-AZS
         }
 
         # ---------------------------------------------------------------------------------------
-        # Internet of Things — 8 of 19 (AB#6837).
+        # Storage coverage-gap close-out (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099).
+        # Five services from docs/reference/service-coverage-gap.md's Storage table with zero
+        # collector anywhere (also folds in AB#7071 for this category): Azure Managed Lustre,
+        # Azure Data Share, Azure Storage Actions, Azure Storage Discovery, Azure Storage Mover.
+        # Queue Storage (the sixth) is an ARM-child sweep, not an ARG-indexed type -- see
+        # Storage/StorageQueues.psd1 and Get-ScoutArmChildResource.ps1's 'StorageQueues' dataset.
+        # Azure Container Storage stays out of scope: Microsoft.ContainerStorage/pools has only a
+        # 2023-07-01-preview API version, no stable/GA API to collect against.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Storage'
+            Name = 'ManagedLustre'
+            Worksheet = 'Managed Lustre'
+            ResourceTypes = @('microsoft.storagecache/amlfilesystems')
+            Fields = @(
+                @{ Name = 'SKU';                Expression = '$1.sku.name' }
+                @{ Name = 'Provisioning State';  Expression = '$data.provisioningState' }
+                @{ Name = 'Storage Capacity (TiB)'; Expression = '[string]$data.storageCapacityTiB' }
+                @{ Name = 'Filesystem Subnet';   Expression = '$data.filesystemSubnet' }
+                @{ Name = 'Health State';        Expression = '$data.health.state' }
+                @{ Name = 'Zones';               Expression = '[string]$1.zones' }
+            )
+        }
+        @{
+            Category = 'Storage'
+            Name = 'StorageActions'
+            Worksheet = 'Storage Actions'
+            ResourceTypes = @('microsoft.storageactions/storagetasks')
+            Fields = @(
+                @{ Name = 'Enabled';             Expression = '[string]$data.storageTaskProperties.enabled' }
+                @{ Name = 'Description';         Expression = '$data.storageTaskProperties.description' }
+                @{ Name = 'Provisioning State';  Expression = '$data.provisioningState' }
+                @{ Name = 'Identity Type';       Expression = '$1.identity.type' }
+            )
+        }
+        @{
+            Category = 'Storage'
+            Name = 'StorageDiscovery'
+            Worksheet = 'Storage Discovery'
+            ResourceTypes = @('microsoft.storagediscovery/storagediscoveryworkspaces')
+            Fields = @(
+                @{ Name = 'SKU';                 Expression = '$data.sku' }
+                @{ Name = 'Workspace Roots';     Expression = '[string]@($data.workspaceRoots).Count' }
+                @{ Name = 'Scope Count';         Expression = '[string]@($data.scopes).Count' }
+                @{ Name = 'Description';         Expression = '$data.description' }
+            )
+        }
+        @{
+            Category = 'Storage'
+            Name = 'StorageMover'
+            Worksheet = 'Storage Mover'
+            ResourceTypes = @(
+                'microsoft.storagemover/storagemovers'
+                'microsoft.storagemover/storagemovers/agents'
+                'microsoft.storagemover/storagemovers/endpoints'
+                'microsoft.storagemover/storagemovers/projects'
+            )
+            Fields = @(
+                @{ Name = 'Resource Kind';       Expression = '$1.TYPE' }
+                @{ Name = 'Provisioning State';  Expression = '$data.provisioningState' }
+                @{ Name = 'Agent Status';        Expression = '$data.agentStatus' }
+                @{ Name = 'Description';         Expression = '$data.description' }
+            )
+        }
+        @{
+            Category = 'Storage'
+            Name = 'StorageQueues'
+            Worksheet = 'Storage Queues'
+            ResourceTypes = @('AZSC/ARMChild/StorageQueues')
+            Identity = @(
+                @{ Name = 'ID';              Expression = '$1.id' }
+                @{ Name = 'Subscription';    Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group';  Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Storage Account'; Expression = '$1.PARENTNAME' }
+                @{ Name = 'Queue';           Expression = '$QueueName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Metadata Keys'; Expression = '[string]@($data.metadata.psobject.properties).Count' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$QueueName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+'@
+        }
+
+        # ---------------------------------------------------------------------------------------
+        # Internet of Things — 9 of 19 (AB#6837, +IoTOperations AB#7083).
         # ---------------------------------------------------------------------------------------
         @{
             Category = 'IoT'
@@ -935,6 +1040,69 @@ $KeyVault = if(![string]::IsNullOrEmpty($data.activeKey.sourceVault.id)){Get-AZS
             Preamble = @'
 $SentinelWorkspace = if(![string]::IsNullOrEmpty($data.sentinelWorkspaceResourceIds)){Get-AZSCIdSegment -Id ([string]@($data.sentinelWorkspaceResourceIds)[0]) -Index 8}else{$null}
 '@
+        }
+        # AB#7083: Microsoft.IoTOperations/instances IS indexed by Resource Graph (confirmed
+        # against the ARM template reference -- microsoft.iotoperations/instances is present in
+        # manifests/azure-provider-types.json). Arc-enabled Kubernetes IoT workload (2024+),
+        # deployed onto a customLocation extended location -- distinct from classic IoT Hub/
+        # IoT Central above. Fields are limited to what InstanceProperties documents:
+        # description, schemaRegistryRef (required), and identity/extendedLocation, which are
+        # top-level resource properties, not sub-resource joins.
+        @{
+            Category = 'IoT'
+            Name = 'IoTOperations'
+            Worksheet = 'IoT Operations'
+            ResourceTypes = @('microsoft.iotoperations/instances')
+            Fields = @(
+                @{ Name = 'Description';            Expression = '$data.description' }
+                @{ Name = 'Schema Registry Id';      Expression = '$data.schemaRegistryRef.resourceId' }
+                @{ Name = 'Identity Type';           Expression = '$1.identity.type' }
+                @{ Name = 'Extended Location';       Expression = '$1.extendedLocation.name' }
+                @{ Name = 'Extended Location Type';  Expression = '$1.extendedLocation.type' }
+            )
+        }
+
+        # ---------------------------------------------------------------------------------------
+        # AI + Machine Learning coverage-gap close-out (AB#7086, folds in AB#7071). All three
+        # types are confirmed ARG-indexed via the ARM template reference on Microsoft Learn.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'AI'
+            Name = 'VideoIndexerAccounts'
+            Worksheet = 'Video Indexer'
+            ResourceTypes = @('microsoft.videoindexer/accounts')
+            Fields = @(
+                @{ Name = 'Public Network Access';       Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Identity Type';                Expression = '$1.identity.type' }
+                @{ Name = 'Private Endpoint Connections'; Expression = '[string]@($data.privateEndpointConnections).Count' }
+                @{ Name = 'OpenAI Services Linked';       Expression = '[string](-not [string]::IsNullOrEmpty($data.openAiServices.resourceId))' }
+                @{ Name = 'Storage Account';              Expression = '$VIStorageAccount' }
+            )
+            Preamble = @'
+$VIStorageAccount = if(![string]::IsNullOrEmpty($data.storageServices.resourceId)){Get-AZSCIdSegment -Id $data.storageServices.resourceId -Index 8}else{$null}
+'@
+        }
+        @{
+            Category = 'AI'
+            Name = 'HealthBots'
+            Worksheet = 'Health Bot'
+            ResourceTypes = @('microsoft.healthbot/healthbots')
+            Fields = @(
+                @{ Name = 'SKU';           Expression = '$1.sku.name' }
+                @{ Name = 'Identity Type'; Expression = '$1.identity.type' }
+                @{ Name = 'CMK Key Vault'; Expression = '$data.keyVaultProperties.keyVaultUri' }
+            )
+        }
+        @{
+            Category = 'AI'
+            Name = 'PlanetaryComputerGeoCatalogs'
+            Worksheet = 'Planetary Computer'
+            ResourceTypes = @('microsoft.orbital/geocatalogs')
+            Fields = @(
+                @{ Name = 'Tier';                       Expression = '$data.tier' }
+                @{ Name = 'Identity Type';               Expression = '$1.identity.type' }
+                @{ Name = 'Domain Name Label Scope';     Expression = '$data.autoGeneratedDomainNameLabelScope' }
+            )
         }
 
         # ---------------------------------------------------------------------------------------
@@ -1320,6 +1488,267 @@ $AssociationCount = @($data.applicationGateways).Count + @($data.httpListeners).
                 @{ Name = 'Time Zone';          Expression = '$data.timeZone' }
                 @{ Name = 'Resource Count';     Expression = '[string]@($data.resources).Count' }
             )
+        }
+
+        # ---------------------------------------------------------------------------------------
+        # Security coverage gap (AB#7089, Story AB#7071, Feature AB#7069, Epic AB#7099). One
+        # ordinary ARG-indexed type the Security(19-published/14-collected) coverage-doc row
+        # listed as "Not collected" (Microsoft Azure Attestation). Resource type string taken
+        # from the ARM template reference on Microsoft Learn
+        # (learn.microsoft.com/azure/templates/<provider>/<type>), same provenance standard as
+        # every other entry in this file. NOTE: Defender EASM, the other row the doc listed as
+        # "Not collected", is stale -- `microsoft.easm/workspaces` is ALREADY collected as
+        # `Management/DefenderEasmWorkspaces` (AB#7085); not re-declared here to avoid the
+        # duplicate-worksheet-name collision Test-ScoutCollectorDefinition.ps1 (AB#5661) catches.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Security'
+            Name = 'Attestation'
+            Worksheet = 'Attestation'
+            ResourceTypes = @('microsoft.attestation/attestationproviders')
+            Fields = @(
+                @{ Name = 'Trust Model';             Expression = '$data.trustModel' }
+                @{ Name = 'Status';                  Expression = '$data.status' }
+                @{ Name = 'Attest URI';              Expression = '$data.attestUri' }
+                @{ Name = 'Public Network Access';   Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'TPM Attestation Auth';    Expression = '$data.tpmAttestationAuthentication' }
+            )
+        }
+
+        # ---------------------------------------------------------------------------------------
+        # Analytics coverage gap (AB#7082, Story AB#7059, Feature AB#7069, Epic AB#7099). Six
+        # ordinary ARG-indexed types the Analytics(19-published/6-collected) coverage-doc row
+        # listed as "Not collected". Resource type strings taken from the ARM template reference
+        # on Microsoft Learn (learn.microsoft.com/azure/templates/<provider>/<type>), same
+        # provenance standard as every other entry in this file.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Analytics'
+            Name = 'AnalysisServices'
+            Worksheet = 'Analysis Services'
+            ResourceTypes = @('microsoft.analysisservices/servers')
+            Fields = @(
+                @{ Name = 'SKU';                         Expression = '$1.sku.name' }
+                @{ Name = 'Provisioning State';           Expression = '$data.provisioningState' }
+                @{ Name = 'Server State';                 Expression = '$data.state' }
+                @{ Name = 'Query Pool Connection Mode';   Expression = '$data.querypoolConnectionMode' }
+                @{ Name = 'Firewall State';                Expression = '$data.ipV4FirewallSettings.firewallState' }
+            )
+        }
+        @{
+            Category = 'Analytics'
+            Name = 'DataFactory'
+            Worksheet = 'Data Factory'
+            ResourceTypes = @('microsoft.datafactory/factories')
+            Fields = @(
+                @{ Name = 'Provisioning State';   Expression = '$data.provisioningState' }
+                @{ Name = 'Public Network Access'; Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Repo Configuration Type'; Expression = '$data.repoConfiguration.type' }
+                @{ Name = 'Identity Type';         Expression = '$1.identity.type' }
+                @{ Name = 'Create Time';           Expression = '[string]$data.createTime' }
+            )
+        }
+        @{
+            Category = 'Analytics'
+            Name = 'DataShare'
+            Worksheet = 'Data Share'
+            ResourceTypes = @('microsoft.datashare/accounts')
+            Fields = @(
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+                @{ Name = 'Identity Type';      Expression = '$1.identity.type' }
+            )
+        }
+        @{
+            Category = 'Analytics'
+            Name = 'HDInsight'
+            Worksheet = 'HDInsight'
+            ResourceTypes = @('microsoft.hdinsight/clusters')
+            Fields = @(
+                @{ Name = 'Cluster Version';       Expression = '$data.clusterVersion' }
+                @{ Name = 'Cluster Kind';          Expression = '$data.clusterDefinition.kind' }
+                @{ Name = 'Cluster State';         Expression = '$data.clusterState' }
+                @{ Name = 'OS Type';               Expression = '$data.osType' }
+                @{ Name = 'Min TLS Version';       Expression = '$data.minSupportedTlsVersion' }
+                @{ Name = 'Public Network Access'; Expression = '$data.networkProperties.publicNetworkAccess' }
+                @{ Name = 'Encryption In Transit'; Expression = '[string]$data.encryptionInTransitProperties.isEncryptionInTransitEnabled' }
+            )
+        }
+        @{
+            Category = 'Analytics'
+            Name = 'PowerBIEmbedded'
+            Worksheet = 'Power BI Embedded'
+            ResourceTypes = @('microsoft.powerbidedicated/capacities')
+            Fields = @(
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+                @{ Name = 'Mode';               Expression = '$data.mode' }
+                @{ Name = 'SKU Name';           Expression = '$1.sku.name' }
+                @{ Name = 'SKU Tier';           Expression = '$1.sku.tier' }
+                @{ Name = 'SKU Capacity';       Expression = '[string]$1.sku.capacity' }
+            )
+        }
+        @{
+            Category = 'Analytics'
+            Name = 'FabricCapacity'
+            Worksheet = 'Fabric Capacities'
+            ResourceTypes = @('microsoft.fabric/capacities')
+            Fields = @(
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+                @{ Name = 'State';              Expression = '$data.state' }
+                @{ Name = 'SKU Name';           Expression = '$1.sku.name' }
+                @{ Name = 'SKU Tier';           Expression = '$1.sku.tier' }
+            )
+        }
+
+        # ---------------------------------------------------------------------------------------
+        # AB#7088 -- Compute coverage-gap close-out (folds in AB#7071). All five types are
+        # confirmed ARG-indexed against manifests/azure-provider-types.json and, for Nutanix, the
+        # Azure Resource Graph supported-tables reference on Microsoft Learn.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Compute'
+            Name = 'ComputeFleet'
+            Worksheet = 'Compute Fleet'
+            ResourceTypes = @('microsoft.azurefleet/fleets')
+            Fields = @(
+                @{ Name = 'Identity Type';                     Expression = '$1.identity.type' }
+                @{ Name = 'Zones';                              Expression = '$Zones' }
+                @{ Name = 'Regular Priority Allocation Strategy'; Expression = '$data.regularPriorityProfile.allocationStrategy' }
+                @{ Name = 'Spot Priority Allocation Strategy';  Expression = '$data.spotPriorityProfile.allocationStrategy' }
+            )
+            Preamble = @'
+$Zones = if(@($1.zones).Count -gt 0){[string]($1.zones -join ',')}else{$null}
+'@
+        }
+        @{
+            Category = 'Compute'
+            Name = 'BatchAccounts'
+            Worksheet = 'Batch Accounts'
+            ResourceTypes = @('microsoft.batch/batchaccounts')
+            Fields = @(
+                @{ Name = 'Pool Allocation Mode';   Expression = '$data.poolAllocationMode' }
+                @{ Name = 'Public Network Access';  Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Identity Type';           Expression = '$1.identity.type' }
+                @{ Name = 'Encryption Key Source';  Expression = '$data.encryption.keySource' }
+                @{ Name = 'Auto Storage Account';   Expression = '$AutoStorageAccount' }
+            )
+            Preamble = @'
+$AutoStorageAccount = if(![string]::IsNullOrEmpty($data.autoStorage.storageAccountId)){Get-AZSCIdSegment -Id $data.autoStorage.storageAccountId -Index 8}else{$null}
+'@
+        }
+        @{
+            Category = 'Compute'
+            Name = 'DedicatedHostGroups'
+            Worksheet = 'Dedicated Host Groups'
+            ResourceTypes = @('microsoft.compute/hostgroups')
+            Fields = @(
+                @{ Name = 'Platform Fault Domain Count';  Expression = '[string]$data.platformFaultDomainCount' }
+                @{ Name = 'Support Automatic Placement';  Expression = '[string]$data.supportAutomaticPlacement' }
+                @{ Name = 'Ultra SSD Enabled';             Expression = '[string]$data.additionalCapabilities.ultraSSDEnabled' }
+                @{ Name = 'Zones';                         Expression = '$Zones' }
+            )
+            Preamble = @'
+$Zones = if(@($1.zones).Count -gt 0){[string]($1.zones -join ',')}else{$null}
+'@
+        }
+        @{
+            Category = 'Compute'
+            Name = 'VMImageTemplates'
+            Worksheet = 'VM Image Builder'
+            ResourceTypes = @('microsoft.virtualmachineimages/imagetemplates')
+            Fields = @(
+                @{ Name = 'Source Type';               Expression = '$data.source.type' }
+                @{ Name = 'Build Timeout Minutes';     Expression = '[string]$data.buildTimeoutInMinutes' }
+                @{ Name = 'Identity Type';              Expression = '$1.identity.type' }
+                @{ Name = 'Staging Resource Group';    Expression = '$data.stagingResourceGroup' }
+                @{ Name = 'Last Run State';             Expression = '$data.lastRunStatus.runState' }
+            )
+        }
+        @{
+            Category = 'Compute'
+            Name = 'QuantumWorkspaces'
+            Worksheet = 'Quantum Workspaces'
+            ResourceTypes = @('microsoft.quantum/workspaces')
+            Fields = @(
+                @{ Name = 'API Key Enabled';   Expression = '[string]$data.apiKeyEnabled' }
+                @{ Name = 'Providers Count';    Expression = '[string]@($data.providers).Count' }
+                @{ Name = 'Identity Type';       Expression = '$1.identity.type' }
+                @{ Name = 'Storage Account';     Expression = '$QuantumStorageAccount' }
+            )
+            Preamble = @'
+$QuantumStorageAccount = if(![string]::IsNullOrEmpty($data.storageAccount)){Get-AZSCIdSegment -Id $data.storageAccount -Index 8}else{$null}
+'@
+        }
+        # ---------------------------------------------------------------------------------------
+        # AB#7090 -- Databases coverage-gap close-out (folds in AB#7071). Two real, zero-collector
+        # ARG-indexed gaps from docs/reference/service-coverage-gap.md's Databases(15/10) row:
+        # Azure DocumentDB (the 2025 rebrand of the vCore-based MongoDB service --
+        # `microsoft.documentdb/mongoclusters`, distinct from the RU-based Cosmos DB
+        # `databaseaccounts` collected above) and Azure Managed Instance for Apache Cassandra
+        # (`microsoft.documentdb/cassandraclusters`, GA since API version 2024-11-15). Resource
+        # type strings confirmed against the ARM template reference on Microsoft Learn.
+        # Table Storage and Azure HorizonDB, the other two "not collected" rows, are handled
+        # separately -- see that row's note in the coverage doc.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Databases'
+            Name = 'DocumentDB'
+            Worksheet = 'DocumentDB (vCore Mongo)'
+            ResourceTypes = @('microsoft.documentdb/mongoclusters')
+            Fields = @(
+                @{ Name = 'SKU Tier';              Expression = '$data.compute.tier' }
+                @{ Name = 'Provisioning State';     Expression = '$data.provisioningState' }
+                @{ Name = 'Public Network Access';  Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Server Version';         Expression = '$data.serverVersion' }
+                @{ Name = 'High Availability Mode';  Expression = '$data.highAvailability.targetMode' }
+            )
+        }
+        @{
+            Category = 'Databases'
+            Name = 'ManagedCassandra'
+            Worksheet = 'Managed Cassandra'
+            ResourceTypes = @('microsoft.documentdb/cassandraclusters')
+            Fields = @(
+                @{ Name = 'Provisioning State';     Expression = '$data.provisioningState' }
+                @{ Name = 'Cassandra Version';       Expression = '$data.cassandraVersion' }
+                @{ Name = 'Authentication Method';   Expression = '$data.authenticationMethod' }
+                @{ Name = 'Audit Logging Enabled';   Expression = '[string]$data.cassandraAuditLoggingEnabled' }
+                @{ Name = 'Identity Type';           Expression = '$1.identity.type' }
+            )
+        }
+        @{
+            Category = 'Databases'
+            Name = 'StorageTables'
+            Worksheet = 'Storage Tables'
+            ResourceTypes = @('AZSC/ARMChild/StorageTables')
+            Identity = @(
+                @{ Name = 'ID';              Expression = '$1.id' }
+                @{ Name = 'Subscription';    Expression = '$sub1.Name' }
+                @{ Name = 'Resource Group';  Expression = '$1.RESOURCEGROUP' }
+                @{ Name = 'Storage Account'; Expression = '$1.PARENTNAME' }
+                @{ Name = 'Table';           Expression = '$TableName' }
+            )
+            TagLoop = $null
+            Fields = @(
+                @{ Name = 'Metadata Keys'; Expression = '[string]@($data.metadata.psobject.properties).Count' }
+            )
+            Preamble = @'
+$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
+$TableName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
+'@
+        }
+        @{
+            Category = 'Compute'
+            Name = 'NutanixNodes'
+            Worksheet = 'Nutanix Nodes'
+            ResourceTypes = @('microsoft.nutanix/nodes')
+            Fields = @(
+                @{ Name = 'SKU Name';       Expression = '$1.sku.name' }
+                @{ Name = 'Zones';          Expression = '$Zones' }
+                @{ Name = 'Identity Type';  Expression = '$1.identity.type' }
+            )
+            Preamble = @'
+$Zones = if(@($1.zones).Count -gt 0){[string]($1.zones -join ',')}else{$null}
+'@
         }
     )
 }
