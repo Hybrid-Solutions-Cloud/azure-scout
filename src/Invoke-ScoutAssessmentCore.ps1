@@ -119,14 +119,16 @@ function Invoke-ScoutAssessmentCore {
         [string] $DefaultReportMode = 'Consultant'
     )
 
-    # AB#6902: two runs started within the same second must not share a folder --
-    # the second would overwrite the first's artefacts, and Get-ScoutDrift would
-    # replace the prior history record (same RunId) instead of appending one.
-    $runId   = Get-Date -Format 'yyyyMMdd_HHmmss'
-    $runPath = Join-Path $OutputPath $runId
+    # AB#7225 -- the folder used to be the bare timestamp ('20260808_205750'), which read as a
+    # random number next to the named inventory artefacts; the operator could not tell it held
+    # the deliverable. It is now NAMED for what it is. The AB#6902 same-second collision rule
+    # still holds via the suffix loop: a second assessment under the same OutputPath gets
+    # 'assessment-report_01', never a shared folder. Drift history still keys on the unique
+    # folder leaf name.
+    $runPath = Join-Path $OutputPath 'assessment-report'
     $suffix  = 1
     while (Test-Path $runPath) {
-        $runPath = Join-Path $OutputPath ('{0}_{1:d2}' -f $runId, $suffix)
+        $runPath = Join-Path $OutputPath ('assessment-report_{0:d2}' -f $suffix)
         $suffix++
     }
     $runId = Split-Path $runPath -Leaf
