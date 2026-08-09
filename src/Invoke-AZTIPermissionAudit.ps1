@@ -341,16 +341,40 @@ function Invoke-AZSCPermissionAudit {
                     $assignments = @(Get-AzRoleAssignment -Scope "/subscriptions/$($sub.Id)" -ErrorAction Stop)
 
                     $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
-                    $missingCritical = $requiredRoles.Keys | Where-Object { $_ -eq 'Reader' -and $_ -notin $foundRoles }
 
-                    # There is no longer an "optional roles are missing" Warn state: Reader is
-                    # the whole ARM ask (AB#6778), so a subscription either has it or does not.
+                    # AB#7189. 'Reader' used to be matched by NAME, so an account holding Owner
+                    # or Contributor -- strict supersets of Reader's */read -- FAILED this check
+                    # and was told to go grant Reader it did not need. Accept any role whose
+                    # effective actions cover every control-plane read: the built-in supersets
+                    # by name, then custom roles by their definition's Actions ('*' or '*/read').
+                    # Known limit, stated not hidden: the listing is scope-wide, not filtered to
+                    # the caller, so a subscription where only ANOTHER principal holds a read
+                    # role still passes -- same as the pre-AB#7189 behaviour for literal Reader.
+                    $readSupersets = @('Reader', 'Contributor', 'Owner')
+                    $readCapableRole = @($foundRoles | Where-Object { $_ -in $readSupersets }) | Select-Object -First 1
+                    if (-not $readCapableRole) {
+                        foreach ($roleName in @($foundRoles | Where-Object { $_ -notin $readSupersets })) {
+                            try {
+                                $def = Get-AzRoleDefinition -Name $roleName -ErrorAction Stop
+                                if ($def -and (@($def.Actions) -contains '*' -or @($def.Actions) -contains '*/read')) {
+                                    $readCapableRole = $roleName
+                                    break
+                                }
+                            }
+                            catch {
+                                Write-Verbose "Could not inspect role definition '$roleName': $($_.Exception.Message)"
+                            }
+                        }
+                    }
+                    $missingCritical = -not $readCapableRole
+
+                    # There is no longer an "optional roles are missing" Warn state: read access
+                    # is the whole ARM ask (AB#6778), so a subscription either has it or does not.
                     $status = if ($missingCritical) { 'Fail' } else { 'Pass' }
 
-                    $rolesDisplay = ($requiredRoles.Keys | ForEach-Object {
-                        $emoji = if ($_ -in $foundRoles) { '✅' } else { if ($_ -eq 'Reader') { '❌' } else { '⚠️' } }
-                        "$emoji $_"
-                    }) -join '  '
+                    $rolesDisplay = if (-not $readCapableRole) { '❌ Reader' }
+                        elseif ($readCapableRole -eq 'Reader') { '✅ Reader' }
+                        else { "✅ Reader (via $readCapableRole)" }
 
                     $subMsg = "[$($sub.Name)] $rolesDisplay"
                     Write-AuditLine -Status $status -Text $subMsg
@@ -360,7 +384,7 @@ function Invoke-AZSCPermissionAudit {
                         SubscriptionName = $sub.Name
                         State            = $sub.State
                         AssignedRoles    = $foundRoles
-                        HasReader        = 'Reader' -in $foundRoles
+                        HasReader        = [bool]$readCapableRole
                         Status           = $status
                     }
                     $armDetails.Add([PSCustomObject]@{
