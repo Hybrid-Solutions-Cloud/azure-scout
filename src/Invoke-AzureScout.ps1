@@ -629,7 +629,7 @@ Function Invoke-AzureScout {
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
         else {
             $standaloneRunPath = Invoke-ScoutAssessmentCore @assessArgs
-            # AB#7191 -- same discoverability pointer as the combined path below.
+            # AB#7224 -- same discoverability pointer as the combined path below.
             if ($standaloneRunPath) {
                 $reactFile = Join-Path ([string]$standaloneRunPath) 'report-react.html'
                 if (Test-Path $reactFile) {
@@ -1013,7 +1013,7 @@ Function Invoke-AzureScout {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 $deferredRunPath = Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
                 Write-Output $deferredRunPath
-                # AB#7191 -- the React report is the assessment's deliverable, and on a combined
+                # AB#7224 -- the React report is the assessment's deliverable, and on a combined
                 # run it lands in a dated subfolder the operator has no reason to know about
                 # (observed live: the owner searched the run root and concluded it was missing).
                 # Name the exact file on the console at the moment it exists.
