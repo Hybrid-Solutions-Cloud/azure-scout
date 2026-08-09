@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.2] - 2026-08-08 - PIM assignments actually collect
+
+### Fixed
+
+- **PIM Assignments skipped with 400 Bad Request on every Entra extraction.** Graph v1.0
+  permits one navigation property per $expand on roleManagement/directory/roleAssignments;
+  the catalog query expanded two with nested $select. Now expands roleDefinition only (the
+  principal side flows through principalId). Live-verified: 200 with real assignments in the
+  tenant where the old query failed. AB#7190.
+- The permission audit's empty-collectors summary no longer repeats the permission name when
+  the reason already carries it (AB#7189 follow-up).
+
 ## [3.8.1] - 2026-08-08 - the check that failed a god account
 
 ### Fixed
