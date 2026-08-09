@@ -377,14 +377,14 @@ Describe 'Test-AZSCPermissions' {
         It 'Passes SubscriptionID through to Invoke-AZSCPermissionAudit' {
             $result = Test-AZSCPermissions -TenantID 'test-tenant' -SubscriptionID 'sub-123' -Scope ArmOnly
             Should -InvokeVerifiable
-            Assert-MockCalled Invoke-AZSCPermissionAudit -ModuleName AzureScout -ParameterFilter {
+            Should -Invoke Invoke-AZSCPermissionAudit -ModuleName AzureScout -ParameterFilter {
                 $SubscriptionID -contains 'sub-123'
             }
         }
 
         It 'Omits SubscriptionID when not specified' {
             $result = Test-AZSCPermissions -TenantID 'test-tenant' -Scope ArmOnly
-            Assert-MockCalled Invoke-AZSCPermissionAudit -ModuleName AzureScout -ParameterFilter {
+            Should -Invoke Invoke-AZSCPermissionAudit -ModuleName AzureScout -ParameterFilter {
                 -not $SubscriptionID
             }
         }
