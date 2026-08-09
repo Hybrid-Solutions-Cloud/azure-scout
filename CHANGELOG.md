@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.3] - 2026-08-08 - the deliverable announces itself
+
+### Fixed
+
+- **The console now names the React report file the moment it exists** - on a combined run the
+  assessment's dated subfolder nests inside the inventory run folder (AB#7185), which left the
+  report discoverable only by folder search. Both the combined and standalone assessment paths
+  print 'React report : <path>'. AB#7224.
+
 ## [3.8.2] - 2026-08-08 - PIM assignments actually collect
 
 ### Fixed
