@@ -339,7 +339,12 @@ function Start-AZSCWizard {
     $defaultFormats = if ($wantsAssessment) { @('React') } else { $inventoryFormats }
     $formats = Read-AZSCWizardChecklist -Title 'Report formats' -Items $formatPool -DefaultSelected $defaultFormats
     if ($null -eq $formats) { return $null }
-    if ($formats.Count -eq $formatPool.Count) { $formats = @('All') }
+    # AB#7226 -- collapsing a full selection to 'All' is only safe on the inventory-only path,
+    # where the pool and 'All' mean the same formats. On an assessment run the pool is
+    # React/Json/JsonEvidence, but 'All' ALSO means every inventory document to the combined
+    # run's inventory phase -- so accepting the default sprayed Excel/Markdown/AsciiDoc/PowerBI
+    # the operator never chose (observed live). Assessment selections pass through verbatim.
+    if (-not $wantsAssessment -and $formats.Count -eq $formatPool.Count) { $formats = @('All') }
     $answers.OutputFormat = $formats
 
     # Build the fallback folder based on OS
