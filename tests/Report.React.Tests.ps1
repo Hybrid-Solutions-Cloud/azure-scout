@@ -96,9 +96,9 @@ Describe 'Export-React — payload contract shape (AB#6929)' {
         (Split-Path $script:ReportPath -Leaf) | Should -Be 'report-react.html'
     }
 
-    It 'carries exactly the eight top-level contract keys' {
+    It 'carries exactly the nine top-level contract keys' {
         $keys = @($script:Payload.PSObject.Properties.Name | Sort-Object)
-        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'subscriptions', 'assessments', 'resourceIndex', 'drift') | Sort-Object)
+        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'subscriptions', 'assessments', 'resourceIndex', 'drift', 'costProjection') | Sort-Object)
     }
 
     It 'identity carries every neutral-default field with no vendor name/URL leaking onto the report surface' {
@@ -556,6 +556,57 @@ Describe 'Export-React — -DefaultReportMode (AB#6928 follow-up)' {
 
     It 'rejects a mode outside the three real lenses' {
         { Export-React -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir -DefaultReportMode 'Bogus' } | Should -Throw
+    }
+}
+
+Describe 'Export-React — costProjection (AB#7093)' {
+    It 'is honestly unavailable when Collect carries no finops data at all (sample-collect.json has none)' {
+        $path = Export-React -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
+        $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
+        $payload.costProjection.available | Should -BeFalse
+        $payload.costProjection.monthly | Should -BeNullOrEmpty
+        $payload.costProjection.yearly | Should -BeNullOrEmpty
+        $payload.costProjection.formula | Should -Not -BeNullOrEmpty
+    }
+
+    It 'is honestly unavailable (not zero-spend) when finops.available is explicitly false' {
+        $blockedCollect = [pscustomobject]@{
+            _meta  = [pscustomobject]@{ scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o') }
+            finops = [pscustomobject]@{ available = $false; moduleAvailable = $false; costRows = @(); blockedSubscriptions = @('sub-prod') }
+        }
+        $path = Export-React -Findings $script:Scored -Collect $blockedCollect -OutputPath $script:OutDir
+        $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
+        $payload.costProjection.available | Should -BeFalse
+        $payload.costProjection.formula | Should -Match 'not available'
+    }
+
+    It 'derives monthly/yearly from a trailing-30-day run-rate, with the arithmetic shown in formula' {
+        # Anchor date is fixed (not "now") so this test's expected numbers never drift with the
+        # clock -- Export-React derives its own window entirely from the data's own UsageDate max.
+        $anchor = Get-Date '2026-08-01'
+        $costRows = @(
+            [pscustomobject]@{ SubscriptionId = 'sub-0001'; SubscriptionName = 'sub-prod'; Cost = 300.0; UsageDate = $anchor.ToString('o'); ResourceType = 'microsoft.compute/virtualmachines'; ResourceGroup = 'rg-hub'; ResourceLocation = 'eastus'; ServiceName = 'Virtual Machines'; Currency = 'USD' }
+            [pscustomobject]@{ SubscriptionId = 'sub-0001'; SubscriptionName = 'sub-prod'; Cost = 300.0; UsageDate = $anchor.AddDays(-15).ToString('o'); ResourceType = 'microsoft.compute/virtualmachines'; ResourceGroup = 'rg-hub'; ResourceLocation = 'eastus'; ServiceName = 'Virtual Machines'; Currency = 'USD' }
+            # Outside the trailing 30-day window -- must NOT be counted.
+            [pscustomobject]@{ SubscriptionId = 'sub-0001'; SubscriptionName = 'sub-prod'; Cost = 9999.0; UsageDate = $anchor.AddDays(-90).ToString('o'); ResourceType = 'microsoft.compute/virtualmachines'; ResourceGroup = 'rg-hub'; ResourceLocation = 'eastus'; ServiceName = 'Virtual Machines'; Currency = 'USD' }
+        )
+        $costCollect = [pscustomobject]@{
+            _meta  = [pscustomobject]@{ scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o') }
+            finops = [pscustomobject]@{ available = $true; moduleAvailable = $true; costRows = $costRows; blockedSubscriptions = @() }
+        }
+        $path = Export-React -Findings $script:Scored -Collect $costCollect -OutputPath $script:OutDir
+        $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
+        $cp = $payload.costProjection
+        $cp.available | Should -BeTrue
+        $cp.currency | Should -Be 'USD'
+        $cp.rowsConsidered | Should -Be 2
+        $cp.trailingTotal | Should -Be 600
+        $cp.dailyRunRate | Should -Be 20
+        $cp.monthly | Should -Be 600
+        $cp.yearly | Should -Be 7200
+        $cp.formula | Should -Match '600'
+        $cp.formula | Should -Match '7200'
+        $cp.formula | Should -Match 'run-rate'
     }
 }
 

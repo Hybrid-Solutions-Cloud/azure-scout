@@ -15,7 +15,8 @@ $ErrorActionPreference = 'Stop'
 
     The full payload contract (window.__SCOUT_DATA__) is:
 
-        identity, meta, ran, inventory, subscriptions, assessments, resourceIndex, drift
+        identity, meta, ran, inventory, subscriptions, assessments, resourceIndex, drift,
+        costProjection (AB#7093 -- transparent trailing-30-day cost run-rate extrapolation)
 
     See each builder function below for the exact shape it produces. Everything is inlined
     into one report-react.html file -- CSS/JS/data all embedded -- so the report opens and
@@ -972,6 +973,81 @@ function Export-React {
         }
     }
 
+    # ---- costProjection{} -------------------------------------------------------------------------
+    # AB#7093: a transparent trailing-30-day run-rate extrapolation over finops.costRows (the same
+    # rows Import-ScoutCostInventory already ingests from Get-ScoutCostInventory/Cost Management).
+    # Deliberately the simplest extrapolation that is still honest about its own math -- no seasonal
+    # adjustment, no trend line -- and its `formula` string is shown verbatim, the same
+    # arithmetic-visible convention the score/area formulas above already use: never a bare number.
+    $finopsCostRows = @(Get-ReactSafeProp $Collect @('finops', 'costRows'))
+    $finopsAvailableFlag = Get-ReactSafeProp $Collect @('finops', 'available')
+    $parsedCostRows = [System.Collections.Generic.List[pscustomobject]]::new()
+    foreach ($row in $finopsCostRows) {
+        if (-not $row) { continue }
+        $rawDate = Get-ReactSafeProp $row @('UsageDate')
+        $rawCost = Get-ReactSafeProp $row @('Cost')
+        if ($null -eq $rawDate -or $null -eq $rawCost) { continue }
+        $parsedDate = [datetime]::MinValue
+        if (-not [datetime]::TryParse([string]$rawDate, [ref]$parsedDate)) { continue }
+        $parsedCost = $null
+        try { $parsedCost = [double]$rawCost } catch { continue }
+        [void]$parsedCostRows.Add([pscustomobject]@{
+                Date     = $parsedDate
+                Cost     = $parsedCost
+                Currency = Get-ReactSafeProp $row @('Currency')
+            })
+    }
+
+    if ($parsedCostRows.Count -gt 0) {
+        $anchorDate = @($parsedCostRows | Sort-Object Date -Descending)[0].Date
+        $windowStart = $anchorDate.AddDays(-29)
+        $trailingRows = @($parsedCostRows | Where-Object { $_.Date -ge $windowStart -and $_.Date -le $anchorDate })
+        $trailingTotal = 0.0
+        foreach ($tr in $trailingRows) { $trailingTotal += $tr.Cost }
+        $trailingTotal = [math]::Round($trailingTotal, 2)
+        $dailyRunRate = [math]::Round($trailingTotal / 30, 2)
+        $monthlyProjection = [math]::Round($dailyRunRate * 30, 2)
+        $yearlyProjection = [math]::Round($monthlyProjection * 12, 2)
+        $costCurrency = @($trailingRows | ForEach-Object { $_.Currency } | Where-Object { $_ })
+        $costCurrency = if ($costCurrency.Count -gt 0) { $costCurrency[0] } else { $null }
+        $costProjection = [pscustomobject]@{
+            available      = $true
+            currency       = $costCurrency
+            trailingDays   = 30
+            windowStart    = $windowStart.ToString('yyyy-MM-dd')
+            windowEnd      = $anchorDate.ToString('yyyy-MM-dd')
+            rowsConsidered = $trailingRows.Count
+            trailingTotal  = $trailingTotal
+            dailyRunRate   = $dailyRunRate
+            monthly        = $monthlyProjection
+            yearly         = $yearlyProjection
+            formula        = "Trailing 30 days ($($windowStart.ToString('yyyy-MM-dd')) to $($anchorDate.ToString('yyyy-MM-dd'))), $($trailingRows.Count) cost row(s): total $trailingTotal ÷ 30 days = $dailyRunRate/day; ×30 = $monthlyProjection monthly; ×12 = $yearlyProjection yearly. Simple trailing run-rate extrapolation, not a seasonally-adjusted forecast."
+        }
+    }
+    else {
+        $unavailableReason =
+            if ($null -eq (Get-ReactSafeProp $Collect @('finops'))) {
+                'This run did not collect cost data (finops was not populated).'
+            } elseif ($finopsAvailableFlag -eq $false) {
+                'Cost Management data was not available for this run (module missing, or the identity lacked Cost Management Reader rights on every queried subscription) -- see finops.blockedSubscriptions.'
+            } else {
+                'Cost Management returned zero cost rows for the queried period.'
+            }
+        $costProjection = [pscustomobject]@{
+            available      = $false
+            currency       = $null
+            trailingDays   = 30
+            windowStart    = $null
+            windowEnd      = $null
+            rowsConsidered = 0
+            trailingTotal  = $null
+            dailyRunRate   = $null
+            monthly        = $null
+            yearly         = $null
+            formula        = $unavailableReason
+        }
+    }
+
     # ---- assemble + write ------------------------------------------------------------------------
     $payload = [ordered]@{
         identity       = $identity
@@ -984,6 +1060,7 @@ function Export-React {
         assessments    = @($assessments)
         resourceIndex  = $resourceIndex
         drift          = $Drift
+        costProjection = $costProjection
     }
 
     # </script> inside embedded JSON would otherwise close the <script> tag early.
