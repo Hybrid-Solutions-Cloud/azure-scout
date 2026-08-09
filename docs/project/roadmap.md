@@ -41,7 +41,11 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.6.0 — The collector-payload wiring audit, closed out
+## Current Release — v3.9.0 — the backlog sweep
+
+Released 9 August 2026. Closes out the open coverage-gap backlog across ten service categories (Analytics, IoT, DevOps, Management and governance, AI and machine learning, Storage, Compute, Security, Databases, Networking) with real new collectors wired end to end into the assessment collect, not only the inventory Excel export; adds cost projections and Azure Local licence/Hybrid Benefit collection; surfaces previously-dropped collected categories (Defender alert/assessment/secure-score detail, Azure Local child resources) in the React report; and makes the wizard's category and format menus honest about what they actually collect, with coverage figures generated from the collector manifests rather than hand-typed. See CHANGELOG.md for the full per-story breakdown.
+
+## Previous Release — v3.6.0 — The collector-payload wiring audit, closed out
 
 Released 8 August 2026. Nearly 100 collector manifests existed, were fully tested, and produced Excel-only rows — but never reached the assessment collect (`collect.json`) the React report actually renders from. This release closes that gap: 95 collectors wired across Networking, Hybrid, Monitor, Defender, Databases, DevOps, Management, Security, Storage, and Update Manager categories (coverage moves from 77 to 172 of 245 tracked manifests), plus 3 genuinely new collectors authored from scratch for services that had none — Microsoft Entra Verified ID and Microsoft Entra External ID (the governance/landing-zone-relevant one), both Graph-backed rather than ARM/ARG. Along the way, a real defect in the test suite's own infrastructure was found and fixed: a shared mock-cleanup idiom silently no-opped, letting mock state leak across test files — corrected everywhere it appeared.
 

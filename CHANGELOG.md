@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-08-09 - the backlog sweep
+
+### Added
+
+- **Coverage-gap collectors across ten service categories**, each wired end to end into the
+  assessment collect (not only the inventory Excel export) via the standard
+  spec/generate/fixture/golden/gate pipeline: Analytics (6 new: Analysis Services, Data
+  Factory, Data Share, HDInsight, Power BI Embedded, Microsoft Fabric), IoT (Azure IoT
+  Operations), DevOps (Managed Grafana), Management and governance (4 new), AI and machine
+  learning (3 new), Storage (5 new), Compute (6 new), Security (Attestation), Databases (Azure
+  DocumentDB, Managed Cassandra, Storage Tables), Networking (Azure CDN, Network Manager, plus
+  2 more). Every remaining not-collected service in each category is documented in
+  `docs/reference/service-coverage-gap.md` with a specific out-of-scope reason (preview-only,
+  no ARM resource provider, deprecated, or a data-plane feature with no ARM surface) rather
+  than silently skipped. AB#7082-AB#7091, folding in AB#7071.
+- **Cost projections and Azure Local licence data (AB#7093).** The React report shows
+  monthly/yearly cost projections derived from collected actuals, with the trailing-30-day
+  arithmetic shown the same way every other computed number in the report shows its math.
+  Azure Local's software assurance / Hybrid Benefit status is now collected, so
+  WAF-AZLOCAL-CO-03 and CO-04 score automatically instead of requiring manual input.
+- **Menu honesty for categories, matching the existing format-menu gate (AB#7101-7104).** The
+  wizard's category checklist now shows each category's live collector coverage (e.g.
+  `Analytics (14/19)`) generated from the collector manifests, with inline drill-down into
+  which services are and are not collected; a new gate fails if a displayed figure disagrees
+  with the manifests or a zero-collector category is offered as though it collects something.
+  The "optional inventory data" extras menu got the same review -- the dead `-QuotaUsage`
+  parameter (declared, never read; VM quotas are always gathered) was removed rather than left
+  to silently no-op.
+
+### Fixed
+
+- **Defender for Cloud alert, assessment and secure-score detail, and Azure Local child
+  resources, were collected and then discarded on every run (AB#7059).** The security policy
+  sweep already called `Get-AzSecurityAlert`/`Get-AzSecurityAssessment`/
+  `Get-AzSecuritySecureScore` per subscription for the compliance assessment, but only
+  `PolicyComplianceStates` was ever read out of the result; the other three datasets are now
+  threaded through to `security.defenderAlerts`/`defenderAssessments`/`defenderSecureScores`.
+  Azure Local's child-resource picture gained `customLocations`, alongside the Arc/gallery-image
+  resources already collected.
+- **A regression caught before it shipped:** the new Defender-detail reads had no property-
+  existence guard under `Set-StrictMode`, unlike the adjacent pre-existing read, and threw on
+  any sweep result missing those specific properties -- silently wiping the compliance data
+  that had already been collected successfully in the same pass. Guarded.
+- **Three generated reference docs had drifted from the manifest tree** they document
+  (`arm-modules.md`, `coverage-table.md`, `collector-fields.md`, `assessment-catalogue.md`) --
+  regenerated from their own build scripts.
+
 ## [3.8.4] - 2026-08-08 - the run folder reads like a deliverable
 
 ### Fixed

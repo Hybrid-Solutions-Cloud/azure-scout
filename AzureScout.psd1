@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.8.4'
+ModuleVersion = '3.9.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -150,7 +150,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.8.4 - The run folder reads like a deliverable. The assessment subfolder is named ''assessment-report'' (collision-suffixed) instead of a bare timestamp, and a combined run stops producing Excel/Markdown/AsciiDoc/PowerBI nobody chose - the wizard''s full-selection collapse to ''All'' on the assessment format pool leaked into the inventory phase''s format flags. Both observed live. v3.8.3 - The deliverable announces itself. The React report nests in a dated subfolder inside the run folder and nothing named it on the console - an operator searching the run root found only inventory files and concluded the report was missing. Both assessment paths now print ''React report : <path>'' at run end. v3.8.2 - PIM assignments actually collect. The Entra extraction skipped PIM Assignments with 400 Bad Request on every run: Graph v1.0 allows one navigation property per expand on directory role assignments and the query used two with nested selects. Single-expand fix, live-verified against a real tenant (200 with real assignments where the old query failed), plus a summary de-duplication in the permission audit. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.9.0 - The backlog sweep. Ten service-category coverage gaps closed with real new collectors wired end to end into the assessment collect, not only the inventory export (Analytics, IoT, DevOps, Management and governance, AI and machine learning, Storage, Compute, Security, Databases, Networking). Cost projections and Azure Local licence/Hybrid Benefit collection added. The React report stops dropping Defender alert/assessment/secure-score detail and Azure Local child resources it had silently collected and discarded. The wizard''s category and format menus derive their coverage figures from the collector manifests instead of hand-typed counts, with a gate to keep them honest; a dead -QuotaUsage parameter was removed. A live regression -- an unguarded StrictMode property read that would have wiped already-collected compliance data -- was caught by independent verification and fixed before release. v3.8.4 - The run folder reads like a deliverable. The assessment subfolder is named ''assessment-report'' (collision-suffixed) instead of a bare timestamp, and a combined run stops producing Excel/Markdown/AsciiDoc/PowerBI nobody chose - the wizard''s full-selection collapse to ''All'' on the assessment format pool leaked into the inventory phase''s format flags. Both observed live. v3.8.3 - The deliverable announces itself. The React report nests in a dated subfolder inside the run folder and nothing named it on the console - an operator searching the run root found only inventory files and concluded the report was missing. Both assessment paths now print ''React report : <path>'' at run end. See CHANGELOG.md for the full history.'
 
         # Prerelease string of this module
         # Prerelease = ''
