@@ -627,7 +627,19 @@ Function Invoke-AzureScout {
         # CI and every scripted caller were locked out of the collect-once path and had to run
         # the command twice, collecting from Azure twice, to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
-        else { return Invoke-ScoutAssessmentCore @assessArgs }
+        else {
+            $standaloneRunPath = Invoke-ScoutAssessmentCore @assessArgs
+            # AB#7191 -- same discoverability pointer as the combined path below.
+            if ($standaloneRunPath) {
+                $reactFile = Join-Path ([string]$standaloneRunPath) 'report-react.html'
+                if (Test-Path $reactFile) {
+                    Write-Host ''
+                    Write-Host "  React report : $reactFile" -ForegroundColor Cyan
+                    Write-Host ''
+                }
+            }
+            return $standaloneRunPath
+        }
     }
 
     # ── Inventory mode ───────────────────────────────────────────────────────
@@ -999,7 +1011,20 @@ Function Invoke-AzureScout {
             $ProcessingRunTime.Stop()
             try {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
-                Write-Output (Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData)
+                $deferredRunPath = Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
+                Write-Output $deferredRunPath
+                # AB#7191 -- the React report is the assessment's deliverable, and on a combined
+                # run it lands in a dated subfolder the operator has no reason to know about
+                # (observed live: the owner searched the run root and concluded it was missing).
+                # Name the exact file on the console at the moment it exists.
+                if ($deferredRunPath) {
+                    $reactFile = Join-Path ([string]$deferredRunPath) 'report-react.html'
+                    if (Test-Path $reactFile) {
+                        Write-Host ''
+                        Write-Host "  React report : $reactFile" -ForegroundColor Cyan
+                        Write-Host ''
+                    }
+                }
                 $AssessmentRunTime.Stop()
                 Write-AZSCLogPhase -Name 'Deferred assessment finished' -Elapsed $AssessmentRunTime.Elapsed.ToString('dd\:hh\:mm\:ss\:fff') -Detail @{
                     'Ran after' = 'diagram build (AB#6737)'
