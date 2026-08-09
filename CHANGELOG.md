@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-08-08 - the check that failed a god account
+
+### Fixed
+
+- **The per-subscription ARM check matched the role name 'Reader' literally**, so an account
+  holding Owner or Contributor - strict supersets of Reader's */read - FAILED the pre-flight
+  and was told to grant a Reader role it did not need. The check now accepts
+  Reader/Contributor/Owner by name and any custom role whose definition carries * or */read,
+  and shows 'Reader (via Owner)' when a superset satisfies it. AB#7189.
+
 ## [3.8.0] - 2026-08-08 - one taxonomy, no broken scripts
 
 ### Changed
