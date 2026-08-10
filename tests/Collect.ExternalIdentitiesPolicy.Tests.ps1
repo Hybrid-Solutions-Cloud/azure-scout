@@ -128,6 +128,16 @@ Describe 'Get-ScoutExternalIdentitiesPolicy (AB#7098)' {
         $policy.B2BCollaborationInboundAccessType | Should -BeNullOrEmpty
         $policy.InboundTrustMfa | Should -BeNullOrEmpty
     }
+
+    It 'pins the Graph request to the requested tenant' {
+        Mock Invoke-AZSCGraphRequest { New-DefaultCrossTenantAccessResponse }
+
+        $null = Get-ScoutExternalIdentitiesPolicy -TenantID 'target-tenant'
+
+        Should -Invoke Invoke-AZSCGraphRequest -Exactly 1 -ParameterFilter {
+            $TenantID -eq 'target-tenant'
+        }
+    }
 }
 
 Describe 'Invoke-Collect -- domains.identity.externalIdentitiesPolicy reaches the canonical contract (AB#7098)' {
@@ -149,6 +159,26 @@ param([string] $Query) return @() }
             $collect = Invoke-Collect -Source TypedQueries -WarningAction SilentlyContinue
             $collect.domains.identity.externalIdentitiesPolicy.Collected | Should -BeTrue
             $collect.domains.identity.externalIdentitiesPolicy.B2BCollaborationInboundAccessType | Should -Be 'allowed'
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'threads the requested tenant through the assessment collector' {
+        function global:Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure calls for this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'The stub accepts the production query signature; its value is irrelevant here.')]
+            param([string] $Query)
+            return @()
+        }
+        Mock Invoke-AZSCGraphRequest { New-DefaultCrossTenantAccessResponse }
+
+        try {
+            $null = Invoke-Collect -Source TypedQueries -TenantID 'target-tenant' -WarningAction SilentlyContinue
+            Should -Invoke Invoke-AZSCGraphRequest -Exactly 1 -ParameterFilter {
+                $TenantID -eq 'target-tenant'
+            }
         }
         finally {
             Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue

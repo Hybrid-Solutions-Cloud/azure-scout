@@ -176,7 +176,40 @@ function Get-AZSCStrictModeWeakening {
     }
 }
 
+function Get-AZSCDirectiveViolation {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [string] $Root)
+
+    $Files = @(
+        foreach ($ScanRoot in @('src', 'scripts')) {
+            $FullRoot = Join-Path $Root $ScanRoot
+            if (Test-Path -LiteralPath $FullRoot) {
+                Get-ChildItem -LiteralPath $FullRoot -Recurse -File -Filter '*.ps1'
+            }
+        }
+        Get-ChildItem -LiteralPath $Root -File -Filter '*.ps1'
+        $RootModule = Join-Path $Root 'AzureScout.psm1'
+        if (Test-Path -LiteralPath $RootModule -PathType Leaf) { Get-Item -LiteralPath $RootModule }
+    )
+
+    foreach ($File in $Files) {
+        $Source = Get-Content -LiteralPath $File.FullName -Raw
+        $Missing = [System.Collections.Generic.List[string]]::new()
+        if ($Source -notmatch '(?m)^#Requires\s+-Version\s+7\.0\s*$') { $Missing.Add('#Requires -Version 7.0') }
+        if ($Source -notmatch '(?m)^Set-StrictMode\s+-Version\s+Latest\s*$') { $Missing.Add('Set-StrictMode -Version Latest') }
+        if ($Source -notmatch '(?m)^\$ErrorActionPreference\s*=\s*[''\"]Stop[''\"]\s*$') { $Missing.Add("`$ErrorActionPreference = 'Stop'") }
+
+        if ($Missing.Count -gt 0) {
+            [pscustomobject]@{
+                Path    = ($File.FullName.Substring($Root.Length).TrimStart('\', '/') -replace '\\', '/')
+                Missing = $Missing -join ', '
+            }
+        }
+    }
+}
+
 $Found       = @(Get-AZSCStrictModeWeakening -Root $RepoRoot)
+$DirectiveViolations = @(Get-AZSCDirectiveViolation -Root $RepoRoot)
 $AllowedPath = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($Entry in $AllowList) { [void] $AllowedPath.Add($Entry.Path) }
 
@@ -207,8 +240,12 @@ foreach ($Entry in $Stale) {
     Write-Host "::error::scripts/Test-StrictModeGuard.ps1 allow-lists '$($Entry.Path)' but that file no longer weakens StrictMode. Delete the entry -- the point of the list is that it only ever gets shorter (AB#5672)."
 }
 
-if ($New.Count -gt 0 -or $Stale.Count -gt 0) {
-    Write-Host "::error::StrictMode guard failed: $($New.Count) new weakening(s), $($Stale.Count) stale allow-list entr(ies)."
+foreach ($Violation in $DirectiveViolations) {
+    Write-Host "::error file=$($Violation.Path)::Required PowerShell directive(s) missing: $($Violation.Missing)."
+}
+
+if ($New.Count -gt 0 -or $Stale.Count -gt 0 -or $DirectiveViolations.Count -gt 0) {
+    Write-Host "::error::StrictMode guard failed: $($New.Count) new weakening(s), $($Stale.Count) stale allow-list entr(ies), $($DirectiveViolations.Count) directive violation(s)."
     exit 1
 }
 

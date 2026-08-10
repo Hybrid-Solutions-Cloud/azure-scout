@@ -194,6 +194,8 @@ param($ErrorAction)
         function global:Set-AzContext {
                         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param($Subscription, $SubscriptionId, $ErrorAction, $WarningAction, $InformationAction, $Debug)
+            $selected = if ($SubscriptionId) { $SubscriptionId } else { $Subscription }
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $selected } }
         }
 
         function global:Get-AzVMUsage {
@@ -730,6 +732,13 @@ Describe 'AB#5648 — VM quotas: the shim and the retired implementation agree' 
         $reference = Get-ReferenceVmQuotas -Subscriptions $script:Subs -Resources $resources
         $actual = Get-AZSCVMQuotas -Subscriptions $script:Subs -Resources $resources
 
+        # The retired implementation leaked Set-AzContext's return objects into its quota array.
+        # The hardened implementation validates the selected context without exposing those
+        # control-plane objects as quota data, so compare only the actual quota rows.
+        $reference.properties = @($reference.properties | Where-Object {
+            $_ -and $_.PSObject.Properties['Location']
+        })
+
         (Compare-ScoutDataset -Reference $reference -Actual $actual) -join "`n" | Should -BeNullOrEmpty
         $actual.type | Should -Be 'AZSC/VM/Quotas'
     }
@@ -767,6 +776,8 @@ Describe 'AB#5648 — VM quotas: the shim and the retired implementation agree' 
 param($Subscription, $SubscriptionId, $Tenant, $ErrorAction, $WarningAction, $InformationAction, $Debug)
             if ($SubscriptionId) { $restored.Add([string]$SubscriptionId) }
             elseif ($Subscription) { $restored.Add([string]$Subscription) }
+            $selected = if ($SubscriptionId) { $SubscriptionId } else { $Subscription }
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $selected } }
         }
         Get-AZSCVMQuotas -Subscriptions $script:Subs -Resources (Get-FixtureMixedResources) | Out-Null
         $restored | Should -Contain 'original-sub'

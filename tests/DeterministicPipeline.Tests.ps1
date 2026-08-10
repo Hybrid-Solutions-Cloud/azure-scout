@@ -479,7 +479,8 @@ Describe 'Excel reporting only invokes collectors that have data' {
 
     It 'Start-AZSCExcelJob filters nulls out of definition-indexed cache rows' {
         $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/report/renderers/inventory/Start-AZSCExcelJob.ps1') -Raw
-        $Source | Should -Match '\$SmaResources\s*=\s*if\s*\(\$CacheProperty\)\s*\{\s*@\(\$CacheProperty\.Value\)\.Where'
+        $Source | Should -Match '\$SmaResources\s*=\s*@\(\)'
+        $Source | Should -Match 'if\s*\(\$CacheProperty\)\s*\{\s*\$SmaResources\s*=\s*@\(\$CacheProperty\.Value\)\.Where'
         $Source | Should -Not -Match '\$CacheData\.\$ModName'
     }
 
@@ -632,6 +633,15 @@ Describe 'Start-AZSCDiagramJob builds the diagram lookup in-process' {
 
         $Code | Should -Match '\$Job = Start-AZSCDiagramJob'
         $Code | Should -Not -Match "DiagramVariables"
+    }
+
+    It 'diagram orchestration owns job objects instead of searching the caller session by name' {
+        $source = Get-Content -LiteralPath (Join-Path $script:RepoRoot 'src/pipeline/diagram/Start-ScoutDrawIoDiagram.ps1') -Raw
+
+        $source | Should -Match '\$diagramJobs\.Add'
+        $source | Should -Match 'Receive-Job -Job \$DiagramJob'
+        $source | Should -Match '@\(\$diagramJobs\) \| Remove-Job'
+        $source | Should -Not -Match "Get-Job\s*\|\s*Where-Object\s*\{\s*\`$_.name\s+-like\s*'Diagram_\*'"
     }
 }
 

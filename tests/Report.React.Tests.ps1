@@ -253,6 +253,26 @@ Describe 'Export-React — score formulas (AB#6929)' {
             $area.weight | Should -Not -BeNullOrEmpty
         }
     }
+
+    It 'uses canonical AreaWeight once per area for the assessment headline' {
+        $weightedFindings = @()
+        foreach ($n in 1..9) {
+            $weightedFindings += New-ReactTestFinding -Id "light-pass-$n" -Framework 'CAF' -Area 'Light' -Status Pass -Assessment 'Weighted assessment' -Weight 1
+        }
+        $weightedFindings += New-ReactTestFinding -Id 'light-fail' -Framework 'CAF' -Area 'Light' -Status Fail -Assessment 'Weighted assessment' -Weight 1
+        $weightedFindings += New-ReactTestFinding -Id 'heavy-fail' -Framework 'CAF' -Area 'Heavy' -Status Fail -Assessment 'Weighted assessment' -Weight 9
+        $canonical = Get-Score -Findings $weightedFindings
+
+        $path = Export-React -Findings $canonical -Collect $script:Collect -OutputPath $script:OutDir
+        $payload = Get-EmbeddedPayload -Html (Get-Content $path -Raw)
+        $assessment = $payload.assessments | Where-Object name -eq 'Weighted assessment'
+
+        $assessment.score.percent | Should -Be $canonical.Frameworks[0].Score
+        ($assessment.areas | Where-Object name -eq 'Light').weight | Should -Be 1
+        ($assessment.areas | Where-Object name -eq 'Heavy').weight | Should -Be 9
+        ($assessment.findings | Where-Object area -eq 'Light' | Select-Object -First 1).weight | Should -Be 1
+        ($assessment.findings | Where-Object area -eq 'Heavy' | Select-Object -First 1).weight | Should -Be 9
+    }
 }
 
 <#
@@ -607,6 +627,61 @@ Describe 'Export-React — costProjection (AB#7093)' {
         $cp.formula | Should -Match '600'
         $cp.formula | Should -Match '7200'
         $cp.formula | Should -Match 'run-rate'
+    }
+
+    It 'withholds a single-currency projection when the window contains mixed currencies' {
+        $anchor = Get-Date '2026-08-01'
+        $costCollect = [pscustomobject]@{
+            _meta  = [pscustomobject]@{ scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o') }
+            finops = [pscustomobject]@{ available = $true; moduleAvailable = $true; blockedSubscriptions = @(); costRows = @(
+                [pscustomobject]@{ Cost = 100.0; UsageDate = $anchor.ToString('o'); Currency = 'USD' }
+                [pscustomobject]@{ Cost = 100.0; UsageDate = $anchor.AddDays(-1).ToString('o'); Currency = 'EUR' }
+            ) }
+        }
+
+        $path = Export-React -Findings $script:Scored -Collect $costCollect -OutputPath $script:OutDir
+        $cp = (Get-EmbeddedPayload -Html (Get-Content $path -Raw)).costProjection
+
+        $cp.available | Should -BeFalse
+        $cp.currency | Should -BeNullOrEmpty
+        $cp.trailingTotal | Should -BeNullOrEmpty
+        $cp.formula | Should -Match 'multiple currencies'
+        $cp.formula | Should -Match 'EUR.*USD|USD.*EUR'
+    }
+}
+
+Describe 'Export-React — evidence and status integrity' {
+    It 'preserves truncation metadata and uses the true evidence total in the UI' {
+        $finding = New-ReactTestFinding -Id 'trunc-1' -Framework 'CAF' -Area 'Governance' -Status 'Fail' -Assessment 'CAF: Azure Landing Zone' -Evidence @(
+            1..25 | ForEach-Object { [pscustomobject]@{ name = "resource-$_" } }
+        )
+        $finding.EvidenceCount = 198
+        $finding | Add-Member -NotePropertyName EvidenceTruncated -NotePropertyValue $true
+        $path = Export-React -Findings (Get-Score -Findings @($finding)) -Collect $script:Collect -OutputPath $script:OutDir
+        $html = Get-Content $path -Raw
+        $payload = Get-EmbeddedPayload -Html $html
+        $out = $payload.assessments[0].findings[0]
+
+        $out.evidenceCount | Should -Be 198
+        $out.evidenceTruncated | Should -BeTrue
+        $html | Should -Match 'Showing.*of.*evidenceCount|Showing.*of.*total'
+        $html | Should -Match 'bounded evidence sample'
+    }
+
+    It 'keeps Manual, Unknown, Error, and NotAssessed distinct in UI and exports' {
+        $template = Get-Content -LiteralPath (Join-Path $script:Root 'src/report/templates/report-react.html.template') -Raw
+        foreach ($status in 'Manual', 'Unknown', 'Error', 'NotAssessed') {
+            $template | Should -Match $status
+        }
+        $template | Should -Match 'notAssessed: counts\.notAssessed'
+        $template | Should -Match 'errors: counts\.error'
+        $template | Should -Match 'statusLabel\(f\.status\)'
+    }
+
+    It 'neutralizes spreadsheet-formula prefixes in browser CSV downloads' {
+        $template = Get-Content -LiteralPath (Join-Path $script:Root 'src/report/templates/report-react.html.template') -Raw
+        $template | Should -Match '\^\[\\t\\r\\n \]\*\[=\+\\-@\]'
+        $template | Should -Match 's="''"\+s'
     }
 }
 

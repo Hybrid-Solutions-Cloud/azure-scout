@@ -18,6 +18,19 @@
 #>
 
 BeforeAll {
+    # Invoke-Collect always performs these two non-ARG sweeps. Keep fake
+    # subscriptions and tenants inside the test process.
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
     $root = Split-Path $PSScriptRoot -Parent
     . "$root/src/collect/ConvertFrom-ScoutInventory.ps1"
 

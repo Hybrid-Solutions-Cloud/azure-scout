@@ -93,13 +93,13 @@
     # and warns, so scripted `-Assessment Compute` callers are not broken by a cosmetic change.
     'Assess: Management' = @{
         Description = 'Governance, policy, cost, backup, automation, update manager'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance', 'AdvisorScores')
+        Category    = 'Management'; Collect = @('Management', 'Compute'); Ingest = @('Governance', 'AdvisorScores')
         Rules = @('caf.governance', 'caf.management', 'caf.billing'); Frameworks = @('CAF: Governance', 'CAF: Management', 'CAF: Billing', 'WAF: Operational', 'WAF: Cost')
         Tags = @('caf', 'governance', 'management'); Reporters = @('Html', 'Excel')
     }
     'Assess: Monitor' = @{
         Description = 'Monitoring, alerting, diagnostics coverage'
-        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
+        Category    = 'Monitor'; Collect = @('Monitor', 'Compute'); Ingest = @()
         Rules = @('caf.management', 'waf.operational'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('waf', 'monitor'); Reporters = @('Html', 'Excel')
     }
@@ -123,7 +123,7 @@
     }
     'Assess: Compute' = @{
         Description = 'VM resilience, zones, backup, right-size, orphans'
-        Category    = 'Compute'; Collect = @('Compute'); Ingest = @('AdvisorScores')
+        Category    = 'Compute'; Collect = @('Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.reliability', 'waf.cost', 'waf.performance'); Frameworks = @('WAF: Reliability', 'WAF: Cost', 'WAF: Performance efficiency')
         Tags = @('waf', 'compute'); Reporters = @('Html', 'Excel')
     }
@@ -205,7 +205,7 @@
         # ("The gap this leaves") for what general (non-Azure-Local) AVD is NOT covered by this
         # entry.
         Description = 'AVD-on-Azure-Local workload review (Well-Architected Framework) -- 20 items across all 5 pillars; scoped to AVD deployed on Azure Local, not general Azure Virtual Desktop'
-        Category    = 'Compute'; Collect = @('Compute', 'Storage'); Ingest = @()
+        Category    = 'Compute'; Collect = @('Compute', 'Storage', 'Hybrid', 'Management', 'Monitor'); Ingest = @()
         Rules = @('waf.avd'); Frameworks = @('WAF: AVD workload (Azure Local)')
         Tags = @('waf', 'avd', 'azure-local', 'workload-review'); Reporters = @('Html', 'Excel')
     }
@@ -226,7 +226,7 @@
     # implicit in the rule-file overlap.
     'Scout: Update Manager' = @{
         Description = 'Management sub-bundle (subset of "Assess: Management") — patch/update compliance only'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @()
+        Category    = 'Management'; Collect = @('Management', 'Compute'); Ingest = @()
         Rules = @('caf.management'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'update-manager', 'sub-bundle'); Reporters = @('Html')
     }
     'Scout: Monitoring Baseline' = @{
@@ -287,7 +287,7 @@
     'Assess: Cloud Governance' = @{
         Description = 'CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI), radar + heatmap report'
         Category    = 'Management'
-        Collect     = @('Management')
+        Collect     = @('Management', 'Analytics')
         Ingest      = @('Governance', 'AdvisorScores')
         Rules       = @('caf.govern.*')
         Frameworks  = @('CAF: Govern')
@@ -377,7 +377,7 @@
     'Microsoft: FinOps Review' = @{
         Description = 'FinOps Review -- scores against the FinOps Framework''s 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
-        Collect     = @('FinOps', 'Cost', 'Management')
+        Collect     = @('FinOps', 'Cost', 'Management', 'Compute')
         Ingest      = @('Governance', 'AdvisorScores', 'CostInventory')
         Rules       = @('finops.review')
         Frameworks  = @('FinOps: 22 capabilities')

@@ -100,7 +100,7 @@ Describe 'Write-AZSCLog' {
         $Text | Should -Match 'Resources\s+: 227'
     }
 
-    It 'renders a $null detail value as <none> rather than a blank' {
+    It 'renders a $null detail value with the literal none marker rather than a blank' {
         Write-AZSCLogPhase -Name 'Phase' -Detail @{ Quotas = $null }
         (Get-Content -Raw $script:LogFile) | Should -Match '<none>'
     }

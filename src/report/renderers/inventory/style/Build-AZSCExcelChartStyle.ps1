@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Module for Excel Chart/Shape Style Finishing (EPPlus-native, no Excel COM)

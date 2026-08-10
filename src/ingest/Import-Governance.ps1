@@ -149,6 +149,7 @@ resourcecontainers
     # 2) policy assignments - keep the nested `properties` object so rule JSONPaths
     #    (@.properties.enforcementMode / .parameters / .displayName) resolve unchanged.
     $policy = Get-GovAlreadyCollected 'policyAssignments'
+    $policyAssignmentsAvailable = $policy.Count -gt 0
     if ($policy.Count -gt 0) {
         Write-Verbose "Import-Governance: reusing $($policy.Count) policy assignments from the collect pass (AB#6779)."
     }
@@ -159,12 +160,17 @@ policyresources
 | where type =~ "microsoft.authorization/policyassignments"
 | project name, id, type, properties
 '@
+            $policyAssignmentsAvailable = $true
         }
-        catch { Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)" }
+        catch {
+            $policyAssignmentsAvailable = $false
+            Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)"
+        }
     }
 
     # 3) role assignments - properties.principalType drives CAF-IDN-01/05.
     $roles = Get-GovAlreadyCollected 'roleAssignments'
+    $roleAssignmentsAvailable = $roles.Count -gt 0
     if ($roles.Count -gt 0) {
         Write-Verbose "Import-Governance: reusing $($roles.Count) role assignments from the collect pass (AB#6779)."
     }
@@ -175,8 +181,12 @@ authorizationresources
 | where type =~ "microsoft.authorization/roleassignments"
 | project name, id, type, properties
 '@
+            $roleAssignmentsAvailable = $true
         }
-        catch { Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)" }
+        catch {
+            $roleAssignmentsAvailable = $false
+            Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)"
+        }
     }
 
     # 4/5) budgets + resource locks - neither is indexed by Resource Graph, so pull
@@ -192,6 +202,8 @@ authorizationresources
     # collect pass already supplied would double every budget row.
     $budgetsReused = $budgets.Count -gt 0
     $locksReused = $locks.Count -gt 0
+    $budgetsAvailable = $budgetsReused -or $subIds.Count -gt 0
+    $resourceLocksAvailable = $locksReused -or $subIds.Count -gt 0
     if ($budgetsReused -or $locksReused) {
         Write-Verbose "Import-Governance: reusing $($budgets.Count) budgets and $($locks.Count) resource locks from the collect pass (AB#6779)."
     }
@@ -204,8 +216,12 @@ authorizationresources
                     $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
                     if ($val) { $budgets += $val }
                 }
+                else { $budgetsAvailable = $false }
             }
-            catch { Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)" }
+            catch {
+                $budgetsAvailable = $false
+                Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)"
+            }
         }
 
         if (-not $locksReused) {
@@ -215,8 +231,12 @@ authorizationresources
                     $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
                     if ($val) { $locks += $val }
                 }
+                else { $resourceLocksAvailable = $false }
             }
-            catch { Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)" }
+            catch {
+                $resourceLocksAvailable = $false
+                Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)"
+            }
         }
     }
 
@@ -230,11 +250,16 @@ authorizationresources
     # leaving real policy/role/MG objects untouched.
     $gov = [pscustomobject]@{
         managementGroups      = @($mgs     | Where-Object { $_ })
+        policyAssignmentsAvailable = $policyAssignmentsAvailable
         policyAssignments     = @($policy  | Where-Object { $_ })
+        roleAssignmentsAvailable = $roleAssignmentsAvailable
         roleAssignments       = @($roles   | Where-Object { $_ })
+        budgetsAvailable      = $budgetsAvailable
         budgets               = @($budgets | Where-Object { $_ })
+        resourceLocksAvailable = $resourceLocksAvailable
         resourceLocks         = @($locks   | Where-Object { $_ })
-        pimEligibility        = @()   # Entra P2 + Graph app perms required - see NOTES
+        pimEligibilityAvailable = $false # Entra P2 + Graph app perms required - see NOTES
+        pimEligibility        = @()
         classicAdministrators = @()   # retired ARM API - see NOTES
     }
     $Collect | Add-Member -NotePropertyName governance -NotePropertyValue $gov -Force

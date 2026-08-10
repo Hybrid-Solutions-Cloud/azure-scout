@@ -69,6 +69,21 @@ Describe 'Get-Score' {
     }
 }
 
+Describe 'Get-Score framework version metadata' {
+    It 'preserves every distinct area version instead of selecting an arbitrary first value' {
+        $findings = @(
+            [pscustomobject]@{ Id='V1'; Framework='CAF'; Area='Security'; Status='Pass'; Severity='low'; Title='one'; Remediation=''; AreaWeight=1; FrameworkVersion='CAF Security 2026' }
+            [pscustomobject]@{ Id='V2'; Framework='CAF'; Area='Governance'; Status='Pass'; Severity='low'; Title='two'; Remediation=''; AreaWeight=1; FrameworkVersion='CAF Governance 2025' }
+        )
+
+        $framework = (Get-Score -Findings $findings).Frameworks[0]
+
+        @($framework.Versions) | Should -Be @('CAF Governance 2025', 'CAF Security 2026')
+        $framework.Version | Should -Match 'CAF Governance 2025'
+        $framework.Version | Should -Match 'CAF Security 2026'
+    }
+}
+
 Describe 'Invoke-Rule' {
     It 'marks a rule Error (not Pass) when its query throws' {
         # NB: `.length` inside a JSONPath filter (the historical AB#5083 example)

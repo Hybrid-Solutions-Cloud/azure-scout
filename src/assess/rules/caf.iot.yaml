@@ -55,7 +55,7 @@ rules:
     # (targetProvider/targetType) so PEs pointed at IoT Hubs can be counted
     # without a full cross-table join (AB#5057).
     query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.devices' && @.targetType == 'iothubs')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.iotHubs[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.iotHubs[*]", numeratorKey: targetResourceId, denominatorKey: id }
     remediation: "Confirm IoT Hubs handling sensitive telemetry have a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
     manual: false
   - id: CAF-IOT-06
@@ -90,7 +90,7 @@ rules:
     # is resource-type-agnostic, so PEs pointed at a DPS instance are counted the
     # same way CAF-IOT-05 counts them for IoT Hubs (AB#330).
     query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.devices' && @.targetType == 'provisioningservices')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.dpsInstances[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.dpsInstances[*]", numeratorKey: targetResourceId, denominatorKey: id }
     remediation: "Confirm Device Provisioning Service instances handling production device enrollment have a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
     manual: false
   - id: CAF-IOT-09
@@ -108,7 +108,7 @@ rules:
     severity: medium
     # Same targetProvider/targetType pattern as CAF-IOT-05/08 (AB#330).
     query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.digitaltwins' && @.targetType == 'digitaltwinsinstances')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.digitalTwinsInstances[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.iot.digitalTwinsInstances[*]", numeratorKey: targetResourceId, denominatorKey: id }
     remediation: "Confirm Azure Digital Twins instances have a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
     manual: false
   - id: CAF-IOT-11

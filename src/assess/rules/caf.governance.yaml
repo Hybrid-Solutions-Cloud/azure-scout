@@ -10,7 +10,7 @@ rules:
     title: "Azure Policy assignments present"
     severity: high
     query: "$.governance.policyAssignments[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "Assign the ALZ policy initiatives at the appropriate management-group scope."
     manual: false
 
@@ -18,7 +18,7 @@ rules:
     title: "No policy assignment set to DoNotEnforce"
     severity: medium
     query: "$.governance.policyAssignments[?(@.properties.enforcementMode == 'DoNotEnforce')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "Switch policy assignments from DoNotEnforce to Default once validated."
     manual: false
 
@@ -26,7 +26,7 @@ rules:
     title: "Resource locks protect critical scopes"
     severity: medium
     query: "$.governance.resourceLocks[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.resourceLocksAvailable" }
     remediation: "Apply CanNotDelete/ReadOnly locks to platform and shared resources."
     manual: false
 
@@ -34,7 +34,7 @@ rules:
     title: "Policy assignment coverage beyond the default starter set"
     severity: low
     query: "$.governance.policyAssignments[*]"
-    assert: { type: countGreaterThan, value: 5 }
+    assert: { type: countGreaterThan, value: 5, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "Extend policy coverage beyond the built-in default assignments with ALZ security, tagging, and network-baseline initiatives."
     manual: false
 

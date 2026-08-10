@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Extract Entra ID (Azure AD) resources via Microsoft Graph API.
@@ -37,8 +41,6 @@
     Authors: thisismydemo
 #>
 function Start-AZSCEntraExtraction {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID',
-        Justification = 'False positive: read inside the nested Add-NormalizedResource closure (line 91), not in the outer function body.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -118,7 +120,10 @@ function Start-AZSCEntraExtraction {
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Entra: Querying $($query.Name) [$($query.Uri)]")
 
         try {
-            $result = Invoke-AZSCGraphRequest -Uri $query.Uri
+            # Pin token acquisition to the tenant the operator requested. Without this,
+            # Invoke-AZSCGraphRequest can use an ambient context from another tenant and the
+            # normalizer below would then incorrectly stamp those objects with $TenantID.
+            $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID
 
             if ($null -ne $result) {
                 # Handle single-object endpoints (e.g., authorizationPolicy)

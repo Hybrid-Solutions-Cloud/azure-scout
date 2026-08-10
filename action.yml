@@ -43,7 +43,7 @@ inputs:
     required: false
     default: 'azure-scout-reports'
   module-version:
-    description: 'AzureScout version to install from the PowerShell Gallery. Blank installs the latest.'
+    description: 'Optional AzureScout version to install from the PowerShell Gallery. Blank runs the module bundled with the pinned action revision.'
     required: false
     default: ''
   lite:
@@ -103,7 +103,7 @@ runs:
             Write-Host 'No client-id supplied - relying on an Azure context established by an earlier step.'
         }
 
-    - name: Install AzureScout and dependencies
+    - name: Install dependencies and select AzureScout
       shell: pwsh
       env:
         MODULE_VERSION: ${{ inputs.module-version }}
@@ -124,15 +124,25 @@ runs:
         }
 
         if ([string]::IsNullOrWhiteSpace($env:MODULE_VERSION)) {
-            Write-Host 'Installing AzureScout (latest)...'
-            Install-Module AzureScout -Scope CurrentUser -Force -ErrorAction Stop
+            $modulePath = Join-Path $env:GITHUB_ACTION_PATH 'AzureScout.psd1'
+            if (-not (Test-Path -LiteralPath $modulePath -PathType Leaf)) {
+                throw "Bundled AzureScout manifest was not found: $modulePath"
+            }
+            Write-Host "Using AzureScout bundled with this action: $modulePath"
         } else {
             Write-Host "Installing AzureScout $env:MODULE_VERSION..."
             Install-Module AzureScout -RequiredVersion $env:MODULE_VERSION -Scope CurrentUser -Force -ErrorAction Stop
+            $modulePath = (Get-Module AzureScout -ListAvailable |
+                Where-Object Version -eq ([version]$env:MODULE_VERSION) |
+                Select-Object -First 1).Path
+            if (-not $modulePath) {
+                throw "AzureScout $env:MODULE_VERSION installed but its manifest could not be resolved."
+            }
         }
 
-        $installed = (Get-Module AzureScout -ListAvailable | Select-Object -First 1).Version
-        Write-Host "AzureScout $installed installed."
+        $selected = Test-ModuleManifest -Path $modulePath -ErrorAction Stop
+        Write-Host "AzureScout $($selected.Version) selected."
+        "AZURESCOUT_MODULE_PATH=$modulePath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: Run Azure Scout
       id: scout
@@ -184,7 +194,7 @@ runs:
         if ($env:LITE -eq 'true')          { $params.Lite = $true }
         if ($env:INCLUDE_COSTS -eq 'true') { $params.IncludeCosts = $true }
 
-        Import-Module AzureScout -Force
+        Import-Module $env:AZURESCOUT_MODULE_PATH -Force -ErrorAction Stop
         Invoke-AzureScout @params
 
         $files = @(Get-ChildItem -Path $reportDir -File -Recurse)
@@ -195,7 +205,8 @@ runs:
         "report-count=$($files.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
         if ($files.Count -eq 0) {
-            Write-Host '::warning::Azure Scout completed but produced no report files.'
+            Write-Host '::error::Azure Scout completed but produced no report files.'
+            exit 1
         }
 
     - name: Upload reports
@@ -205,4 +216,4 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.report-dir }}
         retention-days: ${{ inputs.artifact-retention-days }}
-        if-no-files-found: warn
+        if-no-files-found: error

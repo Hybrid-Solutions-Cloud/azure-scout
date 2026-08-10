@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.10.0 — the last three, closed for real
+## Current Release — v3.10.1 — combined means combined
+
+Released 10 August 2026. Fixes the v3.10.0 startup rejection for a combined inventory +
+assessment run with React/JsonEvidence, then closes the related runtime and correctness gaps
+found by the full audit: tenant-scoped Graph calls, deterministic context and job ownership,
+honest governance/compliance availability, canonical report scoring/evidence, complete rule
+collection dependencies, strict dependency/import behavior, and fail-closed zero-skip release
+gates. See CHANGELOG.md and AB#7278.
+
+## Previous Release — v3.10.0 — the last three, closed for real
 
 Released 9 August 2026. Executive/Consultant/Data view modes now materially differ on every report section, not just 2 of 6; the Azure Landing Zone assessment renders BECU-style per-domain chapters (scorecard, current-state prose, grouped findings, figure) per CAF design area instead of one flat list, with the ALZ benchmark broken into its own section; fixed a self-contradicting scorecard caused by two design areas sharing the literal name "Security", and the underlying evidence-identity defect where a single-match finding's evidence could resolve to .NET type metadata instead of a resource name; PSScriptAnalyzer is at zero Error/Warning violations repo-wide, down from 1,465. See CHANGELOG.md for the full per-story breakdown.
 

@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .SYNOPSIS
     This script creates Excel file to Analyze Azure Resources inside a Tenant
@@ -300,7 +304,7 @@ Function Invoke-AzureScout {
     param (
         [ValidateSet(1, 2, 3)]
         [int]$Overview = 1,
-        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud', 'AzureGermanCloud')]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment = 'AzureCloud',
         [string]$TenantID,
         [string]$AppId,
@@ -442,8 +446,7 @@ Function Invoke-AzureScout {
             $RunLite = $true
             if (!$StorageAccount -or !$StorageContainer)
                 {
-                    Write-Output "Storage Account and Container are required for Automation mode. Aborting."
-                    exit
+                    throw 'Storage Account and Container are required for Automation mode.'
                 }
         }
     if ($Overview -eq 1 -and $SkipAPIs)
@@ -516,8 +519,14 @@ Function Invoke-AzureScout {
 
     if ($Help.IsPresent) {
         Get-AZSCUsageMode
-        Exit
+        return
     }
+
+    $previousAzBreakingChangeWarningSetting = [Environment]::GetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', 'Process')
+    $restoreAzBreakingChangeWarningSetting = $false
+    $runLogStarted = $false
+    $bufferedWarnings = [System.Collections.Generic.List[string]]::new()
+    try {
 
     # ── Console verbosity (AB#5410) ───────────────────────────────────────────
     # If the user did not explicitly request -Verbose or -Debug, we silently continue
@@ -527,6 +536,7 @@ Function Invoke-AzureScout {
     if (-not ($PSBoundParameters.ContainsKey('Debug') -or $PSBoundParameters.ContainsKey('Verbose'))) {
         $WarningPreference = 'SilentlyContinue'
         $env:SuppressAzurePowerShellBreakingChangeWarnings = 'true'
+        $restoreAzBreakingChangeWarningSetting = $true
         function Write-Warning {
             # Deliberately shadows the built-in: every existing Write-Warning call in this
             # call tree (collectors, modules, this function itself) must be redirected to the
@@ -534,8 +544,11 @@ Function Invoke-AzureScout {
             [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Deliberate shadow (AB#5410): redirects every Write-Warning call in this call tree to the structured log instead of the console, without editing every call site.')]
             param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
             process {
-                if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                if ($runLogStarted -and (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue)) {
                     Write-AZSCLog -Level Warn -Message $Message
+                }
+                else {
+                    $bufferedWarnings.Add($Message)
                 }
             }
         }
@@ -624,16 +637,14 @@ Function Invoke-AzureScout {
         if ($ReportIdentity -and $ReportIdentity.Count -gt 0) { $assessArgs.ReportIdentity = $ReportIdentity }
         if ($PSBoundParameters.ContainsKey('DefaultReportMode')) { $assessArgs.DefaultReportMode = $DefaultReportMode }
 
-        # "Both" from the wizard: DEFER the assessment until after the inventory pass instead of
-        # running it now (AB#5543). Running it here made the command collect from Azure twice —
+        # "Both" from the wizard or command line: DEFER the assessment until after the inventory
+        # pass instead of running it now (AB#5543). Running the assessment here made the command
+        # collect from Azure twice —
         # the assessment issued its own Resource Graph pack, then the inventory re-fetched the
         # same resource types moments later. Inventory already projects the full `properties`
         # bag, so running it first and handing those rows to the assessment collects once.
-        # AB#6775 -- $wizardRunBoth used to be set from exactly one source, $wizard.RunBoth, so
-        # the combined run was reachable only by answering a prompt. `Invoke-AzureScout
-        # -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment` had no equivalent at all, which meant
-        # CI and every scripted caller were locked out of the collect-once path and had to run
-        # the command twice, collecting from Azure twice, to get both reports.
+        # AB#6775 -- the public switch keeps the collect-once path reachable from scripted callers
+        # as well as the wizard, without collecting from Azure twice to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
         else {
             $standaloneRunPath = Invoke-ScoutAssessmentCore @assessArgs
@@ -656,7 +667,10 @@ Function Invoke-AzureScout {
     # against a scalar, so resolve the requested formats to flags once here.
     $requestedFormats = @($OutputFormat)
     $assessmentOnlyFormats = $requestedFormats | Where-Object { $_ -in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') }
-    if ($assessmentOnlyFormats) {
+    # A deferred assessment owns these formats during a combined run. The inventory pass still
+    # collects the shared rows but simply has no inventory renderer flag for React/JsonEvidence.
+    # Reject them only when this truly is an inventory-only invocation.
+    if ($assessmentOnlyFormats -and -not $deferredAssessArgs) {
         throw "-OutputFormat $($assessmentOnlyFormats -join ', ') is an assessment format. Add -Assessment to run the CAF/WAF assessment, or choose an inventory format: All, Excel, Json, Markdown, AsciiDoc, PowerBI."
     }
     $WantExcel    = [bool](@('All', 'Excel')              | Where-Object { $_ -in $requestedFormats })
@@ -712,8 +726,7 @@ Function Invoke-AzureScout {
                 Set-AzContext -SubscriptionName $AzureConnection.Subscription -DefaultProfile $AzureConnection
             }
             catch {
-                Write-Output "Failed to set Automation Account requirements. Aborting."
-                exit
+                throw "Failed to set Automation Account requirements: $($_.Exception.Message)"
             }
         }
 
@@ -866,6 +879,11 @@ Function Invoke-AzureScout {
             if ($Automation) { 'Automation' }
         ) -join ' '
     }
+    $runLogStarted = $true
+    foreach ($bufferedWarning in $bufferedWarnings) {
+        Write-AZSCLog -Level Warn -Message $bufferedWarning
+    }
+    $bufferedWarnings.Clear()
 
     foreach ($LogSub in @($Subscriptions)) {
         Write-AZSCLog -Message ('  subscription in scope : {0} ({1})' -f $LogSub.Name, $LogSub.Id)
@@ -1071,6 +1089,12 @@ Function Invoke-AzureScout {
 
     $ReportingRunTime = [System.Diagnostics.Stopwatch]::StartNew()
 
+    # These values are consumed by the shared completion and upload paths even when their
+    # renderer is not selected, or when a renderer fails and its catch block keeps the run
+    # alive. Initialise them before branching so StrictMode preserves that best-effort design.
+    $TotalRes = 0
+    $JsonFile = $null
+
     # ── Excel Report ─────────────────────────────────────────────────────
     if ($WantExcel)
     {
@@ -1237,4 +1261,15 @@ Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRe
 # where the log is on a successful run as well as a failed one (AB#5635).
 $null = Stop-AZSCRunLog -Status 'COMPLETED'
 
+    }
+    finally {
+        if ($restoreAzBreakingChangeWarningSetting) {
+            if ($null -eq $previousAzBreakingChangeWarningSetting) {
+                [Environment]::SetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', $null, 'Process')
+            }
+            else {
+                [Environment]::SetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', $previousAzBreakingChangeWarningSetting, 'Process')
+            }
+        }
+    }
 }

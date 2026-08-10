@@ -38,6 +38,27 @@ BeforeAll {
     }
 }
 
+Describe 'Invoke-ScoutPipeline -- renderer contract' {
+    It 'accepts every format exposed by the assessment core' {
+        $pipeline = Get-Command Invoke-ScoutPipeline
+        $core = Get-Command Invoke-ScoutAssessmentCore
+        $pipelineValues = ($pipeline.Parameters.OutputFormat.Attributes |
+            Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }).ValidValues
+        $coreValues = ($core.Parameters.OutputFormat.Attributes |
+            Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }).ValidValues
+
+        foreach ($format in $coreValues) {
+            $pipelineValues | Should -Contain $format
+        }
+    }
+
+    It 'uses an explicit reserved run path instead of directory-delta recovery' {
+        $source = Get-Content -LiteralPath (Join-Path $root 'src/Invoke-ScoutPipeline.ps1') -Raw
+        $source | Should -Match '\$assessParams\.ReservedRunPath\s*=\s*\$runFolder'
+        $source | Should -Not -Match '\$priorRunFolders|\$recovered\s*='
+    }
+}
+
 Describe 'Invoke-ScoutPipeline -- Success path' {
     BeforeEach {
         # A unique folder name per test -- the mock below writes a fixed run-folder
@@ -54,8 +75,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
             $script:seenConfirm  = $ConfirmPreference
             $script:seenProgress = $ProgressPreference
 
-            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+            $folder = $ReservedRunPath
             '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             @{ Findings = @(@{ Status = 'Pass' }, @{ Status = 'Pass' }, @{ Status = 'Fail' }, @{ Status = 'Manual' }) } |
                 ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
@@ -127,8 +147,7 @@ Describe 'Invoke-ScoutPipeline -- -SkipPermissionAudit' {
         $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
-            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+            $folder = $ReservedRunPath
             '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             return $folder
         }
@@ -154,8 +173,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
             if ($PermissionAudit) { return @(Get-OkPermissionCheck) }
             # Simulate the orchestrator getting partway through (collect.json written)
             # before an exporter throws -- the run folder exists but is incomplete.
-            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+            $folder = $ReservedRunPath
             '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             throw 'Export-Pptx: simulated exporter failure'
         }
@@ -165,7 +183,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (exporter throws mid-run)' {
         { Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath } | Should -Not -Throw
     }
 
-    It 'recovers the run folder the orchestrator had already created before it threw' {
+    It 'retains its reserved run folder when the orchestrator throws' {
         $runFolder = Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputPath $script:outPath
         $runFolder | Should -Not -BeNullOrEmpty
         Test-Path (Join-Path -Path $runFolder -ChildPath 'collect.json') | Should -BeTrue
@@ -184,8 +202,7 @@ Describe 'Invoke-ScoutPipeline -- PartialSuccess (permission audit hard failure)
         $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
         Mock Invoke-ScoutAssessmentCore {
             if ($PermissionAudit) { return @(Get-FailedPermissionCheck) }
-            $folder = Join-Path -Path $OutputPath -ChildPath '20260101_000000'
-            New-Item -ItemType Directory -Path $folder -Force | Out-Null
+            $folder = $ReservedRunPath
             '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
             @{ Findings = @(@{ Status = 'Pass' }) } | ConvertTo-Json -Depth 5 | Out-File (Join-Path -Path $folder -ChildPath 'findings.json')
             return $folder

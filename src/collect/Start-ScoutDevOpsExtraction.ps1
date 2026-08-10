@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Extract Azure DevOps organizations, projects, pipelines, service connections,
@@ -55,6 +59,15 @@
     Work item: AB#327. Relocated from the legacy Modules tree for v3.
     Azure Scout is read-only. Every call here is a GET.
 #>
+function Invoke-AZSCDevOpsRestPage {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Uri, [Parameter(Mandatory)][hashtable]$Headers)
+
+    $responseHeaders = $null
+    $body = Invoke-RestMethod -Uri $Uri -Headers $Headers -Method Get -ResponseHeadersVariable responseHeaders -ErrorAction Stop
+    [pscustomobject]@{ Body = $body; Headers = $responseHeaders }
+}
+
 function Start-AZSCDevOpsExtraction {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID',
         Justification = 'False positive: read inside the nested Add-NormalizedDevOpsResource closure (line 151), not in the outer function body.')]
@@ -100,13 +113,44 @@ function Start-AZSCDevOpsExtraction {
         }
     }
 
-    # ── Helper: a single GET, returning $null rather than throwing ───────────
+    # ── Helper: GET with optional Azure DevOps continuation-token paging ─────
     function Invoke-DevOpsRequest {
-        param([string]$Uri)
+        param([string]$Uri, [switch]$Paged)
 
         try {
-            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Azure DevOps GET: ' + $Uri)
-            return Invoke-RestMethod -Uri $Uri -Headers $headers -Method Get -ErrorAction Stop
+            $currentUri = $Uri
+            $allValues = [System.Collections.Generic.List[object]]::new()
+            $seenTokens = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            do {
+                Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Azure DevOps GET: ' + $currentUri)
+                $page = Invoke-AZSCDevOpsRestPage -Uri $currentUri -Headers $headers
+                $responseHeaders = $page.Headers
+                $response = $page.Body
+                if (-not $Paged) { return $response }
+
+                if ($response -and $response.PSObject.Properties.Name -contains 'value') {
+                    foreach ($value in @($response.value)) { $allValues.Add($value) }
+                }
+
+                $continuationToken = $null
+                if ($responseHeaders) {
+                    foreach ($key in @($responseHeaders.Keys)) {
+                        if ([string]$key -ieq 'x-ms-continuationtoken') {
+                            $continuationToken = [string]@($responseHeaders[$key])[0]
+                            break
+                        }
+                    }
+                }
+                if ([string]::IsNullOrWhiteSpace($continuationToken)) { break }
+                if (-not $seenTokens.Add($continuationToken)) {
+                    throw "Azure DevOps returned a repeated continuation token for '$Uri'."
+                }
+
+                $separator = if ($Uri.Contains('?')) { '&' } else { '?' }
+                $currentUri = $Uri + $separator + 'continuationToken=' + [uri]::EscapeDataString($continuationToken)
+            } while ($true)
+
+            return [pscustomobject]@{ count = $allValues.Count; value = $allValues.ToArray() }
         }
         catch {
             $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
@@ -166,7 +210,7 @@ function Start-AZSCDevOpsExtraction {
     else {
         $profileMe = Invoke-DevOpsRequest -Uri 'https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.0'
         if ($profileMe -and $profileMe.PSObject.Properties.Name -contains 'id') {
-            $accounts = Invoke-DevOpsRequest -Uri ('https://app.vssps.visualstudio.com/_apis/accounts?memberId=' + $profileMe.id + '&api-version=7.0')
+            $accounts = Invoke-DevOpsRequest -Uri ('https://app.vssps.visualstudio.com/_apis/accounts?memberId=' + $profileMe.id + '&api-version=7.0') -Paged
             if ($accounts -and $accounts.PSObject.Properties.Name -contains 'value') {
                 $orgs = @($accounts.value | ForEach-Object { $_.accountName })
             }
@@ -183,7 +227,7 @@ function Start-AZSCDevOpsExtraction {
     foreach ($org in $orgs) {
         Write-Host ('  Organization: ' + $org) -ForegroundColor DarkGray
 
-        $projects = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/_apis/projects?$top=1000&api-version=7.0')
+        $projects = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/_apis/projects?$top=1000&api-version=7.0') -Paged
         if (-not $projects -or $projects.PSObject.Properties.Name -notcontains 'value') {
             Write-Host ('    [SKIP] No project access in ' + $org) -ForegroundColor DarkGray
             continue
@@ -200,7 +244,7 @@ function Start-AZSCDevOpsExtraction {
         foreach ($project in $projectList) {
             $projectName = [uri]::EscapeDataString($project.name)
 
-            $pipelines = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/pipelines?$top=1000&api-version=7.0')
+            $pipelines = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/pipelines?$top=1000&api-version=7.0') -Paged
             if ($pipelines -and $pipelines.PSObject.Properties.Name -contains 'value') {
                 $enriched = @($pipelines.value | ForEach-Object {
                     $_ | Add-Member -NotePropertyName 'projectName' -NotePropertyValue $project.name -Force -PassThru
@@ -209,7 +253,7 @@ function Start-AZSCDevOpsExtraction {
                 $pipelineCount += @($enriched).Count
             }
 
-            $endpoints = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/serviceendpoint/endpoints?api-version=7.0')
+            $endpoints = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/serviceendpoint/endpoints?api-version=7.0') -Paged
             if ($endpoints -and $endpoints.PSObject.Properties.Name -contains 'value') {
                 $enriched = @($endpoints.value | ForEach-Object {
                     $_ | Add-Member -NotePropertyName 'projectName' -NotePropertyValue $project.name -Force -PassThru
@@ -218,7 +262,7 @@ function Start-AZSCDevOpsExtraction {
                 $endpointCount += @($enriched).Count
             }
 
-            $repos = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/git/repositories?api-version=7.0')
+            $repos = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/' + $projectName + '/_apis/git/repositories?api-version=7.0') -Paged
             if ($repos -and $repos.PSObject.Properties.Name -contains 'value') {
                 $enriched = @($repos.value | ForEach-Object {
                     $_ | Add-Member -NotePropertyName 'projectName' -NotePropertyValue $project.name -Force -PassThru
@@ -233,7 +277,7 @@ function Start-AZSCDevOpsExtraction {
         Write-Host ('    [OK] Repositories: ' + $repoCount) -ForegroundColor DarkGray
 
         # Agent pools are organization-scoped, not project-scoped.
-        $pools = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/_apis/distributedtask/pools?api-version=7.0')
+        $pools = Invoke-DevOpsRequest -Uri ('https://dev.azure.com/' + $org + '/_apis/distributedtask/pools?api-version=7.0') -Paged
         if ($pools -and $pools.PSObject.Properties.Name -contains 'value') {
             $poolList = @($pools.value)
             Add-NormalizedDevOpsResource -Items $poolList -SyntheticType 'devops/agentpools' -OrgName $org

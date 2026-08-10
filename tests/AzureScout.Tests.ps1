@@ -87,4 +87,24 @@ Describe 'Module Import Tests' {
         $Commands = Get-Command -Module AzureScout
         $Commands.Name | Should -Contain 'Invoke-AzureScout'
     }
+
+    It 'resolves every function declared by the manifest from this repository module' {
+        Remove-Module AzureScout -Force -ErrorAction SilentlyContinue
+        Import-Module $ManifestPath -Force -ErrorAction Stop
+        $module = Get-Module AzureScout | Where-Object ModuleBase -eq $ModuleRoot | Select-Object -First 1
+        $declared = (Import-PowerShellDataFile -Path $ManifestPath).FunctionsToExport
+
+        $module | Should -Not -BeNullOrEmpty
+        foreach ($name in $declared) {
+            $module.ExportedCommands.ContainsKey($name) | Should -BeTrue -Because "'$name' is declared public"
+        }
+    }
+
+    It 'exports the documented cache-pruning command and not the deleted job waiter' {
+        Import-Module $ManifestPath -Force -ErrorAction Stop
+        $module = Get-Module AzureScout | Where-Object ModuleBase -eq $ModuleRoot | Select-Object -First 1
+
+        $module.ExportedCommands.ContainsKey('Clear-AZSCCacheFolder') | Should -BeTrue
+        $module.ExportedCommands.ContainsKey('Wait-AZSCJob') | Should -BeFalse
+    }
 }

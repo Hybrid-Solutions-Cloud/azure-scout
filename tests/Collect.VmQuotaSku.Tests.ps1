@@ -16,7 +16,9 @@ BeforeAll {
 
     function Get-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = 'original-sub' } } }
     function Set-AzContext {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) }
+param([string] $Subscription, [Parameter(ValueFromRemainingArguments)] $Rest)
+        [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
+    }
 
     # Mixed array: Resource Graph rows carrying subscriptionId/type, alongside a REST-API row
     # (e.g. from Get-ScoutApiResources) that carries neither -- the exact AB#5633 shape.
@@ -69,11 +71,30 @@ param([string] $Location)
                         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([string] $Subscription, [string] $Tenant, [Parameter(ValueFromRemainingArguments)] $Rest)
             if ($Subscription -eq 'original-sub') { $script:restoredTo = $Subscription }
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
         }
         function Get-AzVMUsage {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([string] $Location) throw 'transient quota API error' }
         { Get-ScoutVmQuotas -Subscriptions $script:subs -Resources $script:mixedResources -WarningAction SilentlyContinue } | Should -Not -Throw
         $script:restoredTo | Should -Be 'original-sub'
+    }
+
+    It 'skips quota calls when Set-AzContext returns a different subscription' {
+        $script:usageCalls = 0
+        function Set-AzContext {
+            param([string] $Subscription, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Subscription, $Rest
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = 'wrong-sub' } }
+        }
+        function Get-AzVMUsage {
+            param([string] $Location)
+            $null = $Location
+            $script:usageCalls++
+        }
+
+        $result = Get-ScoutVmQuotas -Subscriptions $script:subs -Resources $script:mixedResources -WarningAction SilentlyContinue
+        @($result.properties).Count | Should -Be 0
+        $script:usageCalls | Should -Be 0
     }
 }
 

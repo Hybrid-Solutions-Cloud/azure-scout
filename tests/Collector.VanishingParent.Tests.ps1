@@ -114,6 +114,13 @@ BeforeDiscovery {
                 }
             }
     )
+
+    # Generate behavioural tests only for loops to which that behaviour applies. Creating an
+    # It block for every loop and marking most of them -Skip made the suite report dozens of
+    # "skips" that were not unavailable coverage at all; they were cases belonging to one of
+    # the other reviewed states above.
+    $script:EmittingLoopCases = @($script:LoopCases | Where-Object { $_.Emits })
+    $script:ExemptLoopCases   = @($script:LoopCases | Where-Object { $_.IsExempt })
 }
 
 BeforeAll {
@@ -213,7 +220,11 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
         $Recorded | Should -BeTrue -Because "loop `$$LoopVar over '$Source' fans a row out over a child collection, so someone has to have decided whether the parent survives that collection being empty. It neither sets EmitNullWhenEmpty nor carries a '$Marker' comment, so no decision is recorded and there is no way to tell a considered choice from an oversight. Add the flag, or add the comment saying why the row here IS the child"
     }
 
-    It '<Category>/<Name> loop $<LoopVar> still emits the parent row when the child collection is empty' -Skip:(-not $Emits) {
+}
+
+Describe 'Guarded child loops preserve their parent row (AB#6845)' -ForEach $script:EmittingLoopCases {
+
+    It '<Category>/<Name> loop $<LoopVar> still emits the parent row when the child collection is empty' {
         $Context = New-FixtureContext -CategoryName $Category -CollectorName $Name
 
         # The control. If the collector produces nothing from its own fixture then the emptied-loop
@@ -224,8 +235,11 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
         $Rows = @(Invoke-WithEmptyChildLoop -Path $Path -LoopIndex $LoopIndex -Context $Context)
         $Rows.Count | Should -BeGreaterThan 0 -Because "a resource must not disappear from the $Category/$Name worksheet because Azure omitted the collection behind loop `$$LoopVar"
     }
+}
 
-    It '<Category>/<Name> loop $<LoopVar> is a deliberate, documented exception' -Skip:(-not $IsExempt) {
+Describe 'Deliberately unguarded child loops remain documented exceptions (AB#6845)' -ForEach $script:ExemptLoopCases {
+
+    It '<Category>/<Name> loop $<LoopVar> is a deliberate, documented exception' {
         # The allow-list half. These loops legitimately emit nothing, but the behaviour must be the
         # one the written reason describes — an exception that quietly STARTED emitting parent rows
         # is as much an unreviewed change as one that quietly stopped.

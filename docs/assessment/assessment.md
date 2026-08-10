@@ -25,8 +25,8 @@ useful. This page is about assessment. For the resources themselves, run
 **PowerShell 7 on PowerShell Core** — for the whole module, not just this mode.
 `AzureScout.psd1` declares `PowerShellVersion = '7.0'` and
 `CompatiblePSEditions = @('Core')`, so `Import-Module` rejects Windows
-PowerShell 5.1 outright. Assessment mode additionally needs modules the
-inventory auto-install list does not cover, plus a `.NET SDK` for the
+PowerShell 5.1 outright. The manifest declares the core inventory and
+assessment modules; assessment mode may additionally need a `.NET SDK` for the
 PowerPoint tier — see [Assessment Prerequisites](./assessment-prerequisites.md).
 The PowerPoint tier is currently on hold, so the `.NET SDK` is not needed for a run today.
 :::
@@ -229,7 +229,7 @@ here too.
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
 
 # Re-run Assess + Report from that saved collect.json, no re-scan
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React,JsonEvidence
 ```
 
 Useful for iterating on rule changes or re-rendering a different output tier
@@ -318,7 +318,7 @@ of a real result). Prefer leaving `-Category` unset and letting each
 assessment use its own manifest-declared `Collect` list, which is kept in
 sync with what its `Rules` actually reference.
 
-### `-OutputFormat` — one example per tier
+### `-OutputFormat` — supported deliverables
 
 ::: danger The React report is the one supported deliverable
 Only `React`, `Json` and `JsonEvidence` are emitted today. `PowerBi`, `Html`, `Pptx`, `Excel`,
@@ -326,24 +326,17 @@ Only `React`, `Json` and `JsonEvidence` are emitted today. `PowerBi`, `Html`, `P
 renderers still exist and are still tested, but they are being rebuilt to generate *from* the
 React report rather than alongside it, so a document and the page it came from can never disagree.
 
-Every command below still binds. A held format warns, is skipped, and the React report is rendered
-instead, so a run never returns an empty folder. Export to Markdown, JSON, CSV, PDF (print) or a
+Held names still bind for script compatibility, but they warn and are skipped. Export to
+Markdown, JSON, CSV, PDF (print) or a
 standalone HTML copy **from the React report page itself**. See
 [Report tiers](./configuration.md#report-tiers).
 :::
 
 ```powershell
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat PowerBi
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Pptx
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Excel
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Json
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat JsonEvidence
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Word
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat EChartsDashboard
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Pdf
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React,Json,JsonEvidence
 ```
 
 `-OutputFormat` also accepts an array (`-OutputFormat React,Json`). `React`

@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Resolves the report, diagram cache, and report cache paths for an Azure Scout run.
@@ -71,7 +75,7 @@ function Set-AZSCReportPath {
                 }
             else
                 {
-                    $RunFolder = Get-Date -Format 'yyyy-MM-dd_HHmmss'
+                    $RunFolder = Get-Date -Format 'yyyy-MM-dd_HHmmss_fff'
                     if ($ScopeId)
                         {
                             $ScopeToken = ConvertTo-AZSCSafeRunName -Name ([string]$ScopeId)
@@ -79,7 +83,33 @@ function Set-AZSCReportPath {
                             $RunFolder = $RunFolder + '_' + $ScopeToken
                         }
                 }
-            $DefaultPath = Join-Path $BasePath $RunFolder
+
+            # Reserve the run directory here, atomically, instead of merely returning a
+            # same-second candidate that Set-AZSCFolder creates later. Concurrent invocations
+            # must never share cache, report, transcript, or cleanup ownership.
+            if (-not (Test-Path -LiteralPath $BasePath -PathType Container)) {
+                New-Item -ItemType Directory -Path $BasePath -Force -ErrorAction Stop | Out-Null
+            }
+
+            $PreferredRunFolder = $RunFolder
+            $DefaultPath = $null
+            for ($attempt = 0; $attempt -lt 100; $attempt++) {
+                $CandidateName = if ($attempt -eq 0) { $PreferredRunFolder } else { "$PreferredRunFolder-$attempt" }
+                $CandidatePath = Join-Path $BasePath $CandidateName
+                try {
+                    New-Item -ItemType Directory -Path $CandidatePath -ErrorAction Stop | Out-Null
+                    $RunFolder = $CandidateName
+                    $DefaultPath = $CandidatePath
+                    break
+                }
+                catch {
+                    if (Test-Path -LiteralPath $CandidatePath -PathType Container) { continue }
+                    throw
+                }
+            }
+            if (-not $DefaultPath) {
+                throw "Could not allocate a unique Azure Scout run folder under '$BasePath' after 100 attempts."
+            }
         }
 
     $DiagramCache = Join-Path $DefaultPath 'DiagramCache'
@@ -106,6 +136,6 @@ function ConvertTo-AZSCSafeRunName {
             if ($invalid -contains $char) { [void]$builder.Append('-') } else { [void]$builder.Append($char) }
         }
     $safe = $builder.ToString().Trim().Trim('.')
-    if ([string]::IsNullOrWhiteSpace($safe)) { $safe = Get-Date -Format 'yyyy-MM-dd_HHmmss' }
+    if ([string]::IsNullOrWhiteSpace($safe)) { $safe = Get-Date -Format 'yyyy-MM-dd_HHmmss_fff' }
     return $safe
 }

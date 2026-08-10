@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 # Relocated from Modules/Public/PublicFunctions/Diagram for the v3 pipeline.
 .Synopsis

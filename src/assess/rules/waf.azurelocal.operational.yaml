@@ -35,7 +35,7 @@ rules:
     # not wired into this assessment's collect scope, see the Security/Cost files' remediation
     # text for why).
     query: "$.domains.hybrid.arcExtensions[?(@.extensionType == 'AzureMonitorWindowsAgent' || @.extensionType == 'AzureMonitorLinuxAgent')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.arcServers[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.arcServers[*]", numeratorKey: machineId, denominatorKey: id }
     remediation: "WAF-AZLOCAL-OE-02. Fewer than 80% of Arc-connected servers have the Azure Monitor Agent extension. Azure Monitor coverage is the one automatable slice of this composite item -- Update Manager, Defender for Cloud and Azure Policy coverage are not in this assessment's collect scope and must be confirmed separately (see the Security/Cost pillar files)."
     manual: false
 

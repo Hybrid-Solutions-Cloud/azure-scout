@@ -25,7 +25,7 @@ rules:
     title: "Budgets with alerts in place"
     severity: low
     query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
     remediation: "Define Cost Management budgets with threshold alerts."
     manual: false
 
@@ -71,7 +71,7 @@ rules:
     title: "Budget scope granularity beyond a single tenant-wide default"
     severity: low
     query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 1 }
+    assert: { type: countGreaterThan, value: 1, gate: "$.governance.budgetsAvailable" }
     remediation: "Define budgets per subscription or workload rather than a single tenant-wide budget, so overspend alerts point at an accountable owner."
     manual: false
 

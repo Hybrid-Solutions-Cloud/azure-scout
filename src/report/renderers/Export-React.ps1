@@ -804,11 +804,13 @@ function Export-React {
             $rowFramework = Get-ReactSafeProp $row @('Framework')
             $bKey = '{0}|{1}' -f $rowFramework, (Get-ReactSafeProp $row @('Area'))
             if (-not $areaBuckets.Contains($bKey)) {
+                $areaWeight = Get-ReactSafeProp $row @('AreaWeight')
+                if ($null -eq $areaWeight) { $areaWeight = 1.0 }
                 $areaBuckets[$bKey] = [pscustomobject]@{
                     Area      = (Get-ReactSafeProp $row @('Area'))
                     Framework = $rowFramework
                     Pass = 0; Partial = 0; Fail = 0; Manual = 0; Unknown = 0; Error = 0; NotAssessed = 0
-                    Score = $null; Weight = 0.0
+                    Score = $null; Weight = [double]$areaWeight
                 }
             }
             $b = $areaBuckets[$bKey]
@@ -821,8 +823,6 @@ function Export-React {
                 'NotAssessed' { $b.NotAssessed++ }
                 default       { $b.Unknown++ }
             }
-            $w = Get-ReactSafeProp $row @('Weight')
-            if ($null -ne $w) { $b.Weight = [math]::Round($b.Weight + [double]$w, 4) }
         }
         foreach ($b in $areaBuckets.Values) {
             $bDen = $b.Pass + $b.Partial + $b.Fail
@@ -856,17 +856,19 @@ function Export-React {
             $totalManual += $a.Manual; $totalUnknown += $a.Unknown; $totalError += $a.Error; $totalNotAssessed += $a.NotAssessed
             $totalWeight += [double]$a.Weight
         }
-        $scoreDen = $totalPass + $totalPartial + $totalFail
-        $scoreNum = $totalPass + (0.5 * $totalPartial)
+        $automatedCheckCount = $totalPass + $totalPartial + $totalFail
+        $scoredAreas = @($areaBuckets.Values | Where-Object { $null -ne $_.Score })
+        $scoreDen = ($scoredAreas | ForEach-Object { [double]$_.Weight } | Measure-Object -Sum).Sum
+        $scoreNum = ($scoredAreas | ForEach-Object { [double]$_.Score * [double]$_.Weight } | Measure-Object -Sum).Sum
         $scoreExcluded = $totalManual + $totalUnknown + $totalError + $totalNotAssessed
-        $scorePercent = if ($scoreDen -gt 0) { [math]::Round($scoreNum / $scoreDen * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+        $scorePercent = if ($scoreDen -gt 0) { [math]::Round($scoreNum / $scoreDen, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
         $scoreFormula = if ($scoreDen -gt 0) {
-            "($totalPass pass + 0.5×$totalPartial partial) / $scoreDen automated = $scorePercent%; $scoreExcluded of $($assessmentFindingRows.Count) checks excluded (manual/not-assessed)"
+            "Weighted average of $($scoredAreas.Count) area scores ($scoreNum weighted points / $scoreDen total weight) = $scorePercent%; $automatedCheckCount automated checks scored and $scoreExcluded of $($assessmentFindingRows.Count) checks excluded (manual/not-assessed)"
         } else {
             "No automated checks scored in this assessment; $scoreExcluded of $($assessmentFindingRows.Count) checks are manual/not-assessed."
         }
         $excludedReason = ''
-        if ($scoreDen -eq 0 -and $assessmentFindingRows.Count -gt 0) {
+        if ($automatedCheckCount -eq 0 -and $assessmentFindingRows.Count -gt 0) {
             $unknownRow = $assessmentFindingRows | Where-Object { $_.Status -eq 'Unknown' } | Select-Object -First 1
             if ($unknownRow) { $excludedReason = [string]$unknownRow.Remediation }
         }
@@ -908,8 +910,10 @@ function Export-React {
         # moves the score more than another sitting in a lower-weighted area. Looked up by area
         # NAME rather than re-deriving it, since $areas above is already the authoritative
         # per-area weight for this assessment.
-        $areaWeightByName = @{}
-        foreach ($areaEntry in $areas) { $areaWeightByName[$areaEntry.name] = $areaEntry.weight }
+        $areaWeightByKey = @{}
+        foreach ($areaEntry in $areas) {
+            $areaWeightByKey['{0}|{1}' -f $areaEntry.framework, $areaEntry.name] = $areaEntry.weight
+        }
 
         $findingsOut = [System.Collections.Generic.List[pscustomobject]]::new()
         foreach ($i in $idxList) {
@@ -927,6 +931,14 @@ function Export-React {
             foreach ($ident in $evNorm) {
                 if ($ident.ResourceName) { Add-ReactResourceIndexEntry -ResourceName $ident.ResourceName -Identity $ident -Category $category -FindingId $compositeId }
             }
+            $findingAreaKey = '{0}|{1}' -f (Get-ReactSafeProp $f @('Framework')), $f.Area
+            $findingWeight = if ($areaWeightByKey.ContainsKey($findingAreaKey)) {
+                $areaWeightByKey[$findingAreaKey]
+            }
+            else {
+                $declaredWeight = Get-ReactSafeProp $f @('AreaWeight')
+                if ($null -eq $declaredWeight) { 1.0 } else { [double]$declaredWeight }
+            }
             $findingsOut.Add([pscustomobject]@{
                 id            = $compositeId
                 title         = $f.Title
@@ -941,8 +953,9 @@ function Export-React {
                 # `areas[]`. $null when the finding's area carries no explicit weight (Get-Score's
                 # own 1.0 default applies at the SCORING layer; this field reports exactly what
                 # that area object already carries, not a re-guessed default).
-                weight        = $areaWeightByName[$f.Area]
+                weight        = $findingWeight
                 evidenceCount = (Get-ReactSafeProp $f @('EvidenceCount'))
+                evidenceTruncated = [bool](Get-ReactSafeProp $f @('EvidenceTruncated'))
                 evidence      = $evidenceOut
             })
         }
@@ -959,7 +972,7 @@ function Export-React {
             scope      = [pscustomobject]@{
                 subscriptionsInScope = $subscriptions.Count
                 checksTotal          = $assessmentFindingRows.Count
-                checksAutomated      = $scoreDen
+                checksAutomated      = $automatedCheckCount
                 checksManual         = $totalManual
                 checksNotAssessed    = ($totalNotAssessed + $totalUnknown + $totalError)
                 excludedReason       = $excludedReason
@@ -1058,9 +1071,25 @@ function Export-React {
         $dailyRunRate = [math]::Round($trailingTotal / 30, 2)
         $monthlyProjection = [math]::Round($dailyRunRate * 30, 2)
         $yearlyProjection = [math]::Round($monthlyProjection * 12, 2)
-        $costCurrency = @($trailingRows | ForEach-Object { $_.Currency } | Where-Object { $_ })
-        $costCurrency = if ($costCurrency.Count -gt 0) { $costCurrency[0] } else { $null }
-        $costProjection = [pscustomobject]@{
+        $costCurrencies = @($trailingRows | ForEach-Object { $_.Currency } | Where-Object { $_ } | Sort-Object -Unique)
+        if ($costCurrencies.Count -gt 1) {
+            $costProjection = [pscustomobject]@{
+                available      = $false
+                currency       = $null
+                trailingDays   = 30
+                windowStart    = $windowStart.ToString('yyyy-MM-dd')
+                windowEnd      = $anchorDate.ToString('yyyy-MM-dd')
+                rowsConsidered = $trailingRows.Count
+                trailingTotal  = $null
+                dailyRunRate   = $null
+                monthly        = $null
+                yearly         = $null
+                formula        = "Cost projection was withheld because the trailing window contains multiple currencies: $($costCurrencies -join ', '). Convert them to one currency or review each currency separately."
+            }
+        }
+        else {
+            $costCurrency = if ($costCurrencies.Count -eq 1) { $costCurrencies[0] } else { $null }
+            $costProjection = [pscustomobject]@{
             available      = $true
             currency       = $costCurrency
             trailingDays   = 30
@@ -1072,6 +1101,7 @@ function Export-React {
             monthly        = $monthlyProjection
             yearly         = $yearlyProjection
             formula        = "Trailing 30 days ($($windowStart.ToString('yyyy-MM-dd')) to $($anchorDate.ToString('yyyy-MM-dd'))), $($trailingRows.Count) cost row(s): total $trailingTotal ÷ 30 days = $dailyRunRate/day; ×30 = $monthlyProjection monthly; ×12 = $yearlyProjection yearly. Simple trailing run-rate extrapolation, not a seasonally-adjusted forecast."
+            }
         }
     }
     else {

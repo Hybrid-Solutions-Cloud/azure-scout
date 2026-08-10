@@ -37,7 +37,7 @@ rules:
     # remediation); Defender for Endpoint / Update Manager coverage still needs
     # a human look since agent naming varies by onboarding path.
     query: "$.domains.hybrid.arcExtensions[?(@.extensionType == 'AzureMonitorWindowsAgent' || @.extensionType == 'AzureMonitorLinuxAgent')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.arcServers[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.arcServers[*]", numeratorKey: machineId, denominatorKey: id }
     remediation: "Confirm baseline extensions (Azure Monitor Agent, Microsoft Defender for Endpoint, Update Manager) are installed on Arc-connected servers."
     manual: false
   - id: CAF-HYB-05

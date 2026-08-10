@@ -46,7 +46,10 @@ Import-Module ./AzureScout.psd1
 
 ## Required PowerShell Modules
 
-AzureScout auto-installs missing modules at first load. If auto-install fails (e.g., restricted network), install them manually.
+AzureScout declares its core dependencies in `AzureScout.psd1`. Installing from the
+PowerShell Gallery resolves them through normal PowerShellGet dependency handling.
+Importing a local clone does not install software; if a dependency is missing, install
+it explicitly with the commands below and import the module again.
 
 | Module | Purpose | Required? |
 |--------|---------|-----------|
@@ -110,8 +113,8 @@ Everything above covers `Invoke-AzureScout` in its default inventory mode.
 `CompatiblePSEditions = @('Core')`, so Windows PowerShell 5.1 cannot import it
 in either mode.
 
-Assessment mode (`Invoke-AzureScout -Assessment ...`) needs extra modules on
-top of the list above — `powershell-yaml` and `Az.Advisor`, which this page's
-auto-install does **not** cover — plus a `.NET SDK` for the PowerPoint report
-tier (no Python). See [Assessment Prerequisites](../assessment/assessment-prerequisites.md)
-for the full list.
+Assessment mode (`Invoke-AzureScout -Assessment ...`) uses `powershell-yaml`
+and `Az.Advisor`, which are declared by the module manifest, plus a `.NET SDK`
+for the PowerPoint report tier (no Python). See
+[Assessment Prerequisites](../assessment/assessment-prerequisites.md) for the
+full list.

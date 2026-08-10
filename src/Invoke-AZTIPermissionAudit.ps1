@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Dedicated permission audit for Azure Scout.
@@ -327,7 +331,15 @@ function Invoke-AZSCPermissionAudit {
         try {
             foreach ($sub in $subs) {
                 try {
-                    Set-AzContext -Subscription $sub.Id -Tenant $tenantId -ErrorAction SilentlyContinue | Out-Null
+                    $selectedContext = Set-AzContext -Subscription $sub.Id -Tenant $tenantId -ErrorAction Stop
+                    if (-not $selectedContext) {
+                        throw "Set-AzContext returned no context for subscription '$($sub.Id)'."
+                    }
+
+                    # Test the signed-in identity, not the subscription's assignment list. The
+                    # latter contains roles held by every principal and can show Reader even when
+                    # this caller has no resource read access at all.
+                    Get-AzResourceGroup -ErrorAction Stop | Select-Object -First 1 | Out-Null
                     $assignments = @(Get-AzRoleAssignment -Scope "/subscriptions/$($sub.Id)" -ErrorAction Stop)
 
                     $foundRoles = $assignments | Select-Object -ExpandProperty RoleDefinitionName -Unique
@@ -337,9 +349,8 @@ function Invoke-AZSCPermissionAudit {
                     # and was told to go grant Reader it did not need. Accept any role whose
                     # effective actions cover every control-plane read: the built-in supersets
                     # by name, then custom roles by their definition's Actions ('*' or '*/read').
-                    # Known limit, stated not hidden: the listing is scope-wide, not filtered to
-                    # the caller, so a subscription where only ANOTHER principal holds a read
-                    # role still passes -- same as the pre-AB#7189 behaviour for literal Reader.
+                    # Role names below are explanatory only. Access readiness was established by
+                    # the live resource-group read above, under the current signed-in identity.
                     $readSupersets = @('Reader', 'Contributor', 'Owner')
                     $readCapableRole = @($foundRoles | Where-Object { $_ -in $readSupersets }) | Select-Object -First 1
                     if (-not $readCapableRole) {
@@ -356,13 +367,13 @@ function Invoke-AZSCPermissionAudit {
                             }
                         }
                     }
-                    $missingCritical = -not $readCapableRole
+                    $missingCritical = $false
 
                     # There is no longer an "optional roles are missing" Warn state: read access
                     # is the whole ARM ask (AB#6778), so a subscription either has it or does not.
                     $status = if ($missingCritical) { 'Fail' } else { 'Pass' }
 
-                    $rolesDisplay = if (-not $readCapableRole) { '❌ Reader' }
+                    $rolesDisplay = if (-not $readCapableRole) { '✅ ARM read probe' }
                         elseif ($readCapableRole -eq 'Reader') { '✅ Reader' }
                         else { "✅ Reader (via $readCapableRole)" }
 
@@ -382,7 +393,16 @@ function Invoke-AZSCPermissionAudit {
                     }
                 }
                 catch {
-                    Write-AuditLine -Status Warn -Text "[$($sub.Name)] Cannot read role assignments: $($_.Exception.Message)"
+                    $armAccess = $false
+                    $failureMessage = "[$($sub.Name)] Current identity could not prove ARM read access: $($_.Exception.Message)"
+                    Write-AuditLine -Status Fail -Text $failureMessage
+                    $armDetails.Add([PSCustomObject]@{
+                        Check       = "ARM: Subscription [$($sub.Name)]"
+                        Status      = 'Fail'
+                        Message     = $failureMessage
+                        Remediation = "Grant the current identity Reader access on subscription $($sub.Id) or the intended parent scope."
+                    })
+                    $recommendations.Add("Grant the current identity Reader access on '$($sub.Name)' at subscription or parent scope.")
                 }
             }
         }
@@ -447,7 +467,10 @@ function Invoke-AZSCPermissionAudit {
         # leave the caller parked in it once the section is done.
         $providerLoopContext = Get-AzContext -ErrorAction SilentlyContinue
         try {
-            Set-AzContext -Subscription $checkSub.Id -Tenant $tenantId -ErrorAction SilentlyContinue | Out-Null
+            $providerContext = Set-AzContext -Subscription $checkSub.Id -Tenant $tenantId -ErrorAction Stop
+            if (-not $providerContext) {
+                throw "Set-AzContext returned no context for subscription '$($checkSub.Id)'."
+            }
             Write-Host "  Checking against subscription: $($checkSub.Name)" -ForegroundColor Gray
             Write-Host "  NOTE: Not all providers need to be registered. Unregistered providers are" -ForegroundColor DarkGray
             Write-Host "        expected — they simply mean that service is not deployed here." -ForegroundColor DarkGray
@@ -747,7 +770,7 @@ function Invoke-AZSCPermissionAudit {
         ArmDetails       = $armDetails.ToArray()
         ProviderResults  = $providerResults.ToArray()
         GraphDetails     = $graphDetails.ToArray()
-        Recommendations  = ($recommendations | Sort-Object -Unique)
+        Recommendations  = @($recommendations | Sort-Object -Unique)
         # AB#6765 -- the per-collector impact, so an automated caller gets the same answer the
         # console table shows instead of having to interpret OverallReadiness.
         EmptyCollectors  = @($emptyCollectors | Sort-Object Collector)
@@ -756,24 +779,25 @@ function Invoke-AZSCPermissionAudit {
     }
 
     # ── Optional file output ───────────────────────────────────────────────────
-    if ($OutputFormat -in 'Json', 'All') {
+    $reportPath = $null
+    $auditFileStem = $null
+    if ($OutputFormat -ne 'Console') {
         $reportPath = if ($ReportDir) { $ReportDir } else {
             $rp = Set-AZSCReportPath -ReportDir $null
             $rp.DefaultPath
         }
-        if (-not (Test-Path $reportPath)) { New-Item -ItemType Directory -Path $reportPath -Force | Out-Null }
-        $jsonFile = Join-Path $reportPath ("PermissionAudit_" + (Get-Date -Format 'yyyy-MM-dd_HH_mm') + ".json")
+        if (-not (Test-Path -LiteralPath $reportPath)) { New-Item -ItemType Directory -Path $reportPath -Force | Out-Null }
+        $auditFileStem = 'PermissionAudit_{0}_{1}' -f (Get-Date -Format 'yyyy-MM-dd_HHmmss_fff'), ([guid]::NewGuid().ToString('N').Substring(0, 8))
+    }
+
+    if ($OutputFormat -in 'Json', 'All') {
+        $jsonFile = Join-Path $reportPath "$auditFileStem.json"
         $result | ConvertTo-Json -Depth 10 | Out-File -FilePath $jsonFile -Encoding UTF8
         Write-Host "  Audit saved → $jsonFile" -ForegroundColor Cyan
     }
 
     if ($OutputFormat -in 'Markdown', 'All') {
-        $reportPath = if ($ReportDir) { $ReportDir } else {
-            $rp = Set-AZSCReportPath -ReportDir $null
-            $rp.DefaultPath
-        }
-        if (-not (Test-Path $reportPath)) { New-Item -ItemType Directory -Path $reportPath -Force | Out-Null }
-        $mdFile = Join-Path $reportPath ("PermissionAudit_" + (Get-Date -Format 'yyyy-MM-dd_HH_mm') + ".md")
+        $mdFile = Join-Path $reportPath "$auditFileStem.md"
 
         $mdLines = [System.Collections.Generic.List[string]]::new()
         $mdLines.Add('# Azure Scout - Permission Audit Report')
@@ -825,12 +849,7 @@ function Invoke-AZSCPermissionAudit {
     }
 
     if ($OutputFormat -in 'AsciiDoc', 'All') {
-        $reportPath = if ($ReportDir) { $ReportDir } else {
-            $rp = Set-AZSCReportPath -ReportDir $null
-            $rp.DefaultPath
-        }
-        if (-not (Test-Path $reportPath)) { New-Item -ItemType Directory -Path $reportPath -Force | Out-Null }
-        $adocFile = Join-Path $reportPath ("PermissionAudit_" + (Get-Date -Format 'yyyy-MM-dd_HH_mm') + ".adoc")
+        $adocFile = Join-Path $reportPath "$auditFileStem.adoc"
 
         $adocLines = [System.Collections.Generic.List[string]]::new()
         $adocLines.Add('= Azure Scout — Permission Audit Report')

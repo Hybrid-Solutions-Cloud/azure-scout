@@ -198,7 +198,7 @@ rather than a false 0%. This is not a permission failure and will not show
 up in `-PermissionAudit`.
 
 ```powershell
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -ManagementGroup 'contoso-root-mg' -OutputFormat Html
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -ManagementGroup 'contoso-root-mg' -OutputFormat React
 ```
 
 `-ManagementGroupId` scopes the Resource Graph `Collect` layer —

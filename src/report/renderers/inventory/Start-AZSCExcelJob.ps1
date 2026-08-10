@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .SYNOPSIS
     Build the inventory Excel workbook from declarative collector definitions.
@@ -83,7 +87,12 @@ function Start-AZSCExcelJob {
 
         $CacheData = $ParsedCache[$Section.CacheFileName]
         $CacheProperty = if ($CacheData) { $CacheData.PSObject.Properties[$Section.CacheKey] } else { $null }
-        $SmaResources = if ($CacheProperty) { @($CacheProperty.Value).Where({ $null -ne $_ }) } else { @() }
+        # Assign in statements so an empty result remains @() instead of the expression form
+        # enumerating the empty array into $null under StrictMode.
+        $SmaResources = @()
+        if ($CacheProperty) {
+            $SmaResources = @($CacheProperty.Value).Where({ $null -ne $_ })
+        }
 
         if ($SmaResources.Count -gt 0) {
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Rendering definition: '$($Section.Name)'. Excel Rows: $($SmaResources.Count)")

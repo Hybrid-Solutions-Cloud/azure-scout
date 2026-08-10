@@ -112,6 +112,152 @@ Describe 'Single entry point — output format guards' {
             $vs.ValidValues | Should -Contain $shared
         }
     }
+
+    It 'lets Both carry React and JsonEvidence past the inventory format guard' {
+        $result = & $script:Module {
+            $script:CombinedLoginCalls = 0
+            Mock -CommandName Test-AZSCPS -MockWith { 'Windows' }
+            Mock -CommandName Connect-AZSCLoginSession -MockWith {
+                $script:CombinedLoginCalls++
+                if ($script:CombinedLoginCalls -eq 1) { return 'test-tenant' }
+                throw 'REGRESSION-GATE: combined run reached the inventory phase'
+            }
+
+            $message = try {
+                Invoke-AzureScout `
+                    -Assessment 'CAF: Azure Landing Zone' `
+                    -InventoryAndAssessment `
+                    -OutputFormat React, JsonEvidence `
+                    -NoWizard
+                '<no error>'
+            }
+            catch { $_.Exception.Message }
+
+            [pscustomobject]@{ Message = $message; LoginCalls = $script:CombinedLoginCalls }
+        }
+
+        $result.Message | Should -Be 'REGRESSION-GATE: combined run reached the inventory phase'
+        $result.LoginCalls | Should -Be 2
+    }
+
+    It 'completes a JSON-only inventory with a zero Excel row count' {
+        $work = $TestDrive
+
+        {
+            & $script:Module {
+                param($Work)
+
+                Mock Test-AZSCPS { 'Linux' }
+                Mock Test-AZSCInteractiveHost { $false }
+                Mock Connect-AZSCLoginSession { 'test-tenant' }
+                Mock Get-AzContext {
+                    [pscustomobject]@{
+                        Account      = [pscustomobject]@{ Id = 'test@example.invalid' }
+                        Subscription = [pscustomobject]@{ Id = 'sub-1'; Name = 'Test' }
+                        Tenant       = [pscustomobject]@{ Id = 'test-tenant' }
+                    }
+                }
+                Mock Test-AZSCManagementGroupAccess { [pscustomobject]@{ HasAccess = $true; Count = 1 } }
+                Mock Get-AZSCSubscriptions { @([pscustomobject]@{ Id = 'sub-1'; Name = 'Test' }) }
+                Mock Set-AZSCReportPath {
+                    @{
+                        DefaultPath  = $Work
+                        DiagramCache = Join-Path $Work 'DiagramCache'
+                        ReportCache  = Join-Path $Work 'ReportCache'
+                    }
+                }
+                Mock Set-AZSCFolder
+                Mock Start-AZSCRunLog
+                Mock Write-AZSCLog
+                Mock Write-AZSCLogPhase
+                Mock Clear-AZSCCacheFolder
+                Mock Get-Module { [pscustomobject]@{ Version = [version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
+                Mock Start-AZSCExtractionOrchestration {
+                    [pscustomobject]@{
+                        Resources          = @()
+                        EntraResources     = @()
+                        Quotas             = @()
+                        Costs              = @()
+                        ResourceContainers = @()
+                        Advisories         = @()
+                        ResourcesCount     = 0
+                        AdvisoryCount      = 0
+                        SecCenterCount     = 0
+                        Security           = @()
+                        Retirements        = @()
+                        PolicyCount        = 0
+                        PolicyAssign       = @()
+                        PolicyDef          = @()
+                        PolicySetDef       = @()
+                    }
+                }
+                Mock Export-ScoutRawInventoryDump { Join-Path $Work 'raw-inventory.json' }
+                Mock Start-AZSCExtraJobs { @{} }
+                Mock Start-AZSCProcessOrchestration
+                Mock Export-AZSCJsonReport { Join-Path $Work 'AzureScout.json' }
+                Mock Clear-AZSCMemory
+                Mock Out-AZSCReportResults
+                Mock Stop-AZSCRunLog { Join-Path $Work 'AzureScout.log' }
+
+                Invoke-AzureScout -NoWizard -OutputFormat Json -SkipPermissionCheck -SkipDiagram
+
+                Should -Invoke Export-AZSCJsonReport -Exactly 1
+                Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+            } $work
+        } | Should -Not -Throw
+    }
+
+    It 'completes Both with React and JsonEvidence through deferred assessment' {
+        $work = Join-Path $TestDrive 'both-react'
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+
+        {
+            & $script:Module {
+                param($Work)
+
+                Mock Test-AZSCPS { 'Linux' }
+                Mock Test-AZSCInteractiveHost { $false }
+                Mock Connect-AZSCLoginSession { 'test-tenant' }
+                Mock Get-AzContext { [pscustomobject]@{ Account=[pscustomobject]@{Id='test@example.invalid'}; Subscription=[pscustomobject]@{Id='sub-1';Name='Test'}; Tenant=[pscustomobject]@{Id='test-tenant'} } }
+                Mock Test-AZSCManagementGroupAccess { [pscustomobject]@{ HasAccess=$true; Count=1 } }
+                Mock Get-AZSCSubscriptions { @([pscustomobject]@{ Id='sub-1'; Name='Test' }) }
+                Mock Set-AZSCReportPath { @{ DefaultPath=$Work; DiagramCache=(Join-Path $Work 'DiagramCache'); ReportCache=(Join-Path $Work 'ReportCache') } }
+                Mock Set-AZSCFolder
+                Mock Start-AZSCRunLog
+                Mock Write-AZSCLog
+                Mock Write-AZSCLogPhase
+                Mock Clear-AZSCCacheFolder
+                Mock Get-Module { [pscustomobject]@{ Version=[version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
+                Mock Start-AZSCExtractionOrchestration {
+                    [pscustomobject]@{
+                        Resources=@(); EntraResources=@(); Quotas=@(); Costs=@(); ResourceContainers=@(); Advisories=@()
+                        ResourcesCount=0; AdvisoryCount=0; SecCenterCount=0; Security=@(); Retirements=@(); PolicyCount=0
+                        PolicyAssign=@(); PolicyDef=@(); PolicySetDef=@()
+                    }
+                }
+                Mock Export-ScoutRawInventoryDump { Join-Path $Work 'raw-inventory.json' }
+                Mock Start-AZSCExtraJobs { @{} }
+                Mock Start-AZSCProcessOrchestration
+                Mock Invoke-ScoutAssessmentCore {
+                    $assessmentPath = Join-Path $Work 'assessment-report'
+                    New-Item -ItemType Directory -Path $assessmentPath -Force | Out-Null
+                    '<html></html>' | Set-Content (Join-Path $assessmentPath 'report-react.html')
+                    return $assessmentPath
+                }
+                Mock Clear-AZSCMemory
+                Mock Out-AZSCReportResults
+                Mock Stop-AZSCRunLog { Join-Path $Work 'AzureScout.log' }
+
+                Invoke-AzureScout -NoWizard -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment `
+                    -OutputFormat React,JsonEvidence -SkipPermissionCheck -SkipDiagram
+
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
+                    $OutputFormat -contains 'React' -and $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
+                }
+                Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+            } $work
+        } | Should -Not -Throw
+    }
 }
 
 Describe 'Wizard — interactive-host gate' {
@@ -294,6 +440,43 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
             Read-AZSCWizardChecklist -Title 'x' -Groups (Group-AZSCWizardAssessment -Names $n) -DefaultSelected @('CAF: Azure Landing Zone')
         } $script:RegistryKeys
         $result | Should -Be @('CAF: Azure Landing Zone')
+    }
+}
+
+Describe 'Wizard — combined run contract' {
+    BeforeEach {
+        & $script:Module {
+            Mock -CommandName Write-Host -MockWith {}
+            Mock -CommandName Get-AzContext -MockWith {
+                [pscustomobject]@{
+                    Account = [pscustomobject]@{ Id = 'test@example.invalid' }
+                    Tenant  = [pscustomobject]@{ Id = '00000000-0000-0000-0000-000000000000' }
+                }
+            }
+            Mock -CommandName Get-AzTenant -MockWith {
+                @([pscustomobject]@{ Id = '00000000-0000-0000-0000-000000000000'; Name = 'Test' })
+            }
+            Mock -CommandName Test-AZSCPermissions -MockWith {
+                [pscustomobject]@{ Details = @(); OverallReadiness = 'ARMOnly' }
+            }
+            Mock -CommandName Get-ScoutAvailableAssessment -MockWith { @('CAF: Azure Landing Zone') }
+            Mock -CommandName Get-ScoutCategoryCoverage -MockWith { @() }
+        }
+    }
+
+    It 'returns Both with React and JsonEvidence selected' {
+        $result = & $script:Module {
+            $script:WizardResponses = [System.Collections.Generic.Queue[string]]::new()
+            @('', '3', '', '', '', '3', '', '', '', '', '', '', '') |
+                ForEach-Object { $script:WizardResponses.Enqueue($_) }
+            Mock -CommandName Read-Host -MockWith { $script:WizardResponses.Dequeue() }
+
+            Start-AZSCWizard -AzureEnvironment AzureCloud -PlatOS Windows
+        }
+
+        $result.RunBoth | Should -BeTrue
+        $result.Answers.Assessment | Should -Be @('CAF: Azure Landing Zone')
+        $result.Answers.OutputFormat | Should -Be @('React', 'JsonEvidence')
     }
 }
 

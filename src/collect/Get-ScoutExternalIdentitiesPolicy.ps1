@@ -45,7 +45,9 @@ $ErrorActionPreference = 'Stop'
 function Get-ScoutExternalIdentitiesPolicy {
     [CmdletBinding()]
     [OutputType([pscustomobject])]
-    param()
+    param(
+        [string] $TenantID
+    )
 
     $notCollected = [pscustomobject]@{
         Collected                          = $false
@@ -64,7 +66,7 @@ function Get-ScoutExternalIdentitiesPolicy {
     # '.value' wrapper) when the response carries no such property. -SinglePage is not strictly
     # required for a singleton response, but is set anyway so a future change to this endpoint's
     # shape can never accidentally start paginating a policy object.
-    $result = Invoke-AZSCGraphRequest -Uri '/v1.0/policies/crossTenantAccessPolicy/default' -SinglePage
+    $result = Invoke-AZSCGraphRequest -Uri '/v1.0/policies/crossTenantAccessPolicy/default' -SinglePage -TenantID $TenantID
 
     if ($null -eq $result) { return $notCollected }
 

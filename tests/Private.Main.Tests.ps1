@@ -178,7 +178,7 @@ Describe 'Clear-AZSCCacheFolder — deletes files in cache folder' {
     It 'Removes files from cache folder' {
         Clear-AZSCCacheFolder -ReportCache $script:CacheDir
         $remaining = Get-ChildItem -Path $script:CacheDir -File -Recurse
-        $remaining.Count | Should -Be 0
+        @($remaining).Count | Should -Be 0
     }
 }
 

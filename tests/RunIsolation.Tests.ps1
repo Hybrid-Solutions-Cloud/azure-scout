@@ -55,11 +55,11 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
     }
 
     It 'Does not reuse a previous run folder — two runs never collide' {
-        # A same-second second call would produce an identical timestamp, so drive the
-        # two runs through -RunName to assert the isolation contract deterministically.
-        $first  = Set-AZSCReportPath -ReportDir $script:TempDir -RunName 'tenantA'
-        $second = Set-AZSCReportPath -ReportDir $script:TempDir -RunName 'tenantB'
+        $first  = Set-AZSCReportPath -ReportDir $script:TempDir -RunName 'same-run'
+        $second = Set-AZSCReportPath -ReportDir $script:TempDir -RunName 'same-run'
         $first.DefaultPath | Should -Not -Be $second.DefaultPath
+        $first.DefaultPath | Should -Exist
+        $second.DefaultPath | Should -Exist
     }
 
     It 'Uses the supplied RunName as the folder name' {
@@ -81,12 +81,12 @@ Describe 'Set-AZSCReportPath — run isolation (AB#331)' {
 
     It 'Falls back to a timestamp when RunName is whitespace only' {
         $result = Set-AZSCReportPath -ReportDir $script:TempDir -RunName '   '
-        $result.RunFolder | Should -Match '^\d{4}-\d{2}-\d{2}_\d{6}$'
+        $result.RunFolder | Should -Match '^\d{4}-\d{2}-\d{2}_\d{6}_\d{3}(?:-\d+)?$'
     }
 
     It 'Appends a truncated scope identifier to the generated folder name' {
         $result = Set-AZSCReportPath -ReportDir $script:TempDir -ScopeId '12345678-aaaa-bbbb-cccc-dddddddddddd'
-        $result.RunFolder | Should -Match '^\d{4}-\d{2}-\d{2}_\d{6}_12345678$'
+        $result.RunFolder | Should -Match '^\d{4}-\d{2}-\d{2}_\d{6}_\d{3}_12345678$'
     }
 
     It 'Writes into the base path directly when -Force is supplied' {
@@ -114,6 +114,8 @@ Describe 'Clear-AZSCCacheFolder — prune mode (AB#331)' {
         $script:NewRun = Join-Path -Path $script:PruneBase -ChildPath '2026-07-25_120000'
         New-Item -ItemType Directory -Path $script:OldRun -Force | Out-Null
         New-Item -ItemType Directory -Path $script:NewRun -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $script:OldRun 'ReportCache') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $script:NewRun 'ReportCache') -Force | Out-Null
         (Get-Item $script:OldRun).LastWriteTime = (Get-Date).AddDays(-90)
     }
 
@@ -125,6 +127,16 @@ Describe 'Clear-AZSCCacheFolder — prune mode (AB#331)' {
     It 'Keeps run folders newer than the cutoff' {
         Clear-AZSCCacheFolder -OlderThan 30 -BasePath $script:PruneBase
         $script:NewRun | Should -Exist
+    }
+
+    It 'preserves unrelated old directories under a shared base path' {
+        $unrelated = Join-Path $script:PruneBase 'unrelated-data'
+        New-Item -ItemType Directory -Path $unrelated -Force | Out-Null
+        (Get-Item $unrelated).LastWriteTime = (Get-Date).AddDays(-90)
+
+        Clear-AZSCCacheFolder -OlderThan 30 -BasePath $script:PruneBase -WarningAction SilentlyContinue
+
+        $unrelated | Should -Exist
     }
 
     It 'Does not throw when the base path does not exist' {
@@ -159,7 +171,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Switches context once per subscription and restores once at the end' {
         Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         Invoke-AZSCInSubscriptionContext -Subscription $script:Subs -Process { param($s) $null = $s }
 
@@ -169,7 +181,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Runs the process block once per subscription' {
         Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         $seen = [System.Collections.Generic.List[string]]::new()
         Invoke-AZSCInSubscriptionContext -Subscription $script:Subs -Process { param($s) $seen.Add($s.Id) }
@@ -180,7 +192,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Restores the original context when the loop throws part way through' {
         Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         {
             Invoke-AZSCInSubscriptionContext -Subscription $script:Subs -Process {
@@ -194,7 +206,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Accepts plain subscription ID strings' {
         Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         Invoke-AZSCInSubscriptionContext -Subscription @('sub-a', 'sub-b') -Process { param($s) $null = $s }
 
@@ -204,7 +216,7 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Does not attempt a restore when there was no original context' {
         Mock Get-AzContext { $null }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         Invoke-AZSCInSubscriptionContext -Subscription @('sub-a') -Process { param($s) $null = $s }
 
@@ -213,11 +225,35 @@ Describe 'Invoke-AZSCInSubscriptionContext — context restore (AB#368)' {
 
     It 'Skips entries with no resolvable subscription Id' {
         Mock Get-AzContext { $null }
-        Mock Set-AzContext { }
+        Mock Set-AzContext { [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } } }
 
         Invoke-AZSCInSubscriptionContext -Subscription @([PSCustomObject]@{ Name = 'no-id' }) -Process { param($s) $null = $s }
 
         Should -Invoke Set-AzContext -Times 0 -Exactly
+    }
+
+    It 'does not run the process when selecting the target subscription fails' {
+        Mock Get-AzContext { [PSCustomObject]@{ Subscription = [PSCustomObject]@{ Id = 'original-sub' }; Tenant = [PSCustomObject]@{ Id = 'tenant-a' } } }
+        Mock Set-AzContext {
+            if ($Subscription -eq 'sub-2') { throw 'context denied' }
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
+        }
+
+        $seen = [System.Collections.Generic.List[string]]::new()
+        Invoke-AZSCInSubscriptionContext -Subscription $script:Subs -Process { param($s) $seen.Add($s.Id) } -WarningAction SilentlyContinue
+
+        $seen -join ',' | Should -Be 'sub-1,sub-3'
+        Should -Invoke Set-AzContext -Times 1 -Exactly -ParameterFilter { $Subscription -eq 'original-sub' }
+    }
+
+    It 'does not run the process when Set-AzContext returns no context' {
+        Mock Get-AzContext { $null }
+        Mock Set-AzContext { $null }
+        $script:ProcessRan = $false
+
+        Invoke-AZSCInSubscriptionContext -Subscription @('sub-a') -Process { $script:ProcessRan = $true } -WarningAction SilentlyContinue
+
+        $script:ProcessRan | Should -BeFalse
     }
 }
 

@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .SYNOPSIS
 Checks PSGallery for a newer AzureScout release than the one currently loaded and
@@ -87,9 +91,13 @@ function Test-AZSCModuleUpdate {
         # the manifest as data. Test-ModuleManifest can import a same-named installed
         # module while this local module is mid-import, leaking stale exports into the
         # caller's session (including removed public commands).
-        $_localVersion = (Get-Module -Name AzureScout -ErrorAction SilentlyContinue |
+        $_loadedModule = Get-Module -Name AzureScout -ErrorAction SilentlyContinue |
             Sort-Object -Property Version -Descending |
-            Select-Object -First 1).Version
+            Select-Object -First 1
+        $_localVersion = $null
+        if ($_loadedModule -and $_loadedModule.PSObject.Properties['Version']) {
+            $_localVersion = $_loadedModule.Version
+        }
         if (-not $_localVersion) {
             $_localVersion = [Version](Import-PowerShellDataFile -Path $ManifestPath -ErrorAction Stop).ModuleVersion
         }

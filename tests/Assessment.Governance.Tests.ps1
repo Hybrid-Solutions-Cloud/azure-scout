@@ -99,6 +99,11 @@ Describe 'Import-Governance — native collector shape' {
         @($result.governance.resourceLocks).Count     | Should -Be 2
         @($result.governance.classicAdministrators).Count | Should -Be 0
         @($result.governance.pimEligibility).Count        | Should -Be 0
+        $result.governance.pimEligibilityAvailable        | Should -BeFalse
+        $result.governance.policyAssignmentsAvailable     | Should -BeTrue
+        $result.governance.roleAssignmentsAvailable       | Should -BeTrue
+        $result.governance.budgetsAvailable               | Should -BeTrue
+        $result.governance.resourceLocksAvailable         | Should -BeTrue
     }
 
     It 'scopes Resource Graph to the management group when one is supplied' {
@@ -118,6 +123,45 @@ Describe 'Import-Governance — native collector shape' {
         # to git (the AzGovViz clone) as a proxy for "no visualizer dependency".
         Mock git { throw 'git must not be called by the native collector' }
         { Import-Governance -Collect (Get-MockCollect) } | Should -Not -Throw
+    }
+
+    It 'marks failed governance reads unavailable so dependent rules are NotAssessed' {
+        Mock Search-AzGraph {
+            if ($Query -match 'managementgroups') { return $script:MockMgs }
+            throw 'simulated ARG denial'
+        }
+        Mock Invoke-AzRestMethod { throw 'simulated ARM denial' }
+
+        $collect = Import-Governance -Collect (Get-MockCollect) -WarningAction SilentlyContinue
+        $rules = Get-RuleSet -Patterns @('caf.governance', 'caf.identity')
+        $findings = Invoke-Assessment -Collect $collect -RuleSet $rules -Assessment 'UnavailableGov'
+
+        $collect.governance.policyAssignmentsAvailable | Should -BeFalse
+        $collect.governance.roleAssignmentsAvailable | Should -BeFalse
+        $collect.governance.budgetsAvailable | Should -BeFalse
+        $collect.governance.resourceLocksAvailable | Should -BeFalse
+        foreach ($id in 'CAF-GOV-01', 'CAF-GOV-02', 'CAF-GOV-03', 'CAF-GOV-04', 'CAF-IDN-01') {
+            ($findings | Where-Object Id -eq $id).Status | Should -Be 'NotAssessed'
+        }
+    }
+
+    It 'gates every automated rule that reads a fallible governance dataset' {
+        $rules = @(Get-RuleSet -Patterns @('*') | ForEach-Object { $_.Rules })
+        $gateByDataset = @{
+            policyAssignments = '$.governance.policyAssignmentsAvailable'
+            roleAssignments   = '$.governance.roleAssignmentsAvailable'
+            budgets           = '$.governance.budgetsAvailable'
+            resourceLocks     = '$.governance.resourceLocksAvailable'
+        }
+
+        foreach ($rule in $rules) {
+            $query = if ($rule -is [hashtable]) { [string]$rule['query'] }
+                     elseif ($rule.PSObject.Properties['query']) { [string]$rule.query }
+                     else { '' }
+            if ($rule.manual -or $query -notmatch '^\$\.governance\.(policyAssignments|roleAssignments|budgets|resourceLocks)') { continue }
+            $dataset = $Matches[1]
+            $rule.assert.gate | Should -Be $gateByDataset[$dataset] -Because "$($rule.id) reads $dataset"
+        }
     }
 }
 
@@ -152,7 +196,9 @@ Describe 'Governance rules score against native collect (unblocks AB#5041)' {
         $byId['CAF-GOV-05'] | Should -Be 'Manual'
         $byId['CAF-RES-02'] | Should -Be 'Pass'   # >1 management group
         $byId['CAF-IDN-01'] | Should -Be 'Pass'   # <50 user role assignments
+        $byId['CAF-IDN-02'] | Should -Be 'NotAssessed' # PIM is not collected by the native governance ingest
         $byId['CAF-IDN-03'] | Should -Be 'Pass'   # no classic admins
+        $byId['CAF-IDN-05'] | Should -Be 'NotAssessed' # unavailable is not evidence of no PIM adoption
         # AB#6798: caf.billing.yaml was rewritten against the real CAF "Azure billing and
         # Microsoft Entra tenant" design area (EA/MCA/tenant setup); it previously held cost
         # rules that duplicated waf.cost.yaml (moved there as WAF-CO-08/09). Every rule in the

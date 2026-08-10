@@ -213,10 +213,24 @@ Describe 'Invoke-AzureScout — PowerShell edition guard' {
 
     It 'The guard condition itself evaluates to $false on this (Core) test host' {
         # Deliberately does NOT invoke Invoke-AzureScout end-to-end: beyond the guard,
-        # the function calls Exit (on -Help) or attempts a live Connect-AzAccount /
-        # device-code sign-in (on any other path), either of which is unsafe inside a
-        # Pester run. Evaluating the guard's own condition is a safe, faithful proxy —
+        # the function returns help or attempts a live Connect-AzAccount / device-code sign-in
+        # on any other path. Evaluating the guard's own condition is a safe, faithful proxy —
         # it is the exact expression used in the source (see previous test).
         ($PSVersionTable.PSEdition -ne 'Core') | Should -BeFalse
+    }
+
+    It 'never terminates the caller host with a bare exit statement' {
+        $script:InvokeSource | Should -Not -Match '(?im)^\s*exit(?:\s|$)'
+    }
+
+    It 'restores the process-wide Az warning setting in a finally block' {
+        $script:InvokeSource | Should -Match "GetEnvironmentVariable\('SuppressAzurePowerShellBreakingChangeWarnings', 'Process'\)"
+        $script:InvokeSource | Should -Match "SetEnvironmentVariable\('SuppressAzurePowerShellBreakingChangeWarnings', \`$previousAzBreakingChangeWarningSetting, 'Process'\)"
+        $script:InvokeSource | Should -Match '(?s)finally\s*\{.*restoreAzBreakingChangeWarningSetting'
+    }
+
+    It 'buffers preflight warnings until the durable run log exists' {
+        $script:InvokeSource | Should -Match '\$bufferedWarnings\.Add\(\$Message\)'
+        $script:InvokeSource | Should -Match '(?s)Start-AZSCRunLog.*\$runLogStarted\s*=\s*\$true.*foreach \(\$bufferedWarning in \$bufferedWarnings\)'
     }
 }

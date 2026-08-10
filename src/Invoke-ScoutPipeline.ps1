@@ -120,7 +120,7 @@ function Invoke-ScoutPipeline {
     [CmdletBinding()]
     param(
         [string[]] $Assessment = @('CAF: Azure Landing Zone'),
-        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'All')]
+        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
         [string[]] $OutputFormat = @('All'),
         [string]   $OutputPath = './output',
         [string]   $ManagementGroupId,
@@ -137,11 +137,6 @@ function Invoke-ScoutPipeline {
     $schemaVersion = '1.0'
     $startedOn = Get-Date
     New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
-
-    # Snapshot the folder listing before the orchestrator runs so a thrown exception
-    # (which loses the return value) can still be resolved back to the run folder the
-    # orchestrator had already created before it failed.
-    $priorRunFolders = @(Get-ChildItem -Path $OutputPath -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 
     if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
         try { Write-ScoutProgress -Activity 'Scout Pipeline' -Status 'Permission audit' -PercentComplete 0 -Id 1 }
@@ -211,8 +206,26 @@ function Invoke-ScoutPipeline {
     # AB#397/399/400 per-query resilience) swallowed internally while still completing,
     # so a run that degraded some datasets without hard-failing is visible as such
     # instead of looking identical to a fully clean run.
+    # Own and atomically reserve the run folder before invoking the core. On failure this exact
+    # path remains authoritative; guessing from a directory-listing delta could select another
+    # concurrent caller's folder.
+    $runFolder = $null
+    for ($suffix = 0; $suffix -lt 1000; $suffix++) {
+        $leaf = if ($suffix -eq 0) { 'assessment-report' } else { 'assessment-report_{0:d2}' -f $suffix }
+        $candidate = Join-Path $OutputPath $leaf
+        try {
+            $null = New-Item -ItemType Directory -Path $candidate -ErrorAction Stop
+            $runFolder = [System.IO.Path]::GetFullPath($candidate)
+            break
+        }
+        catch {
+            if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { throw }
+        }
+    }
+    if (-not $runFolder) { throw "Could not reserve a unique assessment report directory beneath '$OutputPath'." }
+    $assessParams.ReservedRunPath = $runFolder
+
     $errSentinelBeforeAssess = if ($Error.Count) { $Error[0] } else { $null }
-    $runFolder       = $null
     $assessmentError = $null
     try {
         $runFolder = Invoke-ScoutAssessmentCore @assessParams
@@ -229,13 +242,6 @@ function Invoke-ScoutPipeline {
     $assessmentHadNonTerminatingErrors = ($assessNewErrors -gt 0)
     if ($assessmentHadNonTerminatingErrors -and -not $assessmentError) {
         Write-Warning "Invoke-ScoutPipeline: the collect/assess/report run completed but recorded $assessNewErrors non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
-    }
-
-    if (-not $runFolder) {
-        $recovered = Get-ChildItem -Path $OutputPath -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $priorRunFolders -notcontains $_.Name } |
-            Sort-Object CreationTime -Descending | Select-Object -First 1
-        if ($recovered) { $runFolder = $recovered.FullName }
     }
 
     $finishedOn = Get-Date

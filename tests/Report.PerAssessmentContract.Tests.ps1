@@ -134,6 +134,9 @@ Describe 'AB#6880 -- the cross-assessment executive roll-up (clause R-03)' {
         foreach ($Field in 'Assessment', 'Score', 'Findings', 'Failed', 'Manual') {
             $script:Source | Should -Match "$Field\s*=" -Because "the roll-up compares assessments on $Field"
         }
+        $script:Source | Should -Match 'FrameworkScores\s*='
+        $script:Source | Should -Match 'Measure-Object -Property Score -Average'
+        $script:Source | Should -Not -Match "Score\s*=\s*\(Get-AZSCSafeProperty -InputObject \`$s -Path 'Score'\)"
     }
 
     It 'restricts the roll-up to the deck and the PDF' {

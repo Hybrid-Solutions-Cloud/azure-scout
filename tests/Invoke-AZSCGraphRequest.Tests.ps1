@@ -54,6 +54,30 @@ Describe 'Invoke-AZSCGraphRequest' {
                 $Uri -eq 'https://graph.microsoft.com/v1.0/users'
             }
         }
+
+        It 'uses the US Government Graph endpoint and token resource when requested' {
+            InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/organization' -AzureEnvironment AzureUSGovernment
+            }
+            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -ParameterFilter {
+                $Uri -like 'https://graph.microsoft.us/v1.0/organization*'
+            }
+            Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout -ParameterFilter {
+                $AzureEnvironment -eq 'AzureUSGovernment'
+            }
+        }
+
+        It 'uses the China Graph endpoint and token resource when requested' {
+            InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/organization' -AzureEnvironment AzureChinaCloud
+            }
+            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -ParameterFilter {
+                $Uri -like 'https://microsoftgraph.chinacloudapi.cn/v1.0/organization*'
+            }
+            Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout -ParameterFilter {
+                $AzureEnvironment -eq 'AzureChinaCloud'
+            }
+        }
     }
 
     # ── Successful Single-Page Request ────────────────────────────────

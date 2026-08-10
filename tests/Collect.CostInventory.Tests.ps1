@@ -19,8 +19,13 @@ BeforeAll {
 }
 
 Describe 'Get-ScoutCostInventory -- Az.CostManagement not installed' {
+    BeforeEach {
+        Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
+    }
+
     It 'never throws, warns once with the install command, and returns @() CostData for every subscription' {
-        # No Invoke-AzCostManagementQuery function defined at all -- Get-Command must not find it.
+        # The host may have Az.CostManagement installed. Mock discovery so this test always
+        # exercises the missing-module branch without making a live Azure call.
         { Get-ScoutCostInventory -Subscriptions $script:subs -WarningAction SilentlyContinue } | Should -Not -Throw
         $result = @(Get-ScoutCostInventory -Subscriptions $script:subs -WarningVariable warnings -WarningAction SilentlyContinue)
         $result.Count | Should -Be 2

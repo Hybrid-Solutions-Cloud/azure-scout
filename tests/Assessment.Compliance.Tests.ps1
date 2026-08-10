@@ -87,14 +87,29 @@ Describe 'AB#6793 — three states, so unassessed never reads as passed' {
         $finding.Status | Should -Not -Be 'Fail'
     }
 
-    It 'excludes NotAssessed from the compliance percentage denominator' {
-        # 1 Pass (policy-a) + 1 Fail (policy-b) scorable; policy-c (NotAssessed) must not enter
-        # the denominator, so the percentage is exactly 50, not 33 (which is what counting all
-        # three controls would produce).
-        $script:Scored.CompliancePercent | Should -Be 50
+    It 'withholds the headline when only a fraction of the initiative was observed' {
+        # Three distinct controls were returned for a 223-control initiative. Reporting 50%
+        # from only the one pass and one fail would present partial evidence as full coverage.
+        $script:Scored.CompliancePercent | Should -BeNullOrEmpty
         $script:Scored.Pass | Should -Be 1
         $script:Scored.Fail | Should -Be 1
-        $script:Scored.NotAssessed | Should -Be 1
+        $script:Scored.ObservedControlCount | Should -Be 3
+        $script:Scored.ExpectedControlCount | Should -Be 223
+        $script:Scored.UnobservedControlCount | Should -Be 220
+        $script:Scored.NotAssessed | Should -Be 221
+        $script:Scored.CoverageComplete | Should -BeFalse
+    }
+
+    It 'scores a complete observed set while excluding explicit NotAssessed controls' {
+        $completeInitiative = [pscustomobject]@{
+            Id = $script:Mcsb.Id; DisplayName = $script:Mcsb.DisplayName
+            Version = $script:Mcsb.Version; PolicyCount = 3
+        }
+        $complete = Get-ScoutComplianceScore -Collect $script:Collect -Initiative $completeInitiative
+
+        $complete.CompliancePercent | Should -Be 50
+        $complete.NotAssessed | Should -Be 1
+        $complete.CoverageComplete | Should -BeTrue
     }
 
     It 'a deliberately unassigned initiative (definition known, zero compliance rows) is never offered as scored' {

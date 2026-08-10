@@ -465,6 +465,7 @@ function Invoke-Collect {
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',
         [string]   $ManagementGroupId,
+        [string]   $TenantID,
 
         # AB#5543 — the result of Start-AZSCGraphExtraction from an inventory pass that already
         # ran in this invocation. When supplied, every query below that can be satisfied from
@@ -1568,7 +1569,7 @@ resources | where type =~ "microsoft.devices/iothubs"
 // manual — that lives in the device registry, a data-plane store Resource
 // Graph does not index).
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
-| project name, resourceGroup, sku = tostring(sku.name), publicAccess, disableLocalAuth
+| project id, name, resourceGroup, sku = tostring(sku.name), publicAccess, disableLocalAuth
 '@
         # AB#330: Microsoft.Devices/provisioningServices (Device Provisioning Service) IS
         # indexed by Resource Graph (confirmed via the ARG supported-tables-and-resource-types
@@ -1583,7 +1584,7 @@ resources | where type =~ "microsoft.devices/provisioningservices"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | extend allocationPolicy = tostring(properties.allocationPolicy)
 | extend linkedHubCount = array_length(properties.iotHubs)
-| project name, resourceGroup, sku = tostring(sku.name), publicAccess, allocationPolicy, linkedHubCount
+| project id, name, resourceGroup, sku = tostring(sku.name), publicAccess, allocationPolicy, linkedHubCount
 '@
         # AB#330: Microsoft.DigitalTwins/digitalTwinsInstances IS indexed by Resource Graph
         # (confirmed via the ARG supported-tables-and-resource-types reference, entry 491).
@@ -1599,7 +1600,7 @@ resources | where type =~ "microsoft.digitaltwins/digitaltwinsinstances"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | extend privateEndpointConnectionCount = array_length(properties.privateEndpointConnections)
 | extend identityType = tostring(identity.type)
-| project name, resourceGroup, publicAccess, privateEndpointConnectionCount, identityType
+| project id, name, resourceGroup, publicAccess, privateEndpointConnectionCount, identityType
 '@
         # AB#7083: Microsoft.IoTOperations/instances IS indexed by Resource Graph (confirmed
         # against manifests/azure-provider-types.json and the ARM template reference). Arc-enabled
@@ -3142,7 +3143,7 @@ resources
             if (-not (Get-Command Get-ScoutExternalIdentitiesPolicy -ErrorAction SilentlyContinue)) {
                 . (Join-Path $PSScriptRoot 'Get-ScoutExternalIdentitiesPolicy.ps1')
             }
-            $externalIdentitiesPolicy = Get-ScoutExternalIdentitiesPolicy
+            $externalIdentitiesPolicy = Get-ScoutExternalIdentitiesPolicy -TenantID $TenantID
         }
         catch {
             Write-Warning "Invoke-Collect: the External Identities policy collection failed; domains.identity.externalIdentitiesPolicy will report Collected = `$false for this run: $($_.Exception.Message)"

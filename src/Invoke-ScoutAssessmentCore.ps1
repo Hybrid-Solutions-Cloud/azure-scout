@@ -39,15 +39,15 @@ $script:ScoutHeldRenderers = @(
     re-scanning. Read-only throughout.
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html,Pptx
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React,Json,JsonEvidence
 
 .EXAMPLE
     Invoke-AzureScout -Assessment 'Assess: Management'   # governance/policy/update-manager, scored
-    Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat Html
+    Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat React
 
 .EXAMPLE
     Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React
 
 .NOTES
     Tracks ADO Epic AB#5023 (Feature AB#5024, Story AB#5026) and Epic AB#5056.
@@ -117,23 +117,10 @@ function Invoke-ScoutAssessmentCore {
         # AB#6928 follow-up -- which view lens the React report opens on first (see Export-Report/
         # Export-React's own doc comments). Threaded to every Export-Report call below.
         [ValidateSet('Executive', 'Consultant', 'Data')]
-        [string] $DefaultReportMode = 'Consultant'
+        [string] $DefaultReportMode = 'Consultant',
+        [Parameter(DontShow)]
+        [string] $ReservedRunPath
     )
-
-    # AB#7225 -- the folder used to be the bare timestamp ('20260808_205750'), which read as a
-    # random number next to the named inventory artefacts; the operator could not tell it held
-    # the deliverable. It is now NAMED for what it is. The AB#6902 same-second collision rule
-    # still holds via the suffix loop: a second assessment under the same OutputPath gets
-    # 'assessment-report_01', never a shared folder. Drift history still keys on the unique
-    # folder leaf name.
-    $runPath = Join-Path $OutputPath 'assessment-report'
-    $suffix  = 1
-    while (Test-Path $runPath) {
-        $runPath = Join-Path $OutputPath ('assessment-report_{0:d2}' -f $suffix)
-        $suffix++
-    }
-    $runId = Split-Path $runPath -Leaf
-    New-Item -ItemType Directory -Path $runPath -Force | Out-Null
 
     # AB#405: soft dependency -- every call below is skipped entirely when this
     # helper isn't loaded in the session, so the assessment core has zero hard
@@ -162,9 +149,54 @@ function Invoke-ScoutAssessmentCore {
         return Test-ScoutPermission -Assessment $Assessment -Manifest $manifest
     }
 
+    # Validate paths/scope before allocating a deliverable folder. Permission-only and invalid
+    # invocations must not leave empty assessment-report directories behind.
+    $fromCollectData = $null
+    if ($FromCollect) {
+        $fromCollectData = Get-Content -LiteralPath $FromCollect -Raw -ErrorAction Stop | ConvertFrom-Json -Depth 100
+    }
+    elseif ($Scope -eq 'EntraOnly') {
+        throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
+    }
+
+    # Atomically reserve a run-owned folder. Test-Path followed by New-Item -Force allowed two
+    # concurrent callers to select and share the same directory.
+    if ($ReservedRunPath) {
+        $runPath = [System.IO.Path]::GetFullPath($ReservedRunPath)
+        $outputRoot = [System.IO.Path]::GetFullPath($OutputPath).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+        $runLeaf = Split-Path $runPath -Leaf
+        if (-not $runPath.StartsWith($outputRoot, [System.StringComparison]::OrdinalIgnoreCase) -or $runLeaf -notmatch '^assessment-report(?:_\d+)?$') {
+            throw "ReservedRunPath must be an assessment-report directory beneath OutputPath."
+        }
+        if (-not (Test-Path -LiteralPath $runPath -PathType Container)) {
+            $null = New-Item -ItemType Directory -Path $runPath -ErrorAction Stop
+        }
+        elseif (@(Get-ChildItem -LiteralPath $runPath -Force -ErrorAction Stop).Count -gt 0) {
+            throw "ReservedRunPath '$runPath' is not empty."
+        }
+    }
+    else {
+        $null = New-Item -ItemType Directory -Path $OutputPath -Force -ErrorAction Stop
+        $runPath = $null
+        for ($suffix = 0; $suffix -lt 1000; $suffix++) {
+            $leaf = if ($suffix -eq 0) { 'assessment-report' } else { 'assessment-report_{0:d2}' -f $suffix }
+            $candidate = Join-Path $OutputPath $leaf
+            try {
+                $null = New-Item -ItemType Directory -Path $candidate -ErrorAction Stop
+                $runPath = [System.IO.Path]::GetFullPath($candidate)
+                break
+            }
+            catch {
+                if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { throw }
+            }
+        }
+        if (-not $runPath) { throw "Could not reserve a unique assessment report directory beneath '$OutputPath'." }
+    }
+    $runId = Split-Path $runPath -Leaf
+
     # ---- COLLECT ----
     if ($FromCollect) {
-        $collect = Get-Content $FromCollect -Raw | ConvertFrom-Json -Depth 100
+        $collect = $fromCollectData
     }
     else {
         # There is no Entra/Graph collection path in this platform's Collect layer
@@ -173,13 +205,15 @@ function Invoke-ScoutAssessmentCore {
         # silently returning an empty/misleading run. 'ArmOnly' and 'All' are
         # functionally identical today (both just run the ARM collect) and stay
         # accepted for forward compatibility.
-        if ($Scope -eq 'EntraOnly') {
-            throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
-        }
         $categories = $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique
         if ($Category) { $categories = $Category }
         Write-ScoutAssessmentProgress -Status 'Collecting Azure resource data' -PercentComplete 5
-        $collectArgs = @{ Categories = $categories; Scope = $Scope; ManagementGroupId = $ManagementGroupId }
+        $collectArgs = @{
+            Categories        = $categories
+            Scope             = $Scope
+            ManagementGroupId = $ManagementGroupId
+            TenantID          = $TenantID
+        }
         # AB#5543 — reuse the inventory pass when this run already made one.
         if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
         # AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect (it is an extra
@@ -432,9 +466,17 @@ function Invoke-ScoutAssessmentCore {
             $af = @($findingsByAssessment[$name])
             if ($af.Count -eq 0) { continue }
             $s = Get-Score -Findings $af
+            $frameworkScores = @($s.Frameworks | Where-Object { $null -ne $_.Score })
+            $assessmentScore = if ($frameworkScores.Count -gt 0) {
+                [math]::Round((($frameworkScores | Measure-Object -Property Score -Average).Average), 0)
+            }
+            else { $null }
             [pscustomobject]@{
                 Assessment = $name
-                Score      = (Get-AZSCSafeProperty -InputObject $s -Path 'Score')
+                Score      = $assessmentScore
+                FrameworkScores = @($s.Frameworks | ForEach-Object {
+                    [pscustomobject]@{ Framework = $_.Framework; Score = $_.Score }
+                })
                 Findings   = $af.Count
                 Failed     = @($af | Where-Object { $_.Status -eq 'Fail' }).Count
                 Manual     = @($af | Where-Object { $_.Status -eq 'Manual' }).Count

@@ -28,6 +28,10 @@ BeforeAll {
     function New-MockGovernanceCollect {
         [pscustomobject]@{
             governance = [pscustomobject]@{
+                policyAssignmentsAvailable = $true
+                roleAssignmentsAvailable   = $true
+                budgetsAvailable           = $true
+                resourceLocksAvailable     = $true
                 policyAssignments = @(
                     [pscustomobject]@{ id = '/pa/1'; properties = [pscustomobject]@{ enforcementMode = 'Default' } }
                 )
@@ -60,6 +64,10 @@ BeforeAll {
     function New-EmptyGovernanceCollect {
         [pscustomobject]@{
             governance = [pscustomobject]@{
+                policyAssignmentsAvailable = $true
+                roleAssignmentsAvailable   = $true
+                budgetsAvailable           = $true
+                resourceLocksAvailable     = $true
                 policyAssignments = @()
                 budgets           = @()
                 resourceLocks     = @()

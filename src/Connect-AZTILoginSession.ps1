@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Azure Login Session Module for Azure Scout
@@ -55,7 +59,7 @@ function Connect-AZSCLoginSession {
         Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers with no SecureString input path; changing the parameter type is a breaking change for every existing caller.')]
     [CmdletBinding()]
     param(
-        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud', 'AzureGermanCloud')]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment = 'AzureCloud',
 
         [string]$TenantID,
@@ -158,20 +162,29 @@ function Connect-AZSCLoginSession {
     $interactiveParams = @{ Environment = $AzureEnvironment }
     if ($TenantID) { $interactiveParams['Tenant'] = $TenantID }
 
-    # Temporarily disable LoginExperienceV2 if enabled (avoids subscription picker)
+    # Temporarily disable LoginExperienceV2 if enabled (avoids subscription picker). The
+    # authentication call runs exactly once, and a failed login must not leave global Az
+    # configuration changed for the rest of the user's session.
+    $restoreLoginExperienceV2 = $false
     try {
-        $loginConfig = Get-AzConfig -LoginExperienceV2 -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-        if ($loginConfig.Value -eq 'On') {
-            Update-AzConfig -LoginExperienceV2 Off | Out-Null
-            Connect-AzAccount @interactiveParams | Out-Null
-            Update-AzConfig -LoginExperienceV2 On | Out-Null
+        try {
+            $loginConfig = Get-AzConfig -LoginExperienceV2 -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+            if ($loginConfig.Value -eq 'On') {
+                Update-AzConfig -LoginExperienceV2 Off -ErrorAction Stop | Out-Null
+                $restoreLoginExperienceV2 = $true
+            }
         }
-        else {
-            Connect-AzAccount @interactiveParams | Out-Null
+        catch {
+            Write-Verbose "Could not inspect or temporarily change LoginExperienceV2: $($_.Exception.Message)"
         }
+
+        Connect-AzAccount @interactiveParams -ErrorAction Stop | Out-Null
     }
-    catch {
-        Connect-AzAccount @interactiveParams | Out-Null
+    finally {
+        if ($restoreLoginExperienceV2) {
+            try { Update-AzConfig -LoginExperienceV2 On -ErrorAction Stop | Out-Null }
+            catch { Write-Warning "Interactive login completed, but LoginExperienceV2 could not be restored to On: $($_.Exception.Message)" }
+        }
     }
 
     if (-not $TenantID) {

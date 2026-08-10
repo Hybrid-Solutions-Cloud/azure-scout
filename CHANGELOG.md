@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.1] - 2026-08-10 - combined means combined
+
+### Fixed
+
+- **A valid Inventory + Assessment run was rejected at startup (AB#7278).** Selecting
+  `Both` with `React` or `JsonEvidence` reached the assessment-only format guard before the
+  deferred assessment state was considered. The unified entry point now accepts that exact
+  path, completes inventory first, and hands the collected rows to the assessment without a
+  second collection pass. Non-Excel outputs also initialize their result and JSON state, so
+  JSON, Markdown, AsciiDoc, Power BI, and combined runs cannot fail at finalization under
+  StrictMode.
+- **Tenant and caller identity could drift during read-only collection.** Entra and External
+  Identities Graph requests now receive the requested tenant explicitly, subscription context
+  restoration is deterministic, and permission auditing filters role assignments to the
+  signed-in principal instead of accepting another principal's Reader assignment.
+- **Collectors and background work had correctness gaps under paging, concurrency, null data,
+  and sovereign clouds.** Azure DevOps continuation tokens are followed, VM quota/SKU and
+  management-group paths preserve empty results safely, Graph endpoints honor the selected
+  Azure environment, and report/diagram jobs own isolated output state.
+- **Automated assessment rules could score data that was never collected or could not be
+  read.** Assessment manifests now include every automated rule dependency; governance and PIM
+  availability is explicit and gates affected rules to `NotAssessed`; incomplete initiative
+  coverage no longer claims 100 percent compliance; IoT relationship keys, JObject evidence
+  identity, and distinct-resource joins are preserved.
+- **React and data exports diverged from canonical assessment results.** React uses the engine's
+  area weights and framework scores, preserves status/currency/evidence contracts, and CSV
+  exports neutralize formula-injection prefixes without corrupting ordinary values.
+
+### Changed
+
+- **Release and runtime contracts were hardened end to end (AB#7278).** PowerShell 7,
+  StrictMode, and stop-on-error directives are enforced across shipped scripts; the manifest
+  declares core dependencies without installing during import; CI fails closed on discovery or
+  container errors; release automation uses supported parameters and formats; and conditional
+  skip bookkeeping was replaced with executable test discovery. The complete release suite is
+  required to return zero failures and zero skips before publication.
+
 ## [3.10.0] - 2026-08-09 - the last three, closed for real
 
 ### Fixed

@@ -170,6 +170,19 @@ Describe 'Connect-AZSCLoginSession' {
             }
             Should -Invoke Get-AzConfig -ModuleName AzureScout
         }
+
+        It 'restores LoginExperienceV2 and does not prompt twice when authentication fails' {
+            Mock Get-AzContext { return $null } -ModuleName AzureScout
+            Mock Get-AzConfig { [pscustomobject]@{ Value = 'On' } } -ModuleName AzureScout
+            Mock Update-AzConfig { } -ModuleName AzureScout
+            Mock Connect-AzAccount { throw 'interactive authentication failed' } -ModuleName AzureScout
+
+            { InModuleScope 'AzureScout' { Connect-AZSCLoginSession -TenantID 'tenant-v2' } } | Should -Throw '*interactive authentication failed*'
+
+            Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1 -Exactly
+            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'Off' }
+            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'On' }
+        }
     }
 
     # ── AzureEnvironment Passthrough ──────────────────────────────────

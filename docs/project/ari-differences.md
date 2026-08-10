@@ -129,9 +129,11 @@ Virtual Machine and Arc Server modules now pull supplementary data from multiple
 ### Dependency Bootstrap
 
 ARI requires modules to be pre-installed (declared in `RequiredModules`).
-AzureScout auto-installs missing dependencies on first import:
+AzureScout also declares its core dependencies in `RequiredModules`, allowing
+PowerShellGet to resolve them during installation without installing software
+as a side effect of `Import-Module`:
 
-- `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`, `Az.Storage`, `Az.Compute`, `Az.Authorization`, `Az.Resources`
+- `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`, `Az.Storage`, `Az.Compute`, `Az.Resources`, `Az.Advisor`, `powershell-yaml`
 
 ## Structural Changes
 
@@ -201,7 +203,7 @@ The following ARI features were intentionally removed:
 | **RAMP Functions** | `Invoke-AzureRAMPInventory` and the `4.RAMPFunctions/` folder were removed. RAMP (Risk Assessment & Mitigation Program) is an internal Microsoft program not broadly applicable. |
 | **Auto-Update Logic** | ARI calls `Update-Module` to self-update. AzureScout removes this — module updates should be a conscious decision by the operator, not automatic. |
 | **Remove-ARIExcelProcess** | ARI included a function that kills Excel processes to prevent file-lock issues. AzureScout removes this aggressive behavior. |
-| **RequiredModules hard dependency** | Replaced with runtime bootstrap (see [Dependency Bootstrap](#dependency-bootstrap)). |
+| **RequiredModules dependency declaration** | Retained and expanded for AzureScout's core inventory and assessment modules (see [Dependency Bootstrap](#dependency-bootstrap)). |
 
 ## Not Yet in AzureScout
 

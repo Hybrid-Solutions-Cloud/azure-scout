@@ -131,12 +131,8 @@ Describe 'Invoke-AZSCPermissionAudit — Function Signature' {
     }
 
     It 'OutputFormat default value is "Console"' {
-        $default = $script:AuditCmd.Parameters['OutputFormat'].DefaultValue
-        if ($null -eq $default) {
-            Set-ItResult -Skipped -Because 'Default not accessible via reflection'
-        } else {
-            $default | Should -Be 'Console'
-        }
+        $source = Get-Content -LiteralPath $script:AuditScript -Raw
+        $source | Should -Match "\[string\]\s*\`$OutputFormat\s*=\s*'Console'"
     }
 
     It 'ReportDir parameter exists' {
@@ -293,7 +289,10 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         Mock -CommandName Get-AzRoleAssignment -MockWith {
             [PSCustomObject]@{ RoleDefinitionName = 'Reader' }
         }
-        Mock -CommandName Set-AzContext -MockWith { $null }
+        Mock -CommandName Get-AzResourceGroup -MockWith { @() }
+        Mock -CommandName Set-AzContext -MockWith {
+            [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
+        }
         Mock -CommandName Get-AzResourceProvider -MockWith {
             [PSCustomObject]@{ RegistrationState = 'Registered' }
         }
@@ -331,5 +330,28 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
 
     It 'Recommendations is a real array whose .Count never throws even when empty (Sort-Object -Unique null-collapse guard)' {
         { $script:Result.Recommendations.Count } | Should -Not -Throw
+    }
+
+    It 'resolves one collision-safe output path and filename stem for all file formats' {
+        $source = Get-Content -LiteralPath $script:AuditScript -Raw
+        ([regex]::Matches($source, 'Set-AZSCReportPath -ReportDir \$null')).Count | Should -Be 1
+        $source | Should -Match '\$auditFileStem\s*='
+        $source | Should -Match "NewGuid\(\).*Substring\(0, 8\)"
+        foreach ($extension in 'json', 'md', 'adoc') {
+            $source | Should -Match "\`$auditFileStem\.$extension"
+        }
+    }
+
+    It 'does not treat a Reader assignment held by another principal as caller access' {
+        Mock -CommandName Get-AzResourceGroup -MockWith { throw 'AuthorizationFailed for current identity' }
+        Mock -CommandName Get-AzRoleAssignment -MockWith {
+            [PSCustomObject]@{ RoleDefinitionName = 'Reader'; ObjectId = 'someone-else' }
+        }
+
+        $result = Invoke-AZSCPermissionAudit -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console
+        $detail = $result.ArmDetails | Where-Object Check -eq 'ARM: Subscription [demo-sub]' | Select-Object -First 1
+
+        $detail.Status | Should -Be 'Fail'
+        $result.ArmAccess | Should -BeFalse
     }
 }

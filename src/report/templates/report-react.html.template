@@ -271,11 +271,14 @@ assessments.forEach(function(a){
     allFindings.push(clone);
   });
 });
-var counts = { total: allFindings.length, pass: 0, fail: 0, manual: 0, high: 0 };
+var counts = { total: allFindings.length, pass: 0, fail: 0, manual: 0, unknown: 0, error: 0, notAssessed: 0, high: 0 };
 allFindings.forEach(function(f){
   if(f.status==='Pass') counts.pass++;
   else if(f.status==='Fail'){ counts.fail++; if(f.severity==='high') counts.high++; }
-  else counts.manual++;
+  else if(f.status==='Manual') counts.manual++;
+  else if(f.status==='Error') counts.error++;
+  else if(f.status==='NotAssessed') counts.notAssessed++;
+  else counts.unknown++;
 });
 var namedEvidence = [];
 allFindings.forEach(function(f){ safeArr(f.evidence).forEach(function(e){ if(e.resourceName){ var c={fid:f.id}; for(var k in e) c[k]=e[k]; namedEvidence.push(c); } }); });
@@ -300,7 +303,8 @@ function verdictSentence(pct){
 var AZURE_PRICING_URL = 'https://azure.microsoft.com/pricing/';
 var sevRank = { high:0, medium:1, low:2 };
 function sevPill(s){ return '<span class="pill s-'+(s==='high'?'high':s==='medium'?'med':'low')+'">'+(s==='medium'?'Medium':(s?s[0].toUpperCase()+s.slice(1):'Low'))+'</span>'; }
-function statusPill(s){ return '<span class="pill p-'+lc(s)+'">'+(s==='Fail'?'Not met':s==='Pass'?'Met':'Manual')+'</span>'; }
+function statusLabel(s){ return s==='Fail'?'Not met':s==='Pass'?'Met':s==='NotAssessed'?'Not assessed':s==='Error'?'Error':s==='Unknown'?'Unknown':s==='Manual'?'Manual':String(s||'Unknown'); }
+function statusPill(s){ return '<span class="pill p-'+lc(s)+'">'+esc(statusLabel(s))+'</span>'; }
 function anchorId(id){ return String(id).replace(/[^A-Za-z0-9_-]+/g,'-'); }
 function shortId(id){ return id && id.indexOf(':')!==-1 ? id.split(':').pop() : id; }
 /* AB#6938 -- a finding whose short id starts with BENCH- came from Compare-Benchmark's ALZ
@@ -396,7 +400,11 @@ function areaStats(a, area){
     findings: fs,
     pass: fs.filter(function(f){return f.status==='Pass';}).length,
     fail: fs.filter(function(f){return f.status==='Fail';}).length,
-    manual: fs.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';}).length
+    manual: fs.filter(function(f){return f.status==='Manual';}).length,
+    unknown: fs.filter(function(f){return f.status==='Unknown';}).length,
+    error: fs.filter(function(f){return f.status==='Error';}).length,
+    notAssessed: fs.filter(function(f){return f.status==='NotAssessed';}).length,
+    review: fs.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';}).length
   };
 }
 function evidenceTable(f){
@@ -408,8 +416,11 @@ function evidenceTable(f){
   var rows = ev.map(function(e,i){
     return '<tr'+(i>=cap?' class="depth-data"':'')+'><td class="mono">'+esc(e.resourceName||'(scope-level)')+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
   }).join('');
-  var capNote = ev.length>cap ? '<div class="capnote">Showing 12 of '+ev.length+' by default — switch to the Data view for every affected resource, or export the CSV.</div>' : '';
-  return '<div class="fx">Current configuration — '+ev.length+' affected resource'+(ev.length===1?'':'s')+'</div><div class="twrap"><table><tr><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+rows+'</table></div>'+capNote;
+  var total = Number(f.evidenceCount||ev.length);
+  var embedded = ev.length;
+  var shown = Math.min(cap,embedded);
+  var capNote = (total>shown || embedded>cap) ? '<div class="capnote">Showing '+shown+' of '+total+' affected resources. '+(f.evidenceTruncated?'The report embeds a bounded evidence sample; use the machine-readable evidence export for the complete collected set.':'Switch to the Data view or export the CSV for the embedded rows.')+'</div>' : '';
+  return '<div class="fx">Current configuration — '+total+' affected resource'+(total===1?'':'s')+'</div><div class="twrap"><table><tr><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+rows+'</table></div>'+capNote;
 }
 function frameworkOf(f){
   var a = assessments.filter(function(x){ return x.slug===f.slug; })[0];
@@ -445,9 +456,9 @@ function manualAgenda(fs){
   var ms = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail'; });
   if(!ms.length) return '';
   var rows = ms.map(function(f){
-    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><b>'+esc(f.title)+'</b><div class="q">'+esc(f.remediation)+'</div></td><td>'+sevPill(f.severity)+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Learn →</a></td></tr>';
+    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><b>'+esc(f.title)+'</b><div class="q">'+esc(f.remediation)+'</div></td><td>'+statusPill(f.status)+'</td><td>'+sevPill(f.severity)+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Learn →</a></td></tr>';
   }).join('');
-  return '<div class="eyebrow">Manual review agenda — '+ms.length+' item'+(ms.length===1?'':'s')+' the platform cannot measure remotely</div><div class="twrap"><table><tr><th>Check</th><th>Question for the platform team</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
+  return '<div class="eyebrow">Review and availability agenda — '+ms.length+' unscored item'+(ms.length===1?'':'s')+'</div><div class="twrap"><table><tr><th>Check</th><th>Question or collection issue</th><th>Status</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
 }
 
 /* ============================================================
@@ -462,7 +473,7 @@ function manualAgenda(fs){
 function currentStateProse(area, st){
   var scored = st.pass + st.fail, pct = area.percent;
   if(!scored){
-    return '<p class="lede">Every check in <b>'+esc(area.name)+'</b> is manual-only in this run — Azure Resource Graph carries no automatable signal for this design area yet, so all '+st.manual+' item'+(st.manual===1?' sits':'s sit')+' on the review agenda below rather than a score.</p>';
+    return '<p class="lede">No check in <b>'+esc(area.name)+'</b> was scored in this run. '+st.review+' item'+(st.review===1?' is':'s are')+' listed below with its exact Manual, Unknown, Error, or Not assessed status.</p>';
   }
   if(pct>=67){
     return '<p class="lede"><b>'+esc(area.name)+'</b> is in good shape: '+st.pass+' of '+scored+' automated checks pass'+(st.manual?', and '+st.manual+' more need a manual look':'')+'. The gaps below are the last mile, not a foundational problem.</p>';
@@ -478,14 +489,14 @@ function chapterFindingsTables(fs, gopage){
   var passes = fs.filter(function(f){ return f.status==='Pass'; });
   var out = '';
   if(fails.length) out += '<div class="eyebrow">Findings — not met ('+fails.length+')</div>'+registerTable(fails,gopage);
-  if(manuals.length) out += '<div class="eyebrow">Findings — manual review ('+manuals.length+')</div>'+registerTable(manuals,gopage);
+  if(manuals.length) out += '<div class="eyebrow">Findings — unscored / review ('+manuals.length+')</div>'+registerTable(manuals,gopage);
   if(passes.length) out += '<div class="eyebrow">Findings — compliant ('+passes.length+')</div>'+registerTable(passes,gopage);
   return out;
 }
 function areaStatusFigure(a, area, idx, st){
   var w = 560, lw = 130, y = 14;
-  var segs = [['Met',st.pass,'var(--band-exc)'],['Not met',st.fail,'var(--band-crit)'],['Manual',st.manual,'var(--muted)']].filter(function(s){ return s[1]>0; });
-  var total = st.pass+st.fail+st.manual;
+  var segs = [['Met',st.pass,'var(--band-exc)'],['Not met',st.fail,'var(--band-crit)'],['Manual',st.manual,'var(--muted)'],['Unknown',st.unknown,'#777'],['Error',st.error,'#b91c1c'],['Not assessed',st.notAssessed,'#64748b']].filter(function(s){ return s[1]>0; });
+  var total = st.pass+st.fail+st.review;
   if(!total) return '<p class="lede">No checks scored in this area.</p>';
   var xcur = lw+12, bars = '', legend = '';
   segs.forEach(function(s){
@@ -634,7 +645,7 @@ function pageOverview(){
   '<div class="ci"><span class="cl">Collected</span><span class="cv">'+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+'</span></div>'+
   '<div class="ci"><span class="cl">Subscriptions in scope</span><span class="cv">'+subscriptions.length+'</span></div>'+
   '<div class="ci"><span class="cl">Method</span><span class="cv">Azure Resource Graph + ARM</span></div></div>'+
-  '<p class="lede"><b>'+counts.total+' CAF/WAF checks were evaluated against this tenant</b> — '+counts.pass+' met, <b>'+counts.fail+' not met</b> ('+counts.high+' high severity), '+counts.manual+' need manual review — across an estate of '+n(invTotal)+' collected items in '+subscriptions.length+' subscriptions.</p>'+
+  '<p class="lede"><b>'+counts.total+' CAF/WAF checks were evaluated against this tenant</b> — '+counts.pass+' met, <b>'+counts.fail+' not met</b> ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, and '+counts.error+' errors — across an estate of '+n(invTotal)+' collected items in '+subscriptions.length+' subscriptions.</p>'+
   '<div class="kpis"><div class="kpi"><div class="l">Checks evaluated</div><div class="v">'+counts.total+'</div><div class="f">across '+assessments.length+' assessments</div></div>'+
   '<div class="kpi good"><div class="l">Met</div><div class="v">'+counts.pass+'</div><div class="f">of '+(counts.pass+counts.fail)+' automated</div></div>'+
   '<div class="kpi bad"><div class="l">Not met</div><div class="v">'+counts.fail+'</div><div class="f">'+counts.high+' high severity</div></div>'+
@@ -1891,7 +1902,7 @@ function buildMarkdownExport(){
   var md = [];
   md.push('# '+(identity.reportTitle||'Azure Inventory and Assessment'));
   md.push('\n'+(identity.clientName||'')+' · '+(identity.classification||'')+' · run '+(meta.runId||'')+' · generated '+(meta.generatedOn||'').slice(0,16).replace('T',' '));
-  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual review. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
+  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, '+counts.error+' errors. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
   assessments.forEach(function(a){
     var s = a.score || {};
     md.push('\n## '+a.name);
@@ -1902,7 +1913,7 @@ function buildMarkdownExport(){
       if(!st.findings.length) return;
       md.push('\n### '+ar.name+(ar.percent!=null?' — '+ar.percent+' / 100':' — manual only'));
       md.push('\n| Check | Title | Severity | Result | Evidence |\n|---|---|---|---|---|');
-      st.findings.forEach(function(f){ md.push('| '+shortId(f.id)+' | '+(f.title||'').replace(/\|/g,'/')+' | '+f.severity+' | '+(f.status==='Fail'?'Not met':f.status==='Pass'?'Met':'Manual')+' | '+(f.evidenceCount||0)+' |'); });
+      st.findings.forEach(function(f){ md.push('| '+shortId(f.id)+' | '+(f.title||'').replace(/\|/g,'/')+' | '+f.severity+' | '+statusLabel(f.status)+' | '+(f.evidenceCount||0)+' |'); });
       st.findings.filter(function(f){return f.status==='Fail';}).forEach(function(f){
         md.push('\n#### ✗ '+f.title+' ('+shortId(f.id)+', '+f.severity+')');
         var ev = safeArr(f.evidence).filter(function(e){return e.resourceName;});
@@ -1911,7 +1922,7 @@ function buildMarkdownExport(){
         md.push('\n[Microsoft guidance]('+betterLearnUrl(f)+')');
       });
       var ms = st.findings.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';});
-      if(ms.length){ md.push('\n**Manual review agenda:**'); ms.forEach(function(f){ md.push('- '+f.title+' — '+f.remediation); }); }
+      if(ms.length){ md.push('\n**Review and availability agenda:**'); ms.forEach(function(f){ md.push('- **'+statusLabel(f.status)+'** — '+f.title+' — '+f.remediation); }); }
     });
   });
   md.push('\n## Remediation plan\n\n| Domain | Gaps | Owner | Window |\n|---|---|---|---|');
@@ -1928,7 +1939,7 @@ function buildMarkdownExport(){
 function buildJsonExport(){
   return JSON.stringify({
     meta: meta, identity: identity,
-    summary: { checks: counts.total, met: counts.pass, notMet: counts.fail, highSeverity: counts.high, manual: counts.manual },
+    summary: { checks: counts.total, met: counts.pass, notMet: counts.fail, highSeverity: counts.high, manual: counts.manual, unknown: counts.unknown, errors: counts.error, notAssessed: counts.notAssessed },
     subscriptions: subscriptions,
     assessments: assessments.map(function(a){
       return { slug:a.slug, name:a.name, framework:a.framework, score:a.score, areas: dedupeAreas(a.areas),
@@ -1938,7 +1949,11 @@ function buildJsonExport(){
     drift: drift
   }, null, 1);
 }
-function csvQuote(v){ return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"'; }
+function csvQuote(v){
+  var s = String(v===null||v===undefined?'':v);
+  if(/^[\t\r\n ]*[=+\-@]/.test(s)) s="'"+s;
+  return '"'+s.replace(/"/g,'""')+'"';
+}
 function csvFindingsRows(rows){
   var cols = ['id','title','assessment','area','severity','status','weight','remediation','learnUrl','evidenceCount'];
   var lines = [cols.join(',')];

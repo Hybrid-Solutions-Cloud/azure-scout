@@ -120,10 +120,10 @@ earlier. It was removed in v3.0.0. Use the unified switch:
 
 ```powershell
 # Before
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
+Invoke-ScoutAssessment -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
 
 # After
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React
 ```
 
 Every parameter maps across unchanged, except `-OutputPath`, which is `-ReportDir` on

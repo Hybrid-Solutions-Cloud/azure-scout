@@ -357,10 +357,12 @@ Describe 'manifests/assessments.psd1 — AI/AVD workload entries (AB#6818/AB#681
         $entry.Rules | Should -Be @('waf.ai')
     }
 
-    It 'has an AVD Workload entry collecting Compute and Storage and scoring waf.avd' {
+    It 'has an AVD Workload entry collecting every category required by its automated rules' {
         $entry = $script:Manifest['Assess: AVD Workload']
         $entry | Should -Not -BeNullOrEmpty
-        $entry.Collect | Should -Be @('Compute', 'Storage')
+        foreach ($category in 'Compute', 'Storage', 'Hybrid', 'Management', 'Monitor') {
+            $entry.Collect | Should -Contain $category
+        }
         $entry.Rules | Should -Be @('waf.avd')
     }
 

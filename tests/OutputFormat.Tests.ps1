@@ -52,6 +52,22 @@ BeforeAll {
     . $script:InvokeScript
     $script:Cmd = Get-Command -Name Invoke-AzureScout -ErrorAction SilentlyContinue
 
+    $tokens = $null
+    $parseErrors = $null
+    $script:InvokeAst = [System.Management.Automation.Language.Parser]::ParseFile(
+        $script:InvokeScript,
+        [ref]$tokens,
+        [ref]$parseErrors
+    )
+    if ($parseErrors.Count -gt 0) {
+        throw "Invoke-AzureScout.ps1 did not parse cleanly: $($parseErrors.Message -join '; ')"
+    }
+    $script:InvokeFunctionAst = $script:InvokeAst.Find({
+        param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Invoke-AzureScout'
+    }, $true)
+
     # Dot-source the reporting helpers
     . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
     . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'report', 'Get-ScoutReportSectionIndex.ps1')
@@ -160,17 +176,13 @@ Describe 'OutputFormat Parameter — Metadata' {
     }
 
     It 'OutputFormat default value is "All"' {
-        $parameterMetadata = $script:Cmd.Parameters['OutputFormat']
-        if (-not $parameterMetadata.PSObject.Properties['DefaultValue']) {
-            Set-ItResult -Skipped -Because 'Default value not accessible via reflection'
-        } else {
-            $default = $parameterMetadata.DefaultValue
-            if ($null -eq $default) {
-                Set-ItResult -Skipped -Because 'Default value not accessible via reflection'
-                return
-            }
-            $default | Should -Be 'All'
-        }
+        $parameterAst = @($script:InvokeFunctionAst.Body.ParamBlock.Parameters | Where-Object {
+            $_.Name.VariablePath.UserPath -eq 'OutputFormat'
+        })
+
+        $parameterAst.Count | Should -Be 1
+        $parameterAst[0].DefaultValue | Should -Not -BeNullOrEmpty
+        @($parameterAst[0].DefaultValue.SafeGetValue()) | Should -Be @('All')
     }
 }
 

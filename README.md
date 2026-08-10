@@ -75,7 +75,7 @@ Import-Module AzureScout
 Invoke-AzureScout
 
 # Scored CAF/WAF assessment (same command, different mode)
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
+Invoke-AzureScout -Assessment LandingZone -OutputFormat React
 
 # Inventory AND assessment from one collection against Azure (alias -Both)
 Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment

@@ -234,7 +234,7 @@ rules:
     # Evidences that budget infrastructure exists generally -- not that it is scoped to the AVS
     # resource specifically, which collect.json's budgets projection does not distinguish.
     query: "$.governance.budgets[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.budgetsAvailable" }
     remediation: "WAF-AVS-GOV-06. No budget was found in scope, so there is no cost-governance infrastructure to evidence. Finding one does not prove it is scoped to AVS spend specifically -- confirm AVS-node cost allocation and alerting directly."
     manual: false
   - id: WAF-AVS-GOV-07

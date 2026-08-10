@@ -78,6 +78,12 @@ Describe 'AB#6775 — the combined run is reachable from the command line' {
 
         $source | Should -Match "\[Alias\('Both'\)\]\s*\r?\n\s*\[switch\]\`$InventoryAndAssessment"
     }
+
+    It 'does not reject assessment formats while an assessment is deferred' {
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
+
+        $source | Should -Match 'if \(\$assessmentOnlyFormats -and -not \$deferredAssessArgs\)'
+    }
 }
 
 Describe 'AB#6776 — the collect-once handoff keeps its tags' {

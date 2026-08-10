@@ -76,7 +76,7 @@ rules:
     title: "Future cost is forecast from historical trends"
     severity: low
     query: "$.governance.budgets[?(@.properties.forecastSpend)]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.budgetsAvailable" }
     remediation: "Confirm Cost Management budgets carry a forecast-spend figure (Microsoft.Consumption/budgets' properties.forecastSpend, populated once enough trend history exists). Distinct evidence from FINOPS-Q03: a budget existing is not the same as it having accumulated enough history to forecast against. Not gated on the EA/MCA billing permission system -- budgets are an ARM REST resource, Reader-scoped, same as WAF-CO-03/CO-08."
     manual: false
 
@@ -84,7 +84,7 @@ rules:
     title: "Budgets are actively monitored and managed, with alerts configured"
     severity: low
     query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
     remediation: "Define Cost Management budgets with threshold alerts (same evidence WAF-CO-03 already scores under the Cost Optimization pillar -- this rule scores the identical signal under the FinOps Framework's own capability name)."
     manual: false
 

@@ -141,7 +141,7 @@ rules:
     title: "Environment governance controls are in place"
     severity: high
     query: "$.governance.policyAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "AVS-F1. No Azure Policy assignment was found in scope. Assign the landing zone's policy set to the AVS resource group/subscription before workloads arrive."
     manual: false
   - id: AVS-F2
@@ -167,7 +167,7 @@ rules:
     # roleAssignments existence only -- PIM eligibility (the other half the source enumeration
     # cites) is not reliably collected; see avs.workload.yaml's WAF-AVS-SEC-01 note.
     query: "$.governance.roleAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.roleAssignmentsAvailable" }
     remediation: "AVS-G1. No role assignment was found in scope. Plan identity security for who can perform AVS functions -- role-assignment existence alone does not confirm least-privilege scoping or PIM eligibility, which need direct review."
     manual: false
   - id: AVS-G2

@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Clear cache folder for Azure Resource Inventory
@@ -39,8 +43,10 @@ Authors: Claudio Merola
 #>
 
 function Clear-AZSCCacheFolder {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
     Param(
         $ReportCache,
+        [ValidateRange(0, [int]::MaxValue)]
         [int]$OlderThan = 0,
         [string]$BasePath
     )
@@ -52,22 +58,47 @@ function Clear-AZSCCacheFolder {
                     $BasePath = (Set-AZSCReportPath -Force).DefaultPath
                 }
 
-            if (-not (Test-Path -Path $BasePath -PathType Container))
+            if (-not (Test-Path -LiteralPath $BasePath -PathType Container))
                 {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Base path does not exist, nothing to prune: '+$BasePath)
                     return
                 }
 
+            $ResolvedBase = Get-Item -LiteralPath $BasePath -Force
+            if ($ResolvedBase.FullName -eq $ResolvedBase.Root.FullName)
+                {
+                    throw "Refusing to prune a filesystem root: $($ResolvedBase.FullName)"
+                }
+
             $Cutoff = (Get-Date).AddDays(-$OlderThan)
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Pruning run folders older than '+$Cutoff.ToString('yyyy-MM-dd_HH_mm_ss')+' under '+$BasePath)
 
-            $RunFolders = Get-ChildItem -Path $BasePath -Directory -ErrorAction SilentlyContinue
+            $RunFolders = Get-ChildItem -LiteralPath $ResolvedBase.FullName -Directory -Force -ErrorAction SilentlyContinue
             Foreach ($RunFolder in $RunFolders)
                 {
-                    if ($RunFolder.LastWriteTime -lt $Cutoff)
+                    if (($RunFolder.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
+                        {
+                            Write-Warning "Skipping reparse-point directory while pruning Azure Scout runs: $($RunFolder.FullName)"
+                            continue
+                        }
+
+                    # Run names are operator-selectable, so folder names cannot safely identify a
+                    # run. Require the cache layout Set-AZSCReportPath creates before deleting an
+                    # old child; unrelated directories under a shared report base are preserved.
+                    $HasRunLayout =
+                        (Test-Path -LiteralPath (Join-Path $RunFolder.FullName 'ReportCache') -PathType Container) -or
+                        (Test-Path -LiteralPath (Join-Path $RunFolder.FullName 'DiagramCache') -PathType Container)
+
+                    if (-not $HasRunLayout)
+                        {
+                            Write-Warning "Skipping directory that is not recognisable as an Azure Scout run: $($RunFolder.FullName)"
+                            continue
+                        }
+
+                    if ($RunFolder.LastWriteTime -lt $Cutoff -and $PSCmdlet.ShouldProcess($RunFolder.FullName, 'Remove old Azure Scout run folder'))
                         {
                             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Removing run folder: '+$RunFolder.FullName)
-                            Remove-Item -Path $RunFolder.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                            Remove-Item -LiteralPath $RunFolder.FullName -Recurse -Force -ErrorAction SilentlyContinue
                         }
                 }
             return
@@ -75,17 +106,20 @@ function Clear-AZSCCacheFolder {
 
     if (-not $ReportCache) { return }
 
-    if (-not (Test-Path -Path $ReportCache -PathType Container))
+    if (-not (Test-Path -LiteralPath $ReportCache -PathType Container))
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Cache folder does not exist: '+$ReportCache)
             return
         }
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Clearing Cache Folder.')
-    $CacheFiles = Get-ChildItem -Path $ReportCache -Recurse -File
+    $CacheFiles = Get-ChildItem -LiteralPath $ReportCache -Recurse -File
     Foreach ($CacheFile in $CacheFiles)
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Removing Cache File: '+$CacheFile.FullName)
-            Remove-Item -Path $CacheFile.FullName -Force
+            if ($PSCmdlet.ShouldProcess($CacheFile.FullName, 'Remove Azure Scout cache file'))
+                {
+                    Remove-Item -LiteralPath $CacheFile.FullName -Force
+                }
         }
 }

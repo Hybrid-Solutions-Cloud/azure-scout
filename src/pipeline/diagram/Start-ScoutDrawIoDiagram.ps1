@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 # Relocated from Modules/Public/PublicFunctions/Diagram for the v3 pipeline.
 .Synopsis
@@ -58,6 +62,11 @@ function Start-AZSCDrawIODiagram {
     $XMLFiles += Join-Path $DiagramCache 'Organization.xml'
     $XMLFiles += Join-Path $DiagramCache 'Subscriptions.xml'
 
+    # Own only the jobs started by this invocation. Session-wide name searches can wait on,
+    # drain, or delete another concurrent caller's Diagram_* jobs.
+    $diagramJobs = [System.Collections.Generic.List[object]]::new()
+    $diagramRunToken = [guid]::NewGuid().ToString('N')
+
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Cleaning old files') | Out-File -FilePath $LogFile -Append
 
     foreach($File in $XMLFiles)
@@ -69,7 +78,7 @@ function Start-AZSCDrawIODiagram {
 
     if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Thread Job') | Out-File -FilePath $LogFile -Append
-        Start-ThreadJob -Name 'Diagram_Subscriptions' -ScriptBlock {
+        $diagramJobs.Add((Start-ThreadJob -Name "Diagram_Subscriptions_$diagramRunToken" -ScriptBlock {
             try
             {
                 Start-AZSCDiagramSubscription -Subscriptions $($args[0]) -Resources $($args[1]) -DiagramCache $($args[2]) -LogFile $($args[3])
@@ -78,12 +87,12 @@ function Start-AZSCDrawIODiagram {
             {
                 ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[3]) -Append
             }
-        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile | Out-Null
+        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile))
     }
     else
     {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Job') | Out-File -FilePath $LogFile -Append
-        Start-Job -Name 'Diagram_Subscriptions' -ScriptBlock {
+        $diagramJobs.Add((Start-Job -Name "Diagram_Subscriptions_$diagramRunToken" -ScriptBlock {
             try
                 {
                     Import-Module $($args[4])
@@ -93,14 +102,14 @@ function Start-AZSCDrawIODiagram {
                 {
                     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[3]) -Append
                 }
-        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile, $AZSCModule
+        } -ArgumentList $Subscriptions, $Resources, $DiagramCache, $Logfile, $AZSCModule))
     }
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Jobs') | Out-File -FilePath $LogFile -Append
 
     if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Thread Job') | Out-File -FilePath $LogFile -Append
-        Start-ThreadJob -Name 'Diagram_Organization' -ScriptBlock {
+        $diagramJobs.Add((Start-ThreadJob -Name "Diagram_Organization_$diagramRunToken" -ScriptBlock {
             try
             {
                 Start-AZSCDiagramOrganization -ResourceContainers $($args[0]) -DiagramCache $($args[1]) -LogFile $($args[2])
@@ -109,12 +118,12 @@ function Start-AZSCDrawIODiagram {
             {
                 ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[2]) -Append
             }
-        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile | Out-Null
+        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile))
     }
     else
     {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Organization Job') | Out-File -FilePath $LogFile -Append
-        Start-Job -Name 'Diagram_Organization' -ScriptBlock {
+        $diagramJobs.Add((Start-Job -Name "Diagram_Organization_$diagramRunToken" -ScriptBlock {
             try
             {
                 Import-Module $($args[3])
@@ -124,7 +133,7 @@ function Start-AZSCDrawIODiagram {
             {
                 ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[2]) -Append
             }
-        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile, $AZSCModule
+        } -ArgumentList $ResourceContainers, $DiagramCache, $Logfile, $AZSCModule))
     }
 
     # The Wait-Job / Receive-Job / Remove-Job harvest for 'DiagramVariables' stood here. The
@@ -135,7 +144,7 @@ function Start-AZSCDrawIODiagram {
 
     if ([bool]$Automation) {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Thread Job') | Out-File -FilePath $LogFile -Append
-        Start-ThreadJob -Name 'Diagram_NetworkTopology' -ScriptBlock {
+        $diagramJobs.Add((Start-ThreadJob -Name "Diagram_NetworkTopology_$diagramRunToken" -ScriptBlock {
             try
             {
                 Start-AZSCDiagramNetwork -Subscriptions $($args[0]) -Job $($args[1]) -Advisories $($args[2]) -DiagramCache $($args[3]) -FullEnvironment $($args[4]) -DDFile $($args[5]) -XMLFiles $($args[6]) -LogFile $($args[7]) -Automation $($args[8])
@@ -144,12 +153,12 @@ function Start-AZSCDrawIODiagram {
             {
                 ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[7]) -Append
             }
-        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation | Out-Null
+        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation))
     }
     else
     {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Network Topology Job') | Out-File -FilePath $LogFile -Append
-        Start-Job -Name 'Diagram_NetworkTopology' -ScriptBlock {
+        $diagramJobs.Add((Start-Job -Name "Diagram_NetworkTopology_$diagramRunToken" -ScriptBlock {
             try
             {
                 Import-Module $($args[9])
@@ -159,28 +168,30 @@ function Start-AZSCDrawIODiagram {
             {
                 ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $($args[7]) -Append
             }
-        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation, $AZSCModule
+        } -ArgumentList $Subscriptions, $Job, $Advisories, $DiagramCache, $FullEnvironment, $DDFile, $XMLFiles, $Logfile, $Automation, $AZSCModule))
     }
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting for Jobs') | Out-File -FilePath $LogFile -Append
 
-    (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Wait-Job
+    try {
+        @($diagramJobs) | Wait-Job | Out-Null
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Merging XML Files') | Out-File -FilePath $LogFile -Append
-    Set-AZSCDiagramFile -XMLFiles $XMLFiles -DDFile $DDFile -LogFile $LogFile
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Merging XML Files') | Out-File -FilePath $LogFile -Append
+        Set-AZSCDiagramFile -XMLFiles $XMLFiles -DDFile $DDFile -LogFile $LogFile
 
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Log Details from Jobs') | Out-File -FilePath $LogFile -Append
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Log Details from Jobs') | Out-File -FilePath $LogFile -Append
 
-    Foreach ($DiagramJob in (Get-Job | Where-Object {$_.name -like 'Diagram_*'})) {
-        $Logger = Receive-Job -Name $DiagramJob.Name
-        Foreach ($LogEntry in $Logger) {
-            $LogEntry | Out-File -FilePath $LogFile -Append
+        foreach ($DiagramJob in $diagramJobs) {
+            $Logger = Receive-Job -Job $DiagramJob
+            foreach ($LogEntry in $Logger) {
+                $LogEntry | Out-File -FilePath $LogFile -Append
+            }
         }
     }
-
-    ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Removing old jobs') | Out-File -FilePath $LogFile -Append
-
-    (Get-Job | Where-Object {$_.name -like 'Diagram_*'}) | Remove-Job
+    finally {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Removing run-owned jobs') | Out-File -FilePath $LogFile -Append
+        @($diagramJobs) | Remove-Job -Force -ErrorAction SilentlyContinue
+    }
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Diagram Complete') | Out-File -FilePath $LogFile -Append
 }

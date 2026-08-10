@@ -26,6 +26,21 @@ BeforeAll {
     Import-Module Az.ResourceGraph -ErrorAction Stop
     . "$root/src/collect/Invoke-Collect.ps1"
 
+    # Invoke-Collect always performs these two non-ARG sweeps. Keep the
+    # resilience fixtures hermetic: fake subscription ids must never escape to
+    # the caller's ambient Azure/Graph context during a unit-test run.
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
+
     function Get-MockSubscriptions {
         [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
         param()

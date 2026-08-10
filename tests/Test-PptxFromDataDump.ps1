@@ -38,8 +38,8 @@
     Requires: DocumentFormat.OpenXml (acquired on first use via dotnet/NuGet
     by Export-Pptx.ps1 itself — see Import-ScoutOpenXmlAssembly). No Az.*
     modules, no ImportExcel — this harness dot-sources only the assessment
-    engine + report renderer files it needs, so it never triggers
-    AzureScout.psm1's Install-Module bootstrap for unrelated dependencies.
+    engine + report renderer files it needs, so it does not require the
+    unrelated modules declared by AzureScout.psd1.
     Version: 1.0.0
 #>
 

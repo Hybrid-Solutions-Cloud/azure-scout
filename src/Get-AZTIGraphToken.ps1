@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Acquire a Microsoft Graph bearer token via Azure CLI.
@@ -40,13 +44,35 @@ function Get-AZSCGraphToken {
     [CmdletBinding()]
     [OutputType([System.Collections.Hashtable])]
     param(
-        [string]$TenantID
+        [string]$TenantID,
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [string]$AzureEnvironment
     )
+
+    if (-not $AzureEnvironment) {
+        try {
+            $azContext = Get-AzContext -ErrorAction SilentlyContinue
+            if ($azContext -and $azContext.PSObject.Properties.Name -contains 'Environment' -and
+                $azContext.Environment -and $azContext.Environment.PSObject.Properties.Name -contains 'Name') {
+                $AzureEnvironment = [string]$azContext.Environment.Name
+            }
+        }
+        catch { }
+    }
+    if ($AzureEnvironment -notin @('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')) {
+        $AzureEnvironment = 'AzureCloud'
+    }
+
+    $graphResource = switch ($AzureEnvironment) {
+        'AzureUSGovernment' { 'https://graph.microsoft.us' }
+        'AzureChinaCloud'   { 'https://microsoftgraph.chinacloudapi.cn' }
+        default             { 'https://graph.microsoft.com' }
+    }
 
     # Cache key: empty string means "az CLI's ambient/default tenant", same as the old
     # single-slot cache. A distinct key per TenantID prevents a token minted for tenant A
     # from being handed back for a subsequent call scoped to tenant B.
-    $cacheKey = if ($TenantID) { $TenantID } else { '' }
+    $cacheKey = "$graphResource|$(if ($TenantID) { $TenantID } else { '' })"
 
     if (-not (Get-Variable -Name '_AZSCGraphTokenCache' -Scope Script -ErrorAction SilentlyContinue)) {
         Set-Variable -Name '_AZSCGraphTokenCache' -Scope Script -Value @{}
@@ -68,7 +94,7 @@ function Get-AZSCGraphToken {
         # Azure CLI device code authentication includes Graph API scopes by default
         $tenantArgs = @()
         if ($TenantID) { $tenantArgs = @('--tenant', $TenantID) }
-        $azTokenJson = az account get-access-token --resource https://graph.microsoft.com @tenantArgs 2>&1 | Out-String
+        $azTokenJson = az account get-access-token --resource $graphResource @tenantArgs 2>&1 | Out-String
 
         if ($LASTEXITCODE -ne 0) {
             throw "Azure CLI failed to get Graph token. Ensure you are logged in with 'az login'. Error: $azTokenJson"

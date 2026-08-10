@@ -1,5 +1,130 @@
 # Handoff
 
+## Session 2026-08-10 — repository-wide audit after Both + React/JsonEvidence startup failure
+
+The operator explicitly requested a multi-agent audit after confirming the failing wizard selection
+was **Both** (Inventory + Assessment), with React and JsonEvidence. Runtime, assessment/reporting,
+and release/quality surfaces were audited in parallel, then the complete Pester suite was split into
+three deterministic shards and rerun against the settled working tree.
+
+### State and scope
+
+- Branch: `main`; release target `v3.10.1`; GitHub issue `#259`; Azure Boards Bug `AB#7278`.
+  All audit, version, and release-document changes are ready for the authorized commit/push/publish
+  sequence.
+- The installed PSGallery `AzureScout` 3.10.0 remains unchanged and still contains the original
+  startup bug. Import the repository's `AzureScout.psd1` to exercise the fixes locally.
+- The supplied tenant identifier was not written into the diff.
+- The final automated verification was local/mocked and did not use a real tenant. During the *first* audit
+  shard, a missing test mock allowed read-only Defender ARM requests for synthetic subscription IDs;
+  Azure rejected them with HTTP 400 and no mutation occurred. All 12 affected suites now shadow the
+  non-ARG Defender and External Identities sweeps; their focused 133-test rerun and the final distributed
+  suite observed no external Azure activity.
+
+### Confirmed defects fixed
+
+- **Original Both-mode failure:** the inventory-format guard now rejects React/JsonEvidence only when
+  no deferred assessment exists. A full mocked Both + React + JsonEvidence invocation completes the
+  inventory phase, deferred assessment, reporting, and cleanup.
+- **StrictMode/runtime:** initialized non-Excel result/JSON variables; preserved empty arrays in the
+  Excel renderer; fixed module-update fallback when no module is already loaded; eliminated remaining
+  unset/scalar-array paths found by the suite; required PS7/StrictMode/terminating-error directives are
+  now enforced across `src`, `scripts`, the root module, and root scripts.
+- **Tenant/context safety:** Entra and External Identities Graph calls receive the requested TenantID;
+  subscription switches require a successful matching context before queries; the warning environment
+  and login experience are restored in `finally` blocks.
+- **Permissions and isolation:** permission checks validate the current caller with a live read instead
+  of accepting another principal's Reader role; report/run folders and permission-output filenames are
+  collision-safe; diagram jobs are owned, awaited, received, and removed per run.
+- **Collection:** Azure DevOps continuation tokens are followed; sovereign Graph endpoints are mapped;
+  VM quota calls reject a mismatched selected context; IoT Hub/DPS/Digital Twins rows now project IDs
+  required for private-endpoint correlation; cache pruning is scoped and guarded.
+- **Assessment correctness:** manifest collection categories now cover automated-rule dependencies;
+  governance read failures and unavailable PIM data gate rules to NotAssessed; compliance headlines are
+  withheld when control coverage is incomplete; percentage rules correlate distinct resource IDs;
+  malformed rules produce complete Error findings instead of terminating the run.
+- **Reporting:** React uses canonical area weights/scores and preserves distinct statuses, real evidence
+  totals/truncation, framework versions, framework rollups, and mixed-currency uncertainty; CSV exports
+  neutralize spreadsheet-formula prefixes.
+- **Release/CI:** corrected Azure Pipelines parameters/formats, hardened GitHub CI's Pester result gate,
+  split read-only docs PR builds from main deployment, made the bundled action import its own manifest,
+  declared required modules in the manifest instead of installing during import, and corrected docs and
+  examples to advertise only live formats. Release contract tests were added.
+
+### Verification
+
+- Final distributed Pester coverage: **3,422 passed; 0 failed; 0 skipped; 0 not run; 0 failed
+  containers**. The former 79 skips were removed: 77 conditional bookkeeping cases now generate only
+  applicable tests, and 2 reflection-dependent default checks now use PowerShell AST assertions.
+- The 12 suites that could leak fake subscription IDs to ambient Azure/Graph paths passed **133/133**
+  behind file-local inert collector shadows, with no live-call warnings.
+- Exact affected-suite reruns included the Both route, permission audit, module update, VM quota,
+  governance/compliance, IoT, React/Power BI, deterministic pipeline, DevOps paging, run isolation,
+  release contracts, and StrictMode guard.
+- Parsed **131 changed PowerShell files** with zero errors; prior YAML validation remained clean.
+- `scripts/Test-StrictModeGuard.ps1`: pass (17 documented weakening sites, no new or stale entries,
+  and no directive violations).
+- PSScriptAnalyzer on the final touched runtime files: 0 findings / 0 errors.
+- `git diff --check`: pass. VitePress docs build: pass; it reports only the existing >500 kB chunk
+  optimization warning.
+- Version synchronization/release contracts: **15/15**; manifest version `3.10.1`; PSGallery version
+  slot confirmed available; release-note length 625 characters.
+
+### Known residual release/technical-debt risks
+
+- The release uses the proven v3.10.0 allow-listed package footprint: 725 files from the five root
+  module/doc files plus `config`, `manifests`, `src`, and `archived/Modules` mapped to `Modules`.
+- GitHub workflow actions are still referenced by mutable major tags (`@v4`) rather than immutable
+  commit SHAs. This is a supply-chain hardening item, not a runtime defect fixed in this session.
+- The StrictMode allow-list still documents 2 live and 15 dead compatibility weakening sites. The guard
+  prevents growth, but removing those sites is separate cleanup.
+- No real-tenant smoke test was run. Before release, run Both + React + JsonEvidence against an approved
+  test tenant, then validate the generated inventory and assessment artifacts.
+
+### Next operator action
+
+Commit with `AB#7278`, push `main`, wait for GitHub checks, tag `v3.10.1`, build the allow-listed package
+from that exact tag, run the read-only combined-run smoke, publish to PSGallery, then verify a clean
+Gallery download/import.
+
+## Session 2026-08-10 — fixed v3.10.0 assessment startup routing failure
+
+An operator running the installed PSGallery module 3.10.0 chose the wizard's combined
+Inventory + Assessment path with React and JsonEvidence and received the line-660 error
+claiming those formats require `-Assessment`. This is a deterministic routing defect, not an
+Azure-context or tenant issue.
+
+- `Invoke-AzureScout` correctly enters assessment mode and stores `$assessArgs` in
+  `$deferredAssessArgs` for `RunBoth` / `-InventoryAndAssessment`, then continues into the
+  inventory phase.
+- The inventory guard at `src/Invoke-AzureScout.ps1:657-660` unconditionally rejects React and
+  JsonEvidence, even though they are destined for that deferred assessment.
+- Reproduced against the installed 3.10.0 module using `-FromCollect` with a nonexistent path,
+  which avoids Azure access and still fails at line 660 before the path is read.
+- Existing tests prove inventory-only rejection and deferred-assessment wiring independently,
+  but none exercises their interaction with an assessment-only output format.
+- The operator confirmed they selected **Both**. An earlier assistant message incorrectly stated
+  Assessment-only; that interpretation was explicitly corrected. The exact failing path is Both +
+  React + JsonEvidence: the assessment is deferred correctly, then the inventory-format guard
+  rejects the deferred assessment formats before collection begins.
+- The inventory format guard now rejects assessment-only formats only when no deferred assessment
+  exists. This also repairs the independently broken combined path.
+- Product change: `src/Invoke-AzureScout.ps1`.
+- Regression coverage: `tests/Assessment.CollectOnce.Tests.ps1` and
+  `tests/UnifiedEntryPoint.Tests.ps1`; the latter drives the real mocked wizard for Both mode and
+  executes `-Assessment ... -InventoryAndAssessment -OutputFormat React,JsonEvidence` through two
+  mocked login calls, proving it passes the former line-660 guard into the inventory phase.
+- Verification: the new collect-once assertion was observed failing before the product patch.
+  `Assessment.CollectOnce.Tests.ps1` plus `UnifiedEntryPoint.Tests.ps1` passed 61/61 after the
+  final minimal fix, including the exact Both + React + JsonEvidence route. Output formats and
+  menu honesty also passed in the earlier focused run (part of 107 passes with 1 pre-existing
+  reflection skip). Parser and `git diff --check` passed for all changed PowerShell files.
+  PSScriptAnalyzer reported only the file's pre-existing Write-Host/BOM warnings; no changed line
+  introduced an analyzer finding. HCS `validate(iac-powershell)` could not execute its commands
+  because the validator misidentified its own `$results`/`$config` variables as missing commands.
+- Branch: `main` (working tree only; not committed or released). The installed PSGallery 3.10.0
+  copy remains unchanged; import the repository manifest to exercise the local fix immediately.
+
 ## Session 2026-08-04 (later) — v3.5.1: three defects v3.5.0 believed were fine
 
 All three were found by *using* the product or by auditing claims, not by reading test output.

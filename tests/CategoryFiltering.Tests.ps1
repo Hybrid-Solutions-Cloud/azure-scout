@@ -24,6 +24,22 @@ BeforeAll {
     . $script:InvokeScript
 
     $script:Cmd = Get-Command -Name Invoke-AzureScout -ErrorAction SilentlyContinue
+
+    $tokens = $null
+    $parseErrors = $null
+    $script:InvokeAst = [System.Management.Automation.Language.Parser]::ParseFile(
+        $script:InvokeScript,
+        [ref]$tokens,
+        [ref]$parseErrors
+    )
+    if ($parseErrors.Count -gt 0) {
+        throw "Invoke-AzureScout.ps1 did not parse cleanly: $($parseErrors.Message -join '; ')"
+    }
+    $script:InvokeFunctionAst = $script:InvokeAst.Find({
+        param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Invoke-AzureScout'
+    }, $true)
 }
 
 Describe 'Category Parameter — Metadata' {
@@ -40,13 +56,13 @@ Describe 'Category Parameter — Metadata' {
     }
 
     It 'Category parameter default is @("All")' {
-        $default = $script:Cmd.Parameters['Category'].DefaultValue
-        if ($null -eq $default) {
-            # Default may not be accessible via reflection; verify ValidateSet contains 'All'
-            Set-ItResult -Skipped -Because 'Default value not inspectable via reflection on all PS versions'
-        } else {
-            $default | Should -Be @('All')
-        }
+        $parameterAst = @($script:InvokeFunctionAst.Body.ParamBlock.Parameters | Where-Object {
+            $_.Name.VariablePath.UserPath -eq 'Category'
+        })
+
+        $parameterAst.Count | Should -Be 1
+        $parameterAst[0].DefaultValue | Should -Not -BeNullOrEmpty
+        @($parameterAst[0].DefaultValue.SafeGetValue()) | Should -Be @('All')
     }
 
     It 'Category ValidateSet contains "All"' {

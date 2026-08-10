@@ -28,32 +28,24 @@ Desktop as a second guard. Run everything in `pwsh`.
 
 ## Required PowerShell modules
 
-::: warning Not all of these are auto-installed
-AzureScout's module bootstrap (`AzureScout.psm1`) auto-installs a fixed list
-of modules on import: `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`,
-`Az.Storage`, `Az.Compute`, `Az.Resources`. That list was written for the v1
-inventory path and **does not include `powershell-yaml` or `Az.Advisor`**,
-both of which assessment mode needs. If either is missing,
-assessment mode throws when it reaches the step that needs it,
-rather than auto-installing it for you. Install them manually before your
-first assessment run (below).
+::: warning Optional dependencies are not declared as core requirements
+AzureScout's manifest (`AzureScout.psd1`) declares `ImportExcel`, `Az.Accounts`,
+`Az.ResourceGraph`, `Az.Storage`, `Az.Compute`, `Az.Resources`, `powershell-yaml`,
+and `Az.Advisor`. PowerShellGet resolves them when AzureScout is installed from the
+Gallery. Importing a local clone does not install them. Optional integrations such as
+cost collection and the legacy Azure Governance Visualizer still have separate
+dependencies; install those only when you enable the corresponding feature.
 :::
 
-| Module | Purpose | Required for | Auto-installed by `AzureScout.psm1`? |
+| Module | Purpose | Required for | Declared by `AzureScout.psd1`? |
 |---|---|---|---|
 | `Az.Accounts` | Authentication / token acquisition | All | Yes |
 | `Az.ResourceGraph` | The Collect layer's Resource Graph queries | All | Yes |
 | `Az.Resources` | Role assignment reads (permission pre-flight) | All | Yes |
-| `powershell-yaml` | Parses the `caf.*`/`waf.*` rule YAML files (`Get-RuleSet`) | All scoring (any assessment with `Rules`) | **No — install manually** |
-| `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | **No — install manually** |
+| `powershell-yaml` | Parses the `caf.*`/`waf.*` rule YAML files (`Get-RuleSet`) | All scoring (any assessment with `Rules`) | Yes |
+| `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | Yes |
 | `ImportExcel` | Excel evidence-tier report (`Export-Excel`) | `-OutputFormat Excel` | Yes |
 | `AzAPICall` | Dependency of the third-party Azure Governance Visualizer | Assessments whose `Ingest` includes `AzGovViz` | No — `Import-AzGovViz.ps1` installs it itself at first use (`Install-Module AzAPICall -Scope CurrentUser -Force`) if not already present |
-
-```powershell
-# Manual install — covers the gap in AzureScout.psm1's auto-bootstrap
-Install-Module -Name powershell-yaml -Scope CurrentUser -Force
-Install-Module -Name Az.Advisor       -Scope CurrentUser -Force
-```
 
 ::: info `Az.Security` is documented, not yet wired up
 `pmo/plans/master-plan.md` §10 and `src/README.md` list `Az.Security` as a

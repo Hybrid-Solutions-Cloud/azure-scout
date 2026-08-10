@@ -19,7 +19,7 @@ rules:
     title: "Budgets are created that align with the desired cloud investment"
     severity: high
     query: "$.governance.budgets[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
     remediation: "Create Azure Budgets at the subscription or resource-group scope with thresholds aligned to planned spend."
     manual: false
 

@@ -23,6 +23,17 @@ BeforeAll {
     . "$root/src/assess/engine/Resolve-JsonPath.ps1"
     . "$root/src/assess/engine/Invoke-Rule.ps1"
     . "$root/src/assess/engine/Get-RuleSet.ps1"
+
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
 }
 
 Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
@@ -30,14 +41,14 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
         Mock Search-AzGraph {
             if ($Query -match 'microsoft\.devices/provisioningservices') {
                 return @(
-                    [pscustomobject]@{ name = 'dps-prod'; resourceGroup = 'rg-iot'; sku = 'S1'; publicAccess = 'Enabled'; allocationPolicy = 'Hashed'; linkedHubCount = 2 }
-                    [pscustomobject]@{ name = 'dps-sec'; resourceGroup = 'rg-iot'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Static'; linkedHubCount = 1 }
+                    [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps-prod'; name = 'dps-prod'; resourceGroup = 'rg-iot'; sku = 'S1'; publicAccess = 'Enabled'; allocationPolicy = 'Hashed'; linkedHubCount = 2 }
+                    [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps-sec'; name = 'dps-sec'; resourceGroup = 'rg-iot'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Static'; linkedHubCount = 1 }
                 )
             }
             if ($Query -match 'microsoft\.digitaltwins/digitaltwinsinstances') {
                 return @(
-                    [pscustomobject]@{ name = 'dt-prod'; resourceGroup = 'rg-iot'; publicAccess = 'Enabled'; privateEndpointConnectionCount = 0; identityType = '' }
-                    [pscustomobject]@{ name = 'dt-sec'; resourceGroup = 'rg-iot'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' }
+                    [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt-prod'; name = 'dt-prod'; resourceGroup = 'rg-iot'; publicAccess = 'Enabled'; privateEndpointConnectionCount = 0; identityType = '' }
+                    [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt-sec'; name = 'dt-sec'; resourceGroup = 'rg-iot'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' }
                 )
             }
             return @()
@@ -46,7 +57,7 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
 
     It 'queries Microsoft.Devices/provisioningServices and shapes it into domains.iot.dpsInstances' {
         $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
-        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/provisioningservices' } -Times 1
+        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/provisioningservices' -and $Query -match '(?m)^\| project id,' } -Times 1
         $result.domains.iot.dpsInstances.Count | Should -Be 2
         ($result.domains.iot.dpsInstances | Where-Object name -eq 'dps-prod').publicAccess | Should -Be 'Enabled'
         ($result.domains.iot.dpsInstances | Where-Object name -eq 'dps-prod').linkedHubCount | Should -Be 2
@@ -54,15 +65,15 @@ Describe 'Invoke-Collect IoT deep coverage (AB#330)' {
 
     It 'queries Microsoft.DigitalTwins/digitalTwinsInstances and shapes it into domains.iot.digitalTwinsInstances' {
         $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
-        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.digitaltwins/digitaltwinsinstances' } -Times 1
+        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.digitaltwins/digitaltwinsinstances' -and $Query -match '(?m)^\| project id,' } -Times 1
         $result.domains.iot.digitalTwinsInstances.Count | Should -Be 2
         ($result.domains.iot.digitalTwinsInstances | Where-Object name -eq 'dt-prod').identityType | Should -Be ''
         ($result.domains.iot.digitalTwinsInstances | Where-Object name -eq 'dt-sec').identityType | Should -Be 'SystemAssigned'
     }
 
-    It 'still collects the pre-existing iotHubs query unchanged' {
+    It 'collects IoT Hubs with the resource id needed for private-endpoint correlation' {
         $result = Invoke-Collect -Source TypedQueries -Categories @('IoT')
-        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/iothubs"' } -Times 1
+        Should -Invoke Search-AzGraph -ParameterFilter { $Query -match 'microsoft\.devices/iothubs"' -and $Query -match '(?m)^\| project id,' } -Times 1
         $result.domains.iot.PSObject.Properties.Name | Should -Contain 'iotHubs'
     }
 
@@ -81,25 +92,25 @@ Describe 'caf.iot.yaml rule set (AB#330)' {
             domains = [pscustomobject]@{
                 iot = [pscustomobject]@{
                     iotHubs = @(
-                        [pscustomobject]@{ name = 'hub1'; sku = 'S1'; publicAccess = 'Enabled'; disableLocalAuth = $false }
-                        [pscustomobject]@{ name = 'hub2'; sku = 'S1'; publicAccess = 'Disabled'; disableLocalAuth = $true }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/IotHubs/hub1'; name = 'hub1'; sku = 'S1'; publicAccess = 'Enabled'; disableLocalAuth = $false }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/IotHubs/hub2'; name = 'hub2'; sku = 'S1'; publicAccess = 'Disabled'; disableLocalAuth = $true }
                     )
                     dpsInstances = @(
-                        [pscustomobject]@{ name = 'dps1'; sku = 'S1'; publicAccess = 'Enabled'; allocationPolicy = 'Hashed'; linkedHubCount = 2 }
-                        [pscustomobject]@{ name = 'dps2'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Static'; linkedHubCount = 1 }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps1'; name = 'dps1'; sku = 'S1'; publicAccess = 'Enabled'; allocationPolicy = 'Hashed'; linkedHubCount = 2 }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps2'; name = 'dps2'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Static'; linkedHubCount = 1 }
                     )
                     digitalTwinsInstances = @(
-                        [pscustomobject]@{ name = 'dt1'; publicAccess = 'Enabled'; privateEndpointConnectionCount = 0; identityType = '' }
-                        [pscustomobject]@{ name = 'dt2'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' }
-                        [pscustomobject]@{ name = 'dt3'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 0; identityType = 'None' }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1'; name = 'dt1'; publicAccess = 'Enabled'; privateEndpointConnectionCount = 0; identityType = '' }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt2'; name = 'dt2'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' }
+                        [pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt3'; name = 'dt3'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 0; identityType = 'None' }
                     )
                 }
             }
             networking = [pscustomobject]@{
                 privateEndpoints = @(
-                    [pscustomobject]@{ name = 'pe-dps'; targetProvider = 'microsoft.devices'; targetType = 'provisioningservices' }
-                    [pscustomobject]@{ name = 'pe-hub'; targetProvider = 'microsoft.devices'; targetType = 'iothubs' }
-                    [pscustomobject]@{ name = 'pe-dt'; targetProvider = 'microsoft.digitaltwins'; targetType = 'digitaltwinsinstances' }
+                    [pscustomobject]@{ name = 'pe-dps'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps1'; targetProvider = 'microsoft.devices'; targetType = 'provisioningservices' }
+                    [pscustomobject]@{ name = 'pe-hub'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/IotHubs/hub1'; targetProvider = 'microsoft.devices'; targetType = 'iothubs' }
+                    [pscustomobject]@{ name = 'pe-dt'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt2'; targetProvider = 'microsoft.digitaltwins'; targetType = 'digitaltwinsinstances' }
                 )
             }
         }
@@ -159,16 +170,16 @@ Describe 'caf.iot.yaml rule set (AB#330)' {
         $compliant = [pscustomobject]@{
             domains = [pscustomobject]@{
                 iot = [pscustomobject]@{
-                    iotHubs = @([pscustomobject]@{ name = 'hub1'; sku = 'S1'; publicAccess = 'Disabled'; disableLocalAuth = $true })
-                    dpsInstances = @([pscustomobject]@{ name = 'dps1'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Hashed'; linkedHubCount = 1 })
-                    digitalTwinsInstances = @([pscustomobject]@{ name = 'dt1'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' })
+                    iotHubs = @([pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/IotHubs/hub1'; name = 'hub1'; sku = 'S1'; publicAccess = 'Disabled'; disableLocalAuth = $true })
+                    dpsInstances = @([pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps1'; name = 'dps1'; sku = 'S1'; publicAccess = 'Disabled'; allocationPolicy = 'Hashed'; linkedHubCount = 1 })
+                    digitalTwinsInstances = @([pscustomobject]@{ id = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1'; name = 'dt1'; publicAccess = 'Disabled'; privateEndpointConnectionCount = 1; identityType = 'SystemAssigned' })
                 }
             }
             networking = [pscustomobject]@{
                 privateEndpoints = @(
-                    [pscustomobject]@{ name = 'pe-hub'; targetProvider = 'microsoft.devices'; targetType = 'iothubs' }
-                    [pscustomobject]@{ name = 'pe-dps'; targetProvider = 'microsoft.devices'; targetType = 'provisioningservices' }
-                    [pscustomobject]@{ name = 'pe-dt'; targetProvider = 'microsoft.digitaltwins'; targetType = 'digitaltwinsinstances' }
+                    [pscustomobject]@{ name = 'pe-hub'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/IotHubs/hub1'; targetProvider = 'microsoft.devices'; targetType = 'iothubs' }
+                    [pscustomobject]@{ name = 'pe-dps'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.Devices/provisioningServices/dps1'; targetProvider = 'microsoft.devices'; targetType = 'provisioningservices' }
+                    [pscustomobject]@{ name = 'pe-dt'; targetResourceId = '/subscriptions/sub-1/resourceGroups/rg-iot/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1'; targetProvider = 'microsoft.digitaltwins'; targetType = 'digitaltwinsinstances' }
                 )
             }
         }

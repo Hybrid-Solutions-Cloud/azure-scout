@@ -104,6 +104,6 @@ rules:
     title: "Policy is applied to the target scope before workloads arrive"
     severity: medium
     query: "$.governance.policyAssignments[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "SMART-F1. No policy assignment was found in the target scope. Assign the landing zone's policy set before migrating, so arriving workloads are governed from day one rather than remediated later."
     manual: false

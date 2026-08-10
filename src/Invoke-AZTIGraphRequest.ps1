@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Execute a Microsoft Graph REST API request with automatic pagination and throttle handling.
@@ -61,10 +65,30 @@ function Invoke-AZSCGraphRequest {
 
         [int]$MaxRetries = 5,
 
-        [string]$TenantID
+        [string]$TenantID,
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [string]$AzureEnvironment
     )
 
-    $baseUrl = 'https://graph.microsoft.com'
+    if (-not $AzureEnvironment) {
+        try {
+            $azContext = Get-AzContext -ErrorAction SilentlyContinue
+            if ($azContext -and $azContext.PSObject.Properties.Name -contains 'Environment' -and
+                $azContext.Environment -and $azContext.Environment.PSObject.Properties.Name -contains 'Name') {
+                $AzureEnvironment = [string]$azContext.Environment.Name
+            }
+        }
+        catch { }
+    }
+    if ($AzureEnvironment -notin @('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')) {
+        $AzureEnvironment = 'AzureCloud'
+    }
+
+    $baseUrl = switch ($AzureEnvironment) {
+        'AzureUSGovernment' { 'https://graph.microsoft.us' }
+        'AzureChinaCloud'   { 'https://microsoftgraph.chinacloudapi.cn' }
+        default             { 'https://graph.microsoft.com' }
+    }
 
     # Normalise URI — accept both relative ("/v1.0/users") and absolute URLs
     if ($Uri -notmatch '^https?://') {
@@ -80,7 +104,7 @@ function Invoke-AZSCGraphRequest {
     $currentUri = $fullUri
 
     do {
-        $headers = Get-AZSCGraphToken -TenantID $TenantID
+        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment
 
         $requestParams = @{
             Uri         = $currentUri

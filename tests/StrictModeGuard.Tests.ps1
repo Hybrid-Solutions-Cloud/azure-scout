@@ -36,6 +36,13 @@ Describe 'StrictMode weakening guard (AB#5672)' {
         $ExitCode | Should -Be 0 -Because 'shipped module code must use Set-StrictMode -Version Latest; a new -Off, -Version 1.0/2.0/3.0 either needs removing or needs an allow-list entry with a written reason'
     }
 
+    It 'requires PowerShell 7, StrictMode Latest, and terminating errors in every shipped script' {
+        $Output = & pwsh -NoProfile -File $script:GuardPath -RepoRoot $script:RepoRoot 2>&1
+        if ($LASTEXITCODE -ne 0) { Write-Host ($Output -join [Environment]::NewLine) }
+
+        $LASTEXITCODE | Should -Be 0
+    }
+
     It 'catches a weakening that is NOT on the allow-list' {
         # A guard nobody has ever seen fail is not known to work. This proves the teeth by adding a
         # violation to a throwaway copy of the repo layout rather than trusting the happy path.

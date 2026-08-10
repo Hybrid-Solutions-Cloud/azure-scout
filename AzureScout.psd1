@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.10.0'
+ModuleVersion = '3.10.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ CompanyName = 'Hybrid Cloud Solutions'
 Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc); add -Assessment and it runs a read-only CAF/WAF landing-zone assessment, scoring the tenant against Cloud Adoption Framework design areas and Well-Architected pillars and producing Power BI, self-contained HTML, executive PowerPoint, and JSON/Excel evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
+Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc); add -Assessment and it runs a read-only CAF/WAF landing-zone assessment, scoring the tenant against Cloud Adoption Framework design areas and Well-Architected pillars and producing a self-contained React/HTML report plus JSON findings and evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
 
 # Minimum version of the PowerShell engine required by this module
 # AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
@@ -54,8 +54,20 @@ PowerShellVersion = '7.0'
 # Processor architecture (None, X86, Amd64) required by this module
 # ProcessorArchitecture = ''
 
-# Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @()
+# Modules that must be imported into the global environment prior to importing this module.
+# Keep optional feature dependencies (for example Az.CostManagement) out of this list.
+# Declaring the core dependencies here lets Install-Module resolve them and makes a
+# source-tree Import-Module fail cleanly instead of installing software as a side effect.
+RequiredModules = @(
+    'ImportExcel'
+    'Az.Accounts'
+    'Az.ResourceGraph'
+    'Az.Storage'
+    'Az.Compute'
+    'Az.Resources'
+    'Az.Advisor'
+    'powershell-yaml'
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -79,7 +91,9 @@ FunctionsToExport = @(
             'Start-AZSCPolicyJob',
             'Start-AZSCSecCenterJob',
             'Start-AZSCSubscriptionJob',
-            'Wait-AZSCJob',
+
+            #Public output maintenance
+            'Clear-AZSCCacheFolder',
 
             #Public Diagram Functions
             'Build-AZSCDiagramSubnet',
@@ -147,10 +161,10 @@ PrivateData = @{
         ProjectUri = 'https://thisismydemo.cloud/azure-scout/'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
+        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.10.0 - The last three, closed for real. Executive/Consultant/Data view modes now materially differ on every report section (AB#6936). The Azure Landing Zone assessment renders BECU-style per-domain chapters -- scorecard, current-state prose, grouped findings, figure -- per CAF design area, with the ALZ benchmark broken into its own section (AB#6938). Fixed a self-contradicting scorecard caused by two design areas sharing the literal name ''Security'', and the underlying evidence-identity defect where a single-match finding''s evidence could resolve to .NET type metadata instead of a resource name. PSScriptAnalyzer is at zero Error/Warning violations repo-wide, down from 1,465 (AB#6451). v3.9.0 - The backlog sweep. Ten service-category coverage gaps closed with real new collectors wired end to end into the assessment collect, not only the inventory export (Analytics, IoT, DevOps, Management and governance, AI and machine learning, Storage, Compute, Security, Databases, Networking). Cost projections and Azure Local licence/Hybrid Benefit collection added. The React report stops dropping Defender alert/assessment/secure-score detail and Azure Local child resources it had silently collected and discarded. The wizard''s category and format menus derive their coverage figures from the collector manifests instead of hand-typed counts, with a gate to keep them honest; a dead -QuotaUsage parameter was removed. A live regression -- an unguarded StrictMode property read that would have wiped already-collected compliance data -- was caught by independent verification and fixed before release. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.10.1 - Combined means combined. Fixes the v3.10.0 startup rejection for Both plus React/JsonEvidence and hardens non-Excel completion, tenant-scoped Graph collection, context restoration, permission filtering, collector isolation, and DevOps pagination. Assessment results now preserve canonical scoring and evidence weights, distinguish unavailable governance data from clean results, withhold incomplete compliance headlines, and collect every automated rule dependency. CI, StrictMode, dependency, packaging, and zero-skip release contracts were audited and strengthened. AB#7278. See CHANGELOG.md for the full history.'
 
         # Prerelease string of this module
         # Prerelease = ''

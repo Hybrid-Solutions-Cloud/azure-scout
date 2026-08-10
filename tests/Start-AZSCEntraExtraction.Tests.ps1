@@ -129,6 +129,13 @@ Describe 'Start-AZSCEntraExtraction' {
             $null = Start-AZSCEntraExtraction -TenantID 'test-tenant'
             Should -Invoke Invoke-AZSCGraphRequest -Times 15 -Scope It
         }
+
+        It 'pins every Graph query to the requested tenant' {
+            $null = Start-AZSCEntraExtraction -TenantID 'target-tenant'
+            Should -Invoke Invoke-AZSCGraphRequest -Times 15 -Scope It -ParameterFilter {
+                $TenantID -eq 'target-tenant'
+            }
+        }
     }
 
     # ── Graceful Degradation ──────────────────────────────────────────

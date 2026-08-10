@@ -48,7 +48,7 @@ rules:
     # privateLinkServiceId) so PEs pointed at Cognitive Services accounts can be
     # counted without a full cross-table join (AB#5057).
     query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.cognitiveservices' && @.targetType == 'accounts')]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.ai.cognitiveAccounts[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.ai.cognitiveAccounts[*]", numeratorKey: targetResourceId, denominatorKey: id }
     remediation: "Confirm each Cognitive Services/Azure OpenAI/AI Foundry account has a dedicated private endpoint (publicNetworkAccess=Disabled alone is not sufficient evidence)."
     manual: false
   - id: CAF-AI-05

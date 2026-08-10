@@ -146,13 +146,13 @@ choice.
 ```powershell
 Invoke-AzureScout -Assessment 'Assess: Management'                    # governance + policy + update manager, scored
 Invoke-AzureScout -Assessment 'Assess: Monitor'                       # monitoring/diagnostics only
-Invoke-AzureScout -Assessment 'Assess: Networking','Assess: Security' -OutputFormat Html
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat PowerBi,Html,Pptx
+Invoke-AzureScout -Assessment 'Assess: Networking','Assess: Security' -OutputFormat React
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React,Json,JsonEvidence
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment      # collect once, get both reports
 ```
 
 ## Adding an assessment
 
 1. Add a rule file `caf.<domain>.yaml` / `waf.<domain>.yaml` under `src/assess/rules/`.
-2. Add an entry to `manifests/assessments.psd1` with `Category`, `Collect`, `Rules`, `Frameworks`, `Tags`, `Reporters`.
+2. Add an entry to `manifests/assessments.psd1` with `Category`, `Collect`, `Rules`, `Frameworks`, and `Tags`. The legacy `Reporters` field is not used by runtime routing.
 3. Add a row to this table. No core code change is required.

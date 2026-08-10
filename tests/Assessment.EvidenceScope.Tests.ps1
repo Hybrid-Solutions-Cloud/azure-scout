@@ -118,4 +118,58 @@ Describe 'AB#6892 -- the fields exist on every emission path' {
         { Invoke-Rule -Rule $Rule -Collect $script:Collect -Area 'Data' -Framework 'CAF' 3>$null } |
             Should -Not -Throw
     }
+
+    It 'returns a complete Error finding for malformed manual and denominator queries' {
+        $ManualRule = @{
+            id = 'T-06'; title = 'Bad manual query'; severity = 'Low'; manual = $true; remediation = 'Review it'
+            query = '$.nope['; assert = @{ type = 'manual' }
+        }
+        $PercentageRule = @{
+            id = 'T-07'; title = 'Bad denominator'; severity = 'High'; manual = $false; remediation = 'Fix it'
+            query = '$.storage[*]'; assert = @{ type = 'percentageAtLeast'; value = 100; denominatorQuery = '$.nope[' }
+        }
+
+        $manual = Invoke-Rule -Rule $ManualRule -Collect $script:Collect -Area 'Data' -Framework 'CAF' 3>$null
+        $percentage = Invoke-Rule -Rule $PercentageRule -Collect $script:Collect -Area 'Data' -Framework 'CAF' 3>$null
+
+        $manual.Status | Should -Be 'Error'
+        $percentage.Status | Should -Be 'Error'
+        foreach ($finding in @($manual, $percentage)) {
+            @($finding.PSObject.Properties.Name) | Should -Contain 'EvidenceTruncated'
+            @($finding.PSObject.Properties.Name) | Should -Contain 'SearchedPath'
+            @($finding.PSObject.Properties.Name) | Should -Contain 'AssertType'
+            @($finding.PSObject.Properties.Name) | Should -Contain 'Denominator'
+        }
+    }
+
+    It 'caps manual evidence while retaining the true match count' {
+        $rows = 1..100 | ForEach-Object { [pscustomobject]@{ id = "row-$_" } }
+        $Rule = @{
+            id = 'T-08'; title = 'Manual sample'; severity = 'Low'; manual = $true; remediation = 'Review it'
+            query = '$.rows[*]'; assert = @{ type = 'manual' }
+        }
+
+        $finding = Invoke-Rule -Rule $Rule -Collect ([pscustomobject]@{ rows = $rows }) -Area 'Data' -Framework 'CAF'
+
+        $finding.Status | Should -Be 'Manual'
+        $finding.EvidenceCount | Should -Be 100
+        @($finding.Evidence).Count | Should -Be 25
+        $finding.EvidenceTruncated | Should -BeTrue
+    }
+
+    It 'uses distinct correlated resources for cross-dataset percentage coverage' {
+        $vms = 1..100 | ForEach-Object { [pscustomobject]@{ id = "vm-$_" } }
+        $duplicateBackupRows = 1..80 | ForEach-Object { [pscustomobject]@{ sourceResourceId = 'vm-1'; copy = $_ } }
+        $Rule = @{
+            id = 'T-09'; title = 'Backup coverage'; severity = 'High'; manual = $false; remediation = 'Protect VMs'
+            query = '$.backup[*]'
+            assert = @{ type = 'percentageAtLeast'; value = 80; denominatorQuery = '$.vms[*]'; numeratorKey = 'sourceResourceId'; denominatorKey = 'id' }
+        }
+
+        $finding = Invoke-Rule -Rule $Rule -Collect ([pscustomobject]@{ backup = $duplicateBackupRows; vms = $vms }) -Area 'Management' -Framework 'CAF'
+
+        $finding.EvidenceCount | Should -Be 1
+        $finding.Denominator | Should -Be 100
+        $finding.Status | Should -Be 'Partial'
+    }
 }

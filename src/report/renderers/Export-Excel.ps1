@@ -488,7 +488,15 @@ function Export-ScoutEvidenceWorkbook {
         New-Item -ItemType Directory -Path $evDir -Force | Out-Null
         $allFindings | Group-Object Area | ForEach-Object {
             $name = ($_.Name -replace '[^\w]', '_')
-            $_.Group | Export-Csv "$evDir/$name.csv" -NoTypeInformation
+            $_.Group | ForEach-Object {
+                $safe = [ordered]@{}
+                foreach ($property in $_.PSObject.Properties) {
+                    $value = $property.Value
+                    if ($value -is [string] -and $value -match '^[\t\r\n ]*[=+\-@]') { $value = "'$value" }
+                    $safe[$property.Name] = $value
+                }
+                [pscustomobject]$safe
+            } | Export-Csv "$evDir/$name.csv" -NoTypeInformation
         }
     }
 }
