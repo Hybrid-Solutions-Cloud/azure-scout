@@ -41,7 +41,11 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.9.0 — the backlog sweep
+## Current Release — v3.10.0 — the last three, closed for real
+
+Released 9 August 2026. Executive/Consultant/Data view modes now materially differ on every report section, not just 2 of 6; the Azure Landing Zone assessment renders BECU-style per-domain chapters (scorecard, current-state prose, grouped findings, figure) per CAF design area instead of one flat list, with the ALZ benchmark broken into its own section; fixed a self-contradicting scorecard caused by two design areas sharing the literal name "Security", and the underlying evidence-identity defect where a single-match finding's evidence could resolve to .NET type metadata instead of a resource name; PSScriptAnalyzer is at zero Error/Warning violations repo-wide, down from 1,465. See CHANGELOG.md for the full per-story breakdown.
+
+## Previous Release — v3.9.0 — the backlog sweep
 
 Released 9 August 2026. Closes out the open coverage-gap backlog across ten service categories (Analytics, IoT, DevOps, Management and governance, AI and machine learning, Storage, Compute, Security, Databases, Networking) with real new collectors wired end to end into the assessment collect, not only the inventory Excel export; adds cost projections and Azure Local licence/Hybrid Benefit collection; surfaces previously-dropped collected categories (Defender alert/assessment/secure-score detail, Azure Local child resources) in the React report; and makes the wizard's category and format menus honest about what they actually collect, with coverage figures generated from the collector manifests rather than hand-typed. See CHANGELOG.md for the full per-story breakdown.
 

@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-08-09 - the last three, closed for real
+
+### Fixed
+
+- **Executive/Consultant/Data view modes only differed materially on 2 of the report's
+  6 sections (AB#6936).** Overview, Inventory & audit, Data & drift, and the Remediation
+  plan rendered byte-identical content across all three modes -- switching the view toggle
+  changed nothing a reader could see. Every section now has a real Executive summary, a
+  Consultant working view, and a Data fully-expanded view; a new regression test renders
+  each mode and asserts the visible content actually differs.
+- **The Azure Landing Zone assessment rendered a single flat findings list instead of the
+  BECU-style per-domain report the assessment was designed to produce (AB#6938).** Each of
+  the 8 CAF design areas now gets its own chapter: a scorecard, a current-state paragraph
+  generated from that area's real pass/fail counts (not static text), 1-3 grouped findings
+  tables, and a figure. The ALZ benchmark conformance checks are broken out into their own
+  named, separately-scored section instead of blending into a design area's scorecard.
+- **A self-contradicting scorecard this redesign exposed:** CAF Security and WAF Security
+  share the literal area name "Security". The area grouping keyed on that name alone, so one
+  framework's chapter was silently dropped and its findings merged into the other's --
+  producing a rendered page whose header said "6 automated" and whose prose said "11
+  automated" two sentences later. Area grouping now keys on framework + name.
+- **Findings resolved to junk (.NET type metadata) instead of a named resource in some
+  runs.** A rule matching exactly one row collapsed through a bare pipeline assignment; on a
+  live run that single match is a raw Newtonsoft JObject/JArray token, which implements
+  IEnumerable<JToken> and gets silently re-enumerated by the next return/pipeline boundary --
+  exploding one finding's evidence into several one-field orphan rows. The assignment is now
+  wrapped in `@(...)` so it stays a real array from the moment it's captured.
+- **1,465 PSScriptAnalyzer warnings and errors (AB#6451), now zero.** Verified with a fresh
+  scan across every directory in the repo. No behavior changes -- named-parameter
+  conversions, dead-code removal, targeted renames, and narrowly-justified suppressions
+  where the finding was a confirmed false positive or the parameter is part of a shared
+  dispatcher signature.
+
 ## [3.9.0] - 2026-08-09 - the backlog sweep
 
 ### Added
