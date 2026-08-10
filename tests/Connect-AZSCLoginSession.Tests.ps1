@@ -148,6 +148,25 @@ Describe 'Connect-AZSCLoginSession' {
             }
             Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1
         }
+
+        It 'forces a fresh interactive login when the wizard rejects the existing context' {
+            Mock Get-AzContext {
+                [pscustomobject]@{
+                    Tenant  = [pscustomobject]@{ Id = 'tenant-existing' }
+                    Account = [pscustomobject]@{ Id = 'user@example.test' }
+                }
+            } -ModuleName AzureScout
+            Mock Connect-AzAccount {} -ModuleName AzureScout
+            Mock Get-AzConfig { [pscustomobject]@{ Value = 'On' } } -ModuleName AzureScout
+            Mock Update-AzConfig {} -ModuleName AzureScout
+
+            $result = InModuleScope 'AzureScout' {
+                Connect-AZSCLoginSession -TenantID 'tenant-existing' -ForceLogin
+            }
+
+            $result | Should -Be 'tenant-existing'
+            Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1 -Exactly
+        }
     }
 
     # ── LoginExperienceV2 Handling ────────────────────────────────────
@@ -180,8 +199,8 @@ Describe 'Connect-AZSCLoginSession' {
             { InModuleScope 'AzureScout' { Connect-AZSCLoginSession -TenantID 'tenant-v2' } } | Should -Throw '*interactive authentication failed*'
 
             Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1 -Exactly
-            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'Off' }
-            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'On' }
+            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'Off' -and $Scope -eq 'Process' }
+            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'On' -and $Scope -eq 'Process' }
         }
     }
 

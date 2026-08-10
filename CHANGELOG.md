@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.2] - 2026-08-10 - tenant means tenant
+
+### Fixed
+
+- **The wizard replaced user and tenant names with GUIDs for access-token contexts.** It now
+  resolves the signed-in user and tenant display name from tenant-aware Az metadata, with a
+  same-tenant Azure CLI fallback for access-token sessions.
+- **Rejecting the displayed context did not preserve the tenant-first workflow.** Answering `Y`
+  keeps the current tenant. Answering `N` forces a fresh login, suppresses Az's subscription
+  picker at process scope, and presents one deduplicated list of every accessible tenant. The
+  selected tenant remains the scan scope; subscriptions are enumerated internally only because
+  a tenant-wide inventory must traverse them all. `-SubscriptionID` remains the only way to
+  narrow the scan to subscriptions.
+- **A default ARM inventory attempted Microsoft Graph before the operator selected Entra data.**
+  The wizard preflight now checks `ArmOnly`. Graph token acquisition occurs only after an
+  explicit `Scope All`/Entra opt-in, eliminating cross-tenant Graph failures from normal ARM
+  tenant inventories.
+
 ## [3.10.1] - 2026-08-10 - combined means combined
 
 ### Fixed

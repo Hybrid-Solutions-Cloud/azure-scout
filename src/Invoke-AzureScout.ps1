@@ -741,14 +741,15 @@ Function Invoke-AzureScout {
     try {
         $AuthCtx = Get-AzContext -ErrorAction SilentlyContinue
         if ($AuthCtx -and $AuthCtx.Account) {
-            $AuthUpn = $AuthCtx.Account.Id
+            $AuthIdentity = Resolve-AZSCContextIdentity -Context $AuthCtx
+            $AuthUpn = $AuthIdentity.AccountDisplayName
             $AuthSub = if ($AuthCtx.Subscription -and $AuthCtx.Subscription.Name) {
                 "$($AuthCtx.Subscription.Name) ($($AuthCtx.Subscription.Id))"
             } else { 'none selected' }
             Write-Host ''
             Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthUpn -ForegroundColor Cyan
             Write-Host '  Subscription : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthSub -ForegroundColor Cyan
-            Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $TenantID -ForegroundColor Cyan
+            Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthIdentity.TenantDisplayName -ForegroundColor Cyan
 
             # Management group access probe (AB#351). Runs here, not at collection time,
             # so a missing tenant-root role is reported while the operator is still

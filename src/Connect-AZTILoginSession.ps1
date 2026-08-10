@@ -26,6 +26,10 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER DeviceLogin
     Use device-code authentication flow.
 
+.PARAMETER ForceLogin
+    Ignore an existing current-user context and authenticate again. The guided
+    wizard uses this when the operator declines the displayed account/tenant.
+
 .PARAMETER AppId
     Application (client) ID for service principal authentication.
 
@@ -65,6 +69,8 @@ function Connect-AZSCLoginSession {
         [string]$TenantID,
 
         [switch]$DeviceLogin,
+
+        [switch]$ForceLogin,
 
         [string]$AppId,
 
@@ -150,7 +156,7 @@ function Connect-AZSCLoginSession {
     $context = Get-AzContext -ErrorAction SilentlyContinue
 
     # If we have a valid context matching the target tenant, reuse it
-    if ($context -and $context.Account -and (-not $TenantID -or $context.Tenant.Id -eq $TenantID)) {
+    if (-not $ForceLogin.IsPresent -and $context -and $context.Account -and (-not $TenantID -or $context.Tenant.Id -eq $TenantID)) {
         $TenantID = $context.Tenant.Id
         Write-Host "Using existing Az context for tenant $TenantID" -ForegroundColor Green
         return $TenantID
@@ -170,7 +176,7 @@ function Connect-AZSCLoginSession {
         try {
             $loginConfig = Get-AzConfig -LoginExperienceV2 -WarningAction SilentlyContinue -InformationAction SilentlyContinue
             if ($loginConfig.Value -eq 'On') {
-                Update-AzConfig -LoginExperienceV2 Off -ErrorAction Stop | Out-Null
+                Update-AzConfig -LoginExperienceV2 Off -Scope Process -ErrorAction Stop | Out-Null
                 $restoreLoginExperienceV2 = $true
             }
         }
@@ -182,7 +188,7 @@ function Connect-AZSCLoginSession {
     }
     finally {
         if ($restoreLoginExperienceV2) {
-            try { Update-AzConfig -LoginExperienceV2 On -ErrorAction Stop | Out-Null }
+            try { Update-AzConfig -LoginExperienceV2 On -Scope Process -ErrorAction Stop | Out-Null }
             catch { Write-Warning "Interactive login completed, but LoginExperienceV2 could not be restored to On: $($_.Exception.Message)" }
         }
     }

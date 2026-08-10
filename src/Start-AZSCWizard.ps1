@@ -91,24 +91,30 @@ function Start-AZSCWizard {
 
     $tenantId = $null
     $context = $null
+    $selectTenant = $false
     try { $context = Get-AzContext -ErrorAction Stop } catch { $context = $null }
 
     if ($context -and $context.Tenant) {
+        $contextIdentity = Resolve-AZSCContextIdentity -Context $context
         Write-Host "  Signed in as : " -NoNewline -ForegroundColor DarkGray
-        Write-Host $context.Account.Id -ForegroundColor Cyan
+        Write-Host $contextIdentity.AccountDisplayName -ForegroundColor Cyan
         Write-Host "  Tenant       : " -NoNewline -ForegroundColor DarkGray
-        Write-Host $context.Tenant.Id -ForegroundColor Cyan
+        Write-Host $contextIdentity.TenantDisplayName -ForegroundColor Cyan
         Write-Host ''
         if (Read-AZSCWizardConfirm -Prompt 'Use this account and tenant?' -Default $true) {
             $tenantId = $context.Tenant.Id
+        }
+        else {
+            $selectTenant = $true
         }
     }
     else {
         Write-Host '  No active Azure session found.' -ForegroundColor Yellow
         Write-Host ''
+        $selectTenant = $true
     }
 
-    if (-not $tenantId) {
+    if ($selectTenant) {
         if ($PlatOS -eq 'Azure CloudShell') {
             Write-Host '  Running in Cloud Shell — using the ambient session.' -ForegroundColor DarkGray
             try { $tenantId = (Get-AzContext -ErrorAction Stop).Tenant.Id } catch { $tenantId = $null }
@@ -117,7 +123,7 @@ function Start-AZSCWizard {
             $useDeviceLogin = Read-AZSCWizardConfirm -Prompt 'Sign in with a device code (needed on headless/SSH hosts)?' -Default $false
             Write-Host '  Opening Azure sign-in...' -ForegroundColor DarkGray
             try {
-                $tenantId = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -DeviceLogin:$useDeviceLogin
+                $tenantId = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -DeviceLogin:$useDeviceLogin -ForceLogin
             }
             catch {
                 Write-Host "  Sign-in failed: $_" -ForegroundColor Red
@@ -126,20 +132,39 @@ function Start-AZSCWizard {
         }
     }
 
-    # If the account can see more than one tenant, let the operator choose.
-    $tenants = @()
-    try { $tenants = @(Get-AzTenant -ErrorAction Stop) } catch { $tenants = @() }
-    if ($tenants.Count -gt 1) {
-        Write-Host ''
-        Write-Host '  This account has access to multiple tenants:' -ForegroundColor DarkGray
-        $tenantChoice = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
-            $tenants | ForEach-Object {
-                $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
-                [pscustomobject]@{ Label = $label; Value = $_.Id }
-            }
-        )
-        if ($null -eq $tenantChoice) { return $null }
-        $tenantId = $tenantChoice
+    # A declined context means tenant selection, never subscription selection.
+    # Enumerate every tenant available to the newly authenticated user and let
+    # the operator choose even when only one is currently visible.
+    if ($selectTenant -and $tenantId) {
+        $signedInContext = $null
+        try { $signedInContext = Get-AzContext -ErrorAction Stop } catch { $signedInContext = $null }
+        if ($signedInContext) {
+            $signedInIdentity = Resolve-AZSCContextIdentity -Context $signedInContext
+            Write-Host ''
+            Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray
+            Write-Host $signedInIdentity.AccountDisplayName -ForegroundColor Cyan
+        }
+
+        $tenants = @(Get-AZSCAccessibleTenant)
+        if ($tenants.Count -eq 0 -and $signedInContext -and $signedInContext.Tenant) {
+            $tenants = @([pscustomobject]@{
+                    Id   = [string]$signedInContext.Tenant.Id
+                    Name = if ($signedInIdentity) { [string]$signedInIdentity.TenantDisplayName } else { '' }
+                })
+        }
+
+        if ($tenants.Count -gt 0) {
+            Write-Host ''
+            Write-Host '  Available tenants for this account:' -ForegroundColor DarkGray
+            $tenantChoice = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
+                $tenants | ForEach-Object {
+                    $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
+                    [pscustomobject]@{ Label = $label; Value = $_.Id }
+                }
+            )
+            if ($null -eq $tenantChoice) { return $null }
+            $tenantId = $tenantChoice
+        }
     }
 
     if (-not $tenantId) {
@@ -155,7 +180,9 @@ function Start-AZSCWizard {
     $blocked = $false
     $perm = $null
     try {
-        $perm = Test-AZSCPermissions -TenantID $tenantId -Scope 'All'
+        # A bare wizard run is an ARM tenant inventory. Do not acquire a Graph
+        # token until the operator explicitly opts into Entra collection.
+        $perm = Test-AZSCPermissions -TenantID $tenantId -Scope 'ArmOnly'
         foreach ($detail in $perm.Details) {
             switch ($detail.Status) {
                 'Pass' { Write-Host "   [PASS] $($detail.Check)" -ForegroundColor Green }
@@ -177,17 +204,7 @@ function Start-AZSCWizard {
         if (-not (Read-AZSCWizardConfirm -Prompt 'Continue anyway?' -Default $false)) { return $null }
     }
 
-    # The audit above always checks Entra ID (-Scope 'All'), but the actual run defaults to
-    # ArmOnly unless told otherwise. Without this, a fully-permissioned account silently gets
-    # zero Entra ID data because nothing here ever carried the audit's own recommendation
-    # forward into the assembled command. See ADO Bug 6736.
     $scopeAnswer = 'ArmOnly'
-    if ($perm -and $perm.OverallReadiness -eq 'FullARMAndEntra') {
-        Write-Host '  This account has full Microsoft Graph / Entra ID permissions.' -ForegroundColor DarkGray
-        if (Read-AZSCWizardConfirm -Prompt 'Also collect Entra ID data (users, groups, conditional access, etc.)?' -Default $true) {
-            $scopeAnswer = 'All'
-        }
-    }
 
     # ── Step 3: what to run ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 3 -Total 5 -Title 'What to run'
@@ -198,6 +215,12 @@ function Start-AZSCWizard {
         [pscustomobject]@{ Label = 'Both       — inventory first, then the scored assessment';        Value = 'Both' }
     )
     if ($null -eq $mode) { return $null }
+
+    Write-Host ''
+    Write-Host '  Entra ID collection requires a separate Microsoft Graph token.' -ForegroundColor DarkGray
+    if (Read-AZSCWizardConfirm -Prompt 'Also collect Entra ID data (users, groups, conditional access, etc.)?' -Default $false) {
+        $scopeAnswer = 'All'
+    }
 
     $answers = @{ TenantID = $tenantId }
     if ($scopeAnswer -eq 'All') { $answers.Scope = 'All' }

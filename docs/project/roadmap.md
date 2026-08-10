@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.10.1 — combined means combined
+## Current Release — v3.10.2 — tenant means tenant
+
+Released 10 August 2026. Restores the guided wizard's tenant-first contract: the prompt shows
+the signed-in user and tenant display name, Y keeps that tenant, and N forces a fresh login then
+lists accessible tenants rather than subscriptions. The default tenant-wide ARM inventory no
+longer requests a Microsoft Graph token; Entra collection is an explicit opt-in. See CHANGELOG.md
+and AB#7278.
+
+## Previous Release — v3.10.1 — combined means combined
 
 Released 10 August 2026. Fixes the v3.10.0 startup rejection for a combined inventory +
 assessment run with React/JsonEvidence, then closes the related runtime and correctness gaps

@@ -467,7 +467,7 @@ Describe 'Wizard — combined run contract' {
     It 'returns Both with React and JsonEvidence selected' {
         $result = & $script:Module {
             $script:WizardResponses = [System.Collections.Generic.Queue[string]]::new()
-            @('', '3', '', '', '', '3', '', '', '', '', '', '', '') |
+            @('', '3', '', '', '', '', '3', '', '', '', '', '', '', '') |
                 ForEach-Object { $script:WizardResponses.Enqueue($_) }
             Mock -CommandName Read-Host -MockWith { $script:WizardResponses.Dequeue() }
 

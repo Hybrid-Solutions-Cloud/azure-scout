@@ -1,5 +1,38 @@
 # Handoff
 
+## Session 2026-08-10 — v3.10.2 tenant-first wizard correction
+
+Immediate use of published 3.10.1 exposed three wizard defects. Access-token Az contexts put GUIDs
+in `Account.Id`/`Tenant.Id`, so the wizard displayed identifiers instead of the user and tenant
+name. Rejecting that context did not reliably enforce the intended fresh-login -> accessible-tenant
+picker flow, and the default ARM inventory ran `Test-AZSCPermissions -Scope All`, producing a
+blocking cross-tenant Graph token error before the operator opted into Entra collection.
+
+Current working tree prepares 3.10.2:
+
+- `Resolve-AZSCContextIdentity` resolves same-tenant user and tenant display names, using Az tenant
+  metadata first and Azure CLI only as an access-token fallback.
+- Y keeps the confirmed tenant and does not enumerate tenants or authenticate again.
+- N passes `-ForceLogin`, suppresses Az LoginExperienceV2's subscription selector at process scope,
+  and displays a deduplicated list of accessible tenants. Azure CLI subscription cache is used only
+  as a fallback source of tenant identities and is grouped by tenant; subscriptions are never shown
+  as the scan-scope selector.
+- Tenant-wide runs continue to enumerate all subscriptions internally. Only explicit
+  `-SubscriptionID` narrows the scan.
+- Wizard permission preflight is `ArmOnly`; the operator must explicitly opt into Entra collection
+  before `Scope All` can request a Graph token.
+- Manifest, changelog, release ledger, docs changelog, and roadmap are synchronized to 3.10.2.
+
+Verification so far: a live read-only display/tenant-list probe resolved a real user, real tenant
+name, and six tenant choices; focused wizard/login tests passed 19/19; unified entry-point tests
+passed 38/38; the seven-file release/permission/wizard shard passed 153/153 with zero skips.
+GitHub issue #259 and AB#7278 were reopened; AB#7278 is Active with reason Regression.
+
+Next: run parser/PSSA/StrictMode/docs/package gates, commit/push with AB#7278, wait for GitHub CI,
+tag the green commit v3.10.2, stage the exact 725-file allow-listed package, publish to PSGallery,
+clean-download verify, install CurrentUser, rerun the wizard display/tenant probe, then close #259
+and AB#7278 with evidence.
+
 ## Session 2026-08-10 — v3.10.1 published; GitHub CI line-ending follow-up
 
 AzureScout 3.10.1 is released and usable. The original Both + React/JsonEvidence startup failure
