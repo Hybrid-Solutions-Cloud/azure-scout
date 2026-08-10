@@ -8,7 +8,7 @@ name. Rejecting that context did not reliably enforce the intended fresh-login -
 picker flow, and the default ARM inventory ran `Test-AZSCPermissions -Scope All`, producing a
 blocking cross-tenant Graph token error before the operator opted into Entra collection.
 
-Current working tree prepares 3.10.2:
+AzureScout 3.10.2 is released and installed:
 
 - `Resolve-AZSCContextIdentity` resolves same-tenant user and tenant display names, using Az tenant
   metadata first and Azure CLI only as an access-token fallback.
@@ -23,15 +23,21 @@ Current working tree prepares 3.10.2:
   before `Scope All` can request a Graph token.
 - Manifest, changelog, release ledger, docs changelog, and roadmap are synchronized to 3.10.2.
 
-Verification so far: a live read-only display/tenant-list probe resolved a real user, real tenant
-name, and six tenant choices; focused wizard/login tests passed 19/19; unified entry-point tests
-passed 38/38; the seven-file release/permission/wizard shard passed 153/153 with zero skips.
-GitHub issue #259 and AB#7278 were reopened; AB#7278 is Active with reason Regression.
+Release evidence:
 
-Next: run parser/PSSA/StrictMode/docs/package gates, commit/push with AB#7278, wait for GitHub CI,
-tag the green commit v3.10.2, stage the exact 725-file allow-listed package, publish to PSGallery,
-clean-download verify, install CurrentUser, rerun the wizard display/tenant probe, then close #259
-and AB#7278 with evidence.
+- Release commit/tag: `2a15a3f7e885ad3775e984ae2acaee63781aa316` / `v3.10.2`.
+- GitHub CI run 290 and documentation deployment both passed on the exact release commit.
+- The seven-file release/permission/wizard shard passed 153/153 with zero failures or skips;
+  parser, PSSA, StrictMode, docs, manifest, release contract, and secret checks passed.
+- The tag was exported into an allow-listed 726-file package. It differs from the 3.10.1 package
+  footprint only by `src/Get-AZSCContextIdentity.ps1`.
+- PSGallery indexes AzureScout 3.10.2. A clean `Save-Module` download matched all 726 staged files
+  byte-for-byte with zero missing, extra, or SHA256-mismatched files.
+- CurrentUser installation path is
+  `C:\Users\KristopherTurner\Documents\PowerShell\Modules\AzureScout\3.10.2`.
+- A fresh-process installed-package probe imported version 3.10.2 with 22 exports, resolved the
+  account and tenant display names, and enumerated six accessible tenants.
+- GitHub issue #259 and AB#7278 were closed with the release evidence.
 
 ## Session 2026-08-10 — v3.10.1 published; GitHub CI line-ending follow-up
 
