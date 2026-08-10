@@ -1,5 +1,58 @@
 # Handoff
 
+## Session 2026-08-10 — v3.10.1 published; GitHub CI line-ending follow-up
+
+AzureScout 3.10.1 is released and usable. The original Both + React/JsonEvidence startup failure
+was fixed, audited, committed, pushed, tagged, packaged, smoke-tested against the approved existing
+Az context, published to PowerShell Gallery, downloaded back from the Gallery, and installed for the
+current user.
+
+### Release outcome
+
+- Release commit/tag: `5991acc2b00fb7a4ce1910bfd1d432193bcc95b3` / `v3.10.1` on GitHub `main`.
+- GitHub issue: `#259`; Azure Boards bug/reference: `AB#7278`.
+- PSGallery resolves `AzureScout` version `3.10.1`; a clean `Save-Module` download matched all 725
+  files in the exact staged/tagged package with zero SHA256 mismatches.
+- Installed path: `C:\Users\KristopherTurner\Documents\PowerShell\Modules\AzureScout\3.10.1`.
+- Fresh-process import reports 3.10.1 and exports 22 functions.
+- Real read-only combined smoke used the exact affected route and completed with 504 resources,
+  React HTML, three assessment/evidence JSON files, and two inventory-evidence files. Output:
+  `D:\tmp\azure-scout-live-smoke-3.10.1-20260810-131052`.
+- Exact release package staging path:
+  `D:\tmp\psgallery-stage-3.10.1-5991acc\AzureScout`.
+- Local release-candidate verification before publication: 3,422 passed, 0 failed, 0 skipped,
+  0 not run, 0 failed containers; parser, StrictMode, release/version, docs, package inventory,
+  secret scan, and clean-download checks passed.
+
+### GitHub Actions follow-up
+
+The first GitHub CI run for the release commit failed only in the test harness: Windows checkout
+converted `tests/fixtures/collector-equivalence/DevOps.json` from LF to CRLF, while
+`Get-ScoutFixtureSha256` hashed raw bytes. This caused 72 identical fixture-identity failures.
+The module/package and real smoke remained successful.
+
+Current uncommitted follow-up:
+
+- `scripts/CollectorGolden.Common.ps1` canonicalises fixture line endings to LF while preserving
+  every other byte (including a UTF-8 BOM), emits canonical hashes for new records, and accepts the
+  historical CRLF digest for existing records.
+- `tests/CollectorGolden.Common.Tests.ps1` proves LF/CRLF equivalence, BOM identity, legacy CRLF
+  compatibility, and the exact committed DevOps hash after simulated CRLF checkout.
+- `tests/ReactReport.DiagramOverlap.Tests.ps1` registers optional local banked-corpus cases only when
+  their inputs exist. GitHub no longer reports two unavailable local corpus cases as skipped;
+  deterministic report/diagram tests remain mandatory.
+
+Verification for the follow-up: focused 7/7 passed with zero skips; all 279 golden records across
+18 fixtures accept the canonical/legacy identity; three files parse cleanly; `git diff --check` and
+diff secret scan passed. PSScriptAnalyzer reports only the file's two pre-existing warnings
+(`Write-Host` and the non-ASCII file BOM rule). The full 1,121-test golden execution produced no
+failure output but exceeded the local 10-minute command ceiling before returning a result; GitHub
+must supply the authoritative full-suite result on the follow-up commit.
+
+Next action: commit the CI-only follow-up as `fix(ci): canonicalize golden fixture hashing AB#7278`,
+push `main`, and wait for GitHub CI. Do not move `v3.10.1` or republish the Gallery package: the
+follow-up changes only scripts/tests excluded from the 725-file published package.
+
 ## Session 2026-08-10 — repository-wide audit after Both + React/JsonEvidence startup failure
 
 The operator explicitly requested a multi-agent audit after confirming the failing wizard selection
