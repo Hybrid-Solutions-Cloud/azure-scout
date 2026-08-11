@@ -274,6 +274,11 @@ function Get-ScoutRawInventory {
         [switch]   $SkipApiResourceSweep,
         [switch]   $SkipPolicy,
         [switch]   $TenantWideDefinitionsOnly,
+        [bool]     $CollectResourceTable = $true,
+        [bool]     $CollectNetworkTable = $true,
+        [bool]     $CollectTenantWideResources = $true,
+        [bool]     $CollectGovernance = $true,
+        [string[]] $ResourceTypes,
 
         [switch]   $IncludeOperationalCollectorEnrichment,
         [string]   $RetirementQueryPath,
@@ -313,6 +318,12 @@ function Get-ScoutRawInventory {
 
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
     $columns = "id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$tagProjection"
+    $resolvedResourceTypes = @($ResourceTypes | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
+    $resourceTypeClause = if ($resolvedResourceTypes.Count -gt 0) {
+        $escapedTypes = @($resolvedResourceTypes | ForEach-Object { ([string]$_).Replace("'", "''") })
+        "| where type in~ ('$([string]::Join("','", $escapedTypes))')"
+    }
+    else { '' }
 
     # Inherited from Start-AZTIGraphExtraction's $ExcludedTypes. What remains -- portal dashboards
     # and template-spec versions -- really are UI/authoring artifacts rather than inventory.
@@ -504,8 +515,12 @@ function Get-ScoutRawInventory {
     }
 
     $resources = [System.Collections.Generic.List[object]]::new()
-    foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
-    foreach ($row in (Invoke-ScoutRawTable -Query "networkresources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    if ($CollectResourceTable) {
+        foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $resourceTypeClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    }
+    if ($CollectNetworkTable) {
+        foreach ($row in (Invoke-ScoutRawTable -Query "networkresources $rgClause $tagClause $mgJoinClause $resourceTypeClause | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+    }
 
     if ($IncludeSupportResources -and $AzureEnvironment -ne 'AzureUSGovernment') {
         foreach ($row in (Invoke-ScoutRawTable -Query "SupportResources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'SupportTickets' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
@@ -708,7 +723,7 @@ function Get-ScoutRawInventory {
         }
     }
 
-    # ── Tenant-wide collection — UNCONDITIONAL ────────────────────────────────────────────────
+    # ── Tenant-wide collection ────────────────────────────────────────────────────────────────
     #
     # Management groups, custom role definitions, policy definitions and policy set definitions
     # are what a landing-zone or governance assessment IS. They are not an opt-in extra, and
@@ -734,34 +749,32 @@ function Get-ScoutRawInventory {
     # consume this sweep rather than issuing its own identical one after the raw pass returns.
     $collectedApiResources = @()
 
-    $tenantHelpersAvailable =
-        (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1') -and
+    # Full/default and assessment-backed paths leave both collection booleans true. A selective
+    # inventory category can turn off either independent phase through the internal plan; these
+    # are booleans (not public opt-in switches) so an omitted argument preserves the established
+    # full-collection contract.
+    if (-not $SkipApiResourceSweep -and
+        (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutApiResources' -FileName 'Get-ScoutApiResources.ps1')) {
+        $apiSweepTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'ARM REST API sweep'
+        $apiSweepStatus = 'Completed'
+        try {
+            $collectedApiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
+        }
+        catch {
+            $apiSweepStatus = 'Failed'
+            Write-Warning "Get-ScoutRawInventory: the ARM REST sweep failed; policy definitions will be empty, management groups and custom roles are unaffected: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'ARM REST API sweep' -Timer $apiSweepTimer -Status $apiSweepStatus `
+                -Rows @($collectedApiResources).Count
+        }
+    }
+
+    $tenantHelpersAvailable = $CollectTenantWideResources -and
         (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutManagementGroupHierarchy' -FileName 'ConvertTo-ScoutManagementGroupHierarchy.ps1') -and
         (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutTenantWideResource' -FileName 'Get-ScoutTenantWideResource.ps1')
     if ($tenantHelpersAvailable) {
-        # The REST sweep is attempted separately from the envelopes it feeds. A sweep that fails
-        # or is skipped must cost the caller the policy definitions and nothing else -- folding
-        # both into one try block is how the management groups got lost in the first place.
-        if (-not $SkipApiResourceSweep) {
-            $apiSweepTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            Write-ScoutRawInventoryStart -Name 'ARM REST API sweep'
-            $apiSweepStatus = 'Completed'
-            try {
-                $collectedApiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
-            }
-            catch {
-                $apiSweepStatus = 'Failed'
-                Write-Warning "Get-ScoutRawInventory: the ARM REST sweep failed; policy definitions will be empty, management groups and custom roles are unaffected: $($_.Exception.Message)"
-            }
-            finally {
-                Write-ScoutRawInventoryTiming -Name 'ARM REST API sweep' -Timer $apiSweepTimer -Status $apiSweepStatus `
-                    -Rows @($collectedApiResources).Count
-            }
-        }
-        else {
-            Write-Verbose 'Get-ScoutRawInventory: -SkipAPIs was requested, so the policy-definition envelopes will be empty. Management groups and custom role definitions are still collected.'
-        }
-
         $tenantWideTimer = [System.Diagnostics.Stopwatch]::StartNew()
         Write-ScoutRawInventoryStart -Name 'tenant-wide resource sweep'
         $tenantWideStartCount = $resources.Count
@@ -780,18 +793,20 @@ function Get-ScoutRawInventory {
                 -Status $tenantWideStatus -Rows ($resources.Count - $tenantWideStartCount)
         }
 
-        # AB#6801: Microsoft.Edge/sites rides the same ARM REST sweep as the four envelopes
-        # above (it is on $collectedApiResources' `ArcSites` field), so it degrades with
-        # -SkipAPIs exactly like they do rather than being a fifth independent switch.
-        if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutArcSiteResource' -FileName 'ConvertTo-ScoutArcSiteResource.ps1') {
-            try {
-                foreach ($row in @(ConvertTo-ScoutArcSiteResource -ApiResources $collectedApiResources)) {
-                    if ($null -ne $row) { $resources.Add($row) }
-                }
+    }
+
+    # AB#6801: Microsoft.Edge/sites rides the ARM REST sweep on its ArcSites field. This
+    # conversion remains independent of tenant-wide management/policy envelopes because Hybrid
+    # category extraction needs Arc sites without paying for unrelated tenant-wide cmdlets.
+    if (-not $SkipApiResourceSweep -and
+        (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutArcSiteResource' -FileName 'ConvertTo-ScoutArcSiteResource.ps1')) {
+        try {
+            foreach ($row in @(ConvertTo-ScoutArcSiteResource -ApiResources $collectedApiResources)) {
+                if ($null -ne $row) { $resources.Add($row) }
             }
-            catch {
-                Write-Warning "Get-ScoutRawInventory: Arc site conversion failed; continuing without its synthetic rows: $($_.Exception.Message)"
-            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: Arc site conversion failed; continuing without its synthetic rows: $($_.Exception.Message)"
         }
     }
 
@@ -854,7 +869,8 @@ function Get-ScoutRawInventory {
     # governance against an empty array and reports a pass is worse than one that fails loudly, so
     # its inputs must not sit behind a switch.
     $governance = $null
-    if ((Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutGovernanceDataset' -FileName 'Get-ScoutGovernanceDataset.ps1') -and
+    if ($CollectGovernance -and
+        (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutGovernanceDataset' -FileName 'Get-ScoutGovernanceDataset.ps1') -and
         (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutGovernanceResource' -FileName 'ConvertTo-ScoutGovernanceResource.ps1')) {
         $governanceTimer = [System.Diagnostics.Stopwatch]::StartNew()
         Write-ScoutRawInventoryStart -Name 'governance dataset sweep'

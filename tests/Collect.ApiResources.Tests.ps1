@@ -110,3 +110,103 @@ param([string] $Uri, [hashtable] $Headers, [string] $Method)
         $script:policyCalls | Should -Be 0
     }
 }
+
+Describe 'Get-ScoutApiResources -- request efficiency and resilience' {
+    It 'follows ARM nextLink pages and returns one stable array for the field' {
+        $script:resourceHealthCalls = 0
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+
+            if ($Uri -match 'ResourceHealth') {
+                $script:resourceHealthCalls++
+                return [pscustomobject]@{ value = @('page-1'); nextLink = 'https://management.azure.com/next-page' }
+            }
+            if ($Uri -eq 'https://management.azure.com/next-page') {
+                $script:resourceHealthCalls++
+                return [pscustomobject]@{ value = @('page-2') }
+            }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
+
+        $result[0].ResourceHealth | Should -Be @('page-1', 'page-2')
+        $script:resourceHealthCalls | Should -Be 2
+    }
+
+    It 'does not add fixed pacing sleeps to successful requests' {
+        $script:sleepCalls = 0
+        function Start-Sleep {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
+            param([int] $Milliseconds)
+            $script:sleepCalls++
+        }
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+            return [pscustomobject]@{ value = @() }
+        }
+
+        Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy | Out-Null
+
+        $script:sleepCalls | Should -Be 0
+    }
+
+    It 'retries a transient throttling response and honors Retry-After without losing the field' {
+        $script:resourceHealthAttempts = 0
+        $script:retryDelays = @()
+        function Start-Sleep {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
+            param([int] $Milliseconds)
+            $script:retryDelays += $Milliseconds
+        }
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+
+            if ($Uri -match 'ResourceHealth') {
+                $script:resourceHealthAttempts++
+                if ($script:resourceHealthAttempts -eq 1) {
+                    $exception = [System.Exception]::new('synthetic throttling response')
+                    $exception.Data['StatusCode'] = 429
+                    $exception.Data['RetryAfter'] = 0
+                    throw $exception
+                }
+                return [pscustomobject]@{ value = @('recovered') }
+            }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
+
+        $result[0].ResourceHealth | Should -Be @('recovered')
+        $script:resourceHealthAttempts | Should -Be 2
+        $script:retryDelays | Should -Be @(0)
+    }
+
+    It 'preserves the single policy summary object instead of adding an array layer' {
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+
+            if ($Uri -match 'policyStates') {
+                return [pscustomobject]@{
+                    value = [pscustomobject]@{
+                        policyAssignments = @([pscustomobject]@{ policyAssignmentId = 'pa-sub-1' })
+                    }
+                }
+            }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]))
+
+        $result[0].PolicyAssignments | Should -BeOfType ([pscustomobject])
+        $result[0].PolicyAssignments.policyAssignments[0].policyAssignmentId | Should -Be 'pa-sub-1'
+    }
+}

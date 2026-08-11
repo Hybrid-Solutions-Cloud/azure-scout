@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.0] - 2026-08-10 - less waiting, same evidence
+
+### Changed
+
+- **Category selection now reduces collection work, not only report processing (AB#7279).**
+  Inventory runs derive a conservative dependency closure from the selected collector manifests,
+  filter Resource Graph resource types server-side, and skip unrelated resource tables, ARM/API,
+  tenant-wide governance, Entra, DevOps, and VM-detail phases. `All`, unknown categories, and every
+  assessment-backed combined run preserve the full collection plan so optimization cannot remove
+  rule evidence.
+- **Combined runs reuse the security and policy sweep already completed by inventory.** Defender
+  pricing, alerts, assessments, secure scores, and policy compliance states fall back remotely only
+  for genuinely missing subscriptions or datasets. Successful-empty and explicitly unavailable
+  datasets remain authoritative, and the offline inventory-render path remains zero-network.
+- **Operational enrichment caches remote work at its real scope.** Recovery Services vaults are
+  listed once per subscription, protected items once per vault, and storage context is entered once
+  per subscription while output order, raw payloads, and per-resource failure envelopes remain
+  unchanged.
+- **The ARM REST sweep no longer sleeps after every successful request.** It follows every ARM
+  `nextLink` and uses bounded response-driven retry with `Retry-After` and jitter for only
+  408/429/5xx responses. This removes roughly 1.9 seconds of artificial delay per subscription
+  from the full sweep while retaining throttle protection.
+
 ## [3.11.0] - 2026-08-10 - one output contract, logs that explain the run
 
 ### Fixed

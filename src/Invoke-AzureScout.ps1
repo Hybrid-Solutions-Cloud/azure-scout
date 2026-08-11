@@ -1000,7 +1000,7 @@ Function Invoke-AzureScout {
         $extractionIncludeTags = [switch]$true
     }
 
-        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
+        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat -Category $Category -PreserveAssessmentDependencies:($null -ne $deferredAssessArgs)
 
     $ExtractionRuntime.Stop()
 

@@ -37,7 +37,9 @@ $ErrorActionPreference = 'Stop'
     Every call is independently non-fatal: a single endpoint failing (missing RBAC,
     provider not registered, transient error) degrades that one field to $null for that one
     subscription and the run continues -- exactly the legacy function's existing behavior,
-    carried forward unchanged.
+    carried forward unchanged. ARM list pagination is followed to completion. Transient
+    408/429/5xx responses use bounded, response-driven retry instead of delaying every
+    successful request.
 
 .PARAMETER Subscriptions
     Subscription objects with `.id` and `.name` (the same shape `Get-ScoutRawInventory`'s
@@ -111,21 +113,119 @@ function Get-ScoutApiResources {
         return @()
     }
 
+    function Get-ScoutApiStatusCode {
+        param([Parameter(Mandatory)] [System.Management.Automation.ErrorRecord] $ErrorRecord)
+
+        $responseProperty = $ErrorRecord.Exception.PSObject.Properties['Response']
+        if ($responseProperty -and $null -ne $responseProperty.Value) {
+            $statusProperty = $responseProperty.Value.PSObject.Properties['StatusCode']
+            if ($statusProperty -and $null -ne $statusProperty.Value) {
+                try { return [int] $statusProperty.Value } catch { return $null }
+            }
+        }
+
+        if ($ErrorRecord.Exception.Data -and $ErrorRecord.Exception.Data.Contains('StatusCode')) {
+            try { return [int] $ErrorRecord.Exception.Data['StatusCode'] } catch { return $null }
+        }
+        return $null
+    }
+
+    function Get-ScoutApiRetryDelayMilliseconds {
+        param(
+            [Parameter(Mandatory)] [System.Management.Automation.ErrorRecord] $ErrorRecord,
+            [Parameter(Mandatory)] [int] $Attempt
+        )
+
+        $retryAfter = $null
+        if ($ErrorRecord.Exception.Data -and $ErrorRecord.Exception.Data.Contains('RetryAfter')) {
+            $retryAfter = $ErrorRecord.Exception.Data['RetryAfter']
+        }
+
+        $responseProperty = $ErrorRecord.Exception.PSObject.Properties['Response']
+        if ($null -eq $retryAfter -and $responseProperty -and $null -ne $responseProperty.Value) {
+            $headersProperty = $responseProperty.Value.PSObject.Properties['Headers']
+            if ($headersProperty -and $null -ne $headersProperty.Value) {
+                try {
+                    $retryAfter = @($headersProperty.Value.GetValues('Retry-After'))[0]
+                }
+                catch {
+                    $retryAfterProperty = $headersProperty.Value.PSObject.Properties['Retry-After']
+                    if ($retryAfterProperty) { $retryAfter = $retryAfterProperty.Value }
+                }
+            }
+        }
+
+        if ($null -ne $retryAfter) {
+            $retryAfterSeconds = 0
+            if ([int]::TryParse([string] $retryAfter, [ref] $retryAfterSeconds)) {
+                return [math]::Min(60000, [math]::Max(0, $retryAfterSeconds * 1000))
+            }
+            $retryAfterDate = [datetimeoffset]::MinValue
+            if ([datetimeoffset]::TryParse([string] $retryAfter, [ref] $retryAfterDate)) {
+                return [math]::Min(60000, [math]::Max(0, [int] ($retryAfterDate - [datetimeoffset]::UtcNow).TotalMilliseconds))
+            }
+        }
+
+        $exponentialDelay = 500 * [math]::Pow(2, $Attempt)
+        $jitter = Get-Random -Minimum 0 -Maximum 251
+        return [math]::Min(30000, [int] ($exponentialDelay + $jitter))
+    }
+
     function Invoke-ScoutApiCall {
         param([string] $Uri, [string] $Method = 'GET', [string] $FieldName, [string] $SubscriptionName)
         try {
-            $response = Invoke-RestMethod -Uri $Uri -Headers $headers -Method $Method
-            if ($null -eq $response) { return $null }
-            # An ARM envelope always carries `value`, but a provider that is not registered can
-            # answer with a bare object. v1 read `.value` with StrictMode off, so an absent
-            # property was $null rather than a crash; keep that.
-            if (-not $response.PSObject.Properties['value']) { return $null }
-            $value = $response.value
-            if ($null -eq $value) { return $null }
-            # Comma operator: `return $value` UNROLLS a single-element array to a scalar, which
-            # silently changes the shape of every endpoint that returned exactly one row. The
-            # caller decides what shape it wants; this returns what the wire returned.
-            return , $value
+            $values = [System.Collections.Generic.List[object]]::new()
+            $currentUri = $Uri
+            $currentMethod = $Method
+            $pageNumber = 0
+
+            while ($currentUri) {
+                $response = $null
+                for ($attempt = 0; $attempt -le 3; $attempt++) {
+                    try {
+                        $response = Invoke-RestMethod -Uri $currentUri -Headers $headers -Method $currentMethod -ErrorAction Stop
+                        break
+                    }
+                    catch {
+                        $statusCode = Get-ScoutApiStatusCode -ErrorRecord $_
+                        $isTransient = $statusCode -in @(408, 429) -or ($null -ne $statusCode -and $statusCode -ge 500 -and $statusCode -le 599)
+                        if (-not $isTransient -or $attempt -ge 3) { throw }
+
+                        $delayMilliseconds = Get-ScoutApiRetryDelayMilliseconds -ErrorRecord $_ -Attempt $attempt
+                        Write-Verbose "Get-ScoutApiResources: '$FieldName' received HTTP $statusCode for subscription '$SubscriptionName'; retrying in $delayMilliseconds ms (attempt $($attempt + 2) of 4)."
+                        Start-Sleep -Milliseconds $delayMilliseconds
+                    }
+                }
+
+                if ($null -eq $response) { return $null }
+                # An ARM envelope always carries `value`, but a provider that is not registered can
+                # answer with a bare object. v1 read `.value` with StrictMode off, so an absent
+                # property was $null rather than a crash; keep that.
+                if (-not $response.PSObject.Properties['value']) { return $null }
+                $value = $response.value
+                if ($null -eq $value) { return $null }
+
+                $nextLinkProperty = $response.PSObject.Properties['nextLink']
+                $hasNextLink = $currentMethod -eq 'GET' -and $nextLinkProperty -and $nextLinkProperty.Value
+                # A single-page response must retain the exact wire shape. In particular, the
+                # policyStates summarize POST returns one object whose `policyAssignments` member
+                # is consumed directly; wrapping that object in an array breaks the established
+                # PolicyAssign contract. Only paged GET lists need aggregation.
+                if ($pageNumber -eq 0 -and -not $hasNextLink) { return , $value }
+
+                foreach ($item in @($value)) { $values.Add($item) }
+                if ($hasNextLink) {
+                    $currentUri = [string] $nextLinkProperty.Value
+                    $currentMethod = 'GET'
+                    $pageNumber++
+                }
+                else {
+                    $currentUri = $null
+                }
+            }
+
+            # Comma operator preserves the array shape even for one returned row.
+            return , @($values)
         }
         catch {
             Write-Verbose "Get-ScoutApiResources: '$FieldName' failed for subscription '$SubscriptionName' -- leaving it `$null and continuing: $($_.Exception.Message)"
@@ -165,26 +265,21 @@ function Get-ScoutApiResources {
         if (-not $DefinitionsOnly) {
             $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
-            Start-Sleep -Milliseconds 200
 
             $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
-            Start-Sleep -Milliseconds 200
 
             $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01"
-            Start-Sleep -Milliseconds 200
 
             $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"
-            Start-Sleep -Milliseconds 200
 
             # AB#6801: Microsoft.Edge/sites -- see the function synopsis for why this is a
             # per-subscription list rather than a per-parent ARM child sweep. Reader's `*/read`
             # wildcard covers `Microsoft.Edge/sites/read`; no new permission is required.
             $arcSites = Invoke-ScoutApiCall -FieldName 'ArcSites' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Edge/sites?api-version=2024-02-01-preview"
-            Start-Sleep -Milliseconds 200
         }
 
         $policyAssignments   = $null
@@ -196,18 +291,12 @@ function Get-ScoutApiResources {
             if (-not $DefinitionsOnly) {
                 $policyAssignments = Invoke-ScoutApiCall -Method 'POST' -FieldName 'PolicyAssignments' -SubscriptionName $subName `
                     -Uri "$base/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
-                Start-Sleep -Milliseconds 200
             }
             $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Authorization/policySetDefinitions?api-version=2023-04-01"
-            Start-Sleep -Milliseconds 200
             $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Authorization/policyDefinitions?api-version=2023-04-01"
         }
-
-        # Matches the legacy per-subscription pacing exactly (200ms between calls, 300ms
-        # between subscriptions) -- ARM throttles these control-plane endpoints per tenant.
-        Start-Sleep -Milliseconds 300
 
         [pscustomobject]@{
             Subscription                = $subId

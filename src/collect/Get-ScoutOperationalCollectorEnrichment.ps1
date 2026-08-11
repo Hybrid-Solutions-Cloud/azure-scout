@@ -181,12 +181,20 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     $VirtualMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' })
+    # Vault discovery is subscription-scoped and protected-item discovery is vault-scoped. The
+    # legacy row-loop repeated both requests for every VM in the same subscription, multiplying a
+    # fixed result by the VM count. Cache the raw response at its real owning scope; every VM still
+    # receives the same ReplicationProtectedItems payload it did before.
+    $VaultsBySubscription = @{}
+    $ProtectedItemsByVault = @{}
+    # Use one common metrics window for the run. Each VM still has its own CPU and memory request;
+    # combining those calls would couple their independent failure envelopes and change the schema.
+    $MetricNow = (Get-Date).ToUniversalTime().ToString('o')
+    $MetricStart = (Get-Date).AddDays(-7).ToUniversalTime().ToString('o')
     foreach ($Vm in $VirtualMachines) {
         $Id = [string](Get-ScoutValue $Vm @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
-        $Now = (Get-Date).ToUniversalTime().ToString('o')
-        $Start = (Get-Date).AddDays(-7).ToUniversalTime().ToString('o')
-        $BaseMetric = "$Id/providers/microsoft.insights/metrics?api-version=2019-07-01&timespan=$Start/$Now&interval=P1D&aggregation=Average"
+        $BaseMetric = "$Id/providers/microsoft.insights/metrics?api-version=2019-07-01&timespan=$MetricStart/$MetricNow&interval=P1D&aggregation=Average"
         # Keep the operational payloads at the collect boundary.  The two Compute report
         # collectors consume these envelopes later; they must never issue a per-row ARM call.
         # The Cost Management body deliberately retains the legacy ResourceId filter -- an
@@ -195,7 +203,10 @@ function Get-ScoutOperationalCollectorEnrichment {
         $VmName = [string](Get-ScoutValue $Vm @('name', 'NAME'))
         # 404 here means ASR has never evaluated this VM -- expected for most VMs, not a defect.
         $Eligibility = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationEligibility' -ParentId $Id -QuietNotFound -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/replicationEligibilityResults/${VmName}?api-version=2022-10-01"
-        $Vaults = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationVaults' -ParentId $Id -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/vaults?api-version=2023-04-01"
+        if (-not $VaultsBySubscription.ContainsKey($SubscriptionId)) {
+            $VaultsBySubscription[$SubscriptionId] = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationVaults' -ParentId $Id -Path "/subscriptions/$SubscriptionId/providers/Microsoft.RecoveryServices/vaults?api-version=2023-04-01"
+        }
+        $Vaults = $VaultsBySubscription[$SubscriptionId]
         $ProtectedItems = @()
         if ($null -eq (Get-ScoutValue $Vaults @('__AZSCError'))) {
             foreach ($Vault in @(Get-ScoutValue $Vaults @('value'))) {
@@ -204,7 +215,16 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $VaultSegments = @($VaultId -split '/')
                 $VaultResourceGroup = if ($VaultSegments.Count -gt 4) { $VaultSegments[4] } else { $null }
                 if ([string]::IsNullOrWhiteSpace($VaultResourceGroup) -or [string]::IsNullOrWhiteSpace($VaultName)) { continue }
-                $ProtectedItems += Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationProtectedItems' -ParentId $Id -Path "/subscriptions/$SubscriptionId/resourceGroups/$VaultResourceGroup/providers/Microsoft.RecoveryServices/vaults/$VaultName/replicationProtectedItems?api-version=2022-10-01"
+                $VaultCacheKey = if (-not [string]::IsNullOrWhiteSpace($VaultId)) {
+                    $VaultId.ToLowerInvariant()
+                }
+                else {
+                    ("$SubscriptionId/$VaultResourceGroup/$VaultName").ToLowerInvariant()
+                }
+                if (-not $ProtectedItemsByVault.ContainsKey($VaultCacheKey)) {
+                    $ProtectedItemsByVault[$VaultCacheKey] = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationProtectedItems' -ParentId $VaultId -Path "/subscriptions/$SubscriptionId/resourceGroups/$VaultResourceGroup/providers/Microsoft.RecoveryServices/vaults/$VaultName/replicationProtectedItems?api-version=2022-10-01"
+                }
+                $ProtectedItems += $ProtectedItemsByVault[$VaultCacheKey]
             }
         }
         $CostPayload = @{
@@ -260,38 +280,74 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
+    $SubscriptionsById = @{}
+    foreach ($Subscription in @($Subscriptions)) {
+        $SubscriptionKey = [string](Get-ScoutValue $Subscription @('id', 'Id'))
+        if (-not [string]::IsNullOrWhiteSpace($SubscriptionKey) -and -not $SubscriptionsById.ContainsKey($SubscriptionKey)) {
+            $SubscriptionsById[$SubscriptionKey] = $Subscription
+        }
+    }
     $StorageContext = Get-AzContext -ErrorAction SilentlyContinue
+    $StorageIndexesBySubscription = @{}
+    $StorageSubscriptionOrder = [System.Collections.Generic.List[string]]::new()
+    for ($StorageIndex = 0; $StorageIndex -lt $StorageAccounts.Count; $StorageIndex++) {
+        $StorageSubscriptionId = [string](Get-ScoutValue $StorageAccounts[$StorageIndex] @('subscriptionId', 'SubscriptionId'))
+        if (-not $StorageIndexesBySubscription.ContainsKey($StorageSubscriptionId)) {
+            $StorageIndexesBySubscription[$StorageSubscriptionId] = [System.Collections.Generic.List[int]]::new()
+            $StorageSubscriptionOrder.Add($StorageSubscriptionId)
+        }
+        $StorageIndexesBySubscription[$StorageSubscriptionId].Add($StorageIndex)
+    }
+    $StorageResults = [object[]]::new($StorageAccounts.Count)
     try {
-        foreach ($Account in $StorageAccounts) {
-            $Id = [string](Get-ScoutValue $Account @('id', 'ID'))
-            $SubscriptionId = [string](Get-ScoutValue $Account @('subscriptionId', 'SubscriptionId'))
-            $Subscription = @($Subscriptions | Where-Object { [string](Get-ScoutValue $_ @('id', 'Id')) -eq $SubscriptionId } | Select-Object -First 1)
-            $StorageContextEntered = $false
+        # Enter each subscription once, collect every account in that scope, then move on. Results
+        # are stored by original index and emitted afterward so grouping remote work does not change
+        # the public envelope order.
+        foreach ($SubscriptionId in $StorageSubscriptionOrder) {
             $StorageContextError = $null
             try {
                 if ([string]::IsNullOrWhiteSpace($SubscriptionId)) { throw 'Storage account has no subscriptionId.' }
                 $contextParams = @{ Subscription = $SubscriptionId; ErrorAction = 'Stop' }
-                $tenantId = if ($Subscription.Count -gt 0) { Get-ScoutValue $Subscription[0] @('tenantId', 'TenantId') } else { $null }
+                $tenantId = if ($SubscriptionsById.ContainsKey($SubscriptionId)) {
+                    Get-ScoutValue $SubscriptionsById[$SubscriptionId] @('tenantId', 'TenantId')
+                }
+                else { $null }
                 if (-not $tenantId -and $StorageContext -and $StorageContext.Tenant) { $tenantId = $StorageContext.Tenant.Id }
                 if ($tenantId) { $contextParams['Tenant'] = $tenantId }
                 Set-AzContext @contextParams | Out-Null
-                $StorageContextEntered = $true
-                $Blob = Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
             }
             catch {
                 $StorageContextError = $_.Exception.Message
-                Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
-                $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
             }
-            try {
-                if (-not $StorageContextEntered) { throw "Subscription context was not entered: $StorageContextError" }
-                $File = Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+
+            foreach ($AccountIndex in $StorageIndexesBySubscription[$SubscriptionId]) {
+                $Account = $StorageAccounts[$AccountIndex]
+                $Id = [string](Get-ScoutValue $Account @('id', 'ID'))
+                if ($StorageContextError) {
+                    Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $StorageContextError"
+                    $Blob = [PSCustomObject]@{ __AZSCError = $StorageContextError }
+                    $FileError = "Subscription context was not entered: $StorageContextError"
+                    Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $FileError"
+                    $File = [PSCustomObject]@{ __AZSCError = $FileError }
+                }
+                else {
+                    try {
+                        $Blob = Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                    }
+                    catch {
+                        Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
+                        $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                    }
+                    try {
+                        $File = Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                    }
+                    catch {
+                        Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
+                        $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                    }
+                }
+                $StorageResults[$AccountIndex] = [PSCustomObject]@{ BlobService = $Blob; FileService = $File }
             }
-            catch {
-                Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
-                $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
-            }
-            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/StorageAccount' -Parent $Account -Properties @{ BlobService = $Blob; FileService = $File }
         }
     }
     finally {
@@ -299,6 +355,14 @@ function Get-ScoutOperationalCollectorEnrichment {
             $restoreParams = @{ Subscription = $StorageContext.Subscription.Id; ErrorAction = 'SilentlyContinue' }
             if ($StorageContext.Tenant -and $StorageContext.Tenant.Id) { $restoreParams['Tenant'] = $StorageContext.Tenant.Id }
             Set-AzContext @restoreParams | Out-Null
+        }
+    }
+    for ($StorageIndex = 0; $StorageIndex -lt $StorageAccounts.Count; $StorageIndex++) {
+        $Account = $StorageAccounts[$StorageIndex]
+        $Result = $StorageResults[$StorageIndex]
+        ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/StorageAccount' -Parent $Account -Properties @{
+            BlobService = $Result.BlobService
+            FileService = $Result.FileService
         }
     }
 
