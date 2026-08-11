@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.11.0 — one output contract, logs that explain the run
+## Current Release — v3.12.0 — less waiting, same evidence
+
+Released 10 August 2026. Category-filtered inventory now avoids unrelated remote work through a
+manifest-derived dependency plan and server-side Resource Graph filters. Combined runs reuse the
+completed inventory security/policy sweep; Recovery Services and storage enrichment cache calls at
+subscription or vault scope; and the ARM REST sweep uses pagination and transient-only retry instead
+of fixed success-path sleeps. Full, unknown, and assessment-backed paths retain complete evidence
+coverage. See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.11.0 — one output contract, logs that explain the run
 
 Released 10 August 2026. Inventory, assessment, combined, wizard, and automation paths now
 share one live output contract: React, Json, and JsonEvidence. Inventory-only React and evidence

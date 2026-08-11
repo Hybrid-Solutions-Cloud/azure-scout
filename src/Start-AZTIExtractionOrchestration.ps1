@@ -21,6 +21,133 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 
 #>
+function Resolve-AZSCExtractionCategoryPlan {
+    [CmdletBinding()]
+    param(
+        [string[]] $Category = @('All'),
+        [switch] $PreserveAssessmentDependencies
+    )
+
+    $fullPlan = {
+        [pscustomobject]@{
+            IsFull                              = $true
+            Categories                          = @('All')
+            ResourceTypes                       = @()
+            CollectResourceTable                = $true
+            CollectNetworkTable                 = $true
+            IncludeSupportResources             = $true
+            IncludeBackupResources              = $true
+            IncludeDesktopVirtualization        = $true
+            IncludeUpdateManagerResources       = $true
+            IncludeLighthouseDelegations         = $true
+            IncludeRetirements                   = $true
+            IncludeAdvisories                    = $true
+            IncludeArmChildResources             = $true
+            ArmChildDataset                      = @('All')
+            IncludeOperationalCollectorEnrichment = $true
+            IncludeSubscriptionSecurityPolicy   = $true
+            IncludeApiResourceSweep              = $true
+            CollectTenantWideResources           = $true
+            CollectGovernance                    = $true
+            IncludeEntra                         = $true
+            IncludeDevOps                        = $true
+            IncludeVmDetails                     = $true
+        }
+    }
+
+    $requested = @($Category | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+    if ($PreserveAssessmentDependencies -or $requested.Count -eq 0 -or $requested -contains 'All') {
+        return & $fullPlan
+    }
+
+    $collectorRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'manifests/collectors'
+    $categoryFolders = @{}
+    if (Test-Path -LiteralPath $collectorRoot -PathType Container) {
+        foreach ($folder in @(Get-ChildItem -LiteralPath $collectorRoot -Directory -ErrorAction SilentlyContinue)) {
+            $categoryFolders[[string]$folder.Name] = [string]$folder.FullName
+        }
+    }
+    if ($categoryFolders.Count -eq 0 -or @($requested | Where-Object { -not $categoryFolders.ContainsKey($_) }).Count -gt 0) {
+        return & $fullPlan
+    }
+
+    $manifestText = [System.Text.StringBuilder]::new()
+    $declaredTypes = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($categoryName in $requested) {
+        foreach ($manifestPath in @(Get-ChildItem -LiteralPath $categoryFolders[$categoryName] -Filter '*.psd1' -File -ErrorAction SilentlyContinue)) {
+            $text = Get-Content -LiteralPath $manifestPath.FullName -Raw
+            [void]$manifestText.AppendLine($text)
+            try {
+                $manifest = Import-PowerShellDataFile -LiteralPath $manifestPath.FullName
+                foreach ($resourceType in @($manifest.ResourceTypes)) {
+                    if (-not [string]::IsNullOrWhiteSpace([string]$resourceType)) {
+                        [void]$declaredTypes.Add([string]$resourceType)
+                    }
+                }
+            }
+            catch {
+                # An unreadable manifest makes selective extraction unsafe. Preserve the
+                # established full-collection behavior instead of guessing at dependencies.
+                return & $fullPlan
+            }
+        }
+    }
+
+    $allText = $manifestText.ToString()
+    foreach ($match in [regex]::Matches($allText, '(?i)\b(?:microsoft\.[a-z0-9.-]+/[a-z0-9._/-]+|AZSC/[a-z0-9._/-]+|Entra/[a-z0-9._/-]+|DevOps/[a-z0-9._/-]+)')) {
+        [void]$declaredTypes.Add($match.Value.TrimEnd('/'))
+    }
+
+    $azureTypes = @($declaredTypes | Where-Object { $_ -match '(?i)^microsoft\.' } | Sort-Object)
+    $armChildNames = @($declaredTypes | Where-Object { $_ -match '(?i)^AZSC/ARMChild/' } | ForEach-Object { ($_ -split '/', 3)[2] })
+    $supportedArmChildren = @(
+        'MLComputes', 'MLDatasets', 'MLDatastores', 'MLEndpoints', 'MLModels', 'MLPipelines',
+        'OpenAIDeployments', 'SearchIndexes', 'AVDApplications', 'AppInsightsProactiveDetection',
+        'LAWorkspaceLinkedServices', 'LAWorkspaceSavedSearches', 'KeyVaultSecrets', 'KeyVaultKeys',
+        'StorageBlobContainers', 'StorageFileShares', 'StorageLifecyclePolicies', 'StorageQueues',
+        'StorageTables', 'BackupInstances', 'ResourceDiagnosticSettings', 'ReservationUtilization',
+        'AzureLocalVirtualMachineInstances'
+    )
+    $armChildDataset = @($armChildNames | Where-Object { $_ -in $supportedArmChildren } | Sort-Object -Unique)
+    $specialApiTypes = @(
+        'microsoft.advisor/advisorscore',
+        'microsoft.consumption/reservationrecommendations',
+        'azsc/monitor/outage',
+        'azsc/armchild/arcsites'
+    )
+    $hasType = {
+        param([string] $Pattern)
+        return [bool]@($declaredTypes | Where-Object { $_ -match $Pattern }).Count
+    }
+    $includeTenantWide = & $hasType '(?i)^AZSC/Management/'
+    $includeApiSweep = $includeTenantWide -or [bool]@($declaredTypes | Where-Object { $_ -in $specialApiTypes }).Count
+
+    return [pscustomobject]@{
+        IsFull                              = $false
+        Categories                          = $requested
+        ResourceTypes                       = $azureTypes
+        CollectResourceTable                = ($azureTypes.Count -gt 0)
+        CollectNetworkTable                 = (& $hasType '(?i)^microsoft\.network/')
+        IncludeSupportResources             = (& $hasType '(?i)^microsoft\.support/supporttickets$')
+        IncludeBackupResources              = (& $hasType '(?i)^microsoft\.recoveryservices/.+(protecteditems|backuppolicies)$')
+        IncludeDesktopVirtualization        = (& $hasType '(?i)^microsoft\.desktopvirtualization/')
+        IncludeUpdateManagerResources       = [bool]@($requested | Where-Object { $_ -in @('Compute', 'Hybrid', 'Monitor') }).Count
+        IncludeLighthouseDelegations         = (& $hasType '(?i)^microsoft\.managedservices/registrationdefinitions$')
+        IncludeRetirements                   = ($allText -match '(?i)\$Retirements')
+        IncludeAdvisories                    = $true
+        IncludeArmChildResources             = ($armChildDataset.Count -gt 0)
+        ArmChildDataset                      = $armChildDataset
+        IncludeOperationalCollectorEnrichment = (& $hasType '(?i)^AZSC/(Operational/|Management/SubscriptionEnrichment$)')
+        IncludeSubscriptionSecurityPolicy   = (& $hasType '(?i)^AZSC/Subscription/SecurityPolicySweep$')
+        IncludeApiResourceSweep              = $includeApiSweep
+        CollectTenantWideResources           = $includeTenantWide
+        CollectGovernance                    = (& $hasType '(?i)^AZSC/Governance/')
+        IncludeEntra                         = ((& $hasType '(?i)^Entra/') -or $requested -contains 'Identity')
+        IncludeDevOps                        = ((& $hasType '(?i)^DevOps/') -or $requested -contains 'DevOps')
+        IncludeVmDetails                     = [bool]@($requested | Where-Object { $_ -in @('Compute', 'General') }).Count
+    }
+}
+
 function Start-AZSCExtractionOrchestration {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($ManagementGroup, $Subscriptions, $SubscriptionID, $SkipPolicy, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $SkipAPIs, $SkipVMDetails, $IncludeCosts, $Automation, $AzureEnvironment,
@@ -29,7 +156,9 @@ function Start-AZSCExtractionOrchestration {
         [string]$TenantID,
         [switch]$IncludeDevOps,
         [string[]]$DevOpsOrganization,
-        [string]$DevOpsPat
+        [string]$DevOpsPat,
+        [string[]]$Category = @('All'),
+        [switch]$PreserveAssessmentDependencies
     )
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
@@ -74,10 +203,11 @@ function Start-AZSCExtractionOrchestration {
     # Initialised here, not inside the ARM branch: an EntraOnly run never enters that branch and
     # reading an unassigned variable is a StrictMode throw, not a $null.
     $Governance = $null
+    $extractionPlan = Resolve-AZSCExtractionCategoryPlan -Category $Category -PreserveAssessmentDependencies:$PreserveAssessmentDependencies
 
     # ── ARM Extraction (skip when Scope = EntraOnly) ──
     if ($Scope -ne 'EntraOnly') {
-        $GraphData = Start-AZSCGraphExtraction -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -AzureEnvironment $AzureEnvironment -SkipAPIs $SkipAPIs -SkipPolicy $SkipPolicy
+        $GraphData = Start-AZSCGraphExtraction -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -IncludeTags $IncludeTags -TagKey $TagKey -TagValue $TagValue -AzureEnvironment $AzureEnvironment -SkipAPIs $SkipAPIs -SkipPolicy $SkipPolicy -CategoryPlan $extractionPlan
 
         $Resources = $GraphData.Resources
         $ResourceContainers = $GraphData.ResourceContainers
@@ -95,7 +225,7 @@ function Start-AZSCExtractionOrchestration {
 
         Remove-Variable -Name GraphData -ErrorAction SilentlyContinue
 
-        if(![bool]$SkipAPIs)
+        if(![bool]$SkipAPIs -and $extractionPlan.IncludeApiResourceSweep)
             {
                 Write-Progress -activity 'Azure Inventory' -Status "12% Complete." -PercentComplete 12 -CurrentOperation "Starting API Extraction.."
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting API Resources.')
@@ -137,7 +267,7 @@ function Start-AZSCExtractionOrchestration {
             $Costs = Get-ScoutCostInventory -Subscriptions $Subscriptions -Days 60 -Granularity 'Monthly'
         }
 
-        if (![bool]$SkipVMDetails)
+        if (![bool]$SkipVMDetails -and $extractionPlan.IncludeVmDetails)
             {
                 Write-Host 'Gathering VM Extra Details: ' -NoNewline
                 Write-Host 'Quotas' -ForegroundColor Cyan
@@ -168,7 +298,7 @@ function Start-AZSCExtractionOrchestration {
     }
 
     # ── Entra ID Extraction (when Scope = All or EntraOnly) ──
-    if ($Scope -in @('All', 'EntraOnly')) {
+    if ($Scope -in @('All', 'EntraOnly') -and $extractionPlan.IncludeEntra) {
         if ([string]::IsNullOrEmpty($TenantID)) {
             Write-Warning 'TenantID is required for Entra ID extraction but was not provided. Skipping Entra extraction.'
         }
@@ -218,7 +348,7 @@ function Start-AZSCExtractionOrchestration {
     # ── Azure DevOps Extraction (opt-in via -IncludeDevOps) ──
     # Opt-in rather than scope-driven: Azure DevOps is a separate service with its own
     # authorization, and an inventory run should not fail or stall on it by default.
-    if ($IncludeDevOps.IsPresent) {
+    if ($IncludeDevOps.IsPresent -and $extractionPlan.IncludeDevOps) {
         Write-Progress -activity 'Azure Inventory' -Status "18% Complete." -PercentComplete 18 -CurrentOperation "Starting Azure DevOps Extraction.."
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Azure DevOps extraction.')
 

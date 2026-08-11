@@ -1,9 +1,21 @@
-# Current Task: AB#7279 — release AzureScout 3.11.0, then optimize scan performance
+# Current Task: AB#7279 — release AzureScout 3.12.0 scan optimizations
 
-- Status: **VALIDATED — COMMIT/PUSH/CI NEXT**
+- Status: **FOCUSED GATES GREEN — FULL FROZEN SUITE NEXT**
 - Started 2026-08-10 from `main` at `5286217`.
 - Target: publish the exact validated 3.11.0 package to PowerShell Gallery, then begin a separate
-  measured optimization change set.
+  measured optimization change set. AzureScout 3.11.0 has been published, byte-for-byte verified,
+  installed, and released on GitHub. The optimization change set is now versioned as 3.12.0.
+
+## 3.12.0 scope
+
+- Manifest-derived category extraction plans filter Resource Graph server-side and skip unrelated
+  phases; All, unknown, and assessment-backed paths preserve the full dependency set.
+- Combined runs reuse inventory security/policy sweeps and fall back only for missing datasets.
+- Recovery vault, protected-item, and storage-context calls are cached at subscription/vault scope.
+- ARM REST list calls follow nextLink and retry only transient 408/429/5xx responses; fixed sleeps
+  on every successful call are removed.
+- Focused integration is green at 149/149 with zero failed/skipped/not-run/failed containers;
+  parser, manifest, PSSA Error, StrictMode, diff, release, and version-sync gates are green.
 
 ## 3.11.0 scope
 

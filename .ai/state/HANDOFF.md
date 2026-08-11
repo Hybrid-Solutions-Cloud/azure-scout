@@ -1,5 +1,30 @@
 # Handoff
 
+## Session 2026-08-10 — 3.12.0 performance candidate under AB#7279
+
+AzureScout 3.11.0 was merged at `6d7d7058d2c15ac38bd5513eae2ff8d3edc08c70`, tagged
+`v3.11.0`, published to PowerShell Gallery, exposed as a GitHub Release, downloaded from the public
+feed, and installed in the CurrentUser module path. The clean Gallery download matched the exact
+tag-built stage across 726/726 files with zero missing, extra, or SHA-256 mismatches and imported
+version 3.11.0 with 22 commands.
+
+The subsequent 3.12.0 performance candidate implements four measured call-count reductions. A
+manifest-derived category plan now reaches extraction and applies server-side Resource Graph type
+filters while preserving full collection for All, unknown, and assessment-backed paths. Combined
+runs reuse the inventory security/policy sweep, treating successful-empty and unavailable datasets
+as authoritative and falling back only for genuinely missing inputs. Operational enrichment lists
+Recovery Services vaults once per subscription, protected items once per vault, and enters storage
+context once per subscription while preserving output order and failure envelopes. The ARM REST
+sweep now follows `nextLink`, retries only transient 408/429/5xx responses with Retry-After/jitter,
+and removes roughly 1.9 seconds of fixed successful-request sleep per subscription.
+
+Version metadata is synchronized to 3.12.0. Focused optimization, compatibility, entry-point,
+release, and version tests passed 149/149 with zero failed/skipped/not-run/failed containers. All 12
+changed PowerShell files parse; the manifest reports 3.12.0; PSScriptAnalyzer has zero Error-severity
+findings; StrictMode and diff checks pass. Next: commit the frozen candidate, run the complete suite
+in three parallel deterministic shards, push a PR, require exact-commit CI/docs, merge, tag, package
+from the tag, publish to Gallery, hash-verify the public download, and install 3.12.0.
+
 ## Session 2026-08-10 — 3.11.0 release candidate frozen under AB#7279
 
 The operator confirmed the product-wide live output contract from the documentation: only `React`,

@@ -101,8 +101,9 @@ $ErrorActionPreference = 'Stop'
                      defenderSecureScores (AB#7059) come from the same per-subscription
                      Get-ScoutSubscriptionSecurityPolicySweep call as policyComplianceStates --
                      populated only when -IncludePolicyCompliance is set, empty otherwise.
-                     DefenderPricing.psd1's synthetic type still duplicates defenderPlans'
-                     pricing-tier-per-subscription data and is deliberately not re-wired.)
+                     DefenderPricing.psd1's synthetic type duplicates defenderPlans' pricing-
+                     tier-per-subscription data, so its already-collected rows are reused as the
+                     source for defenderPlans rather than exposed as a second canonical key.)
         governance { managementGroups[], policyAssignments[], policyDefinitions[],
                      policySetDefinitions[], roleAssignments[], budgets[],
                      resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the
@@ -1357,16 +1358,11 @@ resources | where type =~ "microsoft.managedidentity/userassignedidentities"
         # `defenderSecureScores` below: no new REST calls, just reading the rest of $sweepResults.
         #
         # DefenderPricing.psd1 ALSO declares that same synthetic type and reads from the same
-        # single `/pricings` endpoint Get-ScoutDefenderPlanSweep already calls -- its columns
-        # (Plan Name, Plan ID, Pricing Tier, Enabled) duplicate what `security.defenderPlans`
-        # already carries (id/name/properties.pricingTier/properties.subPlan). Its few genuinely
-        # extra columns (Extensions, Deprecated, Replaced By, Free Trial Remaining Days) require
-        # reshaping Get-ScoutDefenderPlanSweep's own projection, which CAF-SEC/WAF-SEC rules
-        # already query as `security.defenderPlans[?(@.properties.pricingTier == 'Standard')]`
-        # (AB#6903) -- changing that shared function's output risks regressing those live rules
-        # for detail fields no rule currently needs. Left out of this pass as a duplicate-key
-        # risk, not a missing mechanism; a follow-up should extend
-        # Get-ScoutDefenderPlanSweep.ps1's own projection instead of adding a second query.
+        # `/pricings` endpoint as `security.defenderPlans`. AB#7279 reuses its already-collected
+        # rows as the source for defenderPlans on combined runs, but intentionally does not add a
+        # duplicate DefenderPricing canonical key. The inventory-only detail columns (Extensions,
+        # Deprecated, Replaced By, Free Trial Remaining Days) remain outside the assessment
+        # contract because no live rule consumes them.
         wafPolicies = @'
 resources
 | where type in~ (
@@ -3050,101 +3046,243 @@ resources
         )
     }
 
+    # ---- invocation-local security/policy sweep reuse (AB#7279) -------------------------------
+    # The completed inventory extraction already appends one AZSC/Subscription/
+    # SecurityPolicySweep envelope per subscription. A combined inventory + assessment run hands
+    # those same rows back through -FromInventory. Re-querying Defender pricing, alerts,
+    # assessments, secure scores and policy states here repeated every remote call in that sweep.
+    #
+    # Dataset PRESENCE is deliberately separate from row count. `Success + @()` is a successful
+    # empty result, while `Unavailable/Skipped + @()` is an explicit collection outcome; neither
+    # is permission to retry. Only a dataset with neither a value property nor a CollectionStatus
+    # entry is genuinely missing and eligible for live fallback. This distinction also keeps
+    # -OfflineFromInventory network-free without turning an explicit failure into fabricated data.
+    function Get-ScoutSweepPropertyValue {
+        param($Object, [Parameter(Mandatory)] [string] $Name)
+        if ($null -eq $Object) { return $null }
+        if ($Object -is [System.Collections.IDictionary]) {
+            foreach ($key in $Object.Keys) {
+                if ([string]$key -ieq $Name) { return $Object[$key] }
+            }
+            return $null
+        }
+        $property = $Object.PSObject.Properties[$Name]
+        if ($property) { return $property.Value }
+        return $null
+    }
+
+    function Test-ScoutSweepPropertyExists {
+        param($Object, [Parameter(Mandatory)] [string] $Name)
+        if ($null -eq $Object) { return $false }
+        if ($Object -is [System.Collections.IDictionary]) {
+            return [bool](@($Object.Keys | Where-Object { [string]$_ -ieq $Name }).Count -gt 0)
+        }
+        return [bool]$Object.PSObject.Properties[$Name]
+    }
+
+    function Get-ScoutSweepSubscriptionId {
+        param($Sweep)
+        return [string](Get-ScoutSweepPropertyValue -Object $Sweep -Name 'subscriptionId')
+    }
+
+    function Test-ScoutSweepDatasetSupplied {
+        param($Sweep, [Parameter(Mandatory)] [string] $Dataset)
+        $properties = Get-ScoutSweepPropertyValue -Object $Sweep -Name 'properties'
+        if ($null -eq $properties) { return $false }
+        if (Test-ScoutSweepPropertyExists -Object $properties -Name $Dataset) { return $true }
+        $status = Get-ScoutSweepPropertyValue -Object $properties -Name 'CollectionStatus'
+        return (Test-ScoutSweepPropertyExists -Object $status -Name $Dataset)
+    }
+
+    function Get-ScoutSweepDatasetRows {
+        param($Sweep, [Parameter(Mandatory)] [string] $Dataset)
+        $properties = Get-ScoutSweepPropertyValue -Object $Sweep -Name 'properties'
+        if (-not (Test-ScoutSweepPropertyExists -Object $properties -Name $Dataset)) { return @() }
+        $value = Get-ScoutSweepPropertyValue -Object $properties -Name $Dataset
+        if ($null -eq $value) { return @() }
+        return @($value)
+    }
+
+    function New-ScoutSweepMap {
+        param([object[]] $Sweeps)
+        $map = @{}
+        foreach ($sweep in @($Sweeps | Where-Object { $_ } | Sort-Object `
+                    @{ Expression = { Get-ScoutSweepSubscriptionId $_ } }, `
+                    @{ Expression = { [string](Get-ScoutSweepPropertyValue -Object $_ -Name 'id') } })) {
+            $subscriptionId = Get-ScoutSweepSubscriptionId $sweep
+            if ([string]::IsNullOrWhiteSpace($subscriptionId) -or $map.ContainsKey($subscriptionId)) { continue }
+            $map[$subscriptionId] = $sweep
+        }
+        return $map
+    }
+
+    $inventorySweepResults = @(
+        if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
+            $rawInventory.Resources | Where-Object {
+                $_ -and $_.PSObject.Properties['type'] -and
+                [string]$_.type -ieq 'AZSC/Subscription/SecurityPolicySweep'
+            }
+        }
+    )
+    $inventorySweepMap = New-ScoutSweepMap -Sweeps $inventorySweepResults
+
+    # Normalise subscriptions into one deterministically ordered entry per id. These are the only
+    # subscriptions eligible for fallback; an explicit sweep row remains reusable even if the raw
+    # subscription container query failed and therefore omitted its matching subscription object.
+    $sweepSubscriptionMap = @{}
+    foreach ($subscription in @($r.subscriptions | Where-Object { $_ -and $_.PSObject.Properties['id'] } | Sort-Object id)) {
+        $subscriptionId = [string]$subscription.id
+        if ([string]::IsNullOrWhiteSpace($subscriptionId) -or $sweepSubscriptionMap.ContainsKey($subscriptionId)) { continue }
+        $sweepSubscriptionMap[$subscriptionId] = $subscription
+    }
+    $sweepSubscriptions = @($sweepSubscriptionMap.Keys | Sort-Object | ForEach-Object { $sweepSubscriptionMap[$_] })
+
+    function Get-ScoutMissingSweepSubscriptions {
+        param([string[]] $Datasets)
+        @(
+            foreach ($subscription in $sweepSubscriptions) {
+                $subscriptionId = [string]$subscription.id
+                $localSweep = if ($inventorySweepMap.ContainsKey($subscriptionId)) { $inventorySweepMap[$subscriptionId] } else { $null }
+                $missing = $null -eq $localSweep
+                if (-not $missing) {
+                    foreach ($dataset in $Datasets) {
+                        if (-not (Test-ScoutSweepDatasetSupplied -Sweep $localSweep -Dataset $dataset)) {
+                            $missing = $true
+                            break
+                        }
+                    }
+                }
+                if ($missing) { $subscription }
+            }
+        )
+    }
+
+    function Get-ScoutMergedSweepDatasetRows {
+        param(
+            [Parameter(Mandatory)] [string] $Dataset,
+            [object[]] $RemoteSweeps = @()
+        )
+        $remoteMap = New-ScoutSweepMap -Sweeps $RemoteSweeps
+        $subscriptionIds = @($inventorySweepMap.Keys + $remoteMap.Keys | Sort-Object -Unique)
+        $rows = @(
+            foreach ($subscriptionId in $subscriptionIds) {
+                $localSweep = if ($inventorySweepMap.ContainsKey($subscriptionId)) { $inventorySweepMap[$subscriptionId] } else { $null }
+                $sweep = if ($localSweep -and (Test-ScoutSweepDatasetSupplied -Sweep $localSweep -Dataset $Dataset)) {
+                    $localSweep
+                }
+                elseif ($remoteMap.ContainsKey($subscriptionId)) {
+                    $remoteMap[$subscriptionId]
+                }
+                else { $null }
+                if (-not $sweep) { continue }
+                $subscriptionName = [string](Get-ScoutSweepPropertyValue -Object $sweep -Name 'subscriptionName')
+                foreach ($row in @(Get-ScoutSweepDatasetRows -Sweep $sweep -Dataset $Dataset)) {
+                    if (-not $row) { continue }
+                    $row | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $subscriptionId -Force
+                    $row | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $subscriptionName -Force -PassThru
+                }
+            }
+        )
+        return @($rows | Sort-Object SubscriptionId, Id, Name, DisplayName)
+    }
+
     $policyComplianceStates = @()
-    # AB#7059 -- the same sweep call already returns DefenderAlerts/DefenderAssessments/
-    # DefenderSecureScores (Get-ScoutSubscriptionSecurityPolicySweep queries Get-AzSecurityAlert/
-    # Get-AzSecurityAssessment/Get-AzSecuritySecureScore per subscription), but only
-    # PolicyComplianceStates was ever read out of its result -- the other three datasets were
-    # collected and then discarded on every run. This was a wiring gap, not a missing collection
-    # mechanism: no new REST/cmdlet calls, just reading the rest of $sweepResults.
     $defenderAlerts = @()
     $defenderAssessments = @()
     $defenderSecureScores = @()
+    $policyRemoteSubscriptions = @()
+    $remoteSweepResults = @()
     if ($IncludePolicyCompliance) {
-        try {
-            if (-not (Get-Command Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue)) {
-                . (Join-Path $PSScriptRoot 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')
+        $policyDatasets = @('PolicyComplianceStates', 'DefenderAlerts', 'DefenderAssessments', 'DefenderSecureScores')
+        $policyRemoteSubscriptions = @(Get-ScoutMissingSweepSubscriptions -Datasets $policyDatasets)
+        if ($policyRemoteSubscriptions.Count -gt 0 -and -not $OfflineFromInventory) {
+            try {
+                if (-not (Get-Command Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue)) {
+                    . (Join-Path $PSScriptRoot 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')
+                }
+                $remoteSweepResults = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $policyRemoteSubscriptions)
             }
-            $sweepSubscriptions = @($r.subscriptions | Where-Object { $_ -and $_.PSObject.Properties['id'] })
-            $sweepResults = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $sweepSubscriptions)
-            $policyComplianceStates = @(
-                foreach ($sweep in $sweepResults) {
-                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
-                    foreach ($state in @($sweep.properties.PolicyComplianceStates)) {
-                        if (-not $state) { continue }
-                        $state | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
-                        $state | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
-                    }
-                }
-            )
-            # AB#7191 verify-caught regression: unlike PolicyComplianceStates above, these three
-            # reads had no PSObject.Properties existence guard on the specific sub-property, so
-            # a sweep result whose .properties genuinely lacks DefenderAlerts/Assessments/
-            # SecureScores (AB#6792's own long-standing mock fixture is exactly this shape) threw
-            # under StrictMode -- caught by the outer catch, which then wiped
-            # $policyComplianceStates too even though ITS read had already succeeded.
-            $defenderAlerts = @(
-                foreach ($sweep in $sweepResults) {
-                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
-                    if (-not $sweep.properties.PSObject.Properties['DefenderAlerts']) { continue }
-                    foreach ($alert in @($sweep.properties.DefenderAlerts)) {
-                        if (-not $alert) { continue }
-                        $alert | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
-                        $alert | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
-                    }
-                }
-            )
-            $defenderAssessments = @(
-                foreach ($sweep in $sweepResults) {
-                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
-                    if (-not $sweep.properties.PSObject.Properties['DefenderAssessments']) { continue }
-                    foreach ($assessment in @($sweep.properties.DefenderAssessments)) {
-                        if (-not $assessment) { continue }
-                        $assessment | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
-                        $assessment | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
-                    }
-                }
-            )
-            $defenderSecureScores = @(
-                foreach ($sweep in $sweepResults) {
-                    if (-not $sweep -or -not $sweep.PSObject.Properties['properties'] -or -not $sweep.properties) { continue }
-                    if (-not $sweep.properties.PSObject.Properties['DefenderSecureScores']) { continue }
-                    foreach ($score in @($sweep.properties.DefenderSecureScores)) {
-                        if (-not $score) { continue }
-                        $score | Add-Member -NotePropertyName SubscriptionId -NotePropertyValue $sweep.subscriptionId -Force
-                        $score | Add-Member -NotePropertyName SubscriptionName -NotePropertyValue $sweep.subscriptionName -Force -PassThru
-                    }
-                }
-            )
+            catch {
+                Write-Warning "Invoke-Collect: the policy compliance sweep failed; the compliance assessment will report Not assessed rather than a fabricated score: $($_.Exception.Message)"
+                $remoteSweepResults = @()
+            }
         }
-        catch {
-            Write-Warning "Invoke-Collect: the policy compliance sweep failed; the compliance assessment will report Not assessed rather than a fabricated score: $($_.Exception.Message)"
-            $policyComplianceStates = @()
-            $defenderAlerts = @()
-            $defenderAssessments = @()
-            $defenderSecureScores = @()
+        $policyComplianceStates = @(Get-ScoutMergedSweepDatasetRows -Dataset 'PolicyComplianceStates' -RemoteSweeps $remoteSweepResults)
+        $defenderAlerts = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAlerts' -RemoteSweeps $remoteSweepResults)
+        $defenderAssessments = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAssessments' -RemoteSweeps $remoteSweepResults)
+        $defenderSecureScores = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderSecureScores' -RemoteSweeps $remoteSweepResults)
+    }
+
+    # DefenderPricing in the inventory sweep is the Az.Security representation of the same
+    # Microsoft.Security/pricings endpoint Get-ScoutDefenderPlanSweep calls through ARM. Project
+    # it to the established security.defenderPlans contract locally; only subscriptions with no
+    # explicit DefenderPricing dataset fall back to ARM.
+    function ConvertTo-ScoutDefenderPlanFromSweep {
+        param($Pricing, $Sweep)
+        $subscriptionId = Get-ScoutSweepSubscriptionId $Sweep
+        $subscriptionName = [string](Get-ScoutSweepPropertyValue -Object $Sweep -Name 'subscriptionName')
+        $nestedProperties = Get-ScoutSweepPropertyValue -Object $Pricing -Name 'properties'
+        $name = [string](Get-ScoutSweepPropertyValue -Object $Pricing -Name 'name')
+        $pricingTier = Get-ScoutSweepPropertyValue -Object $Pricing -Name 'pricingTier'
+        if ($null -eq $pricingTier) { $pricingTier = Get-ScoutSweepPropertyValue -Object $nestedProperties -Name 'pricingTier' }
+        $subPlan = Get-ScoutSweepPropertyValue -Object $Pricing -Name 'subPlan'
+        if ($null -eq $subPlan) { $subPlan = Get-ScoutSweepPropertyValue -Object $nestedProperties -Name 'subPlan' }
+        [pscustomobject]@{
+            id               = [string](Get-ScoutSweepPropertyValue -Object $Pricing -Name 'id')
+            name             = $name
+            subscriptionId   = $subscriptionId
+            subscriptionName = $subscriptionName
+            properties       = [pscustomobject]@{
+                pricingTier = if ($null -eq $pricingTier) { $null } else { [string]$pricingTier }
+                subPlan     = if ($null -eq $subPlan) { $null } else { [string]$subPlan }
+            }
         }
     }
 
-    # ---- Defender for Cloud plan sweep (AB#6903) ----
-    # security.defenderPlans shipped as a hard-coded @() placeholder while caf.security /
-    # waf.security rules query $.security.defenderPlans[?(@.properties.pricingTier ==
-    # 'Standard')] -- those rules could never pass on any tenant. Unconditional (no gate:
-    # Defender plan assignment is core security posture); one ARM GET per subscription, and
-    # an unregistered Microsoft.Security provider stays quiet (AB#6900).
-    $defenderPlans = @()
-    if (-not $OfflineFromInventory) {
+    # A missing policy/detail sweep above also returned DefenderPricing. Fold those fallback rows
+    # into this invocation's reuse map so IncludePolicyCompliance does not immediately query the
+    # same subscription's pricing endpoint again through Get-ScoutDefenderPlanSweep.
+    $remoteSweepMap = New-ScoutSweepMap -Sweeps $remoteSweepResults
+    $defenderSweepMap = @{}
+    foreach ($subscriptionId in @($inventorySweepMap.Keys + $remoteSweepMap.Keys | Sort-Object -Unique)) {
+        $localSweep = if ($inventorySweepMap.ContainsKey($subscriptionId)) { $inventorySweepMap[$subscriptionId] } else { $null }
+        if ($localSweep -and (Test-ScoutSweepDatasetSupplied -Sweep $localSweep -Dataset 'DefenderPricing')) {
+            $defenderSweepMap[$subscriptionId] = $localSweep
+        }
+        elseif ($remoteSweepMap.ContainsKey($subscriptionId) -and
+            (Test-ScoutSweepDatasetSupplied -Sweep $remoteSweepMap[$subscriptionId] -Dataset 'DefenderPricing')) {
+            $defenderSweepMap[$subscriptionId] = $remoteSweepMap[$subscriptionId]
+        }
+    }
+
+    $defenderPlans = @(
+        foreach ($sweep in @($defenderSweepMap.Values)) {
+            if (-not (Test-ScoutSweepDatasetSupplied -Sweep $sweep -Dataset 'DefenderPricing')) { continue }
+            foreach ($pricing in @(Get-ScoutSweepDatasetRows -Sweep $sweep -Dataset 'DefenderPricing')) {
+                if ($pricing) { ConvertTo-ScoutDefenderPlanFromSweep -Pricing $pricing -Sweep $sweep }
+            }
+        }
+    )
+    $defenderRemoteSubscriptions = @(
+        foreach ($subscription in $sweepSubscriptions) {
+            if (-not $defenderSweepMap.ContainsKey([string]$subscription.id)) { $subscription }
+        }
+    )
+    if ($defenderRemoteSubscriptions.Count -gt 0 -and -not $OfflineFromInventory) {
         try {
             if (-not (Get-Command Get-ScoutDefenderPlanSweep -ErrorAction SilentlyContinue)) {
                 . (Join-Path $PSScriptRoot 'Get-ScoutDefenderPlanSweep.ps1')
             }
-            $defenderPlans = @(Get-ScoutDefenderPlanSweep -Subscriptions @($r.subscriptions))
+            $defenderPlans += @(Get-ScoutDefenderPlanSweep -Subscriptions $defenderRemoteSubscriptions)
         }
         catch {
-            Write-Warning "Invoke-Collect: the Defender plan sweep failed; security.defenderPlans will be empty for this run: $($_.Exception.Message)"
-            $defenderPlans = @()
+            Write-Warning "Invoke-Collect: the Defender plan sweep failed; security.defenderPlans will omit the affected subscriptions for this run: $($_.Exception.Message)"
         }
     }
+    $defenderPlans = @($defenderPlans | Where-Object { $_ } | Sort-Object subscriptionId, id, name)
+
+    Write-Verbose ('Invoke-Collect: security/policy sweep reuse -- inventory sweeps={0}; policy fallback subscriptions={1}; Defender-plan fallback subscriptions={2}; offline={3}.' -f
+        $inventorySweepMap.Count, @($policyRemoteSubscriptions).Count, @($defenderRemoteSubscriptions).Count, [bool]$OfflineFromInventory)
 
     # ---- Microsoft Entra External ID default cross-tenant access policy (AB#7098) ----
     # domains.identity.externalIdentitiesPolicy shipped as a top-level Identity domain gap

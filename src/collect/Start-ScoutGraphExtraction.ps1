@@ -37,7 +37,7 @@ This powershell Module is part of Azure Scout (AZSC)
 Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola, 15th Oct 2024.
 #>
 Function Start-AZSCGraphExtraction {
-    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment, $SkipAPIs, $SkipPolicy)
+    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment, $SkipAPIs, $SkipPolicy, $CategoryPlan)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Starting Extractor function (src/collect single-pass, AB#5648)')
 
@@ -70,23 +70,24 @@ Function Start-AZSCGraphExtraction {
     # The legacy row filters were an if/elseif chain (resource group, else tags, else management
     # group). Get-ScoutRawInventory reproduces that precedence itself, so all three are handed
     # over unconditionally and it decides -- there is no filter logic left in this file.
+    $isSelectivePlan = $null -ne $CategoryPlan -and $CategoryPlan.PSObject.Properties['IsFull'] -and -not [bool]$CategoryPlan.IsFull
     $RawArgs = @{
         SubscriptionIds              = $Subscri
-        IncludeSupportResources      = ($AzureEnvironment -ne 'AzureUSGovernment')
-        IncludeBackupResources       = $true
-        IncludeDesktopVirtualization = $true
-        IncludeUpdateManagerResources = $true
+        IncludeSupportResources      = (($AzureEnvironment -ne 'AzureUSGovernment') -and (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeSupportResources))
+        IncludeBackupResources       = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeBackupResources)
+        IncludeDesktopVirtualization = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeDesktopVirtualization)
+        IncludeUpdateManagerResources = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeUpdateManagerResources)
         # AB#6771. Unconditionally on, like every other inventory table above it. Setting it to
         # anything a caller could leave unset would recreate the AB#6755 defect verbatim: the
         # Lighthouse worksheet was blank for releases precisely because nothing read the one ARG
         # table its type lives in, and a switch nobody sets is indistinguishable from that.
-        IncludeLighthouseDelegations = $true
-        IncludeRetirements           = $true
-        IncludeAdvisories            = (-not [bool]$SkipAdvisory)
+        IncludeLighthouseDelegations = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeLighthouseDelegations)
+        IncludeRetirements           = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeRetirements)
+        IncludeAdvisories            = ((-not [bool]$SkipAdvisory) -and (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeAdvisories))
         IncludeSecurityCenter        = [bool]$SecurityCenter
-        IncludeArmChildResources     = $true
-        IncludeOperationalCollectorEnrichment = $true
-        IncludeSubscriptionSecurityPolicy = $true
+        IncludeArmChildResources     = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeArmChildResources)
+        IncludeOperationalCollectorEnrichment = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeOperationalCollectorEnrichment)
+        IncludeSubscriptionSecurityPolicy = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeSubscriptionSecurityPolicy)
         # AB#6755. Tenant-wide collection -- management groups, custom role definitions, policy
         # definitions and policy set definitions -- is now UNCONDITIONAL and there is no longer
         # a parameter for it. It was gated by an AB#5933 migration switch no production caller
@@ -100,10 +101,20 @@ Function Start-AZSCGraphExtraction {
         # The sweep costs this path no extra round-trips -- it is the same Get-ScoutApiResources
         # call Start-AZSCExtractionOrchestration used to run AFTER this function returned. The
         # results come back on $Raw.ApiResources and are handed up for that caller to reuse.
-        SkipApiResourceSweep         = [bool]$SkipAPIs
+        SkipApiResourceSweep         = ([bool]$SkipAPIs -or ($isSelectivePlan -and -not [bool]$CategoryPlan.IncludeApiResourceSweep))
         SkipPolicy                   = [bool]$SkipPolicy
         IncludeTags                  = [bool]$IncludeTags
         AzureEnvironment             = $AzureEnvironment
+    }
+    if ($isSelectivePlan) {
+        $RawArgs.CollectResourceTable = [bool]$CategoryPlan.CollectResourceTable
+        $RawArgs.CollectNetworkTable = [bool]$CategoryPlan.CollectNetworkTable
+        $RawArgs.CollectTenantWideResources = [bool]$CategoryPlan.CollectTenantWideResources
+        $RawArgs.CollectGovernance = [bool]$CategoryPlan.CollectGovernance
+        $RawArgs.ResourceTypes = @($CategoryPlan.ResourceTypes)
+        if ([bool]$CategoryPlan.IncludeArmChildResources) {
+            $RawArgs.ArmChildDataset = @($CategoryPlan.ArmChildDataset)
+        }
     }
     if (![string]::IsNullOrEmpty($ResourceGroup)) { $RawArgs.ResourceGroups = @($ResourceGroup) }
     if (![string]::IsNullOrEmpty($TagKey))        { $RawArgs.TagKey = $TagKey }
