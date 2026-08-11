@@ -15,7 +15,11 @@ active Az context.
 Post-fix verification: the focused runtime/preflight batch passed 219/219 with zero failed, skipped,
 not-run, or failed-container results; release/docs contracts passed 32/32; VitePress built; all
 changed PowerShell parsed; PSScriptAnalyzer Error severity is zero; StrictMode guard, manifest
-3.12.2 validation, and diff check passed. Commit and exact-HEAD full-suite/release work remain.
+3.12.2 validation, and diff check passed. The first frozen full-suite pass found two stale release
+contracts: ContextIdentity still expected the deliberately removed wizard audit, and the golden
+directory retained the deliberately removed Lighthouse record. The wizard contract now requires no
+early audit (5/5 focused pass), and golden coverage is again exactly 278 definitions/278 records
+with no missing or extra names. A superseding commit and exact-HEAD full-suite/release work remain.
 
 ## Session 2026-08-11 — 3.12.2 live-run correctness implemented
 

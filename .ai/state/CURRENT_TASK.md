@@ -30,6 +30,9 @@
 - Final guided/preflight regression batch: 219 passed, zero failures/skips/not-run/containers.
 - Release/docs contracts: 32 passed; docs build, parser, PSScriptAnalyzer Error, StrictMode,
   manifest, and diff gates passed.
+- First frozen full-suite attempt: shards 0 and 1 passed 794/794 and 739/739; shard 2 found two
+  stale contracts, now corrected. ContextIdentity passes 5/5 and golden coverage is exactly
+  278 definitions/278 records with no missing/extra entries. Superseding full suite is required.
 
 ## Release gates remaining
 
