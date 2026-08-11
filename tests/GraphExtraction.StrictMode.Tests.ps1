@@ -76,6 +76,17 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         } | Should -Not -Throw
     }
 
+    It 'records an explicit Advisor skip as NotAssessed without issuing the Advisor query' {
+        Set-StrictMode -Version Latest
+        $result = Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
+            @script:switchArgs 3>$null 4>$null 6>$null
+
+        ($script:capturedQueries -join "`n") | Should -Not -Match '(?m)^advisorresources\b'
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Advisories')
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'NotAssessed'
+    }
+
     It 'builds the resourcecontainers query with an empty management-group extension' {
         Set-StrictMode -Version Latest
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `

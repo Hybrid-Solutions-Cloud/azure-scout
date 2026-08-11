@@ -119,6 +119,19 @@ Function Start-AZSCGraphExtraction {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Invoking Get-ScoutRawInventory')
     $Raw = Get-ScoutRawInventory @RawArgs
 
+    $CollectionHealth = @(
+        if ($Raw.PSObject.Properties['CollectionHealth']) { $Raw.CollectionHealth }
+    )
+    if ([bool]$SkipAdvisory) {
+        $CollectionHealth += [pscustomobject]@{
+            Dataset       = 'Advisories'
+            Status        = 'NotAssessed'
+            Reason        = 'Advisor collection was explicitly disabled with -SkipAdvisory.'
+            ResourceTypes = @('microsoft.advisor/recommendations')
+            Collectors    = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+        }
+    }
+
     $Resources = @($Raw.Resources)
     $ResourceContainers = @($Raw.ResourceContainers)
     $Advisories = @($Raw.Advisories)
@@ -154,6 +167,6 @@ Function Start-AZSCGraphExtraction {
         # AB#6779 -- the role/policy-assignment/lock/budget datasets the raw pass collected, so a
         # combined run's assessment half reads them instead of collecting them a second time.
         Governance         = $(if ($Raw.PSObject.Properties['Governance']) { $Raw.Governance } else { $null })
-        CollectionHealth   = @(if ($Raw.PSObject.Properties['CollectionHealth']) { $Raw.CollectionHealth })
+        CollectionHealth   = @($CollectionHealth)
     }
 }

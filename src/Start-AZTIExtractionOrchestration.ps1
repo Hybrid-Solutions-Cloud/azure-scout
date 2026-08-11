@@ -243,7 +243,15 @@ function Start-AZSCExtractionOrchestration {
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Reusing the API sweep from the raw extraction pass (AB#6755).')
                     @($PreCollectedAPIResults)
                 } else {
-                    Get-ScoutApiResources -Subscriptions $Subscriptions -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy
+                    $apiFallbackArgs = @{
+                        Subscriptions    = $Subscriptions
+                        AzureEnvironment = $AzureEnvironment
+                        SkipPolicy       = $SkipPolicy
+                    }
+                    if ((Get-Command Get-ScoutApiResources).Parameters.ContainsKey('SkipManagedIdentities')) {
+                        $apiFallbackArgs.SkipManagedIdentities = $true
+                    }
+                    Get-ScoutApiResources @apiFallbackArgs
                 }
                 # Read element-wise, NOT via member enumeration ($APIResults.ReservationRecomen).
                 # The module runs under Set-StrictMode -Version Latest (every src/*.ps1 sets it at
@@ -255,7 +263,6 @@ function Start-AZSCExtractionOrchestration {
                 # aborting the whole run here. $null values were never the problem; empty ones
                 # were. (AB#5633)
                 $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ResourceHealth'
-                $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ManagedIdentities'
                 $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'AdvisorScore'
                 $Resources += Get-AZSCCollectedValue -InputObject $APIResults -Name 'ReservationRecommendations'
                 $PolicyAssign = Get-AZSCCollectedValue -InputObject $APIResults -Name 'PolicyAssignments'
@@ -314,14 +321,42 @@ function Start-AZSCExtractionOrchestration {
             # EntraData produced by an older/mocked Start-AZSCEntraExtraction that predates this
             # field would throw a property-not-found under StrictMode instead of degrading.
             $EntraQueryOutcomes = if ($EntraData -and $EntraData.PSObject.Properties['QueryOutcomes']) { $EntraData.QueryOutcomes } else { @() }
+
+            # Disabled catalog entries remain in QueryOutcomes so the raw discovery record is
+            # complete, but they are not failed collection work and must not make an otherwise
+            # healthy run Partial. Derive the set from the shared catalog instead of hardcoding
+            # today's disabled types. Older standalone callers/mocks that do not load the
+            # catalog preserve the historical behavior through an intentionally empty set.
+            $disabledEntraTypes = [System.Collections.Generic.HashSet[string]]::new(
+                [System.StringComparer]::OrdinalIgnoreCase
+            )
+            if (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue) {
+                try {
+                    foreach ($query in @(Get-ScoutEntraQueryCatalog)) {
+                        if (
+                            $query -is [System.Collections.IDictionary] -and
+                            $query.ContainsKey('Collect') -and
+                            -not [bool]$query['Collect'] -and
+                            -not [string]::IsNullOrWhiteSpace([string]$query['Type'])
+                        ) {
+                            [void]$disabledEntraTypes.Add([string]$query['Type'])
+                        }
+                    }
+                }
+                catch {
+                    Write-Verbose "Start-AZSCExtractionOrchestration: Entra catalog availability metadata could not be read; retaining all query outcomes in collection health: $($_.Exception.Message)"
+                }
+            }
             foreach ($outcome in @($EntraQueryOutcomes)) {
                 if ($null -eq $outcome -or -not $outcome.PSObject.Properties['Status']) { continue }
+                $outcomeType = if ($outcome.PSObject.Properties['Type']) { [string]$outcome.Type } else { '' }
+                if ($disabledEntraTypes.Contains($outcomeType)) { continue }
                 if ([string]$outcome.Status -in @('NotAssessed', 'Unavailable', 'Failed')) {
                     $CollectionHealth.Add([pscustomobject]@{
                             Dataset       = "Entra/$($outcome.Name)"
                             Status        = [string]$outcome.Status
                             Reason        = if ($outcome.PSObject.Properties['Reason']) { [string]$outcome.Reason } else { $null }
-                            ResourceTypes = @([string]$outcome.Type)
+                            ResourceTypes = @($outcomeType)
                         })
                 }
             }

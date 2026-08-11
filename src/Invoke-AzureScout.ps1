@@ -1138,6 +1138,13 @@ Function Invoke-AzureScout {
                     'Ran after' = 'diagram build (AB#6737)'
                 }
             }
+            catch {
+                if ([string]$_.Exception.Data['AzureScoutFailureKind'] -ne 'AssessmentSourceUnavailable') { throw }
+                if ($AssessmentRunTime -and $AssessmentRunTime.IsRunning) { $AssessmentRunTime.Stop() }
+                $assessmentGap = $_.Exception.Message
+                Write-Warning "Azure Scout skipped the scored assessment because required source data was unavailable. The inventory run will continue. $assessmentGap"
+                Write-AZSCLog -Level 'WARN' -Message "Deferred assessment skipped; inventory continues. $assessmentGap" -Exception $_.Exception
+            }
             finally {
                 $ProcessingRunTime.Start()
             }
@@ -1174,7 +1181,7 @@ Function Invoke-AzureScout {
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
-        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category -CollectionHealth $CollectionHealth
+        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category -CollectionHealth $CollectionHealth
 
     $ProcessingRunTime.Stop()
 

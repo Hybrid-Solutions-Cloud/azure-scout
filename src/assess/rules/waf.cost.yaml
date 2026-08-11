@@ -17,7 +17,7 @@ rules:
     title: "Advisor cost recommendations addressed"
     severity: medium
     query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Act on high-impact Advisor cost recommendations (right-size, reserved instances)."
     manual: false
 
@@ -49,7 +49,7 @@ rules:
     title: "Medium-impact Advisor cost recommendations addressed (right-sizing, idle resources)"
     severity: low
     query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'Medium')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Act on medium-impact Advisor cost recommendations, including VM/database right-sizing and idle-resource guidance."
     manual: false
 

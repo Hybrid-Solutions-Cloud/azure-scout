@@ -28,6 +28,10 @@ $ErrorActionPreference = 'Stop'
     and a shape difference between the two paths would make findings depend on how the run was
     started.
 
+.PARAMETER NotAssessed
+    Records Advisor as deliberately unavailable without making an Azure request. Used when the
+    inventory run explicitly selected -SkipAdvisory.
+
 .NOTES
     Read-only. Tracks ADO Story AB#5040; collect-once rework AB#6777 (Story AB#6773).
 #>
@@ -35,11 +39,18 @@ function Import-AdvisorScores {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Public function name referenced by exact spelling across src/Invoke-ScoutAssessmentCore.ps1, tests, and docs -- renaming is a breaking API change out of scope for a lint-only pass.')]
     param(
         $Collect,
-        [object[]] $FromInventory
+        [object[]] $FromInventory,
+        [switch] $NotAssessed
     )
 
+    if ($NotAssessed) {
+        $Collect | Add-Member -NotePropertyName advisor -NotePropertyValue @() -Force
+        $Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue $false -Force
+        return $Collect
+    }
+
     # ---- collect-once path ----
-    if ($null -ne $FromInventory -and @($FromInventory).Count -gt 0) {
+    if ($PSBoundParameters.ContainsKey('FromInventory')) {
         $shaped = @(
             foreach ($row in @($FromInventory)) {
                 if ($null -eq $row) { continue }
@@ -67,6 +78,7 @@ function Import-AdvisorScores {
 
         Write-Verbose "Import-AdvisorScores: shaped $($shaped.Count) advisor rows from the inventory pass -- no Azure call made (AB#6777)."
         $Collect | Add-Member -NotePropertyName advisor -NotePropertyValue $shaped -Force
+        $Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue $true -Force
         return $Collect
     }
 
@@ -123,6 +135,7 @@ function Import-AdvisorScores {
         }
 
         $Collect | Add-Member -NotePropertyName advisor -NotePropertyValue (@($recs)) -Force
+        $Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue ($failed.Count -eq 0) -Force
 
         # Say it once, plainly, at the end. A per-subscription warning scrolls past; a summary
         # naming the count is what tells a reader the report's Advisor coverage is partial.

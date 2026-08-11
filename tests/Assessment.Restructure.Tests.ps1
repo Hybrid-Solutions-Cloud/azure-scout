@@ -126,6 +126,33 @@ Describe 'AB#6798 — every rule file maps to a real pillar or design area' {
     }
 }
 
+Describe 'Advisor availability gates' {
+    It 'gates every Advisor-backed rule and no rule backed by another dataset' {
+        $missingGate = @()
+        $wrongGate = @()
+
+        foreach ($ruleDoc in (Get-AllRuleDocs)) {
+            foreach ($rule in @($ruleDoc.Doc.rules)) {
+                $query = if ($rule.ContainsKey('query')) { [string]$rule.query } else { '' }
+                $gate = ''
+                if ($rule.ContainsKey('assert') -and $null -ne $rule.assert -and $rule.assert.ContainsKey('gate')) {
+                    $gate = [string]$rule.assert.gate
+                }
+
+                if ($query.StartsWith('$.advisor', [StringComparison]::OrdinalIgnoreCase) -and $gate -ne '$.advisorAvailable') {
+                    $missingGate += "$($ruleDoc.File):$($rule.id)"
+                }
+                if ($gate -eq '$.advisorAvailable' -and -not $query.StartsWith('$.advisor', [StringComparison]::OrdinalIgnoreCase)) {
+                    $wrongGate += "$($ruleDoc.File):$($rule.id)"
+                }
+            }
+        }
+
+        $missingGate | Should -BeNullOrEmpty -Because 'an unavailable Advisor read must never be scored as an empty recommendation set'
+        $wrongGate | Should -BeNullOrEmpty -Because 'Advisor availability must not suppress rules backed by independent datasets'
+    }
+}
+
 Describe 'AB#6796 — every WAF rule is assigned to exactly one pillar' {
     It 'no WAF-prefixed rule id appears in more than one waf.*.yaml file' {
         $wafFiles = Get-ChildItem -LiteralPath $script:RuleDir -Filter 'waf.*.yaml' -File

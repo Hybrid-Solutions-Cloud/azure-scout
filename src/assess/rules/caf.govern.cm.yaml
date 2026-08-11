@@ -27,7 +27,7 @@ rules:
     title: "Cost-optimization recommendations are used to detect idle resources"
     severity: medium
     query: "$.advisor[?(@.Category == 'Cost')]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.advisorAvailable" }
     remediation: "Review Advisor Cost recommendations, and the orphaned-disk/orphaned-public-IP findings under $.costCleanup, and act on them (resize, deallocate, or delete)."
     manual: false
 

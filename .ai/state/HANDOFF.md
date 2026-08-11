@@ -1,5 +1,41 @@
 # Handoff
 
+## Session 2026-08-11 — 3.12.2 post-review source-honesty closure
+
+PR #263's three review findings and the subsequent adversarial source-ownership audit are resolved
+in the working tree. Permission preflight now applies exact delegated-scope absence only to catalog
+entries explicitly marked `RequireDelegatedScope`; normal User/Group/Application/Policy endpoints
+are probed. Disabled `Collect=false` Entra entries remain visible in raw query outcomes but are not
+promoted to failed collection health.
+
+Raw inventory failures now carry exact dataset and collector ownership, including filtered network
+queries, parent-derived ARM child collectors, Backup/AVD/Patch/Advisor dependencies, and manifests
+that actually consume retirement data. Exact collector ownership is authoritative downstream.
+Assessment collection preserves that provenance and fails closed for unavailable selected evidence
+without blocking unrelated categories. A complete raw-pass failure cannot become a clean empty
+assessment. Combined mode catches only this marked assessment-unavailable condition, skips scoring,
+and continues producing the honest inventory deliverable.
+
+Advisor evidence now distinguishes successful empty, unavailable, and intentionally skipped data;
+every and only rule querying `$.advisor` gates on `advisorAvailable`. `-SkipAdvisory` performs no
+Advisor call and yields NotAssessed rather than a false Pass. User-assigned managed identities now
+have one authoritative Resource Graph source in selective, full, pre-collected, and fallback paths.
+Scored assessment `-Category` values are unioned with manifest-required categories so a user filter
+cannot omit evidence and create false Passes. Inventory-only/collect-only filtering behavior remains
+available for non-scoring use. Reassessment from a saved `collect.json` now validates its recorded
+categories and applicable failed source health before scoring; incomplete or legacy artifacts without
+provable coverage throw the same typed `AssessmentSourceUnavailable` condition instead of treating
+missing evidence as a Pass. The canonical saved-collect fixture now records full provenance.
+
+Settled focused evidence: 90/90 assessment/entry-point tests, 118/118 affected release/runtime tests,
+and 26/26 managed-identity/source-health tests, all with zero failures/skips. Independent runtime and
+release audits found no remaining demonstrated production blocker. Parser, StrictMode,
+PSScriptAnalyzer Error, release/docs contracts, docs build, diff check, secret scan, manifest/import,
+and allow-listed package inventory checks pass. The final settled 20-suite affected gate passed
+427/427 with zero failures/skips/not-run/container failures. The next required steps are to commit
+the new `tests/Extraction.EntraCollectionHealth.Tests.ps1` with the exact candidate, run the complete
+zero-skip Pester suite on that clean commit, then push/merge/tag/build/publish/verify 3.12.2.
+
 ## Session 2026-08-11 — 3.12.2 guided-run preflight correction
 
 A second live customer run exposed duplicate and contradictory preflight UX after the initial

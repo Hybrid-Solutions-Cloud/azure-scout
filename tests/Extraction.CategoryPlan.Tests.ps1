@@ -45,6 +45,7 @@ Describe 'category-aware extraction plan' {
         $identity.IncludeEntra | Should -BeTrue
         $identity.CollectGovernance | Should -BeTrue
         $identity.ResourceTypes | Should -Contain 'microsoft.managedidentity/userassignedidentities'
+        $identity.IncludeApiResourceSweep | Should -BeFalse -Because 'managed identities are owned by the Resources ARG table and must not be appended a second time by the API sweep'
 
         $management = Resolve-AZSCExtractionCategoryPlan -Category 'Management'
         $management.CollectTenantWideResources | Should -BeTrue
@@ -52,6 +53,13 @@ Describe 'category-aware extraction plan' {
         $management.IncludeApiResourceSweep | Should -BeTrue
         $management.IncludeBackupResources | Should -BeTrue
         $management.PSObject.Properties.Name | Should -Not -Contain 'IncludeLighthouseDelegations'
+    }
+
+    It 'keeps managed identities on the single Resource Graph source in full orchestration' {
+        $source = Get-Content -LiteralPath "$script:RepoRoot/src/Start-AZTIExtractionOrchestration.ps1" -Raw
+
+        $source | Should -Not -Match "Get-AZSCCollectedValue\s+-InputObject\s+\`$APIResults\s+-Name\s+'ManagedIdentities'"
+        $source | Should -Match '\$apiFallbackArgs\.SkipManagedIdentities = \$true'
     }
 }
 

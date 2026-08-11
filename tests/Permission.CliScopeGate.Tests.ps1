@@ -85,13 +85,13 @@ Describe 'AB#7187 — probe-loop branch placement (source analysis)' {
 
     It 'checks the licence gate before the delegated-scope gate (a missing licence is the deeper truth)' {
         $licenceIdx  = Get-AuditSourceIndex 'Test-ScoutTenantLicence -SkuPattern \$req\.SkuPattern'
-        $cliScopeIdx = Get-AuditSourceIndex '\$tokenClaim\.Scopes -notcontains \$impact\.Permission'
+        $cliScopeIdx = Get-AuditSourceIndex '@\(\$tokenClaim\.Scopes\) -notcontains \[string\]\$impact\.Permission'
         $licenceIdx | Should -BeLessThan $cliScopeIdx
     }
 
     It 'checks both known availability gates before issuing the endpoint probe' {
         $licenceIdx  = Get-AuditSourceIndex 'Test-ScoutTenantLicence -SkuPattern \$req\.SkuPattern'
-        $cliScopeIdx = Get-AuditSourceIndex '\$tokenClaim\.Scopes -notcontains \$impact\.Permission'
+        $cliScopeIdx = Get-AuditSourceIndex '@\(\$tokenClaim\.Scopes\) -notcontains \[string\]\$impact\.Permission'
         $probeIdx    = Get-AuditSourceIndex '\$null = Invoke-AZSCGraphRequest -Uri \$probe\.Uri'
         $licenceIdx | Should -BeLessThan $probeIdx
         $cliScopeIdx | Should -BeLessThan $probeIdx

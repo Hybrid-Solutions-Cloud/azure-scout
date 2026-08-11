@@ -334,6 +334,31 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $healthArtifact.Datasets[0].Dataset | Should -Be 'Synthetic unavailable source'
     }
 
+    It 'applies collector-specific source health without poisoning unrelated collectors' {
+        $health = @([pscustomobject]@{
+                Dataset = 'Resources'
+                Status = 'Unavailable'
+                Reason = 'simulated core ARG failure'
+                # Deliberately collides with the unrelated synthetic collector's type. Because
+                # this health row carries an explicit Collectors map, that map is authoritative.
+                ResourceTypes = @('nothing')
+                Collectors = @('Compute/VirtualMachines')
+            })
+
+        $summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot `
+            -CollectionHealth $health -WarningAction SilentlyContinue
+
+        $vm = $summary.CollectorRows | Where-Object Collector -eq 'VirtualMachines'
+        $vm.Rows | Should -BeGreaterThan 0
+        $vm.Availability | Should -Be 'Partial'
+        $vm.AvailabilityReason | Should -Match 'simulated core ARG failure'
+
+        $synthetic = $summary.CollectorRows | Where-Object Collector -eq 'Nothing'
+        $synthetic.Verdict | Should -Be 'Empty'
+        $synthetic.Availability | Should -Be 'Complete'
+    }
+
     It 'completes the run despite a broken collector, and reports it' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue

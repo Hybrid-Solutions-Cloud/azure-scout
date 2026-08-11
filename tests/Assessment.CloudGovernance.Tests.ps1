@@ -44,6 +44,7 @@ BeforeAll {
             advisor = @(
                 [pscustomobject]@{ Category = 'Cost'; Impact = 'High' }
             )
+            advisorAvailable = $true
             costCleanup = [pscustomobject]@{ orphanedDisks = @(); orphanedPips = @() }
             domains    = [pscustomobject]@{
                 management = [pscustomobject]@{
@@ -74,6 +75,7 @@ BeforeAll {
             }
             management = [pscustomobject]@{ logAnalyticsWorkspaces = @() }
             advisor    = @()
+            advisorAvailable = $true
             costCleanup = [pscustomobject]@{ orphanedDisks = @(); orphanedPips = @() }
             domains    = [pscustomobject]@{
                 management = [pscustomobject]@{ policyComplianceStates = @() }

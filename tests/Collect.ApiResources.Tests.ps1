@@ -70,6 +70,22 @@ param([string] $Uri, [hashtable] $Headers, [string] $Method)
         Get-ScoutApiResources -Subscriptions $script:subs | Out-Null
         $script:edgeCalls | Should -Be 2
     }
+
+    It 'can skip the managed-identity REST call when Resource Graph owns that dataset' {
+        $script:managedIdentityCalls = 0
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            if ($Uri -match 'ManagedIdentity') { $script:managedIdentityCalls++ }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipManagedIdentities)
+
+        $script:managedIdentityCalls | Should -Be 0
+        $result[0].ManagedIdentities | Should -BeNullOrEmpty
+    }
 }
 
 Describe 'Get-ScoutApiResources -- per-call resilience' {

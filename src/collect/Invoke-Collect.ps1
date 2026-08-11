@@ -2709,11 +2709,82 @@ resources
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }
         catch {
-            # A failed raw pass must not cost the caller their assessment: fall through to the
-            # typed pack, which is the reference implementation.
-            Write-Warning "Invoke-Collect: the single-pass raw collection failed, falling back to the typed Resource Graph queries (AB#5648): $($_.Exception.Message)"
-            $rawInventory = $null
+            # The raw pass owns child/API datasets that the typed query pack cannot reproduce
+            # (for example Key Vault keys/secrets). Falling through would turn those unavailable
+            # sources into empty arrays and allow false Pass findings, so the default assessment
+            # path must fail closed. The explicit legacy -Source TypedQueries mode remains
+            # available to callers that intentionally accept its narrower contract.
+            $message = "Invoke-Collect: assessment scoring stopped because the required inventory pass failed. Rerun after restoring access or Azure service health. $($_.Exception.Message)"
+            $sourceException = [System.InvalidOperationException]::new($message, $_.Exception)
+            $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+            throw $sourceException
         }
+    }
+
+    # A per-table raw failure is deliberately non-terminating so inventory can preserve every
+    # other dataset. Assessment scoring has a stricter contract: shaping that failed source into
+    # an empty array can fabricate a Pass. Several raw-only child/API datasets cannot be rebuilt
+    # by the typed query pack, so fail closed instead of pretending a partial fallback recovered
+    # the evidence. Inventory-only rendering retains the health record and remains network-free.
+    $rawCollectionHealth = @(
+        if ($rawInventory -and $rawInventory.PSObject.Properties['CollectionHealth']) {
+            $rawInventory.CollectionHealth | Where-Object { $null -ne $_ }
+        }
+    )
+    $selectedNetworkKeys = @(
+        $selectedKeys | Where-Object {
+            $q.ContainsKey($_) -and [string]$q[$_] -match '(?i)^\s*networkresources\b'
+        }
+    )
+    $assessmentBlockingDatasets = @{
+        'Subscriptions and Resource Groups'   = ($selectedKeys -contains 'subscriptions')
+        'Resources'                           = (@($selectedKeys).Count -gt 0)
+        'Network Resources'                   = ($selectedNetworkKeys.Count -gt 0)
+        'Backup Items'                        = ($selectedKeys -contains 'backupProtectedItems')
+        'Virtual Desktop'                     = [bool]@($selectedKeys | Where-Object { $_ -in @('avdHostPools', 'avdSessionHosts', 'avdScalingPlans') }).Count
+        'Update Manager: Assessments'          = ($selectedKeys -contains 'patchAssessments')
+        'Update Manager: Installations'        = ($selectedKeys -contains 'patchInstallations')
+    }
+    function Test-ScoutRawHealthAppliesToAssessment {
+        param($Health)
+
+        if ($null -eq $Health -or -not $Health.PSObject.Properties['Dataset']) { return $false }
+        $dataset = [string]$Health.Dataset
+        if (-not $assessmentBlockingDatasets.ContainsKey($dataset) -or -not [bool]$assessmentBlockingDatasets[$dataset]) {
+            return $false
+        }
+
+        $collectorsProperty = $Health.PSObject.Properties['Collectors']
+        $affectedCollectors = @(
+            if ($collectorsProperty) {
+                $collectorsProperty.Value | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+            }
+        )
+        if ($affectedCollectors.Count -eq 0 -or $runAllCategories) { return $true }
+
+        return [bool]@(
+            $affectedCollectors | Where-Object {
+                $collectorCategory = ([string]$_ -split '/', 2)[0]
+                $Categories -contains $collectorCategory
+            }
+        ).Count
+    }
+    $blockingRawHealth = @(
+        $rawCollectionHealth |
+            Where-Object {
+                (Test-ScoutRawHealthAppliesToAssessment -Health $_) -and
+                $_.PSObject.Properties['Status'] -and
+                [string]$_.Status -in @('Unavailable', 'Failed')
+            }
+    )
+    if ($blockingRawHealth.Count -gt 0 -and -not $OfflineFromInventory) {
+        $message = (
+            'Invoke-Collect: assessment scoring stopped because required inventory datasets are unavailable ({0}). ' +
+            'Rerun after restoring access or Azure service health.'
+        ) -f (@($blockingRawHealth | ForEach-Object Dataset | Sort-Object -Unique) -join ', ')
+        $sourceException = [System.InvalidOperationException]::new($message)
+        $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+        throw $sourceException
     }
 
     # ---- governance, collected once by the raw pass (AB#6779) ---------------------------------
@@ -3682,6 +3753,7 @@ resources
         _meta         = [pscustomobject]@{
             generatedOn = (Get-Date).ToString('o'); scope = $Scope
             categories = $Categories; managementGroupId = $ManagementGroupId
+            collectionHealth = @($rawCollectionHealth)
         }
     }
     return $collect

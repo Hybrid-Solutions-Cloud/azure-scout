@@ -609,5 +609,14 @@
       "Impact": "Medium",
       "Recommendation": "Increase App Service plan tier for app-legacy01"
     }
-  ]
+  ],
+  "_meta": {
+    "generatedOn": "2026-08-11T00:00:00.0000000Z",
+    "scope": "ArmOnly",
+    "categories": [
+      "*"
+    ],
+    "managementGroupId": null,
+    "collectionHealth": []
+  }
 }

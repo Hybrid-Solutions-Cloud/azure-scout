@@ -175,13 +175,34 @@ function Invoke-ScoutProcessing {
     $Declarative = 0
 
     $healthByType = @{}
+    $healthPatterns = [System.Collections.Generic.List[object]]::new()
+    $healthByCollector = @{}
     foreach ($health in @($CollectionHealth)) {
         if ($null -eq $health) { continue }
+        $collectorsProperty = $health.PSObject.Properties['Collectors']
+        if ($collectorsProperty) {
+            foreach ($collectorKey in @($collectorsProperty.Value)) {
+                if ([string]::IsNullOrWhiteSpace([string]$collectorKey)) { continue }
+                $key = ([string]$collectorKey).ToLowerInvariant()
+                if (-not $healthByCollector.ContainsKey($key)) { $healthByCollector[$key] = [System.Collections.Generic.List[object]]::new() }
+                $healthByCollector[$key].Add($health)
+            }
+            # A source-aware producer has already resolved the exact affected collectors.
+            # ResourceTypes remain useful evidence in collection-health.json, but unioning them
+            # back into matching here would re-poison collectors that share a type while reading
+            # from an independent source. Type matching is retained only for legacy health rows
+            # that do not carry the Collectors property at all.
+            continue
+        }
         $typesProperty = $health.PSObject.Properties['ResourceTypes']
         if (-not $typesProperty) { continue }
         foreach ($type in @($typesProperty.Value)) {
             if ([string]::IsNullOrWhiteSpace([string]$type)) { continue }
             $key = ([string]$type).ToLowerInvariant()
+            if ($key.Contains('*') -or $key.Contains('?')) {
+                $healthPatterns.Add([pscustomobject]@{ Pattern = $key; Health = $health })
+                continue
+            }
             if (-not $healthByType.ContainsKey($key)) { $healthByType[$key] = [System.Collections.Generic.List[object]]::new() }
             $healthByType[$key].Add($health)
         }
@@ -231,12 +252,17 @@ function Invoke-ScoutProcessing {
             # explained; one that returned cleanly with no rows is 'Empty', which is a real
             # finding rather than an absence of one.
             $rowCount = @($Result.Rows).Count
-            $collectorHealth = @(
+            $collectorKey = ('{0}/{1}' -f $Result.FolderCategory, $Result.Name).ToLowerInvariant()
+            $collectorHealth = @(@(
+                if ($healthByCollector.ContainsKey($collectorKey)) { $healthByCollector[$collectorKey] }
                 foreach ($type in @($Result.ResourceTypes)) {
                     $key = ([string]$type).ToLowerInvariant()
                     if ($healthByType.ContainsKey($key)) { $healthByType[$key] }
+                    foreach ($patternEntry in $healthPatterns) {
+                        if ($key -like $patternEntry.Pattern) { $patternEntry.Health }
+                    }
                 }
-            )
+            ) | Sort-Object Dataset, Status, Reason -Unique)
             $availability = if ($collectorHealth.Count -eq 0) { 'Complete' }
             elseif ($rowCount -gt 0) { 'Partial' }
             elseif (@($collectorHealth | Where-Object Status -eq 'NotAssessed').Count -gt 0) { 'NotAssessed' }

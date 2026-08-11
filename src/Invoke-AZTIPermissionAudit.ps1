@@ -614,7 +614,21 @@ function Invoke-AZSCPermissionAudit {
                     }
                 }
 
-                if ($tokenClaim -and $tokenClaim.IsDelegated -and $tokenClaim.Scopes -notcontains $impact.Permission) {
+                # Most Graph directory reads can be authorized by the signed-in user's Entra
+                # directory role even when Azure CLI's broad delegated token does not list the
+                # catalog permission literally in `scp`. Only catalog probes explicitly marked
+                # RequireDelegatedScope need an exact token scope; keep this gate identical to
+                # Start-AZSCEntraExtraction so preflight and collection cannot disagree.
+                $requiresDelegatedScope = (
+                    $probe.ContainsKey('RequireDelegatedScope') -and
+                    [bool]$probe.RequireDelegatedScope
+                )
+                if (
+                    $requiresDelegatedScope -and
+                    $tokenClaim -and
+                    $tokenClaim.IsDelegated -and
+                    @($tokenClaim.Scopes) -notcontains [string]$impact.Permission
+                ) {
                     foreach ($c in $impact.Collectors) {
                         $emptyCollectors.Add([PSCustomObject]@{
                                 Collector  = $c

@@ -383,6 +383,132 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Resources')
         $health.Count | Should -Be 1
         $health[0].Status | Should -Be 'Unavailable'
+        @($health[0].ResourceTypes) | Should -BeNullOrEmpty
+        @($health[0].Collectors) | Should -Contain 'Compute/VirtualMachine'
+        @($health[0].Collectors) | Should -Contain 'Storage/PartnerStorage'
+        @($health[0].Collectors) | Should -Contain 'Storage/BlobContainers'
+        @($health[0].Collectors) | Should -Not -Contain 'General/SupportTickets'
+        @($health[0].Collectors) | Should -Not -Contain 'Management/AdvisorScore'
+        @($health[0].Collectors) | Should -Not -Contain 'General/ReservationRecom'
+        @($health[0].Collectors) | Should -Contain 'Identity/ManagedIds'
+    }
+
+    It 'records the exact selected types when a filtered resources query fails' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            if ($Query -match '^resources\b') { throw 'AuthorizationFailed: access denied' }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory -ResourceTypes @(
+            'microsoft.compute/virtualmachines'
+            'microsoft.storage/storageaccounts'
+        ) -WarningAction SilentlyContinue
+
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Resources')
+        $health.Count | Should -Be 1
+        @($health[0].ResourceTypes | Sort-Object) | Should -Be @(
+            'microsoft.compute/virtualmachines'
+            'microsoft.storage/storageaccounts'
+        )
+        @($health[0].Collectors) | Should -Contain 'Storage/BlobContainers'
+        @($health[0].Collectors) | Should -Not -Contain 'Storage/PartnerStorage'
+    }
+
+    It 'maps a failed <Dataset> source only to its real collector consumers' -ForEach @(
+        @{
+            Dataset = 'Subscriptions and Resource Groups'; FailurePattern = '^resourcecontainers\b'; InvokeArgs = @{}
+            ExpectedCollectors = @('Management/AllSubscriptions'); ExcludedCollectors = @('Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.resources/subscriptions', 'microsoft.resources/subscriptions/resourcegroups')
+        }
+        @{
+            Dataset = 'Network Resources'; FailurePattern = '^networkresources\b'
+            InvokeArgs = @{ ResourceTypes = @('microsoft.network/virtualnetworks') }
+            ExpectedCollectors = @('Networking/VirtualNetwork', 'Networking/vNETPeering')
+            ExcludedCollectors = @('Networking/PublicIP', 'Security/DdosProtectionPlans')
+            ExpectedTypes = @('microsoft.network/virtualnetworks')
+        }
+        @{
+            Dataset = 'SupportTickets'; FailurePattern = '^SupportResources\b'; InvokeArgs = @{ IncludeSupportResources = $true }
+            ExpectedCollectors = @('General/SupportTickets'); ExcludedCollectors = @('Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.support/supporttickets')
+        }
+        @{
+            Dataset = 'Backup Items'; FailurePattern = '^recoveryservicesresources\b'; InvokeArgs = @{ IncludeBackupResources = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData', 'Management/Backup')
+            ExcludedCollectors = @('Compute/VirtualMachine', 'Hybrid/ARCServers')
+            ExpectedTypes = @('microsoft.recoveryservices/vaults/backuppolicies', 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems')
+        }
+        @{
+            Dataset = 'Virtual Desktop'; FailurePattern = '^desktopvirtualizationresources\b'; InvokeArgs = @{ IncludeDesktopVirtualization = $true }
+            ExpectedCollectors = @('Compute/AVD', 'Compute/AVDApplications', 'Compute/AVDAzureLocal')
+            ExcludedCollectors = @('General/SupportTickets')
+            ExpectedTypes = @('microsoft.desktopvirtualization/hostpools', 'AZSC/ARMChild/AVDApplications')
+        }
+        @{
+            Dataset = 'Update Manager: Assessments'; FailurePattern = '^patchassessmentresources\b'; InvokeArgs = @{ IncludeUpdateManagerResources = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+            ExcludedCollectors = @('Compute/VirtualMachine', 'Hybrid/ARCServers')
+            ExpectedTypes = @('microsoft.compute/virtualmachines/patchassessmentresults')
+        }
+        @{
+            Dataset = 'Update Manager: Installations'; FailurePattern = '^patchinstallationresources\b'; InvokeArgs = @{ IncludeUpdateManagerResources = $true }
+            ExpectedCollectors = @(); ExcludedCollectors = @('Compute/VirtualMachine', 'Compute/VMOperationalData')
+            ExpectedTypes = @('microsoft.compute/virtualmachines/patchinstallationresults')
+        }
+        @{
+            Dataset = 'Advisories'; FailurePattern = '^advisorresources\b'; InvokeArgs = @{ IncludeAdvisories = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+            ExcludedCollectors = @('Management/AdvisorScore', 'Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.advisor/recommendations')
+        }
+        @{
+            Dataset = 'Security Center'; FailurePattern = '^securityresources\b'; InvokeArgs = @{ IncludeSecurityCenter = $true }
+            ExpectedCollectors = @(); ExcludedCollectors = @('Assess: Security', 'Security/Vault')
+            ExpectedTypes = @('microsoft.security/assessments')
+        }
+        @{
+            Dataset = 'Retirements'; FailurePattern = 'ServiceID\s*=\s*case'; InvokeArgs = @{ IncludeRetirements = $true }
+            ExpectedCollectors = @('Compute/VirtualMachine', 'Storage/PartnerStorage')
+            ExcludedCollectors = @('General/SupportTickets', 'Management/AdvisorScore')
+            ExpectedTypes = @()
+        }
+    ) {
+        param($Dataset, $FailurePattern, $InvokeArgs, $ExpectedCollectors, $ExcludedCollectors, $ExpectedTypes)
+
+        $script:rawFailurePattern = $FailurePattern
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            if ($Query -match $script:rawFailurePattern) { throw 'AuthorizationFailed: source unavailable' }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory @InvokeArgs -WarningAction SilentlyContinue
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq $Dataset)
+
+        $health.Count | Should -Be 1
+        foreach ($collector in @($ExpectedCollectors)) { @($health[0].Collectors) | Should -Contain $collector }
+        foreach ($collector in @($ExcludedCollectors)) { @($health[0].Collectors) | Should -Not -Contain $collector }
+        foreach ($type in @($ExpectedTypes)) { @($health[0].ResourceTypes) | Should -Contain $type }
+    }
+
+    It 'records unavailable retirement evidence when the file-backed query cannot be read' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            return @()
+        }
+
+        $missingPath = Join-Path $TestDrive 'missing-retirement-query.kql'
+        $result = Get-ScoutRawInventory -IncludeRetirements -RetirementQueryPath $missingPath -WarningAction SilentlyContinue
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Retirements')
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        @($health[0].Collectors) | Should -Contain 'Compute/VirtualMachine'
+        @($health[0].Collectors) | Should -Contain 'Storage/PartnerStorage'
     }
 
     It 'warns with a diagnostic hint when literally nothing came back' {
@@ -440,6 +566,140 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $collect.networking.virtualNetworks[0].name | Should -Be 'vnet1'
         $collect.networking.virtualNetworks[0].peeringCount | Should -Be 1
         $collect.networking.virtualNetworks[0].ddosEnabled | Should -BeFalse
+    }
+
+    It 'stops assessment scoring instead of turning a failed core raw dataset into an empty estate' {
+        $script:typedFallbackCalls = 0
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:typedFallbackCalls++
+            throw 'no typed query should run after a required raw-source failure'
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+        $script:typedFallbackCalls | Should -Be 0
+    }
+
+    It 'fails closed when the entire default inventory pass fails instead of returning typed empty data' {
+        $script:typedFallbackCalls = 0
+        function Get-ScoutRawInventory { throw 'simulated systemic raw failure' }
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:typedFallbackCalls++
+            return @()
+        }
+
+        $caught = $null
+        try {
+            Invoke-Collect -Categories 'AI' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'required inventory pass failed'
+        $script:typedFallbackCalls | Should -Be 0
+    }
+
+    It 'does not block an AI-only assessment when an unselected backup source is unavailable' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            return @()
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Backup Items'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VMOperationalData')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'AI' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Not -Throw
+    }
+
+    It 'blocks a Compute assessment when its backup evidence source is unavailable' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Backup Items'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VMOperationalData')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'does not block Identity when explicit Resources health names only a Compute collector' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated Compute-only failure'
+                    ResourceTypes = @('microsoft.compute/virtualmachines'); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Identity' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Not -Throw
+    }
+
+    It 'conservatively blocks a legacy Resources health record without collector ownership' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'legacy source failure'
+                    ResourceTypes = @('microsoft.compute/virtualmachines')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Identity' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'keeps the failed-source evidence during offline inventory rendering without making calls' {
+        $script:offlineCalls = 0
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:offlineCalls++
+            throw 'offline rendering must not query Azure'
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated raw failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        $collect = Invoke-Collect -FromInventory $raw -OfflineFromInventory -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+
+        $script:offlineCalls | Should -Be 0
+        @($collect._meta.collectionHealth).Count | Should -Be 1
+        $collect._meta.collectionHealth[0].Dataset | Should -Be 'Resources'
     }
 }
 

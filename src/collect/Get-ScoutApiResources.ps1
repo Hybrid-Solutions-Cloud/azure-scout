@@ -55,6 +55,11 @@ $ErrorActionPreference = 'Stop'
     are the heaviest of the five calls and are already covered for the assessment platform
     by `Import-Governance`.
 
+.PARAMETER SkipManagedIdentities
+    Skip the user-assigned managed-identity REST endpoint when Resource Graph is the
+    authoritative source. Full inventory extraction sets this switch so one identity is not
+    fetched and appended twice.
+
 .OUTPUTS
     One `[pscustomobject]` per subscription: `Subscription` (id), `ResourceHealth`,
     `ManagedIdentities`, `AdvisorScore`, `ReservationRecommendations`, `ArcSites`,
@@ -90,7 +95,11 @@ function Get-ScoutApiResources {
         # report collectors that an assessment run never renders, so paying for them there
         # would be five wasted round-trips and a second of pacing sleep per subscription.
         # Mutually exclusive with -SkipPolicy, which suppresses the very calls this keeps.
-        [switch] $DefinitionsOnly
+        [switch] $DefinitionsOnly,
+        # Get-ScoutRawInventory already owns user-assigned identities through the Resource Graph
+        # resources table. Its full inventory path sets this switch so the REST sweep does not
+        # issue a duplicate request or return rows that would be appended twice.
+        [switch] $SkipManagedIdentities
     )
 
     if ($DefinitionsOnly -and $SkipPolicy) {
@@ -288,8 +297,10 @@ function Get-ScoutApiResources {
             $resourceHealth = Invoke-ScoutApiCall -FieldName 'ResourceHealth' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.ResourceHealth/events?api-version=2022-10-01&queryStartTime=$resourceHealthSince"
 
-            $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
-                -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
+            if (-not $SkipManagedIdentities) {
+                $managedIdentities = Invoke-ScoutApiCall -FieldName 'ManagedIdentities' -SubscriptionName $subName `
+                    -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
+            }
 
             $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01" -NotFoundIsEmpty

@@ -117,7 +117,7 @@ rules:
     title: "Workload cost/usage is analyzed to identify efficiency opportunities"
     severity: medium
     query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Act on high-impact Advisor cost recommendations, and clean up orphaned disks/public IPs ($.costCleanup). The same evidence WAF-CO-02 scores under the Cost Optimization pillar, scored here under the FinOps Framework's own capability name -- not a second, independent detector."
     manual: false
 

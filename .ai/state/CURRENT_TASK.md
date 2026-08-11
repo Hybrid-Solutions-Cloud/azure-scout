@@ -1,6 +1,6 @@
 # Current Task: AB#7279 — release AzureScout 3.12.2 live-run correctness
 
-- Status: **IMPLEMENTED — COMMIT, EXACT-HEAD FULL SUITE, AND PUBLICATION NEXT**
+- Status: **IMPLEMENTED, REVIEWED, AND FOCUSED-GREEN — EXACT-HEAD FULL SUITE AND PUBLICATION NEXT**
 - Branch: `agent/ab7279-live-run-correctness-3.12.2`
 - Base: AzureScout 3.12.1 (`c1e1a91457df06339a9c92c40ae6a7a125359800`)
 - Target: publish the exact tested 3.12.2 package to PowerShell Gallery.
@@ -21,6 +21,23 @@
 
 ## Verification completed
 
+- Post-review correctness repairs close all three PR findings plus the follow-on source-ownership
+  audit: delegated Graph scope checks apply only to catalog-declared delegated-only endpoints;
+  disabled Entra catalog entries no longer poison collection health; raw ARG failures carry exact
+  source/collector ownership; assessments fail closed only for selected affected evidence; skipped,
+  empty, failed, and healthy Advisor evidence remain distinct; managed identities have one ARG
+  owner; an explicit scored-assessment category can broaden but never narrow required evidence;
+  and saved `-FromCollect` artifacts must prove required category and source-health coverage before
+  they can be scored.
+- Latest settled affected gates: assessment/entry point 90/90; release/runtime 118/118;
+  managed-identity/source-health 26/26; all with zero failures or skips. Parser, StrictMode,
+  PSScriptAnalyzer Error, release/docs contracts, docs build, secret scan, manifest/import, package
+  inventory, and diff checks pass. Independent runtime and release audits report no demonstrated
+  production blocker.
+- Saved-collect provenance/report compatibility gate: 98/98 passed with zero failures/skips.
+- Final settled affected gate: 427/427 passed across 20 suites with zero failures, skips,
+  not-run tests, or failed containers.
+
 - Actual completed run log reconciled: every warning class maps to a product fix; no unaccounted
   ERROR records.
 - Focused live-error/runtime/retention gate: 268 passed, 0 failed/skipped/not-run/containers.
@@ -39,7 +56,7 @@
 
 ## Release gates remaining
 
-1. Secret scan and commit the frozen candidate with `AB#7279`.
+1. Commit the frozen candidate, including the new Entra collection-health regression, with `AB#7279`.
 2. Run the complete zero-failure/zero-skip Pester gate
    against that exact clean commit.
 3. Push with the GitHub App token, require green PR CI/docs, merge, and require green main CI/docs.

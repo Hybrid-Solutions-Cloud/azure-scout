@@ -16,7 +16,7 @@ rules:
     title: "Advisor medium-impact security recommendations addressed"
     severity: low
     query: "$.advisor[?(@.Category == 'Security' && @.Impact == 'Medium')]"
-    assert: { type: countLessThan, value: 5 }
+    assert: { type: countLessThan, value: 5, gate: "$.advisorAvailable" }
     remediation: "Triage and remediate medium-impact Advisor security recommendations rather than letting them accumulate unaddressed."
     manual: false
 
@@ -32,7 +32,7 @@ rules:
     title: "Advisor high-impact security recommendations addressed"
     severity: medium
     query: "$.advisor[?(@.Category == 'Security' && @.Impact == 'High')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Remediate high-impact Advisor security recommendations."
     manual: false
 

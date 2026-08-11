@@ -168,6 +168,7 @@ Describe 'Single entry point — output format guards' {
                 Mock Start-AZSCRunLog
                 Mock Write-AZSCLog
                 Mock Write-AZSCLogPhase
+                Mock Write-Warning
                 Mock Clear-AZSCCacheFolder
                 Mock Get-Module { [pscustomobject]@{ Version = [version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
                 Mock Start-AZSCExtractionOrchestration {
@@ -319,6 +320,7 @@ Describe 'Single entry point — output format guards' {
                 Mock Start-AZSCRunLog
                 Mock Write-AZSCLog
                 Mock Write-AZSCLogPhase
+                Mock Write-Warning
                 Mock Clear-AZSCCacheFolder
                 Mock Get-Module { [pscustomobject]@{ Version=[version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
                 Mock Start-AZSCExtractionOrchestration {
@@ -349,6 +351,20 @@ Describe 'Single entry point — output format guards' {
                 }
                 Should -Invoke Connect-AZSCLoginSession -Exactly 1
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+
+                Mock Invoke-ScoutAssessmentCore {
+                    $exception = [System.InvalidOperationException]::new('required source unavailable')
+                    $exception.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+                    throw $exception
+                }
+
+                Invoke-AzureScout -NoWizard -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment `
+                    -OutputFormat React,JsonEvidence -SkipPermissionCheck -SkipDiagram
+
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 2
+                Should -Invoke Start-AZSCProcessOrchestration -Exactly 2
+                Should -Invoke Out-AZSCReportResults -Exactly 2
+                Should -Invoke Write-Warning -ParameterFilter { $Message -like '*skipped*assessment*inventory run will continue*' }
             } $work
         } | Should -Not -Throw
     }
