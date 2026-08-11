@@ -240,7 +240,7 @@ Describe 'Stop-AZSCRunLog' {
     It 'records the terminal status in the log' {
         Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
         $null = Stop-AZSCRunLog -Status 'FAILED' -Quiet
-        (Get-Content -Raw (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')) | Should -Match 'Run FAILED after'
+        (Get-Content -Raw (Join-Path -Path $script:LogDir -ChildPath 'scout-run.log')) | Should -Match 'Scan/log execution FAILED after'
     }
 
     It 'is safe to call when no log was ever started' {

@@ -27,6 +27,7 @@ function Invoke-ScoutCollector {
     $Started = Get-Date
     $Rows = @()
     $Failure = $null
+    $ResourceTypes = @()
 
     try {
         if (-not [bool]$Collector.HasDeclarativeDefinition -or
@@ -35,6 +36,7 @@ function Invoke-ScoutCollector {
         }
 
         $Definition = Get-ScoutCollectorDefinition -Path $Collector.DefinitionPath
+        $ResourceTypes = @($Definition.ResourceTypes)
         $Rows = @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context $Context)
     }
     catch {
@@ -71,5 +73,6 @@ function Invoke-ScoutCollector {
         Mode           = 'Declarative'
         Error          = $Failure
         Duration       = $Duration
+        ResourceTypes  = $ResourceTypes
     }
 }

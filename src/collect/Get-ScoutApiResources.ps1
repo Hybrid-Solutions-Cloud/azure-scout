@@ -172,7 +172,13 @@ function Get-ScoutApiResources {
     }
 
     function Invoke-ScoutApiCall {
-        param([string] $Uri, [string] $Method = 'GET', [string] $FieldName, [string] $SubscriptionName)
+        param(
+            [string] $Uri,
+            [string] $Method = 'GET',
+            [string] $FieldName,
+            [string] $SubscriptionName,
+            [switch] $NotFoundIsEmpty
+        )
         try {
             $values = [System.Collections.Generic.List[object]]::new()
             $currentUri = $Uri
@@ -183,7 +189,23 @@ function Get-ScoutApiResources {
                 $response = $null
                 for ($attempt = 0; $attempt -le 3; $attempt++) {
                     try {
-                        $response = Invoke-RestMethod -Uri $currentUri -Headers $headers -Method $currentMethod -ErrorAction Stop
+                        $request = @{
+                            Uri         = $currentUri
+                            Headers     = $headers
+                            Method      = $currentMethod
+                            ErrorAction = 'Stop'
+                        }
+                        $statusCode = $null
+                        $invokeRestCommand = Get-Command Invoke-RestMethod
+                        if ($NotFoundIsEmpty -and $invokeRestCommand.Parameters.ContainsKey('SkipHttpErrorCheck') -and $invokeRestCommand.Parameters.ContainsKey('StatusCodeVariable')) {
+                            $request.SkipHttpErrorCheck = $true
+                            $request.StatusCodeVariable = 'statusCode'
+                        }
+                        $response = Invoke-RestMethod @request
+                        if ($NotFoundIsEmpty -and $statusCode -eq 404) { return $null }
+                        if ($null -ne $statusCode -and ($statusCode -lt 200 -or $statusCode -ge 300)) {
+                            throw "ARM returned HTTP $statusCode"
+                        }
                         break
                     }
                     catch {
@@ -270,7 +292,7 @@ function Get-ScoutApiResources {
                 -Uri "$base/Microsoft.ManagedIdentity/userAssignedIdentities?api-version=2023-01-31"
 
             $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
-                -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01"
+                -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01" -NotFoundIsEmpty
 
             $reservationRecommendations = Invoke-ScoutApiCall -FieldName 'ReservationRecommendations' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Consumption/reservationRecommendations?api-version=2023-05-01"

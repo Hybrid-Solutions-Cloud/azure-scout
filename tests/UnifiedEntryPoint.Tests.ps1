@@ -130,7 +130,7 @@ Describe 'Single entry point — output format guards' {
         $result.LoginCalls | Should -Be 2
     }
 
-    It 'completes a JSON-only inventory with a zero Excel row count' {
+    It 'completes a JSON-only inventory and retains its raw and processed discovery data' {
         $work = $TestDrive
 
         {
@@ -156,7 +156,10 @@ Describe 'Single entry point — output format guards' {
                         ReportCache  = Join-Path $Work 'ReportCache'
                     }
                 }
-                Mock Set-AZSCFolder
+                Mock Set-AZSCFolder {
+                    New-Item -ItemType Directory -Path (Join-Path $Work 'DiagramCache') -Force | Out-Null
+                    New-Item -ItemType Directory -Path (Join-Path $Work 'ReportCache') -Force | Out-Null
+                }
                 Mock Start-AZSCRunLog
                 Mock Write-AZSCLog
                 Mock Write-AZSCLogPhase
@@ -181,9 +184,16 @@ Describe 'Single entry point — output format guards' {
                         PolicySetDef       = @()
                     }
                 }
-                Mock Export-ScoutRawInventoryDump { Join-Path $Work 'raw-inventory.json' }
+                Mock Export-ScoutRawInventoryDump {
+                    $path = Join-Path $Work 'raw-inventory.json'
+                    '{"schema":"azure-scout/raw-inventory/v1"}' | Set-Content -LiteralPath $path
+                    $path
+                }
                 Mock Start-AZSCExtraJobs { @{} }
-                Mock Start-AZSCProcessOrchestration
+                Mock Start-AZSCProcessOrchestration {
+                    $path = Join-Path $Work 'ReportCache/Compute.json'
+                    '[]' | Set-Content -LiteralPath $path
+                }
                 Mock Export-AZSCJsonReport { Join-Path $Work 'AzureScout.json' }
                 Mock Clear-AZSCMemory
                 Mock Out-AZSCReportResults
@@ -193,6 +203,9 @@ Describe 'Single entry point — output format guards' {
 
                 Should -Invoke Export-AZSCJsonReport -Exactly 1
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+                Should -Invoke Clear-AZSCCacheFolder -Exactly 1
+                Test-Path -LiteralPath (Join-Path $Work 'raw-inventory.json') | Should -BeTrue
+                Test-Path -LiteralPath (Join-Path $Work 'ReportCache/Compute.json') | Should -BeTrue
             } $work
         } | Should -Not -Throw
     }

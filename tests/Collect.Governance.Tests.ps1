@@ -811,6 +811,16 @@ Describe 'AB#6456 -- Resolve-ScoutOrphanedRoleAssignment is a pure, local transf
         { Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @() } | Should -Not -Throw
         @(Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @()) | Should -BeNullOrEmpty
     }
+
+    It 'filters null resource elements before enriching the remaining rows' {
+        $other = [pscustomobject]@{ type = 'microsoft.compute/virtualmachines'; id = 'keep' }
+        $inputRows = [object[]]@($other, $null)
+
+        $result = @(Resolve-ScoutOrphanedRoleAssignment -Resources $inputRows -EntraQueryOutcomes @())
+
+        $result.Count | Should -Be 1
+        $result[0].id | Should -Be 'keep'
+    }
 }
 
 Describe 'AB#6456 -- orphaned role assignments: the classification matrix' {

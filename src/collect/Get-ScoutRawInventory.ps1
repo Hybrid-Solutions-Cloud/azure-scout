@@ -64,16 +64,6 @@ $ErrorActionPreference = 'Stop'
     Arc-enabled servers. Read-only: this reads what Update Manager already recorded and never
     asks a machine to run a scan.
 
-.PARAMETER IncludeLighthouseDelegations
-    Also collect `managedserviceresources` filtered to
-    `microsoft.managedservices/registrationdefinitions` -- the Azure Lighthouse delegation
-    definitions that name the managing tenant and the roles it holds in this one.
-
-    This is its own ARG table for the same reason `recoveryservicesresources` is: the type is
-    NOT in `resources`, so no amount of querying `resources` returns it. Scout declared the type
-    on `Management/LighthouseDelegations` but read no table that carries it, so that worksheet
-    was empty on every run (AB#6771).
-
 .PARAMETER IncludeAdvisories
     Also collect `advisorresources` filtered to Medium/High impact, matching the legacy
     `-SkipAdvisory:$false` default.
@@ -263,7 +253,6 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeBackupResources,
         [switch]   $IncludeDesktopVirtualization,
         [switch]   $IncludeUpdateManagerResources,
-        [switch]   $IncludeLighthouseDelegations,
         [switch]   $IncludeAdvisories,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
@@ -290,6 +279,8 @@ function Get-ScoutRawInventory {
     )
 
     Import-Module Az.ResourceGraph -ErrorAction Stop
+
+    $collectionHealth = [System.Collections.Generic.List[object]]::new()
 
     function Write-ScoutRawInventoryTiming {
         param(
@@ -380,16 +371,19 @@ function Get-ScoutRawInventory {
             [Parameter(Mandatory)] [string]   $Query,
             [string[]] $Batch,
             [string]   $SkipToken,
-            [string]   $LoopName
+            [string]   $LoopName,
+            [ValidateRange(25, 1000)]
+            [int]      $PageSize = 1000
         )
         $throttleRetries = 0
+        $effectivePageSize = $PageSize
         # A while($true)+continue loop (NOT a do/while on the retry count) is deliberate: a
         # do/while's `continue` re-evaluates the OUTER loop's own condition, not "try the
         # request again" -- with $skipToken still unset on a first-page throttle, that would
         # exit immediately instead of retrying. This inner loop's only exit paths are an
         # explicit `return`.
         while ($true) {
-            $params = @{ Query = $Query; First = 1000; ErrorAction = 'Stop' }
+            $params = @{ Query = $Query; First = $effectivePageSize; ErrorAction = 'Stop' }
             if ($SkipToken) { $params.SkipToken = $SkipToken }
             if ($Batch)     { $params.Subscription = $Batch }
             if ($ManagementGroupId -and -not $Batch) { $params.ManagementGroup = $ManagementGroupId }
@@ -399,6 +393,11 @@ function Get-ScoutRawInventory {
             }
             catch {
                 $errText = $_.Exception.Message
+                if ($errText -match '(?i)ResponsePayloadTooLarge|response payload size exceeded' -and $effectivePageSize -gt 25) {
+                    $effectivePageSize = [Math]::Max(25, [Math]::Floor($effectivePageSize / 2))
+                    Write-Verbose "Get-ScoutRawInventory: '$LoopName' exceeded the ARG response payload limit -- retrying with page size $effectivePageSize."
+                    continue
+                }
                 if ((Test-ScoutArgThrottled $errText) -and $throttleRetries -lt 3) {
                     $throttleRetries++
                     # Resource Graph's quota window resets in single-digit seconds (per the
@@ -409,6 +408,16 @@ function Get-ScoutRawInventory {
                     continue
                 }
                 Write-Warning "Get-ScoutRawInventory: '$LoopName' failed$(if ($Batch) { " for a batch of $($Batch.Count) subscription(s)" }) and was skipped: $errText"
+                $healthTypes = switch ($LoopName) {
+                    'Security Center' { @('microsoft.security/assessments') }
+                    default { @() }
+                }
+                $collectionHealth.Add([pscustomobject]@{
+                        Dataset      = $LoopName
+                        Status       = 'Unavailable'
+                        Reason       = $errText
+                        ResourceTypes = $healthTypes
+                    })
                 return $null
             }
         }
@@ -423,12 +432,14 @@ function Get-ScoutRawInventory {
         param(
             [Parameter(Mandatory)] [string]   $Query,
             [string[]] $Batch,
-            [string]   $LoopName
+            [string]   $LoopName,
+            [ValidateRange(25, 1000)]
+            [int]      $PageSize = 1000
         )
         $rows = [System.Collections.Generic.List[object]]::new()
         $skipToken = $null
         do {
-            $page = Get-ScoutRawArgPage -Query $Query -Batch $Batch -SkipToken $skipToken -LoopName $LoopName
+            $page = Get-ScoutRawArgPage -Query $Query -Batch $Batch -SkipToken $skipToken -LoopName $LoopName -PageSize $PageSize
             if ($null -eq $page) { break }
             foreach ($row in @($page)) { $rows.Add($row) }
             $skipToken = if ($page -and $page.PSObject.Properties['SkipToken']) { $page.SkipToken } else { $null }
@@ -445,16 +456,22 @@ function Get-ScoutRawInventory {
             Run one table query across every subscription batch (or tenant/MG-wide when no
             explicit subscription list is available yet).
         #>
-        param([string] $Query, [string] $LoopName, [string[]] $Subscriptions)
+        param(
+            [string] $Query,
+            [string] $LoopName,
+            [string[]] $Subscriptions,
+            [ValidateRange(25, 1000)]
+            [int] $PageSize = 1000
+        )
         if (-not $Subscriptions -or @($Subscriptions).Count -eq 0) {
-            return Invoke-ScoutRawArgQuery -Query $Query -LoopName $LoopName
+            return Invoke-ScoutRawArgQuery -Query $Query -LoopName $LoopName -PageSize $PageSize
         }
         $rows = [System.Collections.Generic.List[object]]::new()
         # 1000 is the documented Resource Graph maximum subscriptions per call.
         for ($i = 0; $i -lt $Subscriptions.Count; $i += 1000) {
             $upper = [Math]::Min($i + 999, $Subscriptions.Count - 1)
             $batch = @($Subscriptions[$i..$upper])
-            foreach ($row in (Invoke-ScoutRawArgQuery -Query $Query -Batch $batch -LoopName $LoopName)) { $rows.Add($row) }
+            foreach ($row in (Invoke-ScoutRawArgQuery -Query $Query -Batch $batch -LoopName $LoopName -PageSize $PageSize)) { $rows.Add($row) }
         }
         return , @($rows)
     }
@@ -567,29 +584,6 @@ function Get-ScoutRawInventory {
         foreach ($row in (Invoke-ScoutRawTable -Query $patchInstallQuery -LoopName 'Update Manager: Installations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
     }
 
-    # ---- Azure Lighthouse delegations (AB#6771) ----
-    # `managedserviceresources` carries exactly two types -- registrationassignments (the scope a
-    # delegation is applied to) and registrationdefinitions (the offer: managing tenant id plus
-    # the authorizations it grants). Management/LighthouseDelegations renders the definitions, so
-    # that is what this filters to; pulling the assignments as well would double the row count
-    # with rows no collector consumes.
-    #
-    # NO `| project $columns` here, deliberately, and it is the one thing to be careful about if
-    # this query is ever edited. A `project` naming a column the table does not define fails the
-    # WHOLE query, and this table's schema is not guaranteed to match the resources-table
-    # projection that `$columns` renders (`zones`/`extendedLocation`/`plan` in particular). The
-    # patch* tables above skip the projection for the same reason. Unprojected rows carry every
-    # column the table defines, which is a superset of what the collector reads -- id, name,
-    # subscriptionId, tags and properties.
-    #
-    # The tag clause is omitted to match the other non-`resources` tables; the resource-group and
-    # management-group clauses are applied so a scoped run stays scoped. A delegation is
-    # subscription-scoped, so a -ResourceGroup run legitimately returns none.
-    if ($IncludeLighthouseDelegations) {
-        $lighthouseQuery = "managedserviceresources $rgClause | where type =~ 'microsoft.managedservices/registrationdefinitions' $mgJoinClause | order by id asc"
-        foreach ($row in (Invoke-ScoutRawTable -Query $lighthouseQuery -LoopName 'Lighthouse Delegations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
-    }
-
     $advisories = @()
     if ($IncludeAdvisories) {
         $advisorQuery = "advisorresources $rgClause $mgJoinClause | where properties.impact in~ ('Medium','High') | order by id asc"
@@ -598,8 +592,13 @@ function Get-ScoutRawInventory {
 
     $security = @()
     if ($IncludeSecurityCenter) {
-        $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | order by id asc"
-        $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds
+        # Full Defender assessment payloads regularly exceed Resource Graph's 16 MiB response
+        # ceiling even with row paging. The legacy report consumes only this narrow shape, so
+        # project it server-side and use a conservative page size. The paging helper also halves
+        # the page on ResponsePayloadTooLarge as a final safety net.
+        $securityProperties = "bag_pack('resourceDetails',bag_pack('id',tostring(properties.resourceDetails.id)),'metadata',bag_pack('categories',properties.metadata.categories,'severity',tostring(properties.metadata.severity),'remediationDescription',tostring(properties.metadata.remediationDescription),'implementationEffort',tostring(properties.metadata.implementationEffort),'userImpact',tostring(properties.metadata.userImpact),'threats',properties.metadata.threats),'displayName',tostring(properties.displayName),'status',bag_pack('code',tostring(properties.status.code)))"
+        $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | project id,name,type,tenantId,resourceGroup,subscriptionId,properties=$securityProperties | order by id asc"
+        $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds -PageSize 200
     }
 
     # ---- retirements (AB#5648) ----
@@ -690,7 +689,21 @@ function Get-ScoutRawInventory {
         $securityPolicyStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $subscriptionEnvelopes)) {
-                if ($null -ne $row) { $resources.Add($row) }
+                if ($null -eq $row) { continue }
+                $resources.Add($row)
+                $statusProperty = $row.properties.PSObject.Properties['CollectionStatus']
+                if ($statusProperty -and $statusProperty.Value) {
+                    foreach ($status in $statusProperty.Value.PSObject.Properties) {
+                        if ([string]$status.Value -in @('Unavailable', 'Skipped', 'Failed')) {
+                            $collectionHealth.Add([pscustomobject]@{
+                                    Dataset       = "SecurityPolicy/$($status.Name) [$($row.subscriptionName)]"
+                                    Status        = [string]$status.Value
+                                    Reason        = 'The subscription-scoped dataset was not available.'
+                                    ResourceTypes = @('AZSC/Subscription/SecurityPolicySweep')
+                                })
+                        }
+                    }
+                }
             }
         }
         catch {
@@ -910,5 +923,6 @@ function Get-ScoutRawInventory {
         # AB#6779 -- the governance datasets this pass just collected, handed up so Invoke-Collect
         # fills $collect.governance from them instead of Import-Governance querying Azure again.
         Governance         = $governance
+        CollectionHealth   = @($collectionHealth)
     }
 }

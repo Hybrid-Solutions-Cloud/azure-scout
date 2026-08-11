@@ -89,6 +89,14 @@ Describe 'AB#7187 — probe-loop branch placement (source analysis)' {
         $licenceIdx | Should -BeLessThan $cliScopeIdx
     }
 
+    It 'checks both known availability gates before issuing the endpoint probe' {
+        $licenceIdx  = Get-AuditSourceIndex 'Test-ScoutTenantLicence -SkuPattern \$req\.SkuPattern'
+        $cliScopeIdx = Get-AuditSourceIndex '\$tokenClaim\.Scopes -notcontains \$impact\.Permission'
+        $probeIdx    = Get-AuditSourceIndex '\$null = Invoke-AZSCGraphRequest -Uri \$probe\.Uri'
+        $licenceIdx | Should -BeLessThan $probeIdx
+        $cliScopeIdx | Should -BeLessThan $probeIdx
+    }
+
     It 'reports the delegated-scope case as a Warn before the generic DENIED' {
         $cliVerdictIdx = Get-AuditSourceIndex 'UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN'
         $deniedIdx     = Get-AuditSourceIndex '\$deniedRemediation = if'

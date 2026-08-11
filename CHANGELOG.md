@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.2] - 2026-08-11 - honest collection, retained evidence
+
+### Fixed
+
+- **Expected Entra limitations no longer generate repeated 403 failures (AB#7279).** The
+  permission preflight and extractor now classify P2-only, delegated-scope-incompatible, and
+  unconsumed datasets before issuing their endpoint requests. Risky Users and Verified ID gaps are
+  reported as Not assessed with the real reason; Identity Providers and Security Defaults are not
+  queried because no released collector consumes them.
+- **The raw sweep no longer executes the held Azure Lighthouse query.** Scout does not yet scan
+  delegated customer tenants, so the unsupported `managedserviceresources` request and its 400 are
+  removed from every collection plan and the unreleased collector manifest is retired.
+- **Large Defender for Cloud estates no longer lose the Security Center dataset on a payload-size
+  response.** The projected query carries only fields consumed by released collectors and retries
+  with progressively smaller Resource Graph pages while preserving throttle handling.
+- **Normal resource absence is no longer logged as a scan failure.** Missing storage lifecycle
+  policies, Advisor score documents, and unregistered Defender pricing are treated as successful
+  empty/unavailable states. Null elements are filtered before orphaned role-assignment resolution.
+- **Upstream failures can no longer masquerade as clean empty collector output.** Extraction
+  availability flows into processing, `collector-rowcounts.json`, and the new
+  `collection-health.json`, distinguishing Complete, Partial, Not assessed, and Unavailable data.
+
+### Changed
+
+- **Completed scans retain their complete discovery and processing evidence.**
+  `raw-inventory.json`, `collector-rowcounts.json`, `collection-health.json`, every `ReportCache`
+  JSON file, and `DiagramCache` content remain in the run folder for downstream tools and
+  reporting. Cleanup occurs only when an operator explicitly invokes
+  `Clear-AZSCCacheFolder -OlderThan <days>`.
+- Console and durable-log timing labels now distinguish total command time (including guided
+  setup) from scan/log execution time.
+
 ## [3.12.1] - 2026-08-11 - one sign-in, one tenant
 
 ### Fixed

@@ -33,7 +33,7 @@ Describe 'category-aware extraction plan' {
         # VM setup preambles consume protected-item/backup-policy rows, so the closure must
         # retain this non-obvious cross-table dependency.
         $plan.IncludeBackupResources | Should -BeTrue
-        $plan.IncludeLighthouseDelegations | Should -BeFalse
+        $plan.PSObject.Properties.Name | Should -Not -Contain 'IncludeLighthouseDelegations'
         $plan.CollectTenantWideResources | Should -BeFalse
         $plan.CollectGovernance | Should -BeFalse
         $plan.IncludeEntra | Should -BeFalse
@@ -51,7 +51,7 @@ Describe 'category-aware extraction plan' {
         $management.CollectGovernance | Should -BeTrue
         $management.IncludeApiResourceSweep | Should -BeTrue
         $management.IncludeBackupResources | Should -BeTrue
-        $management.IncludeLighthouseDelegations | Should -BeTrue
+        $management.PSObject.Properties.Name | Should -Not -Contain 'IncludeLighthouseDelegations'
     }
 }
 
@@ -63,7 +63,7 @@ Describe 'category plan production plumbing' {
             param(
                 $SubscriptionIds, $IncludeSupportResources, $IncludeBackupResources,
                 $IncludeDesktopVirtualization, $IncludeUpdateManagerResources,
-                $IncludeLighthouseDelegations, $IncludeRetirements, $IncludeAdvisories,
+                $IncludeRetirements, $IncludeAdvisories,
                 $IncludeSecurityCenter, $IncludeArmChildResources, $ArmChildDataset,
                 $IncludeOperationalCollectorEnrichment, $IncludeSubscriptionSecurityPolicy,
                 $SkipApiResourceSweep, $SkipPolicy, $IncludeTags, $AzureEnvironment,
@@ -91,7 +91,7 @@ Describe 'category plan production plumbing' {
         [bool]$script:RawSplat.SkipApiResourceSweep | Should -BeTrue
         [bool]$script:RawSplat.IncludeBackupResources | Should -BeFalse
         [bool]$script:RawSplat.IncludeDesktopVirtualization | Should -BeFalse
-        [bool]$script:RawSplat.IncludeLighthouseDelegations | Should -BeFalse
+        $script:RawSplat.Keys | Should -Not -Contain 'IncludeLighthouseDelegations'
         @($script:RawSplat.ResourceTypes).Count | Should -BeGreaterThan 0
     }
 
@@ -106,7 +106,7 @@ Describe 'category plan production plumbing' {
         $script:RawSplat.Keys | Should -Not -Contain 'ResourceTypes'
         [bool]$script:RawSplat.IncludeBackupResources | Should -BeTrue
         [bool]$script:RawSplat.IncludeDesktopVirtualization | Should -BeTrue
-        [bool]$script:RawSplat.IncludeLighthouseDelegations | Should -BeTrue
+        $script:RawSplat.Keys | Should -Not -Contain 'IncludeLighthouseDelegations'
         [bool]$script:RawSplat.SkipApiResourceSweep | Should -BeFalse
     }
 

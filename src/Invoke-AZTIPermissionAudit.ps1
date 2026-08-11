@@ -587,60 +587,47 @@ function Invoke-AZSCPermissionAudit {
                     continue
                 }
 
+                # Resolve known availability boundaries BEFORE the endpoint probe. Probing first
+                # made the Graph helper emit a 403 warning even when Scout already knew the
+                # endpoint could not succeed for this tenant/token (AB#7279).
+                if ($Script:ScoutGraphLicensedFeature.ContainsKey($impact.Permission)) {
+                    $req = $Script:ScoutGraphLicensedFeature[$impact.Permission]
+                    $licensed = Test-ScoutTenantLicence -SkuPattern $req.SkuPattern -TenantID $tenantId
+                    if ($licensed -eq $false) {
+                        foreach ($c in $impact.Collectors) {
+                            $emptyCollectors.Add([PSCustomObject]@{
+                                    Collector  = $c
+                                    Reason     = "Not licensed — requires $($req.Product)"
+                                    Permission = $impact.Permission
+                                })
+                        }
+                        $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "NOT LICENSED — $($impact.Permission) ($purpose) requires $($req.Product), which this tenant does not have. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "No action needed unless you intend to license $($req.Product). Granting the permission alone will not populate these collectors."
+                        Write-AuditLine -Status Warn -Text "$checkName — not licensed ($($req.Product)); reported as Not assessed"
+                        $graphDetails.Add($r)
+                        continue
+                    }
+                }
+
+                if ($tokenClaim -and $tokenClaim.IsDelegated -and $tokenClaim.Scopes -notcontains $impact.Permission) {
+                    foreach ($c in $impact.Collectors) {
+                        $emptyCollectors.Add([PSCustomObject]@{
+                                Collector  = $c
+                                Reason     = "Unavailable with current delegated sign-in — needs '$($impact.Permission)' via a service principal"
+                                Permission = $impact.Permission
+                            })
+                    }
+                    $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes carried by the selected Az context token, and Get-AzAccessToken cannot add it, so this fails regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help because a directory role cannot add a missing OAuth scope."
+                    Write-AuditLine -Status Warn -Text "$checkName — unavailable with current delegated sign-in; reported as Not assessed"
+                    $graphDetails.Add($r)
+                    continue
+                }
+
                 try {
                     $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId
                     $r = New-CheckResult -Check $checkName -Status 'Pass' -Message "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
-                    # AB#6893. A LICENSED-FEATURE permission is not a misconfiguration. Identity
-                    # Protection is Entra ID P2; on a tenant without P2 the risky-users endpoint
-                    # fails no matter how much consent is granted, and reporting that as
-                    # "DENIED - grant this permission" sends the customer to chase a checkbox
-                    # that will not fix it. Most tenants do not have P2, so this was the common
-                    # case being reported as an error.
-                    #
-                    # Scout already collects subscribedSkus, so the licence state is knowable
-                    # rather than guessable -- and when it is not knowable this stays a Fail,
-                    # because silently downgrading a real denial would be the worse error.
-                    if ($Script:ScoutGraphLicensedFeature.ContainsKey($impact.Permission)) {
-                        $req = $Script:ScoutGraphLicensedFeature[$impact.Permission]
-                        $licensed = Test-ScoutTenantLicence -SkuPattern $req.SkuPattern -TenantID $tenantId
-                        if ($licensed -eq $false) {
-                            foreach ($c in $impact.Collectors) {
-                                $emptyCollectors.Add([PSCustomObject]@{
-                                        Collector  = $c
-                                        Reason     = "Not licensed — requires $($req.Product)"
-                                        Permission = $impact.Permission
-                                    })
-                            }
-                            $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "NOT LICENSED — $($impact.Permission) ($purpose) requires $($req.Product), which this tenant does not have. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "No action needed unless you intend to license $($req.Product). Granting the permission alone will not populate these collectors."
-                            Write-AuditLine -Status Warn -Text "$checkName — not licensed ($($req.Product)); reported as Not assessed"
-                            $graphDetails.Add($r)
-                            continue
-                        }
-                    }
-
-                    # AB#7187. A delegated token that does not CARRY the required scope cannot
-                    # pass this probe no matter which directory roles the signed-in user holds:
-                    # user-mode tokens carry a fixed pre-authorized scope set that
-                    # Get-AzAccessToken cannot extend, so "grant the permission" is advice that cannot work
-                    # -- a Global Administrator hits the same 403. Report the truth instead:
-                    # this surface needs a service principal, or it stays Not assessed.
-                    if ($tokenClaim -and $tokenClaim.IsDelegated -and $tokenClaim.Scopes -notcontains $impact.Permission) {
-                        foreach ($c in $impact.Collectors) {
-                            $emptyCollectors.Add([PSCustomObject]@{
-                                    Collector  = $c
-                                    Reason     = "Unavailable with current delegated sign-in — needs '$($impact.Permission)' via a service principal"
-                                    Permission = $impact.Permission
-                                })
-                        }
-                        $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes carried by the selected Az context token, and Get-AzAccessToken cannot add it, so this fails regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help because a directory role cannot add a missing OAuth scope."
-                        Write-AuditLine -Status Warn -Text "$checkName — unavailable with current delegated sign-in; reported as Not assessed"
-                        $graphDetails.Add($r)
-                        continue
-                    }
-
                     # Criticality is derived: this permission has consumers, so denying it
                     # empties worksheets, so the run is not READY. There is no list to edit.
                     $graphAccess = $false

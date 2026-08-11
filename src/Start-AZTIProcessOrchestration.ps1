@@ -29,7 +29,7 @@ function Start-AZSCProcessOrchestration {
     # time regardless. It still applies to the extraction phase, which does its own throttling.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'File', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Heavy', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    Param($Subscriptions, $Resources, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category)
+    Param($Subscriptions, $Resources, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category, $CollectionHealth)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
     # StrictMode and carries ~800 property reads that are only valid without it -- chained
@@ -87,7 +87,7 @@ function Start-AZSCProcessOrchestration {
                 Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources')
             }
 
-        $ProcessingSummary = Invoke-ScoutProcessing -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category
+        $ProcessingSummary = Invoke-ScoutProcessing -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category -CollectionHealth $CollectionHealth
 
         Remove-Variable -Name Unsupported -ErrorAction SilentlyContinue
 

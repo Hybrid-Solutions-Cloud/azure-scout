@@ -268,7 +268,7 @@ function Stop-AZSCRunLog {
             else { 'unknown' }
 
             Write-AZSCLog -Message '' -Level 'INFO'
-            Write-AZSCLog -Message ("Run $Status after $Elapsed") -Level 'PHASE'
+            Write-AZSCLog -Message ("Scan/log execution $Status after $Elapsed") -Level 'PHASE'
         }
         catch {
             # nothing useful left to do here

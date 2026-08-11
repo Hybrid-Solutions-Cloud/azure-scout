@@ -49,9 +49,9 @@ need a consolidated view of their Azure environment.
 - Run isolation — a rescan never overwrites the previous run's data
 - Detailed file logging by default — collector/rule status, row/evidence counts, and phase timings
   are written without adding debug noise to the console
-- Evidence artifacts — `raw-inventory.json` (everything collected, before any worksheet
-  filtering) and `collector-rowcounts.json` (per-collector Rows/Empty/Failed) written for
-  every run
+- Retained evidence — `raw-inventory.json`, `collector-rowcounts.json`,
+  `collection-health.json`, `ReportCache`, and `DiagramCache` remain available after every run
+  until the operator explicitly prunes them
 - Unattended execution via Azure Automation Account or GitHub Actions
 - Cross-platform (Windows, Linux, Mac)
 

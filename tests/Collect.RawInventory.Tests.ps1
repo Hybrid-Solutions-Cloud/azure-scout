@@ -82,6 +82,28 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         ($script:queries -join "`n") | Should -Match '(?m)^securityresources\b'
     }
 
+    It 'projects only report-consumed Defender fields and uses a payload-safe page size' {
+        $script:securityQuery = $null
+        $script:securityFirst = $null
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^securityresources\b') {
+                $script:securityQuery = $Query
+                $script:securityFirst = $First
+            }
+            return @()
+        }
+
+        Get-ScoutRawInventory -IncludeSecurityCenter | Out-Null
+
+        $script:securityFirst | Should -Be 200
+        $script:securityQuery | Should -Match '\|\s*project\s+id,name,type,tenantId,resourceGroup,subscriptionId,properties=bag_pack'
+        $script:securityQuery | Should -Match 'resourceDetails'
+        $script:securityQuery | Should -Match 'remediationDescription'
+        $script:securityQuery | Should -Not -Match '\|\s*project\s+\$columns'
+    }
+
     It 'returns the Start-AZTIGraphExtraction-compatible shape' {
         function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
@@ -310,6 +332,27 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
 }
 
 Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
+    It 'halves an oversized ARG page and retries without losing the dataset' {
+        $script:securityPageSizes = @()
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^securityresources\b') {
+                $script:securityPageSizes += $First
+                if ($script:securityPageSizes.Count -eq 1) {
+                    throw 'ResponsePayloadTooLarge: response payload size exceeded 16777216 bytes'
+                }
+                return @([pscustomobject]@{ id = 'assessment-1'; properties = [pscustomobject]@{} })
+            }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSecurityCenter
+
+        $script:securityPageSizes | Should -Be @(200, 100)
+        @($result.Security).Count | Should -Be 1
+    }
+
     It 'retries a throttled (429) response with backoff before succeeding' {
         $script:attempts = 0
         Mock Start-Sleep { }
@@ -335,8 +378,11 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
             if ($Query -match '^resources\b') { throw 'AuthorizationFailed: access denied' }
             return @()
         }
-        Get-ScoutRawInventory -WarningVariable w -WarningAction SilentlyContinue | Out-Null
+        $result = Get-ScoutRawInventory -WarningVariable w -WarningAction SilentlyContinue
         ($w -join "`n") | Should -Match 'AuthorizationFailed'
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Resources')
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
     }
 
     It 'warns with a diagnostic hint when literally nothing came back' {

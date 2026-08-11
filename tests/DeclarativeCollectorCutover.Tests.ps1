@@ -28,8 +28,9 @@ Describe 'v3 declarative collector cutover' {
         # manifests for its AB# provenance) plus AB#7091's four Networking additions
         # (Networking/CdnProfiles, Networking/NetworkManagers, Networking/FirewallPolicies,
         # Networking/NetworkFunctions). The number is pinned rather than derived so that a
-        # collector silently DISAPPEARING is a failure, not an invisible regression.
-        $Collectors.Count | Should -Be 279
+        # collector silently DISAPPEARING is a failure, not an invisible regression. AB#7279
+        # deliberately removed the unreleased Lighthouse collector, leaving 278.
+        $Collectors.Count | Should -Be 278
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

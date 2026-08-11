@@ -83,14 +83,16 @@ function Resolve-ScoutOrphanedRoleAssignment {
     [OutputType([object[]])]
     param(
         [Parameter(Mandatory)]
-        [AllowEmptyCollection()]
-        [object[]] $Resources,
+        [AllowNull()]
+        [object] $Resources,
 
         [Parameter()]
         [AllowEmptyCollection()]
         [object[]] $EntraQueryOutcomes = @()
     )
     Set-StrictMode -Version Latest
+
+    $Resources = @($Resources | Where-Object { $null -ne $_ })
 
     # StrictMode-safe, case-insensitive property read. Entra rows carry an uppercase 'TYPE'
     # (Start-AZSCEntraExtraction's Add-NormalizedResource), the governance envelope and ARM rows

@@ -1049,6 +1049,7 @@ Function Invoke-AzureScout {
     $PolicyAssign = $ExtractionData.PolicyAssign
     $PolicyDef = $ExtractionData.PolicyDef
     $PolicySetDef = $ExtractionData.PolicySetDef
+    $CollectionHealth = if ($ExtractionData.PSObject.Properties['CollectionHealth']) { @($ExtractionData.CollectionHealth) } else { @() }
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
@@ -1065,6 +1066,7 @@ Function Invoke-AzureScout {
         'Policy definitions' = @($PolicyDef).Count
         'Policy set defs'    = @($PolicySetDef).Count
         'Cost rows'          = @($CostData).Count
+        'Unavailable datasets' = @($CollectionHealth).Count
     }
 
     if ($Automation.IsPresent)
@@ -1182,7 +1184,7 @@ Function Invoke-AzureScout {
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
-        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category
+        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category -CollectionHealth $CollectionHealth
 
     $ProcessingRunTime.Stop()
 
@@ -1313,8 +1315,13 @@ Function Invoke-AzureScout {
         # Clear memory to remove as many memory footprint as possible
         Clear-AZSCMemory
 
-        # Clear Cache Folder for future runs
-        Clear-AZSCCacheFolder -ReportCache $ReportCache
+        # Keep every per-run discovery and processing artifact. Operators can intentionally
+        # prune old run folders with Clear-AZSCCacheFolder -OlderThan, but a successful scan
+        # must never delete the data that produced its reports.
+        Write-AZSCLog -Level 'VERBOSE' -Message (
+            'Run evidence retained: raw inventory={0}; report cache={1}; diagram cache={2}' -f
+                $RawDumpPath, $ReportCache, $DiagramCache
+        )
 
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished Charts Phase.')

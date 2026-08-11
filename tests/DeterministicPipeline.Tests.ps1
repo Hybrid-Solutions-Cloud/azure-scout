@@ -312,6 +312,28 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $Text | Should -Match '\[DEBUG\s*\] Collector Storage/Exploding: status=Failed; rows=0; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
     }
 
+    It 'reports an unavailable upstream dataset instead of calling its zero rows Empty' {
+        $health = @([pscustomobject]@{
+                Dataset = 'Synthetic unavailable source'
+                Status = 'Unavailable'
+                Reason = 'simulated upstream failure'
+                ResourceTypes = @('nothing')
+            })
+
+        $summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot `
+            -CollectionHealth $health -WarningAction SilentlyContinue
+
+        $row = $summary.CollectorRows | Where-Object Collector -eq 'Nothing'
+        $row.Verdict | Should -Be 'Unavailable'
+        $row.Availability | Should -Be 'Unavailable'
+        $row.AvailabilityReason | Should -Match 'simulated upstream failure'
+        $summary.UnavailableCount | Should -Be 1
+        $healthArtifact = Get-Content -Raw $summary.CollectionHealthPath | ConvertFrom-Json
+        $healthArtifact.Overall | Should -Be 'Partial'
+        $healthArtifact.Datasets[0].Dataset | Should -Be 'Synthetic unavailable source'
+    }
+
     It 'completes the run despite a broken collector, and reports it' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue

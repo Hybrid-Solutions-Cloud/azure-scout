@@ -73,6 +73,32 @@ param([string] $Uri, [hashtable] $Headers, [string] $Method)
 }
 
 Describe 'Get-ScoutApiResources -- per-call resilience' {
+    It 'treats an unavailable Advisor score as ordinary empty data without throwing' {
+        $script:advisorSkipHttp = $false
+        function Invoke-RestMethod {
+            param(
+                [string] $Uri,
+                [hashtable] $Headers,
+                [string] $Method,
+                [string] $ErrorAction,
+                [switch] $SkipHttpErrorCheck,
+                [string] $StatusCodeVariable
+            )
+            $null = $Headers, $Method, $ErrorAction
+            if ($Uri -match 'advisorScore') {
+                $script:advisorSkipHttp = $SkipHttpErrorCheck
+                Set-Variable -Name $StatusCodeVariable -Value 404 -Scope 1
+                return [pscustomobject]@{ error = [pscustomobject]@{ code = 'NotFound' } }
+            }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
+
+        $script:advisorSkipHttp | Should -BeTrue
+        $result[0].AdvisorScore | Should -BeNullOrEmpty
+    }
+
     It 'degrades only the failing field to $null and keeps every other field and every other subscription' {
         function Invoke-RestMethod {
                         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]

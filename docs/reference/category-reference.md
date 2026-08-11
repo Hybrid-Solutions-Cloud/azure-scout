@@ -140,7 +140,7 @@ and the documented behaviour never once occurred.
 | `Integration` | Logic Apps, integration accounts and custom connectors, Event Grid, Event Hubs clusters, Relays, Health Data Services (FHIR/DICOM), API Management, Service Bus |
 | `IoT` | IoT Hubs, Device Provisioning Service, IoT Central, Device Update, Digital Twins, Azure Maps, Defender for IoT |
 | `Migration` | Azure Migrate projects, assessment projects and discovery sites; Database Migration Services, Data Box, Azure Stack Edge |
-| `Management` | Subscriptions, management groups, policy, custom role definitions, Automation Accounts, Backup, Advisor score, Lighthouse delegations, plus the five Azure DevOps collectors (projects, pipelines, service connections, repositories, agent pools) gated behind `-IncludeDevOps` |
+| `Management` | Subscriptions, management groups, policy, custom role definitions, Automation Accounts, Backup, Advisor score, plus the five Azure DevOps collectors (projects, pipelines, service connections, repositories, agent pools) gated behind `-IncludeDevOps`. Azure Lighthouse remains held. |
 | `Monitor` | Action groups, alert rules, Application Insights and its deep-data modules, data collection rules, diagnostic settings, Log Analytics |
 | `Networking` | VNets, NSGs, load balancers, application gateways, Front Door, Azure Firewall, Bastion, ExpressRoute, VPN connections |
 | `Security` | Microsoft Defender for Cloud alerts, assessments, pricing, secure score; Key Vault plus its secret/key/certificate expiry; Sentinel, Managed HSM, Cloud HSM, application security groups, WAF policies, DDoS protection plans, Confidential Ledger, artifact signing, Entra Domain Services, App Compliance Automation |

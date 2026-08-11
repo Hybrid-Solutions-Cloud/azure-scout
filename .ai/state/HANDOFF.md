@@ -1,5 +1,62 @@
 # Handoff
 
+## Session 2026-08-11 — 3.12.2 live-run correctness implemented
+
+The completed customer run at `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` was reconciled
+against the code. Every warning class has an implemented regression: known P2/delegated-scope and
+unconsumed Entra endpoints are classified before HTTP calls in both preflight and extraction;
+Azure Lighthouse is removed from the released manifest/query/plan contract; Security Center ARG
+responses use a narrow projection and shrink their page after payload-limit failures; expected
+storage lifecycle/Advisor 404s and unregistered Defender pricing remain quiet; null resources are
+filtered before orphaned-role enrichment; and upstream unavailable datasets flow into collector
+availability plus `collection-health.json` instead of appearing as clean empty data.
+
+The operator additionally required every discovery artifact to survive completion. The final
+`ReportCache` purge was removed. `raw-inventory.json`, `collector-rowcounts.json`,
+`collection-health.json`, `ReportCache`, and `DiagramCache` now remain in the run folder until an
+operator explicitly invokes age-based cleanup. A mocked public-entry completion test creates raw
+and processed cache files and requires both to remain.
+
+Version metadata is synchronized to 3.12.2 in the manifest, changelog, release ledger, docs
+changelog, and roadmap. Generated catalogs match 278 released manifests after Lighthouse removal.
+Verification so far: 268/268 focused runtime/live-error/retention tests, 103/103 permission/Entra
+tests, and 45/45 release/docs/catalog tests passed with zero skips, not-run cases, or failed
+containers. `Test-ModuleManifest` reports 3.12.2. Remaining work: static/docs/secret gates, commit the
+frozen candidate, complete full Pester on the exact clean commit, push/PR/CI/merge, tag/package,
+publish to PowerShell Gallery, and verify the downloaded/installed artifact byte-for-byte.
+
+## Session 2026-08-11 — completed 3.12.1 live-run error audit
+
+Read-only audit of `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` is complete. The guided
+Both/All run completed in 11m43s and produced inventory JSON, React, findings and evidence, but it
+was not complete: `scout-run.log` contains 25 warnings and `scout-console.log` captured 16 raw
+terminating error records. Confirmed product defects are: unfinished Lighthouse collection is
+incorrectly live and queries the disallowed `managedserviceresources` ARG table; the Security Center
+ARG query requests full assessment payloads and exceeded ARG's 16 MiB response limit (25,512,374
+bytes), leaving the legacy Security findings input empty; permission-audit availability decisions
+do not reach Entra extraction, so known-unavailable Risky User/Verified ID calls and two unconsumed
+Identity Provider/Security Defaults calls are still executed and logged as failures; one null element
+in the 1,506-resource array causes `Resolve-ScoutOrphanedRoleAssignment` parameter binding to reject
+the whole array, leaving role-assignment display-name/orphan enrichment unresolved; expected storage
+lifecycle-policy 404s, an unregistered Microsoft.Security provider and absent Advisor score leak as
+raw warnings/terminating errors; upstream unavailable datasets are later reported as ordinary Empty
+collectors and the summary incorrectly says `Collectors failed: 0`.
+
+The repair plan is: (1) remove Lighthouse from every live collection/category/docs contract until
+implemented; (2) project only Security Center fields consumed downstream and use a payload-safe page
+size, while propagating query availability; (3) build one Entra collection plan shared by preflight
+and extraction, skipping unlicensed, delegated-scope-unavailable and unconsumed queries without an
+HTTP call and recording structured NotAssessed outcomes; (4) filter null resource elements before
+enrichment/return and make the resolver explicitly tolerate them; (5) classify expected 404/provider
+absence as Empty/Unavailable rather than warnings and prevent caught API errors leaking into the
+console transcript; (6) carry upstream availability into collector row counts, report health and the
+final run summary; (7) clarify total interactive time versus scan execution time. Regression gates
+must exercise the exact guided-menu path, assert zero calls for known-unavailable Entra endpoints,
+handle a 2,000+ row Security fixture, enrich an array containing null, prove All never queries
+Lighthouse, and require zero raw `TerminatingError` transcript entries for expected absence. After
+focused tests, run the complete zero-failure/zero-skip Pester gate and a live read-only menu smoke
+before a patch release.
+
 ## Session 2026-08-11 — v3.12.1 one-sign-in Graph authentication hotfix
 
 AzureScout 3.12.1 is released. PR #262 merged to main as

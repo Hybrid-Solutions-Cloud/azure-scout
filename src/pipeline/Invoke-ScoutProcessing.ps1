@@ -93,7 +93,11 @@ function Invoke-ScoutProcessing {
 
         [Parameter()]
         [AllowNull()]
-        [string]$DefinitionRoot
+        [string]$DefinitionRoot,
+
+        [Parameter()]
+        [AllowNull()]
+        [object[]]$CollectionHealth = @()
 
     )
 
@@ -132,6 +136,9 @@ function Invoke-ScoutProcessing {
             CollectorRows    = @()
             RowCountPath     = $null
             EmptyCount       = 0
+            PartialCount     = 0
+            UnavailableCount = 0
+            CollectionHealthPath = $null
             Duration         = (Get-Date) - $Started
         }
     }
@@ -166,6 +173,19 @@ function Invoke-ScoutProcessing {
     # Every shipped collector is declarative in v3. The result mode is kept as a checked runtime
     # invariant so a future alternate executor cannot be counted as a successful release run.
     $Declarative = 0
+
+    $healthByType = @{}
+    foreach ($health in @($CollectionHealth)) {
+        if ($null -eq $health) { continue }
+        $typesProperty = $health.PSObject.Properties['ResourceTypes']
+        if (-not $typesProperty) { continue }
+        foreach ($type in @($typesProperty.Value)) {
+            if ([string]::IsNullOrWhiteSpace([string]$type)) { continue }
+            $key = ([string]$type).ToLowerInvariant()
+            if (-not $healthByType.ContainsKey($key)) { $healthByType[$key] = [System.Collections.Generic.List[object]]::new() }
+            $healthByType[$key].Add($health)
+        }
+    }
 
     # Group by folder category: the cache file is named for the folder, so a category's file is
     # written once, after all of its collectors have run.
@@ -211,12 +231,28 @@ function Invoke-ScoutProcessing {
             # explained; one that returned cleanly with no rows is 'Empty', which is a real
             # finding rather than an absence of one.
             $rowCount = @($Result.Rows).Count
-            $verdict  = if (-not $Result.Success) { 'Failed' } elseif ($rowCount -gt 0) { 'Rows' } else { 'Empty' }
+            $collectorHealth = @(
+                foreach ($type in @($Result.ResourceTypes)) {
+                    $key = ([string]$type).ToLowerInvariant()
+                    if ($healthByType.ContainsKey($key)) { $healthByType[$key] }
+                }
+            )
+            $availability = if ($collectorHealth.Count -eq 0) { 'Complete' }
+            elseif ($rowCount -gt 0) { 'Partial' }
+            elseif (@($collectorHealth | Where-Object Status -eq 'NotAssessed').Count -gt 0) { 'NotAssessed' }
+            else { 'Unavailable' }
+            $verdict  = if (-not $Result.Success) { 'Failed' }
+            elseif ($rowCount -gt 0) { 'Rows' }
+            elseif ($availability -eq 'NotAssessed') { 'NotAssessed' }
+            elseif ($availability -eq 'Unavailable') { 'Unavailable' }
+            else { 'Empty' }
             $RowCounts.Add([PSCustomObject]@{
                 Category  = $Result.FolderCategory
                 Collector = $Result.Name
                 Rows      = $rowCount
                 Verdict   = $verdict
+                Availability = $availability
+                AvailabilityReason = if ($collectorHealth.Count -gt 0) { (@($collectorHealth | ForEach-Object Reason | Where-Object { $_ }) -join '; ') } else { $null }
                 Error     = if (-not $Result.Success) { [string] $Result.Error.Exception.Message } else { $null }
             })
 
@@ -249,6 +285,7 @@ function Invoke-ScoutProcessing {
     # line as changed. Failing to write it must not cost the caller their report, so it is
     # contained.
     $RowCountPath = Join-Path $DefaultPath 'collector-rowcounts.json'
+    $CollectionHealthPath = Join-Path $DefaultPath 'collection-health.json'
     $OrderedCounts = @($RowCounts | Sort-Object Category, Collector)
     if ($PSCmdlet.ShouldProcess($RowCountPath, 'Write collector row counts')) {
         try {
@@ -259,6 +296,9 @@ function Invoke-ScoutProcessing {
                     Collectors = $Total
                     WithRows   = @($OrderedCounts | Where-Object Verdict -eq 'Rows').Count
                     Empty      = @($OrderedCounts | Where-Object Verdict -eq 'Empty').Count
+                    Partial    = @($OrderedCounts | Where-Object Availability -eq 'Partial').Count
+                    Unavailable = @($OrderedCounts | Where-Object Verdict -eq 'Unavailable').Count
+                    NotAssessed = @($OrderedCounts | Where-Object Verdict -eq 'NotAssessed').Count
                     Failed     = @($OrderedCounts | Where-Object Verdict -eq 'Failed').Count
                     Rows       = (@($OrderedCounts | ForEach-Object { $_.Rows }) | Measure-Object -Sum).Sum
                 }
@@ -268,6 +308,21 @@ function Invoke-ScoutProcessing {
         catch {
             Write-Warning "[AzureScout] Could not write the collector row-count artifact to '$RowCountPath': $($_.Exception.Message)"
             $RowCountPath = $null
+        }
+    }
+
+    if ($PSCmdlet.ShouldProcess($CollectionHealthPath, 'Write collection health')) {
+        try {
+            [pscustomobject]@{
+                Schema      = 'azure-scout/collection-health/v1'
+                GeneratedAt = $Started.ToString('o')
+                Overall     = if (@($CollectionHealth).Count -gt 0) { 'Partial' } else { 'Complete' }
+                Datasets    = @($CollectionHealth)
+            } | ConvertTo-Json -Depth 8 | Out-File -LiteralPath $CollectionHealthPath -Encoding utf8
+        }
+        catch {
+            Write-Warning "[AzureScout] Could not write collection health to '$CollectionHealthPath': $($_.Exception.Message)"
+            $CollectionHealthPath = $null
         }
     }
 
@@ -284,6 +339,9 @@ function Invoke-ScoutProcessing {
         CollectorRows    = $OrderedCounts
         RowCountPath     = $RowCountPath
         EmptyCount       = @($OrderedCounts | Where-Object Verdict -eq 'Empty').Count
+        PartialCount     = @($OrderedCounts | Where-Object Availability -eq 'Partial').Count
+        UnavailableCount = @($OrderedCounts | Where-Object { $_.Verdict -in @('Unavailable', 'NotAssessed') }).Count
+        CollectionHealthPath = $CollectionHealthPath
         Duration         = (Get-Date) - $Started
     }
 
@@ -302,6 +360,9 @@ function Invoke-ScoutProcessing {
                 'Collectors skipped' = $Summary.SkippedCount
                 # AB#6766 -- an empty collector is a reportable outcome, not a silent one.
                 'Collectors empty'  = $Summary.EmptyCount
+                'Collectors partial' = $Summary.PartialCount
+                'Collectors unavailable' = $Summary.UnavailableCount
+                'Collection health' = $Summary.CollectionHealthPath
                 'Row counts'        = $Summary.RowCountPath
                 'Categories cached' = @($CacheFiles | Where-Object { $_.Written }).Count
                 'Rows cached'       = (@($CacheFiles | ForEach-Object { $_.RowCount }) | Measure-Object -Sum).Sum

@@ -426,7 +426,7 @@ Source: [azure.microsoft.com/products?categories=management-and-governance](http
 | Defender External Attack Surface Management | Collected (AB#7085) | `DefenderEasmWorkspaces` — the workspace resource itself; the discovered internet-facing asset inventory it produces lives behind the workspace's own data-plane endpoint, not in ARM/ARG, same class of gap as `Get-ScoutCostInventory.ps1`'s separate pipeline |
 | Azure Backup | Collected | `Backup`, `BackupInstances`, `RecoveryVault` |
 | Azure Blueprints | Out of scope (documented, AB#7085) | Microsoft is retiring Azure Blueprints (Preview) — phased retirement began 2026-07-31, full retirement 2027-01-31; no new blueprint definitions/versions can be created as of this fetch. Recommended replacements (Azure Deployment Stacks, template specs) are themselves built on `Microsoft.Resources/deployments`/`templateSpecs`, already N/A rows above. No new collector for a retiring service |
-| Azure Lighthouse | Collected | `LighthouseDelegations` |
+| Azure Lighthouse | Held / not collected | Cross-tenant and Lighthouse collection are not part of the released Scout scan contract. The former `managedserviceresources` query used an unsupported ARG table and has been removed. |
 | Azure Managed Applications | Collected (AB#7085) | `ManagedApplications` — ordinary ARG-indexed `microsoft.solutions/applications` |
 | Azure Migrate | Collected (cross-category: Migration) | `AzureMigrateProjects`, `AzureMigrateAssessments` |
 | Microsoft Purview | Collected (cross-category: Analytics) | `Purview` |

@@ -23,6 +23,7 @@ BeforeAll {
         $script:failPolicySubscription = $null
         $script:retryAssessmentSubscription = $null
         $script:unregisteredPricingSubscription = $null
+        $script:pricingErrorActions = [System.Collections.Generic.List[string]]::new()
         $script:failContextSubscription = $null
 
         function global:Get-AzContext {
@@ -67,8 +68,9 @@ BeforeAll {
         }
 
         function global:Get-AzSecurityPricing {
-            param($ErrorAction)
-            $null = $ErrorAction
+            param($ErrorAction, $ErrorVariable)
+            $null = $ErrorVariable
+            $script:pricingErrorActions.Add([string]$ErrorAction)
             if ($script:currentSubscription -eq $script:unregisteredPricingSubscription) {
                 throw "Subscription is not registered to use namespace 'Microsoft.Security'"
             }
@@ -237,6 +239,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $results[1].properties.CollectionStatus.DefenderPricing | Should -Be 'Unavailable'
         @($results[1].properties.CollectionErrors).Count | Should -Be 0
         ($warnings -join "`n") | Should -Not -Match 'DefenderPricing'
+        @($script:pricingErrorActions | Select-Object -Unique) | Should -Be @('SilentlyContinue')
     }
 
     It 'returns a skipped envelope without issuing data calls when context entry fails' {
