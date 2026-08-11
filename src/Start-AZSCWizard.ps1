@@ -167,35 +167,12 @@ function Start-AZSCWizard {
 
     # ── Step 2: permissions ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 2 -Total 5 -Title 'Permissions'
-    Write-Host '  Checking that this account holds the rights the run needs...' -ForegroundColor DarkGray
+    # The required Graph checks are unknowable until Step 3 establishes whether Entra was
+    # selected. Running an ARM audit here and the selected-scope audit after confirmation made
+    # every guided run enumerate subscriptions/providers twice. Defer the one authoritative
+    # audit to Invoke-AzureScout after all answers are known (AB#7279).
+    Write-Host '  Access will be validated once after you confirm the selected run scope.' -ForegroundColor DarkGray
     Write-Host ''
-
-    $blocked = $false
-    $perm = $null
-    try {
-        # A bare wizard run is an ARM tenant inventory. Do not acquire a Graph
-        # token until the operator explicitly opts into Entra collection.
-        $perm = Test-AZSCPermissions -TenantID $tenantId -Scope 'ArmOnly'
-        foreach ($detail in $perm.Details) {
-            switch ($detail.Status) {
-                'Pass' { Write-Host "   [PASS] $($detail.Check)" -ForegroundColor Green }
-                'Warn' { Write-Host "   [WARN] $($detail.Check): $($detail.Message)" -ForegroundColor Yellow }
-                'Fail' { Write-Host "   [FAIL] $($detail.Check): $($detail.Message)" -ForegroundColor Red
-                         Write-Host "          $($detail.Remediation)" -ForegroundColor DarkGray
-                         $blocked = $true }
-                default { Write-Host "   [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
-            }
-        }
-    }
-    catch {
-        Write-Host "   [WARN] Permission pre-flight could not complete: $_" -ForegroundColor Yellow
-    }
-
-    Write-Host ''
-    if ($blocked) {
-        Write-Host '  One or more permission checks failed. The run will be incomplete.' -ForegroundColor Yellow
-        if (-not (Read-AZSCWizardConfirm -Prompt 'Continue anyway?' -Default $false)) { return $null }
-    }
 
     $scopeAnswer = 'ArmOnly'
 

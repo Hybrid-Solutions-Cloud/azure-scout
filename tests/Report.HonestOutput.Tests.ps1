@@ -144,13 +144,14 @@ Describe 'AB#6766 — the row-count artifact survives the run' {
         Test-Path (Join-Path -Path $runFolder -ChildPath 'collector-rowcounts.json') | Should -BeTrue
     }
 
-    It 'gives every collector one of three verdicts, never two' {
-        # "0 rows" alone is the ambiguity the whole audit is about: it can mean the collector
-        # broke, or that the tenant genuinely has none of that type. The pipeline must never
-        # report the count without saying which.
+    It 'gives every collector an explicit row and availability verdict' {
+        # "0 rows" alone is ambiguous: it can mean genuinely empty, intentionally not
+        # assessed, unavailable source data, or a failed collector. Pin every honest verdict.
         $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
 
-        $source | Should -Match "if \(-not \`$Result\.Success\) \{ 'Failed' \} elseif \(\`$rowCount -gt 0\) \{ 'Rows' \} else \{ 'Empty' \}"
+        foreach ($verdict in @('Failed', 'Rows', 'NotAssessed', 'Unavailable', 'Empty')) {
+            $source | Should -Match "'${verdict}'"
+        }
     }
 
     It 'writes the artifact to the run folder' {
@@ -201,13 +202,9 @@ Describe 'AB#6765 — criticality is derived, not listed' {
         $appImpact.Collectors | Should -Contain 'Identity/ManagedIdentities'
     }
 
-    It 'reports a permission no collector consumes as unconsumed rather than hiding it' {
-        # IdentityProvider.Read.All unlocks /v1.0/identity/identityProviders, whose output is
-        # normalised and read by nothing. Asking a customer to grant it is an over-ask.
-        $unused = @($script:Impact | Where-Object { -not $_.IsConsumed })
-
-        $unused.Count | Should -BeGreaterThan 0
-        @($unused.Permission) | Should -Contain 'IdentityProvider.Read.All'
+    It 'excludes disabled, unconsumed catalog entries from the permission request entirely' {
+        @($script:Impact.Permission) | Should -Not -Contain 'IdentityProvider.Read.All'
+        @($script:Impact.Queries) | Should -Not -Contain 'Security Defaults'
     }
 
     It 'no longer checks AuditLog.Read.All, which no collector has ever consumed' {
@@ -246,7 +243,7 @@ Describe 'AB#6765 — criticality is derived, not listed' {
         # record at all.
         $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/collect/Start-ScoutEntraExtraction.ps1')
 
-        $source | Should -Match 'Write-Warning .*will be EMPTY'
+        $source | Should -Match 'Write-Warning .*failed unexpectedly.*dependent collectors are unavailable'
     }
 
     It 'exposes the impact on the result object, not only on the console' {

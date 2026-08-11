@@ -643,7 +643,8 @@ Function Invoke-AzureScout {
     if ($Assessment -or $CollectOnly.IsPresent -or $FromCollect) {
         # -FromCollect re-assesses an existing collect.json offline, so it must
         # not force a sign-in the run doesn't need.
-        if (-not $FromCollect -and $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
+        if (-not $FromCollect -and -not ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) -and
+            $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
             $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
@@ -814,17 +815,6 @@ Function Invoke-AzureScout {
             Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthUpn -ForegroundColor Cyan
             Write-Host '  Subscription : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthSub -ForegroundColor Cyan
             Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthIdentity.TenantDisplayName -ForegroundColor Cyan
-
-            # Management group access probe (AB#351). Runs here, not at collection time,
-            # so a missing tenant-root role is reported while the operator is still
-            # watching the login rather than as a silently empty worksheet an hour later.
-            $MgProbe = Test-AZSCManagementGroupAccess
-            Write-Host '  Mgmt groups  : ' -NoNewline -ForegroundColor DarkGray
-            if ($MgProbe.HasAccess) {
-                Write-Host $MgProbe.Count -ForegroundColor Cyan
-            } else {
-                Write-Host 'none visible' -ForegroundColor Yellow
-            }
 
             Write-Host ''
         }

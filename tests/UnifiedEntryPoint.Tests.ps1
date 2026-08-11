@@ -109,7 +109,12 @@ Describe 'Single entry point — output format guards' {
             Mock -CommandName Test-AZSCPS -MockWith { 'Windows' }
             Mock -CommandName Connect-AZSCLoginSession -MockWith {
                 $script:CombinedLoginCalls++
-                if ($script:CombinedLoginCalls -eq 1) { return 'test-tenant' }
+                return 'test-tenant'
+            }
+            # Stop at the first inventory-only operation after authentication.
+            # This proves the combined live-format guard was passed without ever
+            # allowing the regression harness to touch the developer's Az context.
+            Mock -CommandName Get-AZSCSubscriptions -MockWith {
                 throw 'REGRESSION-GATE: combined run reached the inventory phase'
             }
 
@@ -127,7 +132,7 @@ Describe 'Single entry point — output format guards' {
         }
 
         $result.Message | Should -Be 'REGRESSION-GATE: combined run reached the inventory phase'
-        $result.LoginCalls | Should -Be 2
+        $result.LoginCalls | Should -Be 1
     }
 
     It 'completes a JSON-only inventory and retains its raw and processed discovery data' {
@@ -342,6 +347,7 @@ Describe 'Single entry point — output format guards' {
                 Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
                     $OutputFormat -contains 'React' -and $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
                 }
+                Should -Invoke Connect-AZSCLoginSession -Exactly 1
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
             } $work
         } | Should -Not -Throw
@@ -602,6 +608,14 @@ Describe 'Wizard — combined run contract' {
         $source | Should -Match '\$formatPool = \$liveFormats'
         $source | Should -Not -Match '\$inventoryFormats\s*='
         $source | Should -Not -Match '\$assessmentFormats\s*='
+    }
+
+    It 'defers permission validation so a guided run executes one selected-scope audit' {
+        $wizardSource = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1')
+        $entrySource = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Invoke-AzureScout.ps1')
+        $wizardSource | Should -Not -Match 'Test-AZSCPermissions'
+        ([regex]::Matches($entrySource, 'Test-AZSCPermissions -TenantID')).Count | Should -Be 1
+        $entrySource | Should -Not -Match 'Test-AZSCManagementGroupAccess'
     }
 
     It 'returns Both with React and JsonEvidence selected' {

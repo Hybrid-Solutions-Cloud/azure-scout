@@ -1,6 +1,6 @@
 # Current Task: AB#7279 — release AzureScout 3.12.2 live-run correctness
 
-- Status: **IMPLEMENTED — FROZEN FULL SUITE, RELEASE, AND GALLERY PUBLICATION NEXT**
+- Status: **IMPLEMENTED — COMMIT, EXACT-HEAD FULL SUITE, AND PUBLICATION NEXT**
 - Branch: `agent/ab7279-live-run-correctness-3.12.2`
 - Base: AzureScout 3.12.1 (`c1e1a91457df06339a9c92c40ae6a7a125359800`)
 - Target: publish the exact tested 3.12.2 package to PowerShell Gallery.
@@ -16,6 +16,8 @@
 - Propagate upstream availability through `collector-rowcounts.json` and `collection-health.json`.
 - Retain raw inventory, report cache, diagram cache, and all evidence after successful completion.
 - Clarify total guided-command time versus scan/log execution time.
+- Run one selected-scope authentication/preflight in guided combined mode; make management-group,
+  provider, Graph, and overall-readiness output reflect what the selected identity can collect.
 
 ## Verification completed
 
@@ -25,11 +27,14 @@
 - Graph permission/preflight gate: 103 passed, 0 failed/skipped/not-run/containers.
 - Version/release/docs/catalog gate: 45 passed, 0 failed/skipped/not-run/containers.
 - Manifest validates as 3.12.2; generated catalogs match all 278 released collectors.
+- Final guided/preflight regression batch: 219 passed, zero failures/skips/not-run/containers.
+- Release/docs contracts: 32 passed; docs build, parser, PSScriptAnalyzer Error, StrictMode,
+  manifest, and diff gates passed.
 
 ## Release gates remaining
 
-1. Parser, PSScriptAnalyzer Error, StrictMode, docs build, and secret checks.
-2. Commit the frozen candidate with `AB#7279`; run the complete zero-failure/zero-skip Pester gate
+1. Secret scan and commit the frozen candidate with `AB#7279`.
+2. Run the complete zero-failure/zero-skip Pester gate
    against that exact clean commit.
 3. Push with the GitHub App token, require green PR CI/docs, merge, and require green main CI/docs.
 4. Tag `v3.12.2`, build an allow-listed package from the tag, validate/import/secret-scan it.

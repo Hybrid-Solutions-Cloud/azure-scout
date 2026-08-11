@@ -290,15 +290,23 @@ function Invoke-AZSCPermissionAudit {
     }
     $armDetails.Add($r)
 
-    # 1b — Root Management Group access
+    # 1b — Root Management Group access. Reading role assignments at a scope is not proof that
+    # the current identity can enumerate the management-group tree; a subscription Reader can
+    # receive an empty role-assignment result without an authorization error. Probe the same API
+    # collection uses so the preflight and login banner cannot contradict each other (AB#7279).
     try {
-        $mgScope = "/providers/Microsoft.Management/managementGroups/$tenantId"
-        $null = @(Get-AzRoleAssignment -Scope $mgScope -ErrorAction Stop) | Select-Object -First 1
-        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message 'Can read root management group role assignments (broadest scope)'
-        Write-AuditLine -Status Pass -Text $r.Message
+        $managementGroups = @(Get-AzManagementGroup -ErrorAction Stop)
+        if ($managementGroups.Count -gt 0) {
+            $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message "Can enumerate $($managementGroups.Count) management group(s)"
+            Write-AuditLine -Status Pass -Text $r.Message
+        }
+        else {
+            $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message 'No management groups are visible — inventory will continue at subscription scope' -Remediation "Grant Reader at the tenant root management group scope '/providers/Microsoft.Management/managementGroups/$tenantId'."
+            Write-AuditLine -Status Warn -Text $r.Message
+        }
     }
     catch {
-        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot read root MG role assignments — inventory will run per-subscription instead" -Remediation "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot enumerate management groups — inventory will run per-subscription instead" -Remediation "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
         Write-AuditLine -Status Warn -Text $r.Message
     }
     $armDetails.Add($r)
@@ -473,7 +481,8 @@ function Invoke-AZSCPermissionAudit {
             Write-Host "  Checking against subscription: $($checkSub.Name)" -ForegroundColor Gray
             Write-Host "  NOTE: Not all providers need to be registered. Unregistered providers are" -ForegroundColor DarkGray
             Write-Host "        expected — they simply mean that service is not deployed here." -ForegroundColor DarkGray
-            Write-Host "        The scan will complete successfully; those modules will be skipped." -ForegroundColor DarkGray
+            Write-Host "        This is one subscription sample; registration can differ elsewhere." -ForegroundColor DarkGray
+            Write-Host "        No action is required unless that service should be used in this subscription." -ForegroundColor DarkGray
             Write-Host ''
 
             foreach ($kvp in $criticalProviders.GetEnumerator()) {
@@ -486,9 +495,6 @@ function Invoke-AZSCPermissionAudit {
                     $skipText = if ($status -eq 'Info') { " (modules for this service will be skipped)" } else { '' }
                     Write-AuditLine -Status $status -Text "$provider  [$state]  — $purpose$skipText"
 
-                    if ($status -ne 'Pass') {
-                        $recommendations.Add("Register provider: Register-AzResourceProvider -ProviderNamespace '$provider'")
-                    }
                 }
                 catch {
                     $state = 'Unknown'
@@ -673,12 +679,24 @@ function Invoke-AZSCPermissionAudit {
     Write-Host '── Summary ──────────────────────────────────────────────────────' -ForegroundColor White
     Write-Host ''
 
-    $overallReadiness = switch ($true) {
-        { -not $armAccess }                             { 'Insufficient' }
-        { $armAccess -and $graphAccess -eq $true }      { 'FullARMAndEntra' }
-        { $armAccess -and $graphAccess -eq $false }     { 'Partial' }
-        { $armAccess -and $null -eq $graphAccess }      { 'FullARM' }
-        default                                         { 'Unknown' }
+    # `switch ($true)` continues evaluating later matching clauses unless every
+    # branch explicitly breaks. That previously concatenated READY and PARTIAL
+    # into one string when Graph was healthy. This is a mutually-exclusive
+    # readiness decision, so express it as one if/elseif chain.
+    $overallReadiness = if (-not $armAccess) {
+        'Insufficient'
+    }
+    elseif ($graphAccess -eq $true -and @($emptyCollectors).Count -eq 0) {
+        'FullARMAndEntra'
+    }
+    elseif ($null -ne $graphAccess) {
+        'Partial'
+    }
+    elseif ($armAccess) {
+        'FullARM'
+    }
+    else {
+        'Unknown'
     }
 
     $readinessColor = switch ($overallReadiness) {
@@ -692,7 +710,7 @@ function Invoke-AZSCPermissionAudit {
     $readinessText = switch ($overallReadiness) {
         'FullARMAndEntra'  { 'READY — Full ARM + Entra ID scan supported' }
         'FullARM'          { 'READY — ARM-only scan supported  (use -Scope ArmOnly)' }
-        'Partial'          { 'PARTIAL — ARM accessible, but some Graph permissions are missing (use -Scope ArmOnly for full coverage)' }
+        'Partial'          { "PARTIAL — ARM and supported Entra data are accessible; $(@($emptyCollectors).Count) selected Entra collector(s) will be Not assessed" }
         'Insufficient'     { 'INSUFFICIENT — ARM access is missing on one or more subscriptions' }
         default            { 'UNKNOWN' }
     }
@@ -742,7 +760,7 @@ function Invoke-AZSCPermissionAudit {
 
     # Suggested command
     Write-Host '  Suggested Invoke-AzureScout command:' -ForegroundColor Cyan
-    $scopeSuggestion = if ($overallReadiness -eq 'FullARMAndEntra') { '-Scope All' } else { '-Scope ArmOnly' }
+    $scopeSuggestion = if ($IncludeEntraPermissions.IsPresent -and $armAccess) { '-Scope All' } else { '-Scope ArmOnly' }
     Write-Host "    Invoke-AzureScout -TenantID $tenantId $scopeSuggestion" -ForegroundColor Cyan
     Write-Host ''
 

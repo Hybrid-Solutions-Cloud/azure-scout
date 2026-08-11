@@ -1,5 +1,22 @@
 # Handoff
 
+## Session 2026-08-11 — 3.12.2 guided-run preflight correction
+
+A second live customer run exposed duplicate and contradictory preflight UX after the initial
+3.12.2 correctness commit. The wizard no longer runs an ARM-only audit before it knows whether the
+operator selected Entra; after confirmation, `Invoke-AzureScout` now performs one login and one
+authoritative audit for the selected scope. The login banner no longer performs its own management
+group probe. The audit now proves management-group visibility through actual enumeration, treats a
+provider check as a one-subscription sample without tenant-wide registration recommendations,
+excludes disabled/unconsumed Graph catalog entries, and emits exactly one mutually exclusive
+READY/PARTIAL verdict. A combined-run regression is fully mocked and cannot touch the developer's
+active Az context.
+
+Post-fix verification: the focused runtime/preflight batch passed 219/219 with zero failed, skipped,
+not-run, or failed-container results; release/docs contracts passed 32/32; VitePress built; all
+changed PowerShell parsed; PSScriptAnalyzer Error severity is zero; StrictMode guard, manifest
+3.12.2 validation, and diff check passed. Commit and exact-HEAD full-suite/release work remain.
+
 ## Session 2026-08-11 — 3.12.2 live-run correctness implemented
 
 The completed customer run at `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` was reconciled

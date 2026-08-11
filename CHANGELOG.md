@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Upstream failures can no longer masquerade as clean empty collector output.** Extraction
   availability flows into processing, `collector-rowcounts.json`, and the new
   `collection-health.json`, distinguishing Complete, Partial, Not assessed, and Unavailable data.
+- **Guided combined runs no longer authenticate and audit twice.** The wizard records intent but
+  defers validation until the selected ARM/Entra scope is known, then the run performs exactly one
+  tenant login and one authoritative permission audit. Management-group readiness now requires
+  actual enumeration, disabled Graph datasets are absent from the permission request, and a
+  one-subscription provider sample is no longer presented as tenant-wide remediation.
 
 ### Changed
 

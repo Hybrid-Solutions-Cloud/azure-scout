@@ -43,11 +43,12 @@ publication. Historical v2 entries below are retained as release history rather 
 
 ## Current Release — v3.12.2 — honest collection, retained evidence
 
-Released 11 August 2026. Scout classifies known Graph availability boundaries before requests,
-removes the held Lighthouse query, retries oversized Security Center results with smaller pages,
-and treats normal 404/provider absence as expected. Collection health distinguishes unavailable
-data from a genuinely empty estate, and every raw/cache artifact remains available until explicit
-operator cleanup. See CHANGELOG.md and AB#7279.
+Released 11 August 2026. Guided runs authenticate and audit once, with management-group and Graph
+readiness based on data the selected identity can actually collect. Scout classifies known Graph
+availability boundaries before requests, removes the held Lighthouse query, retries oversized
+Security Center results with smaller pages, and treats normal 404/provider absence as expected.
+Collection health distinguishes unavailable data from a genuinely empty estate, and every
+raw/cache artifact remains available until explicit operator cleanup. See CHANGELOG.md and AB#7279.
 
 ## Previous Release — v3.12.1 — one sign-in, one tenant
 

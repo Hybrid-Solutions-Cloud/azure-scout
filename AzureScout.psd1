@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.2 - Honest collection, retained evidence. Known unavailable Entra endpoints are classified before any Graph request; held Lighthouse collection is removed; oversized Security Center results retry with smaller pages; expected ARM 404/provider-absence paths stay quiet; and upstream failures flow into collection-health.json instead of looking empty. Completed runs retain raw-inventory.json, ReportCache, DiagramCache, and all health/evidence artifacts until the operator explicitly prunes them. AB#7279. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.12.2 - Honest collection, retained evidence. Guided combined runs authenticate and audit once; management-group and Graph readiness report what can actually be collected. Known unavailable Entra endpoints are classified before any request; held Lighthouse is removed; oversized Security Center results retry safely; expected ARM absence stays quiet; and upstream failures flow into collection-health.json instead of looking empty. Completed runs retain raw-inventory.json, ReportCache, DiagramCache, and health/evidence artifacts until explicit cleanup. AB#7279.'
 
         # Prerelease string of this module
         # Prerelease = ''
