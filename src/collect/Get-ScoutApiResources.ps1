@@ -177,6 +177,7 @@ function Get-ScoutApiResources {
             $values = [System.Collections.Generic.List[object]]::new()
             $currentUri = $Uri
             $currentMethod = $Method
+            $pageNumber = 0
 
             while ($currentUri) {
                 $response = $null
@@ -203,12 +204,20 @@ function Get-ScoutApiResources {
                 if (-not $response.PSObject.Properties['value']) { return $null }
                 $value = $response.value
                 if ($null -eq $value) { return $null }
-                foreach ($item in @($value)) { $values.Add($item) }
 
                 $nextLinkProperty = $response.PSObject.Properties['nextLink']
-                if ($currentMethod -eq 'GET' -and $nextLinkProperty -and $nextLinkProperty.Value) {
+                $hasNextLink = $currentMethod -eq 'GET' -and $nextLinkProperty -and $nextLinkProperty.Value
+                # A single-page response must retain the exact wire shape. In particular, the
+                # policyStates summarize POST returns one object whose `policyAssignments` member
+                # is consumed directly; wrapping that object in an array breaks the established
+                # PolicyAssign contract. Only paged GET lists need aggregation.
+                if ($pageNumber -eq 0 -and -not $hasNextLink) { return , $value }
+
+                foreach ($item in @($value)) { $values.Add($item) }
+                if ($hasNextLink) {
                     $currentUri = [string] $nextLinkProperty.Value
                     $currentMethod = 'GET'
+                    $pageNumber++
                 }
                 else {
                     $currentUri = $null

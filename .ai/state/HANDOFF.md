@@ -25,6 +25,12 @@ findings; StrictMode and diff checks pass. Next: commit the frozen candidate, ru
 in three parallel deterministic shards, push a PR, require exact-commit CI/docs, merge, tag, package
 from the tag, publish to Gallery, hash-verify the public download, and install 3.12.0.
 
+The first PR CI run on `edee2130` caught one real compatibility defect that Pester 6 did not expose:
+the new pagination aggregator wrapped the single `policyStates/summarize` object in an extra array.
+The helper now preserves the exact wire shape for every single-page response and aggregates only
+multi-page GET lists. The two exact CI failures plus the focused API suite pass 37/37 under the CI's
+Pester 5.7.1. A fresh exact-commit full suite and CI rerun are required after the correction commit.
+
 ## Session 2026-08-10 — 3.11.0 release candidate frozen under AB#7279
 
 The operator confirmed the product-wide live output contract from the documentation: only `React`,

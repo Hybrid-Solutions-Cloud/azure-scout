@@ -187,4 +187,26 @@ Describe 'Get-ScoutApiResources -- request efficiency and resilience' {
         $script:resourceHealthAttempts | Should -Be 2
         $script:retryDelays | Should -Be @(0)
     }
+
+    It 'preserves the single policy summary object instead of adding an array layer' {
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+
+            if ($Uri -match 'policyStates') {
+                return [pscustomobject]@{
+                    value = [pscustomobject]@{
+                        policyAssignments = @([pscustomobject]@{ policyAssignmentId = 'pa-sub-1' })
+                    }
+                }
+            }
+            return [pscustomobject]@{ value = @() }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]))
+
+        $result[0].PolicyAssignments | Should -BeOfType ([pscustomobject])
+        $result[0].PolicyAssignments.policyAssignments[0].policyAssignmentId | Should -Be 'pa-sub-1'
+    }
 }
