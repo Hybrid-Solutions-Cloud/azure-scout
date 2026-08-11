@@ -26,7 +26,9 @@ BeforeAll {
     $script:MainPath     = Join-Path -Path $script:ModuleRoot -ChildPath 'src'
     $script:FunctionFile = Join-Path -Path $script:MainPath -ChildPath 'Test-AZSCModuleUpdate.ps1'
     $script:ManifestPath = Join-Path -Path $script:ModuleRoot -ChildPath 'AzureScout.psd1'
-    $script:ThrottleFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath 'azurescout-update-check.txt'
+    $script:ThrottleRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ('azurescout-update-test-' + [guid]::NewGuid().ToString('N'))
+    $null = New-Item -Path $script:ThrottleRoot -ItemType Directory -Force
+    $script:ThrottleFile = Join-Path -Path $script:ThrottleRoot -ChildPath 'update-check.txt'
 
     # Find-Module/Update-Module are function exports of PowerShellGet, loaded on demand.
     # Import explicitly so Pester's Mock can find a command to shim -- without this,
@@ -48,7 +50,7 @@ Describe 'Test-AZSCModuleUpdate' {
     }
 
     AfterAll {
-        Remove-Item -Path $script:ThrottleFile -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $script:ThrottleRoot -Recurse -Force -ErrorAction SilentlyContinue
         foreach ($v in @('CI', 'TF_BUILD', 'GITHUB_ACTIONS', 'AZURESCOUT_SKIP_UPDATE_CHECK', 'AZURESCOUT_AUTO_UPDATE')) {
             Remove-Item -Path "Env:$v" -ErrorAction SilentlyContinue
         }
@@ -66,7 +68,7 @@ Describe 'Test-AZSCModuleUpdate' {
 
         It 'notifies (Write-Warning) with the newer version and does not update without opt-in' {
             $warnings = @()
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningVariable warnings -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningVariable warnings -WarningAction SilentlyContinue
             ($warnings -join ' ') | Should -Match '99\.0\.0'
             ($warnings -join ' ') | Should -Match 'Update-Module AzureScout'
             Should -Invoke -CommandName Update-Module -Times 0
@@ -74,7 +76,7 @@ Describe 'Test-AZSCModuleUpdate' {
 
         It 'updates via Update-Module when AZURESCOUT_AUTO_UPDATE is set (explicit opt-in)' {
             $env:AZURESCOUT_AUTO_UPDATE = '1'
-            { Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue } | Should -Not -Throw
+            { Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue } | Should -Not -Throw
             Should -Invoke -CommandName Update-Module -Times 1 -ParameterFilter { $Name -eq 'AzureScout' }
         }
 
@@ -83,7 +85,7 @@ Describe 'Test-AZSCModuleUpdate' {
                 [pscustomobject]@{ Name = 'AzureScout'; Version = [Version]'0.0.1' }
             }
             $warnings = @()
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningVariable warnings -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningVariable warnings -WarningAction SilentlyContinue
             ($warnings -join ' ') | Should -Match '0\.0\.1'
         }
     }
@@ -96,12 +98,12 @@ Describe 'Test-AZSCModuleUpdate' {
         }
 
         It 'does not throw and does not block the caller' {
-            { Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath } | Should -Not -Throw
+            { Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile } | Should -Not -Throw
         }
 
         It 'degrades to Write-Verbose only (no warning surfaced)' {
             $warnings = @()
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningVariable warnings -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningVariable warnings -WarningAction SilentlyContinue
             $warnings | Should -BeNullOrEmpty
         }
     }
@@ -118,7 +120,7 @@ Describe 'Test-AZSCModuleUpdate' {
 
         It 'is a no-op: no warning, no update, when local and gallery versions match' {
             $warnings = @()
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningVariable warnings -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningVariable warnings -WarningAction SilentlyContinue
             $warnings | Should -BeNullOrEmpty
             Should -Invoke -CommandName Update-Module -Times 0
         }
@@ -135,19 +137,19 @@ Describe 'Test-AZSCModuleUpdate' {
 
         It 'skips the check entirely under GITHUB_ACTIONS (never calls Find-Module)' {
             $env:GITHUB_ACTIONS = 'true'
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Should -Invoke -CommandName Find-Module -Times 0
         }
 
         It 'skips the check entirely under TF_BUILD (Azure DevOps) (never calls Find-Module)' {
             $env:TF_BUILD = 'True'
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Should -Invoke -CommandName Find-Module -Times 0
         }
 
         It 'skips the check entirely when AZURESCOUT_SKIP_UPDATE_CHECK is set (explicit opt-out)' {
             $env:AZURESCOUT_SKIP_UPDATE_CHECK = '1'
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Should -Invoke -CommandName Find-Module -Times 0
         }
     }
@@ -162,15 +164,15 @@ Describe 'Test-AZSCModuleUpdate' {
         }
 
         It 'only calls Find-Module once across two calls made back-to-back' {
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Should -Invoke -CommandName Find-Module -Times 1
         }
 
         It 'checks again once the marker is older than 24 hours' {
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Set-Content -Path $script:ThrottleFile -Value (Get-Date).AddHours(-25).ToString('o')
-            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -WarningAction SilentlyContinue
+            Test-AZSCModuleUpdate -ManifestPath $script:ManifestPath -ThrottlePath $script:ThrottleFile -WarningAction SilentlyContinue
             Should -Invoke -CommandName Find-Module -Times 2
         }
     }

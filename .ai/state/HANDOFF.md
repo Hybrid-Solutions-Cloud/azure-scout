@@ -21,6 +21,12 @@ directory retained the deliberately removed Lighthouse record. The wizard contra
 early audit (5/5 focused pass), and golden coverage is again exactly 278 definitions/278 records
 with no missing or extra names. A superseding commit and exact-HEAD full-suite/release work remain.
 
+The second frozen attempt found one nondeterministic ModuleUpdate test: a normal AzureScout import
+in another parallel shard could recreate the production-wide temp throttle marker between this
+test's cleanup and assertion. `Test-AZSCModuleUpdate` now accepts an optional `ThrottlePath` while
+production keeps the same default; the suite uses a GUID-isolated marker directory. ModuleUpdate
+passes 11/11 with no skips. A new superseding commit and complete exact-HEAD rerun are required.
+
 ## Session 2026-08-11 — 3.12.2 live-run correctness implemented
 
 The completed customer run at `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` was reconciled

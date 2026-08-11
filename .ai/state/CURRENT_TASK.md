@@ -33,6 +33,9 @@
 - First frozen full-suite attempt: shards 0 and 1 passed 794/794 and 739/739; shard 2 found two
   stale contracts, now corrected. ContextIdentity passes 5/5 and golden coverage is exactly
   278 definitions/278 records with no missing/extra entries. Superseding full suite is required.
+- Second frozen attempt: shard 1 passed 739/739; shard 0 found a parallel-process race in the
+  machine-wide update-check marker. The throttle path is now injectable for tests, production
+  retains its default, and ModuleUpdate passes 11/11. A new exact-HEAD full suite is required.
 
 ## Release gates remaining
 
