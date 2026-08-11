@@ -37,6 +37,11 @@
 - Saved-collect provenance/report compatibility gate: 98/98 passed with zero failures/skips.
 - Final settled affected gate: 427/427 passed across 20 suites with zero failures, skips,
   not-run tests, or failed containers.
+- First exact-commit full-suite attempt: shard 0 passed 900/900; shard 1 found one stale test
+  expecting the deliberately removed unsafe typed fallback. The contract now requires the typed
+  `AssessmentSourceUnavailable` failure, and the affected fallback/entry suites pass 51/51. The
+  same update shadows `Get-AzContext` in the combined-route test so it cannot print ambient identity.
+  A superseding exact-commit three-shard run is required.
 
 - Actual completed run log reconciled: every warning class maps to a product fix; no unaccounted
   ERROR records.

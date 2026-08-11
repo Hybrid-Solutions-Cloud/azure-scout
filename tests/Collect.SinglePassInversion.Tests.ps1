@@ -464,7 +464,7 @@ param(
         }
     }
 
-    It 'falls back to the typed pack when the raw pass throws, rather than returning nothing' {
+    It 'fails closed when the raw pass cannot prove required assessment evidence' {
         function global:Search-AzGraph {
                         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param(
@@ -475,14 +475,18 @@ param(
             return Invoke-FixtureTypedQuery -Query $Query
         }
         try {
-            # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a
-            # total ARG outage comes back as an EMPTY raw pass rather than an exception. Either
-            # way the caller must still get a well-formed collect object with the contract's
-            # keys present.
-            $collect = Invoke-Collect -WarningAction SilentlyContinue
-            $collect.PSObject.Properties.Name | Should -Contain 'networking'
-            $collect.PSObject.Properties.Name | Should -Contain 'domains'
-            { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+            # A typed-query fallback cannot recreate raw-only child/API datasets. Returning a
+            # well-shaped empty collect here would let absence assertions fabricate Passes, so
+            # the assessment contract now stops with the marker combined mode knows how to catch.
+            $caught = $null
+            try {
+                Invoke-Collect -WarningAction SilentlyContinue | Out-Null
+            }
+            catch { $caught = $_ }
+
+            $caught | Should -Not -BeNullOrEmpty
+            $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+            $caught.Exception.Message | Should -Match 'required inventory datasets are unavailable'
         }
         finally {
             Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue

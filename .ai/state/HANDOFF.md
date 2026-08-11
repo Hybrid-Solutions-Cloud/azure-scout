@@ -32,9 +32,17 @@ and 26/26 managed-identity/source-health tests, all with zero failures/skips. In
 release audits found no remaining demonstrated production blocker. Parser, StrictMode,
 PSScriptAnalyzer Error, release/docs contracts, docs build, diff check, secret scan, manifest/import,
 and allow-listed package inventory checks pass. The final settled 20-suite affected gate passed
-427/427 with zero failures/skips/not-run/container failures. The next required steps are to commit
-the new `tests/Extraction.EntraCollectionHealth.Tests.ps1` with the exact candidate, run the complete
-zero-skip Pester suite on that clean commit, then push/merge/tag/build/publish/verify 3.12.2.
+427/427 with zero failures/skips/not-run/container failures. The candidate commit includes the new
+`tests/Extraction.EntraCollectionHealth.Tests.ps1`; the remaining release sequence is the complete
+zero-skip Pester suite on a clean superseding commit, then push/merge/tag/build/publish/verify 3.12.2.
+
+The first exact-commit full-suite attempt found one stale contract in
+`Collect.SinglePassInversion.Tests.ps1`: it still expected the typed query pack to recover a total
+raw-pass outage, even though that fallback cannot recreate raw-only child/API evidence and was
+intentionally removed. The test now requires the typed `AssessmentSourceUnavailable` failure.
+The combined routing test also shadows `Get-AzContext` so it cannot read or print the developer's
+ambient cached identity. Their focused rerun passed 51/51 with zero skips; a superseding clean
+commit and all three exact-commit shards are required.
 
 ## Session 2026-08-11 — 3.12.2 guided-run preflight correction
 

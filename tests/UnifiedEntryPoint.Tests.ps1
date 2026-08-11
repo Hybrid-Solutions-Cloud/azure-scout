@@ -111,6 +111,13 @@ Describe 'Single entry point — output format guards' {
                 $script:CombinedLoginCalls++
                 return 'test-tenant'
             }
+            Mock -CommandName Get-AzContext -MockWith {
+                [pscustomobject]@{
+                    Account      = [pscustomobject]@{ Id = 'test@example.invalid' }
+                    Subscription = [pscustomobject]@{ Id = 'sub-1'; Name = 'Test' }
+                    Tenant       = [pscustomobject]@{ Id = 'test-tenant' }
+                }
+            }
             # Stop at the first inventory-only operation after authentication.
             # This proves the combined live-format guard was passed without ever
             # allowing the regression harness to touch the developer's Az context.
