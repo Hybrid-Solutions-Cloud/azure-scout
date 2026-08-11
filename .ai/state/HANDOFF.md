@@ -1,5 +1,34 @@
 # Handoff
 
+## Session 2026-08-11 — v3.12.1 one-sign-in Graph authentication hotfix
+
+AzureScout 3.12.1 is released. PR #262 merged to main as
+`7660d9cbd6b20f0c125b13832b1554f1bec48d8c`; annotated tag `v3.12.1` points to that release,
+the GitHub Release is <https://github.com/thisismydemo/azure-scout/releases/tag/v3.12.1>, and
+the PowerShell Gallery package is <https://www.powershellgallery.com/packages/AzureScout/3.12.1>.
+
+The live 3.12.0 failure was a split identity: ARM used the account and tenant selected in the Az
+PowerShell context, while Graph always used the ambient Azure CLI account. The target tenant rejected
+that unrelated CLI identity with AADSTS500213, and Entra extraction repeated the same token failure for
+all 20 catalog entries. `Get-AZSCGraphToken` now uses only `Get-AzAccessToken` for the requested tenant,
+caches by endpoint/tenant/selected account, and never starts or recommends a second Azure CLI sign-in.
+Entra extraction authenticates once before its query loop, emits one common failure, makes zero dataset
+requests after that failure, and derives the displayed resource-type count from the live catalog.
+
+Verification on the release candidate: auth/Graph/Entra/permission suites 155/155; unified entry and
+permission integration 105/105; release/version contracts 17/17; docs contracts 13/13; parser,
+PSScriptAnalyzer Error severity, StrictMode, manifest, diff, and secret gates passed. Both PR workflows
+passed on `74daace`; main CI and docs passed on `7660d9c`. The final 726-file artifact contains 668
+parser-clean PowerShell files and passed a read-only live `/v1.0/users` request in the selected tenant
+without a second sign-in. A fresh public `Save-Module` download matched all 726 staged files with zero
+missing, extra, or SHA-256-mismatched files and imported 22 commands as version 3.12.1.
+
+Permission wording confirmed for customer use: the only Entra directory-role assignment for the
+supported interactive user read scan is `Global Reader`; Azure RBAC `Reader` remains separate. Optional
+cost visibility, Entra licence tiers, Graph OAuth scopes, and Azure DevOps access are prerequisites or
+service-specific access boundaries, not additional Entra role assignments. Two Verified ID datasets may
+remain Not assessed under a user token because no directory role can add their missing OAuth scopes.
+
 ## Session 2026-08-10 — v3.12.0 performance release published under AB#7279
 
 AzureScout 3.12.0 is released and installed. PR #261 merged as

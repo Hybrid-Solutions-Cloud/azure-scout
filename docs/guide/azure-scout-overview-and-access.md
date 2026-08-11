@@ -93,11 +93,12 @@ Reader on each in-scope subscription works. The trade-off is explicit and should
 management-group hierarchy and any policy assigned above subscription level become invisible, so
 governance findings will be reported as **not assessed** rather than silently passing.
 
-### Optional additions
+### Optional cost prerequisite
 
-| Role | Scope | Needed only for |
-|---|---|---|
-| **Cost Management Reader** | Billing scope or subscription | Cost analysis (`-IncludeCosts`). Reader alone cannot query the cost APIs |
+Cost analysis (`-IncludeCosts`) uses the same Azure `Reader` assignment above; Scout does not
+require an additional Azure role. For EA or MCA customers, the billing owner must also enable the
+applicable **view charges / Azure charges** setting. A role assignment cannot override a disabled
+billing visibility setting.
 
 Nothing else. If a capability is unavailable, Scout reports it as not assessed and names the
 missing permission — it does not fail the run and does not report a gap it could not measure.
@@ -110,8 +111,11 @@ Directory objects are read through **Microsoft Graph**. Two options:
 
 ### Option A — a delegated user (interactive runs)
 
-Assign the built-in Entra role **Global Reader**. It is read-only across the directory and covers
-every Graph call below in one grant.
+Assign the built-in Entra role **Global Reader**. This is the only Entra directory-role assignment
+required for Scout's supported interactive user read scan. Graph OAuth scopes are a separate token
+check: a directory role cannot add a scope that the authentication client did not issue. The two
+Verified ID datasets can therefore remain *Not assessed* under user authentication even with Global
+Reader; use the service-principal option below when those two datasets are required.
 
 ### Option B — a service principal (automation, and the recommended route)
 
@@ -120,7 +124,6 @@ Grant **application permissions** on Microsoft Graph, each requiring admin conse
 
 | Graph application permission | What Scout reads with it |
 |---|---|
-| `Directory.Read.All` | Baseline directory read |
 | `User.Read.All` | User accounts and their state |
 | `Group.Read.All` | Groups and membership |
 | `Application.Read.All` | App registrations, service principals, credential expiry |
@@ -130,7 +133,8 @@ Grant **application permissions** on Microsoft Graph, each requiring admin conse
 | `Domain.Read.All` | Verified domains and federation configuration |
 | `AdministrativeUnit.Read.All` | Administrative units |
 | `IdentityRiskyUser.Read.All` | Identity Protection risky users — **requires Entra ID P2** |
-| `PrivilegedAccess.Read.AzureResources` | PIM eligibility and activation |
+| `Policy.Read.AuthenticationMethod` | Verified ID authentication-method configuration |
+| `VerifiedId-Profile.Read.All` | Verified ID profiles |
 
 If a permission is withheld, the findings that depend on it are reported as **not assessed** and
 name the permission — the run continues and the rest of the report is unaffected.
@@ -219,8 +223,8 @@ declined, the DevOps capability findings are reported as not assessed and nothin
 | Plane | Grant | Scope |
 |---|---|---|
 | **Azure** | `Reader` | Root management group |
-| **Azure** *(optional)* | `Cost Management Reader` | Billing scope — only for cost analysis |
-| **Entra ID** | `Global Reader`, **or** the Graph application permissions in section 4 | Tenant |
+| **Azure cost visibility** *(optional)* | No additional role beyond `Reader`; enable EA/MCA view-charges policy | Billing account/profile |
+| **Entra ID** | `Global Reader` for a user, **or** the Graph application permissions in section 4 for a service principal | Tenant |
 | **Azure DevOps** *(optional)* | Read-only PAT | Organisation |
 
 Every grant above is **read-only**. There is no write permission, no data-plane permission and no

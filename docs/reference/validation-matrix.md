@@ -186,7 +186,7 @@ The alias set itself is documented in the [Category Reference](./category-refere
 | `-IncludeEntraPermissions` produces the Graph permission table | **Automated** — `PermissionAudit.Tests.ps1` |
 | Limited-permission SPN shows warnings | **Automated** — `PermissionAudit.Tests.ps1` |
 | Fully-permissioned SPN shows all green for ARM | **Automated** — `PermissionAudit.Tests.ps1` |
-| Global Reader shows all Graph permissions green | **Live tenant** — needs the directory role assigned |
+| Global Reader satisfies supported user-role checks; OAuth token scopes are reported separately | **Live tenant** — needs the directory role assigned |
 | Provider table shows Registered/NotRegistered correctly | **Automated** — `PermissionAudit.Tests.ps1` |
 | `-PermissionAudit -OutputFormat Json` saves a JSON report | **Automated** — `PermissionAudit.Tests.ps1` |
 | The audit restores the caller's subscription context | **Automated** — `PermissionAudit.Tests.ps1`, `RunIsolation.Tests.ps1` |

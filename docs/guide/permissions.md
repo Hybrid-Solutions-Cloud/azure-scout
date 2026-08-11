@@ -76,7 +76,7 @@ already present in the `KeyVaultSecrets` worksheet's `Kind`/`Expires` columns ra
 separate collector. See `src/collect/Get-ScoutArmChildResource.ps1` for the exact calls.
 :::
 
-::: tip Cost data is not gated on a role at all
+::: tip Cost data needs no additional role beyond Reader
 `Microsoft.CostManagement/query/read` is inside `Reader`'s `*/read`. If cost data still comes
 back empty with `Reader` assigned, the cause is a **billing setting**, not a permission: EA
 **"AO view charges"** or MCA **"Azure charges"** (the current name; older documentation calls it
