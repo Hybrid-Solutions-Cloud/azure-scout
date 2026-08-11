@@ -1,35 +1,36 @@
 # Handoff
 
-## Session 2026-08-10 — 3.12.0 performance candidate under AB#7279
+## Session 2026-08-10 — v3.12.0 performance release published under AB#7279
 
-AzureScout 3.11.0 was merged at `6d7d7058d2c15ac38bd5513eae2ff8d3edc08c70`, tagged
-`v3.11.0`, published to PowerShell Gallery, exposed as a GitHub Release, downloaded from the public
-feed, and installed in the CurrentUser module path. The clean Gallery download matched the exact
-tag-built stage across 726/726 files with zero missing, extra, or SHA-256 mismatches and imported
-version 3.11.0 with 22 commands.
+AzureScout 3.12.0 is released and installed. PR #261 merged as
+`8f1d2fcd92ad70dbd4dc962eabe815651f28ea55`; annotated tag `v3.12.0` peels to that exact merge commit.
+The GitHub Release is <https://github.com/thisismydemo/azure-scout/releases/tag/v3.12.0>, and the
+PowerShell Gallery package is <https://www.powershellgallery.com/packages/AzureScout/3.12.0>.
 
-The subsequent 3.12.0 performance candidate implements four measured call-count reductions. A
-manifest-derived category plan now reaches extraction and applies server-side Resource Graph type
-filters while preserving full collection for All, unknown, and assessment-backed paths. Combined
-runs reuse the inventory security/policy sweep, treating successful-empty and unavailable datasets
-as authoritative and falling back only for genuinely missing inputs. Operational enrichment lists
-Recovery Services vaults once per subscription, protected items once per vault, and enters storage
-context once per subscription while preserving output order and failure envelopes. The ARM REST
-sweep now follows `nextLink`, retries only transient 408/429/5xx responses with Retry-After/jitter,
-and removes roughly 1.9 seconds of fixed successful-request sleep per subscription.
+The release implements four measured call-count reductions. A manifest-derived category plan reaches
+extraction and applies server-side Resource Graph type filters while preserving full collection for
+All, unknown, and assessment-backed paths. Combined runs reuse the inventory security/policy sweep,
+treating successful-empty and unavailable datasets as authoritative and falling back only for genuinely
+missing inputs. Operational enrichment lists Recovery Services vaults once per subscription, protected
+items once per vault, and enters storage context once per subscription while preserving output order and
+failure envelopes. The ARM REST sweep follows `nextLink`, retries only transient 408/429/5xx responses
+with Retry-After/jitter, and removes roughly 1.9 seconds of fixed successful-request sleep per subscription.
 
-Version metadata is synchronized to 3.12.0. Focused optimization, compatibility, entry-point,
-release, and version tests passed 149/149 with zero failed/skipped/not-run/failed containers. All 12
-changed PowerShell files parse; the manifest reports 3.12.0; PSScriptAnalyzer has zero Error-severity
-findings; StrictMode and diff checks pass. Next: commit the frozen candidate, run the complete suite
-in three parallel deterministic shards, push a PR, require exact-commit CI/docs, merge, tag, package
-from the tag, publish to Gallery, hash-verify the public download, and install 3.12.0.
+The first PR CI run on `edee2130` caught a real compatibility defect: the pagination aggregator wrapped
+the single `policyStates/summarize` response object in an extra array. Correction commit `65b7b2b` now
+preserves exact wire shape for single-page responses and aggregates only multi-page GET lists. The frozen
+corrected candidate passed the full deterministic suite in three shards: 750/750, 865/865, and 1,859/1,859
+— **3,474 passed, 0 failed, 0 skipped, 0 not run, 0 failed containers**. Focused compatibility tests,
+parser checks, PSScriptAnalyzer Error-severity analysis, StrictMode guard, collector validation, docs build,
+manifest/version synchronization, diff check, and package secret scan also passed.
 
-The first PR CI run on `edee2130` caught one real compatibility defect that Pester 6 did not expose:
-the new pagination aggregator wrapped the single `policyStates/summarize` object in an extra array.
-The helper now preserves the exact wire shape for every single-page response and aggregates only
-multi-page GET lists. The two exact CI failures plus the focused API suite pass 37/37 under the CI's
-Pester 5.7.1. A fresh exact-commit full suite and CI rerun are required after the correction commit.
+Exact-candidate PR CI and docs passed on `65b7b2b`. After merge, main CI run 31454366929 passed in 16m54s
+and docs run 31454366937 passed in 40s on the release commit. The allow-listed tag-built package contains
+726 files / 8,582,341 bytes; all 668 PowerShell files parse, the manifest reports 3.12.0, and a fresh process
+imports 22 commands. A clean public `Save-Module` download matched all 726 staged files byte-for-byte with
+zero missing, extra, or SHA-256-mismatched files. CurrentUser installation path is
+`C:\Users\KristopherTurner\Documents\PowerShell\Modules\AzureScout\3.12.0`; a fresh process imports the
+installed module as version 3.12.0 with 22 exports.
 
 ## Session 2026-08-10 — 3.11.0 release candidate frozen under AB#7279
 
