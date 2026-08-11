@@ -25,6 +25,24 @@ Describe 'release automation executes the code and contracts it advertises' {
         $action | Should -Not -Match 'Installing AzureScout \(latest\)'
     }
 
+    It 'advertises and accepts only the live global output contract in the composite action' {
+        $action = Get-Content -Raw (Join-Path $script:Root 'action.yml')
+
+        $action | Should -Match "description: 'All \(React, Json, and JsonEvidence\), or a comma-separated selection of React, Json, and JsonEvidence\.'"
+        $action | Should -Match ([regex]::Escape("`$requestedFormats = @(`$env:OUTPUT_FORMAT -split ','"))
+        $action | Should -Match ([regex]::Escape("OutputFormat        = `$requestedFormats"))
+        $action | Should -Match "(?s)if \(\`$requestedFormats\.Count -eq 0\).*?\`$requestedFormats = @\('All'\)"
+        $action | Should -Not -Match "(?m)^\s+description: 'All, Excel, Json, Markdown, AsciiDoc, or PowerBI\.'"
+    }
+
+    It 'exposes the live global output contract in the inventory workflow' {
+        $workflow = Get-Content -Raw (Join-Path $script:Root '.github/workflows/azure-inventory.yml')
+
+        $workflow | Should -Match '(?ms)^\s{6}outputFormat:.*?^\s{10}- All\s*$.*?^\s{10}- React\s*$.*?^\s{10}- Json\s*$.*?^\s{10}- JsonEvidence\s*$'
+        $workflow | Should -Match "output-format: \`$\{\{ github\.event\.inputs\.outputFormat \|\| 'All' \}\}"
+        $workflow | Should -Not -Match '(?m)^\s+lite: ''true''\s*$'
+    }
+
     It 'fails the composite action when no report artifact exists' {
         $action = Get-Content -Raw (Join-Path $script:Root 'action.yml')
 

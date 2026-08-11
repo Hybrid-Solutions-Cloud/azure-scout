@@ -48,6 +48,21 @@ function Invoke-ScoutCollector {
         }
     }
 
+    $Duration = (Get-Date) - $Started
+    $RowCount = @($Rows).Count
+    $Status = if ($null -ne $Failure) { 'Failed' } elseif ($RowCount -gt 0) { 'Rows' } else { 'Empty' }
+
+    if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+        Write-AZSCLog -Level 'DEBUG' -Message (
+            'Collector {0}/{1}: status={2}; rows={3}; elapsed={4}' -f
+                $Collector.FolderCategory,
+                $Collector.Name,
+                $Status,
+                $RowCount,
+                $Duration.ToString('dd\:hh\:mm\:ss\.fff')
+        )
+    }
+
     [PSCustomObject]@{
         Name           = $Collector.Name
         FolderCategory = $Collector.FolderCategory
@@ -55,6 +70,6 @@ function Invoke-ScoutCollector {
         Rows           = $Rows
         Mode           = 'Declarative'
         Error          = $Failure
-        Duration       = (Get-Date) - $Started
+        Duration       = $Duration
     }
 }

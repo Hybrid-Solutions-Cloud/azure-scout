@@ -6,7 +6,8 @@ description: Software prerequisites and required PowerShell modules for AzureSco
 
 ::: tip This page covers inventory mode
 This page covers `Invoke-AzureScout` in its default **inventory mode**. Assessment
-mode (`-Assessment`) needs extra modules and a `.NET SDK` for some report tiers —
+mode (`-Assessment`) needs extra scoring modules. A .NET SDK is needed only by developers
+directly testing the held PowerPoint renderer—not by any live output—
 see [Assessment Prerequisites](../assessment/assessment-prerequisites.md). New here? See the
 [Overview](./overview.md).
 :::
@@ -31,7 +32,7 @@ calls and, in two cases, add a write. Cost data is gated on a billing setting, n
 the same page.
 
 The rest of this page covers **inventory-mode** prerequisites only. For assessment
-mode's additional module and `.NET SDK` requirements, see
+mode's additional modules and held-renderer development notes, see
 [Assessment Prerequisites](../assessment/assessment-prerequisites.md).
 
 ## Installing AzureScout
@@ -57,7 +58,7 @@ it explicitly with the commands below and import the module again.
 | `Az.ResourceGraph` | ARM resource extraction via batch KQL | **Yes** (ARM scope) |
 | `Az.Compute` | VM SKU and quota details | **Yes** (ARM scope) |
 | `Az.Resources` | Role assignments and policy data | **Yes** |
-| `ImportExcel` | Excel report generation (.xlsx) | **Yes** (for Excel output) |
+| `ImportExcel` | Package dependency retained for held legacy Excel compatibility/tests | Declared by the module; no live output emits Excel |
 | `Az.Storage` | Upload report to Azure Storage account | Optional (only with `-StorageAccount`) |
 | `Az.CostManagement` | Cost data extraction | Optional (only with `-IncludeCosts`) |
 
@@ -85,7 +86,8 @@ AZSC queries the following resource providers during its pre-flight permission a
 **Not all resource providers will be — or should be — registered in every subscription.** This is completely normal. Azure only registers providers for services you actually use, and most organisations deliberately limit provider registration per subscription as a governance best practice. For example, a connectivity subscription will not have `Microsoft.MachineLearningServices` registered, and an identity subscription will not have `Microsoft.DesktopVirtualization`. The `[FAIL]` and `[WARN]` messages in the permission audit output are **informational, not errors** — they tell you which modules will be skipped because the corresponding service is not deployed in that subscription. The scan will complete successfully regardless.
 :::
 
-If a provider is not registered, the corresponding inventory modules are simply skipped and the report will not contain a tab for that service in that subscription.
+If a provider is not registered, the corresponding collectors are skipped and the React/JSON
+outputs will not contain that service for the subscription.
 
 | Resource Provider | Purpose |
 |-------------------|---------|
@@ -114,7 +116,7 @@ Everything above covers `Invoke-AzureScout` in its default inventory mode.
 in either mode.
 
 Assessment mode (`Invoke-AzureScout -Assessment ...`) uses `powershell-yaml`
-and `Az.Advisor`, which are declared by the module manifest, plus a `.NET SDK`
-for the PowerPoint report tier (no Python). See
+and `Az.Advisor`, which are declared by the module manifest. Live outputs need no .NET SDK;
+the SDK note applies only to direct development/testing of the held PowerPoint renderer. See
 [Assessment Prerequisites](../assessment/assessment-prerequisites.md) for the
 full list.

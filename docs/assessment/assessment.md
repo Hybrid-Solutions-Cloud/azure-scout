@@ -321,8 +321,9 @@ sync with what its `Rules` actually reference.
 ### `-OutputFormat` — supported deliverables
 
 ::: danger The React report is the one supported deliverable
-Only `React`, `Json` and `JsonEvidence` are emitted today. `PowerBi`, `Html`, `Pptx`, `Excel`,
-`Word`, `Pdf`, `EChartsDashboard` and `GovernanceReport` are **on hold** (**AB#6922**) — the
+Only `React`, `Json` and `JsonEvidence` are emitted today in inventory-only, assessment-only, and
+combined runs. `PowerBi`, `Html`, `Pptx`, `Excel`, `Markdown`, `AsciiDoc`, `Word`, `Pdf`,
+`EChartsDashboard` and `GovernanceReport` are **on hold** (**AB#6922**) — the
 renderers still exist and are still tested, but they are being rebuilt to generate *from* the
 React report rather than alongside it, so a document and the page it came from can never disagree.
 
@@ -361,7 +362,7 @@ Each run writes into a timestamped subfolder (`<OutputPath>/yyyyMMdd_HHmmss/`).
 ## All 46 registry entries — and what the wizard actually offers
 
 The full catalogue — description, `Collect`/`Ingest`, CAF areas / WAF
-pillars, and default report tiers, generated from
+pillars, and legacy manifest report-tier metadata, generated from
 `manifests/assessments.psd1` — lives in the
 **[Assessment Registry](../design/assessment-registry.md)**. Minimum auth per
 assessment lives in **[Auth & permissions per scan type](./assessment-permissions.md)**.
@@ -457,7 +458,7 @@ copies of anything do. The detail now lives in one place and the other two link 
 | Page | Contents |
 |---|---|
 | [Analysis features](./analysis-features.md) | Cross-run drift, cost anomaly detection, IaC gap detection, IoT deep coverage |
-| [Configuration and report tiers](./configuration.md) | Saving and loading a config, and what each output tier produces |
+| [Configuration and report tiers](./configuration.md) | Saving/loading config, the three live outputs, and held legacy renderers |
 | [Assessment Catalogue](../reference/assessment-catalogue.md) | All 46 assessments, their rule files, and the automated-versus-manual split |
 
 ## Design reference

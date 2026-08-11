@@ -482,6 +482,11 @@ function Invoke-Collect {
         [ValidateSet('Inventory', 'TypedQueries')]
         [string]   $Source = 'Inventory',
 
+        # Render an inventory pass that has already completed without making any additional
+        # ARG, ARM, or Graph calls.  Datasets ConvertFrom-ScoutInventory cannot derive from the
+        # supplied rows remain empty instead of falling back to their live collectors.
+        [switch]   $OfflineFromInventory,
+
         # AB#6792/#6793/#6794 (Feature AB#6744) -- opt-in, and deliberately so: the compliance-
         # state sweep (Get-ScoutSubscriptionSecurityPolicySweep, one Get-AzPolicyState call per
         # subscription) is the SAME call an inventory run already makes when -SecurityCenter is
@@ -501,7 +506,12 @@ function Invoke-Collect {
         # another declaring the same manifest flag) is selected.
         [switch]   $IncludeAzureLocalArm
     )
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    if ($OfflineFromInventory -and -not $FromInventory) {
+        throw '-OfflineFromInventory requires -FromInventory.'
+    }
+    if (-not $OfflineFromInventory) {
+        Import-Module Az.ResourceGraph -ErrorAction Stop
+    }
 
     # ---- read-only KQL producing SCALAR fields the rules filter on ----
     $q = @{
@@ -2749,6 +2759,9 @@ resources
         catch {
             # Never let a shaping bug cost the caller their assessment — fall back to the ARG
             # path, which is the reference implementation.
+            if ($OfflineFromInventory) {
+                throw "Invoke-Collect: could not shape the supplied inventory without live fallback: $($_.Exception.Message)"
+            }
             Write-Warning "Invoke-Collect: could not shape the collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
             $inventoryShaped = @{}
         }
@@ -2763,6 +2776,9 @@ resources
         $subscriptionIds = @($r['subscriptions'] | ForEach-Object {
                 if ($_ -and $_.PSObject.Properties['id']) { $_.id }
             } | Where-Object { $_ })
+    }
+    elseif ($selectedKeys -contains 'subscriptions' -and $OfflineFromInventory) {
+        $r['subscriptions'] = @()
     }
     elseif ($selectedKeys -contains 'subscriptions') {
         try {
@@ -2785,6 +2801,7 @@ resources
         if ($selectedKeys -notcontains $k) { $r[$k] = @(); continue }
         # AB#5543 — already satisfied from the inventory pass; do not query Azure again.
         if ($inventoryShaped.ContainsKey($k)) { $r[$k] = @($inventoryShaped[$k]); continue }
+        if ($OfflineFromInventory) { $r[$k] = @(); continue }
         if ($progressAvailable) {
             $pct = if (@($remainingKeys).Count -gt 0) { [Math]::Min(100, [Math]::Round(($queryIndex / @($remainingKeys).Count) * 100)) } else { -1 }
             try { Write-ScoutProgress -Activity 'Scout Collect' -Status "Querying: $k" -PercentComplete $pct -Id 1 }
@@ -3116,15 +3133,17 @@ resources
     # Defender plan assignment is core security posture); one ARM GET per subscription, and
     # an unregistered Microsoft.Security provider stays quiet (AB#6900).
     $defenderPlans = @()
-    try {
-        if (-not (Get-Command Get-ScoutDefenderPlanSweep -ErrorAction SilentlyContinue)) {
-            . (Join-Path $PSScriptRoot 'Get-ScoutDefenderPlanSweep.ps1')
+    if (-not $OfflineFromInventory) {
+        try {
+            if (-not (Get-Command Get-ScoutDefenderPlanSweep -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'Get-ScoutDefenderPlanSweep.ps1')
+            }
+            $defenderPlans = @(Get-ScoutDefenderPlanSweep -Subscriptions @($r.subscriptions))
         }
-        $defenderPlans = @(Get-ScoutDefenderPlanSweep -Subscriptions @($r.subscriptions))
-    }
-    catch {
-        Write-Warning "Invoke-Collect: the Defender plan sweep failed; security.defenderPlans will be empty for this run: $($_.Exception.Message)"
-        $defenderPlans = @()
+        catch {
+            Write-Warning "Invoke-Collect: the Defender plan sweep failed; security.defenderPlans will be empty for this run: $($_.Exception.Message)"
+            $defenderPlans = @()
+        }
     }
 
     # ---- Microsoft Entra External ID default cross-tenant access policy (AB#7098) ----
@@ -3138,7 +3157,7 @@ resources
     # exception or a missing key) is what a rule -- or a report renderer -- reading this field sees
     # on any failure, same contract as `devops.available`/`finops.available`.
     $externalIdentitiesPolicy = [pscustomobject]@{ Collected = $false }
-    if ($Scope -ne 'ArmOnly') {
+    if ($Scope -ne 'ArmOnly' -and -not $OfflineFromInventory) {
         try {
             if (-not (Get-Command Get-ScoutExternalIdentitiesPolicy -ErrorAction SilentlyContinue)) {
                 . (Join-Path $PSScriptRoot 'Get-ScoutExternalIdentitiesPolicy.ps1')

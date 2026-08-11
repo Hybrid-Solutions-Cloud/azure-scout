@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.11.0** | 2026-08-10 | ✅ | **One output contract, logs that explain the run.** Makes React, Json, and JsonEvidence the only live outputs across inventory, assessment, combined, wizard, and automation paths; keeps held names as warning-and-fallback compatibility inputs; renders inventory React/evidence offline from the completed collection; and records detailed DEBUG/VERBOSE phase, row-count, timing, rule, and renderer diagnostics in the run log without adding console noise. | **AB#7279** |
 | **3.10.2** | 2026-08-10 | ✅ | **Tenant means tenant.** Restores user and tenant display names, makes Y retain the current tenant and N force login followed by an accessible-tenant picker, suppresses the native subscription picker, and keeps Graph out of the default ARM-only permission preflight. | **AB#7278** |
 | **3.10.1** | 2026-08-10 | ✅ | **Combined means combined.** Fixes the v3.10.0 startup rejection for inventory + assessment with React/JsonEvidence; hardens tenant-scoped collection, non-Excel completion, permission filtering, paging, jobs, and StrictMode paths; makes unavailable governance and incomplete compliance data honest; restores canonical React scoring/evidence; and strengthens CI, packaging, dependency, and zero-skip release contracts. | **AB#7278** |
 | **3.10.0** | 2026-08-09 | ✅ | **The last three, closed for real.** Executive/Consultant/Data view modes now materially differ on every report section, not just 2 of 6; the Azure Landing Zone assessment renders BECU-style per-domain chapters instead of one flat list; a self-contradicting scorecard (two design areas both named "Security") and the evidence-identity defect (findings resolving to .NET type metadata instead of a resource name) are fixed at the root cause; PSScriptAnalyzer is at zero Error/Warning violations repo-wide, down from 1,465. | **AB#6936, AB#6938, AB#6451** |
@@ -129,6 +130,6 @@ Builds are cut from `main` once CI passes. Record each build here as it is produ
 1. All Features in the target release's ADO cluster reach **Done** (acceptance criteria verified).
 2. `CHANGELOG.md` `[Unreleased]` section is finalized and dated under the new version heading.
 3. `ModuleVersion` bumped in `AzureScout.psd1`.
-4. CI (Pester + `mkdocs build --strict`) is green on `main`.
+4. CI (Pester + `npm run docs:build`) is green on `main`.
 5. Tag `vX.Y.Z`, cut the build, add a row to **Builds** above, and flip the release row to ✅.
 6. GitHub release notes generated from the `CHANGELOG.md` section; ADO Features linked via `AB#<id>`.

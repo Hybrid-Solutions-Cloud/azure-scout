@@ -1,15 +1,20 @@
 ---
-description: The worksheet and columns each Azure Scout collector produces.
+description: The held legacy worksheet metadata and columns declared by each Azure Scout collector.
 ---
 
 # Collector Fields
 
-What each collector actually returns. **All 279 collectors** declare a worksheet and an
-ordered column list.
+What each collector can shape internally. **All 279 collectors** declare legacy worksheet
+metadata and an ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
-This page answers *what comes back*, which is the question worth asking before trusting a
-worksheet or building on the JSON.
+This page answers which fields the processing layer can shape for JSON and React, and preserves
+the worksheet names used by the held legacy Excel implementation.
+
+::: warning Worksheet does not mean live Excel output
+Excel is a held renderer in every run mode. Worksheet and Columns are internal manifest metadata
+retained for compatibility and rebuild work; live outputs are React, Json, and JsonEvidence.
+:::
 
 ::: tip This page is generated
 Regenerate with `scripts/Build-CollectorFieldCatalog.ps1`. Columns come from each
@@ -21,7 +26,7 @@ committed page and a fresh regeneration disagree.
 These are the columns a collector *would* emit. Whether any row appears depends on what
 exists in the tenant and on what the signed-in identity is permitted to read. Every run
 writes `collector-rowcounts.json` recording what each collector produced **and why it
-produced nothing** — that file, not this page, tells you whether an empty worksheet means
+produced nothing** — that file, not this page, tells you whether an empty collector means
 "none exist" or "not permitted".
 :::
 

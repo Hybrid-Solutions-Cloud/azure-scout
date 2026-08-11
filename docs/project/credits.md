@@ -32,7 +32,7 @@ For a detailed breakdown of what AzureScout has added, changed, and diverged fro
 
 ## Additional Acknowledgments
 
-- **[Doug Finke](https://github.com/dfinke)** — Author of [ImportExcel](https://github.com/dfinke/ImportExcel), the PowerShell module used for Excel report generation (MIT license).
+- **[Doug Finke](https://github.com/dfinke)** — Author of [ImportExcel](https://github.com/dfinke/ImportExcel), retained by the held legacy Excel implementation and its compatibility tests (MIT license).
 - **Microsoft** — Azure PowerShell SDK (`Az.*` modules), Azure Resource Graph, and Microsoft Graph REST API.
 - **All ARI contributors** — The [29 contributors](https://github.com/microsoft/ARI/graphs/contributors) who built and refined ARI over six years.
 

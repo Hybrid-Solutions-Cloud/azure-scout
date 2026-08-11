@@ -88,9 +88,70 @@ Describe 'Write-AZSCLog' {
         (Get-Content -Raw $script:LogFile) | Should -Match '\[VERBO\w*\s*\] verbose line'
     }
 
+    It 'keeps DEBUG and VERBOSE file-only by default' {
+        $DebugRecords = @(Write-AZSCLog -Message 'default debug detail' -Level Debug -Debug:$false 5>&1)
+        $VerboseRecords = @(Write-AZSCLog -Message 'default verbose detail' -Level Verbose -Verbose:$false 4>&1)
+
+        $DebugRecords | Should -BeNullOrEmpty
+        $VerboseRecords | Should -BeNullOrEmpty
+
+        $Text = Get-Content -Raw $script:LogFile
+        $Text | Should -Match '\[DEBUG\s*\] default debug detail'
+        $Text | Should -Match '\[VERBO\w*\s*\] default verbose detail'
+    }
+
+    It 'surfaces DEBUG and VERBOSE detail only through their requested streams' {
+        $DebugRecords = @(Write-AZSCLog -Message 'requested debug detail' -Level Debug -Debug 5>&1)
+        $VerboseRecords = @(Write-AZSCLog -Message 'requested verbose detail' -Level Verbose -Verbose 4>&1)
+
+        ($DebugRecords | ForEach-Object Message) | Should -Contain 'requested debug detail'
+        ($VerboseRecords | ForEach-Object Message) | Should -Contain 'requested verbose detail'
+    }
+
+    It 'does not mutate the caller debug or verbose preferences' {
+        $BeforeDebug = $DebugPreference
+        $BeforeVerbose = $VerbosePreference
+
+        Write-AZSCLog -Message 'preference-safe debug' -Level Debug -Debug:$false
+        Write-AZSCLog -Message 'preference-safe verbose' -Level Verbose -Verbose:$false
+
+        $DebugPreference | Should -Be $BeforeDebug
+        $VerbosePreference | Should -Be $BeforeVerbose
+    }
+
+    It 'still writes the file when a caller has a terminating detail-stream preference' {
+        {
+            & {
+                $DebugPreference = 'Stop'
+                Write-AZSCLog -Message 'debug preference stop' -Level Debug
+            }
+            & {
+                $VerbosePreference = 'Stop'
+                Write-AZSCLog -Message 'verbose preference stop' -Level Verbose
+            }
+        } | Should -Not -Throw
+
+        $Text = Get-Content -Raw $script:LogFile
+        $Text | Should -Match 'debug preference stop'
+        $Text | Should -Match 'verbose preference stop'
+    }
+
     It 'accepts -Color, which the collector call sites use' {
         { Write-AZSCLog -Message 'coloured line' -Color 'Cyan' } | Should -Not -Throw
         (Get-Content -Raw $script:LogFile) | Should -Match 'coloured line'
+    }
+
+    It 'accepts report exceptions and records their type without throwing' {
+        $CaughtException = $null
+        try { throw [System.InvalidOperationException]::new('renderer fixture failed') }
+        catch { $CaughtException = $_.Exception }
+
+        { Write-AZSCLog -Message 'JSON report generation failed' -Level Error -Exception $CaughtException } |
+            Should -Not -Throw
+
+        $Text = Get-Content -Raw $script:LogFile
+        $Text | Should -Match 'JSON report generation failed'
+        $Text | Should -Match 'Exception type: System\.InvalidOperationException'
     }
 
     It 'records phases with their elapsed time and detail rows' {
@@ -187,6 +248,52 @@ Describe 'Stop-AZSCRunLog' {
     }
 }
 
+Describe 'Detailed assessment logging' {
+
+    BeforeAll {
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Resolve-RuleJoin.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/engine/Invoke-Rule.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src/assess/Invoke-Assessment.ps1')
+    }
+
+    BeforeEach {
+        $script:LogDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-log-" + [guid]::NewGuid().ToString('N'))
+        Start-AZSCRunLog -DefaultPath $script:LogDir -NoTranscript
+        $script:LogFile = Join-Path -Path $script:LogDir -ChildPath 'scout-run.log'
+    }
+
+    AfterEach {
+        $null = Stop-AZSCRunLog -Quiet -ErrorAction SilentlyContinue
+        if (Test-Path $script:LogDir) { Remove-Item $script:LogDir -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+
+    It 'durably records each assessment rule status, evidence count, and elapsed time' {
+        $RuleSet = @([pscustomobject]@{
+            Framework = 'CAF'
+            Area = 'LoggingTest'
+            Rules = @([pscustomobject]@{
+                id = 'LOG-01'
+                title = 'Logging contract fixture'
+                severity = 'low'
+                manual = $false
+                query = '$.items[*]'
+                assert = [pscustomobject]@{ type = 'countEquals'; value = 1 }
+                remediation = 'None'
+            })
+        })
+
+        $Findings = @(Invoke-Assessment -Collect ([pscustomobject]@{ items = @([pscustomobject]@{ name = 'one' }) }) `
+            -RuleSet $RuleSet -Assessment 'Logging test')
+
+        $Findings.Count | Should -Be 1
+        $Findings[0].Status | Should -Be 'Pass'
+        (Get-Content -Raw $script:LogFile) | Should -Match (
+            '\[DEBUG\s*\] Assessment rule LOG-01: status=Pass; evidence=1; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
+        )
+    }
+}
+
 Describe 'Invoke-AzureScout wiring' {
 
     BeforeAll {
@@ -218,6 +325,59 @@ Describe 'Invoke-AzureScout wiring' {
     It 'logs each phase boundary' {
         foreach ($Phase in 'Extraction finished', 'Processing finished', 'Reporting finished', 'Run complete') {
             $script:EntryPoint | Should -Match ([regex]::Escape("-Name '$Phase'"))
+        }
+    }
+
+    It 'logs the long-running orchestration subphases without resource identifiers or payloads' {
+        $RawInventory = Get-Content -Raw -Path (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutRawInventory.ps1')
+        $AssessmentCore = Get-Content -Raw -Path (Join-Path -Path $script:RepoRoot -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
+
+        foreach ($Subphase in @(
+            'ARG query sweep',
+            'ARM child resource sweep',
+            'subscription security and policy sweep',
+            'operational enrichment',
+            'ARM REST API sweep',
+            'tenant-wide resource sweep',
+            'governance dataset sweep'
+        )) {
+            $RawInventory | Should -Match ([regex]::Escape("-Name '$Subphase'"))
+            $RawInventory | Should -Match ([regex]::Escape("Write-ScoutRawInventoryStart -Name '$Subphase'"))
+        }
+
+        $script:EntryPoint | Should -Match 'Raw inventory dump finished: status='
+        $script:EntryPoint | Should -Match 'Deferred assessment started from the in-memory inventory'
+        $AssessmentCore | Should -Match 'Assessment collect finished: source='
+        $AssessmentCore | Should -Match 'Assessment rules finished: assessment='
+        $AssessmentCore | Should -Match 'Assessment renderer finished: renderer='
+    }
+
+    It 'does not change the global debug or verbose preferences to enable file detail' {
+        $ProductionFiles = @(
+            'src/Write-AZTIRunLog.ps1',
+            'src/pipeline/Invoke-ScoutCollector.ps1',
+            'src/pipeline/Invoke-ScoutProcessing.ps1',
+            'src/collect/Get-ScoutRawInventory.ps1',
+            'src/Invoke-AzureScout.ps1',
+            'src/Invoke-ScoutAssessmentCore.ps1',
+            'src/assess/Invoke-Assessment.ps1'
+        )
+
+        foreach ($RelativePath in $ProductionFiles) {
+            $Tokens = $null
+            $Errors = $null
+            $Ast = [System.Management.Automation.Language.Parser]::ParseFile(
+                (Join-Path -Path $script:RepoRoot -ChildPath $RelativePath),
+                [ref]$Tokens,
+                [ref]$Errors
+            )
+            $Errors | Should -BeNullOrEmpty -Because "$RelativePath must parse before its preference contract can be inspected"
+            $Assignments = @($Ast.FindAll({
+                param($Node)
+                $Node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+                    $Node.Left.Extent.Text -match '^\$(Debug|Verbose)Preference$'
+            }, $true))
+            $Assignments | Should -BeNullOrEmpty -Because "$RelativePath must not force console detail globally"
         }
     }
 

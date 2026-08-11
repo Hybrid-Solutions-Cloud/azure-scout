@@ -79,10 +79,11 @@ Describe 'AB#6775 — the combined run is reachable from the command line' {
         $source | Should -Match "\[Alias\('Both'\)\]\s*\r?\n\s*\[switch\]\`$InventoryAndAssessment"
     }
 
-    It 'does not reject assessment formats while an assessment is deferred' {
+    It 'uses the same live formats for inventory and deferred assessment runs' {
         $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
 
-        $source | Should -Match 'if \(\$assessmentOnlyFormats -and -not \$deferredAssessArgs\)'
+        $source | Should -Match "\`$liveFormats\s*=\s*@\('React',\s*'Json',\s*'JsonEvidence'\)"
+        $source | Should -Not -Match 'assessmentOnlyFormats'
     }
 }
 

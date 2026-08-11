@@ -41,8 +41,9 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
 **240 declarative collector definitions across all 18 of Microsoft's published service
-categories.** Counts are the `.psd1` file count in each category directory; one definition
-generally maps to one worksheet in the Excel report.
+categories.** Counts are the `.psd1` file count in each category directory. Each definition's
+legacy worksheet metadata is retained internally, but Excel is held; live runs surface collector
+data through React, Json, and JsonEvidence.
 
 Six collectors were retired on 2026-07-31 (Epic AB#6731, AB#6842) because the resource type(s)
 they declared do not exist in Azure at any permission level, so they could never return a row in
@@ -165,8 +166,8 @@ Invoke-AzureScout -Scope All -Category Security,Identity
 Invoke-AzureScout
 ```
 
-The report contains worksheets only for the categories you selected. The Overview tab
-reports how many categories were selected and how many modules actually executed.
+The React report and JSON outputs contain only the categories you selected. The overview records
+how many categories were selected and how many collectors actually executed.
 
 ## Keeping this page accurate
 

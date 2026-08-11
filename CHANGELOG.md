@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-08-10 - one output contract, logs that explain the run
+
+### Fixed
+
+- **The guided inventory path advertised five outputs that the product has held for many
+  releases (AB#7279).** Inventory, assessment, combined, automation, and wizard paths now use
+  one live output contract: `React`, `Json`, and `JsonEvidence`; `All` produces all three.
+  Legacy renderer names still bind for compatibility, warn that they are held, and fall back to
+  React when no live format was selected. Inventory-only React/evidence rendering reuses the
+  completed collection in a rule-free offline path with no live fallback, while `Json` preserves
+  the established inventory filename and schema. Combined runs render each deliverable once.
+  Standalone automated assessments now upload every selected live artifact before returning, and
+  unattended pipeline summaries report both requested and effective formats truthfully.
+- **Run logs were too small to explain a 20-minute scan.** `scout-run.log` now records DEBUG and
+  VERBOSE diagnostics by default without changing what appears on the console: extraction
+  subphases, collector status and row counts, raw-dump and processing timing, assessment ingest,
+  per-rule evidence and timing, and renderer completion. Debug/verbose stream preferences remain
+  caller-controlled and cannot prevent the durable log write.
+
+### Changed
+
+- Documentation, the bundled GitHub Action, and the GitHub inventory workflow now publish the
+  same three-format contract. Held worksheet/export metadata is explicitly identified as internal
+  legacy metadata instead of a currently available deliverable.
+
 ## [3.10.2] - 2026-08-10 - tenant means tenant
 
 ### Fixed

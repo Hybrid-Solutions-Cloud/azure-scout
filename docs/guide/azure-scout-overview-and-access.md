@@ -14,10 +14,11 @@ access. Sections 1–2 are the executive summary; sections 3 onward are the acce
 Azure Scout inventories an Azure estate and assesses it against Microsoft's own published
 frameworks, then produces the deliverable an assessment engagement is normally written by hand:
 a single self-contained report page carrying the inventory, every assessment, the evidence behind
-each finding, and the prioritised path back to compliance — which you can export to PDF, Word,
-Markdown or CSV.
+each finding, and the prioritised path back to compliance—which you can export to PDF/Print,
+Markdown, JSON, CSV, or standalone HTML.
 
-> Standalone Word, PowerPoint, PDF, Excel and Power BI outputs are **coming soon**: they are being
+> Standalone Word, PowerPoint, PDF, Excel, Power BI, HTML, ECharts dashboard, Markdown-file,
+> AsciiDoc, and governance-report outputs are **coming soon**: they are being
 > rebuilt to generate from that report rather than alongside it, so a document and the page it came
 > from can never disagree (**AB#6922**).
 

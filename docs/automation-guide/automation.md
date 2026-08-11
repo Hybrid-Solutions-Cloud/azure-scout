@@ -29,7 +29,8 @@ and there is no longer a job type that the sandbox might not support. See the AB
 the [changelog](../project/changelog.md).
 
 Diagram generation still uses background jobs, and is skipped in automation mode regardless.
-The Excel workbook, JSON, and any other selected output formats are produced normally.
+The same global output contract applies: `React`, `Json`, and `JsonEvidence` are live; `All`
+selects all three.
 
 ## Prerequisites
 
@@ -121,7 +122,7 @@ one set to **PowerShell 7.4**, then add these packages:
 | `Az.Resources` | Role assignments, policy, subscriptions |
 | `Az.Compute` | VM detail enrichment |
 | `Az.CostManagement` | Only if you use `-IncludeCosts` |
-| `ImportExcel` | Excel workbook generation |
+| `ImportExcel` | Package dependency retained for the held legacy Excel renderer; no live output requires an Excel application |
 
 Import `AzureScout` from the PowerShell Gallery. Package import is asynchronous — wait for
 every module to reach **Available** before running the runbook, or the run fails on a
@@ -141,7 +142,7 @@ Invoke-AzureScout `
     -Automation `
     -StorageAccount  '<storage-account-name>' `
     -StorageContainer '<container-name>' `
-    -OutputFormat    'All'
+    -OutputFormat    'All' # React, Json, and JsonEvidence
 ```
 
 Add any collection parameters you would use interactively — `-Category`, `-Scope`,
@@ -182,17 +183,19 @@ Invoke-AzureScout -TenantID '<tenant-id>' -Automation -StorageAccount '<sa>' -St
 
 ## Step 6 — Verify the first run
 
-Start the runbook manually and watch the **Output** stream. A healthy run prints the
-extraction and processing stages, then the upload lines:
+Start the runbook manually and watch the **Output** stream. A healthy run prints the extraction
+and processing stages and identifies the selected live artifacts:
 
 ```
-Sending Excel file to Storage Account:
-C:\AzureScout\2026-07-25_101500\AZSC_Automation_Report.xlsx
-Sending JSON file to Storage Account:
+React report:
+C:\AzureScout\2026-07-25_101500\report-react.html
+JSON results:
 C:\AzureScout\2026-07-25_101500\AZSC_Automation_Report.json
+JSON evidence:
+C:\AzureScout\2026-07-25_101500\evidence.json
 ```
 
-Then confirm the blobs landed in the container.
+When storage upload is enabled, confirm the selected live artifacts landed in the container.
 
 ## Troubleshooting
 

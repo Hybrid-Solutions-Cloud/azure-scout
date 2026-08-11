@@ -32,6 +32,7 @@ function Out-AZSCReportResults {
         [string]$PolicyData,
         [string]$SecurityCenterData,
         [string]$DDFile,
+        [switch]$ExcelRendered,
         $SkipAdvisory,
         $SkipPolicy,
         $SecurityCenter,
@@ -43,8 +44,10 @@ function Out-AZSCReportResults {
     Write-Host $Measure -ForegroundColor Cyan
     Write-Host ('Total Resources on Azure: ') -NoNewline
     Write-Host $ResourcesCount -ForegroundColor Cyan
-    Write-Host ('Total Resources on Excel: ') -NoNewline
-    Write-Host $TotalRes -ForegroundColor Cyan
+    if ($ExcelRendered) {
+        Write-Host ('Total Resources on Excel: ') -NoNewline
+        Write-Host $TotalRes -ForegroundColor Cyan
+    }
     if (![bool]$SkipAdvisory)
         {
             if(![string]::IsNullOrEmpty($AdvisoryData))
@@ -69,10 +72,12 @@ function Out-AZSCReportResults {
                 }
         }
 
-    Write-Host ''
-    Write-Host ('Excel file saved at: ') -NoNewline
-    write-host $File -ForegroundColor Cyan
-    Write-Host ''
+    if ($ExcelRendered) {
+        Write-Host ''
+        Write-Host ('Excel file saved at: ') -NoNewline
+        write-host $File -ForegroundColor Cyan
+        Write-Host ''
+    }
 
     if(![bool]$SkipDiagram)
         {

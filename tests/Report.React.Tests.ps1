@@ -5,8 +5,9 @@
     Pester tests for src/report/renderers/Export-React.ps1 — the payload builder behind the
     React single-page report (ADO Feature AB#6928: AB#6929 payload contract, AB#6930 identity).
 
-    window.__SCOUT_DATA__ = { identity, meta, ran, inventory, subscriptions, assessments,
-    resourceIndex, drift } is the FULL contract this renderer is now responsible for (the front
+    window.__SCOUT_DATA__ = { identity, meta, ran, inventory, entraResources, subscriptions,
+    assessments, resourceIndex, drift, costProjection } is the FULL contract this renderer is
+    now responsible for (the front
     end never re-derives anything). These tests assert the contract's shape, the score-formula
     strings, every catalogued evidence shape normalising to {resourceName,resourceId,
     subscriptionId,detail}, and subscription attribution -- built from the repo's existing
@@ -96,9 +97,9 @@ Describe 'Export-React — payload contract shape (AB#6929)' {
         (Split-Path $script:ReportPath -Leaf) | Should -Be 'report-react.html'
     }
 
-    It 'carries exactly the nine top-level contract keys' {
+    It 'carries exactly the ten top-level contract keys' {
         $keys = @($script:Payload.PSObject.Properties.Name | Sort-Object)
-        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'subscriptions', 'assessments', 'resourceIndex', 'drift', 'costProjection') | Sort-Object)
+        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'entraResources', 'subscriptions', 'assessments', 'resourceIndex', 'drift', 'costProjection') | Sort-Object)
     }
 
     It 'identity carries every neutral-default field with no vendor name/URL leaking onto the report surface' {
@@ -121,7 +122,7 @@ Describe 'Export-React — payload contract shape (AB#6929)' {
         $script:Payload.meta.productName | Should -Be 'Azure Scout'
     }
 
-    It 'ran reflects that this run actually scored findings, and never claims Entra collection' {
+    It 'ran reflects scored findings and does not claim Entra when the collect has no Entra rows' {
         $script:Payload.ran.assessments | Should -BeTrue
         $script:Payload.ran.entra | Should -BeFalse
     }

@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.10.2'
+ModuleVersion = '3.11.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ CompanyName = 'Hybrid Cloud Solutions'
 Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories tenant-wide Azure ARM resources (Excel, JSON, Markdown, AsciiDoc); opt into Entra ID collection with -Scope All; add -Assessment to run a read-only CAF/WAF landing-zone assessment and produce a self-contained React/HTML report plus JSON findings and evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
+Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories tenant-wide Azure ARM resources and produces the live React, Json, and JsonEvidence outputs; opt into Entra ID collection with -Scope All; add -Assessment to run a read-only CAF/WAF assessment. Detailed run logs capture debug and verbose diagnostics without adding console noise. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
 
 # Minimum version of the PowerShell engine required by this module
 # AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
@@ -152,7 +152,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','Excel','PowerBI')
+        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','React','Json','JsonEvidence')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/thisismydemo/azure-scout/blob/main/LICENSE'
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.10.2 - Tenant means tenant. The wizard again shows the signed-in user and tenant display name, keeps the confirmed tenant on Y, and on N forces a fresh login followed by an explicit list of accessible tenants rather than the Az subscription picker. Bare runs perform an ARM-only permission preflight and request Microsoft Graph only after the operator opts into Entra collection. Tenant-wide scans still enumerate every subscription internally; SubscriptionID narrows scope only when explicitly supplied. AB#7278. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.11.0 - One output contract, logs that explain the run. Inventory, assessment, combined, automation, and wizard paths now expose the same live formats: React, Json, and JsonEvidence; All produces all three. Held legacy renderer names remain accepted for compatibility, warn, and fall back to React when no live format was selected. Inventory-only React and evidence rendering reuses the completed collection offline without assessment rules or new Azure/Graph calls, while Json preserves the inventory schema. scout-run.log now captures debug/verbose phase, collector, row-count, timing, rule, and renderer diagnostics by default without adding console noise. AB#7279. See CHANGELOG.md for the full history.'
 
         # Prerelease string of this module
         # Prerelease = ''

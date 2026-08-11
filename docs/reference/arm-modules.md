@@ -11,8 +11,8 @@ eighteen published service categories, as listed on the Azure portal's All servi
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
 
-Each definition targets one or more Azure resource types and generally produces one worksheet
-in the Excel report.
+Each definition targets one or more Azure resource types and generally declares legacy Excel
+worksheet metadata. Excel is a held renderer; live runs emit React/Json/JsonEvidence instead.
 
 Run ARM-only extraction with:
 

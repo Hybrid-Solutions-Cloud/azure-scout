@@ -16,6 +16,10 @@ description: Decision record — executive-deck (PPTX) renderer for the Report l
 >
 > **Date:** 2026-07-22 · **Author:** Claude Code (engineer agent) · **Unblocks:** AB#5044 (Tiered renderer engine)
 
+> **Current runtime status:** The PPTX renderer is on hold under AB#6922. This record preserves
+> the implementation decision; it does not make `Pptx` a live `-OutputFormat`. The only live
+> formats in every run mode are `React`, `Json`, and `JsonEvidence`.
+
 ## 1. Decision
 
 **Recommend: OpenXML SDK (`DocumentFormat.OpenXml`), not `python-pptx`, not COM automation.**
@@ -39,7 +43,7 @@ from nothing.
   current prototype (`src/report/renderers/Export-Pptx.ps1:16-18`) shells out
   to `python` and only checks that the `python` binary exists — it does not
   check that `python-pptx` is installed, and `.ado/azure-pipelines.yml` has
-  no `pip install` step. Today, a pipeline run with `-OutputFormat Pptx`
+  no `pip install` step. At the time of this decision, a direct prototype invocation
   either silently skips the deck (if `python` itself is missing) or crashes
   on an unguarded `ImportError` inside `build_deck.py` (if `python` exists
   but the package doesn't) — this is a live gap, not a hypothetical one.
@@ -47,8 +51,8 @@ from nothing.
   (Windows/Linux/macOS per `README.md` frontmatter), no licensing fees, no
   extra runtimes.** Every other collect/assess/report component is
   PowerShell + .NET (Az modules, `ImportExcel`, `powershell-yaml`). Adding
-  Python for exactly one of five output tiers means every environment that
-  wants the full `-OutputFormat All` matrix now needs two interpreters
+  Python for exactly one of five output tiers meant every environment that
+  wanted the former all-renderer matrix needed two interpreters
   provisioned and kept in sync, doubling the dependency surface for one
   slide deck.
 - **OpenXML SDK is pure .NET, ships as a NuGet package, and loads with
@@ -114,11 +118,8 @@ from nothing.
 
 ## 4. What this does NOT decide
 
-- **Power BI (Tier 1) is unaffected.** `Export-PowerBi.ps1` continues
-  emitting flat CSVs against a `.pbit` template; nothing here touches it.
-- **Self-contained HTML (Tier 2) is unaffected.** `Export-Html.ps1` and
-  `report.html.template` are untouched.
-- **Excel/JSON (evidence tier) are unaffected.**
+- **Other legacy renderer implementations are outside this decision.** Their current runtime
+  status is governed by the global hold, not by this historical record.
 - **This is not final.** It is a recommendation for the repo owner to
   confirm before AB#5044 (tiered renderer engine) is built out against it.
   If the owner prefers to accept the Python dependency (e.g., because

@@ -1,54 +1,37 @@
-# Current Task: Epic AB#6454 — Expand Azure Scout with deep governance and compliance analytics
+# Current Task: AB#7279 — release AzureScout 3.11.0, then optimize scan performance
 
-- Status: **IN PROGRESS**
-- Started 2026-08-01, off `main` at `449dd86`.
-- Supersedes Epic 6452 (PSScriptAnalyzer), which is Closed.
+- Status: **VALIDATED — COMMIT/PUSH/CI NEXT**
+- Started 2026-08-10 from `main` at `5286217`.
+- Target: publish the exact validated 3.11.0 package to PowerShell Gallery, then begin a separate
+  measured optimization change set.
 
-## What this Epic is
+## 3.11.0 scope
 
-Nine Features, roughly thirty User Stories. Mapped onto the release plan in
-`docs/audits/AZURE-SCOUT-AUDIT.md` §16, it is **Releases 2 through 6**. Releases 0 and 1 were
-Epic AB#6731 and are done.
+- One live output contract everywhere: `React`, `Json`, `JsonEvidence`; `All` means all three.
+- Held legacy names bind for compatibility, warn, skip, and fall back to React when necessary.
+- Inventory-only React/evidence reuse the completed collection offline with no assessment rules or
+  Azure/Graph fallback; inventory Json retains its established schema.
+- Detailed DEBUG/VERBOSE phase, collector, row-count, timing, rule, and renderer data is written to
+  `scout-run.log` by default without increasing console noise.
+- Standalone assessment automation uploads selected live artifacts; pipeline summaries report
+  requested and effective formats separately.
 
-| Feature | Release | Theme |
-|---|---|---|
-| AB#6744 | 2 | Score the compliance state Scout already collects |
-| AB#6745 | 2b | Enumerate the source framework for every target assessment — **gates every rule file after it** |
-| AB#6746 | 3 | Restructure LandingZone into per-pillar and per-design-area assessments |
-| AB#6747 | 4 | Azure Local Well-Architected Review |
-| AB#6748 | 5 | Workload assessments — AI, AVD, AVS, AVS LZ, CASA |
-| AB#6749 | 6 | FinOps and DevOps capability assessments |
-| AB#6455 | — | RBAC and Azure Policy data collectors |
-| AB#6458 | — | Consultant-grade governance assessment report generator |
-| AB#6461 | — | Validate assessment coverage and reporting (the four source audits) |
+## Release gates
 
-## Orchestration
+1. Full Pester suite on the frozen candidate: zero failed, skipped, not-run, or failed containers.
+2. Parser, collector-definition, StrictMode, manifest/version, documentation, and secret checks.
+3. Commit with `AB#7279`, push through GitHub, and require green CI on the exact commit.
+4. Tag `v3.11.0`, build an allow-listed package from that tag, and validate/import the staged module.
+5. Publish that exact package, download it from PowerShell Gallery, and compare every file hash.
 
-Tier A dispatch per the HCS orchestration guidance: waves of at most eight concurrent agents,
-worktree isolation for anything touching shared code paths, integrated one feature at a time
-with an adversarial read of every acceptance criterion before anything is called done.
+Local release-candidate validation is complete: three deterministic Pester shards passed
+3,454/3,454 with zero failed, skipped, not-run, or failed containers. The provisional allow-listed
+package also parses, imports, and passes its secret scan. GitHub CI on the exact commit is the next
+release authority.
 
-**Wave 1 — in flight**
+## Optimization work after publication
 
-| Agent | Stories | Isolation |
-|---|---|---|
-| WAF/CAF enumeration | AB#6745 (WAF pillars, CAF design areas) | main tree, docs only |
-| Workload checklists | AB#6804, 6805–6808 | main tree, docs only |
-| Question sets | AB#6809–6812, 6813–6815 | main tree, docs only |
-| Currency rule | AB#6817 | main tree, docs + one test |
-| Compliance scoring | AB#6744 — 6792, 6793, 6794, 6795 | `feat/ab6744-compliance` |
-| Restructure | AB#6746 — 6796–6800 | `feat/ab6746-restructure` |
-| Azure Local collectors | AB#6747 — 6801, 6802 | `feat/ab6747-azurelocal` |
-| Remaining collectors | AB#6822–6825, 6828, 6829 | `feat/ab6822-collectors` |
-
-**Wave 2 — blocked on wave 1's enumerations and restructure**
-
-Rule files: AI + AVD (6818/6819), AVS + AVS LZ + CASA (6820/6821), Azure Local (6803),
-FinOps + DevOps (6826/6827). Plus AB#6455/6456 orphaned-RBAC logic and AB#6458/6459/6448
-governance report generator.
-
-## Standing constraint
-
-No rule file may be written for a target assessment until its source framework is tabulated
-under `docs/frameworks/`. This is DQ12 and it is why AB#6745 is wave 1 and every rule file is
-wave 2. Skipping it is how `waf.storage.yaml` came to score a WAF pillar that does not exist.
+Start with measurable call-count reductions: reuse the security/policy sweep in combined runs,
+cache recovery-vault/protected-item and operational enrichment lookups per subscription, thread
+category/dependency plans into extraction, add pagination and consistent Retry-After handling, then
+consider bounded concurrency only for calls that do not mutate shared Az context.

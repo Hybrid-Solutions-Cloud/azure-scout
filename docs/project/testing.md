@@ -76,7 +76,7 @@ These validate internal helper scripts — file existence, syntax (via `Parser::
 | `Private.Main.Tests.ps1` | 13 (orchestration, auth, caching) |
 | `Private.Extraction.Tests.ps1` | 9 (API, Graph, subscriptions) |
 | `Private.Processing.Tests.ps1` | 9 (cache, advisory, policy jobs) |
-| `Private.Reporting.Tests.ps1` | 23 (Excel, JSON, Markdown, AsciiDoc) — now covers `src/report/renderers/inventory/`, not `Modules/Private/Reporting/`, which no longer exists (AB#5662). Also builds a real `.xlsx` from a real `ReportCache` and asserts no Excel COM was used (AB#5665). |
+| `Private.Reporting.Tests.ps1` | Internal compatibility tests for held Excel/Markdown/AsciiDoc renderers and JSON data output. These tests prove retained code behavior; they do not make a held renderer a live `-OutputFormat`. |
 
 ### Public Function & Integration Tests (10 files)
 
@@ -90,7 +90,7 @@ These validate internal helper scripts — file existence, syntax (via `Parser::
 | `Test-AZSCPermissions.Tests.ps1` | Permission checker logic |
 | `Start-AZSCEntraExtraction.Tests.ps1` | Entra ID extraction |
 | `PermissionAudit.Tests.ps1` | Permission audit pipeline |
-| `OutputFormat.Tests.ps1` | Output format routing |
+| `OutputFormat.Tests.ps1` | Global live-format routing plus internal compatibility coverage for held renderer implementations |
 | `CategoryFiltering.Tests.ps1` | Category filter validation |
 
 ## How the declarative collector golden tests work
@@ -196,11 +196,10 @@ coverage:
 - **`tests/Assessment.Engine.Tests.ps1`** — pure-logic smoke tests for the rule
   engine: JSONPath resolution (`Resolve-JsonPath`), rule assertion semantics
   (`Invoke-Rule`), and CAF/WAF scoring math (`Get-Score`). No Azure connection.
-- **`tests/datadump/`** — synthetic fixture data used to offline-render each report
-  tier without a live tenant: `Test-ExcelFromDataDump.ps1`,
-  `Test-PowerBIFromDataDump.ps1`, and `Test-PptxFromDataDump.ps1` render the
-  Excel evidence, Power BI CSV bundle, and PowerPoint deck respectively from the
-  same fixture `findings.json`/`collect.json` shape.
+- **`tests/datadump/`** — synthetic fixture data used to exercise held renderer implementations
+  without a live tenant. `Test-ExcelFromDataDump.ps1`, `Test-PowerBIFromDataDump.ps1`, and
+  `Test-PptxFromDataDump.ps1` validate retained compatibility code; they do not make those tiers
+  live outputs. All consume the same fixture `findings.json`/`collect.json` shape.
 
 Run them the same way as the rest of the suite:
 

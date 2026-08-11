@@ -19,7 +19,7 @@ The following core capabilities come directly from the original project:
 |------|-------------------|
 | **ARM Resource Extraction** | The fundamental pattern of using Azure Resource Graph and ARM APIs to enumerate resources across subscriptions. |
 | **Draw.io Diagram Engine** | All network topology diagram generation — VNets, subnets, peerings, NSGs, load balancers, and resource layout logic. |
-| **Excel Report Pipeline** | The ImportExcel-based pipeline that turns resource data into formatted `.xlsx` workbooks with conditional formatting. |
+| **Held Excel pipeline** | The retained ImportExcel-based compatibility implementation can shape `.xlsx` workbooks, but Excel is not a live output format. |
 | **154 ARM Resource Modules (at fork)** | AzureScout forked ARI v3.6.11 with 154 ARM inventory modules. That is a historical count, not a current one — see [current numbers](#current-numbers-not-the-ari-fork-count) below. The pattern (one module per resource type, ARM/Resource Graph enumeration) and much of the original module logic trace back to ARI even where the files have since been rewritten. |
 | **Orchestration Pattern** | The extraction → processing → reporting three-phase orchestration that powers the main pipeline. |
 | **Automation Account Mode** | The concept of running inside an Azure Automation Account with a Managed Identity. This path is now documented and validated — see [Azure Automation Account](../automation-guide/automation.md). |
@@ -87,15 +87,19 @@ AzureScout adds a `-Scope` parameter that controls *what types of objects* are i
 
 This is separate from the `-SubscriptionID` parameter (inherited from ARI) that targets a specific subscription.
 
-### Multi-Format Output (`-OutputFormat`)
+### Unified Output (`-OutputFormat`)
 
-ARI outputs Excel (`.xlsx`) and Draw.io (`.drawio`) files.
-AzureScout adds:
+ARI outputs Excel (`.xlsx`) and Draw.io (`.drawio`) files. AzureScout historically added several
+parallel renderers, but those legacy renderers are now on hold across every run mode. The live
+contract is:
 
-- **JSON** (`-OutputFormat JSON`) — raw cache data as `.json` for programmatic consumption
-- **Markdown** (`-OutputFormat Markdown` or `-OutputFormat MD`) — GitHub-Flavored Markdown tables
-- **AsciiDoc** (`-OutputFormat AsciiDoc` or `-OutputFormat Adoc`) — Antora/Confluence-compatible AsciiDoc tables
-- **All** (`-OutputFormat All`) — every format at once
+- **React** — the self-contained report and its in-page export menu
+- **Json** — machine-readable run results
+- **JsonEvidence** — resources-only evidence
+- **All** — all three live formats
+
+The held set includes Excel, Markdown/MD, AsciiDoc/Adoc, Power BI, standalone HTML, PowerPoint,
+PDF, Word, ECharts dashboard, and governance-report renderers.
 
 ### Category Filtering (`-Category`)
 

@@ -9,8 +9,8 @@
     products. These tests pin that contract:
 
       - Invoke-AzureScout exposes the assessment-mode parameters.
-      - Mixing an inventory-only format with -Assessment (and vice versa) fails
-        with an actionable message instead of silently producing nothing.
+      - Inventory, assessment, and combined runs share one live output contract.
+      - Legacy formats still bind, warn, and fall back without invoking held renderers.
       - The wizard never fires in a non-interactive host, so CI and scheduled
         runs of a bare `Invoke-AzureScout` cannot block on a prompt.
       - The wizard's checklist/selection primitives behave.
@@ -89,28 +89,18 @@ catch {
 }
 
 Describe 'Single entry point — output format guards' {
-    It 'rejects an inventory-only format in assessment mode' {
-        { Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Markdown } |
-            Should -Throw -ExpectedMessage '*inventory-only*'
-    }
-
-    It 'rejects an assessment-only format in inventory mode' {
-        { Invoke-AzureScout -OutputFormat Html -NoWizard } |
-            Should -Throw -ExpectedMessage '*assessment format*'
-    }
-
-    It 'names the valid alternatives in the rejection message' {
-        # The point of the guard is to redirect, not just to fail.
-        { Invoke-AzureScout -OutputFormat Pptx -NoWizard } |
-            Should -Throw -ExpectedMessage '*-Assessment*'
-    }
-
-    It 'accepts a format valid in both modes' {
+    It 'keeps live and held legacy names in the public ValidateSet' {
         $vs = $script:Cmd.Parameters['OutputFormat'].Attributes |
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] }
-        foreach ($shared in @('All', 'Excel', 'Json', 'PowerBI')) {
-            $vs.ValidValues | Should -Contain $shared
+        foreach ($format in @('All', 'React', 'Json', 'JsonEvidence', 'Excel', 'Markdown', 'Pptx', 'Word')) {
+            $vs.ValidValues | Should -Contain $format
         }
+    }
+
+    It 'defines one live-format set and the held-only React fallback' {
+        $source = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Invoke-AzureScout.ps1')
+        $source | Should -Match "\`$liveFormats = @\('React', 'Json', 'JsonEvidence'\)"
+        $source | Should -Match 'every requested report format is on hold; rendering the React report instead'
     }
 
     It 'lets Both carry React and JsonEvidence past the inventory format guard' {
@@ -207,6 +197,91 @@ Describe 'Single entry point — output format guards' {
         } | Should -Not -Throw
     }
 
+    It 'renders inventory-only React and JsonEvidence offline without assessment rules' {
+        $work = Join-Path $TestDrive 'inventory-live-formats'
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+
+        {
+            & $script:Module {
+                param($Work)
+
+                Mock Test-AZSCPS { 'Linux' }
+                Mock Test-AZSCInteractiveHost { $false }
+                Mock Connect-AZSCLoginSession { 'test-tenant' }
+                Mock Get-AzContext { [pscustomobject]@{ Account=[pscustomobject]@{Id='test@example.invalid'}; Subscription=[pscustomobject]@{Id='sub-1';Name='Test'}; Tenant=[pscustomobject]@{Id='test-tenant'} } }
+                Mock Test-AZSCManagementGroupAccess { [pscustomobject]@{ HasAccess=$true; Count=1 } }
+                Mock Get-AZSCSubscriptions { @([pscustomobject]@{ Id='sub-1'; Name='Test' }) }
+                Mock Set-AZSCReportPath { @{ DefaultPath=$Work; DiagramCache=(Join-Path $Work 'DiagramCache'); ReportCache=(Join-Path $Work 'ReportCache') } }
+                Mock Set-AZSCFolder
+                Mock Start-AZSCRunLog
+                Mock Write-AZSCLog
+                Mock Write-AZSCLogPhase
+                Mock Clear-AZSCCacheFolder
+                Mock Get-Module { [pscustomobject]@{ Version=[version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
+                Mock Start-AZSCExtractionOrchestration {
+                    [pscustomobject]@{
+                        Resources=@(); EntraResources=@([pscustomobject]@{ id='user-1'; TYPE='entra/users' }); Quotas=@(); Costs=@(); ResourceContainers=@(); Advisories=@()
+                        ResourcesCount=0; AdvisoryCount=0; SecCenterCount=0; Security=@(); Retirements=@(); PolicyCount=0
+                        PolicyAssign=@(); PolicyDef=@(); PolicySetDef=@()
+                    }
+                }
+                Mock Export-ScoutRawInventoryDump { Join-Path $Work 'raw-inventory.json' }
+                Mock Start-AZSCExtraJobs { @{} }
+                Mock Start-AZSCProcessOrchestration
+                Mock Invoke-ScoutAssessmentCore {
+                    $renderPath = Join-Path $Work 'assessment-report'
+                    New-Item -ItemType Directory -Path $renderPath -Force | Out-Null
+                    '<html></html>' | Set-Content (Join-Path $renderPath 'report-react.html')
+                    '{}' | Set-Content (Join-Path $renderPath 'evidence.json')
+                    return $renderPath
+                }
+                Mock Export-AZSCJsonReport { Join-Path $Work 'AzureScout.json' }
+                Mock Write-Warning
+                Mock New-AzStorageContext { [pscustomobject]@{ AccountName = 'storage' } }
+                function Set-AzStorageBlobContent {
+                    param($File, $Container, $Context, [switch]$Force)
+                }
+                Mock Set-AzStorageBlobContent
+                Mock Clear-AZSCMemory
+                Mock Out-AZSCReportResults
+                Mock Stop-AZSCRunLog { Join-Path $Work 'AzureScout.log' }
+
+                Invoke-AzureScout -NoWizard -OutputFormat React,JsonEvidence -Scope All -SkipPermissionCheck -SkipDiagram
+
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
+                    $InventoryOnly -and $OutputFormat -contains 'React' -and
+                        $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
+                }
+                Should -Invoke Export-AZSCJsonReport -Exactly 0
+
+                Invoke-AzureScout -NoWizard -OutputFormat All -Scope All -SkipPermissionCheck -SkipDiagram
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 2 -ParameterFilter {
+                    $InventoryOnly -and $OutputFormat -contains 'React' -and
+                        $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
+                }
+                Should -Invoke Export-AZSCJsonReport -Exactly 1
+
+                Invoke-AzureScout -NoWizard -OutputFormat Pptx -Scope All -SkipPermissionCheck -SkipDiagram -Verbose
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
+                    $InventoryOnly -and @($OutputFormat).Count -eq 1 -and $OutputFormat -contains 'React'
+                }
+                Should -Invoke Write-Warning -ParameterFilter { $Message -like '*on hold*Pptx*' }
+
+                Invoke-AzureScout -NoWizard -OutputFormat Excel,Json -Scope All -SkipPermissionCheck -SkipDiagram -Verbose
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 3
+                Should -Invoke Export-AZSCJsonReport -Exactly 2
+                Should -Invoke Write-Warning -ParameterFilter { $Message -like '*on hold*Excel*' }
+
+                Invoke-AzureScout -NoWizard -OutputFormat All -Scope All -SkipPermissionCheck -SkipDiagram `
+                    -StorageAccount storage -StorageContainer reports
+                Should -Invoke Set-AzStorageBlobContent -Exactly 3
+                Should -Invoke Set-AzStorageBlobContent -Exactly 1 -ParameterFilter { (Split-Path -Leaf $File) -eq 'AzureScout.json' }
+                Should -Invoke Set-AzStorageBlobContent -Exactly 1 -ParameterFilter { (Split-Path -Leaf $File) -eq 'report-react.html' }
+                Should -Invoke Set-AzStorageBlobContent -Exactly 1 -ParameterFilter { (Split-Path -Leaf $File) -eq 'evidence.json' }
+            } $work
+        } | Should -Not -Throw
+    }
+
     It 'completes Both with React and JsonEvidence through deferred assessment' {
         $work = Join-Path $TestDrive 'both-react'
         New-Item -ItemType Directory -Path $work -Force | Out-Null
@@ -255,6 +330,50 @@ Describe 'Single entry point — output format guards' {
                     $OutputFormat -contains 'React' -and $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
                 }
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+            } $work
+        } | Should -Not -Throw
+    }
+
+    It 'uploads all selected live artifacts for a standalone automated assessment' {
+        $work = Join-Path $TestDrive 'standalone-assessment-storage'
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+
+        {
+            & $script:Module {
+                param($Work)
+
+                Mock Test-AZSCPS { 'Linux' }
+                Mock Test-AZSCInteractiveHost { $false }
+                Mock Invoke-ScoutAssessmentCore {
+                    $runPath = Join-Path $Work 'assessment-report'
+                    New-Item -ItemType Directory -Path $runPath -Force | Out-Null
+                    '<html></html>' | Set-Content (Join-Path $runPath 'report-react.html')
+                    '{}' | Set-Content (Join-Path $runPath 'findings.json')
+                    '{}' | Set-Content (Join-Path $runPath 'evidence.json')
+                    return $runPath
+                }
+                Mock New-AzStorageContext { [pscustomobject]@{ AccountName = 'storage' } }
+                function Set-AzStorageBlobContent {
+                    param($File, $Container, $Context, [switch]$Force)
+                }
+                Mock Set-AzStorageBlobContent
+
+                $result = Invoke-AzureScout -NoWizard -Assessment 'CAF: Azure Landing Zone' `
+                    -OutputFormat All -Automation -StorageAccount storage -StorageContainer reports
+
+                $result | Should -Be (Join-Path $Work 'assessment-report')
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
+                    $OutputFormat -contains 'React' -and $OutputFormat -contains 'Json' -and
+                        $OutputFormat -contains 'JsonEvidence'
+                }
+                Should -Invoke Set-AzStorageBlobContent -Exactly 3 -ParameterFilter {
+                    $Container -eq 'reports' -and $Force
+                }
+                foreach ($leaf in 'report-react.html', 'findings.json', 'evidence.json') {
+                    Should -Invoke Set-AzStorageBlobContent -Exactly 1 -ParameterFilter {
+                        (Split-Path -Leaf $File) -eq $leaf
+                    }
+                }
             } $work
         } | Should -Not -Throw
     }
@@ -462,6 +581,14 @@ Describe 'Wizard — combined run contract' {
             Mock -CommandName Get-ScoutAvailableAssessment -MockWith { @('CAF: Azure Landing Zone') }
             Mock -CommandName Get-ScoutCategoryCoverage -MockWith { @() }
         }
+    }
+
+    It 'offers the same live output formats for every run type' {
+        $source = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1')
+        $source | Should -Match "\`$liveFormats = @\('React', 'Json', 'JsonEvidence'\)"
+        $source | Should -Match '\$formatPool = \$liveFormats'
+        $source | Should -Not -Match '\$inventoryFormats\s*='
+        $source | Should -Not -Match '\$assessmentFormats\s*='
     }
 
     It 'returns Both with React and JsonEvidence selected' {

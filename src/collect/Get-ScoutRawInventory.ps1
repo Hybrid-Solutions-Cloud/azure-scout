@@ -286,6 +286,31 @@ function Get-ScoutRawInventory {
 
     Import-Module Az.ResourceGraph -ErrorAction Stop
 
+    function Write-ScoutRawInventoryTiming {
+        param(
+            [Parameter(Mandatory)] [string] $Name,
+            [Parameter(Mandatory)] [System.Diagnostics.Stopwatch] $Timer,
+            [Parameter(Mandatory)] [string] $Status,
+            [Parameter(Mandatory)] [int] $Rows,
+            [string] $Detail
+        )
+
+        if ($Timer.IsRunning) { $Timer.Stop() }
+        if (-not (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue)) { return }
+
+        $message = 'Extraction subphase {0}: status={1}; rows={2}; elapsed={3}' -f
+            $Name, $Status, $Rows, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+        if ($Detail) { $message += "; $Detail" }
+        Write-AZSCLog -Level 'VERBOSE' -Message $message
+    }
+
+    function Write-ScoutRawInventoryStart {
+        param([Parameter(Mandatory)] [string] $Name)
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'DEBUG' -Message "Extraction subphase $Name started."
+        }
+    }
+
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
     $columns = "id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$tagProjection"
 
@@ -460,6 +485,8 @@ function Get-ScoutRawInventory {
     # resourcecontainers and every later table silently ran as a single tenant-wide call with
     # no per-batch isolation at all. Filtering out the null element restores the documented
     # behavior for both paths.
+    $argTimer = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-ScoutRawInventoryStart -Name 'ARG query sweep'
     $resolvedSubscriptionIds = @($SubscriptionIds | Where-Object { $_ })
     # No $excludedTypesClause here: the legacy extractor applied its type exclusion to the
     # `resources` table ONLY, and none of the four excluded types is a container type anyway.
@@ -578,6 +605,10 @@ function Get-ScoutRawInventory {
         }
     }
 
+    Write-ScoutRawInventoryTiming -Name 'ARG query sweep' -Timer $argTimer -Status 'Completed' `
+        -Rows @($resources).Count -Detail ('containers={0}; advisories={1}; security={2}; retirements={3}' -f
+            @($resourceContainers).Count, @($advisories).Count, @($security).Count, @($retirements).Count)
+
     # Optional non-ARG collector inputs use the existing Resources envelope rather than adding
     # a new top-level contract. The assessment shaper ignores unknown AZSC/* types, so opting
     # into these inventory-only rows cannot alter assessment-shaped output.
@@ -586,13 +617,22 @@ function Get-ScoutRawInventory {
     # see the AB#6770 block near the end of this function for why.
 
     if ($IncludeArmChildResources -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutArmChildResource' -FileName 'Get-ScoutArmChildResource.ps1')) {
+        $childTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'ARM child resource sweep'
+        $childStartCount = $resources.Count
+        $childStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }
         catch {
+            $childStatus = 'Failed'
             Write-Warning "Get-ScoutRawInventory: ARM child collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'ARM child resource sweep' -Timer $childTimer -Status $childStatus `
+                -Rows ($resources.Count - $childStartCount)
         }
     }
 
@@ -629,24 +669,42 @@ function Get-ScoutRawInventory {
     }
 
     if ($IncludeSubscriptionSecurityPolicy -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutSubscriptionSecurityPolicySweep' -FileName 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')) {
+        $securityPolicyTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'subscription security and policy sweep'
+        $securityPolicyStartCount = $resources.Count
+        $securityPolicyStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $subscriptionEnvelopes)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }
         catch {
+            $securityPolicyStatus = 'Failed'
             Write-Warning "Get-ScoutRawInventory: subscription security/policy collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'subscription security and policy sweep' -Timer $securityPolicyTimer `
+                -Status $securityPolicyStatus -Rows ($resources.Count - $securityPolicyStartCount)
         }
     }
 
     if ($IncludeOperationalCollectorEnrichment -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutOperationalCollectorEnrichment' -FileName 'Get-ScoutOperationalCollectorEnrichment.ps1')) {
+        $operationalTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'operational enrichment'
+        $operationalStartCount = $resources.Count
+        $operationalStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutOperationalCollectorEnrichment -Resources @($resources) -Subscriptions $subscriptionEnvelopes)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }
         catch {
+            $operationalStatus = 'Failed'
             Write-Warning "Get-ScoutRawInventory: operational collector enrichment failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'operational enrichment' -Timer $operationalTimer `
+                -Status $operationalStatus -Rows ($resources.Count - $operationalStartCount)
         }
     }
 
@@ -685,24 +743,41 @@ function Get-ScoutRawInventory {
         # or is skipped must cost the caller the policy definitions and nothing else -- folding
         # both into one try block is how the management groups got lost in the first place.
         if (-not $SkipApiResourceSweep) {
+            $apiSweepTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            Write-ScoutRawInventoryStart -Name 'ARM REST API sweep'
+            $apiSweepStatus = 'Completed'
             try {
                 $collectedApiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
             }
             catch {
+                $apiSweepStatus = 'Failed'
                 Write-Warning "Get-ScoutRawInventory: the ARM REST sweep failed; policy definitions will be empty, management groups and custom roles are unaffected: $($_.Exception.Message)"
+            }
+            finally {
+                Write-ScoutRawInventoryTiming -Name 'ARM REST API sweep' -Timer $apiSweepTimer -Status $apiSweepStatus `
+                    -Rows @($collectedApiResources).Count
             }
         }
         else {
             Write-Verbose 'Get-ScoutRawInventory: -SkipAPIs was requested, so the policy-definition envelopes will be empty. Management groups and custom role definitions are still collected.'
         }
 
+        $tenantWideTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'tenant-wide resource sweep'
+        $tenantWideStartCount = $resources.Count
+        $tenantWideStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $collectedApiResources)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }
         catch {
+            $tenantWideStatus = 'Failed'
             Write-Warning "Get-ScoutRawInventory: tenant-wide collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'tenant-wide resource sweep' -Timer $tenantWideTimer `
+                -Status $tenantWideStatus -Rows ($resources.Count - $tenantWideStartCount)
         }
 
         # AB#6801: Microsoft.Edge/sites rides the same ARM REST sweep as the four envelopes
@@ -781,6 +856,10 @@ function Get-ScoutRawInventory {
     $governance = $null
     if ((Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutGovernanceDataset' -FileName 'Get-ScoutGovernanceDataset.ps1') -and
         (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutGovernanceResource' -FileName 'ConvertTo-ScoutGovernanceResource.ps1')) {
+        $governanceTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutRawInventoryStart -Name 'governance dataset sweep'
+        $governanceStartCount = $resources.Count
+        $governanceStatus = 'Completed'
         try {
             $governanceArgs = @{ Subscriptions = $subscriptionEnvelopes }
             if ($ManagementGroupId) { $governanceArgs.ManagementGroupId = $ManagementGroupId }
@@ -791,7 +870,12 @@ function Get-ScoutRawInventory {
             }
         }
         catch {
+            $governanceStatus = 'Failed'
             Write-Warning "Get-ScoutRawInventory: governance collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+        finally {
+            Write-ScoutRawInventoryTiming -Name 'governance dataset sweep' -Timer $governanceTimer `
+                -Status $governanceStatus -Rows ($resources.Count - $governanceStartCount)
         }
     }
 

@@ -67,3 +67,52 @@ Describe 'Assessment core return value with the React renderer' {
         @($records).Count | Should -BeGreaterThan 1
     }
 }
+
+Describe 'Inventory-only live renderers' {
+    It 'renders React and JsonEvidence from memory without rules or remote fallback' {
+        $inventoryRoot = Join-Path $script:outRoot 'inventory-only'
+        $result = & $script:Module {
+            param($outRoot)
+
+            Mock Search-AzGraph { throw 'Inventory-only rendering attempted Resource Graph.' }
+            Mock Get-ScoutDefenderPlanSweep { throw 'Inventory-only rendering attempted Defender ARM.' }
+            Mock Get-ScoutExternalIdentitiesPolicy { throw 'Inventory-only rendering attempted Graph.' }
+            Mock Invoke-Assessment { throw 'Inventory-only rendering attempted assessment rules.' }
+
+            $raw = [pscustomobject]@{
+                Resources = @([pscustomobject]@{
+                    id = '/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1'
+                    name = 'vm1'; type = 'microsoft.compute/virtualmachines'; subscriptionId = '11111111-1111-1111-1111-111111111111'
+                    resourceGroup = 'rg'; location = 'eastus'; properties = [pscustomobject]@{}
+                })
+                ResourceContainers = @([pscustomobject]@{
+                    id = '11111111-1111-1111-1111-111111111111'; name = 'Subscription One'
+                    type = 'microsoft.resources/subscriptions'; subscriptionId = '11111111-1111-1111-1111-111111111111'
+                    properties = [pscustomobject]@{ state = 'Enabled' }; tags = $null
+                })
+                EntraResources = @([pscustomobject]@{ id = 'user-1'; name = 'Example User'; TYPE = 'entra/users' })
+            }
+
+            $run = Invoke-ScoutAssessmentCore -InventoryOnly -FromInventory $raw -Scope All `
+                -OutputFormat React,JsonEvidence -OutputPath $outRoot
+
+            Should -Invoke Search-AzGraph -Exactly 0
+            Should -Invoke Get-ScoutDefenderPlanSweep -Exactly 0
+            Should -Invoke Get-ScoutExternalIdentitiesPolicy -Exactly 0
+            Should -Invoke Invoke-Assessment -Exactly 0
+            return $run
+        } $inventoryRoot
+
+        @($result).Count | Should -Be 1
+        Test-Path (Join-Path $result 'report-react.html') | Should -BeTrue
+        Test-Path (Join-Path $result 'evidence.json') | Should -BeTrue
+
+        $evidence = Get-Content (Join-Path $result 'evidence.json') -Raw | ConvertFrom-Json -Depth 100
+        @($evidence.entraResources).Count | Should -Be 1
+        $evidence.PSObject.Properties.Name | Should -Not -Contain 'Findings'
+
+        $html = Get-Content (Join-Path $result 'report-react.html') -Raw
+        $html | Should -Match '"entra"\s*:\s*true'
+        $html | Should -Match '"assessments"\s*:\s*false'
+    }
+}

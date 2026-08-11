@@ -212,7 +212,7 @@ Describe 'AB#6922 — the format menu lists only renderers a run will actually p
         $m = [regex]::Match($script:CoreSrc, '\$script:ScoutHeldRenderers\s*=\s*@\(([^)]*)\)')
         $script:Held = @($m.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
 
-        $a = [regex]::Match($script:WizardSrc, '\$assessmentFormats\s*=\s*@\(([^)]*)\)')
+        $a = [regex]::Match($script:WizardSrc, '\$liveFormats\s*=\s*@\(([^)]*)\)')
         $script:Offered = @($a.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
     }
 
@@ -231,19 +231,17 @@ Describe 'AB#6922 — the format menu lists only renderers a run will actually p
         $script:Offered | Should -Contain 'React'
     }
 
-    It 'defaults an assessment run to React rather than a held renderer' {
-        $m = [regex]::Match($script:WizardSrc, '\$defaultFormats\s*=\s*if\s*\(\$wantsAssessment[^)]*\)\s*\{\s*@\(([^)]*)\)')
+    It 'defaults every run to React rather than a held renderer' {
+        $m = [regex]::Match($script:WizardSrc, '\$defaultFormats\s*=\s*@\(([^)]*)\)')
         $m.Success | Should -BeTrue
         $defaults = @($m.Groups[1].Value -split ',' | ForEach-Object { $_.Trim().Trim("'") } | Where-Object { $_ })
         $defaults | Should -Contain 'React'
         foreach ($d in $defaults) { $script:Held | Should -Not -Contain $d }
     }
 
-    It 'chooses the assessment list whenever an assessment runs, inventory or not' {
-        # The original `$wantsAssessment -and -not $wantsInventory` sent the commonest path --
-        # Inventory AND Assessment -- to the inventory-only list, which contains no React.
-        $script:WizardSrc | Should -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\)'
-        $script:WizardSrc | Should -Not -Match '\$formatPool\s*=\s*if\s*\(\$wantsAssessment\s+-and\s+-not\s+\$wantsInventory\)'
+    It 'uses the same live list for inventory, assessment, and combined runs' {
+        $script:WizardSrc | Should -Match '\$formatPool\s*=\s*\$liveFormats'
+        $script:WizardSrc | Should -Not -Match '\$formatPool\s*=\s*if\s*\('
     }
 }
 
