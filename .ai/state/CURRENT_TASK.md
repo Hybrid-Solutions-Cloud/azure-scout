@@ -42,6 +42,10 @@
   `AssessmentSourceUnavailable` failure, and the affected fallback/entry suites pass 51/51. The
   same update shadows `Get-AzContext` in the combined-route test so it cannot print ambient identity.
   A superseding exact-commit three-shard run is required.
+- Second exact-commit attempt: shards 0 and 1 passed 900/900 and 747/747. Shard 2 found two
+  conflicting fixture/source assertions: a direct Advisor fixture omitted `advisorAvailable=true`,
+  and a StrictMode contract still required the removed duplicate Managed Identity API field. Both
+  contracts are corrected and pass 92/92 focused. A new exact-commit full suite is required.
 
 - Actual completed run log reconciled: every warning class maps to a product fix; no unaccounted
   ERROR records.

@@ -44,6 +44,14 @@ The combined routing test also shadows `Get-AzContext` so it cannot read or prin
 ambient cached identity. Their focused rerun passed 51/51 with zero skips; a superseding clean
 commit and all three exact-commit shards are required.
 
+The next exact-commit attempt passed shards 0 and 1 (900/900 and 747/747). Shard 2 found two more
+stale/conflicting test contracts: the direct React assessment fixture contained a successful
+Advisor row but omitted `advisorAvailable=true`, and the StrictMode member-enumeration suite still
+required orchestration to append the duplicate Managed Identity REST field that this release
+deliberately removed. The fixture now declares successful Advisor availability; the API contract
+checks the six fields still consumed and explicitly forbids Managed Identity append. Their focused
+rerun passed 92/92 with zero skips. A superseding exact-commit three-shard gate remains required.
+
 ## Session 2026-08-11 — 3.12.2 guided-run preflight correction
 
 A second live customer run exposed duplicate and contradictory preflight UX after the initial
