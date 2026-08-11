@@ -38,7 +38,7 @@ features:
     link: /guide/permissions
     linkText: Permissions required
   - title: One report, and it is the deliverable
-    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. Word, PowerPoint, PDF, Excel and Power BI renderers are on hold while they are rebuilt to generate from it. Inventory runs still write Excel, JSON, Markdown, AsciiDoc and Power BI CSVs.
+    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. React, Json and JsonEvidence are the only live output formats in every run mode. All legacy renderers are on hold while they are rebuilt to generate from React.
     link: /assessment/configuration
     linkText: Report tiers and what is on hold
   - title: Unattended by design

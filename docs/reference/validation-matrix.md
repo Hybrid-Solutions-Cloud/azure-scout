@@ -47,8 +47,8 @@ a service principal and uploads the reports as artifacts for inspection.
 
 | Check | Verification |
 |---|---|
-| `-OutputFormat Json` produces JSON only | **Automated** — `OutputFormat.Tests.ps1` |
-| `-OutputFormat All` produces every format | **Automated** — `OutputFormat.Tests.ps1` |
+| `-OutputFormat Json` produces machine-readable results only | **Automated** — output contract tests |
+| `-OutputFormat All` selects exactly `React`, `Json`, and `JsonEvidence` | **Automated** — output contract tests |
 | JSON evidence structure | **Automated** — `Report.JsonEvidence.Tests.ps1` |
 
 ## Phase 8 — ARM module expansion
@@ -192,20 +192,24 @@ The alias set itself is documented in the [Category Reference](./category-refere
 | The audit restores the caller's subscription context | **Automated** — `PermissionAudit.Tests.ps1`, `RunIsolation.Tests.ps1` |
 | Audit survives a scalar-collapsing single subscription under StrictMode | **Automated** — `PermissionAudit.Tests.ps1` |
 
-## Phase 21 — Markdown and AsciiDoc export
+## Phase 21 — held Markdown and AsciiDoc implementations
+
+These checks cover retained legacy implementation code. Markdown-file and AsciiDoc renderers are
+on hold in every run mode; passing an internal renderer test does not make either value a live
+`-OutputFormat`.
 
 | Check | Verification |
 |---|---|
-| `-OutputFormat Markdown` generates a valid `.md` file | **Automated** — `OutputFormat.Tests.ps1` |
-| `-OutputFormat AsciiDoc` generates a valid `.adoc` file | **Automated** — `OutputFormat.Tests.ps1` |
-| Markdown tables render on GitHub (pipe-table format) | **Automated** — `OutputFormat.Tests.ps1` |
-| AsciiDoc converts to PDF via `asciidoctor-pdf` | **Live tenant** — external toolchain |
-| AsciiDoc converts to Word via Pandoc | **Live tenant** — external toolchain |
-| `-OutputFormat Excel,AsciiDoc` generates both | **Automated** — `OutputFormat.Tests.ps1` |
-| Modules with zero resources are skipped in Markdown/AsciiDoc | **Automated** — `OutputFormat.Tests.ps1` |
-| Large tenant Markdown output streams without OOM | **Live tenant** — a scale test |
-| AsciiDoc admonitions appear for security findings | **Automated** — `OutputFormat.Tests.ps1` |
-| `-PermissionAudit -OutputFormat Markdown` generates a permissions report | **Automated** — `PermissionAudit.Tests.ps1` |
+| Markdown implementation generates a valid `.md` fixture | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| AsciiDoc implementation generates a valid `.adoc` fixture | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| Markdown tables render on GitHub (pipe-table format) | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| AsciiDoc converts to PDF via `asciidoctor-pdf` | **Held-renderer development check** — external toolchain |
+| AsciiDoc converts to Word via Pandoc | **Held-renderer development check** — external toolchain |
+| Legacy Excel/AsciiDoc implementations remain testable from fixtures | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| Modules with zero resources are skipped in Markdown/AsciiDoc | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| Large-fixture Markdown implementation streams without OOM | **Held-renderer development check** — scale fixture |
+| AsciiDoc admonitions appear for security findings | **Internal compatibility test** — `OutputFormat.Tests.ps1` |
+| Legacy Markdown permission-report implementation remains testable | **Internal compatibility test** — `PermissionAudit.Tests.ps1` |
 
 ## Running the live-tenant checks
 

@@ -56,6 +56,8 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
             -DefinitionRoot $script:DefinitionRoot -TenantID 'tenant-test'
         $Report = Get-Content -LiteralPath $JsonPath -Raw | ConvertFrom-Json
 
+        (Split-Path -Leaf $JsonPath) | Should -Be 'inventory.json'
+        (Split-Path -Leaf $JsonPath) | Should -Not -Be 'findings.json'
         $Report.arm.compute.widget[0].Name | Should -Be 'widget-01'
         $Report.entra.users[0].Name | Should -Be 'user-01'
         $Report.arm.compute.PSObject.Properties.Name | Should -Not -Contain 'unlisted'

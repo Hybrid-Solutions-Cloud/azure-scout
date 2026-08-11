@@ -52,26 +52,26 @@ same behaviour at a terminal.
 | | Inventory (default) | Assessment (`-Assessment`) |
 |:--|:--|:--|
 | Answers | "What's in my tenant?" | "How well does it conform to CAF/WAF?" |
-| Output | Excel, JSON, Markdown, AsciiDoc, Power BI CSVs | The React report (`report-react.html`), scored `findings.json`, `evidence.json` |
-| `-OutputFormat` | `All`, `Excel`, `Json`, `Markdown`, `AsciiDoc`, `PowerBI` | `React`, `Json`, `JsonEvidence`. `Html`, `Pptx`, `Pdf`, `Word`, `Excel`, `PowerBI`, `EChartsDashboard` still bind, but are **on hold** and are not rendered |
+| Output | The React report (`report-react.html`) plus selected JSON results/evidence | The React report (`report-react.html`) plus selected JSON results/evidence |
+| `-OutputFormat` | `React`, `Json`, `JsonEvidence`, or `All` | `React`, `Json`, `JsonEvidence`, or `All` |
 | Full guide | [Usage Guide](./usage.md) | [Assessment mode](../assessment/assessment.md) |
 
-::: danger Assessment reporting: one deliverable
-The **React report is the one supported assessment deliverable**. Word, PDF, Excel, PowerPoint,
-Power BI, the standalone HTML renderer and the ECharts dashboard are **on hold** (**AB#6922**) —
+::: danger One global output contract
+The **React report is the one supported document in every run mode**. Word, PDF, Excel,
+PowerPoint, Power BI, standalone HTML, ECharts dashboard, Markdown-file, AsciiDoc, and governance
+renderers are **on hold** (**AB#6922**) —
 they are being rebuilt to generate *from* the React report rather than alongside it, so a document
 and the page it came from can never disagree. Export to Markdown, JSON, CSV, PDF (print) or a
 standalone HTML copy from the report page itself.
 
 Asking for a held format by name still binds: the run warns, skips it, and renders the React
 report, so a run never returns an empty folder. `Json` / `JsonEvidence` are data, not documents,
-and are never held. The inventory-mode formats in the left-hand column are a different pipeline
-and are unaffected. See [Report tiers](../assessment/configuration.md#report-tiers).
+and are never held. There is no inventory-only renderer carve-out. See
+[Report tiers](../assessment/configuration.md#report-tiers).
 :::
 
-Both modes are the same module, the same sign-in, and the same `-TenantID`, `-Scope`,
-`-Category`, and `-ReportDir` parameters. Mixing a format across modes fails with a message
-telling you which switch you actually wanted, rather than quietly producing nothing.
+Both modes are the same module, the same sign-in, the same `-TenantID`, `-Scope`, `-Category`, and
+`-ReportDir` parameters, and the same output-format contract.
 
 ## Running both
 
@@ -118,11 +118,10 @@ assessment run needs them today.
 The former standalone assessment command was a second entry point in v2.3.0 and
 earlier. It was removed in v3.0.0. Use the unified switch:
 
-```powershell
-# Before
-Invoke-ScoutAssessment -Assessment 'CAF: Azure Landing Zone' -OutputFormat Html
+The removed `Invoke-ScoutAssessment` command and its standalone HTML output are both legacy. Use
+the unified entry point and live React renderer:
 
-# After
+```powershell
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React
 ```
 

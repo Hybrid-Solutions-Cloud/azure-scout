@@ -15,7 +15,7 @@ description: Complete reference of all Invoke-AzureScout and Test-AZSCPermission
 | `-ResourceGroup` | Limit to one or more specific resource groups |
 | `-ManagementGroup` | Inventory all subscriptions under a management group |
 | `-Scope` | `ArmOnly` (default), `All`, or `EntraOnly` — controls which data domains are inventoried |
-| `-OutputFormat` | `All` (default), `Excel`, `Json`, `Markdown` (`MD`), `AsciiDoc` (`Adoc`), `PowerBI` — controls report file types; `PowerBI` generates flat normalized CSVs in a `PowerBI/` subfolder optimized for Power BI / Microsoft Fabric. Accepts an array. Assessment-mode formats are listed [below](#assessment-mode-parameters) |
+| `-OutputFormat` | Global output contract for every run mode: `React`, `Json`, `JsonEvidence`, or `All` (default, selects all three). Accepts an array. Legacy names still bind for compatibility but are on hold and are not emitted. See [Report tiers](../assessment/configuration.md#report-tiers). |
 | `-Assessment` | Switches the run to **assessment mode** — see [Assessment-mode Parameters](#assessment-mode-parameters). Omit for an inventory run |
 | `-NoWizard` | Skip the guided wizard that a bare, interactive `Invoke-AzureScout` opens, and run the default inventory instead. Alias: `-NonInteractive`. Never needed in CI — the wizard already suppresses itself in non-interactive hosts |
 | `-Category` | Filter by resource category: `AI`, `Analytics`, `Compute`, `Containers`, `Databases`, `Hybrid`, `Identity`, `Integration`, `IoT`, `Management`, `Monitor`, `Networking`, `Security`, `Storage`, `Web` — see [Category Filtering](./category-filtering.md) |
@@ -53,7 +53,7 @@ See [Authentication](./authentication.md) for detailed examples of each method.
 | `-ReportDir` | Base output directory (default: `C:\AzureScout\` on Windows, `$HOME/AzureScout/` on Linux/Mac) |
 | `-RunName` | Friendly name for this run's output folder instead of the generated timestamp, e.g. `-RunName 'Production-TenantA'`. Invalid path characters become `-` |
 | `-Force` | Write directly into `-ReportDir`, overwriting any previous run in place. Without it, each run gets its own timestamped folder so a rerun cannot destroy the previous run's cache or report |
-| `-Lite` | Lightweight Excel report — no charts or pivot tables |
+| `-Lite` | Legacy compatibility switch for the held Excel renderer; it does not change a live React/JSON output |
 
 ### Azure DevOps
 
@@ -114,7 +114,7 @@ run-mode examples: [Assessment guide](../assessment/assessment.md#run-modes).
 | `-InventoryAndAssessment` | Switch, alias `-Both`. Runs the inventory pass and the `-Assessment` pass from **one** collection instead of two — the assessment is handed the inventory's already-collected rows rather than re-querying Azure. Without it, `-Assessment` alone returns the assessment only; getting both previously meant invoking the command twice (and collecting from Azure twice) or answering the wizard's "run both?" prompt, which no script or CI pipeline could reach. See [Overview: running both](./overview.md#running-both). |
 | `-Scope` | `ArmOnly` or `All` — both run the ARM/Resource Graph collect. `EntraOnly` throws, because the assessment Collect layer has no Entra/Graph path; use an inventory run with `-Scope EntraOnly` for Entra ID. |
 | `-Category` | Filters which Resource Graph queries the Collect layer runs, narrowing the collect below the assessment's manifest default. |
-| `-OutputFormat` | **Emitted today: `React` (the deliverable), `Json`, `JsonEvidence`, `All`.** `Html`, `Pptx`, `PowerBI`, `Excel`, `Word`, `EChartsDashboard` and `Pdf` still bind but are **on hold** (**AB#6922**) — the run warns, skips them, and renders the React report instead, so a run never returns an empty folder. Accepts an array. Inventory-only formats (`Markdown`, `AsciiDoc`) are rejected here with a message naming the valid set. `React` renders a self-contained multi-page `report-react.html` — inventory blades, a full conformance register per assessment, diagrams, drift and a remediation plan — with an Executive/Consultant/Data view-depth toggle, a light/dark theme, and Markdown/JSON/CSV/Print/standalone-HTML exports. `JsonEvidence` is a resources-only JSON export with no assessment metadata. See [Report tiers](../assessment/configuration.md#report-tiers) and [the section contract](../reference/react-report-section-contract.md). |
+| `-OutputFormat` | Same global contract as inventory and combined runs: `React`, `Json`, `JsonEvidence`, or `All` (selects all three). `React` renders a self-contained multi-page `report-react.html` — inventory blades, a full conformance register per assessment, diagrams, drift, and a remediation plan — with an Executive/Consultant/Data view-depth toggle, a light/dark theme, and Markdown/JSON/CSV/Print/standalone-HTML exports. `JsonEvidence` is a resources-only JSON export with no assessment metadata. Every legacy renderer name is on hold. See [Report tiers](../assessment/configuration.md#report-tiers) and [the section contract](../reference/react-report-section-contract.md). |
 | `-ReportDir` | Base output directory; each run writes to a dated subfolder. |
 | `-PermissionAudit` | Switch — runs `Test-ScoutPermission` for the requested `-Assessment` set and returns before any collection happens. |
 | `-CollectOnly` | Switch — stop after Collect; returns the path to `collect.json`. |
@@ -135,7 +135,7 @@ See [Assessment guide — unattended, one-command run](../assessment/assessment.
 | Parameter | Description |
 |-----------|-------------|
 | `-Assessment` | Same as `Invoke-AzureScout -Assessment` — one, several, or `All`. |
-| `-OutputFormat` | Same values as `Invoke-AzureScout -OutputFormat` in assessment mode, and the same hold: `React`, `Json` and `JsonEvidence` are emitted; `Word`, `EChartsDashboard`, `Pdf`, `Html`, `Pptx`, `Excel` and `PowerBI` are on hold and are skipped with a warning (default: `All`). |
+| `-OutputFormat` | Same global contract as `Invoke-AzureScout`: `React`, `Json`, `JsonEvidence`, or `All` (default, selects all three). Every legacy renderer is on hold. |
 | `-OutputPath` | Base output directory; each run writes to a dated subfolder. |
 | `-ManagementGroupId` | Same scoping behaviour as assessment mode’s `-ManagementGroup`. |
 | `-Category` | Same as assessment mode’s `-Category`. |

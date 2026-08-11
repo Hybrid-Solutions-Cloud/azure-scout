@@ -11,7 +11,7 @@ Import-Module ./AzureScout.psd1
 Invoke-AzureScout
 ```
 
-With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context, and generates both Excel and JSON reports.
+With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context. It produces the React report and machine-readable JSON outputs selected by the global output contract.
 
 ## Scope
 
@@ -42,21 +42,27 @@ semantics — see [Assessment mode: `-Scope`](../assessment/assessment.md#-scope
 
 ## Output Format
 
-The `-OutputFormat` parameter controls report file types:
+The `-OutputFormat` parameter has the same live values for inventory, assessment, and combined
+runs:
 
 | Value | Produces |
 |-------|----------|
-| `All` (default) | Both Excel (.xlsx) and JSON (.json) |
-| `Excel` | Excel only |
-| `Json` | JSON only |
+| `All` (default) | `React`, `Json`, and `JsonEvidence` |
+| `React` | Self-contained `report-react.html` with an Inventory & audit page; assessment sections appear when assessments run |
+| `Json` | Machine-readable run results |
+| `JsonEvidence` | Resources-only evidence export |
 
 ```powershell
-# JSON only output
+# Machine-readable results only
 Invoke-AzureScout -OutputFormat Json
 
-# Excel only output
-Invoke-AzureScout -OutputFormat Excel
+# Self-contained inventory report
+Invoke-AzureScout -OutputFormat React
 ```
+
+Legacy values such as `Excel`, `Markdown`, `AsciiDoc`, `PowerBI`, `Html`, `Pptx`, `Pdf`, `Word`,
+`EChartsDashboard`, and `GovernanceReport` are on hold. They are not live inventory alternatives.
+Use the export menu inside the React report for Markdown, JSON, CSV, PDF/Print, and standalone HTML.
 
 ## Report Location
 

@@ -59,6 +59,62 @@ Describe 'Invoke-ScoutPipeline -- renderer contract' {
     }
 }
 
+Describe 'Invoke-ScoutPipeline -- effective output formats' {
+    BeforeEach {
+        $script:outPath = Join-Path -Path $TestDrive -ChildPath "output-$([guid]::NewGuid())"
+        Mock Invoke-ScoutAssessmentCore {
+            $folder = $ReservedRunPath
+            '{}' | Out-File (Join-Path -Path $folder -ChildPath 'collect.json')
+            return $folder
+        }
+        Mock Write-Warning
+    }
+
+    It 'expands All to exactly React, Json, and JsonEvidence in execution and summaries' {
+        $runFolder = Invoke-ScoutPipeline -OutputFormat All -OutputPath $script:outPath -SkipPermissionAudit
+
+        Should -Invoke Invoke-ScoutAssessmentCore -Times 1 -Exactly -ParameterFilter {
+            -not $PermissionAudit -and @($OutputFormat).Count -eq 3 -and
+                $OutputFormat[0] -eq 'React' -and $OutputFormat[1] -eq 'Json' -and
+                $OutputFormat[2] -eq 'JsonEvidence'
+        }
+        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        @($summary.requestedFormats) | Should -Be @('All')
+        @($summary.formats) | Should -Be @('React', 'Json', 'JsonEvidence')
+        Get-Content (Join-Path $runFolder 'pipeline-summary.md') -Raw |
+            Should -Match '(?m)^- Formats: React, Json, JsonEvidence$'
+    }
+
+    It 'falls back from a held-only request to React and records the effective output' {
+        $runFolder = Invoke-ScoutPipeline -OutputFormat Word -OutputPath $script:outPath -SkipPermissionAudit
+
+        Should -Invoke Invoke-ScoutAssessmentCore -Times 1 -Exactly -ParameterFilter {
+            -not $PermissionAudit -and @($OutputFormat).Count -eq 1 -and $OutputFormat[0] -eq 'React'
+        }
+        Should -Invoke Write-Warning -ParameterFilter { $Message -like '*on hold*Word*' }
+        Should -Invoke Write-Warning -ParameterFilter { $Message -like '*every requested*React*' }
+        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        @($summary.requestedFormats) | Should -Be @('Word')
+        @($summary.formats) | Should -Be @('React')
+        Get-Content (Join-Path $runFolder 'pipeline-summary.md') -Raw |
+            Should -Match '(?m)^- Formats: React$'
+    }
+
+    It 'drops held names from a mixed request and runs only the requested live format' {
+        $runFolder = Invoke-ScoutPipeline -OutputFormat Excel,Json -OutputPath $script:outPath -SkipPermissionAudit
+
+        Should -Invoke Invoke-ScoutAssessmentCore -Times 1 -Exactly -ParameterFilter {
+            -not $PermissionAudit -and @($OutputFormat).Count -eq 1 -and $OutputFormat[0] -eq 'Json'
+        }
+        Should -Invoke Write-Warning -ParameterFilter { $Message -like '*on hold*Excel*' }
+        $summary = Get-Content (Join-Path $runFolder 'pipeline-summary.json') -Raw | ConvertFrom-Json
+        @($summary.requestedFormats) | Should -Be @('Excel', 'Json')
+        @($summary.formats) | Should -Be @('Json')
+        Get-Content (Join-Path $runFolder 'pipeline-summary.md') -Raw |
+            Should -Match '(?m)^- Formats: Json$'
+    }
+}
+
 Describe 'Invoke-ScoutPipeline -- Success path' {
     BeforeEach {
         # A unique folder name per test -- the mock below writes a fixed run-folder
@@ -97,7 +153,7 @@ Describe 'Invoke-ScoutPipeline -- Success path' {
         $summary = Get-Content $summaryPath -Raw | ConvertFrom-Json
         $keys = $summary.PSObject.Properties.Name
         foreach ($expected in 'schemaVersion', 'startedOn', 'finishedOn', 'elapsedSeconds',
-                              'assessments', 'formats', 'managementGroupId', 'runFolder',
+                              'assessments', 'requestedFormats', 'formats', 'managementGroupId', 'runFolder',
                               'assessmentStatus', 'findingsByStatus', 'permissionAudit',
                               'assessmentError', 'outcome') {
             $keys | Should -Contain $expected

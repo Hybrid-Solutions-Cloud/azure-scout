@@ -15,8 +15,9 @@ $ErrorActionPreference = 'Stop'
 
     The full payload contract (window.__SCOUT_DATA__) is:
 
-        identity, meta, ran, inventory, subscriptions, assessments, resourceIndex, drift,
-        costProjection (AB#7093 -- transparent trailing-30-day cost run-rate extrapolation)
+        identity, meta, ran, inventory, entraResources, subscriptions, assessments,
+        resourceIndex, drift, costProjection (AB#7093 -- transparent trailing-30-day cost
+        run-rate extrapolation)
 
     See each builder function below for the exact shape it produces. Everything is inlined
     into one report-react.html file -- CSS/JS/data all embedded -- so the report opens and
@@ -137,10 +138,9 @@ function Export-React {
 
     # `ran` drives the adaptive nav -- which top-level sections the shell even offers -- AND the
     # derived reportTitle default just below, so it is computed here, ahead of the identity block.
-    # `entra`: the Collect layer (Invoke-Collect) is ARM/Resource Graph only -- there is no
-    # Entra/Graph collection path in this platform (see Invoke-ScoutAssessmentCore's own NOTES),
-    # so this is always false for a Collect built by this pipeline. Left as an explicit field
-    # (not just omitted) so a future Entra-aware Collect only has to flip this, not add a key.
+    # `entra`: an inventory-only render can carry the Entra rows already gathered by
+    # Start-AZSCExtractionOrchestration. The renderer never acquires a Graph token itself; it
+    # only reports rows present in Collect.entraResources.
     #
     # `@(Get-ReactSafeProp ...)` alone is NOT a safe truthiness check here: `@($null)` is an array
     # of ONE null element (`.Count` = 1), so a Collect that never carried the property at all --
@@ -153,10 +153,12 @@ function Export-React {
     $inventoryHasData = [bool]((Test-ReactHasRow (Get-ReactSafeProp $Collect @('subscriptions'))) -or
         (Test-ReactHasRow (Get-ReactSafeProp $Collect @('networking', 'virtualNetworks'))) -or
         (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))))
+    $entraResourcesValue = Get-ReactSafeProp $Collect @('entraResources')
+    $entraResources = if ($null -eq $entraResourcesValue) { @() } else { @($entraResourcesValue) }
     $allFindingsRows = @(Get-ReactSafeProp $Findings @('Findings'))
     $ran = [ordered]@{
         inventory   = $inventoryHasData
-        entra       = $false
+        entra       = [bool](Test-ReactHasRow $entraResourcesValue)
         assessments = [bool]($allFindingsRows.Count -gt 0)
     }
 
@@ -1137,6 +1139,7 @@ function Export-React {
         subscriptions  = @($subscriptions | ForEach-Object {
             [pscustomobject]@{ id = (Get-ReactRowProp $_ 'id'); name = (Get-ReactRowProp $_ 'name'); state = (Get-ReactRowProp $_ 'state') }
         })
+        entraResources = $entraResources
         assessments    = @($assessments)
         resourceIndex  = $resourceIndex
         drift          = $Drift

@@ -1,8 +1,8 @@
 ---
-ArtifactType: Excel spreadsheet and JSON with full Azure Scout
+ArtifactType: Self-contained React report and machine-readable JSON evidence
 Language: PowerShell
 Platform: Windows / Linux / Mac
-Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
+Tags: PowerShell, Azure, Inventory, Entra ID, React Report, JSON Evidence
 ---
 
 <div align="center">
@@ -23,7 +23,10 @@ Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 
 ## Overview
 
-**AzureScout** (AZSC) is a PowerShell module that generates detailed Excel and JSON reports of an Azure tenant, covering both ARM resources and Entra ID (Azure AD) objects. It is designed for Cloud Administrators and technical professionals who need a consolidated view of their Azure environment.
+**AzureScout** (AZSC) is a PowerShell module that inventories an Azure tenant and produces a
+self-contained React report plus machine-readable JSON results and evidence. It covers both ARM
+resources and Entra ID (Azure AD) objects for cloud administrators and technical professionals who
+need a consolidated view of their Azure environment.
 
 > **v3.0.0 architecture:** inventory collectors are declarative definitions in
 > `manifests/collectors`; AzureScout no longer ships or executes a per-collector PowerShell
@@ -38,12 +41,14 @@ Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 ## Key Features
 - ARM and Entra ID inventory
 - Azure DevOps inventory — projects, pipelines, service connections, repos, agent pools
-- Excel and JSON output
+- One output contract for inventory, assessment, and combined runs: `React`, `Json`, and `JsonEvidence`
 - Scoped execution (ARM-only, Entra-only, or both)
 - Streamlined authentication
 - Permission checker — names every collector a missing permission will leave empty
 - Network diagrams
 - Run isolation — a rescan never overwrites the previous run's data
+- Detailed file logging by default — collector/rule status, row/evidence counts, and phase timings
+  are written without adding debug noise to the console
 - Evidence artifacts — `raw-inventory.json` (everything collected, before any worksheet
   filtering) and `collector-rowcounts.json` (per-collector Rows/Empty/Failed) written for
   every run

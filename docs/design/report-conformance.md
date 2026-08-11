@@ -11,6 +11,12 @@ claiming to satisfy it.
 linked: `/pmo` holds internal programme records and is deliberately not published to this site,
 so a relative link out of `docs/` is a dead link at build time.
 
+::: warning Legacy clauses are not live output promises
+React is the only live document renderer; Json and JsonEvidence are the live data outputs. The
+Excel, Power BI, PowerPoint, Word, PDF, standalone HTML, ECharts, and governance clauses below are
+quality gates for held implementations and rebuild work, not formats emitted by a current run.
+:::
+
 ---
 
 ## Why this exists

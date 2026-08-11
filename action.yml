@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ''
   output-format:
-    description: 'All, Excel, Json, Markdown, AsciiDoc, or PowerBI.'
+    description: 'All (React, Json, and JsonEvidence), or a comma-separated selection of React, Json, and JsonEvidence.'
     required: false
     default: 'All'
   report-name:
@@ -47,7 +47,7 @@ inputs:
     required: false
     default: ''
   lite:
-    description: 'Skip Excel chart customization. Must stay true on hosted runners — chart customization drives Excel over COM and no hosted runner has Excel installed.'
+    description: 'Legacy compatibility switch for held Excel output. It has no effect on the live React, Json, and JsonEvidence formats.'
     required: false
     default: 'true'
   include-costs:
@@ -168,12 +168,17 @@ runs:
         $reportDir = Join-Path $env:GITHUB_WORKSPACE $env:REPORT_DIR
         New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
 
+        $requestedFormats = @($env:OUTPUT_FORMAT -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        if ($requestedFormats.Count -eq 0) {
+            $requestedFormats = @('All')
+        }
+
         $params = @{
             TenantID            = $env:TENANT_ID
             ReportName          = $env:REPORT_NAME
             ReportDir           = $reportDir
             Scope               = $env:SCOUT_SCOPE
-            OutputFormat        = $env:OUTPUT_FORMAT
+            OutputFormat        = $requestedFormats
             SkipDiagram         = $true
             SkipPermissionCheck = $true
             # -Force keeps output flat in ReportDir. A CI job is a fresh workspace with

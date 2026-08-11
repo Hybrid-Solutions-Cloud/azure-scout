@@ -52,12 +52,13 @@ $script:ScoutHeldRenderers = @(
 .NOTES
     Tracks ADO Epic AB#5023 (Feature AB#5024, Story AB#5026) and Epic AB#5056.
 
-    `-Scope`: the Collect layer is ARG/ARM only — there is no Entra/Graph
-    collection path here, so 'EntraOnly' throws with a redirect to
+    `-Scope`: a live assessment Collect is ARG/ARM only — there is no Entra/Graph
+    collection path there, so 'EntraOnly' throws with a redirect to
     `Invoke-AzureScout -Scope EntraOnly` (the v1 inventory tool) rather than
     silently running a collect that can never gather anything. 'ArmOnly' and
     'All' are accepted and behave identically (both run the ARM collect) —
-    kept for forward compatibility rather than removed.
+    kept for forward compatibility rather than removed. The internal InventoryOnly path is an
+    exception: it receives already-collected Entra rows and never calls Graph.
 
     `-ManagementGroupId` now actually scopes the ARG collect (`Search-AzGraph
     -ManagementGroup`, threaded through `Invoke-Collect` and
@@ -85,7 +86,7 @@ function Invoke-ScoutAssessmentCore {
         # call with no explicit -Assessment now defaults to the same entry an interactive run would.
         [string[]] $Assessment = @('CAF: Azure Landing Zone'),   # one, many, or 'All'
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
-        [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
+        [string]   $Scope = 'All',              # EntraOnly throws for live assessments; InventoryOnly reuses in-memory rows
         [string[]] $Category,                    # existing category filter still works
         # AB#6922: the React single-page report is the product's deliverable; every other
         # rendered format is ON HOLD and will be regenerated FROM it (see $script:ScoutHeldRenderers
@@ -102,6 +103,9 @@ function Invoke-ScoutAssessmentCore {
         # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
         # rows already in memory instead of querying Azure a second time.
         [object]   $FromInventory,
+        # Render React/JsonEvidence from an inventory pass already in memory. This deliberately
+        # skips assessment rules and forces Invoke-Collect's no-live-fallback shaping path.
+        [switch]   $InventoryOnly,
         # AB#6827 (Feature AB#6749) -- opt-in, same shape as Invoke-AzureScout's own switch. Only
         # threaded to Import-ScoutDevOpsCapability when a chosen assessment's `Ingest` list asks
         # for 'DevOpsCapability'; every other assessment pays nothing for it.
@@ -137,8 +141,19 @@ function Invoke-ScoutAssessmentCore {
         catch { Write-Verbose "Invoke-ScoutAssessmentCore: Write-ScoutProgress failed, continuing without progress UX: $_" }
     }
 
+    function Write-ScoutAssessmentLog {
+        param(
+            [Parameter(Mandatory)] [string] $Message,
+            [ValidateSet('DEBUG', 'VERBOSE')] [string] $Level = 'DEBUG'
+        )
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level $Level -Message $Message
+        }
+    }
+
     $manifest = Import-PowerShellDataFile "$PSScriptRoot/../manifests/assessments.psd1"
-    if ($Assessment -contains 'All') { $Assessment = @($manifest.Keys) }
+    if ($InventoryOnly) { $Assessment = @() }
+    elseif ($Assessment -contains 'All') { $Assessment = @($manifest.Keys) }
     # AB#6762 -- fifteen entries were renamed with an `Assess: ` prefix to stop the wizard menu
     # colliding with the fifteen identically-named inventory categories. A scripted
     # `-Assessment Compute` predates that rename and must keep working, so the legacy name is
@@ -155,7 +170,7 @@ function Invoke-ScoutAssessmentCore {
     if ($FromCollect) {
         $fromCollectData = Get-Content -LiteralPath $FromCollect -Raw -ErrorAction Stop | ConvertFrom-Json -Depth 100
     }
-    elseif ($Scope -eq 'EntraOnly') {
+    elseif ($Scope -eq 'EntraOnly' -and -not ($InventoryOnly -and $FromInventory)) {
         throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
     }
 
@@ -195,6 +210,9 @@ function Invoke-ScoutAssessmentCore {
     $runId = Split-Path $runPath -Leaf
 
     # ---- COLLECT ----
+    $collectTimer = [System.Diagnostics.Stopwatch]::StartNew()
+    $collectSource = if ($FromCollect) { 'file' } elseif ($FromInventory) { 'inventory-memory' } else { 'live' }
+    Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment collect started: source=$collectSource."
     if ($FromCollect) {
         $collect = $fromCollectData
     }
@@ -205,7 +223,7 @@ function Invoke-ScoutAssessmentCore {
         # silently returning an empty/misleading run. 'ArmOnly' and 'All' are
         # functionally identical today (both just run the ARM collect) and stay
         # accepted for forward compatibility.
-        $categories = $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique
+        $categories = if ($InventoryOnly) { @('*') } else { $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique }
         if ($Category) { $categories = $Category }
         Write-ScoutAssessmentProgress -Status 'Collecting Azure resource data' -PercentComplete 5
         $collectArgs = @{
@@ -216,6 +234,7 @@ function Invoke-ScoutAssessmentCore {
         }
         # AB#5543 — reuse the inventory pass when this run already made one.
         if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
+        if ($InventoryOnly) { $collectArgs.OfflineFromInventory = $true }
         # AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect (it is an extra
         # Azure call type relative to every other assessment's collect) and is switched on only
         # when a chosen assessment actually scores compliance state.
@@ -230,9 +249,11 @@ function Invoke-ScoutAssessmentCore {
         $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments
-        $ingestors = $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique
+        $ingestors = if ($InventoryOnly) { @() } else { $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique }
         foreach ($i in $ingestors) {
             Write-ScoutAssessmentProgress -Status "Ingesting: $i" -PercentComplete 20
+            $ingestTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            Write-ScoutAssessmentLog -Message "Assessment ingest started: name=$i."
             switch ($i) {
                 # Native governance collector (AB#5041) — ARG + ambient-token ARM
                 # REST, no AzGovViz dependency. Default for every assessment that
@@ -285,9 +306,26 @@ function Invoke-ScoutAssessmentCore {
                     $collect = Import-ScoutDevOpsCapability @devopsArgs
                 }
             }
+            $ingestTimer.Stop()
+            Write-ScoutAssessmentLog -Message (
+                'Assessment ingest finished: name={0}; elapsed={1}' -f
+                    $i, $ingestTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+            )
+        }
+        if ($InventoryOnly) {
+            $entraRows = if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
+                @($FromInventory.EntraResources)
+            }
+            else { @() }
+            $collect | Add-Member -NotePropertyName entraResources -NotePropertyValue $entraRows -Force
         }
         $collect | ConvertTo-Json -Depth 100 | Out-File "$runPath/collect.json"
     }
+    $collectTimer.Stop()
+    Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
+        'Assessment collect finished: source={0}; elapsed={1}' -f
+            $collectSource, $collectTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+    )
     if ($CollectOnly) { return "$runPath/collect.json" }
 
     # ---- ASSESS ----
@@ -305,8 +343,17 @@ function Invoke-ScoutAssessmentCore {
     foreach ($name in $Assessment) {
         $assessmentIndex++
         Write-ScoutAssessmentProgress -Status "Assessing: $name" -PercentComplete (35 + [Math]::Min(30, [Math]::Round(($assessmentIndex / [Math]::Max(1, @($Assessment).Count)) * 30)))
+        $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment rules started: assessment=$name."
         $spec = $manifest[$name]
-        if (-not $spec.Rules) { continue }        # inventory-only assessment
+        if (-not $spec.Rules) {
+            $ruleTimer.Stop()
+            Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
+                'Assessment rules finished: assessment={0}; status=Skipped; findings=0; elapsed={1}' -f
+                    $name, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+            )
+            continue
+        }        # inventory-only assessment
         # AB#6792/#6793/#6794 (Feature AB#6744) -- a `Compliance = $true` entry scores Azure
         # Policy compliance state Scout already collected, not a YAML rule set. It still needs a
         # matching Rules glob (for the AB#6763 menu gate, see compliance.initiative.yaml), so the
@@ -317,6 +364,11 @@ function Invoke-ScoutAssessmentCore {
             $findings = Invoke-ScoutComplianceAssessment -Collect $collect -Assessment $name
             $allFindings += $findings
             $findingsByAssessment[$name] = @($findings)
+            $ruleTimer.Stop()
+            Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
+                'Assessment rules finished: assessment={0}; status=Completed; findings={1}; elapsed={2}' -f
+                    $name, @($findings).Count, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+            )
             continue
         }
         $ruleSet   = Get-RuleSet -Patterns $spec.Rules
@@ -331,6 +383,11 @@ function Invoke-ScoutAssessmentCore {
         $findings = Invoke-Assessment -Collect $collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment $name
         $allFindings += $findings
         $findingsByAssessment[$name] = @($findings)
+        $ruleTimer.Stop()
+        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
+            'Assessment rules finished: assessment={0}; status=Completed; findings={1}; elapsed={2}' -f
+                $name, @($findings).Count, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+        )
     }
     $scored = Get-Score -Findings $allFindings
     $scored | ConvertTo-Json -Depth 100 | Out-File "$runPath/findings.json"
@@ -343,11 +400,13 @@ function Invoke-ScoutAssessmentCore {
     # persists across dated run folders. Never fatal — a drift failure must not
     # sink an otherwise-good assessment.
     $drift = $null
-    try {
-        $drift = Get-ScoutDrift -Findings $scored -HistoryPath (Join-Path $OutputPath '.scout-history') -RunId $runId
-    }
-    catch {
-        Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"
+    if (-not $InventoryOnly) {
+        try {
+            $drift = Get-ScoutDrift -Findings $scored -HistoryPath (Join-Path $OutputPath '.scout-history') -RunId $runId
+        }
+        catch {
+            Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"
+        }
     }
 
     # ---- REPORT ----
@@ -381,6 +440,8 @@ function Invoke-ScoutAssessmentCore {
     foreach ($r in $reporters) {
         $reporterIndex++
         Write-ScoutAssessmentProgress -Status "Rendering: $r" -PercentComplete (70 + [Math]::Min(29, [Math]::Round(($reporterIndex / [Math]::Max(1, @($reporters).Count)) * 29)))
+        $rendererTimer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment renderer started: renderer=$r."
         # Pipe to Out-Null: some renderers (Export-React) RETURN the path they
         # wrote, and that must not leak into this function's output stream — the
         # only thing the assessment core returns is $runPath. Without this,
@@ -388,6 +449,11 @@ function Invoke-ScoutAssessmentCore {
         # caller that expects a single run-folder path (incl. Invoke-ScoutPipeline)
         # breaks.
         Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
+        $rendererTimer.Stop()
+        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
+            'Assessment renderer finished: renderer={0}; elapsed={1}' -f
+                $r, $rendererTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+        )
     }
 
     # ---- PER-ASSESSMENT DATA (AB#6879, clause R-01/R-02 -- SUPERSEDED for rendered documents) ----

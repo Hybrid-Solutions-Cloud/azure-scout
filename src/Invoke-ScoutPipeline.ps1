@@ -47,8 +47,8 @@ $ErrorActionPreference = 'Stop'
     Same assessment selection contract as Invoke-AzureScout -Assessment.
 
 .PARAMETER OutputFormat
-    One or many report renderers, or 'All'. Same contract as
-    Invoke-AzureScout -OutputFormat in assessment mode.
+    One or many live report formats (React, Json, JsonEvidence), or 'All'. Legacy renderer names
+    still bind but warn and are held. Same contract as Invoke-AzureScout -OutputFormat.
 
 .PARAMETER OutputPath
     Parent folder the dated run folder is created under. Same contract as
@@ -69,13 +69,13 @@ $ErrorActionPreference = 'Stop'
 .EXAMPLE
     Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputFormat All -OutputPath ./output -ManagementGroupId 'contoso-root-mg'
 
-    Full unattended landing-zone run, every reporter tier, scoped to a management group.
+    Full unattended landing-zone run, all three live formats, scoped to a management group.
 
 .EXAMPLE
-    Invoke-ScoutPipeline -Assessment 'Assess: Security', 'Assess: Networking' -OutputFormat Html, Excel -SkipPermissionAudit
+    Invoke-ScoutPipeline -Assessment 'Assess: Security', 'Assess: Networking' -OutputFormat React, JsonEvidence -SkipPermissionAudit
 
-    A CI job that already validated permissions upstream and only wants two
-    per-category assessments rendered to two tiers.
+    A CI job that already validated permissions upstream and wants the interactive report plus
+    the resources-only evidence export.
 
 .EXAMPLE
     try {
@@ -133,6 +133,32 @@ function Invoke-ScoutPipeline {
     # just spam log output), so force both off for the whole run.
     $ConfirmPreference  = 'None'
     $ProgressPreference = 'SilentlyContinue'
+
+    # Resolve the public compatibility surface to the formats this run will actually emit before
+    # invoking the core. Keeping this normalization here as well as in the core makes the pipeline
+    # summary truthful: it must describe delivered artifacts, not held renderer names that were
+    # accepted only so existing automation continues to bind.
+    $requestedFormats = @($OutputFormat)
+    $liveFormats = @('React', 'Json', 'JsonEvidence')
+    $heldFormats = @($requestedFormats |
+        Where-Object { $_ -ne 'All' -and $_ -notin $liveFormats } |
+        Select-Object -Unique)
+    if ($heldFormats.Count -gt 0) {
+        Write-Warning ("Invoke-ScoutPipeline: {0} report format(s) are on hold and will not be rendered: {1}. Live formats: React, Json, JsonEvidence." -f
+            $heldFormats.Count, ($heldFormats -join ', '))
+    }
+
+    $effectiveFormats = if ($requestedFormats -contains 'All') {
+        $liveFormats
+    }
+    else {
+        @($requestedFormats | Where-Object { $_ -in $liveFormats } | Select-Object -Unique)
+    }
+    if (@($effectiveFormats).Count -eq 0) {
+        Write-Warning 'Invoke-ScoutPipeline: every requested report format is on hold; rendering the React report instead so the run still produces a deliverable.'
+        $effectiveFormats = @('React')
+    }
+    $OutputFormat = @($effectiveFormats)
 
     $schemaVersion = '1.0'
     $startedOn = Get-Date
@@ -300,6 +326,7 @@ function Invoke-ScoutPipeline {
         finishedOn              = $finishedOn.ToString('o')
         elapsedSeconds          = [math]::Round(($finishedOn - $startedOn).TotalSeconds, 1)
         assessments             = @($Assessment)
+        requestedFormats        = @($requestedFormats)
         formats                 = @($OutputFormat)
         managementGroupId       = $ManagementGroupId
         runFolder               = $runFolder

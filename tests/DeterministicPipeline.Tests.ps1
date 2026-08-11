@@ -27,6 +27,7 @@ BeforeAll {
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Write-ScoutCacheFile.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Write-AZTIRunLog.ps1')
 
     # ── Fixture collector tree ───────────────────────────────────────────────────────────
     # Mirrors the retired collector layout: one directory per category, each holding
@@ -275,6 +276,7 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
     }
 
     AfterEach {
+        $null = Stop-AZSCRunLog -Quiet -ErrorAction SilentlyContinue
         if (Test-Path -LiteralPath $script:RunPath) {
             Remove-Item -LiteralPath $script:RunPath -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -291,6 +293,23 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Storage.json')    | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Networking.json') | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Empty.json')      | Should -BeFalse
+    }
+
+    It 'durably logs collector timing, row count, status, and category subphases' {
+        Start-AZSCRunLog -DefaultPath $script:RunPath -NoTranscript
+
+        $null = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
+
+        $null = Stop-AZSCRunLog -Quiet
+        $Text = Get-Content -Raw (Join-Path -Path $script:RunPath -ChildPath 'scout-run.log')
+
+        $Text | Should -Match '\[VERBOSE\] Collector processing started: collectors=6; categories=4'
+        $Text | Should -Match '\[VERBOSE\] Collector category Compute started: collectors=2'
+        $Text | Should -Match '\[VERBOSE\] Collector category Compute finished: rows=3; cacheWritten=True'
+        $Text | Should -Match '\[DEBUG\s*\] Collector Compute/VirtualMachines: status=Rows; rows=2; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
+        $Text | Should -Match '\[DEBUG\s*\] Collector Empty/Nothing: status=Empty; rows=0; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
+        $Text | Should -Match '\[DEBUG\s*\] Collector Storage/Exploding: status=Failed; rows=0; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
     }
 
     It 'completes the run despite a broken collector, and reports it' {

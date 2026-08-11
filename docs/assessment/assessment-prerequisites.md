@@ -23,7 +23,7 @@ Desktop as a second guard. Run everything in `pwsh`.
 |---|---|
 | PowerShell | 7.0.3+ (source: [`pmo/plans/master-plan.md` §10](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md#10-dependencies-from-spec-10)) |
 | Operating System | Windows, Linux, or macOS — the platform is pure PowerShell/.NET |
-| .NET SDK | Required only for the PowerPoint (`Pptx`) report tier — see [below](#powerpoint-tier-net-sdk-not-python) |
+| .NET SDK | Not required for live outputs. The held PowerPoint renderer's implementation uses it; see [below](#held-powerpoint-renderer-net-sdk-not-python) |
 | `git` | Required only if you opt an assessment into the legacy `AzGovViz` ingestor instead of the native `Governance` default (see [Auth & permissions](./assessment-permissions.md)) — used to shallow-clone the Azure Governance Visualizer tool at first use. Not needed by any assessment out of the box. |
 
 ## Required PowerShell modules
@@ -44,7 +44,7 @@ dependencies; install those only when you enable the corresponding feature.
 | `Az.Resources` | Role assignment reads (permission pre-flight) | All | Yes |
 | `powershell-yaml` | Parses the `caf.*`/`waf.*` rule YAML files (`Get-RuleSet`) | All scoring (any assessment with `Rules`) | Yes |
 | `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | Yes |
-| `ImportExcel` | Excel evidence-tier report (`Export-Excel`) | `-OutputFormat Excel` | Yes |
+| `ImportExcel` | Package dependency retained for the held Excel renderer and legacy workbook tests | No live output format | Yes |
 | `AzAPICall` | Dependency of the third-party Azure Governance Visualizer | Assessments whose `Ingest` includes `AzGovViz` | No — `Import-AzGovViz.ps1` installs it itself at first use (`Install-Module AzAPICall -Scope CurrentUser -Force`) if not already present |
 
 ::: info `Az.Security` is documented, not yet wired up
@@ -56,11 +56,11 @@ Installing it does no harm, but it is not load-bearing for any assessment
 today.
 :::
 
-## PowerPoint tier — .NET SDK, not Python
+## Held PowerPoint renderer — .NET SDK, not Python
 
-The `Pptx` report tier (`-OutputFormat Pptx`) renders the executive deck with
-the **OpenXML SDK** (`DocumentFormat.OpenXml`), not `python-pptx` and not
-PowerPoint COM automation — see the accepted decision record,
+The `Pptx` renderer is on hold and does not emit an executive deck in a live run. Its retained
+implementation uses the **OpenXML SDK** (`DocumentFormat.OpenXml`), not `python-pptx` and not
+PowerPoint COM automation—see the accepted decision record,
 [PPTX executive-deck renderer](../design/decisions/pptx-renderer.md).
 
 ::: tip No Python required
@@ -70,7 +70,7 @@ pure PowerShell/.NET today. **You do not need Python installed anywhere in
 the pipeline for any output format.**
 :::
 
-What `Export-Pptx.ps1` actually needs, and what happens the first time you run it:
+What the retained `Export-Pptx.ps1` implementation needs when its internal tests exercise it:
 
 1. On first use, it checks for a cached copy of `DocumentFormat.OpenXml`
    3.0.2 (and its transitive dependencies) under
@@ -81,11 +81,11 @@ What `Export-Pptx.ps1` actually needs, and what happens the first time you run i
    graph via NuGet/MSBuild, then caches the three resulting DLLs.
 3. Every later run (same machine) loads the cached DLLs via `Add-Type -Path`
    — no network access, no `dotnet` needed once the cache is warm.
-4. If `dotnet` is not on `PATH` and nothing is cached, `Export-Pptx` throws a
-   clear error rather than silently skipping the deck.
+4. If `dotnet` is not on `PATH` and nothing is cached, the held renderer's direct/internal use
+   throws a clear error.
 
 ```powershell
-# Verify the .NET SDK is available before your first -OutputFormat Pptx run
+# Only needed when developing or directly testing the held Pptx renderer
 dotnet --version
 ```
 

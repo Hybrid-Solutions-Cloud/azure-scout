@@ -1,5 +1,43 @@
 # Handoff
 
+## Session 2026-08-10 — 3.11.0 release candidate frozen under AB#7279
+
+The operator confirmed the product-wide live output contract from the documentation: only `React`,
+`Json`, and `JsonEvidence` are live; legacy document/worksheet renderers have been held for many
+releases. The 3.11.0 candidate now applies that contract to inventory, assessment, combined, wizard,
+unattended pipeline, GitHub Action, and GitHub workflow surfaces. `All` expands to the three live
+formats; explicit held names warn/skip and held-only requests fall back to React. Inventory Json
+preserves the existing exporter schema; inventory React/evidence reuse the completed collection in a
+strict offline mode with no assessment rules or live Azure/Graph fallback. Combined runs render once.
+Standalone assessment automation uploads selected live artifacts before returning; pipeline summaries
+retain requested formats but report effective formats as the deliverables.
+
+Detailed logging is also implemented: DEBUG/VERBOSE extraction subphase start/end/status/rows/timing,
+raw dump and processing timing, collector results, assessment ingest, per-rule evidence/timing, and
+renderer timing are written to `scout-run.log` by default without changing console preferences.
+Report catch blocks can pass exceptions to the logger and record their type/available stack detail
+without the error handler itself throwing.
+
+Version metadata is synchronized to 3.11.0 in AzureScout.psd1, CHANGELOG.md, RELEASES.md,
+docs/project/changelog.md, and docs/project/roadmap.md, tied to Bug AB#7279. Focused verification on
+the frozen candidate includes: runtime output suites 38/38, 41/41, 216/216, 25/25, 65/65, 1/1;
+pipeline 23/23; logging/pipeline 78/78; release/docs 32/32; documentation build passed; collector
+definition and StrictMode guards passed; 24 changed PowerShell files parsed with zero errors; diff
+check clean except core.autocrlf warnings. No Azure collection calls were made.
+
+The complete frozen-candidate suite then passed in three deterministic shards: 772/772, 1,980/1,980,
+and 702/702 — **3,454 passed, 0 failed, 0 skipped, 0 not run, 0 failed containers**. The provisional
+allow-listed package contains 726 files / 8,551,907 bytes; all 668 PowerShell files parse, the staged
+manifest reports 3.11.0, a clean process imports 22 exported functions, and the package secret scan
+has zero hits. PSGallery 3.10.2 resolves and 3.11.0 is absent/available.
+
+Next: commit/push through GitHub, wait for exact-commit CI, tag v3.11.0, stage the allow-listed package
+from that tag, publish to PSGallery, and verify a clean
+Gallery download byte-for-byte. Only after 3.11.0 is published should performance optimization edits
+begin. Confirmed optimization targets: repeated security/policy sweeps, multiplicative operational
+enrichment calls, missing category-to-extraction planning, serial/unpaged ARM/API sweeps, and fragmented
+retry behavior.
+
 ## Session 2026-08-10 — v3.10.2 tenant-first wizard correction
 
 Immediate use of published 3.10.1 exposed three wizard defects. Access-token Az contexts put GUIDs

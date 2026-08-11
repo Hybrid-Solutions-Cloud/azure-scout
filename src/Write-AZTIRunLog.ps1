@@ -126,11 +126,30 @@ function Write-AZSCLog {
         [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG', 'VERBOSE')]
         [string]$Level = 'INFO',
 
+        # Report/export catch blocks already pass their caught exception here. Keep the
+        # ordinary message concise, then add type and stack detail to the durable file only.
+        [System.Exception]$Exception,
+
         # Console colour hint. When supplied the message is also written to the host, which is
         # what the collector call sites are asking for. Omitted, this stays a file-only log.
         [ValidateNotNullOrEmpty()]
         [string]$Color
     )
+
+    # DEBUG and VERBOSE are always durable file detail, but they should obey the
+    # caller's ordinary PowerShell stream preferences on the console.  Do not set
+    # either preference here: Write-Debug/Write-Verbose stay silent by default and
+    # become visible only when the caller requested -Debug/-Verbose.
+    try {
+        switch ($Level.ToUpperInvariant()) {
+            'DEBUG'   { Write-Debug $Message }
+            'VERBOSE' { Write-Verbose $Message }
+        }
+    }
+    catch {
+        # Stream preferences such as Stop must not turn optional logging into a run failure.
+        $null = $_.Exception
+    }
 
     if ($PSBoundParameters.ContainsKey('Color')) {
         try { Write-Host $Message -ForegroundColor $Color }
@@ -141,8 +160,16 @@ function Write-AZSCLog {
 
     try {
         $Stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff')
-        $Line = '[{0}] [{1,-5}] {2}' -f $Stamp, $Level.ToUpperInvariant(), $Message
-        Add-Content -Path $script:AZSCRunLogPath -Value $Line -Encoding UTF8 -ErrorAction Stop
+        $Lines = @('[{0}] [{1,-5}] {2}' -f $Stamp, $Level.ToUpperInvariant(), $Message)
+        if ($Exception) {
+            $Lines += '[{0}] [{1,-5}] Exception type: {2}' -f $Stamp, $Level.ToUpperInvariant(), $Exception.GetType().FullName
+            if ($Exception.StackTrace) {
+                foreach ($Frame in ($Exception.StackTrace -split "`r?`n" | Where-Object { $_ })) {
+                    $Lines += '[{0}] [{1,-5}]     {2}' -f $Stamp, $Level.ToUpperInvariant(), $Frame.Trim()
+                }
+            }
+        }
+        Add-Content -Path $script:AZSCRunLogPath -Value $Lines -Encoding UTF8 -ErrorAction Stop
     }
     catch {
         # Deliberately silent: a failed log write must not derail the run.

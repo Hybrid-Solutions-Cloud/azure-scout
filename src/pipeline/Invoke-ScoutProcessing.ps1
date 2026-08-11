@@ -171,9 +171,21 @@ function Invoke-ScoutProcessing {
     # written once, after all of its collectors have run.
     $Groups = $Collectors | Group-Object -Property FolderCategory | Sort-Object Name
 
+    if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+        Write-AZSCLog -Level 'VERBOSE' -Message (
+            'Collector processing started: collectors={0}; categories={1}' -f $Total, @($Groups).Count
+        )
+    }
+
     foreach ($Group in $Groups) {
         $CategoryName = $Group.Name
         $Bucket       = @{}
+
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'VERBOSE' -Message (
+                'Collector category {0} started: collectors={1}' -f $CategoryName, @($Group.Group).Count
+            )
+        }
 
         foreach ($Collector in $Group.Group) {
             $Percent = [math]::Round((($Done / $Total) * 100))
@@ -213,7 +225,14 @@ function Invoke-ScoutProcessing {
         }
 
         if ($PSCmdlet.ShouldProcess($CategoryName, 'Write inventory cache')) {
-            $CacheFiles.Add((Write-ScoutCacheFile -Category $CategoryName -Data $Bucket -CachePath $CachePath))
+            $CacheResult = Write-ScoutCacheFile -Category $CategoryName -Data $Bucket -CachePath $CachePath
+            $CacheFiles.Add($CacheResult)
+            if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+                Write-AZSCLog -Level 'VERBOSE' -Message (
+                    'Collector category {0} finished: rows={1}; cacheWritten={2}' -f
+                        $CategoryName, $CacheResult.RowCount, $CacheResult.Written
+                )
+            }
         }
 
         # Release the category's rows before the next one is collected. The old pipeline needed
