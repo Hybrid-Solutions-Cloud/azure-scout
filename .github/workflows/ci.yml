@@ -5,11 +5,9 @@ name: CI
 # Azure login, no secrets — live tenant runs are handled by
 # azure-inventory.yml (workflow_dispatch, service-principal auth).
 #
-# Runs on windows-latest for parity with the machines this module actually ships to; the
-# Excel report customization step no longer depends on a COM object (AB#5662/AB#5665
-# retired src/report/renderers/inventory/style/Build-AZSCExcelChartStyle.ps1's COM
-# predecessor in favour of EPPlus-native chart/shape styling), so this job could run
-# cross-platform if that ever becomes worth doing.
+# Runs on the HCS Linux fleet. The Excel report customization step no longer depends on
+# a COM object (AB#5662/AB#5665 retired its predecessor in favour of EPPlus-native
+# chart/shape styling), so the complete offline suite is cross-platform.
 
 on:
   push:
@@ -29,7 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Pester and PSScriptAnalyzer
+      - name: Install test tools and module dependencies
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -37,15 +35,18 @@ jobs:
           Install-Module Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser -SkipPublisherCheck
           Write-Host 'Installing PSScriptAnalyzer...'
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          Write-Host 'Installing ImportExcel (Excel report tests exercise this dependency)...'
-          Install-Module ImportExcel -Force -Scope CurrentUser
-          # powershell-yaml is a hard #requires on six test files -- every one that loads a
-          # rule file through Get-RuleSet. Without it Pester fails at DISCOVERY, not at run
-          # time, so the affected files reported as errored rather than failed and the real
-          # cause ("the module cannot be found") was buried under a stack trace. It was never
-          # installed here, so those six have never actually run in CI.
-          Write-Host 'Installing powershell-yaml (the rule engine parses YAML rule files)...'
-          Install-Module powershell-yaml -Force -Scope CurrentUser
+
+          # Ephemeral HCS runners are deliberately clean. Install the dependencies declared by
+          # the module itself so source-tree imports and mocks resolve the same command surface
+          # as an Install-Module consumer. This includes ImportExcel, powershell-yaml, and every
+          # required Az module; reading the manifest prevents CI from drifting when that contract
+          # changes later.
+          $manifest = Import-PowerShellDataFile ./AzureScout.psd1
+          $requiredModules = @($manifest.RequiredModules | ForEach-Object {
+              if ($_ -is [string]) { $_ } else { $_.ModuleName }
+          })
+          Write-Host "Installing AzureScout dependencies: $($requiredModules -join ', ')"
+          Install-Module -Name $requiredModules -Force -Scope CurrentUser -SkipPublisherCheck
 
       - name: Validate declarative collector definitions
         shell: pwsh
