@@ -1,4 +1,4 @@
-# thisismydemo-azure-scout — Claude Code
+# azure-scout — Claude Code
 
 @AGENTS.md
 
