@@ -1,6 +1,6 @@
 # Current Task: AB#7279 — validate AzureScout 3.12.3 in its new HCS home
 
-- Status: **REPOSITORY CUTOVER COMPLETE; THREE FOCUSED FAILURES AND FULL TEST GATE REMAIN**
+- Status: **REPOSITORY CUTOVER AND COMPLETE LOCAL TEST GATE PASSED; TARGET CI/PR REMAIN**
 - Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
 - Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
 - Branch: `agent/ab7279-run-errors-3.12.3`
@@ -28,7 +28,7 @@
 - A read-only HCS live acceptance reconciled all 278 released collectors against independent
   queries. That live reconciliation does not replace the automated gate.
 
-## Known focused failures recovered after the laptop crash
+## Resolved focused failures recovered after the laptop crash
 
 `tests/Collect.RawInventory.Tests.ps1` exposed three failures on the pre-cutover product tip:
 
@@ -36,16 +36,21 @@
 2. The ARM-child append test could not resolve property `id`.
 3. The ARM-child health merge test hit the same missing-`id` shape.
 
-The failure ownership must be diagnosed before changing product code or fixtures.
+All three were stale test-fixture isolation: default non-ARG phases were reaching real helpers.
+The raw-inventory suite now supplies inert phase doubles and passes 56/56 under Pester 5.7.1.
+
+The exact-commit complete gate subsequently found and closed one real shaping defect plus stale or
+StrictMode-sensitive test contracts. Synthetic `AZSC/*` transport envelopes are no longer counted
+as Azure resource types in diagnostic coverage. The final 134-file run at product commit
+`2c5be8f54fc8f363871ea6017f6a2e9dcf9a298e` passed 3,593/3,593 with zero failures, skips, not-run
+tests, or failed containers, and a clean worktree before and after.
 
 ## Required gates
 
-1. Reproduce and isolate all three raw-inventory failures in the canonical clone.
-2. Fix the demonstrated product or fixture defect and run the complete focused suite with zero
-   failures, skips, not-run tests, or failed containers.
-3. Run every Pester file against one exact clean commit with the same zero-tolerance criteria.
-4. Require green target-repository CI and documentation checks.
-5. Only then open/complete the product PR, tag 3.12.3, stage the allow-listed package, validate and
+1. Push the tested branch to `Hybrid-Solutions-Cloud/azure-scout` using the GitHub App.
+2. Require green target-repository CI and documentation checks on the branch tip.
+3. Open/complete the protected product PR only after those checks pass.
+4. Only then tag 3.12.3, stage the allow-listed package, validate and
    secret-scan it, publish to PowerShell Gallery, download it back, and compare package hashes.
 
 ## PowerShell Gallery transition

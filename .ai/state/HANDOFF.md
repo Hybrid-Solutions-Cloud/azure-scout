@@ -1,5 +1,33 @@
 # Handoff
 
+## Session 2026-08-12 — post-cutover complete collector gate
+
+The canonical product branch is `agent/ab7279-run-errors-3.12.3`. The three recovered
+`Collect.RawInventory.Tests.ps1` failures were test-harness isolation defects: default non-ARG
+phases had expanded, but the fixture did not provide inert doubles for those helpers. The focused
+file now passes 56/56 under the CI-pinned Pester 5.7.1 without ambient Azure calls.
+
+The first complete 134-file run at `02ddd381` produced 3,462 passes and six failures. Five were
+stale or StrictMode-sensitive test contracts; one was a real shaping defect: synthetic `AZSC/*`
+transport envelopes were included in `opsPosture.diagnosticCoverage` even though the reference KQL
+runs only against Azure's `resources` table. `ConvertFrom-ScoutInventory` now excludes those
+synthetic rows. A subsequent run passed every assertion but exposed a file-discovery container
+failure in `Collector.VanishingParent.Tests.ps1`, where optional manifest preamble properties were
+read unsafely under ambient StrictMode. That discovery path is now key-guarded.
+
+Authoritative local result: exact product commit
+`2c5be8f54fc8f363871ea6017f6a2e9dcf9a298e`, 134 files, 3,593 passed, zero failed, zero skipped,
+zero not run, zero failed containers, clean before and after. Result JSON:
+`D:/tmp/azsc-full-final-2c5be8f54fc8f363871ea6017f6a2e9dcf9a298e-result.json`.
+
+The legacy public site was also simplified at source commit `67469c8a`: it has no nav/sidebar/footer
+or content below the three move cards, and its documentation action points to
+`https://labs.hybridsolutions.cloud/azure-scout/`. The old documentation deployment succeeded and
+the live legacy URL returned HTTP 200 with the new Labs and GitHub links and no old docs URL.
+
+Next: push this branch with the target-org GitHub App, require target CI/docs green, then open and
+complete the protected PR before any 3.12.3 release or PowerShell Gallery publication.
+
 ## Session 2026-08-12 — AzureScout copy cutover to Hybrid-Solutions-Cloud
 
 The user replaced the blocked GitHub ownership-transfer approach with a copy-and-cutover. The
