@@ -21,6 +21,65 @@ BeforeAll {
         $null = $TenantID
         return [pscustomobject]@{ Collected = $false }
     }
+
+    # Get-ScoutRawInventory performs these non-ARG phases by default. Keep this unit suite
+    # offline and phase-local: tests that own one of these helpers define a narrower shadow in
+    # their It block, while the helper-lifetime tests explicitly remove the command they need to
+    # exercise through the dynamic loader.
+    function Get-ScoutApiResources {
+        param(
+            [object[]] $Subscriptions,
+            [string] $AzureEnvironment,
+            [switch] $SkipPolicy,
+            [switch] $DefinitionsOnly,
+            [switch] $SkipManagedIdentities
+        )
+        $null = $Subscriptions, $AzureEnvironment, $SkipPolicy, $DefinitionsOnly, $SkipManagedIdentities
+        return @()
+    }
+
+    function ConvertTo-ScoutManagementGroupHierarchy {
+        param($Root)
+        $null = $Root
+        return @()
+    }
+
+    function Get-ScoutTenantWideResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutArcSiteResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutAvdAzureLocalSessionHost {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutOutageResource {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutGovernanceDataset {
+        param([object[]] $Subscriptions, [string] $ManagementGroupId)
+        $null = $Subscriptions, $ManagementGroupId
+        return [pscustomobject]@{
+            roleAssignments   = @()
+            roleDefinitions   = @()
+            policyAssignments = @()
+            budgets           = @()
+            resourceLocks     = @()
+        }
+    }
+
     $root = Split-Path $PSScriptRoot -Parent
     function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
@@ -36,6 +95,16 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
 }
 
 Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
+    AfterAll {
+        # The helper-lifetime cases must begin without this command so they can exercise the
+        # loader. Install the suite's inert converter only after that contract is proven.
+        Set-Item Function:script:ConvertTo-ScoutGovernanceResource -Force -Value {
+            param([object] $Governance, [object[]] $Subscriptions)
+            $null = $Governance, $Subscriptions
+            return @()
+        }
+    }
+
     It 'keeps a dynamically dot-sourced helper for the phase and removes it before returning' {
         Remove-Item Function:script:Get-ScoutArmChildResource -ErrorAction SilentlyContinue
         function Search-AzGraph {
