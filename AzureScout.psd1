@@ -158,7 +158,7 @@ PrivateData = @{
         LicenseUri = 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://hybrid-solutions-cloud.github.io/azure-scout/'
+        ProjectUri = 'https://labs.hybridsolutions.cloud/azure-scout/'
 
         # A URL to an icon representing this module.
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
