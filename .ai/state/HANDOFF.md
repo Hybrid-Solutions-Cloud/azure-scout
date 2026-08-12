@@ -1,5 +1,40 @@
 # Handoff
 
+## Session 2026-08-12 — AzureScout 3.12.3 published from the new HCS home
+
+AzureScout 3.12.3 is released. PR
+[`Hybrid-Solutions-Cloud/azure-scout#1`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/pull/1)
+was approved and merged to `main` as `898abd85c2057dd36b13fdf8221d6ad029949161`.
+Annotated tag `v3.12.3` peels to that exact commit, and the canonical GitHub Release is
+<https://github.com/Hybrid-Solutions-Cloud/azure-scout/releases/tag/v3.12.3>.
+
+Final target validation:
+
+- PR CI run 31638341475 passed: Pester 3,591/3,591, zero failed/skipped/not-run;
+  StrictMode passed; PSScriptAnalyzer reported 0 errors and 551 non-blocking warnings.
+- PR documentation run 31638341552 passed.
+- Post-merge `main` CI run 31639606238 passed with the same 3,591/3,591 result,
+  StrictMode success, and 0 analyzer errors.
+- Post-merge documentation build/deploy run 31639606225 passed.
+- The authoritative Windows/local gate remains 3,593/3,593 with zero failures, skips,
+  not-run tests, or failed containers.
+- The HCS Default runner group was restored to `allows_public_repositories=false` after
+  each trusted job assignment.
+
+The PowerShell Gallery package is
+<https://www.powershellgallery.com/packages/AzureScout/3.12.3>. It was built only from
+tag `v3.12.3` using the established allow list: five root files plus `config`, `manifests`,
+`src`, and `archived/Modules` mapped to `Modules`. The tag-built artifact has 725 files,
+8,677,638 bytes, and 667 parser-clean PowerShell files; Gitleaks found no secrets. Its
+deterministic per-file SHA-256 tree hash is
+`d4e5233443e44aa8ecee769ccf9e0902faf2744139e953fb31b8efa7c869ea34`.
+
+A fresh public `Save-Module` download contained the same 725 paths with zero missing,
+extra, or SHA-256-mismatched files and the identical tree hash. The downloaded package
+imports as version 3.12.3 with all 22 exports. Gallery metadata points to
+<https://labs.hybridsolutions.cloud/azure-scout/>; the Gallery page, Labs documentation,
+and tagged GitHub source all returned HTTP 200.
+
 ## Session 2026-08-12 — HCS runner onboarding and target CI green
 
 PR `Hybrid-Solutions-Cloud/azure-scout#1` is open from

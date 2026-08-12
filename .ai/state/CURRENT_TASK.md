@@ -1,6 +1,6 @@
 # Current Task: AB#7279 — validate AzureScout 3.12.3 in its new HCS home
 
-- Status: **REPOSITORY CUTOVER, LOCAL GATE, AND HCS TARGET CI PASSED; PR REVIEW/RELEASE REMAIN**
+- Status: **COMPLETE — 3.12.3 MERGED, TAGGED, PUBLISHED, AND VERIFIED**
 - Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
 - Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
 - Branch: `agent/ab7279-run-errors-3.12.3`
@@ -47,14 +47,15 @@ tests, or failed containers, and a clean worktree before and after.
 
 ## Required gates
 
-1. Completed: branch pushed with the GitHub App; PR 1 is open.
+1. Completed: branch pushed with the GitHub App; PR 1 was approved and merged.
 2. Completed at `0df4e636`: HCS CI 3,591/3,591 plus StrictMode and analyzer gates; docs green.
-3. Obtain the protected product PR's required review, then merge.
-4. Only after merge, tag 3.12.3, stage the allow-listed package, validate and
-   secret-scan it, publish to PowerShell Gallery, download it back, and compare package hashes.
+3. Completed: protected PR approval recorded and PR 1 merged as `898abd85`.
+4. Completed: post-merge HCS CI/docs passed, annotated tag `v3.12.3` was pushed,
+   the allow-listed package was validated and secret-scanned, PowerShell Gallery 3.12.3
+   was published, and a clean download matched all 725 files byte-for-byte.
 
 ## PowerShell Gallery transition
 
-Published 3.12.2 metadata still points to the legacy project/source URLs. The legacy project URL
-now provides the move notice. The 3.12.3 manifest carries the canonical HCS documentation,
-license, and icon URLs; do not publish it until the complete product gate passes.
+Published 3.12.2 metadata still points to the legacy project/source URLs, whose move notice remains
+available. Published 3.12.3 carries the canonical HCS documentation, license, and icon URLs.
+Its public package was downloaded, hash-compared, and imported successfully.
