@@ -1,139 +1,140 @@
-# Change Request: Move AzureScout to Hybrid-Solutions-Cloud
+# Change Request: Establish AzureScout in Hybrid-Solutions-Cloud
 
-**Requester:** Kristopher Turner  
-**Date:** 2026-08-12  
-**Priority:** High  
-**Status:** In progress  
-**Work item:** AB#7279
+| Field | Value |
+|---|---|
+| Requester | Kristopher Turner |
+| Date | 2026-08-12 |
+| Priority | High |
+| Status | In progress |
+| Work item | AB#7279 |
 
 ## Description
 
-Move the public `azure-scout` repository from the `thisismydemo` GitHub organization to
-`Hybrid-Solutions-Cloud`. Make the new GitHub Pages site the canonical project website, preserve
-the existing `https://thisismydemo.cloud/azure-scout/` entry point as a temporary redirect, update
-PowerShell Gallery metadata and repository references, and then complete the interrupted collector
-test gate.
-
-## Why this change is needed
-
-AzureScout is an HCS product and should be owned, secured, documented, and released from the HCS
-GitHub organization. The move gives users one canonical HCS location without breaking existing
-bookmarks, package links, clones, issues, releases, or action references.
+Establish `Hybrid-Solutions-Cloud/azure-scout` as AzureScout's canonical repository without using
+GitHub's ownership-transfer operation. Preserve `thisismydemo/azure-scout` as the historical home
+and publish a friendly move notice on its documentation landing page. Mirror Git history, branches,
+tags, releases, documentation, and active local work into the new repository; then update project
+links, PowerShell Gallery metadata, AI workspace identity, and the local canonical clone.
 
 ## Target state
 
 | Area | Target |
 |---|---|
-| GitHub repository | `https://github.com/Hybrid-Solutions-Cloud/azure-scout` |
+| Canonical GitHub repository | `https://github.com/Hybrid-Solutions-Cloud/azure-scout` |
+| Canonical local clone | `D:/git/hybrid-solutions-cloud/azure-scout` |
 | Canonical documentation | `https://hybrid-solutions-cloud.github.io/azure-scout/` |
-| Legacy documentation | `https://thisismydemo.cloud/azure-scout/` redirects to the canonical site |
+| Legacy repository | Retained at `thisismydemo/azure-scout` as the issue/PR/history record |
+| Legacy documentation | Landing page links to both canonical locations |
 | PowerShell Gallery `ProjectUri` | Canonical documentation URL |
 | PowerShell Gallery source/license/icon | `Hybrid-Solutions-Cloud/azure-scout` URLs |
-| Git remote | `origin` points directly to the new repository URL |
-| Release gate | Complete collector and automated test suite passes on one exact commit |
+| Release gate | Complete collector and automated suite passes on one exact commit |
+
+## Important boundary
+
+Git branches, tags, and commit history live in Git and can be mirrored exactly. GitHub issues,
+pull requests, reviews, workflow runs, approvals, and repository settings do not live in `.git`.
+The old repository remains available for that historical record. Release records and protection
+settings are recreated in the new repository where practical; old PR and issue numbers are not
+rewritten or represented as if they were native objects in the new repository.
 
 ## Impact analysis
 
 | Area | Impact | Details |
 |---|---|---|
-| Users | Medium | Existing GitHub links and clones should redirect; documentation bookmarks need a Pages redirect because GitHub Pages URLs do not transfer as redirects. |
-| Maintainers | Medium | Repository location, app installation, branch protection, Actions permissions, Pages, and release procedures must be revalidated. |
-| Automation | Medium | Reusable action references, badges, source links, generated board links, and docs edit links change organization. |
-| PowerShell Gallery | Low | Existing package pages keep their published metadata until edited; the next package version must publish the new manifest URLs. |
-| Cost | None expected | GitHub Pages and current release infrastructure remain in use. |
+| Users | Medium | New code and documentation links become canonical; the old landing page remains a signpost. |
+| Maintainers | Medium | Local path, remote, app installation, branch protection, Pages, release, and test procedures change. |
+| Automation | Medium | Reusable action examples, badges, generated links, and docs edit links change organization. |
+| PowerShell Gallery | Low | Existing package metadata stays unchanged until edited; the next version publishes new manifest URLs. |
+| Historical GitHub objects | Medium | Existing issues, PRs, reviews, and workflow runs remain in the source repository. |
 
 ## Risk assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Transfer loses or hides refs, issues, releases, or settings | Low | High | Record counts and IDs before transfer; create and verify a complete Git bundle; validate the stable repository ID and all critical refs afterward. |
-| New Pages site is unavailable | Medium | High | Retain the transferred `gh-pages` branch, verify Pages source/settings, trigger a documentation deployment, and test root plus deep links. |
-| Old documentation URL breaks | Medium | High | Host a move page and deep-link redirect in the `thisismydemo.github.io` site before transfer; verify it after the old repo Pages route is released. |
-| Actions or Pages cannot deploy in the new org | Medium | High | Verify GitHub App installation, Actions permissions, workflow token permissions, environments, secrets, and a real workflow run. |
-| Existing external action consumers are disrupted | Low | Medium | GitHub repository URLs redirect after transfer; update all first-party `uses:` examples and retain existing tags. |
-| PowerShell Gallery shows stale links | High | Low | Edit the current package page where supported and ensure the 3.12.3 manifest publishes matching URLs. The legacy project URL redirects during the transition. |
-| Product changes are released without a clean test gate | Medium | High | Keep the 3.12.3 branch separate from `main`; fix recovered failures and require one complete zero-failure, zero-skip suite before merge or release. |
+| A branch or tag is omitted | Low | High | Compare exact branch/tag names and object IDs after the mirror; retain a verified full-history bundle. |
+| Active unpushed work is omitted | Low | High | Push the recovered local 3.12.3 branch separately and verify its exact commit ID. |
+| Legacy notice accidentally becomes canonical main | Low | Medium | Build canonical main from the last product main commit and replace target main with an exact force-with-lease. |
+| New Pages site is unavailable | Medium | High | Retain `gh-pages`, configure its source, trigger the docs workflow, and test root plus deep links. |
+| Actions cannot deploy in the new org | Medium | High | Verify the target-org HCS GitHub App, Actions permissions, environments, and a real workflow run. |
+| Release links point to missing releases | Medium | Medium | Recreate release metadata/assets against the mirrored tags and verify recent release URLs. |
+| PowerShell Gallery shows stale links | High | Low | Keep the legacy project URL usable and publish matching URLs from the next tested manifest. |
+| Product work is released without a clean gate | Medium | High | Keep 3.12.3 isolated; require complete zero-failure testing before merge or release. |
 
 ## Implementation plan
 
-| # | Task | Owner | Dependency | Acceptance evidence |
-|---:|---|---|---|---|
-| 1 | Inventory repository ID, branches, tags, releases, issues, Actions, Pages, custom domain, package metadata, and inbound URLs. | Codex | None | Inventory recorded in the session handoff. |
-| 2 | Create and verify a complete pre-transfer Git bundle. | Codex | Inventory | `git bundle verify` reports complete history and includes the active branch. |
-| 3 | Publish the legacy root and deep-link redirect at the `thisismydemo.github.io` organization site. | Codex | Canonical URL selected | Organization-site deployment succeeds. |
-| 4 | Update repository, documentation, action, workflow, generated-link, and PowerShell manifest URLs on the active branch. | Codex | Target names selected | No live old URLs remain; manifest, parser, and docs build pass. |
-| 5 | Transfer the repository using an owner credential brokered by HCS Governance. | Codex | Target name free; source admin and target membership verified | GitHub returns an accepted transfer and stable repository ID is unchanged. |
-| 6 | Verify refs, tags, issues, releases, redirects, collaborators, branch rules, Actions settings, secrets, environments, and app access. | Codex | Transfer complete | Post-transfer inventory matches pre-transfer inventory or differences are documented. |
-| 7 | Change `origin`, push the active branch with the target-org HCS GitHub App token, and open/update the PR. | Codex | Target app access verified | Branch exists in the target repo and PR checks start. |
-| 8 | Configure/verify Pages and deploy the documentation from `main`/`gh-pages`. | Codex | Transfer complete | Canonical root and representative deep links return the expected site. |
-| 9 | Verify the legacy documentation redirect after GitHub releases the old repo Pages route. | Codex | Transfer and Pages cutover | Root and deep links route to the equivalent canonical path. |
-| 10 | Update the current PowerShell Gallery package page where the Gallery permits, and verify the 3.12.3 manifest metadata. | Codex/operator | Gallery publisher access; validated release | Gallery project, license, and icon links resolve to the new locations. |
-| 11 | Reproduce and fix the three recovered `Collect.RawInventory.Tests.ps1` failures. | Codex | Repository moved | Focused suite passes with no failed containers. |
-| 12 | Run the complete collector/live acceptance and all 134 Pester files against one exact commit. | Codex | Focused failures fixed | Zero failures, skips, not-run tests, and failed containers; results retained. |
-| 13 | Merge/release only after CI, documentation, package metadata, and full product tests are green. | Operator/Codex | All gates pass | PR merged, release evidence recorded, handoff updated. |
+| # | Task | Acceptance evidence |
+|---:|---|---|
+| 1 | Inventory source identity, refs, releases, protections, Actions, Pages, secrets, environments, and package metadata. | Counts and settings recorded in the handoff. |
+| 2 | Create and verify a complete pre-cutover Git bundle. | `git bundle verify` reports complete history and contains the active branch. |
+| 3 | Publish the source-repository landing page move notice. | Legacy docs workflow succeeds and both canonical links render. |
+| 4 | Create the public target repository using the target-org HCS GitHub App. | New repository ID and URL resolve. |
+| 5 | Mirror source branches and tags; separately push unpushed local work. | Branch/tag object IDs match and active branch head is exact. |
+| 6 | Clone the independent target repository at the canonical local path. | `origin` points directly to `Hybrid-Solutions-Cloud/azure-scout`. |
+| 7 | Apply migration-only URL, manifest, docs, workflow, generated-link, and AI workspace updates to target main. | No unintended live source URLs remain; manifest, parser, docs, and focused tests pass. |
+| 8 | Recreate release records, protections, Actions settings, environments, and Pages configuration. | Recent releases resolve, protections match, workflows run, and Pages serves the site. |
+| 9 | Update the HCS Governance registry and related platform references. | MCP source identifies `azure-scout`, target org, canonical path, and VitePress. |
+| 10 | Fix the recovered raw-inventory test failures and run the full collector/Pester gates. | Zero failures, skips, not-run tests, and failed containers on one exact commit. |
+| 11 | Merge/release only after code, CI, documentation, package metadata, and full tests are green. | Release evidence and final handoff recorded. |
 
 ## Execution gates
 
-### Gate 1 — safe to transfer
+### Gate 1 — safe to create and mirror
 
-- Target repository name does not exist.
-- Source credential has repository administration permission.
-- Credential owner is an active member/owner of the target organization.
-- Verified bundle includes all refs and the current local branch.
-- Legacy redirect is deployed.
+- Target repository name is free.
+- HCS target-org GitHub App can create and administer the repository.
+- Verified bundle includes the current local branch and complete history.
+- Source landing-page notice builds successfully.
 
-### Gate 2 — safe to publish migration branch
+### Gate 2 — safe to make the target canonical
 
-- Repository ID and critical counts match the source inventory.
-- New URL resolves and the old GitHub URL redirects.
-- HCS target-org GitHub App can read and push the repository.
-- Local `origin` is the new direct URL.
+- Branch/tag names and object IDs match the source.
+- Recovered product branch resolves to its exact local commit.
+- Canonical main contains migration-only changes, not untested product fixes.
+- Local canonical clone has the target `origin` and a clean working tree.
 
-### Gate 3 — safe to merge or release
+### Gate 3 — safe to merge or release product work
 
-- Documentation and link contract tests pass.
-- GitHub Pages and legacy redirects pass root/deep-link checks.
-- The three recovered collector failures are fixed.
-- Complete automated and collector acceptance gates pass against one exact commit.
-- PowerShell Gallery metadata is correct for the release being published.
+- Documentation, manifest, link, parser, and CI gates pass.
+- GitHub Pages and legacy landing links pass root/deep-link checks.
+- The recovered collector failures are fixed.
+- Complete automated and collector acceptance gates pass on one exact commit.
+- PowerShell Gallery metadata is correct for the package being published.
 
 ## Rollback plan
 
-### Rollback triggers
+### Triggers
 
-- Stable repository ID changes or critical refs/history are missing.
-- Required issues, releases, tags, app access, or security controls cannot be recovered promptly.
-- The new organization cannot run required Actions or publish Pages.
-- The old and new documentation entry points cannot be made usable during cutover.
+- Critical refs or tags do not match.
+- The target cannot run required Actions or publish Pages.
+- Canonical URLs remain unavailable or misleading.
+- Security controls cannot be reproduced promptly.
 
 ### Steps
 
-1. Stop merge, release, Pages, and package-publishing activity.
-2. Preserve post-transfer evidence and any new refs in a second verified bundle.
-3. Transfer the unchanged repository back to the source organization when GitHub permits it, or
-   restore a replacement repository from the verified bundle if ownership transfer cannot be
-   reversed immediately.
-4. Restore the previous `origin` URL for maintainers.
-5. Re-enable the prior Pages source/custom-domain configuration.
-6. Keep the legacy notice active and update it with the temporary canonical location.
-7. Re-run repository/ref, Pages, and release verification before reopening work.
+1. Stop target merge, release, Pages, and package-publishing activity.
+2. Keep `thisismydemo/azure-scout` active as the authoritative code/history location.
+3. Change its landing page back from the move notice if the target will remain unavailable.
+4. Preserve any target-only commits in a new verified bundle and branch before changing visibility.
+5. Restore canonical links and PowerShell metadata to the source locations on a reviewed branch.
+6. Re-run ref, Pages, CI, and release checks before attempting cutover again.
 
 ### Recovery artifacts
 
-- Latest verified bundle: `D:/tmp/azure-scout-pretransfer-final-20260812-1015.bundle`
-- Source repository stable ID: `1164382922`
-- Legacy redirect deployment: `thisismydemo/thisismydemo.github.io` workflow run `31604230132`
+- Verified bundle: `D:/tmp/azure-scout-pretransfer-final-20260812-1023.bundle`
+- Source repository ID: `1164382922`
+- Target repository ID: `1332126664`
+- Legacy landing commit: `406cbabf1f81bfaa961532194f1773ec999e958a`
 
-## Communications
+## Communication
 
-| Audience | Message | Channel | Timing |
-|---|---|---|---|
-| Maintainers | New repository URL, remote update command, branch/PR status, and test gate. | GitHub/ADO | Immediately after transfer verification. |
-| Module users | Repository and docs moved; existing links redirect; no command/module-name change. | Docs and release notes | At merge/release. |
-| Gallery users | Project links now use the HCS documentation and source locations. | PowerShell Gallery package metadata | Current-page edit and next release. |
+| Audience | Message | Timing |
+|---|---|---|
+| Maintainers | New repo/local path, remote update, historical-object boundary, and test status. | After cutover verification. |
+| Module users | Same module and commands; new docs and code home. | Legacy landing page and next release. |
+| Gallery users | Project links now use the HCS documentation/source locations. | Current-page edit where possible and next release. |
 
-## Approvals
+## Authorization
 
-The operator explicitly requested the repository move and revised the execution order on
-2026-08-12. Merge and release approval remain separate from authorization to transfer the
-repository.
+The operator explicitly replaced the ownership-transfer approach with this copy-and-cutover method
+on 2026-08-12. The source repository must remain intact. Merge and release authorization remain
+separate from authorization to create and populate the target repository.
