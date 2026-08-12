@@ -63,7 +63,7 @@ Describe 'Write-ScoutProgress -- soft dependency (no hard install of PwshSpectre
 Describe 'Write-ScoutProgress -- guarded optional integration with Invoke-Collect (AB#405)' {
     BeforeAll {
         $collectRoot = Split-Path $PSScriptRoot -Parent
-        Import-Module Az.ResourceGraph -ErrorAction Stop
+        . "$collectRoot/tests/helpers/Search-AzGraph.TestDouble.ps1"
         . "$collectRoot/src/collect/Invoke-Collect.ps1"
     }
 

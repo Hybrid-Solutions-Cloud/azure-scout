@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     Pester tests for the native governance collector (src/ingest/Import-Governance.ps1,
@@ -20,7 +19,7 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . "$root/tests/helpers/Search-AzGraph.TestDouble.ps1"
     Import-Module powershell-yaml -ErrorAction Stop
     . "$root/src/ingest/Import-Governance.ps1"
     . "$root/src/assess/Compare-Benchmark.ps1"

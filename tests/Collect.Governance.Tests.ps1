@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     AB#6779 (Tasks AB#6780-AB#6783) -- render the governance data Scout already holds in memory.
@@ -28,7 +27,7 @@
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'tests/helpers/Search-AzGraph.TestDouble.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutGovernanceDataset.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')

@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     Pester tests for the AI workload (AB#6818) and AVD-on-Azure-Local workload (AB#6819)
@@ -19,8 +18,28 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . "$root/tests/helpers/Search-AzGraph.TestDouble.ps1"
     Import-Module powershell-yaml -ErrorAction Stop
+
+    # Invoke-Collect owns non-ARG enrichment in addition to the Resource Graph queries exercised
+    # here. Shadow every remote helper so this unit suite cannot reuse the operator's ambient Az
+    # context and contact management.azure.com.
+    function Get-ScoutDefenderPlanSweep { param([object[]]$Subscriptions) $null = $Subscriptions; @() }
+    function Get-ScoutExternalIdentitiesPolicy { param([string]$TenantID) $null = $TenantID; [pscustomobject]@{ Collected = $false } }
+    function Get-ScoutArmChildResource { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function Get-ScoutTenantWideResource { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function Get-ScoutGovernanceDataset {
+        param([Parameter(ValueFromRemainingArguments)]$Rest)
+        $null = $Rest
+        [pscustomobject]@{ roleAssignments = @(); roleDefinitions = @(); policyAssignments = @(); budgets = @(); resourceLocks = @() }
+    }
+    function Get-ScoutOperationalCollectorEnrichment { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function Get-ScoutSubscriptionSecurityPolicySweep { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function ConvertTo-ScoutAvdAzureLocalSessionHost { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function ConvertTo-ScoutArcSiteResource { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+    function Get-ScoutOutageResource { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+
     . "$root/src/collect/Invoke-Collect.ps1"
     . "$root/src/assess/engine/Resolve-JsonPath.ps1"
     . "$root/src/assess/engine/Invoke-Rule.ps1"

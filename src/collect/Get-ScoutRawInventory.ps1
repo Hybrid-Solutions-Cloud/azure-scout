@@ -278,7 +278,12 @@ function Get-ScoutRawInventory {
         [string]   $AzureEnvironment = 'AzureCloud'
     )
 
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    # The module manifest normally supplies Az.ResourceGraph. Direct dot-source callers still get
+    # a clear import path, while tests and hosts that already provide Search-AzGraph avoid an
+    # unnecessary module import (which can refresh an ambient Az context and contact ARM).
+    if (-not (Get-Command Search-AzGraph -ErrorAction SilentlyContinue)) {
+        Import-Module Az.ResourceGraph -ErrorAction Stop
+    }
 
     $collectionHealth = [System.Collections.Generic.List[object]]::new()
     $collectionHealthKeys = [System.Collections.Generic.HashSet[string]]::new(
