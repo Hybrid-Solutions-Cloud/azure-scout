@@ -176,14 +176,20 @@ function Get-ScoutArmChildResource {
         param(
             [Parameter(Mandatory)][string]$Path,
             [Parameter(Mandatory)][string]$DatasetName,
-            [Parameter(Mandatory)][string]$ParentName
+            [Parameter(Mandatory)][string]$ParentName,
+            [switch]$NotFoundIsEmpty
         )
 
         try {
-            $Response = Invoke-AzRestMethod -Path $Path -Method GET -ErrorAction Stop
+            # SkipHttpErrorCheck keeps expected singleton 404s out of the PowerShell transcript;
+            # their status is classified below instead of first becoming a terminating error.
+            $Response = Invoke-AzRestMethod -Path $Path -Method GET -SkipHttpErrorCheck -ErrorAction Stop
             if ($null -eq $Response) { return $null }
 
             $Status = $Response.PSObject.Properties['StatusCode']
+            if ($null -ne $Status -and [int]$Status.Value -eq 404 -and $NotFoundIsEmpty) {
+                return $null
+            }
             if ($null -ne $Status -and ([int]$Status.Value -lt 200 -or [int]$Status.Value -ge 300)) {
                 throw "ARM returned status $($Status.Value)"
             }
@@ -545,12 +551,11 @@ function Get-ScoutArmChildResource {
             'StorageLifecyclePolicies' {
                 foreach ($Parent in $StorageAccountParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    # Singleton, not a list: an account with no policy returns 404, which
-                    # Get-ArmChildContent already degrades to a warning and $null. The absence IS
-                    # the finding, and the cross-resource rules read it as such.
+                    # Singleton, not a list: an account with no policy returns 404. That absence
+                    # is ordinary empty data and must not become a warning/transcript error.
                     $Content = Get-ArmChildContent -Path "$Base/managementPolicies/default?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
+                    ) -NotFoundIsEmpty
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
                         ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
                     }
@@ -717,7 +722,7 @@ function Get-ScoutArmChildResource {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.AzureStackHCI/virtualMachineInstances/default?api-version=2024-01-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
+                    ) -NotFoundIsEmpty
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
                         ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
                     }

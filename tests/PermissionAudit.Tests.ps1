@@ -289,6 +289,9 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         Mock -CommandName Get-AzRoleAssignment -MockWith {
             [PSCustomObject]@{ RoleDefinitionName = 'Reader' }
         }
+        Mock -CommandName Get-AzManagementGroup -MockWith {
+            @([pscustomobject]@{ Name = 'root'; DisplayName = 'Tenant Root Group' })
+        }
         Mock -CommandName Get-AzResourceGroup -MockWith { @() }
         Mock -CommandName Set-AzContext -MockWith {
             [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
@@ -330,6 +333,46 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
 
     It 'Recommendations is a real array whose .Count never throws even when empty (Sort-Object -Unique null-collapse guard)' {
         { $script:Result.Recommendations.Count } | Should -Not -Throw
+    }
+
+    It 'does not recommend tenant-wide provider registration from one sampled subscription' {
+        $source = Get-Content -LiteralPath $script:AuditScript -Raw
+        $source | Should -Not -Match '\$recommendations\.Add\("Register provider'
+        $source | Should -Match 'one subscription sample'
+    }
+
+    It 'probes ordinary Graph endpoints under a broad delegated token and gates only exact-scope collectors' {
+        $payload = @{ scp = 'Directory.AccessAsUser.All'; upn = 'user@contoso.com' } | ConvertTo-Json -Compress
+        $toBase64Url = {
+            param([string]$Value)
+            [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Value)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+        }
+        $jwt = "$( & $toBase64Url '{\"alg\":\"none\"}' ).$( & $toBase64Url $payload ).sig"
+        Mock -CommandName Get-AZSCGraphToken -MockWith { @{ Authorization = "Bearer $jwt" } }
+        $script:permissionProbeUris = [System.Collections.Generic.List[string]]::new()
+        Mock -CommandName Invoke-AZSCGraphRequest -MockWith {
+            $script:permissionProbeUris.Add([string]$Uri)
+            return $null
+        }
+
+        $partial = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console
+
+        $partial.OverallReadiness | Should -Be 'Partial'
+        @($partial.EmptyCollectors).Count | Should -Be 2
+        @($partial.EmptyCollectors.Collector | Sort-Object) | Should -Be @(
+            'Identity/VerifiedIDConfiguration'
+            'Identity/VerifiedIDProfiles'
+        )
+
+        foreach ($permission in 'Application.Read.All', 'Group.Read.All', 'Policy.Read.All', 'User.Read.All') {
+            $detail = @($partial.GraphDetails | Where-Object Check -eq "Graph: $permission")
+            $detail.Count | Should -Be 1
+            $detail[0].Status | Should -Be 'Pass'
+        }
+        @($script:permissionProbeUris | Where-Object { $_ -like '/v1.0/users?*' }).Count | Should -Be 1
+        @($script:permissionProbeUris | Where-Object { $_ -like '/v1.0/groups?*' }).Count | Should -Be 1
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/identity/verifiedId/profiles'
     }
 
     It 'resolves one collision-safe output path and filename stem for all file formats' {

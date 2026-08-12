@@ -166,6 +166,8 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/riskyusers'
             NameProperty = 'userPrincipalName'
             Permission   = 'IdentityRiskyUser.Read.All'
+            LicensedFeature = 'AAD_PREMIUM_P2'
+            LicensedProduct = 'Microsoft Entra ID P2'
         },
         @{
             # AB#7097. The tenant-wide toggle for Verified ID as an authentication method --
@@ -183,6 +185,7 @@ function Get-ScoutEntraQueryCatalog {
             NameProperty = 'id'
             SingleObject = $true
             Permission   = 'Policy.Read.AuthenticationMethod'
+            RequireDelegatedScope = $true
         },
         @{
             # AB#7097. Verified ID profiles (recovery / onboarding usage, Face Check config,
@@ -195,6 +198,7 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/verifiedidprofiles'
             NameProperty = 'name'
             Permission   = 'VerifiedId-Profile.Read.All'
+            RequireDelegatedScope = $true
         },
         @{
             # No collector consumes this. It is kept in the catalog rather than deleted so the
@@ -205,6 +209,8 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/identityproviders'
             NameProperty = 'displayName'
             Permission   = 'IdentityProvider.Read.All'
+            Collect      = $false
+            AvailabilityReason = 'No released Scout collector consumes this dataset.'
         },
         @{
             # Same: queried, normalised, and read by nothing.
@@ -214,6 +220,8 @@ function Get-ScoutEntraQueryCatalog {
             NameProperty = 'displayName'
             SingleObject = $true
             Permission   = 'Policy.Read.All'
+            Collect      = $false
+            AvailabilityReason = 'No released Scout collector consumes this dataset.'
         }
     )
 }

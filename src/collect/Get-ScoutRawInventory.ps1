@@ -64,16 +64,6 @@ $ErrorActionPreference = 'Stop'
     Arc-enabled servers. Read-only: this reads what Update Manager already recorded and never
     asks a machine to run a scan.
 
-.PARAMETER IncludeLighthouseDelegations
-    Also collect `managedserviceresources` filtered to
-    `microsoft.managedservices/registrationdefinitions` -- the Azure Lighthouse delegation
-    definitions that name the managing tenant and the roles it holds in this one.
-
-    This is its own ARG table for the same reason `recoveryservicesresources` is: the type is
-    NOT in `resources`, so no amount of querying `resources` returns it. Scout declared the type
-    on `Management/LighthouseDelegations` but read no table that carries it, so that worksheet
-    was empty on every run (AB#6771).
-
 .PARAMETER IncludeAdvisories
     Also collect `advisorresources` filtered to Medium/High impact, matching the legacy
     `-SkipAdvisory:$false` default.
@@ -263,7 +253,6 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeBackupResources,
         [switch]   $IncludeDesktopVirtualization,
         [switch]   $IncludeUpdateManagerResources,
-        [switch]   $IncludeLighthouseDelegations,
         [switch]   $IncludeAdvisories,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
@@ -290,6 +279,140 @@ function Get-ScoutRawInventory {
     )
 
     Import-Module Az.ResourceGraph -ErrorAction Stop
+
+    $collectionHealth = [System.Collections.Generic.List[object]]::new()
+    $collectionHealthKeys = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    $affectedCollectorCache = @{}
+    # Synthetic ARM-child rows whose existence depends on a parent from the core `resources`
+    # table. A failed parent query means these collectors were not genuinely observed; excluding
+    # every AZSC/* type would incorrectly report them as clean empty datasets. AVDApplications is
+    # deliberately absent because its parent comes from desktopvirtualizationresources, and
+    # ArcSites is absent because its parent comes from the independent ARM REST sweep.
+    $resourceDerivedArmChildParents = @{
+        'azsc/armchild/mlcomputes' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/mldatasets' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/mldatastores' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/mlendpoints' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/mlmodels' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/mlpipelines' = @('microsoft.machinelearningservices/workspaces')
+        'azsc/armchild/openaideployments' = @('microsoft.cognitiveservices/accounts')
+        'azsc/armchild/searchindexes' = @('microsoft.search/searchservices')
+        'azsc/armchild/appinsightsproactivedetection' = @('microsoft.insights/components')
+        'azsc/armchild/laworkspacelinkedservices' = @('microsoft.operationalinsights/workspaces')
+        'azsc/armchild/laworkspacesavedsearches' = @('microsoft.operationalinsights/workspaces')
+        'azsc/armchild/keyvaultsecrets' = @('microsoft.keyvault/vaults')
+        'azsc/armchild/keyvaultkeys' = @('microsoft.keyvault/vaults')
+        'azsc/armchild/storageblobcontainers' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/storagefileshares' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/storagelifecyclepolicies' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/storagequeues' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/storagetables' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/backupinstances' = @('microsoft.dataprotection/backupvaults')
+        'azsc/armchild/resourcediagnosticsettings' = @(
+            'microsoft.keyvault/vaults', 'microsoft.storage/storageaccounts',
+            'microsoft.sql/servers', 'microsoft.sql/servers/databases',
+            'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbformysql/flexibleservers',
+            'microsoft.documentdb/databaseaccounts', 'microsoft.containerservice/managedclusters',
+            'microsoft.web/sites', 'microsoft.cdn/profiles', 'microsoft.apimanagement/service',
+            'microsoft.eventhub/namespaces', 'microsoft.servicebus/namespaces',
+            'microsoft.operationalinsights/workspaces', 'microsoft.recoveryservices/vaults',
+            'microsoft.automation/automationaccounts'
+        )
+        'azsc/armchild/reservationutilization' = @('microsoft.capacity/reservationorders/reservations')
+        'azsc/armchild/azurelocalvirtualmachineinstances' = @('microsoft.hybridcompute/machines')
+    }
+    $networkDiagnosticParentTypes = @(
+        'microsoft.network/networksecuritygroups', 'microsoft.network/applicationgateways',
+        'microsoft.network/azurefirewalls', 'microsoft.network/frontdoors'
+    )
+
+    function Get-ScoutRawAffectedCollector {
+        param(
+            [string] $Source,
+            [string[]] $RequestedResourceTypes = @()
+        )
+
+        if ([string]::IsNullOrWhiteSpace($Source)) { return @() }
+        $cacheKey = '{0}|{1}' -f $Source, (@($RequestedResourceTypes | Sort-Object -Unique) -join ',')
+        if ($affectedCollectorCache.ContainsKey($cacheKey)) { return @($affectedCollectorCache[$cacheKey]) }
+
+        $manifestRoot = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'manifests/collectors'
+        $affected = [System.Collections.Generic.List[string]]::new()
+        if (Test-Path -LiteralPath $manifestRoot -PathType Container) {
+            foreach ($manifestPath in @(Get-ChildItem -LiteralPath $manifestRoot -Recurse -Filter '*.psd1' -File)) {
+                try {
+                    $definition = Import-PowerShellDataFile -LiteralPath $manifestPath.FullName
+                    $types = @($definition.ResourceTypes | ForEach-Object { ([string]$_).ToLowerInvariant() })
+                    $text = Get-Content -LiteralPath $manifestPath.FullName -Raw
+                    $collectorKey = '{0}/{1}' -f $manifestPath.Directory.Name, $manifestPath.BaseName
+
+                    $isAffected = switch ($Source) {
+                        'Resources' {
+                            # These types are materialized by the independent ARM REST sweep, not
+                            # by the Resource Graph `resources` table. A core ARG failure must not
+                            # make their collectors look unavailable when their own source worked.
+                            $nonResourceTableTypes = @(
+                                'microsoft.advisor/advisorscore'
+                                'microsoft.consumption/reservationrecommendations'
+                                'microsoft.resourcehealth/events'
+                                'microsoft.edge/sites'
+                            )
+                            $resourceTableTypes = @($types | Where-Object {
+                                    $_ -notmatch '^(azsc|entra|devops)/' -and
+                                        $_ -notmatch '^microsoft\.network/' -and
+                                        $_ -notmatch '^microsoft\.support/supporttickets$' -and
+                                        $_ -notmatch '^microsoft\.recoveryservices/vaults/(backuppolicies|backupfabrics/.+/protecteditems)$' -and
+                                        $_ -notmatch '^microsoft\.desktopvirtualization/' -and
+                                        $_ -notmatch '/patch(assessment|installation)results' -and
+                                        $_ -notmatch '^microsoft\.(advisor/recommendations|security/assessments)$' -and
+                                        $_ -notmatch '^microsoft\.resources/subscriptions' -and
+                                        $_ -notin $nonResourceTableTypes
+                                })
+                            $derivedArmChildAffected = [bool]@(
+                                $types | Where-Object { $resourceDerivedArmChildParents.ContainsKey($_) } | Where-Object {
+                                    @($RequestedResourceTypes).Count -eq 0 -or
+                                    [bool]@($resourceDerivedArmChildParents[$_] | Where-Object { $_ -in $RequestedResourceTypes }).Count
+                                }
+                            ).Count
+                            if (@($RequestedResourceTypes).Count -gt 0) {
+                                $derivedArmChildAffected -or [bool]@($resourceTableTypes | Where-Object { $_ -in $RequestedResourceTypes }).Count
+                            }
+                            else { $derivedArmChildAffected -or $resourceTableTypes.Count -gt 0 }
+                        }
+                        'Network Resources' {
+                            $networkTableTypes = @($types | Where-Object { $_ -match '^microsoft\.network/' })
+                            $networkDiagnosticAffected = $types -contains 'azsc/armchild/resourcediagnosticsettings' -and (
+                                @($RequestedResourceTypes).Count -eq 0 -or
+                                [bool]@($networkDiagnosticParentTypes | Where-Object { $_ -in $RequestedResourceTypes }).Count
+                            )
+                            if (@($RequestedResourceTypes).Count -gt 0) {
+                                $networkDiagnosticAffected -or [bool]@($networkTableTypes | Where-Object { $_ -in $RequestedResourceTypes }).Count
+                            }
+                            else { $networkDiagnosticAffected -or $networkTableTypes.Count -gt 0 }
+                        }
+                        'SupportTickets' { $types -contains 'microsoft.support/supporttickets' }
+                        'Backup Items' { $text -match '(?i)microsoft\.recoveryservices/vaults/(?:backuppolicies|backupfabrics/.+/protecteditems)' }
+                        'Virtual Desktop' { [bool]@($types | Where-Object { $_ -match '^(microsoft\.desktopvirtualization/|azsc/armchild/avdapplications$|azsc/avd/azurelocalsessionhost$)' }).Count }
+                        'Update Manager: Assessments' { $text -match '(?i)PatchAssessment' }
+                        'Update Manager: Installations' { $text -match '(?i)PatchInstallation' }
+                        'Advisories' { $text -match '(?i)microsoft\.advisor/recommendations' }
+                        'Retirements' { $text -match '(?i)\$Retirements\b' }
+                        'Subscriptions and Resource Groups' { $collectorKey -eq 'Management/AllSubscriptions' }
+                        'Security Center' { $types -contains 'microsoft.security/assessments' }
+                        default { $false }
+                    }
+                    if ($isAffected) { $affected.Add($collectorKey) }
+                }
+                catch {
+                    Write-Verbose "Get-ScoutRawInventory: could not evaluate collector dependency metadata from '$($manifestPath.FullName)': $($_.Exception.Message)"
+                }
+            }
+        }
+        $affectedCollectorCache[$cacheKey] = @($affected | Sort-Object -Unique)
+        return @($affectedCollectorCache[$cacheKey])
+    }
 
     function Write-ScoutRawInventoryTiming {
         param(
@@ -380,16 +503,21 @@ function Get-ScoutRawInventory {
             [Parameter(Mandatory)] [string]   $Query,
             [string[]] $Batch,
             [string]   $SkipToken,
-            [string]   $LoopName
+            [string]   $LoopName,
+            [string[]] $AffectedResourceTypes = @(),
+            [string]   $AffectedCollectorSource,
+            [ValidateRange(25, 1000)]
+            [int]      $PageSize = 1000
         )
         $throttleRetries = 0
+        $effectivePageSize = $PageSize
         # A while($true)+continue loop (NOT a do/while on the retry count) is deliberate: a
         # do/while's `continue` re-evaluates the OUTER loop's own condition, not "try the
         # request again" -- with $skipToken still unset on a first-page throttle, that would
         # exit immediately instead of retrying. This inner loop's only exit paths are an
         # explicit `return`.
         while ($true) {
-            $params = @{ Query = $Query; First = 1000; ErrorAction = 'Stop' }
+            $params = @{ Query = $Query; First = $effectivePageSize; ErrorAction = 'Stop' }
             if ($SkipToken) { $params.SkipToken = $SkipToken }
             if ($Batch)     { $params.Subscription = $Batch }
             if ($ManagementGroupId -and -not $Batch) { $params.ManagementGroup = $ManagementGroupId }
@@ -399,6 +527,11 @@ function Get-ScoutRawInventory {
             }
             catch {
                 $errText = $_.Exception.Message
+                if ($errText -match '(?i)ResponsePayloadTooLarge|response payload size exceeded' -and $effectivePageSize -gt 25) {
+                    $effectivePageSize = [Math]::Max(25, [Math]::Floor($effectivePageSize / 2))
+                    Write-Verbose "Get-ScoutRawInventory: '$LoopName' exceeded the ARG response payload limit -- retrying with page size $effectivePageSize."
+                    continue
+                }
                 if ((Test-ScoutArgThrottled $errText) -and $throttleRetries -lt 3) {
                     $throttleRetries++
                     # Resource Graph's quota window resets in single-digit seconds (per the
@@ -409,6 +542,22 @@ function Get-ScoutRawInventory {
                     continue
                 }
                 Write-Warning "Get-ScoutRawInventory: '$LoopName' failed$(if ($Batch) { " for a batch of $($Batch.Count) subscription(s)" }) and was skipped: $errText"
+                $healthTypes = @(
+                    $AffectedResourceTypes |
+                        Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } |
+                        Sort-Object -Unique
+                )
+                $healthCollectors = @(Get-ScoutRawAffectedCollector -Source $AffectedCollectorSource -RequestedResourceTypes $healthTypes)
+                $healthKey = '{0}|{1}|{2}' -f $LoopName, ($healthTypes -join ','), ($healthCollectors -join ',')
+                if ($collectionHealthKeys.Add($healthKey)) {
+                    $collectionHealth.Add([pscustomobject]@{
+                            Dataset       = $LoopName
+                            Status        = 'Unavailable'
+                            Reason        = $errText
+                            ResourceTypes = $healthTypes
+                            Collectors     = $healthCollectors
+                        })
+                }
                 return $null
             }
         }
@@ -423,12 +572,16 @@ function Get-ScoutRawInventory {
         param(
             [Parameter(Mandatory)] [string]   $Query,
             [string[]] $Batch,
-            [string]   $LoopName
+            [string]   $LoopName,
+            [string[]] $AffectedResourceTypes = @(),
+            [string]   $AffectedCollectorSource,
+            [ValidateRange(25, 1000)]
+            [int]      $PageSize = 1000
         )
         $rows = [System.Collections.Generic.List[object]]::new()
         $skipToken = $null
         do {
-            $page = Get-ScoutRawArgPage -Query $Query -Batch $Batch -SkipToken $skipToken -LoopName $LoopName
+            $page = Get-ScoutRawArgPage -Query $Query -Batch $Batch -SkipToken $skipToken -LoopName $LoopName -AffectedResourceTypes $AffectedResourceTypes -AffectedCollectorSource $AffectedCollectorSource -PageSize $PageSize
             if ($null -eq $page) { break }
             foreach ($row in @($page)) { $rows.Add($row) }
             $skipToken = if ($page -and $page.PSObject.Properties['SkipToken']) { $page.SkipToken } else { $null }
@@ -445,16 +598,24 @@ function Get-ScoutRawInventory {
             Run one table query across every subscription batch (or tenant/MG-wide when no
             explicit subscription list is available yet).
         #>
-        param([string] $Query, [string] $LoopName, [string[]] $Subscriptions)
+        param(
+            [string] $Query,
+            [string] $LoopName,
+            [string[]] $Subscriptions,
+            [string[]] $AffectedResourceTypes = @(),
+            [string] $AffectedCollectorSource,
+            [ValidateRange(25, 1000)]
+            [int] $PageSize = 1000
+        )
         if (-not $Subscriptions -or @($Subscriptions).Count -eq 0) {
-            return Invoke-ScoutRawArgQuery -Query $Query -LoopName $LoopName
+            return Invoke-ScoutRawArgQuery -Query $Query -LoopName $LoopName -AffectedResourceTypes $AffectedResourceTypes -AffectedCollectorSource $AffectedCollectorSource -PageSize $PageSize
         }
         $rows = [System.Collections.Generic.List[object]]::new()
         # 1000 is the documented Resource Graph maximum subscriptions per call.
         for ($i = 0; $i -lt $Subscriptions.Count; $i += 1000) {
             $upper = [Math]::Min($i + 999, $Subscriptions.Count - 1)
             $batch = @($Subscriptions[$i..$upper])
-            foreach ($row in (Invoke-ScoutRawArgQuery -Query $Query -Batch $batch -LoopName $LoopName)) { $rows.Add($row) }
+            foreach ($row in (Invoke-ScoutRawArgQuery -Query $Query -Batch $batch -LoopName $LoopName -AffectedResourceTypes $AffectedResourceTypes -AffectedCollectorSource $AffectedCollectorSource -PageSize $PageSize)) { $rows.Add($row) }
         }
         return , @($rows)
     }
@@ -504,7 +665,7 @@ function Get-ScoutRawInventory {
     # Applying it to resourcecontainers was a (harmless) divergence introduced in v2.7.0; it is
     # removed so the query text matches the shipped one exactly (AB#5648).
     $containerQuery = "resourcecontainers $rgClause $tagClause $mgContainerClause | project $columns | order by id asc"
-    $resourceContainers = Invoke-ScoutRawTable -Query $containerQuery -LoopName 'Subscriptions and Resource Groups' -Subscriptions $resolvedSubscriptionIds
+    $resourceContainers = Invoke-ScoutRawTable -Query $containerQuery -LoopName 'Subscriptions and Resource Groups' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.resources/subscriptions', 'microsoft.resources/subscriptions/resourcegroups') -AffectedCollectorSource 'Subscriptions and Resource Groups'
     if ($resolvedSubscriptionIds.Count -eq 0) {
         $resolvedSubscriptionIds = @(
             $resourceContainers |
@@ -516,26 +677,28 @@ function Get-ScoutRawInventory {
 
     $resources = [System.Collections.Generic.List[object]]::new()
     if ($CollectResourceTable) {
-        foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $resourceTypeClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        $resourceHealthTypes = if ($resolvedResourceTypes.Count -gt 0) { $resolvedResourceTypes } else { @() }
+        foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $resourceTypeClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes $resourceHealthTypes -AffectedCollectorSource 'Resources')) { $resources.Add($row) }
     }
     if ($CollectNetworkTable) {
-        foreach ($row in (Invoke-ScoutRawTable -Query "networkresources $rgClause $tagClause $mgJoinClause $resourceTypeClause | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        $networkHealthTypes = if ($resolvedResourceTypes.Count -gt 0) { @($resolvedResourceTypes | Where-Object { $_ -like 'microsoft.network/*' }) } else { @() }
+        foreach ($row in (Invoke-ScoutRawTable -Query "networkresources $rgClause $tagClause $mgJoinClause $resourceTypeClause | project $columns | order by id asc" -LoopName 'Network Resources' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes $networkHealthTypes -AffectedCollectorSource 'Network Resources')) { $resources.Add($row) }
     }
 
     if ($IncludeSupportResources -and $AzureEnvironment -ne 'AzureUSGovernment') {
-        foreach ($row in (Invoke-ScoutRawTable -Query "SupportResources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'SupportTickets' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query "SupportResources $rgClause $tagClause $mgJoinClause | project $columns | order by id asc" -LoopName 'SupportTickets' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.support/supporttickets') -AffectedCollectorSource 'SupportTickets')) { $resources.Add($row) }
     }
 
     if ($IncludeBackupResources) {
         # The management-group join goes AFTER the type filter here, exactly as the legacy
         # extractor rendered it -- the tag clause goes before. Not symmetric, but faithful.
         $backupQuery = "recoveryservicesresources $rgClause $tagClause | where type =~ 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' or type =~ 'microsoft.recoveryservices/vaults/backuppolicies' $mgJoinClause | project $columns | order by id asc"
-        foreach ($row in (Invoke-ScoutRawTable -Query $backupQuery -LoopName 'Backup Items' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query $backupQuery -LoopName 'Backup Items' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.recoveryservices/vaults/backuppolicies', 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems') -AffectedCollectorSource 'Backup Items')) { $resources.Add($row) }
     }
 
     if ($IncludeDesktopVirtualization) {
         # No tag clause: the legacy extractor never applied one to this table.
-        foreach ($row in (Invoke-ScoutRawTable -Query "desktopvirtualizationresources $rgClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Virtual Desktop' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query "desktopvirtualizationresources $rgClause $mgJoinClause | project $columns | order by id asc" -LoopName 'Virtual Desktop' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.desktopvirtualization/hostpools', 'microsoft.desktopvirtualization/hostpools/sessionhosts', 'microsoft.desktopvirtualization/applicationgroups', 'microsoft.desktopvirtualization/scalingplans', 'microsoft.desktopvirtualization/workspaces', 'AZSC/ARMChild/AVDApplications', 'AZSC/AVD/AzureLocalSessionHost') -AffectedCollectorSource 'Virtual Desktop')) { $resources.Add($row) }
     }
 
     # ---- Azure Update Manager patch data (AB#6731) ----
@@ -561,45 +724,27 @@ function Get-ScoutRawInventory {
     # removed.
     if ($IncludeUpdateManagerResources) {
         $patchAssessQuery = "patchassessmentresources $rgClause $mgJoinClause | order by id asc"
-        foreach ($row in (Invoke-ScoutRawTable -Query $patchAssessQuery -LoopName 'Update Manager: Assessments' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query $patchAssessQuery -LoopName 'Update Manager: Assessments' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.compute/virtualmachines/patchassessmentresults', 'microsoft.hybridcompute/machines/patchassessmentresults', 'microsoft.connectedvmwarevsphere/virtualmachines/patchassessmentresults') -AffectedCollectorSource 'Update Manager: Assessments')) { $resources.Add($row) }
 
         $patchInstallQuery = "patchinstallationresources $rgClause $mgJoinClause | order by id asc"
-        foreach ($row in (Invoke-ScoutRawTable -Query $patchInstallQuery -LoopName 'Update Manager: Installations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
-    }
-
-    # ---- Azure Lighthouse delegations (AB#6771) ----
-    # `managedserviceresources` carries exactly two types -- registrationassignments (the scope a
-    # delegation is applied to) and registrationdefinitions (the offer: managing tenant id plus
-    # the authorizations it grants). Management/LighthouseDelegations renders the definitions, so
-    # that is what this filters to; pulling the assignments as well would double the row count
-    # with rows no collector consumes.
-    #
-    # NO `| project $columns` here, deliberately, and it is the one thing to be careful about if
-    # this query is ever edited. A `project` naming a column the table does not define fails the
-    # WHOLE query, and this table's schema is not guaranteed to match the resources-table
-    # projection that `$columns` renders (`zones`/`extendedLocation`/`plan` in particular). The
-    # patch* tables above skip the projection for the same reason. Unprojected rows carry every
-    # column the table defines, which is a superset of what the collector reads -- id, name,
-    # subscriptionId, tags and properties.
-    #
-    # The tag clause is omitted to match the other non-`resources` tables; the resource-group and
-    # management-group clauses are applied so a scoped run stays scoped. A delegation is
-    # subscription-scoped, so a -ResourceGroup run legitimately returns none.
-    if ($IncludeLighthouseDelegations) {
-        $lighthouseQuery = "managedserviceresources $rgClause | where type =~ 'microsoft.managedservices/registrationdefinitions' $mgJoinClause | order by id asc"
-        foreach ($row in (Invoke-ScoutRawTable -Query $lighthouseQuery -LoopName 'Lighthouse Delegations' -Subscriptions $resolvedSubscriptionIds)) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query $patchInstallQuery -LoopName 'Update Manager: Installations' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.compute/virtualmachines/patchinstallationresults', 'microsoft.hybridcompute/machines/patchinstallationresults', 'microsoft.connectedvmwarevsphere/virtualmachines/patchinstallationresults') -AffectedCollectorSource 'Update Manager: Installations')) { $resources.Add($row) }
     }
 
     $advisories = @()
     if ($IncludeAdvisories) {
         $advisorQuery = "advisorresources $rgClause $mgJoinClause | where properties.impact in~ ('Medium','High') | order by id asc"
-        $advisories = Invoke-ScoutRawTable -Query $advisorQuery -LoopName 'Advisories' -Subscriptions $resolvedSubscriptionIds
+        $advisories = Invoke-ScoutRawTable -Query $advisorQuery -LoopName 'Advisories' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.advisor/recommendations') -AffectedCollectorSource 'Advisories'
     }
 
     $security = @()
     if ($IncludeSecurityCenter) {
-        $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | order by id asc"
-        $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds
+        # Full Defender assessment payloads regularly exceed Resource Graph's 16 MiB response
+        # ceiling even with row paging. The legacy report consumes only this narrow shape, so
+        # project it server-side and use a conservative page size. The paging helper also halves
+        # the page on ResponsePayloadTooLarge as a final safety net.
+        $securityProperties = "bag_pack('resourceDetails',bag_pack('id',tostring(properties.resourceDetails.id)),'metadata',bag_pack('categories',properties.metadata.categories,'severity',tostring(properties.metadata.severity),'remediationDescription',tostring(properties.metadata.remediationDescription),'implementationEffort',tostring(properties.metadata.implementationEffort),'userImpact',tostring(properties.metadata.userImpact),'threats',properties.metadata.threats),'displayName',tostring(properties.displayName),'status',bag_pack('code',tostring(properties.status.code)))"
+        $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | project id,name,type,tenantId,resourceGroup,subscriptionId,properties=$securityProperties | order by id asc"
+        $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.security/assessments') -AffectedCollectorSource 'Security Center' -PageSize 200
     }
 
     # ---- retirements (AB#5648) ----
@@ -612,10 +757,21 @@ function Get-ScoutRawInventory {
         else { Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'src' 'report' 'renderers' 'inventory' 'style' 'Retirement.kql' }
         try {
             $retirementQuery = (Get-Content -Path $resolvedRetirementPath -ErrorAction Stop | Out-String)
-            $retirements = Invoke-ScoutRawTable -Query $retirementQuery -LoopName 'Retirements' -Subscriptions $resolvedSubscriptionIds
+            $retirements = Invoke-ScoutRawTable -Query $retirementQuery -LoopName 'Retirements' -Subscriptions $resolvedSubscriptionIds -AffectedCollectorSource 'Retirements'
         }
         catch {
             Write-Warning "Get-ScoutRawInventory: the retirement query at '$resolvedRetirementPath' could not be read -- Retirements will be empty and the rest of the inventory is unaffected: $($_.Exception.Message)"
+            $healthCollectors = @(Get-ScoutRawAffectedCollector -Source 'Retirements')
+            $healthKey = 'Retirements||{0}' -f ($healthCollectors -join ',')
+            if ($collectionHealthKeys.Add($healthKey)) {
+                $collectionHealth.Add([pscustomobject]@{
+                        Dataset       = 'Retirements'
+                        Status        = 'Unavailable'
+                        Reason        = $_.Exception.Message
+                        ResourceTypes = @()
+                        Collectors    = $healthCollectors
+                    })
+            }
             $retirements = @()
         }
     }
@@ -690,7 +846,21 @@ function Get-ScoutRawInventory {
         $securityPolicyStatus = 'Completed'
         try {
             foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $subscriptionEnvelopes)) {
-                if ($null -ne $row) { $resources.Add($row) }
+                if ($null -eq $row) { continue }
+                $resources.Add($row)
+                $statusProperty = $row.properties.PSObject.Properties['CollectionStatus']
+                if ($statusProperty -and $statusProperty.Value) {
+                    foreach ($status in $statusProperty.Value.PSObject.Properties) {
+                        if ([string]$status.Value -in @('Unavailable', 'Skipped', 'Failed')) {
+                            $collectionHealth.Add([pscustomobject]@{
+                                    Dataset       = "SecurityPolicy/$($status.Name) [$($row.subscriptionName)]"
+                                    Status        = [string]$status.Value
+                                    Reason        = 'The subscription-scoped dataset was not available.'
+                                    ResourceTypes = @('AZSC/Subscription/SecurityPolicySweep')
+                                })
+                        }
+                    }
+                }
             }
         }
         catch {
@@ -759,7 +929,18 @@ function Get-ScoutRawInventory {
         Write-ScoutRawInventoryStart -Name 'ARM REST API sweep'
         $apiSweepStatus = 'Completed'
         try {
-            $collectedApiResources = @(Get-ScoutApiResources -Subscriptions $subscriptionEnvelopes -AzureEnvironment $AzureEnvironment -SkipPolicy:$SkipPolicy -DefinitionsOnly:$TenantWideDefinitionsOnly)
+            $apiArgs = @{
+                Subscriptions    = $subscriptionEnvelopes
+                AzureEnvironment = $AzureEnvironment
+                SkipPolicy       = $SkipPolicy
+                DefinitionsOnly  = $TenantWideDefinitionsOnly
+            }
+            # Older isolated test shadows predate this optimization. Production owns the
+            # parameter and uses ARG as the single source for managed identities.
+            if ((Get-Command Get-ScoutApiResources).Parameters.ContainsKey('SkipManagedIdentities')) {
+                $apiArgs.SkipManagedIdentities = $true
+            }
+            $collectedApiResources = @(Get-ScoutApiResources @apiArgs)
         }
         catch {
             $apiSweepStatus = 'Failed'
@@ -910,5 +1091,6 @@ function Get-ScoutRawInventory {
         # AB#6779 -- the governance datasets this pass just collected, handed up so Invoke-Collect
         # fills $collect.governance from them instead of Import-Governance querying Azure again.
         Governance         = $governance
+        CollectionHealth   = @($collectionHealth)
     }
 }

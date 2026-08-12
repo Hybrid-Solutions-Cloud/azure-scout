@@ -114,7 +114,7 @@ Describe 'Start-AZSCEntraExtraction' {
     }
 
     # ── All Entra Queries ─────────────────────────────────────────────
-    Context 'All Entra Queries Executed' {
+    Context 'Released Entra Queries Executed' {
 
         BeforeAll {
             $script:graphCallUris = [System.Collections.Generic.List[string]]::new()
@@ -131,18 +131,55 @@ Describe 'Start-AZSCEntraExtraction' {
             Remove-Variable -Name graphCallUris -Scope Script -ErrorAction SilentlyContinue
         }
 
-        It 'calls Invoke-AZSCGraphRequest once for every catalog query' {
+        It 'calls Graph only for released catalog queries and the shared licence probe' {
             $null = Start-AZSCEntraExtraction -TenantID 'test-tenant'
-            $expected = @(Get-ScoutEntraQueryCatalog).Count
+            # Two unconsumed catalog rows make no HTTP call. The P2 licence probe replaces the
+            # Risky Users call in this fixture, yielding one call per released catalog row.
+            $expected = @(Get-ScoutEntraQueryCatalog | Where-Object { -not $_.ContainsKey('Collect') -or $_.Collect }).Count
             Should -Invoke Invoke-AZSCGraphRequest -Times $expected -Scope It
         }
 
         It 'pins every Graph query to the requested tenant' {
             $null = Start-AZSCEntraExtraction -TenantID 'target-tenant'
-            $expected = @(Get-ScoutEntraQueryCatalog).Count
+            $expected = @(Get-ScoutEntraQueryCatalog | Where-Object { -not $_.ContainsKey('Collect') -or $_.Collect }).Count
             Should -Invoke Invoke-AZSCGraphRequest -Times $expected -Scope It -ParameterFilter {
                 $TenantID -eq 'target-tenant'
             }
+        }
+    }
+
+    Context 'Known availability gates' {
+        BeforeEach {
+            # Delegated user token with none of the two granular Verified ID scopes.
+            Mock Get-AZSCGraphToken {
+                @{ Authorization = 'Bearer e30.eyJzY3AiOiJVc2VyLlJlYWQuQWxsIEdyb3VwLlJlYWQuQWxsIn0.sig'; 'Content-Type' = 'application/json' }
+            }
+            Mock Test-ScoutTenantLicence { $false }
+            Mock Invoke-AZSCGraphRequest {
+                @([pscustomobject]@{ id = 'available'; displayName = 'Available' })
+            }
+        }
+
+        It 'makes no request for unlicensed, missing-scope, or unconsumed datasets' {
+            $result = Start-AZSCEntraExtraction -TenantID 'target-tenant'
+
+            foreach ($pattern in @('riskyUsers', 'VerifiableCredentials', 'verifiedId/profiles', 'identityProviders', 'identitySecurityDefaults')) {
+                Should -Invoke Invoke-AZSCGraphRequest -Times 0 -Scope It -ParameterFilter { $Uri -match $pattern }
+            }
+            @($result.QueryOutcomes | Where-Object Status -eq 'NotAssessed').Count | Should -Be 5
+        }
+
+        It 'records actionable NotAssessed reasons without emitting warnings' {
+            $warnings = @()
+            $result = Start-AZSCEntraExtraction -TenantID 'target-tenant' -WarningVariable warnings
+
+            @($warnings).Count | Should -Be 0
+            $risky = $result.QueryOutcomes | Where-Object Type -eq 'entra/riskyusers'
+            $risky.Reason | Should -Match 'Entra ID P2'
+            $verified = $result.QueryOutcomes | Where-Object Type -eq 'entra/verifiedidprofiles'
+            $verified.Reason | Should -Match 'cannot add token scopes'
+            $unused = $result.QueryOutcomes | Where-Object Type -eq 'entra/identityproviders'
+            $unused.Reason | Should -Match 'No released Scout collector'
         }
     }
 

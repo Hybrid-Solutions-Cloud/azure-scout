@@ -23,6 +23,92 @@ $script:ScoutHeldRenderers = @(
     'PowerBi', 'Html', 'Pptx', 'Excel', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport'
 )
 
+function Assert-ScoutAssessmentCollectProvenance {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [object] $Collect,
+        [Parameter(Mandatory)] [string[]] $RequiredCategories,
+        [string[]] $RequiredIngestors = @()
+    )
+
+    $metadataProperty = $Collect.PSObject.Properties['_meta']
+    $metadata = if ($metadataProperty) { $metadataProperty.Value } else { $null }
+    $categoryProperty = if ($metadata) { $metadata.PSObject.Properties['categories'] } else { $null }
+    $collectedCategories = @(
+        if ($categoryProperty) {
+            $categoryProperty.Value | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+        }
+    )
+
+    $missingCategories = @()
+    if ($collectedCategories.Count -eq 0) {
+        $missingCategories = @($RequiredCategories)
+    }
+    elseif ($RequiredCategories -contains '*') {
+        if ($collectedCategories -notcontains '*') { $missingCategories = @('*') }
+    }
+    elseif ($collectedCategories -notcontains '*') {
+        $missingCategories = @($RequiredCategories | Where-Object { $collectedCategories -notcontains $_ })
+    }
+
+    $healthProperty = if ($metadata) { $metadata.PSObject.Properties['collectionHealth'] } else { $null }
+    $blockingHealth = @(
+        if ($healthProperty) {
+            foreach ($health in @($healthProperty.Value)) {
+                if (
+                    $null -eq $health -or
+                    -not $health.PSObject.Properties['Status'] -or
+                    [string]$health.Status -notin @('Unavailable', 'Failed')
+                ) { continue }
+
+                $dataset = if ($health.PSObject.Properties['Dataset']) { [string]$health.Dataset } else { 'Unknown source' }
+                if ($dataset -eq 'Advisories' -and $RequiredIngestors -contains 'AdvisorScores') {
+                    $health
+                    continue
+                }
+
+                $collectorProperty = $health.PSObject.Properties['Collectors']
+                $collectors = @(
+                    if ($collectorProperty) {
+                        $collectorProperty.Value | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+                    }
+                )
+                if ($collectors.Count -eq 0 -or $RequiredCategories -contains '*') {
+                    $health
+                    continue
+                }
+
+                if (@($collectors | Where-Object {
+                            $collectorCategory = ([string]$_ -split '/', 2)[0]
+                            $RequiredCategories -contains $collectorCategory
+                        }).Count -gt 0) {
+                    $health
+                }
+            }
+        }
+    )
+
+    if ($missingCategories.Count -eq 0 -and $blockingHealth.Count -eq 0) { return }
+
+    $details = [System.Collections.Generic.List[string]]::new()
+    if ($missingCategories.Count -gt 0) {
+        $details.Add('missing required categories: {0}' -f (@($missingCategories | Sort-Object -Unique) -join ', '))
+    }
+    if ($blockingHealth.Count -gt 0) {
+        $details.Add('unavailable required datasets: {0}' -f (@($blockingHealth | ForEach-Object {
+                        if ($_.PSObject.Properties['Dataset']) { [string]$_.Dataset } else { 'Unknown source' }
+                    } | Sort-Object -Unique) -join ', '))
+    }
+
+    $message = (
+        'Invoke-ScoutAssessmentCore: the saved collect cannot safely score the selected assessment ({0}). ' +
+        'Create a new collect for this assessment instead of scoring missing evidence.'
+    ) -f ($details -join '; ')
+    $sourceException = [System.InvalidOperationException]::new($message)
+    $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+    throw $sourceException
+}
+
 <#
 .SYNOPSIS
     Azure Scout assessment entry point — collect, assess, and report.
@@ -159,6 +245,8 @@ function Invoke-ScoutAssessmentCore {
     # `-Assessment Compute` predates that rename and must keep working, so the legacy name is
     # mapped here (with a warning naming the new value) before anything indexes the manifest.
     $Assessment = @(Resolve-ScoutAssessmentName -Name $Assessment -Manifest $manifest)
+    $requiredCategories = @($Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique)
+    $requiredIngestors = @($Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique)
 
     if ($PermissionAudit) {
         return Test-ScoutPermission -Assessment $Assessment -Manifest $manifest
@@ -169,6 +257,10 @@ function Invoke-ScoutAssessmentCore {
     $fromCollectData = $null
     if ($FromCollect) {
         $fromCollectData = Get-Content -LiteralPath $FromCollect -Raw -ErrorAction Stop | ConvertFrom-Json -Depth 100
+        if (-not $InventoryOnly -and -not $CollectOnly) {
+            Assert-ScoutAssessmentCollectProvenance -Collect $fromCollectData `
+                -RequiredCategories $requiredCategories -RequiredIngestors $requiredIngestors
+        }
     }
     elseif ($Scope -eq 'EntraOnly' -and -not ($InventoryOnly -and $FromInventory)) {
         throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
@@ -223,8 +315,21 @@ function Invoke-ScoutAssessmentCore {
         # silently returning an empty/misleading run. 'ArmOnly' and 'All' are
         # functionally identical today (both just run the ARM collect) and stay
         # accepted for forward compatibility.
-        $categories = if ($InventoryOnly) { @('*') } else { $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique }
-        if ($Category) { $categories = $Category }
+        $categories = if ($InventoryOnly) {
+            @('*')
+        }
+        elseif ($CollectOnly -and $Category) {
+            @($Category | Select-Object -Unique)
+        }
+        elseif ($Category) {
+            # A public category filter may broaden a scored assessment, but it must never remove
+            # evidence required by the selected rule sets. Replacing the manifest categories
+            # allowed omitted Networking/Security data to become empty arrays and false Passes.
+            @($requiredCategories + $Category | Select-Object -Unique)
+        }
+        else {
+            $requiredCategories
+        }
         Write-ScoutAssessmentProgress -Status 'Collecting Azure resource data' -PercentComplete 5
         $collectArgs = @{
             Categories        = $categories
@@ -274,8 +379,37 @@ function Invoke-ScoutAssessmentCore {
                 # through a slower API.
                 'AdvisorScores' {
                     $advisorArgs = @{ Collect = $collect }
-                    if ($FromInventory -and $FromInventory.PSObject.Properties['Advisories']) {
+                    $advisorInventoryUnavailable = @(
+                        if ($FromInventory -and $FromInventory.PSObject.Properties['CollectionHealth']) {
+                            $FromInventory.CollectionHealth | Where-Object {
+                                $_ -and $_.PSObject.Properties['Dataset'] -and
+                                [string]$_.Dataset -eq 'Advisories' -and
+                                $_.PSObject.Properties['Status'] -and
+                                [string]$_.Status -in @('Unavailable', 'Failed')
+                            }
+                        }
+                    ).Count -gt 0
+                    $advisorInventoryNotAssessed = @(
+                        if ($FromInventory -and $FromInventory.PSObject.Properties['CollectionHealth']) {
+                            $FromInventory.CollectionHealth | Where-Object {
+                                $_ -and $_.PSObject.Properties['Dataset'] -and
+                                [string]$_.Dataset -eq 'Advisories' -and
+                                $_.PSObject.Properties['Status'] -and
+                                [string]$_.Status -eq 'NotAssessed'
+                            }
+                        }
+                    ).Count -gt 0
+                    if ($advisorInventoryNotAssessed) {
+                        $advisorArgs.NotAssessed = $true
+                    }
+                    elseif ($FromInventory -and $FromInventory.PSObject.Properties['Advisories'] -and -not $advisorInventoryUnavailable) {
+                        # Property presence, not row count, proves the inventory query ran. An
+                        # empty successful result is a complete answer and must not trigger a
+                        # second per-subscription Advisor sweep.
                         $advisorArgs.FromInventory = @($FromInventory.Advisories)
+                    }
+                    elseif ($advisorInventoryUnavailable) {
+                        Write-Warning 'Invoke-ScoutAssessmentCore: the inventory Advisor query was unavailable; attempting the independent per-subscription Advisor API fallback.'
                     }
                     $collect = Import-AdvisorScores @advisorArgs
                 }

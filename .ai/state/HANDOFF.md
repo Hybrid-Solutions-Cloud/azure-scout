@@ -1,5 +1,141 @@
 # Handoff
 
+## Session 2026-08-11 — 3.12.2 post-review source-honesty closure
+
+PR #263's three review findings and the subsequent adversarial source-ownership audit are resolved
+in the working tree. Permission preflight now applies exact delegated-scope absence only to catalog
+entries explicitly marked `RequireDelegatedScope`; normal User/Group/Application/Policy endpoints
+are probed. Disabled `Collect=false` Entra entries remain visible in raw query outcomes but are not
+promoted to failed collection health.
+
+Raw inventory failures now carry exact dataset and collector ownership, including filtered network
+queries, parent-derived ARM child collectors, Backup/AVD/Patch/Advisor dependencies, and manifests
+that actually consume retirement data. Exact collector ownership is authoritative downstream.
+Assessment collection preserves that provenance and fails closed for unavailable selected evidence
+without blocking unrelated categories. A complete raw-pass failure cannot become a clean empty
+assessment. Combined mode catches only this marked assessment-unavailable condition, skips scoring,
+and continues producing the honest inventory deliverable.
+
+Advisor evidence now distinguishes successful empty, unavailable, and intentionally skipped data;
+every and only rule querying `$.advisor` gates on `advisorAvailable`. `-SkipAdvisory` performs no
+Advisor call and yields NotAssessed rather than a false Pass. User-assigned managed identities now
+have one authoritative Resource Graph source in selective, full, pre-collected, and fallback paths.
+Scored assessment `-Category` values are unioned with manifest-required categories so a user filter
+cannot omit evidence and create false Passes. Inventory-only/collect-only filtering behavior remains
+available for non-scoring use. Reassessment from a saved `collect.json` now validates its recorded
+categories and applicable failed source health before scoring; incomplete or legacy artifacts without
+provable coverage throw the same typed `AssessmentSourceUnavailable` condition instead of treating
+missing evidence as a Pass. The canonical saved-collect fixture now records full provenance.
+
+Settled focused evidence: 90/90 assessment/entry-point tests, 118/118 affected release/runtime tests,
+and 26/26 managed-identity/source-health tests, all with zero failures/skips. Independent runtime and
+release audits found no remaining demonstrated production blocker. Parser, StrictMode,
+PSScriptAnalyzer Error, release/docs contracts, docs build, diff check, secret scan, manifest/import,
+and allow-listed package inventory checks pass. The final settled 20-suite affected gate passed
+427/427 with zero failures/skips/not-run/container failures. The candidate commit includes the new
+`tests/Extraction.EntraCollectionHealth.Tests.ps1`; the remaining release sequence is the complete
+zero-skip Pester suite on a clean superseding commit, then push/merge/tag/build/publish/verify 3.12.2.
+
+The first exact-commit full-suite attempt found one stale contract in
+`Collect.SinglePassInversion.Tests.ps1`: it still expected the typed query pack to recover a total
+raw-pass outage, even though that fallback cannot recreate raw-only child/API evidence and was
+intentionally removed. The test now requires the typed `AssessmentSourceUnavailable` failure.
+The combined routing test also shadows `Get-AzContext` so it cannot read or print the developer's
+ambient cached identity. Their focused rerun passed 51/51 with zero skips; a superseding clean
+commit and all three exact-commit shards are required.
+
+The next exact-commit attempt passed shards 0 and 1 (900/900 and 747/747). Shard 2 found two more
+stale/conflicting test contracts: the direct React assessment fixture contained a successful
+Advisor row but omitted `advisorAvailable=true`, and the StrictMode member-enumeration suite still
+required orchestration to append the duplicate Managed Identity REST field that this release
+deliberately removed. The fixture now declares successful Advisor availability; the API contract
+checks the six fields still consumed and explicitly forbids Managed Identity append. Their focused
+rerun passed 92/92 with zero skips. A superseding exact-commit three-shard gate remains required.
+
+## Session 2026-08-11 — 3.12.2 guided-run preflight correction
+
+A second live customer run exposed duplicate and contradictory preflight UX after the initial
+3.12.2 correctness commit. The wizard no longer runs an ARM-only audit before it knows whether the
+operator selected Entra; after confirmation, `Invoke-AzureScout` now performs one login and one
+authoritative audit for the selected scope. The login banner no longer performs its own management
+group probe. The audit now proves management-group visibility through actual enumeration, treats a
+provider check as a one-subscription sample without tenant-wide registration recommendations,
+excludes disabled/unconsumed Graph catalog entries, and emits exactly one mutually exclusive
+READY/PARTIAL verdict. A combined-run regression is fully mocked and cannot touch the developer's
+active Az context.
+
+Post-fix verification: the focused runtime/preflight batch passed 219/219 with zero failed, skipped,
+not-run, or failed-container results; release/docs contracts passed 32/32; VitePress built; all
+changed PowerShell parsed; PSScriptAnalyzer Error severity is zero; StrictMode guard, manifest
+3.12.2 validation, and diff check passed. The first frozen full-suite pass found two stale release
+contracts: ContextIdentity still expected the deliberately removed wizard audit, and the golden
+directory retained the deliberately removed Lighthouse record. The wizard contract now requires no
+early audit (5/5 focused pass), and golden coverage is again exactly 278 definitions/278 records
+with no missing or extra names. A superseding commit and exact-HEAD full-suite/release work remain.
+
+The second frozen attempt found one nondeterministic ModuleUpdate test: a normal AzureScout import
+in another parallel shard could recreate the production-wide temp throttle marker between this
+test's cleanup and assertion. `Test-AZSCModuleUpdate` now accepts an optional `ThrottlePath` while
+production keeps the same default; the suite uses a GUID-isolated marker directory. ModuleUpdate
+passes 11/11 with no skips. A new superseding commit and complete exact-HEAD rerun are required.
+
+## Session 2026-08-11 — 3.12.2 live-run correctness implemented
+
+The completed customer run at `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` was reconciled
+against the code. Every warning class has an implemented regression: known P2/delegated-scope and
+unconsumed Entra endpoints are classified before HTTP calls in both preflight and extraction;
+Azure Lighthouse is removed from the released manifest/query/plan contract; Security Center ARG
+responses use a narrow projection and shrink their page after payload-limit failures; expected
+storage lifecycle/Advisor 404s and unregistered Defender pricing remain quiet; null resources are
+filtered before orphaned-role enrichment; and upstream unavailable datasets flow into collector
+availability plus `collection-health.json` instead of appearing as clean empty data.
+
+The operator additionally required every discovery artifact to survive completion. The final
+`ReportCache` purge was removed. `raw-inventory.json`, `collector-rowcounts.json`,
+`collection-health.json`, `ReportCache`, and `DiagramCache` now remain in the run folder until an
+operator explicitly invokes age-based cleanup. A mocked public-entry completion test creates raw
+and processed cache files and requires both to remain.
+
+Version metadata is synchronized to 3.12.2 in the manifest, changelog, release ledger, docs
+changelog, and roadmap. Generated catalogs match 278 released manifests after Lighthouse removal.
+Verification so far: 268/268 focused runtime/live-error/retention tests, 103/103 permission/Entra
+tests, and 45/45 release/docs/catalog tests passed with zero skips, not-run cases, or failed
+containers. `Test-ModuleManifest` reports 3.12.2. Remaining work: static/docs/secret gates, commit the
+frozen candidate, complete full Pester on the exact clean commit, push/PR/CI/merge, tag/package,
+publish to PowerShell Gallery, and verify the downloaded/installed artifact byte-for-byte.
+
+## Session 2026-08-11 — completed 3.12.1 live-run error audit
+
+Read-only audit of `C:\AzureScout\2026-08-11_133426_189_d6fc73cf` is complete. The guided
+Both/All run completed in 11m43s and produced inventory JSON, React, findings and evidence, but it
+was not complete: `scout-run.log` contains 25 warnings and `scout-console.log` captured 16 raw
+terminating error records. Confirmed product defects are: unfinished Lighthouse collection is
+incorrectly live and queries the disallowed `managedserviceresources` ARG table; the Security Center
+ARG query requests full assessment payloads and exceeded ARG's 16 MiB response limit (25,512,374
+bytes), leaving the legacy Security findings input empty; permission-audit availability decisions
+do not reach Entra extraction, so known-unavailable Risky User/Verified ID calls and two unconsumed
+Identity Provider/Security Defaults calls are still executed and logged as failures; one null element
+in the 1,506-resource array causes `Resolve-ScoutOrphanedRoleAssignment` parameter binding to reject
+the whole array, leaving role-assignment display-name/orphan enrichment unresolved; expected storage
+lifecycle-policy 404s, an unregistered Microsoft.Security provider and absent Advisor score leak as
+raw warnings/terminating errors; upstream unavailable datasets are later reported as ordinary Empty
+collectors and the summary incorrectly says `Collectors failed: 0`.
+
+The repair plan is: (1) remove Lighthouse from every live collection/category/docs contract until
+implemented; (2) project only Security Center fields consumed downstream and use a payload-safe page
+size, while propagating query availability; (3) build one Entra collection plan shared by preflight
+and extraction, skipping unlicensed, delegated-scope-unavailable and unconsumed queries without an
+HTTP call and recording structured NotAssessed outcomes; (4) filter null resource elements before
+enrichment/return and make the resolver explicitly tolerate them; (5) classify expected 404/provider
+absence as Empty/Unavailable rather than warnings and prevent caught API errors leaking into the
+console transcript; (6) carry upstream availability into collector row counts, report health and the
+final run summary; (7) clarify total interactive time versus scan execution time. Regression gates
+must exercise the exact guided-menu path, assert zero calls for known-unavailable Entra endpoints,
+handle a 2,000+ row Security fixture, enrich an array containing null, prove All never queries
+Lighthouse, and require zero raw `TerminatingError` transcript entries for expected absence. After
+focused tests, run the complete zero-failure/zero-skip Pester gate and a live read-only menu smoke
+before a patch release.
+
 ## Session 2026-08-11 — v3.12.1 one-sign-in Graph authentication hotfix
 
 AzureScout 3.12.1 is released. PR #262 merged to main as

@@ -40,7 +40,7 @@ function Out-AZSCReportResults {
         $SkipDiagram
     )
 
-    Write-Host ('Report Complete. Total Runtime was: ') -NoNewline -ForegroundColor Green
+    Write-Host ('Report complete. Total command time (including guided setup): ') -NoNewline -ForegroundColor Green
     Write-Host $Measure -ForegroundColor Cyan
     Write-Host ('Total Resources on Azure: ') -NoNewline
     Write-Host $ResourcesCount -ForegroundColor Cyan

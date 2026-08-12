@@ -109,7 +109,19 @@ Describe 'Single entry point — output format guards' {
             Mock -CommandName Test-AZSCPS -MockWith { 'Windows' }
             Mock -CommandName Connect-AZSCLoginSession -MockWith {
                 $script:CombinedLoginCalls++
-                if ($script:CombinedLoginCalls -eq 1) { return 'test-tenant' }
+                return 'test-tenant'
+            }
+            Mock -CommandName Get-AzContext -MockWith {
+                [pscustomobject]@{
+                    Account      = [pscustomobject]@{ Id = 'test@example.invalid' }
+                    Subscription = [pscustomobject]@{ Id = 'sub-1'; Name = 'Test' }
+                    Tenant       = [pscustomobject]@{ Id = 'test-tenant' }
+                }
+            }
+            # Stop at the first inventory-only operation after authentication.
+            # This proves the combined live-format guard was passed without ever
+            # allowing the regression harness to touch the developer's Az context.
+            Mock -CommandName Get-AZSCSubscriptions -MockWith {
                 throw 'REGRESSION-GATE: combined run reached the inventory phase'
             }
 
@@ -127,10 +139,10 @@ Describe 'Single entry point — output format guards' {
         }
 
         $result.Message | Should -Be 'REGRESSION-GATE: combined run reached the inventory phase'
-        $result.LoginCalls | Should -Be 2
+        $result.LoginCalls | Should -Be 1
     }
 
-    It 'completes a JSON-only inventory with a zero Excel row count' {
+    It 'completes a JSON-only inventory and retains its raw and processed discovery data' {
         $work = $TestDrive
 
         {
@@ -156,10 +168,14 @@ Describe 'Single entry point — output format guards' {
                         ReportCache  = Join-Path $Work 'ReportCache'
                     }
                 }
-                Mock Set-AZSCFolder
+                Mock Set-AZSCFolder {
+                    New-Item -ItemType Directory -Path (Join-Path $Work 'DiagramCache') -Force | Out-Null
+                    New-Item -ItemType Directory -Path (Join-Path $Work 'ReportCache') -Force | Out-Null
+                }
                 Mock Start-AZSCRunLog
                 Mock Write-AZSCLog
                 Mock Write-AZSCLogPhase
+                Mock Write-Warning
                 Mock Clear-AZSCCacheFolder
                 Mock Get-Module { [pscustomobject]@{ Version = [version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
                 Mock Start-AZSCExtractionOrchestration {
@@ -181,9 +197,16 @@ Describe 'Single entry point — output format guards' {
                         PolicySetDef       = @()
                     }
                 }
-                Mock Export-ScoutRawInventoryDump { Join-Path $Work 'raw-inventory.json' }
+                Mock Export-ScoutRawInventoryDump {
+                    $path = Join-Path $Work 'raw-inventory.json'
+                    '{"schema":"azure-scout/raw-inventory/v1"}' | Set-Content -LiteralPath $path
+                    $path
+                }
                 Mock Start-AZSCExtraJobs { @{} }
-                Mock Start-AZSCProcessOrchestration
+                Mock Start-AZSCProcessOrchestration {
+                    $path = Join-Path $Work 'ReportCache/Compute.json'
+                    '[]' | Set-Content -LiteralPath $path
+                }
                 Mock Export-AZSCJsonReport { Join-Path $Work 'AzureScout.json' }
                 Mock Clear-AZSCMemory
                 Mock Out-AZSCReportResults
@@ -193,6 +216,9 @@ Describe 'Single entry point — output format guards' {
 
                 Should -Invoke Export-AZSCJsonReport -Exactly 1
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+                Should -Invoke Clear-AZSCCacheFolder -Exactly 1
+                Test-Path -LiteralPath (Join-Path $Work 'raw-inventory.json') | Should -BeTrue
+                Test-Path -LiteralPath (Join-Path $Work 'ReportCache/Compute.json') | Should -BeTrue
             } $work
         } | Should -Not -Throw
     }
@@ -301,6 +327,7 @@ Describe 'Single entry point — output format guards' {
                 Mock Start-AZSCRunLog
                 Mock Write-AZSCLog
                 Mock Write-AZSCLogPhase
+                Mock Write-Warning
                 Mock Clear-AZSCCacheFolder
                 Mock Get-Module { [pscustomobject]@{ Version=[version]'3.10.0' } } -ParameterFilter { $Name -eq 'AzureScout' }
                 Mock Start-AZSCExtractionOrchestration {
@@ -329,7 +356,22 @@ Describe 'Single entry point — output format guards' {
                 Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
                     $OutputFormat -contains 'React' -and $OutputFormat -contains 'JsonEvidence' -and $null -ne $FromInventory
                 }
+                Should -Invoke Connect-AZSCLoginSession -Exactly 1
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
+
+                Mock Invoke-ScoutAssessmentCore {
+                    $exception = [System.InvalidOperationException]::new('required source unavailable')
+                    $exception.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+                    throw $exception
+                }
+
+                Invoke-AzureScout -NoWizard -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment `
+                    -OutputFormat React,JsonEvidence -SkipPermissionCheck -SkipDiagram
+
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 2
+                Should -Invoke Start-AZSCProcessOrchestration -Exactly 2
+                Should -Invoke Out-AZSCReportResults -Exactly 2
+                Should -Invoke Write-Warning -ParameterFilter { $Message -like '*skipped*assessment*inventory run will continue*' }
             } $work
         } | Should -Not -Throw
     }
@@ -589,6 +631,14 @@ Describe 'Wizard — combined run contract' {
         $source | Should -Match '\$formatPool = \$liveFormats'
         $source | Should -Not -Match '\$inventoryFormats\s*='
         $source | Should -Not -Match '\$assessmentFormats\s*='
+    }
+
+    It 'defers permission validation so a guided run executes one selected-scope audit' {
+        $wizardSource = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Start-AZSCWizard.ps1')
+        $entrySource = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/Invoke-AzureScout.ps1')
+        $wizardSource | Should -Not -Match 'Test-AZSCPermissions'
+        ([regex]::Matches($entrySource, 'Test-AZSCPermissions -TenantID')).Count | Should -Be 1
+        $entrySource | Should -Not -Match 'Test-AZSCManagementGroupAccess'
     }
 
     It 'returns Both with React and JsonEvidence selected' {

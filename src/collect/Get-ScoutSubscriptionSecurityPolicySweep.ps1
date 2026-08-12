@@ -128,6 +128,38 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         }
     }
 
+    function Invoke-ScoutDefenderPricingDataset {
+        param([Parameter(Mandatory)][string] $SubscriptionName)
+
+        # Az.Security emits an error when Microsoft.Security is unregistered. Run this known
+        # optional read with a quiet error variable so the expected provider state does not leak
+        # into scout-console.log as a TerminatingError before Scout can classify it.
+        $pricingErrors = @()
+        $pricingData = @()
+        try {
+            $pricingData = @(Get-AzSecurityPricing -ErrorAction SilentlyContinue -ErrorVariable +pricingErrors)
+        }
+        catch {
+            $pricingErrors += $_
+        }
+
+        if (@($pricingErrors).Count -eq 0) {
+            return [pscustomobject]@{ Data = $pricingData; Status = 'Success'; Error = $null }
+        }
+
+        $message = (@($pricingErrors | ForEach-Object { $_.Exception.Message }) -join '; ')
+        if ($message -match '(?i)MissingSubscriptionRegistration|SubscriptionNotRegistered|not registered.+Microsoft\.Security|Microsoft\.Security.+not registered|register to Microsoft\.Security') {
+            return [pscustomobject]@{ Data = @(); Status = 'Unavailable'; Error = $null }
+        }
+
+        Write-Warning "Get-ScoutSubscriptionSecurityPolicySweep: 'DefenderPricing' failed for subscription '$SubscriptionName': $message"
+        return [pscustomobject]@{
+            Data   = @()
+            Status = 'Unavailable'
+            Error  = [pscustomobject]@{ Dataset = 'DefenderPricing'; Message = $message }
+        }
+    }
+
     $originalContext = try {
         Get-AzContext -ErrorAction SilentlyContinue
     }
@@ -226,11 +258,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 -MaxAttempts 3 `
                 -Operation { Get-AzSecurityAssessment -ErrorAction Stop }
 
-            $queries.DefenderPricing = Invoke-ScoutSweepDataset `
-                -Dataset 'DefenderPricing' `
-                -SubscriptionName $subscriptionName `
-                -ProviderRegistrationIsUnavailable `
-                -Operation { Get-AzSecurityPricing -ErrorAction Stop }
+            $queries.DefenderPricing = Invoke-ScoutDefenderPricingDataset -SubscriptionName $subscriptionName
 
             $queries.DefenderSecureScores = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderSecureScores' `

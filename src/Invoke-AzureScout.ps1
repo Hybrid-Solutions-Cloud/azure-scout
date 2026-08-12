@@ -643,7 +643,8 @@ Function Invoke-AzureScout {
     if ($Assessment -or $CollectOnly.IsPresent -or $FromCollect) {
         # -FromCollect re-assesses an existing collect.json offline, so it must
         # not force a sign-in the run doesn't need.
-        if (-not $FromCollect -and $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
+        if (-not $FromCollect -and -not ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) -and
+            $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
             $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
@@ -814,17 +815,6 @@ Function Invoke-AzureScout {
             Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthUpn -ForegroundColor Cyan
             Write-Host '  Subscription : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthSub -ForegroundColor Cyan
             Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthIdentity.TenantDisplayName -ForegroundColor Cyan
-
-            # Management group access probe (AB#351). Runs here, not at collection time,
-            # so a missing tenant-root role is reported while the operator is still
-            # watching the login rather than as a silently empty worksheet an hour later.
-            $MgProbe = Test-AZSCManagementGroupAccess
-            Write-Host '  Mgmt groups  : ' -NoNewline -ForegroundColor DarkGray
-            if ($MgProbe.HasAccess) {
-                Write-Host $MgProbe.Count -ForegroundColor Cyan
-            } else {
-                Write-Host 'none visible' -ForegroundColor Yellow
-            }
 
             Write-Host ''
         }
@@ -1049,6 +1039,7 @@ Function Invoke-AzureScout {
     $PolicyAssign = $ExtractionData.PolicyAssign
     $PolicyDef = $ExtractionData.PolicyDef
     $PolicySetDef = $ExtractionData.PolicySetDef
+    $CollectionHealth = if ($ExtractionData.PSObject.Properties['CollectionHealth']) { @($ExtractionData.CollectionHealth) } else { @() }
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
@@ -1065,6 +1056,7 @@ Function Invoke-AzureScout {
         'Policy definitions' = @($PolicyDef).Count
         'Policy set defs'    = @($PolicySetDef).Count
         'Cost rows'          = @($CostData).Count
+        'Unavailable datasets' = @($CollectionHealth).Count
     }
 
     if ($Automation.IsPresent)
@@ -1146,6 +1138,13 @@ Function Invoke-AzureScout {
                     'Ran after' = 'diagram build (AB#6737)'
                 }
             }
+            catch {
+                if ([string]$_.Exception.Data['AzureScoutFailureKind'] -ne 'AssessmentSourceUnavailable') { throw }
+                if ($AssessmentRunTime -and $AssessmentRunTime.IsRunning) { $AssessmentRunTime.Stop() }
+                $assessmentGap = $_.Exception.Message
+                Write-Warning "Azure Scout skipped the scored assessment because required source data was unavailable. The inventory run will continue. $assessmentGap"
+                Write-AZSCLog -Level 'WARN' -Message "Deferred assessment skipped; inventory continues. $assessmentGap" -Exception $_.Exception
+            }
             finally {
                 $ProcessingRunTime.Start()
             }
@@ -1182,7 +1181,7 @@ Function Invoke-AzureScout {
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
-        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category
+        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category -CollectionHealth $CollectionHealth
 
     $ProcessingRunTime.Stop()
 
@@ -1313,8 +1312,13 @@ Function Invoke-AzureScout {
         # Clear memory to remove as many memory footprint as possible
         Clear-AZSCMemory
 
-        # Clear Cache Folder for future runs
-        Clear-AZSCCacheFolder -ReportCache $ReportCache
+        # Keep every per-run discovery and processing artifact. Operators can intentionally
+        # prune old run folders with Clear-AZSCCacheFolder -OlderThan, but a successful scan
+        # must never delete the data that produced its reports.
+        Write-AZSCLog -Level 'VERBOSE' -Message (
+            'Run evidence retained: raw inventory={0}; report cache={1}; diagram cache={2}' -f
+                $RawDumpPath, $ReportCache, $DiagramCache
+        )
 
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished Charts Phase.')

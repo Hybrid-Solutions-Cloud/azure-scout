@@ -104,7 +104,7 @@ Describe 'Wizard tenant-first behavior' {
         }
     }
 
-    It 'forces login after N and passes the selected tenant to the tenant-level permission check' {
+    It 'forces login after N and leaves permission validation to the selected-scope run preflight' {
         & $script:Module {
             Mock Write-Host {}
             Mock Get-AzContext {
@@ -142,7 +142,7 @@ Describe 'Wizard tenant-first behavior' {
 
             Should -Invoke Connect-AZSCLoginSession -Times 1 -Exactly -ParameterFilter { $ForceLogin }
             Should -Invoke Read-AZSCWizardChoice -Times 1 -Exactly -ParameterFilter { $Title -eq 'Select the tenant to scan' }
-            Should -Invoke Test-AZSCPermissions -Times 1 -Exactly -ParameterFilter { $TenantID -eq 'tenant-two' -and $Scope -eq 'ArmOnly' }
+            Should -Not -Invoke Test-AZSCPermissions
         }
     }
 }

@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **279 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **278 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -267,9 +267,9 @@ IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defe
 | IoTOperations | `microsoft.iotoperations/instances` |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
 
-### Management (20 modules)
+### Management (19 modules)
 
-Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.
+Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors.
 
 | Module | Resource Type |
 |--------|---------------|
@@ -282,7 +282,6 @@ Subscriptions, management groups, policy, backup, automation, Advisor, Lighthous
 | Budgets | `AZSC/Governance/Budget` |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
 | DefenderEasmWorkspaces | `microsoft.easm/workspaces` |
-| LighthouseDelegations | `Microsoft.ManagedServices/registrationDefinitions` |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` |
 | ManagedApplications | `microsoft.solutions/applications` |
 | ManagementGroups | `AZSC/Management/ManagementGroup` |

@@ -312,6 +312,53 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $Text | Should -Match '\[DEBUG\s*\] Collector Storage/Exploding: status=Failed; rows=0; elapsed=\d{2}:\d{2}:\d{2}:\d{2}\.\d{3}'
     }
 
+    It 'reports an unavailable upstream dataset instead of calling its zero rows Empty' {
+        $health = @([pscustomobject]@{
+                Dataset = 'Synthetic unavailable source'
+                Status = 'Unavailable'
+                Reason = 'simulated upstream failure'
+                ResourceTypes = @('nothing')
+            })
+
+        $summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot `
+            -CollectionHealth $health -WarningAction SilentlyContinue
+
+        $row = $summary.CollectorRows | Where-Object Collector -eq 'Nothing'
+        $row.Verdict | Should -Be 'Unavailable'
+        $row.Availability | Should -Be 'Unavailable'
+        $row.AvailabilityReason | Should -Match 'simulated upstream failure'
+        $summary.UnavailableCount | Should -Be 1
+        $healthArtifact = Get-Content -Raw $summary.CollectionHealthPath | ConvertFrom-Json
+        $healthArtifact.Overall | Should -Be 'Partial'
+        $healthArtifact.Datasets[0].Dataset | Should -Be 'Synthetic unavailable source'
+    }
+
+    It 'applies collector-specific source health without poisoning unrelated collectors' {
+        $health = @([pscustomobject]@{
+                Dataset = 'Resources'
+                Status = 'Unavailable'
+                Reason = 'simulated core ARG failure'
+                # Deliberately collides with the unrelated synthetic collector's type. Because
+                # this health row carries an explicit Collectors map, that map is authoritative.
+                ResourceTypes = @('nothing')
+                Collectors = @('Compute/VirtualMachines')
+            })
+
+        $summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot `
+            -CollectionHealth $health -WarningAction SilentlyContinue
+
+        $vm = $summary.CollectorRows | Where-Object Collector -eq 'VirtualMachines'
+        $vm.Rows | Should -BeGreaterThan 0
+        $vm.Availability | Should -Be 'Partial'
+        $vm.AvailabilityReason | Should -Match 'simulated core ARG failure'
+
+        $synthetic = $summary.CollectorRows | Where-Object Collector -eq 'Nothing'
+        $synthetic.Verdict | Should -Be 'Empty'
+        $synthetic.Availability | Should -Be 'Complete'
+    }
+
     It 'completes the run despite a broken collector, and reports it' {
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
             -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue

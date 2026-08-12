@@ -65,6 +65,10 @@ BeforeAll {
 
     $script:CollectPath = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-collect.json'
     $script:Collect = Get-Content $script:CollectPath -Raw | ConvertFrom-Json -Depth 100
+    # This fixture intentionally contains one successfully collected Advisor Cost row. The
+    # availability marker is part of the scoring contract; without it Advisor-gated rules are
+    # correctly NotAssessed and cannot exercise the single-evidence-row regression below.
+    $script:Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue $true -Force
     $script:Collect | Add-Member -NotePropertyName _meta -NotePropertyValue ([pscustomobject]@{
             scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o')
         }) -Force

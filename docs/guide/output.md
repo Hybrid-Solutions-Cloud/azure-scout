@@ -110,12 +110,15 @@ See [Report tiers](../assessment/configuration.md#report-tiers) and
 | `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
 | `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
 | `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |
+| `collection-health.json` | JSON | Upstream dataset availability: Complete, Partial, Not assessed, or Unavailable |
 
 ## Evidence artifacts
 
-These two files exist to make a run auditable. Neither is written to `ReportCache`, so neither is
-removed by the cache cleanup that runs at the end of every scan — both survive for as long as the
-run folder does.
+These files exist to make a run auditable. Azure Scout retains `raw-inventory.json`,
+`collector-rowcounts.json`, `collection-health.json`, every `ReportCache` JSON file, and the
+`DiagramCache` contents after the scan. They remain available for other tools and reporting for as
+long as the run folder exists. Cleanup is operator-controlled through
+`Clear-AZSCCacheFolder -OlderThan <days>`; a successful scan does not delete its own evidence.
 
 ### `raw-inventory.json`
 

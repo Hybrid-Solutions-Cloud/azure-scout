@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.1 — one sign-in, one tenant
+## Current Release — v3.12.2 — honest collection, retained evidence
+
+Released 11 August 2026. Guided runs authenticate and audit once, with management-group and Graph
+readiness based on data the selected identity can actually collect. Scout classifies known Graph
+availability boundaries before requests, removes the held Lighthouse query, retries oversized
+Security Center results with smaller pages, and treats normal 404/provider absence as expected.
+Collection health distinguishes unavailable data from a genuinely empty estate, and every
+raw/cache artifact remains available until explicit operator cleanup. See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.12.1 — one sign-in, one tenant
 
 Released 11 August 2026. Microsoft Graph now uses the same selected Azure PowerShell account and
 tenant as ARM collection and never consults an unrelated Azure CLI session. A common Entra

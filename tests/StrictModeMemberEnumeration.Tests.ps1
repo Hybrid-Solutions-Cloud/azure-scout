@@ -139,18 +139,23 @@ Describe 'Start-AZSCExtractionOrchestration reads API results safely' {
         $script:Orchestration = (($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n")
     }
 
-    It 'no longer member-enumerates $APIResults for any of the seven API fields' {
-        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecommendations',
+    It 'no longer member-enumerates $APIResults for any consumed API field' {
+        foreach ($Field in 'ResourceHealth', 'AdvisorScore', 'ReservationRecommendations',
                            'PolicyAssignments', 'PolicyDefinitions', 'PolicySetDefinitions') {
             $script:Orchestration | Should -Not -Match ([regex]::Escape('$APIResults.' + $Field))
         }
     }
 
-    It 'routes all seven API fields through Get-AZSCCollectedValue' {
-        foreach ($Field in 'ResourceHealth', 'ManagedIdentities', 'AdvisorScore', 'ReservationRecommendations',
+    It 'routes all six consumed API fields through Get-AZSCCollectedValue' {
+        foreach ($Field in 'ResourceHealth', 'AdvisorScore', 'ReservationRecommendations',
                            'PolicyAssignments', 'PolicyDefinitions', 'PolicySetDefinitions') {
             $script:Orchestration | Should -Match ([regex]::Escape("-Name '$Field'"))
         }
+    }
+
+    It 'does not append REST managed identities because Resource Graph owns that dataset' {
+        $script:Orchestration | Should -Not -Match ([regex]::Escape("-Name 'ManagedIdentities'"))
+        $script:Orchestration | Should -Match ([regex]::Escape('$apiFallbackArgs.SkipManagedIdentities = $true'))
     }
 }
 

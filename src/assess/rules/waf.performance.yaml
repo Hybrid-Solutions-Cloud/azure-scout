@@ -16,7 +16,7 @@ rules:
     title: "Advisor performance recommendations addressed"
     severity: medium
     query: "$.advisor[?(@.Category == 'Performance' && @.Impact == 'High')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Act on high-impact Advisor performance recommendations."
     manual: false
 
@@ -48,6 +48,6 @@ rules:
     title: "Medium-impact Advisor performance recommendations addressed"
     severity: low
     query: "$.advisor[?(@.Category == 'Performance' && @.Impact == 'Medium')]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
     remediation: "Act on medium-impact Advisor performance recommendations in addition to high-impact ones."
     manual: false

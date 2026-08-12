@@ -275,5 +275,26 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
         @($Rows | Where-Object TYPE -match 'AppInsights(ContinuousExport|WorkItems)').Count | Should -Be 0
         ($script:ArmCalls -join "`n") | Should -Not -Match '(?i)exportconfiguration|WorkItemConfigs'
     }
+
+    It 'treats an absent storage lifecycle policy as empty without warning or terminating error' {
+        $storage = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-one'
+        function global:Invoke-AzRestMethod {
+            param(
+                [string]$Path,
+                [string]$Method,
+                [switch]$SkipHttpErrorCheck,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $Path, $Method, $Rest
+            $SkipHttpErrorCheck | Should -BeTrue
+            [pscustomobject]@{ StatusCode = 404; Content = '{"error":{"code":"ResourceNotFound"}}' }
+        }
+
+        $warnings = @()
+        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageLifecyclePolicies -WarningVariable warnings)
+
+        $rows | Should -BeNullOrEmpty
+        @($warnings).Count | Should -Be 0
+    }
 }
 }

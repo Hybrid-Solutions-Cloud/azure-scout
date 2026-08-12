@@ -77,11 +77,6 @@ Function Start-AZSCGraphExtraction {
         IncludeBackupResources       = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeBackupResources)
         IncludeDesktopVirtualization = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeDesktopVirtualization)
         IncludeUpdateManagerResources = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeUpdateManagerResources)
-        # AB#6771. Unconditionally on, like every other inventory table above it. Setting it to
-        # anything a caller could leave unset would recreate the AB#6755 defect verbatim: the
-        # Lighthouse worksheet was blank for releases precisely because nothing read the one ARG
-        # table its type lives in, and a switch nobody sets is indistinguishable from that.
-        IncludeLighthouseDelegations = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeLighthouseDelegations)
         IncludeRetirements           = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeRetirements)
         IncludeAdvisories            = ((-not [bool]$SkipAdvisory) -and (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeAdvisories))
         IncludeSecurityCenter        = [bool]$SecurityCenter
@@ -124,6 +119,19 @@ Function Start-AZSCGraphExtraction {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Invoking Get-ScoutRawInventory')
     $Raw = Get-ScoutRawInventory @RawArgs
 
+    $CollectionHealth = @(
+        if ($Raw.PSObject.Properties['CollectionHealth']) { $Raw.CollectionHealth }
+    )
+    if ([bool]$SkipAdvisory) {
+        $CollectionHealth += [pscustomobject]@{
+            Dataset       = 'Advisories'
+            Status        = 'NotAssessed'
+            Reason        = 'Advisor collection was explicitly disabled with -SkipAdvisory.'
+            ResourceTypes = @('microsoft.advisor/recommendations')
+            Collectors    = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+        }
+    }
+
     $Resources = @($Raw.Resources)
     $ResourceContainers = @($Raw.ResourceContainers)
     $Advisories = @($Raw.Advisories)
@@ -159,5 +167,6 @@ Function Start-AZSCGraphExtraction {
         # AB#6779 -- the role/policy-assignment/lock/budget datasets the raw pass collected, so a
         # combined run's assessment half reads them instead of collecting them a second time.
         Governance         = $(if ($Raw.PSObject.Properties['Governance']) { $Raw.Governance } else { $null })
+        CollectionHealth   = @($CollectionHealth)
     }
 }

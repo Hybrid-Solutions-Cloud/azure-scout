@@ -4,7 +4,7 @@ description: The held legacy worksheet metadata and columns declared by each Azu
 
 # Collector Fields
 
-What each collector can shape internally. **All 279 collectors** declare legacy worksheet
+What each collector can shape internally. **All 278 collectors** declare legacy worksheet
 metadata and an ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -243,7 +243,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **IoTOperations** | IoT Operations | `Subscription`, `Resource Group`, `Name`, `Location`, `Description`, `Schema Registry Id`, `Identity Type`, `Extended Location`, `Extended Location Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Maps** | Azure Maps | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `SKU Tier`, `Provisioning State`, `Unique Id`, `Local Auth Disabled`, `Storage Units`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Management (20 collectors)
+## Management (19 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -256,7 +256,6 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **Budgets** | Budgets | `Subscription`, `Name`, `Category`, `Amount`, `Currency`, `Time Grain`, `Start Date`, `End Date`, `Current Spend`, `Forecast Spend`, `Budget Used %`, `Alerts Configured`, `Resource U` |
 | **CustomRoleDefinitions** | Custom Roles | `Role Name`, `Description`, `Role Type`, `Is Custom`, `Assignable Scopes`, `Actions`, `Not Actions`, `Data Actions`, `Not Data Actions`, `Created On`, `Updated On`, `Created By`, `Updated By`, `Resource U` |
 | **DefenderEasmWorkspaces** | Defender EASM | `Subscription`, `Resource Group`, `Workspace Name`, `Location`, `Data Plane Endpoint`, `Provisioning State`, `Resource U` |
-| **LighthouseDelegations** | Lighthouse Delegations | `Subscription`, `Registration Name`, `Description`, `Registration ID`, `Managed By Tenant ID`, `Managed By Tenant Name`, `Authorizations`, `Authorization Count`, `Eligible Authorizations`, `Provisioning State`, `Resource U` |
 | **MaintenanceConfigurations** | Maintenance Configs | `Subscription`, `Resource Group`, `Configuration Name`, `Location`, `Scope`, `Recurrence Pattern`, `Start Time (UTC)`, `Duration (hours)`, `Time Zone`, `OS Filter`, `Patch Classifications`, `Reboot Setting`, `KB Numbers (Include)`, `KB Numbers (Exclude)`, `Package Names (Include)`, `Package Names (Exclude)`, `Pre-Maintenance Tasks`, `Post-Maintenance Tasks`, `Visibility`, `Resource U` |
 | **ManagedApplications** | Managed Applications | `Subscription`, `Resource Group`, `Application Name`, `Location`, `Kind`, `Managed Resource Group`, `Application Definition ID`, `Managed By`, `Plan Name`, `Plan Publisher`, `Provisioning State`, `Resource U` |
 | **ManagementGroups** | Management Groups | `Management Group ID`, `Display Name`, `Display Name (Raw)`, `Full Path`, `Hierarchy Depth`, `Parent Management Group`, `Tenant ID`, `Direct Child MGs`, `Direct Subscriptions`, `Direct Subscription Names`, `Resource U` |

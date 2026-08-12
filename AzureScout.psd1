@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.1'
+ModuleVersion = '3.12.2'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.1 - One sign-in, one tenant. Microsoft Graph now reuses the exact Azure PowerShell account and tenant selected for ARM collection instead of consulting an unrelated Azure CLI session. A tenant-wide Entra authentication failure is attempted and reported once rather than repeated for every dataset, and the extraction banner derives its resource-type count from the live catalog. No second Azure sign-in is required. AB#7279. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.12.2 - Honest collection, retained evidence. Guided combined runs authenticate and audit once; management-group and Graph readiness report what can actually be collected. Known unavailable Entra endpoints are classified before any request; held Lighthouse is removed; oversized Security Center results retry safely; expected ARM absence stays quiet; and upstream failures flow into collection-health.json instead of looking empty. Completed runs retain raw-inventory.json, ReportCache, DiagramCache, and health/evidence artifacts until explicit cleanup. AB#7279.'
 
         # Prerelease string of this module
         # Prerelease = ''

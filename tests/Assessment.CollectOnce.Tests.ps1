@@ -26,6 +26,7 @@
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
     . (Join-Path -Path $script:Root -ChildPath 'src/ingest/Import-AdvisorScores.ps1')
+    . (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
 }
 
 Describe 'AB#6774 — ArgQueryPack is retired' {
@@ -61,6 +62,84 @@ Describe 'AB#6774 — ArgQueryPack is retired' {
         foreach ($key in 'subnets', 'nsgPublicInbound', 'orphanedDisks', 'orphanedPips', 'diagnosticCoverage') {
             $collect | Should -Match "(?m)^\s+$key\s*=\s*@'" -Because "ArgQueryPack used to supply '$key' and no longer does"
         }
+    }
+}
+
+Describe 'assessment category evidence closure' {
+    It 'unions an explicit category with every manifest-required category for scored runs' {
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
+
+        $source | Should -Match '\$requiredCategories\s*=\s*@\(\$Assessment'
+        $source | Should -Match '@\(\$requiredCategories \+ \$Category \| Select-Object -Unique\)'
+        $source | Should -Not -Match 'if \(\$Category\) \{ \$categories = \$Category \}'
+    }
+
+    It 'validates saved collect provenance before accepting FromCollect' {
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
+
+        $source | Should -Match 'Assert-ScoutAssessmentCollectProvenance -Collect \$fromCollectData'
+    }
+
+    It 'rejects a saved collect that omits a required assessment category' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{ categories = @('Identity'); collectionHealth = @() }
+        }
+
+        $caught = $null
+        try {
+            Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('*')
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'missing required categories: \*'
+    }
+
+    It 'accepts a complete saved collect with no failed source health' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{ categories = @('*'); collectionHealth = @() }
+        }
+
+        { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('*') } |
+            Should -Not -Throw
+    }
+
+    It 'rejects failed source health that applies to the selected assessment' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{
+                categories = @('Identity')
+                collectionHealth = @([pscustomobject]@{
+                        Dataset = 'Resources'; Status = 'Unavailable'
+                        Collectors = @('Identity/ManagedIds')
+                    })
+            }
+        }
+
+        $caught = $null
+        try {
+            Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('Identity')
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'unavailable required datasets: Resources'
+    }
+
+    It 'accepts failed source health owned only by an unrelated category' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{
+                categories = @('Identity')
+                collectionHealth = @([pscustomobject]@{
+                        Dataset = 'Resources'; Status = 'Unavailable'
+                        Collectors = @('Compute/VirtualMachine')
+                    })
+            }
+        }
+
+        { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('Identity') } |
+            Should -Not -Throw
     }
 }
 
@@ -143,6 +222,23 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
         $script:CmdletCalled | Should -BeFalse
         @($result.advisor).Count | Should -Be 1
+        $result.advisorAvailable | Should -BeTrue
+    }
+
+    It 'treats an explicitly supplied empty inventory result as complete and makes no Azure call' {
+        $result = Import-AdvisorScores -Collect ([pscustomobject]@{}) -FromInventory @()
+
+        $script:CmdletCalled | Should -BeFalse
+        @($result.advisor).Count | Should -Be 0
+        $result.advisorAvailable | Should -BeTrue
+    }
+
+    It 'marks an explicitly skipped Advisor source NotAssessed and makes no Azure call' {
+        $result = Import-AdvisorScores -Collect ([pscustomobject]@{}) -NotAssessed
+
+        $script:CmdletCalled | Should -BeFalse
+        @($result.advisor).Count | Should -Be 0
+        $result.advisorAvailable | Should -BeFalse
     }
 
     It 'shapes the rows into the field names the rule files query by' {
@@ -232,6 +328,14 @@ Describe 'AB#6777 — the assessment core hands the inventory advisories over' {
         $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
 
         $source | Should -Match "\`$advisorArgs\.FromInventory = @\(\`$FromInventory\.Advisories\)"
+    }
+
+    It 'uses the live fallback only when collection health says the inventory Advisor query failed' {
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-ScoutAssessmentCore.ps1')
+
+        $source | Should -Match "Dataset'\] -and\s*\[string\]\`$_.Dataset -eq 'Advisories'"
+        $source | Should -Match '-and -not \$advisorInventoryUnavailable'
+        $source | Should -Match '\$advisorArgs\.NotAssessed = \$true'
     }
 }
 

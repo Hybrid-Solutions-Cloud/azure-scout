@@ -1,49 +1,74 @@
-# Current Task: AB#7279 — release AzureScout 3.12.0 scan optimizations
+# Current Task: AB#7279 — release AzureScout 3.12.2 live-run correctness
 
-- Status: **FOCUSED GATES GREEN — FULL FROZEN SUITE NEXT**
-- Started 2026-08-10 from `main` at `5286217`.
-- Target: publish the exact validated 3.11.0 package to PowerShell Gallery, then begin a separate
-  measured optimization change set. AzureScout 3.11.0 has been published, byte-for-byte verified,
-  installed, and released on GitHub. The optimization change set is now versioned as 3.12.0.
+- Status: **IMPLEMENTED, REVIEWED, AND FOCUSED-GREEN — EXACT-HEAD FULL SUITE AND PUBLICATION NEXT**
+- Branch: `agent/ab7279-live-run-correctness-3.12.2`
+- Base: AzureScout 3.12.1 (`c1e1a91457df06339a9c92c40ae6a7a125359800`)
+- Target: publish the exact tested 3.12.2 package to PowerShell Gallery.
 
-## 3.12.0 scope
+## Scope
 
-- Manifest-derived category extraction plans filter Resource Graph server-side and skip unrelated
-  phases; All, unknown, and assessment-backed paths preserve the full dependency set.
-- Combined runs reuse inventory security/policy sweeps and fall back only for missing datasets.
-- Recovery vault, protected-item, and storage-context calls are cached at subscription/vault scope.
-- ARM REST list calls follow nextLink and retry only transient 408/429/5xx responses; fixed sleeps
-  on every successful call are removed.
-- Focused integration is green at 149/149 with zero failed/skipped/not-run/failed containers;
-  parser, manifest, PSSA Error, StrictMode, diff, release, and version-sync gates are green.
+- Classify known Entra licence/scope/unconsumed availability before HTTP calls in both permission
+  preflight and extraction; preserve unexpected failures as visible unavailable datasets.
+- Remove the held Azure Lighthouse collector/query from every released runtime contract.
+- Retry oversized Security Center Resource Graph results with smaller projected pages.
+- Treat expected lifecycle-policy/Advisor 404 and unregistered Defender pricing as normal absence.
+- Filter null resources before orphaned role-assignment resolution.
+- Propagate upstream availability through `collector-rowcounts.json` and `collection-health.json`.
+- Retain raw inventory, report cache, diagram cache, and all evidence after successful completion.
+- Clarify total guided-command time versus scan/log execution time.
+- Run one selected-scope authentication/preflight in guided combined mode; make management-group,
+  provider, Graph, and overall-readiness output reflect what the selected identity can collect.
 
-## 3.11.0 scope
+## Verification completed
 
-- One live output contract everywhere: `React`, `Json`, `JsonEvidence`; `All` means all three.
-- Held legacy names bind for compatibility, warn, skip, and fall back to React when necessary.
-- Inventory-only React/evidence reuse the completed collection offline with no assessment rules or
-  Azure/Graph fallback; inventory Json retains its established schema.
-- Detailed DEBUG/VERBOSE phase, collector, row-count, timing, rule, and renderer data is written to
-  `scout-run.log` by default without increasing console noise.
-- Standalone assessment automation uploads selected live artifacts; pipeline summaries report
-  requested and effective formats separately.
+- Post-review correctness repairs close all three PR findings plus the follow-on source-ownership
+  audit: delegated Graph scope checks apply only to catalog-declared delegated-only endpoints;
+  disabled Entra catalog entries no longer poison collection health; raw ARG failures carry exact
+  source/collector ownership; assessments fail closed only for selected affected evidence; skipped,
+  empty, failed, and healthy Advisor evidence remain distinct; managed identities have one ARG
+  owner; an explicit scored-assessment category can broaden but never narrow required evidence;
+  and saved `-FromCollect` artifacts must prove required category and source-health coverage before
+  they can be scored.
+- Latest settled affected gates: assessment/entry point 90/90; release/runtime 118/118;
+  managed-identity/source-health 26/26; all with zero failures or skips. Parser, StrictMode,
+  PSScriptAnalyzer Error, release/docs contracts, docs build, secret scan, manifest/import, package
+  inventory, and diff checks pass. Independent runtime and release audits report no demonstrated
+  production blocker.
+- Saved-collect provenance/report compatibility gate: 98/98 passed with zero failures/skips.
+- Final settled affected gate: 427/427 passed across 20 suites with zero failures, skips,
+  not-run tests, or failed containers.
+- First exact-commit full-suite attempt: shard 0 passed 900/900; shard 1 found one stale test
+  expecting the deliberately removed unsafe typed fallback. The contract now requires the typed
+  `AssessmentSourceUnavailable` failure, and the affected fallback/entry suites pass 51/51. The
+  same update shadows `Get-AzContext` in the combined-route test so it cannot print ambient identity.
+  A superseding exact-commit three-shard run is required.
+- Second exact-commit attempt: shards 0 and 1 passed 900/900 and 747/747. Shard 2 found two
+  conflicting fixture/source assertions: a direct Advisor fixture omitted `advisorAvailable=true`,
+  and a StrictMode contract still required the removed duplicate Managed Identity API field. Both
+  contracts are corrected and pass 92/92 focused. A new exact-commit full suite is required.
 
-## Release gates
+- Actual completed run log reconciled: every warning class maps to a product fix; no unaccounted
+  ERROR records.
+- Focused live-error/runtime/retention gate: 268 passed, 0 failed/skipped/not-run/containers.
+- Graph permission/preflight gate: 103 passed, 0 failed/skipped/not-run/containers.
+- Version/release/docs/catalog gate: 45 passed, 0 failed/skipped/not-run/containers.
+- Manifest validates as 3.12.2; generated catalogs match all 278 released collectors.
+- Final guided/preflight regression batch: 219 passed, zero failures/skips/not-run/containers.
+- Release/docs contracts: 32 passed; docs build, parser, PSScriptAnalyzer Error, StrictMode,
+  manifest, and diff gates passed.
+- First frozen full-suite attempt: shards 0 and 1 passed 794/794 and 739/739; shard 2 found two
+  stale contracts, now corrected. ContextIdentity passes 5/5 and golden coverage is exactly
+  278 definitions/278 records with no missing/extra entries. Superseding full suite is required.
+- Second frozen attempt: shard 1 passed 739/739; shard 0 found a parallel-process race in the
+  machine-wide update-check marker. The throttle path is now injectable for tests, production
+  retains its default, and ModuleUpdate passes 11/11. A new exact-HEAD full suite is required.
 
-1. Full Pester suite on the frozen candidate: zero failed, skipped, not-run, or failed containers.
-2. Parser, collector-definition, StrictMode, manifest/version, documentation, and secret checks.
-3. Commit with `AB#7279`, push through GitHub, and require green CI on the exact commit.
-4. Tag `v3.11.0`, build an allow-listed package from that tag, and validate/import the staged module.
-5. Publish that exact package, download it from PowerShell Gallery, and compare every file hash.
+## Release gates remaining
 
-Local release-candidate validation is complete: three deterministic Pester shards passed
-3,454/3,454 with zero failed, skipped, not-run, or failed containers. The provisional allow-listed
-package also parses, imports, and passes its secret scan. GitHub CI on the exact commit is the next
-release authority.
-
-## Optimization work after publication
-
-Start with measurable call-count reductions: reuse the security/policy sweep in combined runs,
-cache recovery-vault/protected-item and operational enrichment lookups per subscription, thread
-category/dependency plans into extraction, add pagination and consistent Retry-After handling, then
-consider bounded concurrency only for calls that do not mutate shared Az context.
+1. Commit the frozen candidate, including the new Entra collection-health regression, with `AB#7279`.
+2. Run the complete zero-failure/zero-skip Pester gate
+   against that exact clean commit.
+3. Push with the GitHub App token, require green PR CI/docs, merge, and require green main CI/docs.
+4. Tag `v3.12.2`, build an allow-listed package from the tag, validate/import/secret-scan it.
+5. Publish the exact staged package, download from PowerShell Gallery, compare every file hash,
+   install 3.12.2, and run a fresh-process smoke.

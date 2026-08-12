@@ -33,7 +33,7 @@ Describe 'category-aware extraction plan' {
         # VM setup preambles consume protected-item/backup-policy rows, so the closure must
         # retain this non-obvious cross-table dependency.
         $plan.IncludeBackupResources | Should -BeTrue
-        $plan.IncludeLighthouseDelegations | Should -BeFalse
+        $plan.PSObject.Properties.Name | Should -Not -Contain 'IncludeLighthouseDelegations'
         $plan.CollectTenantWideResources | Should -BeFalse
         $plan.CollectGovernance | Should -BeFalse
         $plan.IncludeEntra | Should -BeFalse
@@ -45,13 +45,21 @@ Describe 'category-aware extraction plan' {
         $identity.IncludeEntra | Should -BeTrue
         $identity.CollectGovernance | Should -BeTrue
         $identity.ResourceTypes | Should -Contain 'microsoft.managedidentity/userassignedidentities'
+        $identity.IncludeApiResourceSweep | Should -BeFalse -Because 'managed identities are owned by the Resources ARG table and must not be appended a second time by the API sweep'
 
         $management = Resolve-AZSCExtractionCategoryPlan -Category 'Management'
         $management.CollectTenantWideResources | Should -BeTrue
         $management.CollectGovernance | Should -BeTrue
         $management.IncludeApiResourceSweep | Should -BeTrue
         $management.IncludeBackupResources | Should -BeTrue
-        $management.IncludeLighthouseDelegations | Should -BeTrue
+        $management.PSObject.Properties.Name | Should -Not -Contain 'IncludeLighthouseDelegations'
+    }
+
+    It 'keeps managed identities on the single Resource Graph source in full orchestration' {
+        $source = Get-Content -LiteralPath "$script:RepoRoot/src/Start-AZTIExtractionOrchestration.ps1" -Raw
+
+        $source | Should -Not -Match "Get-AZSCCollectedValue\s+-InputObject\s+\`$APIResults\s+-Name\s+'ManagedIdentities'"
+        $source | Should -Match '\$apiFallbackArgs\.SkipManagedIdentities = \$true'
     }
 }
 
@@ -63,7 +71,7 @@ Describe 'category plan production plumbing' {
             param(
                 $SubscriptionIds, $IncludeSupportResources, $IncludeBackupResources,
                 $IncludeDesktopVirtualization, $IncludeUpdateManagerResources,
-                $IncludeLighthouseDelegations, $IncludeRetirements, $IncludeAdvisories,
+                $IncludeRetirements, $IncludeAdvisories,
                 $IncludeSecurityCenter, $IncludeArmChildResources, $ArmChildDataset,
                 $IncludeOperationalCollectorEnrichment, $IncludeSubscriptionSecurityPolicy,
                 $SkipApiResourceSweep, $SkipPolicy, $IncludeTags, $AzureEnvironment,
@@ -91,7 +99,7 @@ Describe 'category plan production plumbing' {
         [bool]$script:RawSplat.SkipApiResourceSweep | Should -BeTrue
         [bool]$script:RawSplat.IncludeBackupResources | Should -BeFalse
         [bool]$script:RawSplat.IncludeDesktopVirtualization | Should -BeFalse
-        [bool]$script:RawSplat.IncludeLighthouseDelegations | Should -BeFalse
+        $script:RawSplat.Keys | Should -Not -Contain 'IncludeLighthouseDelegations'
         @($script:RawSplat.ResourceTypes).Count | Should -BeGreaterThan 0
     }
 
@@ -106,7 +114,7 @@ Describe 'category plan production plumbing' {
         $script:RawSplat.Keys | Should -Not -Contain 'ResourceTypes'
         [bool]$script:RawSplat.IncludeBackupResources | Should -BeTrue
         [bool]$script:RawSplat.IncludeDesktopVirtualization | Should -BeTrue
-        [bool]$script:RawSplat.IncludeLighthouseDelegations | Should -BeTrue
+        $script:RawSplat.Keys | Should -Not -Contain 'IncludeLighthouseDelegations'
         [bool]$script:RawSplat.SkipApiResourceSweep | Should -BeFalse
     }
 
