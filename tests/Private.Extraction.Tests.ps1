@@ -151,9 +151,19 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         }
     }
 
+    BeforeEach {
+        $script:emptyRawArgs = @{
+            SubscriptionIds           = @('11111111-1111-1111-1111-111111111111')
+            SkipApiResourceSweep      = $true
+            CollectTenantWideResources = $false
+            CollectGovernance         = $false
+            WarningAction             = 'SilentlyContinue'
+        }
+    }
+
     It 'never returns $null for an empty result set (would collapse via bare "return $var")' {
         Set-StrictMode -Version Latest
-        $result = Get-ScoutRawInventory -SubscriptionIds @('11111111-1111-1111-1111-111111111111') -WarningAction SilentlyContinue
+        $result = Get-ScoutRawInventory @script:emptyRawArgs
         # Intentionally NOT using -BeNullOrEmpty: an empty array is a valid, non-null result
         # here and that distinction is exactly what this regression test protects.
         ($null -eq $result.Resources) | Should -BeFalse -Because 'a real (possibly-empty) array must come back, never $null'
@@ -165,13 +175,14 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
 
     It 'lets the caller call .Count on the result without throwing under StrictMode' {
         Set-StrictMode -Version Latest
-        $result = Get-ScoutRawInventory -SubscriptionIds @('11111111-1111-1111-1111-111111111111') -WarningAction SilentlyContinue
+        $result = Get-ScoutRawInventory @script:emptyRawArgs
         { $result.Resources.Count } | Should -Not -Throw
         $result.Resources.Count | Should -Be 0
     }
 
     It 'accepts a single scalar subscription id without throwing on the internal .count checks' {
         Set-StrictMode -Version Latest
-        { Get-ScoutRawInventory -SubscriptionIds '11111111-1111-1111-1111-111111111111' -WarningAction SilentlyContinue } | Should -Not -Throw
+        $script:emptyRawArgs.SubscriptionIds = '11111111-1111-1111-1111-111111111111'
+        { Get-ScoutRawInventory @script:emptyRawArgs } | Should -Not -Throw
     }
 }

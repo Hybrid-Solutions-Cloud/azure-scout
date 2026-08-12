@@ -92,7 +92,12 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
             @script:switchArgs 3>$null 4>$null 6>$null | Out-Null
 
-        $containerQuery = @($script:capturedQueries | Where-Object { $_ -match '^resourcecontainers\b' })
+        # Select the raw inventory query this contract owns. Operational enrichment also reads
+        # resourcecontainers to derive display-only management-group paths and legitimately names
+        # managementGroupAncestorsChain even when no row filter was requested.
+        $containerQuery = @($script:capturedQueries | Where-Object {
+                $_ -match '^resourcecontainers\b' -and $_ -match 'project id,name,type,tenantId,kind'
+            })
         $containerQuery.Count | Should -BeGreaterThan 0
         # The management-group join must be absent entirely, not rendered as a literal null.
         ($containerQuery -join "`n") | Should -Not -Match 'managementGroupAncestorsChain'
@@ -103,7 +108,9 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
             -ManagementGroup 'mg-root' @script:switchArgs 3>$null 4>$null 6>$null | Out-Null
 
-        $containerQuery = @($script:capturedQueries | Where-Object { $_ -match '^resourcecontainers\b' }) -join "`n"
+        $containerQuery = @($script:capturedQueries | Where-Object {
+                $_ -match '^resourcecontainers\b' -and $_ -match 'project id,name,type,tenantId,kind'
+            }) -join "`n"
         $containerQuery | Should -Match 'managementGroupAncestorsChain'
         $containerQuery | Should -Match 'mg-root'
     }

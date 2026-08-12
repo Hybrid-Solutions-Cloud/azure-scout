@@ -325,7 +325,8 @@ Describe 'Test-AZSCPermissions' {
             Mock Invoke-AZSCPermissionAudit {
                 $gd = @()
                 $ga = $null
-                if ($IncludeEntraPermissions) {
+                $includeEntra = Get-Variable -Name IncludeEntraPermissions -ValueOnly -ErrorAction SilentlyContinue
+                if ([bool]$includeEntra) {
                     $gd = @(
                         New-CheckDetail -Check 'Graph: Organization Read' -Status 'Pass'
                         New-CheckDetail -Check 'Graph: Users Read' -Status 'Pass'
