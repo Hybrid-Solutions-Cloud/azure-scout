@@ -406,6 +406,11 @@ function Start-AZSCExtractionOrchestration {
 
         $DevOpsData = Start-AZSCDevOpsExtraction -TenantID $TenantID -Organization $DevOpsOrganization -Pat $DevOpsPat
         $DevOpsResources = if ($DevOpsData) { $DevOpsData.DevOpsResources } else { @() }
+        if ($DevOpsData -and $DevOpsData.PSObject.Properties['CollectionHealth']) {
+            foreach ($health in @($DevOpsData.CollectionHealth)) {
+                if ($null -ne $health) { $CollectionHealth.Add($health) }
+            }
+        }
 
         # Guarded exactly as the Entra merge is: a $null here would add a null element to
         # $Resources and crash later property-chain access under StrictMode.

@@ -185,10 +185,40 @@ function Invoke-AZSCPermissionAudit {
         [string[]]$SubscriptionID,
         [ValidateSet('Console', 'Json', 'Markdown', 'AsciiDoc', 'All')]
         [string]$OutputFormat = 'Console',
-        [string]$ReportDir
+        [string]$ReportDir,
+        [switch]$Quiet
     )
 
+    if (-not (Get-Command Test-AZSCManagementGroupAccess -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Test-AZTIManagementGroupAccess.ps1')
+    }
+
     # ── Helpers ──────────────────────────────────────────────────────────────
+    # Structured callers render the returned checks themselves. This function-scoped
+    # wrapper gives every result one console owner; standalone audit mode omits -Quiet
+    # and retains the established interactive output.
+    function Write-Host {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Function-scoped wrapper provides complete quiet output for structured permission-audit callers while preserving standalone rendering.')]
+        [CmdletBinding()]
+        param(
+            [Parameter(Position = 0, ValueFromPipeline = $true)]
+            [AllowNull()]
+            [object]$Object,
+            [object]$Separator = ' ',
+            [switch]$NoNewline,
+            [System.ConsoleColor]$ForegroundColor,
+            [System.ConsoleColor]$BackgroundColor
+        )
+        process {
+            if ($Quiet.IsPresent) { return }
+            $hostArgs = @{ Object = $Object; Separator = $Separator }
+            if ($NoNewline.IsPresent) { $hostArgs.NoNewline = $true }
+            if ($PSBoundParameters.ContainsKey('ForegroundColor')) { $hostArgs.ForegroundColor = $ForegroundColor }
+            if ($PSBoundParameters.ContainsKey('BackgroundColor')) { $hostArgs.BackgroundColor = $BackgroundColor }
+            Microsoft.PowerShell.Utility\Write-Host @hostArgs
+        }
+    }
+
     function Write-AuditLine {
         param($Status, $Text)
         switch ($Status) {
@@ -294,19 +324,17 @@ function Invoke-AZSCPermissionAudit {
     # the current identity can enumerate the management-group tree; a subscription Reader can
     # receive an empty role-assignment result without an authorization error. Probe the same API
     # collection uses so the preflight and login banner cannot contradict each other (AB#7279).
-    try {
-        $managementGroups = @(Get-AzManagementGroup -ErrorAction Stop)
-        if ($managementGroups.Count -gt 0) {
-            $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message "Can enumerate $($managementGroups.Count) management group(s)"
-            Write-AuditLine -Status Pass -Text $r.Message
-        }
-        else {
-            $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message 'No management groups are visible — inventory will continue at subscription scope' -Remediation "Grant Reader at the tenant root management group scope '/providers/Microsoft.Management/managementGroups/$tenantId'."
-            Write-AuditLine -Status Warn -Text $r.Message
-        }
+    $managementGroupProbe = Test-AZSCManagementGroupAccess -TenantID $tenantId
+    if ($managementGroupProbe.HasAccess) {
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Pass' -Message "Can enumerate the tenant-root management-group hierarchy ($($managementGroupProbe.Count) group(s))"
+        Write-AuditLine -Status Pass -Text $r.Message
     }
-    catch {
-        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot enumerate management groups — inventory will run per-subscription instead" -Remediation "Grant Reader at root MG: New-AzRoleAssignment -ObjectId {principalId} -RoleDefinitionName 'Reader' -Scope '/providers/Microsoft.Management/managementGroups/$tenantId'"
+    elseif ($managementGroupProbe.FailureKind -eq 'Authorization') {
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "Cannot read the tenant-root management-group hierarchy; subscription inventory will continue. Azure returned: $($managementGroupProbe.ErrorMessage)" -Remediation "For management-group hierarchy metadata, grant 'Management Group Reader' at scope '/providers/Microsoft.Management/managementGroups/$tenantId'."
+        Write-AuditLine -Status Warn -Text $r.Message
+    }
+    else {
+        $r = New-CheckResult -Check 'ARM: Root Management Group Access' -Status 'Warn' -Message "The tenant-root management-group probe failed operationally; subscription inventory will continue. Azure returned: $($managementGroupProbe.ErrorMessage)" -Remediation 'Retry the probe and verify Az.Resources is current. Do not change RBAC unless Azure reports an authorization failure.'
         Write-AuditLine -Status Warn -Text $r.Message
     }
     $armDetails.Add($r)
@@ -636,14 +664,14 @@ function Invoke-AZSCPermissionAudit {
                                 Permission = $impact.Permission
                             })
                     }
-                    $r = New-CheckResult -Check $checkName -Status 'Warn' -Message "UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes carried by the selected Az context token, and Get-AzAccessToken cannot add it, so this fails regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" -Remediation "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help because a directory role cannot add a missing OAuth scope."
-                    Write-AuditLine -Status Warn -Text "$checkName — unavailable with current delegated sign-in; reported as Not assessed"
+                    $r = New-CheckResult -Check $checkName -Status 'Info' -Message "UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN — $($impact.Permission) ($purpose) is not among the delegated scopes carried by the selected Az context token, and Get-AzAccessToken cannot add it, so this fails regardless of directory roles. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', '). To collect this optional dataset, run Scout as a service principal granted the '$($impact.Permission)' application permission with admin consent." -Remediation "Run Scout with a service principal (-AppId with -Secret or -CertificatePath) granted the '$($impact.Permission)' application permission with admin consent. Granting directory roles to this user account will not help because a directory role cannot add a missing OAuth scope."
+                    Write-AuditLine -Status Info -Text "$checkName — unavailable with current delegated sign-in; reported as Not assessed"
                     $graphDetails.Add($r)
                     continue
                 }
 
                 try {
-                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId
+                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId -SuppressFailureWarning
                     $r = New-CheckResult -Check $checkName -Status 'Pass' -Message "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
@@ -662,7 +690,8 @@ function Invoke-AZSCPermissionAudit {
                     # a signed-in USER to go there was a dead end. A delegated token that DOES
                     # carry the scope but still gets 403 is a directory-role problem.
                     $deniedRemediation = if ($tokenClaim -and $tokenClaim.IsDelegated) {
-                        "The signed-in user's directory roles do not permit this read. Assign a role that covers it (for authentication-method and Verified ID surfaces: Authentication Policy Administrator, or Global Reader), or run Scout as a service principal granted the '$($impact.Permission)' application permission."
+                        $supportedRoles = if ($probe.ContainsKey('DelegatedRoles')) { @($probe.DelegatedRoles) -join ', ' } else { 'a supported Microsoft Entra directory role' }
+                        "The delegated token contains '$($impact.Permission)', but the signed-in user's directory role does not permit this endpoint. Assign one of: $supportedRoles. Alternatively, run Scout as a service principal granted the '$($impact.Permission)' application permission."
                     } else {
                         "Grant '$($impact.Permission)' in Entra ID > Enterprise Applications > API Permissions"
                     }
@@ -671,9 +700,11 @@ function Invoke-AZSCPermissionAudit {
                     # AB#6765 -- this used to be a coloured Write-Host and nothing else, so a
                     # denied permission never reached the warning stream and never reached the
                     # run's error count. An automated caller could not tell.
-                    Write-Warning "[AzureScout] Graph permission '$($impact.Permission)' is DENIED. These collectors will produce no data: $($impact.Collectors -join ', ')."
+                    if (-not $Quiet.IsPresent) {
+                        Write-Warning "[AzureScout] Graph permission '$($impact.Permission)' is DENIED. These collectors will produce no data: $($impact.Collectors -join ', ')."
+                    }
                     if ($tokenClaim -and $tokenClaim.IsDelegated) {
-                        $recommendations.Add("Assign a directory role covering '$($impact.Permission)' (or run as a service principal with that application permission) — without it these collectors are empty: $($impact.Collectors -join ', ')")
+                        $recommendations.Add("The token has '$($impact.Permission)'; assign one of these supported roles: $supportedRoles (or use a service principal with that application permission) — without it these collectors are empty: $($impact.Collectors -join ', ')")
                     } else {
                         $recommendations.Add("Grant Graph permission '$($impact.Permission)' — without it these collectors are empty: $($impact.Collectors -join ', ')")
                     }

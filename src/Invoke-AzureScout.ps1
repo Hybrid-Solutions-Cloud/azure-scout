@@ -859,21 +859,6 @@ Function Invoke-AzureScout {
         Write-Host ''
     }
 
-    # --- Pre-flight permission check ---
-    if (-not $SkipPermissionCheck.IsPresent) {
-        Write-Host 'Running pre-flight permission checks...' -ForegroundColor Cyan
-        $permResult = Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
-        foreach ($detail in $permResult.Details) {
-            switch ($detail.Status) {
-                'Pass' { Write-Host "  [PASS] $($detail.Check): $($detail.Message)" -ForegroundColor Green }
-                'Warn' { Write-Warning "[WARN] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
-                'Fail' { Write-Warning "[FAIL] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
-                'Info' { Write-Host "  [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
-            }
-        }
-        Write-Host ''
-    }
-
     # Run isolation (AB#331): each invocation gets its own timestamped folder so a rerun -
     # or a scan of a second tenant - cannot destroy the previous run's cache or report.
     # -Force restores the pre-2.3.0 overwrite-in-place behaviour.
@@ -961,6 +946,25 @@ Function Invoke-AzureScout {
         # stack trace, which is exactly the diagnostic this trap exists to preserve. `break`
         # propagates the original ErrorRecord to the caller untouched.
         break
+    }
+
+    # --- Pre-flight permission check ---
+    # The audit is intentionally after run-log initialization and the failure trap. A token,
+    # RBAC, or Graph-probe failure is one of the most useful diagnostics to persist, and before
+    # this ordering it could terminate before scout-run.log existed. Test-AZSCPermissions calls
+    # the underlying audit quietly; this loop is the sole pre-flight renderer.
+    if (-not $SkipPermissionCheck.IsPresent) {
+        Write-Host 'Running pre-flight permission checks...' -ForegroundColor Cyan
+        $permResult = Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
+        foreach ($detail in $permResult.Details) {
+            switch ($detail.Status) {
+                'Pass' { Write-Host "  [PASS] $($detail.Check): $($detail.Message)" -ForegroundColor Green }
+                'Warn' { Write-Warning "[WARN] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
+                'Fail' { Write-Warning "[FAIL] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
+                'Info' { Write-Host "  [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
+            }
+        }
+        Write-Host ''
     }
 
     Clear-AZSCCacheFolder -ReportCache $ReportCache
@@ -1392,6 +1396,19 @@ $null = Stop-AZSCRunLog -Status 'COMPLETED'
 
     }
     finally {
+        # A normal success or the trap above closes and clears the active log path. If control
+        # reaches finally with a log still active (for example, a terminating path outside the
+        # main body), leave a durable terminal marker instead of an apparently frozen log.
+        if ($runLogStarted -and (Get-AZSCRunLogPath)) {
+            try {
+                Write-AZSCLog -Level 'ERROR' -Message 'Run ended without reaching the normal completion or failure handler.'
+                $null = Stop-AZSCRunLog -Status 'FAILED' -Quiet
+            }
+            catch {
+                # Logging is diagnostic-only and must never replace the original error.
+                Write-Debug ('Invoke-AzureScout: unfinished run-log closure failed: ' + $_.Exception.Message)
+            }
+        }
         if ($restoreAzBreakingChangeWarningSetting) {
             if ($null -eq $previousAzBreakingChangeWarningSetting) {
                 [Environment]::SetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', $null, 'Process')

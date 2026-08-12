@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.2'
+ModuleVersion = '3.12.3'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.2 - Honest collection, retained evidence. Guided combined runs authenticate and audit once; management-group and Graph readiness report what can actually be collected. Known unavailable Entra endpoints are classified before any request; held Lighthouse is removed; oversized Security Center results retry safely; expected ARM absence stays quiet; and upstream failures flow into collection-health.json instead of looking empty. Completed runs retain raw-inventory.json, ReportCache, DiagramCache, and health/evidence artifacts until explicit cleanup. AB#7279.'
+        ReleaseNotes = 'v3.12.3 - Every collector tells the truth. ARM child discovery now works with supported Az.Accounts versions and records per-dataset failures instead of silently returning empty data. Risky Users, Verified ID, management-group, Defender, and Azure DevOps availability are classified from the real permission, licence, HTTP, and provider results. Operational collection emits bounded progress and durable heartbeats; run logs always receive a terminal status. A live HCS acceptance pass independently reconciled all 278 collector outcomes while retaining raw inventory, caches, health, and logs. AB#7279.'
 
         # Prerelease string of this module
         # Prerelease = ''

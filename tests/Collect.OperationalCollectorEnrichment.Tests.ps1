@@ -153,4 +153,123 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.ReplicationEligibility.__AZSCStatus | Should -Be 'NotConfigured'
         ($Warnings -join "`n") | Should -Not -Match 'ReplicationEligibility'
     }
+
+    It 'logs a complete monotonic request ledger and emits terminal progress only after all work is complete' {
+        $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
+        $script:OperationalProgress = [System.Collections.Generic.List[object]]::new()
+        function global:Write-AZSCLog {
+            param($Level, $Message)
+            $script:OperationalLogs.Add("$Level|$Message")
+        }
+        function global:Write-Progress {
+            param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed)
+            $script:OperationalProgress.Add([pscustomobject]@{
+                    Id = $Id; ParentId = $ParentId; Activity = $Activity; Status = $Status
+                    PercentComplete = $PercentComplete; Completed = $Completed.IsPresent
+                })
+        }
+        try {
+            $null = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @(
+                    [pscustomobject]@{ Id = 'sub-1'; Name = 'Subscription One'; TenantId = 'tenant-a' }
+                ))
+
+            @($script:OperationalLogs | Where-Object { $_ -match 'Operational enrichment plan:' }).Count | Should -Be 1
+            $finished = @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished:' })
+            $finished.Count | Should -BeGreaterThan 0
+            $completed = @($finished | ForEach-Object {
+                    [int][regex]::Match($_, 'completed=(\d+)').Groups[1].Value
+                })
+            $completed | Should -Be @(1..$finished.Count)
+            foreach ($line in $finished) {
+                $done = [int][regex]::Match($line, 'completed=(\d+)').Groups[1].Value
+                $planned = [int][regex]::Match($line, 'planned=(\d+)').Groups[1].Value
+                $done | Should -BeLessOrEqual $planned
+            }
+
+            $summary = @($script:OperationalLogs | Where-Object { $_ -match 'Operational enrichment complete:' })
+            $summary.Count | Should -Be 1
+            $summary[0] | Should -Match "completed=$($finished.Count); planned=$($finished.Count)"
+            ($script:OperationalLogs -join "`n") | Should -Not -Match '(?i)/subscriptions/|resourceGroups/|\{\s*"'
+
+            $terminal = @($script:OperationalProgress | Where-Object Completed)
+            $terminal.Count | Should -Be 1
+            $script:OperationalProgress[-1].Completed | Should -BeTrue
+            @($script:OperationalProgress | Select-Object -SkipLast 1 | Where-Object Completed) | Should -BeNullOrEmpty
+            foreach ($progress in @($script:OperationalProgress | Where-Object { -not $_.Completed })) {
+                $progress.PercentComplete | Should -BeGreaterOrEqual 0
+                $progress.PercentComplete | Should -BeLessOrEqual 99
+            }
+            $percentages = @($script:OperationalProgress |
+                    Where-Object { -not $_.Completed } |
+                    ForEach-Object { [int]$_.PercentComplete })
+            for ($index = 1; $index -lt $percentages.Count; $index++) {
+                $percentages[$index] | Should -BeGreaterOrEqual $percentages[$index - 1]
+            }
+        }
+        finally {
+            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
+            Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'records every remote wrapper family including dynamic protected-item discovery without identifiers' {
+        $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
+        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $Payload, $ErrorAction)
+            $null = $Method, $Payload, $ErrorAction
+            if ($Path -match '/Microsoft.RecoveryServices/vaults\?') {
+                return [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"id":"/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.RecoveryServices/vaults/vault-1","name":"vault-1"}]}' }
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' }
+        }
+        try {
+            $null = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @(
+                    [pscustomobject]@{ Id = 'sub-1'; Name = 'Subscription One'; TenantId = 'tenant-a' }
+                ))
+            $text = $script:OperationalLogs -join "`n"
+            foreach ($dataset in @(
+                    'VirtualMachine.ReplicationEligibility', 'VirtualMachine.ReplicationVaults',
+                    'VirtualMachine.ReplicationProtectedItems', 'VirtualMachine.CpuMetrics',
+                    'VirtualMachine.MemoryMetrics', 'VirtualMachine.EstimatedCost',
+                    'ARCServers.PolicyCompliance', 'ARCServers.EstimatedCost',
+                    'StorageAccounts.EnterSubscriptionContext', 'StorageAccounts.BlobService',
+                    'StorageAccounts.FileService', 'StorageAccounts.RestoreSubscriptionContext',
+                    'AllSubscriptions.ManagementGroupPath'
+                )) {
+                $text | Should -Match ([regex]::Escape("dataset=$dataset"))
+            }
+            $text | Should -Not -Match '(?i)/subscriptions/|resourceGroups/'
+        }
+        finally {
+            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
+            Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'logs retry attempts and one final completion with the accurate attempt count' {
+        $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
+        $script:RetryLedgerAttempts = 0
+        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $Payload, $ErrorAction)
+            $null = $Method, $Payload, $ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:RetryLedgerAttempts++
+                if ($script:RetryLedgerAttempts -eq 1) { return [pscustomobject]@{ StatusCode = 429; Content = '{}' } }
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' }
+        }
+        try {
+            $null = @(Get-ScoutOperationalCollectorEnrichment -Resources @($script:Resources[0]) -Subscriptions @())
+            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request retry: dataset=VirtualMachine.EstimatedCost; attempt=1; maximum=3' }).Count | Should -Be 1
+            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished: dataset=VirtualMachine.EstimatedCost; status=Success; attempts=2;' }).Count | Should -Be 1
+        }
+        finally {
+            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
+            Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
+        }
+    }
 }

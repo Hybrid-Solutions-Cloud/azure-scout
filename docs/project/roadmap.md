@@ -41,7 +41,17 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.2 — honest collection, retained evidence
+## Current Release — v3.12.3 — every collector tells the truth
+
+Released 11 August 2026. ARM child discovery now runs on supported Az.Accounts versions and
+propagates exact per-dataset availability. Risky Users, Verified ID, management-group, Defender,
+and Azure DevOps checks report the real permission, licence, provider, or HTTP boundary instead of
+silently returning empty data. Operational extraction shows bounded progress and durable heartbeats,
+and every run log closes with a terminal status. A live read-only HCS acceptance pass independently
+reconciled all 278 collectors while preserving raw inventory and every cache/health artifact. See
+CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.12.2 — honest collection, retained evidence
 
 Released 11 August 2026. Guided runs authenticate and audit once, with management-group and Graph
 readiness based on data the selected identity can actually collect. Scout classifies known Graph

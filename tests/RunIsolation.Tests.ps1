@@ -332,4 +332,18 @@ Describe 'Test-AZSCManagementGroupAccess — post-login probe (AB#351)' {
         $result.HasAccess | Should -BeFalse
         Should -Invoke Write-Host -Times 0 -Exactly
     }
+
+    It 'does not claim exact tenant-root access when the targeted probe returns no data' {
+        Mock Get-AzManagementGroup { @() }
+
+        $result = Test-AZSCManagementGroupAccess -TenantID 'tenant-1'
+
+        $result.HasAccess | Should -BeFalse
+        $result.Count | Should -Be 0
+        $result.FailureKind | Should -Be 'Unavailable'
+        $result.ErrorMessage | Should -Match 'tenant-1.*no data'
+        Should -Invoke Get-AzManagementGroup -Times 1 -Exactly -ParameterFilter {
+            $GroupId -eq 'tenant-1' -and $Expand -and $Recurse
+        }
+    }
 }

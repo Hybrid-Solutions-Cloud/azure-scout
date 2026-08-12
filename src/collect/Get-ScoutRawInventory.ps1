@@ -401,6 +401,7 @@ function Get-ScoutRawInventory {
                         'Retirements' { $text -match '(?i)\$Retirements\b' }
                         'Subscriptions and Resource Groups' { $collectorKey -eq 'Management/AllSubscriptions' }
                         'Security Center' { $types -contains 'microsoft.security/assessments' }
+                        'ARM Child' { [bool]@($types | Where-Object { $_ -in $RequestedResourceTypes }).Count }
                         default { $false }
                     }
                     if ($isAffected) { $affected.Add($collectorKey) }
@@ -424,12 +425,25 @@ function Get-ScoutRawInventory {
         )
 
         if ($Timer.IsRunning) { $Timer.Stop() }
-        if (-not (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue)) { return }
-
         $message = 'Extraction subphase {0}: status={1}; rows={2}; elapsed={3}' -f
             $Name, $Status, $Rows, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
         if ($Detail) { $message += "; $Detail" }
-        Write-AZSCLog -Level 'VERBOSE' -Message $message
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'VERBOSE' -Message $message
+        }
+        $phasePercent = switch ($Name) {
+            'ARG query sweep'                          { 15 }
+            'ARM child resource sweep'                 { 30 }
+            'subscription security and policy sweep'   { 45 }
+            'operational enrichment'                   { 60 }
+            'ARM REST API sweep'                       { 72 }
+            'tenant-wide resource sweep'               { 84 }
+            'governance dataset sweep'                 { 96 }
+            default                                    { 1 }
+        }
+        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status (
+            '{0} {1}; {2} row(s); elapsed {3}' -f $Name, $Status.ToLowerInvariant(), $Rows, $Timer.Elapsed.ToString('hh\:mm\:ss')
+        ) -PercentComplete $phasePercent
     }
 
     function Write-ScoutRawInventoryStart {
@@ -437,6 +451,17 @@ function Get-ScoutRawInventory {
         if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
             Write-AZSCLog -Level 'DEBUG' -Message "Extraction subphase $Name started."
         }
+        $phasePercent = switch ($Name) {
+            'ARG query sweep'                          { 2 }
+            'ARM child resource sweep'                 { 16 }
+            'subscription security and policy sweep'   { 31 }
+            'operational enrichment'                   { 46 }
+            'ARM REST API sweep'                       { 61 }
+            'tenant-wide resource sweep'               { 73 }
+            'governance dataset sweep'                 { 85 }
+            default                                    { 1 }
+        }
+        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status "$Name started" -PercentComplete $phasePercent
     }
 
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
@@ -792,14 +817,63 @@ function Get-ScoutRawInventory {
         Write-ScoutRawInventoryStart -Name 'ARM child resource sweep'
         $childStartCount = $resources.Count
         $childStatus = 'Completed'
+        $armChildHealth = [System.Collections.Generic.List[object]]::new()
         try {
-            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset)) {
+            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset -CollectionHealth $armChildHealth)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
+
+            foreach ($health in @($armChildHealth)) {
+                if ($null -eq $health -or -not $health.PSObject.Properties['Dataset']) { continue }
+                $sourceDataset = [string]$health.Dataset
+                $resourceTypes = @(
+                    if ($health.PSObject.Properties['ResourceTypes']) { $health.ResourceTypes }
+                    else { "AZSC/ARMChild/$sourceDataset" }
+                )
+                $healthCollectors = @(Get-ScoutRawAffectedCollector -Source 'ARM Child' -RequestedResourceTypes $resourceTypes)
+                $healthKey = 'Resources|ARM Child:{0}|{1}' -f $sourceDataset, ($healthCollectors -join ',')
+                if ($collectionHealthKeys.Add($healthKey)) {
+                    $collectionHealth.Add([pscustomobject]@{
+                            Dataset       = 'Resources'
+                            Source        = 'ARM Child'
+                            SourceDataset = $sourceDataset
+                            Operation     = if ($health.PSObject.Properties['Operation']) { [string]$health.Operation } else { $sourceDataset }
+                            Status        = if ($health.PSObject.Properties['Status']) { [string]$health.Status } else { 'Unavailable' }
+                            Reason        = if ($health.PSObject.Properties['Reason']) { [string]$health.Reason } else { "ARM child dataset '$sourceDataset' could not be read." }
+                            ResourceTypes = $resourceTypes
+                            Collectors    = $healthCollectors
+                        })
+                }
+            }
+            if ($armChildHealth.Count -gt 0) { $childStatus = 'Partial' }
         }
         catch {
             $childStatus = 'Failed'
-            Write-Warning "Get-ScoutRawInventory: ARM child collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+            $failureReason = "ARM child collection failed before per-dataset health could be returned: $($_.Exception.Message)"
+            Write-Warning "Get-ScoutRawInventory: $failureReason; continuing without its synthetic rows."
+
+            # A helper-level exception is distinct from the remote failures that the helper
+            # reports per dataset. Keep it visible as source health so assessment callers do not
+            # interpret an unexpectedly empty synthetic row set as successful evidence.
+            $requestedChildDatasets = @($ArmChildDataset | Where-Object { $_ -and $_ -ne 'All' })
+            $failedResourceTypes = @($requestedChildDatasets | ForEach-Object { "AZSC/ARMChild/$_" })
+            $failedCollectors = if ($failedResourceTypes.Count -gt 0) {
+                @(Get-ScoutRawAffectedCollector -Source 'ARM Child' -RequestedResourceTypes $failedResourceTypes)
+            }
+            else { @() }
+            $healthKey = 'Resources|ARM Child:Systemic|{0}' -f ($failedCollectors -join ',')
+            if ($collectionHealthKeys.Add($healthKey)) {
+                $collectionHealth.Add([pscustomobject]@{
+                        Dataset       = 'Resources'
+                        Source        = 'ARM Child'
+                        SourceDataset = if ($requestedChildDatasets.Count -gt 0) { $requestedChildDatasets -join ',' } else { 'All' }
+                        Operation     = 'Sweep'
+                        Status        = 'Failed'
+                        Reason        = $failureReason
+                        ResourceTypes = $failedResourceTypes
+                        Collectors    = $failedCollectors
+                    })
+            }
         }
         finally {
             Write-ScoutRawInventoryTiming -Name 'ARM child resource sweep' -Timer $childTimer -Status $childStatus `
@@ -1080,6 +1154,8 @@ function Get-ScoutRawInventory {
         Write-Warning ('Get-ScoutRawInventory: extraction returned zero resources. Verify the identity has Reader ' +
             'at the target scope (root management group for full coverage) and that -ManagementGroupId/-SubscriptionIds is correct.')
     }
+
+    Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status 'Extraction subphases complete' -Completed
 
     return [pscustomobject]@{
         Resources          = @($resources)

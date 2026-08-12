@@ -173,7 +173,8 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
     It 'appends ARM child rows exactly once when requested' {
         $script:armChildInputs = @()
         function Get-ScoutArmChildResource {
-            param([object[]] $Resources)
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Dataset, $CollectionHealth
             $script:armChildInputs += , @($Resources)
             [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
         }
@@ -182,6 +183,71 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
 
         $script:armChildInputs.Count | Should -Be 1
         @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+    }
+
+    It 'merges ARM-child failures into source health without dropping successful rows' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'MLComputes'; Status = 'Unavailable'; Reason = 'simulated child denial'
+                    ResourceTypes = @('AZSC/ARMChild/MLComputes')
+                })
+            [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset MLComputes
+
+        @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'MLComputes')
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].Source | Should -Be 'ARM Child'
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Collectors | Should -Contain 'AI/MLComputes'
+    }
+
+    It 'records source health when the ARM-child helper fails before returning per-dataset health' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset, $CollectionHealth
+            throw 'simulated helper failure'
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys -WarningAction SilentlyContinue
+
+        $health = @($result.CollectionHealth | Where-Object { $_.Source -eq 'ARM Child' -and $_.Operation -eq 'Sweep' })
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].SourceDataset | Should -Be 'KeyVaultKeys'
+        $health[0].Status | Should -Be 'Failed'
+        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/KeyVaultKeys')
+        $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+    }
+
+    It 'propagates a Key Vault child denial into a fail-closed Security assessment' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'KeyVaultKeys'; Operation = 'KeyVaultKeys'; Status = 'Unavailable'
+                    Reason = 'simulated Key Vault child denial'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+                })
+        }
+
+        $raw = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys
+        $mapped = @($raw.CollectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys')
+        @($mapped).Count | Should -Be 1
+        $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -646,6 +712,28 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         {
             Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
         } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'fails closed when selected Key Vault child evidence is unavailable' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
+                    Status = 'Unavailable'; Reason = 'simulated Key Vault child denial'
+                    ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys'); Collectors = @('Security/KeyVaultKeys')
+                })
+        }
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'Resources'
     }
 
     It 'does not block Identity when explicit Resources health names only a Compute collector' {

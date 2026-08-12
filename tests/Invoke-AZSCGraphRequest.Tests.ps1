@@ -298,4 +298,33 @@ Describe 'Invoke-AZSCGraphRequest' {
             Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout
         }
     }
+
+    Context 'Structured caller warning ownership' {
+        BeforeEach {
+            Mock Get-AZSCGraphToken {
+                @{ 'Authorization' = 'Bearer mock-token'; 'Content-Type' = 'application/json' }
+            } -ModuleName AzureScout
+            Mock Invoke-RestMethod {
+                $mockResponse = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::Forbidden)
+                throw [Microsoft.PowerShell.Commands.HttpResponseException]::new('Forbidden', $mockResponse)
+            } -ModuleName AzureScout
+            Mock Write-Warning { } -ModuleName AzureScout
+        }
+
+        It 'suppresses only the helper warning and still rethrows for a structured caller' {
+            { InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/users' -SuppressFailureWarning
+            } } | Should -Throw
+            Should -Invoke Write-Warning -ModuleName AzureScout -Times 0 -Scope It
+        }
+
+        It 'retains the helper warning by default' {
+            { InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/users'
+            } } | Should -Throw
+            Should -Invoke Write-Warning -ModuleName AzureScout -Times 1 -Scope It -ParameterFilter {
+                $Message -match 'Graph API request failed'
+            }
+        }
+    }
 }

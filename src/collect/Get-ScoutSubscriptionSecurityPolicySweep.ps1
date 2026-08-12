@@ -107,14 +107,6 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     continue
                 }
 
-                # A null-reference here is a known Az.Security client-side symptom of Defender for
-                # Cloud not being fully provisioned/onboarded on this subscription -- not a Scout
-                # defect, and not the transient-HTTP pattern retries above target. Surface a clearer
-                # hint instead of the bare CLR exception text.
-                if ($message -match '(?i)Object reference not set to an instance of an object') {
-                    $message = "$message (commonly indicates Microsoft Defender for Cloud is not fully provisioned/onboarded on this subscription)"
-                }
-
                 Write-Warning "Get-ScoutSubscriptionSecurityPolicySweep: '$Dataset' failed for subscription '$SubscriptionName' after $attempt attempt(s): $message"
                 return [pscustomobject]@{
                     Data   = @()
@@ -157,6 +149,100 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             Data   = @()
             Status = 'Unavailable'
             Error  = [pscustomobject]@{ Dataset = 'DefenderPricing'; Message = $message }
+        }
+    }
+
+    function ConvertFrom-ScoutDefenderAlertRestRow {
+        param([Parameter(Mandatory)]$Alert)
+
+        function Get-AlertValue {
+            param($Object, [Parameter(Mandatory)][string]$Name)
+            if ($null -eq $Object) { return $null }
+            $property = $Object.PSObject.Properties[$Name]
+            if ($null -eq $property) { return $null }
+            return $property.Value
+        }
+
+        $properties = Get-AlertValue -Object $Alert -Name 'properties'
+        if ($null -eq $properties) { $properties = $Alert }
+        $timeGeneratedValue = Get-AlertValue -Object $properties -Name 'timeGeneratedUtc'
+        $timeGenerated = if ($timeGeneratedValue) { [datetime]$timeGeneratedValue } else { $null }
+
+        # Preserve the established Get-AzSecurityAlert projection consumed by the declarative
+        # DefenderAlerts collector. The REST API nests these values under `properties`.
+        [pscustomobject]@{
+            Id                  = Get-AlertValue -Object $Alert -Name 'id'
+            Name                = Get-AlertValue -Object $Alert -Name 'name'
+            AlertDisplayName    = Get-AlertValue -Object $properties -Name 'alertDisplayName'
+            AlertType           = Get-AlertValue -Object $properties -Name 'alertType'
+            Severity            = Get-AlertValue -Object $properties -Name 'severity'
+            Status              = Get-AlertValue -Object $properties -Name 'status'
+            TimeGeneratedUtc    = $timeGenerated
+            Description         = Get-AlertValue -Object $properties -Name 'description'
+            RemediationSteps    = @(Get-AlertValue -Object $properties -Name 'remediationSteps')
+            Intent              = Get-AlertValue -Object $properties -Name 'intent'
+            Entities            = @(Get-AlertValue -Object $properties -Name 'entities')
+            ResourceIdentifiers = @(Get-AlertValue -Object $properties -Name 'resourceIdentifiers')
+            ExtendedProperties  = Get-AlertValue -Object $properties -Name 'extendedProperties'
+            ConfidenceLevel     = Get-AlertValue -Object $properties -Name 'confidenceLevel'
+        }
+    }
+
+    function Invoke-ScoutDefenderAlertRestFallback {
+        param([Parameter(Mandatory)][string]$SubscriptionId)
+
+        $alerts = [System.Collections.Generic.List[object]]::new()
+        $path = "/subscriptions/$SubscriptionId/providers/Microsoft.Security/alerts?api-version=2022-01-01"
+        do {
+            # Do not pass -SkipHttpErrorCheck: older supported Az.Accounts releases do not expose
+            # it on Invoke-AzRestMethod. Non-success responses throw and are classified from their
+            # actual service error by the surrounding dataset boundary.
+            $response = Invoke-AzRestMethod -Path $path -Method GET -ErrorAction Stop
+            if ($null -eq $response) { throw 'Defender alerts REST fallback returned no response.' }
+
+            $statusProperty = $response.PSObject.Properties['StatusCode']
+            if ($null -ne $statusProperty) {
+                $statusCode = [int]$statusProperty.Value
+                if ($statusCode -lt 200 -or $statusCode -ge 300) {
+                    $responseContent = $response.PSObject.Properties['Content']
+                    $responseText = if ($null -ne $responseContent) { [string]$responseContent.Value } else { '' }
+                    throw "Defender alerts REST fallback returned HTTP $statusCode. $responseText"
+                }
+            }
+
+            $contentProperty = $response.PSObject.Properties['Content']
+            $content = if ($null -ne $contentProperty) { $contentProperty.Value } else { $response }
+            if ($content -is [string]) {
+                if ([string]::IsNullOrWhiteSpace($content)) { $content = [pscustomobject]@{ value = @() } }
+                else { $content = $content | ConvertFrom-Json }
+            }
+            if ($null -eq $content) { $content = [pscustomobject]@{ value = @() } }
+
+            $valueProperty = $content.PSObject.Properties['value']
+            $pageRows = if ($null -ne $valueProperty) { @($valueProperty.Value) } else { @() }
+            foreach ($alert in $pageRows) {
+                if ($null -ne $alert) { $alerts.Add((ConvertFrom-ScoutDefenderAlertRestRow -Alert $alert)) }
+            }
+            $nextLinkProperty = $content.PSObject.Properties['nextLink']
+            $path = if ($null -ne $nextLinkProperty) { [string]$nextLinkProperty.Value } else { $null }
+        } while (-not [string]::IsNullOrWhiteSpace($path))
+
+        return $alerts.ToArray()
+    }
+
+    function Get-ScoutDefenderAlerts {
+        param([Parameter(Mandatory)][string]$SubscriptionId)
+
+        try {
+            return @(Get-AzSecurityAlert -ErrorAction Stop)
+        }
+        catch {
+            if ($_.Exception -isnot [System.NullReferenceException] -and
+                $_.Exception.Message -notmatch '(?i)Object reference not set to an instance of an object') {
+                throw
+            }
+            Write-Verbose 'Get-AzSecurityAlert failed inside Az.Security; using the documented Defender for Cloud alerts REST endpoint.'
+            return @(Invoke-ScoutDefenderAlertRestFallback -SubscriptionId $SubscriptionId)
         }
     }
 
@@ -250,7 +336,9 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             $queries.DefenderAlerts = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderAlerts' `
                 -SubscriptionName $subscriptionName `
-                -Operation { Get-AzSecurityAlert -ErrorAction Stop }
+                -MaxAttempts 3 `
+                -ProviderRegistrationIsUnavailable `
+                -Operation { Get-ScoutDefenderAlerts -SubscriptionId $subscriptionId }
 
             $queries.DefenderAssessments = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderAssessments' `

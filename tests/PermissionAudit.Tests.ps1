@@ -169,6 +169,16 @@ Describe 'Invoke-AZSCPermissionAudit — No Azure Context Behavior' {
     It 'Does not throw terminating error when Get-AzContext returns $null' {
         { Invoke-AZSCPermissionAudit -ErrorAction SilentlyContinue 2>$null } | Should -Not -Throw
     }
+
+    It 'emits no host or warning records in structured quiet mode' {
+        $records = @(Invoke-AZSCPermissionAudit -Quiet 3>&1 6>&1)
+        $records | Should -BeNullOrEmpty
+    }
+
+    It 'retains standalone console rendering when quiet mode is omitted' {
+        $records = @(Invoke-AZSCPermissionAudit 6>&1)
+        @($records | Where-Object { $_ -is [System.Management.Automation.InformationRecord] }).Count | Should -BeGreaterThan 0
+    }
 }
 
 # ===================================================================
@@ -341,6 +351,38 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         $source | Should -Match 'one subscription sample'
     }
 
+    It 'probes the exact tenant-root management group rather than treating any visible child as root access' {
+        $result = Invoke-AZSCPermissionAudit -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $detail = @($result.ArmDetails | Where-Object Check -eq 'ARM: Root Management Group Access')[0]
+
+        $detail.Status | Should -Be 'Pass'
+        Should -Invoke Get-AzManagementGroup -Times 1 -Scope It -ParameterFilter {
+            $GroupId -eq '22222222-2222-2222-2222-222222222222' -and $Expand -and $Recurse
+        }
+    }
+
+    It 'recommends least-privilege Management Group Reader only for an authorization failure' {
+        Mock Get-AzManagementGroup { throw 'AuthorizationFailed: managementGroups/read denied' }
+        $result = Invoke-AZSCPermissionAudit -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $detail = @($result.ArmDetails | Where-Object Check -eq 'ARM: Root Management Group Access')[0]
+
+        $detail.Status | Should -Be 'Warn'
+        $detail.Message | Should -Match 'AuthorizationFailed'
+        $detail.Remediation | Should -Match 'Management Group Reader'
+        $detail.Remediation | Should -Not -Match "RoleDefinitionName 'Reader'"
+    }
+
+    It 'preserves an operational management-group failure and does not prescribe RBAC' {
+        Mock Get-AzManagementGroup { throw 'HTTP 429: The request was throttled' }
+        $result = Invoke-AZSCPermissionAudit -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $detail = @($result.ArmDetails | Where-Object Check -eq 'ARM: Root Management Group Access')[0]
+
+        $detail.Status | Should -Be 'Warn'
+        $detail.Message | Should -Match '429|throttled'
+        $detail.Remediation | Should -Match 'Retry'
+        $detail.Remediation | Should -Match 'Do not change RBAC'
+    }
+
     It 'probes ordinary Graph endpoints under a broad delegated token and gates only exact-scope collectors' {
         $payload = @{ scp = 'Directory.AccessAsUser.All'; upn = 'user@contoso.com' } | ConvertTo-Json -Compress
         $toBase64Url = {
@@ -358,8 +400,9 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         $partial = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console
 
         $partial.OverallReadiness | Should -Be 'Partial'
-        @($partial.EmptyCollectors).Count | Should -Be 2
+        @($partial.EmptyCollectors).Count | Should -Be 3
         @($partial.EmptyCollectors.Collector | Sort-Object) | Should -Be @(
+            'Identity/RiskyUsers'
             'Identity/VerifiedIDConfiguration'
             'Identity/VerifiedIDProfiles'
         )
@@ -373,6 +416,77 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         @($script:permissionProbeUris | Where-Object { $_ -like '/v1.0/groups?*' }).Count | Should -Be 1
         $script:permissionProbeUris | Should -Not -Contain '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
         $script:permissionProbeUris | Should -Not -Contain '/v1.0/identity/verifiedId/profiles'
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/identityProtection/riskyUsers'
+
+        foreach ($permission in 'IdentityRiskyUser.Read.All', 'Policy.Read.AuthenticationMethod', 'VerifiedId-Profile.Read.All') {
+            $detail = @($partial.GraphDetails | Where-Object Check -eq "Graph: $permission")
+            $detail.Count | Should -Be 1
+            $detail[0].Status | Should -Be 'Info'
+            $detail[0].Message | Should -Match 'Not assessed'
+        }
+    }
+
+    It 'uses Risky Users endpoint-specific roles when the exact delegated scope is present but Graph returns 403' {
+        $payload = @{ scp = 'Directory.AccessAsUser.All IdentityRiskyUser.Read.All'; upn = 'user@contoso.com' } | ConvertTo-Json -Compress
+        $toBase64Url = {
+            param([string]$Value)
+            [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Value)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+        }
+        $jwt = "$( & $toBase64Url '{\"alg\":\"none\"}' ).$( & $toBase64Url $payload ).sig"
+        Mock -CommandName Get-AZSCGraphToken -MockWith { @{ Authorization = "Bearer $jwt" } }
+        Mock -CommandName Invoke-AZSCGraphRequest -MockWith {
+            if ($Uri -eq '/v1.0/subscribedSkus') {
+                return @([pscustomobject]@{ servicePlans = @([pscustomobject]@{ servicePlanName = 'AAD_PREMIUM_P2' }) })
+            }
+            if ($Uri -eq '/v1.0/identityProtection/riskyUsers') { throw 'HTTP 403 Authorization_RequestDenied' }
+            return $null
+        }
+
+        $result = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $detail = @($result.GraphDetails | Where-Object Check -eq 'Graph: IdentityRiskyUser.Read.All')[0]
+
+        $detail.Status | Should -Be 'Fail'
+        $detail.Remediation | Should -Match 'Global Reader'
+        $detail.Remediation | Should -Match 'Security Operator'
+        $detail.Remediation | Should -Match 'Security Reader'
+        $detail.Remediation | Should -Match 'Security Administrator'
+        $detail.Remediation | Should -Not -Match 'Authentication Policy Administrator'
+        Should -Invoke Invoke-AZSCGraphRequest -Times 1 -Scope It -ParameterFilter {
+            $Uri -eq '/v1.0/identityProtection/riskyUsers' -and $SuppressFailureWarning
+        }
+    }
+
+    It 'uses endpoint-specific delegated roles for each exact-scope 403' -TestCases @(
+        @{ Permission = 'IdentityRiskyUser.Read.All'; Uri = '/v1.0/identityProtection/riskyUsers'; Roles = @('Global Reader', 'Security Operator', 'Security Reader', 'Security Administrator'); Excluded = 'Authentication Policy Administrator' }
+        @{ Permission = 'Policy.Read.AuthenticationMethod'; Uri = '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'; Roles = @('Global Reader', 'Authentication Policy Administrator'); Excluded = 'Security Operator' }
+        @{ Permission = 'VerifiedId-Profile.Read.All'; Uri = '/v1.0/identity/verifiedId/profiles'; Roles = @('Authentication Policy Administrator'); Excluded = 'Security Operator' }
+    ) {
+        param($Permission, $Uri, $Roles, $Excluded)
+
+        $allScopes = 'Directory.AccessAsUser.All IdentityRiskyUser.Read.All Policy.Read.AuthenticationMethod VerifiedId-Profile.Read.All'
+        $payload = @{ scp = $allScopes; upn = 'user@contoso.com' } | ConvertTo-Json -Compress
+        $toBase64Url = {
+            param([string]$Value)
+            [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Value)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+        }
+        $jwt = "$( & $toBase64Url '{\"alg\":\"none\"}' ).$( & $toBase64Url $payload ).sig"
+        Mock -CommandName Get-AZSCGraphToken -MockWith { @{ Authorization = "Bearer $jwt" } }
+        Mock -CommandName Invoke-AZSCGraphRequest -MockWith {
+            if ($Uri -eq '/v1.0/subscribedSkus') {
+                return @([pscustomobject]@{ servicePlans = @([pscustomobject]@{ servicePlanName = 'AAD_PREMIUM_P2' }) })
+            }
+            if ($Uri -eq $testDriveUri) { throw 'HTTP 403 Authorization_RequestDenied' }
+            return $null
+        }
+        $testDriveUri = $Uri
+
+        $result = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $detail = @($result.GraphDetails | Where-Object Check -eq "Graph: $Permission")[0]
+
+        $detail.Status | Should -Be 'Fail'
+        foreach ($role in $Roles) { $detail.Remediation | Should -Match ([regex]::Escape($role)) }
+        $detail.Remediation | Should -Not -Match ([regex]::Escape($Excluded))
+        Should -Invoke Invoke-AZSCGraphRequest -Times 1 -Scope It -ParameterFilter { $Uri -eq $testDriveUri -and $SuppressFailureWarning }
     }
 
     It 'resolves one collision-safe output path and filename stem for all file formats' {

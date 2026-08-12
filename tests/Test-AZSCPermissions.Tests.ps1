@@ -388,6 +388,13 @@ Describe 'Test-AZSCPermissions' {
                 -not $SubscriptionID
             }
         }
+
+        It 'always requests structured quiet audit output so the caller is the sole renderer' {
+            $null = Test-AZSCPermissions -TenantID 'test-tenant' -Scope ArmOnly
+            Should -Invoke Invoke-AZSCPermissionAudit -ModuleName AzureScout -Times 1 -ParameterFilter {
+                [bool]$Quiet -and $OutputFormat -eq 'Console'
+            }
+        }
     }
 
     # ── No Auth Context (Invoke-AZSCPermissionAudit returns null) ─────

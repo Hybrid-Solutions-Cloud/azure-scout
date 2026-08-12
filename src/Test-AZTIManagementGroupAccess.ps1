@@ -32,18 +32,39 @@ Work item: AB#351
 
 function Test-AZSCManagementGroupAccess {
     [CmdletBinding()]
-    Param()
+    Param(
+        [string]$TenantID
+    )
 
     try
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Probing management group access.')
 
-            $ManagementGroups = @(Get-AzManagementGroup -ErrorAction Stop)
+            $ManagementGroups = @(
+                if ([string]::IsNullOrWhiteSpace($TenantID)) {
+                    Get-AzManagementGroup -ErrorAction Stop
+                }
+                else {
+                    Get-AzManagementGroup -GroupId $TenantID -Expand -Recurse -ErrorAction Stop
+                }
+            )
+
+            if (-not [string]::IsNullOrWhiteSpace($TenantID) -and $ManagementGroups.Count -eq 0) {
+                return [PSCustomObject]@{
+                    HasAccess   = $false
+                    Count       = 0
+                    Message     = 'Management groups : tenant root returned no data'
+                    FailureKind = 'Unavailable'
+                    ErrorMessage = "Tenant root management group '$TenantID' returned no data."
+                }
+            }
 
             return [PSCustomObject]@{
                 HasAccess = $true
                 Count     = $ManagementGroups.Count
                 Message   = 'Management groups : ' + $ManagementGroups.Count + ' visible'
+                FailureKind = $null
+                ErrorMessage = $null
             }
         }
     catch
@@ -65,6 +86,8 @@ function Test-AZSCManagementGroupAccess {
                 HasAccess = $false
                 Count     = 0
                 Message   = 'Management groups : none visible'
+                FailureKind = if ($ErrorText -match 'AuthorizationFailed|does not have authorization|Forbidden') { 'Authorization' } else { 'Operational' }
+                ErrorMessage = $ErrorText
             }
         }
 }
