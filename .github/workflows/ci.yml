@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   test-and-lint:
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows, x64, hcs]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
