@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     AB#7065/AB#7066/AB#7067 (Story AB#7059, Feature AB#7069, Epic AB#7099).
@@ -45,7 +44,7 @@ BeforeAll {
         return [pscustomobject]@{ Collected = $false }
     }
     $script:root = Split-Path $PSScriptRoot -Parent
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . "$script:root/tests/helpers/Search-AzGraph.TestDouble.ps1"
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Invoke-Collect.ps1"
 

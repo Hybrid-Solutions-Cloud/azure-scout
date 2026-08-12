@@ -41,6 +41,11 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER Dataset
     Optional subset of the supported dataset names. Defaults to All.
 
+.PARAMETER CollectionHealth
+    Optional caller-owned list that receives one health record per child dataset that could not
+    be read. Health records are never written to the function's output pipeline, so partial
+    successful inventory rows retain their established shape.
+
 .OUTPUTS
     PSCustomObject rows using the synthetic contract documented above.
 
@@ -83,7 +88,11 @@ function Get-ScoutArmChildResource {
             'ReservationUtilization',
             'AzureLocalVirtualMachineInstances'
         )]
-        [string[]]$Dataset = @('All')
+        [string[]]$Dataset = @('All'),
+
+        [Parameter()]
+        [AllowNull()]
+        [System.Collections.IList]$CollectionHealth
     )
 
     $DatasetOrder = @(
@@ -159,6 +168,10 @@ function Get-ScoutArmChildResource {
         @($DatasetOrder | Where-Object { $Dataset -contains $_ })
     }
 
+    $FailedHealthDatasets = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+
     function Get-ArmParentValue {
         param(
             [Parameter(Mandatory)]$InputObject,
@@ -180,11 +193,38 @@ function Get-ScoutArmChildResource {
             [switch]$NotFoundIsEmpty
         )
 
+        function Get-ArmChildHttpStatusCode {
+            param([Parameter(Mandatory)][System.Management.Automation.ErrorRecord]$ErrorRecord)
+
+            $ResponseProperty = $ErrorRecord.Exception.PSObject.Properties['Response']
+            if ($ResponseProperty -and $null -ne $ResponseProperty.Value) {
+                $StatusProperty = $ResponseProperty.Value.PSObject.Properties['StatusCode']
+                if ($StatusProperty -and $null -ne $StatusProperty.Value) {
+                    try { return [int]$StatusProperty.Value } catch { return $null }
+                }
+            }
+
+            if ($ErrorRecord.Exception.Data -and $ErrorRecord.Exception.Data.Contains('StatusCode')) {
+                try { return [int]$ErrorRecord.Exception.Data['StatusCode'] } catch { return $null }
+            }
+
+            $StatusMatch = [regex]::Match(
+                [string]$ErrorRecord.Exception.Message,
+                '(?i)(?:HTTP|status(?:\s+code)?)\D{0,20}(?<code>[1-5]\d{2})(?!\d)'
+            )
+            if ($StatusMatch.Success) { return [int]$StatusMatch.Groups['code'].Value }
+            return $null
+        }
+
         try {
-            # SkipHttpErrorCheck keeps expected singleton 404s out of the PowerShell transcript;
-            # their status is classified below instead of first becoming a terminating error.
-            $Response = Invoke-AzRestMethod -Path $Path -Method GET -SkipHttpErrorCheck -ErrorAction Stop
-            if ($null -eq $Response) { return $null }
+            # Invoke-AzRestMethod returns a PSHttpResponse whose StatusCode can be inspected.
+            # Unlike PowerShell's Invoke-RestMethod, the Az.Accounts cmdlet does not expose
+            # -SkipHttpErrorCheck (including supported Az.Accounts 5.5.2). Expected singleton
+            # 404s are therefore classified from either the response or the caught exception.
+            $Response = Invoke-AzRestMethod -Path $Path -Method GET -ErrorAction Stop
+            if ($null -eq $Response) {
+                throw 'ARM returned no response.'
+            }
 
             $Status = $Response.PSObject.Properties['StatusCode']
             if ($null -ne $Status -and [int]$Status.Value -eq 404 -and $NotFoundIsEmpty) {
@@ -203,6 +243,23 @@ function Get-ScoutArmChildResource {
             return $Content.Value
         }
         catch {
+            $StatusCode = Get-ArmChildHttpStatusCode -ErrorRecord $_
+            if ($NotFoundIsEmpty -and $StatusCode -eq 404) { return $null }
+
+            # Version/deployment lookups are sub-operations of the owning dataset. Reporting a
+            # synthetic type such as AZSC/ARMChild/MLModels.LatestVersion would match no collector
+            # and could let an assessment score partial evidence. Collapse health ownership to
+            # the public dataset while preserving the exact failed operation for diagnostics.
+            $HealthDatasetName = ([string]$DatasetName -split '\.', 2)[0]
+            if ($null -ne $CollectionHealth -and $FailedHealthDatasets.Add($HealthDatasetName)) {
+                [void]$CollectionHealth.Add([pscustomobject]@{
+                        Dataset       = $HealthDatasetName
+                        Operation     = $DatasetName
+                        Status        = 'Unavailable'
+                        Reason        = "Parent '$ParentName' at '$Path': $($_.Exception.Message)"
+                        ResourceTypes = @("AZSC/ARMChild/$HealthDatasetName")
+                    })
+            }
             Write-Warning "Get-ScoutArmChildResource: '$DatasetName' failed for parent '$ParentName' at '$Path' -- skipping this child collection: $($_.Exception.Message)"
             return $null
         }

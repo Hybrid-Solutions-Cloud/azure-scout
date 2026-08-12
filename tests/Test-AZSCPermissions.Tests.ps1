@@ -325,7 +325,8 @@ Describe 'Test-AZSCPermissions' {
             Mock Invoke-AZSCPermissionAudit {
                 $gd = @()
                 $ga = $null
-                if ($IncludeEntraPermissions) {
+                $includeEntra = Get-Variable -Name IncludeEntraPermissions -ValueOnly -ErrorAction SilentlyContinue
+                if ([bool]$includeEntra) {
                     $gd = @(
                         New-CheckDetail -Check 'Graph: Organization Read' -Status 'Pass'
                         New-CheckDetail -Check 'Graph: Users Read' -Status 'Pass'
@@ -386,6 +387,13 @@ Describe 'Test-AZSCPermissions' {
             $null = Test-AZSCPermissions -TenantID 'test-tenant' -Scope ArmOnly
             Should -Invoke Invoke-AZSCPermissionAudit -ModuleName AzureScout -ParameterFilter {
                 -not $SubscriptionID
+            }
+        }
+
+        It 'always requests structured quiet audit output so the caller is the sole renderer' {
+            $null = Test-AZSCPermissions -TenantID 'test-tenant' -Scope ArmOnly
+            Should -Invoke Invoke-AZSCPermissionAudit -ModuleName AzureScout -Times 1 -ParameterFilter {
+                [bool]$Quiet -and $OutputFormat -eq 'Console'
             }
         }
     }

@@ -30,7 +30,11 @@ function Get-ScoutOperationalCollectorEnrichment {
 
         [Parameter()]
         [AllowEmptyCollection()]
-        [object[]]$Subscriptions = @()
+        [object[]]$Subscriptions = @(),
+
+        [Parameter()]
+        [AllowNull()]
+        [System.Collections.IList]$CollectionHealth
     )
 
     function Get-ScoutValue {
@@ -43,6 +47,121 @@ function Get-ScoutOperationalCollectorEnrichment {
         return $null
     }
 
+    $VirtualMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' })
+    $ArcMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' })
+    $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
+    $VmSubscriptionCount = @($VirtualMachines | ForEach-Object { [string](Get-ScoutValue $_ @('subscriptionId')) } | Where-Object { $_ } | Sort-Object -Unique).Count
+    $ProgressState = @{
+        Planned  = (($VirtualMachines.Count * 4) + $VmSubscriptionCount + ($ArcMachines.Count * 2))
+        Completed = 0
+        Failed    = 0
+        Started   = [System.Diagnostics.Stopwatch]::StartNew()
+    }
+    $OperationalHealthDatasets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    function Add-ScoutOperationalHealth {
+        param(
+            [Parameter(Mandatory)][string]$Dataset,
+            [Parameter(Mandatory)][string]$Reason
+        )
+        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($Dataset)) { return }
+
+        $ownership = if ($Dataset -like 'VirtualMachine.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/VirtualMachine'; Collector = 'Compute/VirtualMachine' }
+        }
+        elseif ($Dataset -like 'ARCServers.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/ARCServers'; Collector = 'Hybrid/ARCServers' }
+        }
+        elseif ($Dataset -like 'StorageAccounts.*' -and $Dataset -ne 'StorageAccounts.RestoreSubscriptionContext') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/StorageAccount'; Collector = 'Storage/StorageAccounts' }
+        }
+        elseif ($Dataset -like 'AllSubscriptions.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Management/SubscriptionEnrichment'; Collector = 'Management/AllSubscriptions' }
+        }
+        else { $null }
+        if ($null -eq $ownership) { return }
+
+        [void]$CollectionHealth.Add([pscustomobject]@{
+                Dataset       = "Operational/$Dataset"
+                Source        = 'Operational enrichment'
+                SourceDataset = $Dataset
+                Status        = 'Unavailable'
+                Reason        = $Reason
+                ResourceTypes = @($ownership.ResourceType)
+                Collectors     = @($ownership.Collector)
+            })
+    }
+
+    function Write-ScoutOperationalDetail {
+        param(
+            [Parameter(Mandatory)][ValidateSet('DEBUG', 'VERBOSE')][string]$Level,
+            [Parameter(Mandatory)][string]$Message
+        )
+        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level $Level -Message $Message
+        }
+    }
+
+    function Start-ScoutOperationalRequest {
+        param([Parameter(Mandatory)][string]$Dataset, [switch]$Dynamic)
+        if ($Dynamic.IsPresent) { $ProgressState.Planned++ }
+        Write-ScoutOperationalDetail -Level DEBUG -Message (
+            'Operational request started: dataset={0}; ordinal={1}; planned={2}' -f
+                $Dataset, ($ProgressState.Completed + 1), $ProgressState.Planned
+        )
+        return [System.Diagnostics.Stopwatch]::StartNew()
+    }
+
+    function Complete-ScoutOperationalRequest {
+        param(
+            [Parameter(Mandatory)][string]$Dataset,
+            [Parameter(Mandatory)][System.Diagnostics.Stopwatch]$Timer,
+            [Parameter(Mandatory)][ValidateSet('Success', 'Failed', 'NotConfigured', 'OperationInProgress')][string]$Status,
+            [int]$Attempts = 1
+        )
+        $Timer.Stop()
+        $ProgressState.Completed++
+        if ($Status -in @('Failed', 'OperationInProgress')) { $ProgressState.Failed++ }
+        $denominator = [Math]::Max(1, [int]$ProgressState.Planned)
+        $percent = [Math]::Min(99, [int](100 * $ProgressState.Completed / $denominator))
+        Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
+            'Operational enrichment: {0}/{1} requests; {2} unavailable' -f
+                $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed
+        ) -PercentComplete $percent
+        Write-ScoutOperationalDetail -Level VERBOSE -Message (
+            'Operational request finished: dataset={0}; status={1}; attempts={2}; elapsed={3}; completed={4}; planned={5}; unavailable={6}' -f
+                $Dataset, $Status, $Attempts, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff'),
+                $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed
+        )
+    }
+
+    function Invoke-ScoutOperationalTrackedCommand {
+        param(
+            [Parameter(Mandatory)][string]$Dataset,
+            [Parameter(Mandatory)][scriptblock]$Operation
+        )
+        $timer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic
+        try {
+            $result = & $Operation
+            Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Success
+            return $result
+        }
+        catch {
+            Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Failed
+            Add-ScoutOperationalHealth -Dataset $Dataset -Reason $_.Exception.Message
+            throw
+        }
+    }
+
+    Write-ScoutOperationalDetail -Level DEBUG -Message (
+        'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; subscriptions={3}; minimumRequests={4}' -f
+            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, @($Subscriptions).Count, $ProgressState.Planned
+    )
+    Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
+        'Operational enrichment planned: {0} VM; {1} Arc; {2} storage' -f
+            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count
+    ) -PercentComplete 0
+
     function Invoke-ScoutOperationalArm {
         param(
             [Parameter(Mandatory)][string]$Dataset,
@@ -52,9 +171,11 @@ function Get-ScoutOperationalCollectorEnrichment {
             [AllowNull()]$Payload,
             [ValidateRange(1, 5)][int]$MaxAttempts = 3,
             # 404 on this dataset is an expected "not configured" state, not a failure -- do not warn.
-            [switch]$QuietNotFound
+            [switch]$QuietNotFound,
+            [switch]$DynamicRequest
         )
 
+        $requestTimer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic:$DynamicRequest
         for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
             try {
                 $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
@@ -67,9 +188,15 @@ function Get-ScoutOperationalCollectorEnrichment {
                 }
                 $Content = Get-ScoutValue -InputObject $Response -Name @('Content')
                 if ($Content -is [string]) {
-                    if ([string]::IsNullOrWhiteSpace($Content)) { return $null }
-                    return ($Content | ConvertFrom-Json)
+                    if ([string]::IsNullOrWhiteSpace($Content)) {
+                        Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Success -Attempts $Attempt
+                        return $null
+                    }
+                    $result = $Content | ConvertFrom-Json
+                    Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Success -Attempts $Attempt
+                    return $result
                 }
+                Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Success -Attempts $Attempt
                 return $Content
             }
             catch {
@@ -78,6 +205,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $StatusCode = if ($StatusMatch.Success) { [int]$StatusMatch.Groups[1].Value } else { $null }
 
                 if ($StatusCode -eq 404 -and $QuietNotFound) {
+                    Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status NotConfigured -Attempts $Attempt
                     return [PSCustomObject]@{ __AZSCStatus = 'NotConfigured' }
                 }
 
@@ -86,16 +214,23 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $Retryable = ($StatusCode -in 429, 409, 500, 502, 503, 504) -or
                     ($Message -match '(?i)InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests')
                 if ($Retryable -and $Attempt -lt $MaxAttempts) {
+                    Write-ScoutOperationalDetail -Level DEBUG -Message (
+                        'Operational request retry: dataset={0}; attempt={1}; maximum={2}' -f $Dataset, $Attempt, $MaxAttempts
+                    )
                     Start-Sleep -Milliseconds (500 * $Attempt)
                     continue
                 }
 
                 if ($StatusCode -eq 409) {
                     Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset for '$ParentId' still in progress (409) after $Attempt attempt(s)."
+                    Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status OperationInProgress -Attempts $Attempt
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)."
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
+                Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Failed -Attempts $Attempt
+                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message
                 return [PSCustomObject]@{ __AZSCError = $Message }
             }
         }
@@ -180,7 +315,6 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
     }
 
-    $VirtualMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' })
     # Vault discovery is subscription-scoped and protected-item discovery is vault-scoped. The
     # legacy row-loop repeated both requests for every VM in the same subscription, multiplying a
     # fixed result by the VM count. Cache the raw response at its real owning scope; every VM still
@@ -222,7 +356,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                     ("$SubscriptionId/$VaultResourceGroup/$VaultName").ToLowerInvariant()
                 }
                 if (-not $ProtectedItemsByVault.ContainsKey($VaultCacheKey)) {
-                    $ProtectedItemsByVault[$VaultCacheKey] = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationProtectedItems' -ParentId $VaultId -Path "/subscriptions/$SubscriptionId/resourceGroups/$VaultResourceGroup/providers/Microsoft.RecoveryServices/vaults/$VaultName/replicationProtectedItems?api-version=2022-10-01"
+                    $ProtectedItemsByVault[$VaultCacheKey] = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.ReplicationProtectedItems' -ParentId $VaultId -Path "/subscriptions/$SubscriptionId/resourceGroups/$VaultResourceGroup/providers/Microsoft.RecoveryServices/vaults/$VaultName/replicationProtectedItems?api-version=2022-10-01" -DynamicRequest
                 }
                 $ProtectedItems += $ProtectedItemsByVault[$VaultCacheKey]
             }
@@ -258,7 +392,6 @@ function Get-ScoutOperationalCollectorEnrichment {
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/VMOperationalData' -Parent $Vm -Properties @{ PatchAssessment = $Patch }
     }
 
-    $ArcMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' })
     foreach ($Arc in $ArcMachines) {
         $Id = [string](Get-ScoutValue $Arc @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
@@ -279,7 +412,6 @@ function Get-ScoutOperationalCollectorEnrichment {
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ARCServers' -Parent $Arc -Properties @{ PolicyCompliance = $Policy; CpuMetrics = $Cpu; EstimatedCost = $Cost }
     }
 
-    $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
     $SubscriptionsById = @{}
     foreach ($Subscription in @($Subscriptions)) {
         $SubscriptionKey = [string](Get-ScoutValue $Subscription @('id', 'Id'))
@@ -314,7 +446,9 @@ function Get-ScoutOperationalCollectorEnrichment {
                 else { $null }
                 if (-not $tenantId -and $StorageContext -and $StorageContext.Tenant) { $tenantId = $StorageContext.Tenant.Id }
                 if ($tenantId) { $contextParams['Tenant'] = $tenantId }
-                Set-AzContext @contextParams | Out-Null
+                Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.EnterSubscriptionContext' -Operation {
+                    Set-AzContext @contextParams | Out-Null
+                } | Out-Null
             }
             catch {
                 $StorageContextError = $_.Exception.Message
@@ -332,14 +466,18 @@ function Get-ScoutOperationalCollectorEnrichment {
                 }
                 else {
                     try {
-                        $Blob = Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                        $Blob = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.BlobService' -Operation {
+                            Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                        }
                     }
                     catch {
                         Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
                         $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
                     }
                     try {
-                        $File = Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                        $File = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.FileService' -Operation {
+                            Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                        }
                     }
                     catch {
                         Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
@@ -354,7 +492,14 @@ function Get-ScoutOperationalCollectorEnrichment {
         if ($StorageContext -and $StorageContext.Subscription -and $StorageContext.Subscription.Id) {
             $restoreParams = @{ Subscription = $StorageContext.Subscription.Id; ErrorAction = 'SilentlyContinue' }
             if ($StorageContext.Tenant -and $StorageContext.Tenant.Id) { $restoreParams['Tenant'] = $StorageContext.Tenant.Id }
-            Set-AzContext @restoreParams | Out-Null
+            try {
+                Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.RestoreSubscriptionContext' -Operation {
+                    Set-AzContext @restoreParams | Out-Null
+                } | Out-Null
+            }
+            catch {
+                Write-Warning "Get-ScoutOperationalCollectorEnrichment: restoring the original subscription context failed: $($_.Exception.Message)"
+            }
         }
     }
     for ($StorageIndex = 0; $StorageIndex -lt $StorageAccounts.Count; $StorageIndex++) {
@@ -380,7 +525,9 @@ function Get-ScoutOperationalCollectorEnrichment {
     try {
         # AB#6779 -- `@(Search-AzGraph ...)` yields the PSResourceGraphResponse WRAPPER, not the rows.
         # Reading `.Data` is the shape that behaves the same whether the result is empty or not.
-        $GraphResponse = Search-AzGraph -Query "resourcecontainers | where type == 'microsoft.resources/subscriptions' | extend mgChain = properties.managementGroupAncestorsChain | project subscriptionId, mgChain" -First 1000 -ErrorAction Stop
+        $GraphResponse = Invoke-ScoutOperationalTrackedCommand -Dataset 'AllSubscriptions.ManagementGroupPath' -Operation {
+            Search-AzGraph -Query "resourcecontainers | where type == 'microsoft.resources/subscriptions' | extend mgChain = properties.managementGroupAncestorsChain | project subscriptionId, mgChain" -First 1000 -ErrorAction Stop
+        }
         # Assigned in statements: `$x = if (...) { @() }` yields $null, because an empty array
         # contributes nothing to the output stream an if-block returns through. Harmless for the
         # `foreach` just below, which tolerates $null -- but the same idiom DOES throw where the
@@ -415,4 +562,16 @@ function Get-ScoutOperationalCollectorEnrichment {
             }
         }
     }
+
+    $ProgressState.Started.Stop()
+    Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
+        'Operational enrichment complete: {0} requests; {1} unavailable' -f
+            $ProgressState.Completed, $ProgressState.Failed
+    ) -Completed
+    Write-ScoutOperationalDetail -Level VERBOSE -Message (
+        'Operational enrichment complete: status={0}; completed={1}; planned={2}; unavailable={3}; elapsed={4}' -f
+            $(if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }),
+            $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed,
+            $ProgressState.Started.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+    )
 }

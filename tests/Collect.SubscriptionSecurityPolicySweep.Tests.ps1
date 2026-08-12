@@ -25,6 +25,7 @@ BeforeAll {
         $script:unregisteredPricingSubscription = $null
         $script:pricingErrorActions = [System.Collections.Generic.List[string]]::new()
         $script:failContextSubscription = $null
+        $script:deniedDataset = $null
 
         function global:Get-AzContext {
             param($ErrorAction)
@@ -47,12 +48,14 @@ BeforeAll {
         function global:Get-AzSecurityAlert {
             param($ErrorAction)
             $null = $ErrorAction
+            if ($script:deniedDataset -eq 'DefenderAlerts') { throw 'HTTP 403 AuthorizationFailed: alerts/read denied' }
             [pscustomobject]@{ Name = "alert-$script:currentSubscription" }
         }
 
         function global:Get-AzSecurityAssessment {
-            param($ErrorAction)
-            $null = $ErrorAction
+            param($ErrorAction, $ErrorVariable)
+            $null = $ErrorAction, $ErrorVariable
+            if ($script:deniedDataset -eq 'DefenderAssessments') { throw 'HTTP 403 AuthorizationFailed: assessments/read denied' }
             $subId = $script:currentSubscription
             if (-not $script:assessmentAttempts.ContainsKey($subId)) {
                 $script:assessmentAttempts[$subId] = 0
@@ -71,6 +74,7 @@ BeforeAll {
             param($ErrorAction, $ErrorVariable)
             $null = $ErrorVariable
             $script:pricingErrorActions.Add([string]$ErrorAction)
+            if ($script:deniedDataset -eq 'DefenderPricing') { throw 'HTTP 403 AuthorizationFailed: pricings/read denied' }
             if ($script:currentSubscription -eq $script:unregisteredPricingSubscription) {
                 throw "Subscription is not registered to use namespace 'Microsoft.Security'"
             }
@@ -80,28 +84,38 @@ BeforeAll {
         function global:Get-AzSecuritySecureScore {
             param($ErrorAction)
             $null = $ErrorAction
+            if ($script:deniedDataset -eq 'DefenderSecureScores') { throw 'HTTP 403 AuthorizationFailed: secureScores/read denied' }
             [pscustomobject]@{ Name = "score-$script:currentSubscription" }
         }
 
         function global:Get-AzSecuritySecureScoreControl {
             param($ErrorAction)
             $null = $ErrorAction
+            if ($script:deniedDataset -eq 'DefenderSecureScoreControls') { throw 'HTTP 403 AuthorizationFailed: secureScoreControls/read denied' }
             [pscustomobject]@{ Name = "control-$script:currentSubscription" }
         }
 
         function global:Get-AzDiagnosticSetting {
             param($ResourceId, $ErrorAction)
             $null = $ErrorAction
+            if ($script:deniedDataset -eq 'SubscriptionDiagnosticSettings') { throw 'HTTP 403 AuthorizationFailed: diagnosticSettings/read denied' }
             [pscustomobject]@{ Name = "diagnostic-$script:currentSubscription"; ResourceId = $ResourceId }
         }
 
         function global:Get-AzPolicyState {
             param($SubscriptionId, $ErrorAction)
             $null = $ErrorAction
+            if ($script:deniedDataset -eq 'PolicyComplianceStates') { throw 'HTTP 403 AuthorizationFailed: policyStates/read denied' }
             if ($SubscriptionId -eq $script:failPolicySubscription) {
                 throw 'Policy Insights access denied'
             }
             [pscustomobject]@{ PolicyAssignmentName = "policy-$SubscriptionId" }
+        }
+
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction)
+            $null = $Path, $Method, $ErrorAction
+            throw 'Invoke-AzRestMethod must only be called by an explicitly configured fallback test.'
         }
 
         function global:Start-Sleep {
@@ -121,6 +135,7 @@ BeforeAll {
                 'Get-AzSecuritySecureScoreControl',
                 'Get-AzDiagnosticSetting',
                 'Get-AzPolicyState',
+                'Invoke-AzRestMethod',
                 'Start-Sleep'
             )) {
             if (Test-Path "Function:\$name") {
@@ -205,10 +220,79 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $results[0].properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
     }
 
-    It 'enriches a DefenderAlerts null-reference failure with a Defender-not-provisioned hint' {
+    It 'falls back to the paged REST endpoint when Az.Security times out without losing assessment fields' {
+        function global:Get-AzSecurityAssessment {
+            param($ErrorAction, $ErrorVariable)
+            $null = $ErrorAction, $ErrorVariable
+            throw 'The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.'
+        }
+        $script:assessmentRestPaths = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction)
+            $null = $Method, $ErrorAction
+            $script:assessmentRestPaths.Add($Path)
+            if ($script:assessmentRestPaths.Count -eq 1) {
+                return [pscustomobject]@{
+                    StatusCode = 200
+                    Content = @{
+                        value = @(@{
+                            id = '/subscriptions/sub-1/providers/Microsoft.Security/assessments/a'
+                            name = 'a'
+                            properties = @{
+                                displayName = 'Assessment A'
+                                resourceDetails = @{ id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-1' }
+                                status = @{ code = 'Unhealthy'; severity = 'High'; description = 'remediate' }
+                                metadata = @{ category = @('Compute'); implementationEffort = 'Low' }
+                                additionalData = @{ assessedResourceType = 'VirtualMachine' }
+                            }
+                        })
+                        nextLink = 'https://management.azure.com/next-assessment-page'
+                    } | ConvertTo-Json -Depth 10
+                }
+            }
+            [pscustomobject]@{
+                StatusCode = 200
+                Content = '{"value":[{"id":"/subscriptions/sub-1/providers/Microsoft.Security/assessments/b","name":"b","properties":{"displayName":"Assessment B","status":{"code":"Healthy"}}}]}'
+            }
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]) -WarningVariable warnings -WarningAction SilentlyContinue)[0]
+
+        @($result.properties.DefenderAssessments).Count | Should -Be 2
+        $result.properties.DefenderAssessments[0].DisplayName | Should -Be 'Assessment A'
+        $result.properties.DefenderAssessments[0].Status.Code | Should -Be 'Unhealthy'
+        $result.properties.DefenderAssessments[0].ResourceDetails.Id | Should -Match '/vm-1$'
+        $result.properties.DefenderAssessments[1].Name | Should -Be 'b'
+        @($script:assessmentRestPaths) | Should -Be @(
+            '/subscriptions/sub-1/providers/Microsoft.Security/assessments?api-version=2021-06-01'
+            'https://management.azure.com/next-assessment-page'
+        )
+        $result.properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
+        ($warnings -join "`n") | Should -Not -Match 'DefenderAssessments|Timeout'
+    }
+
+    It 'falls back to REST and preserves the established alert projection after an Az.Security null reference' {
         function global:Get-AzSecurityAlert {
             param($ErrorAction) $null = $ErrorAction
             throw [System.NullReferenceException]::new('Object reference not set to an instance of an object.')
+        }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction)
+            $null = $Method, $ErrorAction
+            $Path | Should -Match '/subscriptions/sub-1/providers/Microsoft.Security/alerts\?api-version=2022-01-01'
+            [pscustomobject]@{
+                StatusCode = 200
+                Content = @{
+                    value = @(@{
+                        id = '/alerts/alert-1'; name = 'alert-1'
+                        properties = @{
+                            alertDisplayName = 'REST alert'; alertType = 'Test'; severity = 'High'; status = 'Active'
+                            timeGeneratedUtc = '2026-08-11T12:00:00Z'; description = 'description'
+                            remediationSteps = @('step'); intent = 'Execution'; entities = @(); resourceIdentifiers = @()
+                        }
+                    })
+                } | ConvertTo-Json -Depth 10
+            }
         }
 
         $results = @(
@@ -218,11 +302,130 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
                 -WarningAction SilentlyContinue
         )
 
-        @($results[0].properties.DefenderAlerts).Count | Should -Be 0
-        $results[0].properties.CollectionStatus.DefenderAlerts | Should -Be 'Unavailable'
-        $alertError = $results[0].properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts'
-        $alertError.Message | Should -Match 'Defender for Cloud is not fully provisioned'
-        ($warnings -join "`n") | Should -Match 'Defender for Cloud is not fully provisioned'
+        @($results[0].properties.DefenderAlerts).Count | Should -Be 1
+        $results[0].properties.DefenderAlerts[0].AlertDisplayName | Should -Be 'REST alert'
+        $results[0].properties.DefenderAlerts[0].Severity | Should -Be 'High'
+        $results[0].properties.DefenderAlerts[0].TimeGeneratedUtc | Should -BeOfType ([datetime])
+        $results[0].properties.CollectionStatus.DefenderAlerts | Should -Be 'Success'
+        ($warnings -join "`n") | Should -Not -Match 'provisioned|onboarded|DefenderAlerts'
+    }
+
+    It 'maps an authorization failure to the correct dataset without discarding its neighbours' -TestCases @(
+        @{ Dataset = 'DefenderAlerts' }
+        @{ Dataset = 'DefenderAssessments' }
+        @{ Dataset = 'DefenderPricing' }
+        @{ Dataset = 'DefenderSecureScores' }
+        @{ Dataset = 'DefenderSecureScoreControls' }
+        @{ Dataset = 'SubscriptionDiagnosticSettings' }
+        @{ Dataset = 'PolicyComplianceStates' }
+    ) {
+        param($Dataset)
+        $script:deniedDataset = $Dataset
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]) -WarningAction SilentlyContinue)[0]
+
+        $result.properties.CollectionStatus.$Dataset | Should -Be 'Unavailable'
+        @($result.properties.$Dataset).Count | Should -Be 0
+        $error = @($result.properties.CollectionErrors | Where-Object Dataset -eq $Dataset)
+        $error.Count | Should -Be 1
+        $error[0].Message | Should -Match '403|AuthorizationFailed'
+        foreach ($other in @('DefenderAlerts', 'DefenderAssessments', 'DefenderPricing', 'DefenderSecureScores', 'DefenderSecureScoreControls', 'SubscriptionDiagnosticSettings', 'PolicyComplianceStates') | Where-Object { $_ -ne $Dataset }) {
+            $result.properties.CollectionStatus.$other | Should -Not -Be 'Unavailable'
+        }
+    }
+
+    It 'preserves successful empty-versus-skipped status for every sweep dataset' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction }
+        function global:Get-AzSecurityAssessment { param($ErrorAction, $ErrorVariable) $null = $ErrorAction, $ErrorVariable }
+        function global:Get-AzSecurityPricing { param($ErrorAction, $ErrorVariable) $null = $ErrorAction, $ErrorVariable }
+        function global:Get-AzSecuritySecureScore { param($ErrorAction) $null = $ErrorAction }
+        function global:Get-AzSecuritySecureScoreControl { param($ErrorAction) $null = $ErrorAction }
+        function global:Get-AzDiagnosticSetting { param($ResourceId, $ErrorAction) $null = $ResourceId, $ErrorAction }
+        function global:Get-AzPolicyState { param($SubscriptionId, $ErrorAction) $null = $SubscriptionId, $ErrorAction }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
+        foreach ($dataset in @('DefenderAlerts', 'DefenderAssessments', 'DefenderPricing', 'DefenderSecureScores', 'SubscriptionDiagnosticSettings', 'PolicyComplianceStates')) {
+            $result.properties.CollectionStatus.$dataset | Should -Be 'Success'
+            @($result.properties.$dataset).Count | Should -Be 0
+        }
+        $result.properties.CollectionStatus.DefenderSecureScoreControls | Should -Be 'Skipped'
+        @($result.properties.DefenderSecureScoreControls).Count | Should -Be 0
+        @($result.properties.CollectionErrors).Count | Should -Be 0
+    }
+
+    It 'treats an empty 200 REST fallback as a successful empty alert dataset' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction) $null = $Path, $Method, $ErrorAction
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' }
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
+        @($result.properties.DefenderAlerts).Count | Should -Be 0
+        $result.properties.CollectionStatus.DefenderAlerts | Should -Be 'Success'
+        @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts').Count | Should -Be 0
+    }
+
+    It 'follows Defender alert REST nextLink pages exactly once each' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
+        $script:alertRestPaths = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction) $null = $Method, $ErrorAction
+            $script:alertRestPaths.Add($Path)
+            if ($script:alertRestPaths.Count -eq 1) {
+                return [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"name":"a","properties":{}}],"nextLink":"https://management.azure.com/next-alert-page"}' }
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"name":"b","properties":{}}]}' }
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
+        @($result.properties.DefenderAlerts.Name) | Should -Be @('a', 'b')
+        @($script:alertRestPaths) | Should -Be @(
+            '/subscriptions/sub-1/providers/Microsoft.Security/alerts?api-version=2022-01-01'
+            'https://management.azure.com/next-alert-page'
+        )
+    }
+
+    It 'reports an actual REST 403 without claiming Defender onboarding is the cause' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction) $null = $Path, $Method, $ErrorAction
+            throw 'HTTP 403 AuthorizationFailed: Microsoft.Security/alerts/read denied'
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]) -WarningAction SilentlyContinue)[0]
+        $result.properties.CollectionStatus.DefenderAlerts | Should -Be 'Unavailable'
+        $error = @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts')[0]
+        $error.Message | Should -Match '403|AuthorizationFailed'
+        $error.Message | Should -Not -Match 'provisioned|onboarded'
+    }
+
+    It 'classifies an unregistered Microsoft.Security REST fallback as expected unavailable without a collection error' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction) $null = $Path, $Method, $ErrorAction
+            throw "MissingSubscriptionRegistration: register to Microsoft.Security"
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
+        $result.properties.CollectionStatus.DefenderAlerts | Should -Be 'Unavailable'
+        @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts').Count | Should -Be 0
+    }
+
+    It 'retries transient Defender alert REST failures with the shared bounded policy' {
+        function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
+        $script:alertRestAttempts = 0
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction) $null = $Path, $Method, $ErrorAction
+            $script:alertRestAttempts++
+            if ($script:alertRestAttempts -lt 3) { throw 'HTTP 503 ServiceUnavailable' }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' }
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
+        $script:alertRestAttempts | Should -Be 3
+        $result.properties.CollectionStatus.DefenderAlerts | Should -Be 'Success'
+        @($script:sleepCalls) | Should -Be @(200, 400)
     }
 
     It 'treats an unregistered Microsoft.Security pricing provider as unavailable, not an error' {

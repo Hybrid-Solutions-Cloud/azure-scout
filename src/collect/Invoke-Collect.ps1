@@ -510,7 +510,7 @@ function Invoke-Collect {
     if ($OfflineFromInventory -and -not $FromInventory) {
         throw '-OfflineFromInventory requires -FromInventory.'
     }
-    if (-not $OfflineFromInventory) {
+    if (-not $OfflineFromInventory -and -not (Get-Command Search-AzGraph -ErrorAction SilentlyContinue)) {
         Import-Module Az.ResourceGraph -ErrorAction Stop
     }
 

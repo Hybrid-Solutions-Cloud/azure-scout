@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     AB#6792 (Feature AB#6744) — "issues no Azure call beyond what an inventory run already
@@ -27,7 +26,7 @@ BeforeAll {
         return [pscustomobject]@{ Collected = $false }
     }
     $script:Root = Split-Path $PSScriptRoot -Parent
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . "$script:Root/tests/helpers/Search-AzGraph.TestDouble.ps1"
     . "$script:Root/src/collect/Invoke-Collect.ps1"
 }
 

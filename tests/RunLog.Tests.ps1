@@ -384,4 +384,49 @@ Describe 'Invoke-AzureScout wiring' {
     It 'closes the log on the success path too' {
         $script:EntryPoint | Should -Match "Stop-AZSCRunLog -Status 'COMPLETED'"
     }
+
+    It 'initializes durable logging and the failure trap before permission preflight' {
+        $startIndex = $script:EntryPoint.IndexOf('Start-AZSCRunLog -DefaultPath $DefaultPath')
+        $trapIndex = $script:EntryPoint.IndexOf('trap {', $startIndex)
+        $preflightIndex = $script:EntryPoint.IndexOf('$permResult = Test-AZSCPermissions')
+        $startIndex | Should -BeGreaterThan -1
+        $trapIndex | Should -BeGreaterThan $startIndex
+        $preflightIndex | Should -BeGreaterThan $trapIndex
+    }
+
+    It 'fails closed an active unfinished log from finally without double-closing normal paths' {
+        $script:EntryPoint | Should -Match '(?s)finally\s*\{.*Get-AZSCRunLogPath.*Run ended without reaching the normal completion or failure handler.*Stop-AZSCRunLog -Status ''FAILED'' -Quiet'
+        $script:EntryPoint | Should -Match 'if \(\$runLogStarted -and \(Get-AZSCRunLogPath\)\)'
+    }
+
+    It 'uses independent nested progress records and reserves Completed for actual terminal points' {
+        $raw = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/collect/Get-ScoutRawInventory.ps1')
+        $operational = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/collect/Get-ScoutOperationalCollectorEnrichment.ps1')
+        $raw | Should -Match "Write-Progress -Id 1 -Activity 'Azure Inventory extraction'"
+        $raw | Should -Match "Status 'Extraction subphases complete' -Completed"
+        ([regex]::Matches($raw, '-Completed')).Count | Should -Be 1
+
+        $timingStart = $raw.IndexOf('function Write-ScoutRawInventoryTiming')
+        $startStart = $raw.IndexOf('function Write-ScoutRawInventoryStart')
+        $startEnd = $raw.IndexOf('$tagProjection', $startStart)
+        $timingSection = $raw.Substring($timingStart, $startStart - $timingStart)
+        $startSection = $raw.Substring($startStart, $startEnd - $startStart)
+        $lastPercent = -1
+        foreach ($phase in @(
+                'ARG query sweep', 'ARM child resource sweep',
+                'subscription security and policy sweep', 'operational enrichment',
+                'ARM REST API sweep', 'tenant-wide resource sweep',
+                'governance dataset sweep'
+            )) {
+            $escaped = [regex]::Escape($phase)
+            $started = [int][regex]::Match($startSection, "'$escaped'\s*\{\s*(\d+)").Groups[1].Value
+            $finished = [int][regex]::Match($timingSection, "'$escaped'\s*\{\s*(\d+)").Groups[1].Value
+            $started | Should -BeGreaterThan $lastPercent
+            $finished | Should -BeGreaterOrEqual $started
+            $finished | Should -BeLessOrEqual 99
+            $lastPercent = $finished
+        }
+        $operational | Should -Match "Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment'"
+        ([regex]::Matches($operational, '-Completed')).Count | Should -Be 1
+    }
 }

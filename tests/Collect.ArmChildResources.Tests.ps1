@@ -282,19 +282,231 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             param(
                 [string]$Path,
                 [string]$Method,
-                [switch]$SkipHttpErrorCheck,
                 [Parameter(ValueFromRemainingArguments)]$Rest
             )
             $null = $Path, $Method, $Rest
-            $SkipHttpErrorCheck | Should -BeTrue
             [pscustomobject]@{ StatusCode = 404; Content = '{"error":{"code":"ResourceNotFound"}}' }
         }
 
         $warnings = @()
-        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageLifecyclePolicies -WarningVariable warnings)
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageLifecyclePolicies `
+                -CollectionHealth $health -WarningVariable warnings)
 
         $rows | Should -BeNullOrEmpty
         @($warnings).Count | Should -Be 0
+        @($health).Count | Should -Be 0
+    }
+
+    It 'binds against the Az.Accounts 5.5.2 command surface without an unsupported switch' {
+        $storage = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-one'
+        $script:boundCalls = 0
+        function global:Invoke-AzRestMethod {
+            [CmdletBinding()]
+            param([string]$Path, [string]$Method)
+            $null = $Path, $Method
+            $script:boundCalls++
+            [pscustomobject]@{ StatusCode = 200; Content = '{"properties":{"policy":{"rules":[]}}}' }
+        }
+
+        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageLifecyclePolicies)
+
+        $script:boundCalls | Should -Be 1
+        @($rows).Count | Should -Be 1
+    }
+
+    It 'classifies a thrown expected 404 as empty without warning or failed health' {
+        $storage = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-one'
+        function global:Invoke-AzRestMethod {
+            [CmdletBinding()]
+            param([string]$Path, [string]$Method)
+            $null = $Path, $Method
+            $exception = [System.InvalidOperationException]::new('ARM status code 404')
+            $exception.Data['StatusCode'] = 404
+            throw $exception
+        }
+
+        $warnings = @()
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageLifecyclePolicies `
+                -CollectionHealth $health -WarningVariable warnings)
+
+        $rows | Should -BeNullOrEmpty
+        @($warnings).Count | Should -Be 0
+        @($health).Count | Should -Be 0
+    }
+
+    It 'preserves successful rows while recording one health item for a failed dataset' {
+        $parents = @(
+            Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml-failed' -Kind 'Default'
+            Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml-ok' -Kind 'Default'
+        )
+        function global:Invoke-AzRestMethod {
+            [CmdletBinding()]
+            param([string]$Path, [string]$Method)
+            $null = $Method
+            if ($Path -match 'ml-failed') { throw 'ARM status 403' }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"id":"child-ok","name":"child-ok","properties":{}}]}' }
+        }
+
+        $warnings = @()
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources $parents -Dataset MLComputes `
+                -CollectionHealth $health -WarningVariable warnings)
+
+        @($rows).Count | Should -Be 1
+        $rows[0].PARENTNAME | Should -Be 'ml-ok'
+        @($warnings).Count | Should -Be 1
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'MLComputes'
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/MLComputes')
+    }
+
+    It 'covers every ARM-child dataset across the supported remote outcome matrix' {
+        $datasetCases = @(
+            @{ Dataset = 'MLComputes'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'MLDatasets'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'MLDatastores'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'MLEndpoints'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'MLModels'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'MLPipelines'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'OpenAIDeployments'; Parent = Get-TestParent -Type 'microsoft.cognitiveservices/accounts' -Name 'openai' -Kind 'OpenAI'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'SearchIndexes'; Parent = Get-TestParent -Type 'microsoft.search/searchservices' -Name 'search'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'AVDApplications'; Parent = Get-TestParent -Type 'microsoft.desktopvirtualization/applicationgroups' -Name 'apps' -Properties @{ applicationGroupType = 'RemoteApp' }; NotFoundIsEmpty = $false }
+            @{ Dataset = 'AppInsightsProactiveDetection'; Parent = Get-TestParent -Type 'microsoft.insights/components' -Name 'appi'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'LAWorkspaceLinkedServices'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'LAWorkspaceSavedSearches'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'KeyVaultSecrets'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'KeyVaultKeys'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'StorageBlobContainers'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'StorageFileShares'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'StorageLifecyclePolicies'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'StorageQueues'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'StorageTables'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'BackupInstances'; Parent = Get-TestParent -Type 'microsoft.dataprotection/backupvaults' -Name 'backup'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'ResourceDiagnosticSettings'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'ReservationUtilization'; Parent = Get-TestParent -Type 'microsoft.capacity/reservationorders/reservations' -Name 'reservation'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'AzureLocalVirtualMachineInstances'; Parent = Get-TestParent -Type 'microsoft.hybridcompute/machines' -Name 'arc'; NotFoundIsEmpty = $true }
+        )
+        $declaredDatasets = @(
+            (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+                ForEach-Object ValidValues |
+                Where-Object { $_ -ne 'All' }
+        )
+        @($datasetCases.Dataset) | Should -Be $declaredDatasets -Because 'the matrix must track every shipped dataset'
+
+        # Cross every shipped dataset with each materially different response class: usable
+        # success, valid empty, returned/thrown not-found, authorization, throttling, server
+        # failure, absent response and malformed payload. This remains entirely offline.
+        $outcomes = @(
+            'Success200',
+            'Empty200',
+            'Returned404',
+            'Thrown404Data',
+            'Thrown404Response',
+            'Thrown403',
+            'Thrown429',
+            'Returned500',
+            'NullResponse',
+            'MalformedJson'
+        )
+
+        foreach ($case in $datasetCases) {
+            foreach ($outcome in $outcomes) {
+                $script:ArmMatrixOutcome = $outcome
+                function global:Invoke-AzRestMethod {
+                    [CmdletBinding()]
+                    param([string]$Path, [string]$Method)
+                    $null = $Path, $Method
+                    switch ($script:ArmMatrixOutcome) {
+                        'Success200' {
+                            return [pscustomobject]@{
+                                StatusCode = 200
+                                Content = '{"value":[{"id":"child-one","name":"child-one","properties":{"usageDate":"2026-08-01"}}]}'
+                            }
+                        }
+                        'Empty200' { return [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' } }
+                        'Returned404' { return [pscustomobject]@{ StatusCode = 404; Content = '{"error":{"code":"NotFound"}}' } }
+                        'Returned500' { return [pscustomobject]@{ StatusCode = 500; Content = '{"error":{"code":"ServerError"}}' } }
+                        'Thrown404Data' {
+                            $exception = [System.InvalidOperationException]::new('request failed')
+                            $exception.Data['StatusCode'] = 404
+                            throw $exception
+                        }
+                        'Thrown404Response' {
+                            $exception = [System.InvalidOperationException]::new('request failed')
+                            $exception | Add-Member -NotePropertyName Response -NotePropertyValue ([pscustomobject]@{ StatusCode = 404 })
+                            throw $exception
+                        }
+                        'Thrown403' { throw [System.InvalidOperationException]::new('HTTP status code 403 Forbidden') }
+                        'Thrown429' { throw [System.InvalidOperationException]::new('ARM HTTP 429 Too Many Requests') }
+                        'NullResponse' { return $null }
+                        'MalformedJson' { return [pscustomobject]@{ StatusCode = 200; Content = '{not-json' } }
+                    }
+                }
+
+                $warnings = @()
+                $health = [System.Collections.Generic.List[object]]::new()
+                $rows = @(Get-ScoutArmChildResource -Resources @($case.Parent) -Dataset $case.Dataset `
+                        -CollectionHealth $health -WarningVariable warnings)
+                $label = "$($case.Dataset)/$outcome"
+
+                if ($outcome -eq 'Success200') {
+                    @($rows).Count | Should -BeGreaterThan 0 -Because "$label must retain successful rows"
+                    @($warnings).Count | Should -Be 0 -Because "$label is successful"
+                    @($health).Count | Should -Be 0 -Because "$label is successful"
+                }
+                elseif ($outcome -eq 'Empty200') {
+                    @($rows).Count | Should -Be 0 -Because "$label is a valid empty collection"
+                    @($warnings).Count | Should -Be 0 -Because "$label is a valid empty collection"
+                    @($health).Count | Should -Be 0 -Because "$label is a valid empty collection"
+                }
+                elseif ($case.NotFoundIsEmpty -and $outcome -in @('Returned404', 'Thrown404Data', 'Thrown404Response')) {
+                    @($rows).Count | Should -Be 0 -Because "$label is an expected absent singleton"
+                    @($warnings).Count | Should -Be 0 -Because "$label is an expected absent singleton"
+                    @($health).Count | Should -Be 0 -Because "$label is an expected absent singleton"
+                }
+                else {
+                    @($rows).Count | Should -Be 0 -Because "$label did not return usable evidence"
+                    @($warnings).Count | Should -BeGreaterThan 0 -Because "$label must remain visible"
+                    @($health).Count | Should -Be 1 -Because "$label must mark exactly one owning dataset unavailable"
+                    $health[0].Dataset | Should -Be $case.Dataset -Because $label
+                    $health[0].ResourceTypes | Should -Be @("AZSC/ARMChild/$($case.Dataset)") -Because $label
+                }
+            }
+        }
+    }
+
+    It 'attributes every nested remote-operation failure to its public owning dataset' {
+        $ml = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'
+        $nestedCases = @(
+            @{ Dataset = 'MLDatasets'; NestedPath = '/versions\?'; Operation = 'MLDatasets.LatestVersion'; ExpectedRows = 1 }
+            @{ Dataset = 'MLModels'; NestedPath = '/versions\?'; Operation = 'MLModels.LatestVersion'; ExpectedRows = 1 }
+            @{ Dataset = 'MLEndpoints'; NestedPath = '/deployments\?'; Operation = 'MLEndpoints.Deployments'; ExpectedRows = 2 }
+        )
+
+        foreach ($case in $nestedCases) {
+            $script:ArmNestedFailurePath = $case.NestedPath
+            function global:Invoke-AzRestMethod {
+                [CmdletBinding()]
+                param([string]$Path, [string]$Method)
+                $null = $Method
+                if ($Path -match $script:ArmNestedFailurePath) { throw 'HTTP status 403' }
+                [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"id":"child-one","name":"child-one","properties":{}}]}' }
+            }
+
+            $health = [System.Collections.Generic.List[object]]::new()
+            $rows = @(Get-ScoutArmChildResource -Resources @($ml) -Dataset $case.Dataset `
+                    -CollectionHealth $health -WarningAction SilentlyContinue)
+
+            @($rows).Count | Should -Be $case.ExpectedRows -Because "$($case.Dataset) base rows remain usable"
+            @($health).Count | Should -Be 1 -Because "$($case.Dataset) health is deduplicated to its owner"
+            $health[0].Dataset | Should -Be $case.Dataset
+            $health[0].Operation | Should -Be $case.Operation
+            $health[0].ResourceTypes | Should -Be @("AZSC/ARMChild/$($case.Dataset)")
+        }
     }
 }
 }

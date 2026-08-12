@@ -166,6 +166,10 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/riskyusers'
             NameProperty = 'userPrincipalName'
             Permission   = 'IdentityRiskyUser.Read.All'
+            # Azure CLI's delegated Graph token does not carry this granular scope. A supported
+            # directory role is necessary but cannot compensate for a missing OAuth scope.
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Security Operator', 'Security Reader', 'Security Administrator')
             LicensedFeature = 'AAD_PREMIUM_P2'
             LicensedProduct = 'Microsoft Entra ID P2'
         },
@@ -186,6 +190,7 @@ function Get-ScoutEntraQueryCatalog {
             SingleObject = $true
             Permission   = 'Policy.Read.AuthenticationMethod'
             RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Authentication Policy Administrator')
         },
         @{
             # AB#7097. Verified ID profiles (recovery / onboarding usage, Face Check config,
@@ -199,6 +204,7 @@ function Get-ScoutEntraQueryCatalog {
             NameProperty = 'name'
             Permission   = 'VerifiedId-Profile.Read.All'
             RequireDelegatedScope = $true
+            DelegatedRoles = @('Authentication Policy Administrator')
         },
         @{
             # No collector consumes this. It is kept in the catalog rather than deleted so the

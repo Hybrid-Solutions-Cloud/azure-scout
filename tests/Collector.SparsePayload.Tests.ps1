@@ -184,6 +184,35 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     }
 }
 
+Describe 'DevOps service connections use the selected subscription scope' {
+    It 'processes a live-shaped ARM connection and marks its target subscription in scope' {
+        $subscriptionId = '00000000-0000-0000-0000-000000000001'
+        $row = New-SparseArgRow -Type 'devops/serviceconnections' -Name 'connection-one' -Properties @{
+            projectName = 'Platform'
+            type        = 'azurerm'
+            data = [pscustomobject]@{
+                subscriptionId  = $subscriptionId
+                subscriptionName = 'sub-one'
+            }
+            authorization = [pscustomobject]@{
+                scheme = 'WorkloadIdentityFederation'
+                parameters = [pscustomobject]@{ serviceprincipalid = 'service-principal-one' }
+            }
+            isShared = $false
+            isReady  = $true
+        }
+        $row | Add-Member -NotePropertyName organization -NotePropertyValue 'hybridcloudsolutions'
+
+        $rows = @(Invoke-CollectorOnRow -Category 'DevOps' -Name 'DevOpsServiceConnections' -Row $row)
+
+        $rows.Count | Should -Be 1
+        $rows[0]['Connection Name'] | Should -Be 'connection-one'
+        $rows[0]['Target Subscription ID'] | Should -Be $subscriptionId
+        $rows[0]['Subscription In Scope'] | Should -Be 'Yes'
+        $rows[0]['Credential Free'] | Should -Be 'Yes'
+    }
+}
+
 Describe 'The relaxation is scoped and does not weaken what StrictMode is for (AB#6839)' {
 
     It 'still fails on an uninitialised variable inside a row script' {

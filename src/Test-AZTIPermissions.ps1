@@ -71,6 +71,7 @@ function Test-AZSCPermissions {
 
     $auditParams = @{
         OutputFormat = 'Console'
+        Quiet        = $true
     }
     if ($TenantID)        { $auditParams['TenantID']                = $TenantID }
     if ($SubscriptionID)  { $auditParams['SubscriptionID']          = $SubscriptionID }

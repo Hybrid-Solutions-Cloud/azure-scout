@@ -150,7 +150,7 @@ Describe 'Start-AZSCEntraExtraction' {
 
     Context 'Known availability gates' {
         BeforeEach {
-            # Delegated user token with none of the two granular Verified ID scopes.
+            # Delegated user token with none of the three granular exact-scope permissions.
             Mock Get-AZSCGraphToken {
                 @{ Authorization = 'Bearer e30.eyJzY3AiOiJVc2VyLlJlYWQuQWxsIEdyb3VwLlJlYWQuQWxsIn0.sig'; 'Content-Type' = 'application/json' }
             }
@@ -180,6 +180,58 @@ Describe 'Start-AZSCEntraExtraction' {
             $verified.Reason | Should -Match 'cannot add token scopes'
             $unused = $result.QueryOutcomes | Where-Object Type -eq 'entra/identityproviders'
             $unused.Reason | Should -Match 'No released Scout collector'
+        }
+
+        It 'declares every exact-scope catalog entry and skips each when the delegated token lacks it' {
+            Mock Test-ScoutTenantLicence { $true }
+            $result = Start-AZSCEntraExtraction -TenantID 'target-tenant'
+
+            $gated = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope })
+            @($gated).Count | Should -Be 3
+            foreach ($query in $gated) {
+                $outcome = @($result.QueryOutcomes | Where-Object Type -eq $query.Type)
+                $outcome.Count | Should -Be 1
+                $outcome[0].Status | Should -Be 'NotAssessed'
+                $outcome[0].Reason | Should -Match ([regex]::Escape($query.Permission))
+                Should -Invoke Invoke-AZSCGraphRequest -Times 0 -Scope It -ParameterFilter { $Uri -eq $query.Uri }
+            }
+        }
+
+        It 'executes every exact-scope entry successfully when the delegated token contains all scopes' {
+            $payload = @{ scp = 'User.Read.All IdentityRiskyUser.Read.All Policy.Read.AuthenticationMethod VerifiedId-Profile.Read.All' } | ConvertTo-Json -Compress
+            $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+            Mock Get-AZSCGraphToken { @{ Authorization = "Bearer e30.$b64.sig"; 'Content-Type' = 'application/json' } }
+            Mock Test-ScoutTenantLicence { $true }
+            Mock Invoke-AZSCGraphRequest { @([pscustomobject]@{ id = 'available'; displayName = 'Available'; userPrincipalName = 'user@contoso.com' }) }
+
+            $result = Start-AZSCEntraExtraction -TenantID 'target-tenant'
+            $gated = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope })
+            foreach ($query in $gated) {
+                $outcome = @($result.QueryOutcomes | Where-Object Type -eq $query.Type)[0]
+                $outcome.Status | Should -Be 'Success'
+                $outcome.Count | Should -Be 1
+                Should -Invoke Invoke-AZSCGraphRequest -Times 1 -Scope It -ParameterFilter { $Uri -eq $query.Uri }
+            }
+        }
+
+        It 'records a successful empty result for every exact-scope entry' {
+            $payload = @{ scp = 'User.Read.All IdentityRiskyUser.Read.All Policy.Read.AuthenticationMethod VerifiedId-Profile.Read.All' } | ConvertTo-Json -Compress
+            $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+            Mock Get-AZSCGraphToken { @{ Authorization = "Bearer e30.$b64.sig"; 'Content-Type' = 'application/json' } }
+            Mock Test-ScoutTenantLicence { $true }
+            Mock Invoke-AZSCGraphRequest {
+                $entry = @(Get-ScoutEntraQueryCatalog | Where-Object Uri -eq $Uri)[0]
+                if ($entry.ContainsKey('RequireDelegatedScope') -and $entry.RequireDelegatedScope) { return $null }
+                return @([pscustomobject]@{ id = 'available'; displayName = 'Available' })
+            }
+
+            $result = Start-AZSCEntraExtraction -TenantID 'target-tenant'
+            foreach ($query in @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope })) {
+                $outcome = @($result.QueryOutcomes | Where-Object Type -eq $query.Type)[0]
+                $outcome.Status | Should -Be 'Empty'
+                $outcome.Success | Should -BeTrue
+                $outcome.Count | Should -Be 0
+            }
         }
     }
 
@@ -355,6 +407,13 @@ Describe 'Start-AZSCEntraExtraction' {
 
     # ── Verified ID catalog entries (AB#7097) ──────────────────────────
     Context 'Verified ID catalog entries' {
+
+        It 'declares Risky Users as exact-scope gated with its supported delegated roles' {
+            $entry = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.Type -eq 'entra/riskyusers' })
+            $entry.Count | Should -Be 1
+            $entry[0].RequireDelegatedScope | Should -BeTrue
+            @($entry[0].DelegatedRoles) | Should -Be @('Global Reader', 'Security Operator', 'Security Reader', 'Security Administrator')
+        }
 
         It 'declares the authentication-method configuration as a SingleObject query under graph.microsoft.com' {
             $entry = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.Type -eq 'entra/verifiedidconfiguration' })

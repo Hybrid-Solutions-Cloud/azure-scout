@@ -1013,7 +1013,13 @@ function ConvertFrom-ScoutInventory {
 
     # ---- ops posture: summarize total/withDiag by type ----
     $result['diagnosticCoverage'] = @(
-        $rows | Group-Object { [string] (Get-ScoutProp $_ 'type') } | ForEach-Object {
+        # The reference KQL runs against the `resources` table. Synthetic AZSC envelopes are
+        # internal transport rows appended after that query (governance, ARM children, and other
+        # non-ARG sources); counting them as Azure resources creates extra zero-percent resource
+        # types that the typed-query path can never return.
+        $rows |
+            Where-Object { [string] (Get-ScoutProp $_ 'type') -notlike 'AZSC/*' } |
+            Group-Object { [string] (Get-ScoutProp $_ 'type') } | ForEach-Object {
             $total = $_.Count
             $withDiag = @($_.Group | Where-Object { $null -ne (Get-ScoutProp $_ 'properties.diagnosticSettings') }).Count
             [pscustomobject]@{

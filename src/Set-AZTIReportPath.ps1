@@ -129,13 +129,9 @@ function Set-AZSCReportPath {
 function ConvertTo-AZSCSafeRunName {
     Param([string]$Name)
 
-    $invalid = [System.IO.Path]::GetInvalidFileNameChars()
-    $builder = [System.Text.StringBuilder]::new()
-    foreach ($char in $Name.ToCharArray())
-        {
-            if ($invalid -contains $char) { [void]$builder.Append('-') } else { [void]$builder.Append($char) }
-        }
-    $safe = $builder.ToString().Trim().Trim('.')
+    # Use the portable superset rather than GetInvalidFileNameChars(), whose answer changes
+    # by host OS. Reports created on Linux are routinely downloaded and opened on Windows.
+    $safe = ($Name -replace '[<>:"/\\|?*\x00-\x1F]', '-').Trim().Trim('.')
     if ([string]::IsNullOrWhiteSpace($safe)) { $safe = Get-Date -Format 'yyyy-MM-dd_HHmmss_fff' }
     return $safe
 }

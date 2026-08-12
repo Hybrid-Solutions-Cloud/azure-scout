@@ -237,11 +237,16 @@ Describe 'Merged .drawio output quality' {
         $xml = Get-DiagramXml
         $vertices = $xml.SelectNodes('//mxCell[@vertex="1"]')
         foreach ($vertex in $vertices) {
-            $vertex.style | Should -Not -BeNullOrEmpty -Because "cell id=$($vertex.id) should be styled"
-            $geometry = $vertex.mxGeometry
-            $geometry | Should -Not -BeNullOrEmpty -Because "cell id=$($vertex.id) should carry geometry"
-            [double]$geometry.width | Should -BeGreaterThan 0 -Because "cell id=$($vertex.id) should not be zero-width"
-            [double]$geometry.height | Should -BeGreaterThan 0 -Because "cell id=$($vertex.id) should not be zero-height"
+            # XML attribute projection throws under ambient StrictMode when an attribute is
+            # missing, before Should can report the actual contract failure. DOM accessors return
+            # an empty string/null instead, allowing each required field to fail descriptively.
+            $cellId = $vertex.GetAttribute('id')
+            if ([string]::IsNullOrWhiteSpace($cellId)) { $cellId = '(unnamed vertex)' }
+            $vertex.GetAttribute('style') | Should -Not -BeNullOrEmpty -Because "cell id=$cellId should be styled"
+            $geometry = $vertex.SelectSingleNode('mxGeometry')
+            $geometry | Should -Not -BeNullOrEmpty -Because "cell id=$cellId should carry geometry"
+            [double]$geometry.GetAttribute('width') | Should -BeGreaterThan 0 -Because "cell id=$cellId should not be zero-width"
+            [double]$geometry.GetAttribute('height') | Should -BeGreaterThan 0 -Because "cell id=$cellId should not be zero-height"
         }
     }
 

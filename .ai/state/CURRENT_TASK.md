@@ -1,74 +1,60 @@
-# Current Task: AB#7279 — release AzureScout 3.12.2 live-run correctness
+# Current Task: AB#7279 — validate AzureScout 3.12.3 in its new HCS home
 
-- Status: **IMPLEMENTED, REVIEWED, AND FOCUSED-GREEN — EXACT-HEAD FULL SUITE AND PUBLICATION NEXT**
-- Branch: `agent/ab7279-live-run-correctness-3.12.2`
-- Base: AzureScout 3.12.1 (`c1e1a91457df06339a9c92c40ae6a7a125359800`)
-- Target: publish the exact tested 3.12.2 package to PowerShell Gallery.
+- Status: **REPOSITORY CUTOVER, LOCAL GATE, AND HCS TARGET CI PASSED; PR REVIEW/RELEASE REMAIN**
+- Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
+- Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
+- Branch: `agent/ab7279-run-errors-3.12.3`
+- Base: migration-only `main` at `11783cd54c766dc4707e2003418e076d61afa8ee`
+- Target: release AzureScout 3.12.3 only after one exact-commit complete test pass.
 
-## Scope
+## Repository cutover state
 
-- Classify known Entra licence/scope/unconsumed availability before HTTP calls in both permission
-  preflight and extraction; preserve unexpected failures as visible unavailable datasets.
-- Remove the held Azure Lighthouse collector/query from every released runtime contract.
-- Retry oversized Security Center Resource Graph results with smaller projected pages.
-- Treat expected lifecycle-policy/Advisor 404 and unregistered Defender pricing as normal absence.
-- Filter null resources before orphaned role-assignment resolution.
-- Propagate upstream availability through `collector-rowcounts.json` and `collection-health.json`.
-- Retain raw inventory, report cache, diagram cache, and all evidence after successful completion.
-- Clarify total guided-command time versus scan/log execution time.
-- Run one selected-scope authentication/preflight in guided combined mode; make management-group,
-  provider, Graph, and overall-readiness output reflect what the selected identity can collect.
+- The source repository remains at `thisismydemo/azure-scout` as the historical issue, PR,
+  workflow, and original release-timestamp record. Its landing page links to the new homes.
+- All source branches and tags were mirrored. The recovered local product branch was added and
+  then rebuilt cleanly on the new canonical `main` from its seven product/test commits.
+- Target Pages, documentation deployment, releases, and branch protection are configured.
+- The HCS platform registry change merged as ADO PR 17; its docs and MCP deployment pipelines must
+  finish before the live MCP can resolve the new registry identity.
 
-## Verification completed
+## Product scope already implemented
 
-- Post-review correctness repairs close all three PR findings plus the follow-on source-ownership
-  audit: delegated Graph scope checks apply only to catalog-declared delegated-only endpoints;
-  disabled Entra catalog entries no longer poison collection health; raw ARG failures carry exact
-  source/collector ownership; assessments fail closed only for selected affected evidence; skipped,
-  empty, failed, and healthy Advisor evidence remain distinct; managed identities have one ARG
-  owner; an explicit scored-assessment category can broaden but never narrow required evidence;
-  and saved `-FromCollect` artifacts must prove required category and source-health coverage before
-  they can be scored.
-- Latest settled affected gates: assessment/entry point 90/90; release/runtime 118/118;
-  managed-identity/source-health 26/26; all with zero failures or skips. Parser, StrictMode,
-  PSScriptAnalyzer Error, release/docs contracts, docs build, secret scan, manifest/import, package
-  inventory, and diff checks pass. Independent runtime and release audits report no demonstrated
-  production blocker.
-- Saved-collect provenance/report compatibility gate: 98/98 passed with zero failures/skips.
-- Final settled affected gate: 427/427 passed across 20 suites with zero failures, skips,
-  not-run tests, or failed containers.
-- First exact-commit full-suite attempt: shard 0 passed 900/900; shard 1 found one stale test
-  expecting the deliberately removed unsafe typed fallback. The contract now requires the typed
-  `AssessmentSourceUnavailable` failure, and the affected fallback/entry suites pass 51/51. The
-  same update shadows `Get-AzContext` in the combined-route test so it cannot print ambient identity.
-  A superseding exact-commit three-shard run is required.
-- Second exact-commit attempt: shards 0 and 1 passed 900/900 and 747/747. Shard 2 found two
-  conflicting fixture/source assertions: a direct Advisor fixture omitted `advisorAvailable=true`,
-  and a StrictMode contract still required the removed duplicate Managed Identity API field. Both
-  contracts are corrected and pass 92/92 focused. A new exact-commit full suite is required.
+- ARM-child, Entra, management-group, Defender, and Azure DevOps failures report honest source
+  availability rather than silently becoming empty successful evidence.
+- Disabled subscriptions are retained in inventory but excluded from downstream query scope.
+- Dynamically loaded optional helpers and their dependencies survive for the collection phase and
+  are removed afterward.
+- Operational collection emits bounded progress, durable heartbeats, and terminal log status.
+- A read-only HCS live acceptance reconciled all 278 released collectors against independent
+  queries. That live reconciliation does not replace the automated gate.
 
-- Actual completed run log reconciled: every warning class maps to a product fix; no unaccounted
-  ERROR records.
-- Focused live-error/runtime/retention gate: 268 passed, 0 failed/skipped/not-run/containers.
-- Graph permission/preflight gate: 103 passed, 0 failed/skipped/not-run/containers.
-- Version/release/docs/catalog gate: 45 passed, 0 failed/skipped/not-run/containers.
-- Manifest validates as 3.12.2; generated catalogs match all 278 released collectors.
-- Final guided/preflight regression batch: 219 passed, zero failures/skips/not-run/containers.
-- Release/docs contracts: 32 passed; docs build, parser, PSScriptAnalyzer Error, StrictMode,
-  manifest, and diff gates passed.
-- First frozen full-suite attempt: shards 0 and 1 passed 794/794 and 739/739; shard 2 found two
-  stale contracts, now corrected. ContextIdentity passes 5/5 and golden coverage is exactly
-  278 definitions/278 records with no missing/extra entries. Superseding full suite is required.
-- Second frozen attempt: shard 1 passed 739/739; shard 0 found a parallel-process race in the
-  machine-wide update-check marker. The throttle path is now injectable for tests, production
-  retains its default, and ModuleUpdate passes 11/11. A new exact-HEAD full suite is required.
+## Resolved focused failures recovered after the laptop crash
 
-## Release gates remaining
+`tests/Collect.RawInventory.Tests.ps1` exposed three failures on the pre-cutover product tip:
 
-1. Commit the frozen candidate, including the new Entra collection-health regression, with `AB#7279`.
-2. Run the complete zero-failure/zero-skip Pester gate
-   against that exact clean commit.
-3. Push with the GitHub App token, require green PR CI/docs, merge, and require green main CI/docs.
-4. Tag `v3.12.2`, build an allow-listed package from the tag, validate/import/secret-scan it.
-5. Publish the exact staged package, download from PowerShell Gallery, compare every file hash,
-   install 3.12.2, and run a fresh-process smoke.
+1. Enabled subscription scope was received as null rather than `enabled-sub`.
+2. The ARM-child append test could not resolve property `id`.
+3. The ARM-child health merge test hit the same missing-`id` shape.
+
+All three were stale test-fixture isolation: default non-ARG phases were reaching real helpers.
+The raw-inventory suite now supplies inert phase doubles and passes 56/56 under Pester 5.7.1.
+
+The exact-commit complete gate subsequently found and closed one real shaping defect plus stale or
+StrictMode-sensitive test contracts. Synthetic `AZSC/*` transport envelopes are no longer counted
+as Azure resource types in diagnostic coverage. The final 134-file run at product commit
+`2c5be8f54fc8f363871ea6017f6a2e9dcf9a298e` passed 3,593/3,593 with zero failures, skips, not-run
+tests, or failed containers, and a clean worktree before and after.
+
+## Required gates
+
+1. Completed: branch pushed with the GitHub App; PR 1 is open.
+2. Completed at `0df4e636`: HCS CI 3,591/3,591 plus StrictMode and analyzer gates; docs green.
+3. Obtain the protected product PR's required review, then merge.
+4. Only after merge, tag 3.12.3, stage the allow-listed package, validate and
+   secret-scan it, publish to PowerShell Gallery, download it back, and compare package hashes.
+
+## PowerShell Gallery transition
+
+Published 3.12.2 metadata still points to the legacy project/source URLs. The legacy project URL
+now provides the move notice. The 3.12.3 manifest carries the canonical HCS documentation,
+license, and icon URLs; do not publish it until the complete product gate passes.

@@ -278,7 +278,12 @@ function Get-ScoutRawInventory {
         [string]   $AzureEnvironment = 'AzureCloud'
     )
 
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    # The module manifest normally supplies Az.ResourceGraph. Direct dot-source callers still get
+    # a clear import path, while tests and hosts that already provide Search-AzGraph avoid an
+    # unnecessary module import (which can refresh an ambient Az context and contact ARM).
+    if (-not (Get-Command Search-AzGraph -ErrorAction SilentlyContinue)) {
+        Import-Module Az.ResourceGraph -ErrorAction Stop
+    }
 
     $collectionHealth = [System.Collections.Generic.List[object]]::new()
     $collectionHealthKeys = [System.Collections.Generic.HashSet[string]]::new(
@@ -401,6 +406,7 @@ function Get-ScoutRawInventory {
                         'Retirements' { $text -match '(?i)\$Retirements\b' }
                         'Subscriptions and Resource Groups' { $collectorKey -eq 'Management/AllSubscriptions' }
                         'Security Center' { $types -contains 'microsoft.security/assessments' }
+                        'ARM Child' { [bool]@($types | Where-Object { $_ -in $RequestedResourceTypes }).Count }
                         default { $false }
                     }
                     if ($isAffected) { $affected.Add($collectorKey) }
@@ -424,12 +430,25 @@ function Get-ScoutRawInventory {
         )
 
         if ($Timer.IsRunning) { $Timer.Stop() }
-        if (-not (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue)) { return }
-
         $message = 'Extraction subphase {0}: status={1}; rows={2}; elapsed={3}' -f
             $Name, $Status, $Rows, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
         if ($Detail) { $message += "; $Detail" }
-        Write-AZSCLog -Level 'VERBOSE' -Message $message
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'VERBOSE' -Message $message
+        }
+        $phasePercent = switch ($Name) {
+            'ARG query sweep'                          { 15 }
+            'ARM child resource sweep'                 { 30 }
+            'subscription security and policy sweep'   { 45 }
+            'operational enrichment'                   { 60 }
+            'ARM REST API sweep'                       { 72 }
+            'tenant-wide resource sweep'               { 84 }
+            'governance dataset sweep'                 { 96 }
+            default                                    { 1 }
+        }
+        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status (
+            '{0} {1}; {2} row(s); elapsed {3}' -f $Name, $Status.ToLowerInvariant(), $Rows, $Timer.Elapsed.ToString('hh\:mm\:ss')
+        ) -PercentComplete $phasePercent
     }
 
     function Write-ScoutRawInventoryStart {
@@ -437,6 +456,17 @@ function Get-ScoutRawInventory {
         if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
             Write-AZSCLog -Level 'DEBUG' -Message "Extraction subphase $Name started."
         }
+        $phasePercent = switch ($Name) {
+            'ARG query sweep'                          { 2 }
+            'ARM child resource sweep'                 { 16 }
+            'subscription security and policy sweep'   { 31 }
+            'operational enrichment'                   { 46 }
+            'ARM REST API sweep'                       { 61 }
+            'tenant-wide resource sweep'               { 73 }
+            'governance dataset sweep'                 { 85 }
+            default                                    { 1 }
+        }
+        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status "$Name started" -PercentComplete $phasePercent
     }
 
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
@@ -620,6 +650,11 @@ function Get-ScoutRawInventory {
         return , @($rows)
     }
 
+    # A standalone caller may dot-source only this file. Track helpers loaded on demand so they
+    # remain available for this raw pass, then remove them before returning. Module imports load
+    # every helper up front, so production module commands are never added to this list or removed.
+    $dynamicallyLoadedHelpers = [System.Collections.Generic.List[string]]::new()
+
     function Import-ScoutRawInventoryHelper {
         param(
             [Parameter(Mandatory)] [string] $CommandName,
@@ -636,7 +671,36 @@ function Get-ScoutRawInventory {
             return $false
         }
 
-        try { . $helperPath }
+        try {
+            $functionNamesBeforeLoad = [System.Collections.Generic.HashSet[string]]::new(
+                [System.StringComparer]::OrdinalIgnoreCase
+            )
+            foreach ($existingFunction in @(Get-ChildItem Function:)) {
+                $null = $functionNamesBeforeLoad.Add([string]$existingFunction.Name)
+            }
+
+            . $helperPath
+
+            # Dot-sourcing from inside this loader creates the helper in the loader's local
+            # function scope. Without promotion, that command disappears as soon as this
+            # function returns: the caller then enters the opted-in phase, cannot find the
+            # command it just "loaded", and records a systemic source failure. Normal module
+            # imports masked the defect because all helpers were already present. Promote the
+            # newly loaded function into the owning script/module scope so direct dot-source,
+            # isolated tests, and partial-source consumers obey the same contract.
+            # Promote every function introduced by the helper file, not merely its public entry
+            # command. Several helpers carry private companions in the same file (for example,
+            # ConvertTo-ScoutGovernanceResource depends on Get-ScoutGovernanceValue). Promoting
+            # only the named command made that companion disappear with this loader's scope.
+            foreach ($loadedFunction in @(Get-ChildItem Function:)) {
+                $loadedName = [string]$loadedFunction.Name
+                if ($functionNamesBeforeLoad.Contains($loadedName)) { continue }
+                Set-Item -Path ("Function:script:$loadedName") -Value $loadedFunction.ScriptBlock -Force
+                if (-not $dynamicallyLoadedHelpers.Contains($loadedName)) {
+                    $dynamicallyLoadedHelpers.Add($loadedName)
+                }
+            }
+        }
         catch {
             Write-Warning "Get-ScoutRawInventory: optional helper '$CommandName' could not be loaded; skipping its opted-in dataset: $($_.Exception.Message)"
             return $false
@@ -669,7 +733,13 @@ function Get-ScoutRawInventory {
     if ($resolvedSubscriptionIds.Count -eq 0) {
         $resolvedSubscriptionIds = @(
             $resourceContainers |
-                Where-Object { [string] $_.type -ieq 'microsoft.resources/subscriptions' } |
+                Where-Object {
+                    [string] $_.type -ieq 'microsoft.resources/subscriptions' -and
+                    ($null -eq $_.PSObject.Properties['properties'] -or
+                        $null -eq $_.properties -or
+                        $null -eq $_.properties.PSObject.Properties['state'] -or
+                        [string]$_.properties.state -ieq 'Enabled')
+                } |
                 ForEach-Object { $_.subscriptionId } |
                 Where-Object { $_ }
         )
@@ -792,14 +862,63 @@ function Get-ScoutRawInventory {
         Write-ScoutRawInventoryStart -Name 'ARM child resource sweep'
         $childStartCount = $resources.Count
         $childStatus = 'Completed'
+        $armChildHealth = [System.Collections.Generic.List[object]]::new()
         try {
-            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset)) {
+            foreach ($row in @(Get-ScoutArmChildResource -Resources @($resources) -Dataset $ArmChildDataset -CollectionHealth $armChildHealth)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
+
+            foreach ($health in @($armChildHealth)) {
+                if ($null -eq $health -or -not $health.PSObject.Properties['Dataset']) { continue }
+                $sourceDataset = [string]$health.Dataset
+                $resourceTypes = @(
+                    if ($health.PSObject.Properties['ResourceTypes']) { $health.ResourceTypes }
+                    else { "AZSC/ARMChild/$sourceDataset" }
+                )
+                $healthCollectors = @(Get-ScoutRawAffectedCollector -Source 'ARM Child' -RequestedResourceTypes $resourceTypes)
+                $healthKey = 'Resources|ARM Child:{0}|{1}' -f $sourceDataset, ($healthCollectors -join ',')
+                if ($collectionHealthKeys.Add($healthKey)) {
+                    $collectionHealth.Add([pscustomobject]@{
+                            Dataset       = 'Resources'
+                            Source        = 'ARM Child'
+                            SourceDataset = $sourceDataset
+                            Operation     = if ($health.PSObject.Properties['Operation']) { [string]$health.Operation } else { $sourceDataset }
+                            Status        = if ($health.PSObject.Properties['Status']) { [string]$health.Status } else { 'Unavailable' }
+                            Reason        = if ($health.PSObject.Properties['Reason']) { [string]$health.Reason } else { "ARM child dataset '$sourceDataset' could not be read." }
+                            ResourceTypes = $resourceTypes
+                            Collectors    = $healthCollectors
+                        })
+                }
+            }
+            if ($armChildHealth.Count -gt 0) { $childStatus = 'Partial' }
         }
         catch {
             $childStatus = 'Failed'
-            Write-Warning "Get-ScoutRawInventory: ARM child collection failed; continuing without its synthetic rows: $($_.Exception.Message)"
+            $failureReason = "ARM child collection failed before per-dataset health could be returned: $($_.Exception.Message)"
+            Write-Warning "Get-ScoutRawInventory: $failureReason; continuing without its synthetic rows."
+
+            # A helper-level exception is distinct from the remote failures that the helper
+            # reports per dataset. Keep it visible as source health so assessment callers do not
+            # interpret an unexpectedly empty synthetic row set as successful evidence.
+            $requestedChildDatasets = @($ArmChildDataset | Where-Object { $_ -and $_ -ne 'All' })
+            $failedResourceTypes = @($requestedChildDatasets | ForEach-Object { "AZSC/ARMChild/$_" })
+            $failedCollectors = if ($failedResourceTypes.Count -gt 0) {
+                @(Get-ScoutRawAffectedCollector -Source 'ARM Child' -RequestedResourceTypes $failedResourceTypes)
+            }
+            else { @() }
+            $healthKey = 'Resources|ARM Child:Systemic|{0}' -f ($failedCollectors -join ',')
+            if ($collectionHealthKeys.Add($healthKey)) {
+                $collectionHealth.Add([pscustomobject]@{
+                        Dataset       = 'Resources'
+                        Source        = 'ARM Child'
+                        SourceDataset = if ($requestedChildDatasets.Count -gt 0) { $requestedChildDatasets -join ',' } else { 'All' }
+                        Operation     = 'Sweep'
+                        Status        = 'Failed'
+                        Reason        = $failureReason
+                        ResourceTypes = $failedResourceTypes
+                        Collectors    = $failedCollectors
+                    })
+            }
         }
         finally {
             Write-ScoutRawInventoryTiming -Name 'ARM child resource sweep' -Timer $childTimer -Status $childStatus `
@@ -825,7 +944,13 @@ function Get-ScoutRawInventory {
     # resourcecontainers call is unavailable, but container names take precedence when present.
     $subscriptionEnvelopes = @(
         $resourceContainers |
-            Where-Object { [string] $_.type -ieq 'microsoft.resources/subscriptions' -and $_.subscriptionId } |
+            Where-Object {
+                [string] $_.type -ieq 'microsoft.resources/subscriptions' -and $_.subscriptionId -and
+                ($null -eq $_.PSObject.Properties['properties'] -or
+                    $null -eq $_.properties -or
+                    $null -eq $_.properties.PSObject.Properties['state'] -or
+                    [string]$_.properties.state -ieq 'Enabled')
+            } |
             ForEach-Object {
                 [pscustomobject]@{
                     id   = [string] $_.subscriptionId
@@ -840,6 +965,15 @@ function Get-ScoutRawInventory {
     }
 
     if ($IncludeSubscriptionSecurityPolicy -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutSubscriptionSecurityPolicySweep' -FileName 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')) {
+        $securityPolicyCollectorMap = @{
+            DefenderAlerts                 = @('Security/DefenderAlerts')
+            DefenderAssessments            = @('Security/DefenderAssessments')
+            DefenderPricing                = @('Security/DefenderPricing')
+            DefenderSecureScores           = @('Security/DefenderSecureScore')
+            DefenderSecureScoreControls    = @('Security/DefenderSecureScore')
+            SubscriptionDiagnosticSettings = @('Monitor/SubscriptionDiagnosticSettings')
+            PolicyComplianceStates         = @('Management/PolicyComplianceStates')
+        }
         $securityPolicyTimer = [System.Diagnostics.Stopwatch]::StartNew()
         Write-ScoutRawInventoryStart -Name 'subscription security and policy sweep'
         $securityPolicyStartCount = $resources.Count
@@ -850,13 +984,26 @@ function Get-ScoutRawInventory {
                 $resources.Add($row)
                 $statusProperty = $row.properties.PSObject.Properties['CollectionStatus']
                 if ($statusProperty -and $statusProperty.Value) {
+                    $collectionErrors = if ($row.properties.PSObject.Properties['CollectionErrors']) {
+                        @($row.properties.CollectionErrors)
+                    }
+                    else { @() }
+                    $contextError = @($collectionErrors | Where-Object Dataset -eq 'Context' | Select-Object -First 1)
                     foreach ($status in $statusProperty.Value.PSObject.Properties) {
-                        if ([string]$status.Value -in @('Unavailable', 'Skipped', 'Failed')) {
+                        $statusValue = [string]$status.Value
+                        $isUnavailable = $statusValue -in @('Unavailable', 'Failed') -or
+                            ($statusValue -eq 'Skipped' -and $contextError.Count -gt 0)
+                        if ($isUnavailable) {
+                            $datasetError = @($collectionErrors | Where-Object Dataset -eq $status.Name | Select-Object -First 1)
+                            $reason = if ($datasetError.Count -gt 0) { [string]$datasetError[0].Message }
+                            elseif ($contextError.Count -gt 0) { [string]$contextError[0].Message }
+                            else { 'The subscription-scoped dataset was not available.' }
                             $collectionHealth.Add([pscustomobject]@{
                                     Dataset       = "SecurityPolicy/$($status.Name) [$($row.subscriptionName)]"
-                                    Status        = [string]$status.Value
-                                    Reason        = 'The subscription-scoped dataset was not available.'
+                                    Status        = if ($statusValue -eq 'Skipped') { 'Unavailable' } else { $statusValue }
+                                    Reason        = $reason
                                     ResourceTypes = @('AZSC/Subscription/SecurityPolicySweep')
+                                    Collectors     = @($securityPolicyCollectorMap[$status.Name])
                                 })
                         }
                     }
@@ -878,10 +1025,21 @@ function Get-ScoutRawInventory {
         Write-ScoutRawInventoryStart -Name 'operational enrichment'
         $operationalStartCount = $resources.Count
         $operationalStatus = 'Completed'
+        $operationalHealth = [System.Collections.Generic.List[object]]::new()
         try {
-            foreach ($row in @(Get-ScoutOperationalCollectorEnrichment -Resources @($resources) -Subscriptions $subscriptionEnvelopes)) {
+            $operationalArguments = @{
+                Resources     = @($resources)
+                Subscriptions = $subscriptionEnvelopes
+            }
+            $operationalCommand = Get-Command Get-ScoutOperationalCollectorEnrichment -ErrorAction Stop
+            if ($operationalCommand.Parameters.ContainsKey('CollectionHealth')) {
+                $operationalArguments['CollectionHealth'] = $operationalHealth
+            }
+            foreach ($row in @(Get-ScoutOperationalCollectorEnrichment @operationalArguments)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
+            foreach ($health in $operationalHealth) { $collectionHealth.Add($health) }
+            if ($operationalHealth.Count -gt 0) { $operationalStatus = 'Partial' }
         }
         catch {
             $operationalStatus = 'Failed'
@@ -1081,7 +1239,9 @@ function Get-ScoutRawInventory {
             'at the target scope (root management group for full coverage) and that -ManagementGroupId/-SubscriptionIds is correct.')
     }
 
-    return [pscustomobject]@{
+    Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status 'Extraction subphases complete' -Completed
+
+    $result = [pscustomobject]@{
         Resources          = @($resources)
         ResourceContainers = @($resourceContainers)
         Advisories         = @($advisories)
@@ -1093,4 +1253,14 @@ function Get-ScoutRawInventory {
         Governance         = $governance
         CollectionHealth   = @($collectionHealth)
     }
+
+    # Do not leak dynamically loaded collectors into a standalone caller's session. Persistent
+    # global functions make later isolated tests (or scripts) silently call live Azure cmdlets.
+    foreach ($helperName in $dynamicallyLoadedHelpers) {
+        Remove-Item -Path ("Function:$helperName") -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path ("Function:script:$helperName") -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path ("Function:global:$helperName") -Force -ErrorAction SilentlyContinue
+    }
+
+    return $result
 }

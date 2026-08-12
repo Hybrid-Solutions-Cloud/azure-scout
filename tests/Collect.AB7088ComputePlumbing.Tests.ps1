@@ -98,7 +98,7 @@ param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
-            $isRawProjection = $Query -match 'project id,name,type,tenantId'
+            $isRawProjection = $Query -match 'project id,name,type,tenantId,kind'
             if ($isRawProjection -and $Query -match '^resourcecontainers\b') { return @() }
             if ($isRawProjection -and $Query -match '^resources\b') { return $script:FixtureRows }
             if ($isRawProjection) { return @() }

@@ -50,7 +50,7 @@ Describe 'AB#6879 -- the run keeps findings per assessment, not just merged' {
 
 Describe 'AB#6879 -- each assessment renders into its own folder' {
 
-    It 'writes under assessments/<slug>/ per clause R-02' {
+    It 'writes under assessments/slug/ per clause R-02' {
         $script:Source | Should -Match "Join-Path \`$runPath 'assessments'"
     }
 

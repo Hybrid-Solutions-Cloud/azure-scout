@@ -21,6 +21,65 @@ BeforeAll {
         $null = $TenantID
         return [pscustomobject]@{ Collected = $false }
     }
+
+    # Get-ScoutRawInventory performs these non-ARG phases by default. Keep this unit suite
+    # offline and phase-local: tests that own one of these helpers define a narrower shadow in
+    # their It block, while the helper-lifetime tests explicitly remove the command they need to
+    # exercise through the dynamic loader.
+    function Get-ScoutApiResources {
+        param(
+            [object[]] $Subscriptions,
+            [string] $AzureEnvironment,
+            [switch] $SkipPolicy,
+            [switch] $DefinitionsOnly,
+            [switch] $SkipManagedIdentities
+        )
+        $null = $Subscriptions, $AzureEnvironment, $SkipPolicy, $DefinitionsOnly, $SkipManagedIdentities
+        return @()
+    }
+
+    function ConvertTo-ScoutManagementGroupHierarchy {
+        param($Root)
+        $null = $Root
+        return @()
+    }
+
+    function Get-ScoutTenantWideResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutArcSiteResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutAvdAzureLocalSessionHost {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutOutageResource {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutGovernanceDataset {
+        param([object[]] $Subscriptions, [string] $ManagementGroupId)
+        $null = $Subscriptions, $ManagementGroupId
+        return [pscustomobject]@{
+            roleAssignments   = @()
+            roleDefinitions   = @()
+            policyAssignments = @()
+            budgets           = @()
+            resourceLocks     = @()
+        }
+    }
+
     $root = Split-Path $PSScriptRoot -Parent
     function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
@@ -32,6 +91,57 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
     function New-MockSubscriptionRow {
         param([string] $Id)
         [pscustomobject]@{ id = "/subscriptions/$Id"; name = "sub-$Id"; type = 'microsoft.resources/subscriptions'; subscriptionId = $Id; properties = [pscustomobject]@{ state = 'Enabled' } }
+    }
+}
+
+Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
+    AfterAll {
+        # The helper-lifetime cases must begin without this command so they can exercise the
+        # loader. Install the suite's inert converter only after that contract is proven.
+        Set-Item Function:script:ConvertTo-ScoutGovernanceResource -Force -Value {
+            param([object] $Governance, [object[]] $Subscriptions)
+            $null = $Governance, $Subscriptions
+            return @()
+        }
+    }
+
+    It 'keeps a dynamically dot-sourced helper for the phase and removes it before returning' {
+        Remove-Item Function:script:Get-ScoutArmChildResource -ErrorAction SilentlyContinue
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Query
+            $null = $Rest
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory `
+            -IncludeArmChildResources `
+            -ArmChildDataset @('KeyVaultSecrets', 'KeyVaultKeys') `
+            -WarningAction SilentlyContinue
+
+        Get-Command Get-ScoutArmChildResource -CommandType Function -ErrorAction SilentlyContinue |
+            Should -BeNullOrEmpty
+        @($result.CollectionHealth | Where-Object {
+                $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+                $_.PSObject.Properties['Operation'] -and [string]$_.Operation -eq 'Sweep'
+            }).Count | Should -Be 0
+    }
+
+    It 'loads private companion functions for the opted-in phase and removes the complete set afterward' {
+        Remove-Item Function:script:ConvertTo-ScoutGovernanceResource -ErrorAction SilentlyContinue
+        Remove-Item Function:script:Get-ScoutGovernanceValue -ErrorAction SilentlyContinue
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+        function Get-ScoutGovernanceDataset {
+            param([Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Rest
+            [pscustomobject]@{ roleAssignments=@(); roleDefinitions=@(); policyAssignments=@(); budgets=@(); resourceLocks=@() }
+        }
+
+        $result = Get-ScoutRawInventory -WarningAction SilentlyContinue
+
+        @($result.CollectionHealth | Where-Object Dataset -eq 'Governance').Count | Should -Be 0
+        Get-Command ConvertTo-ScoutGovernanceResource -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+        Get-Command Get-ScoutGovernanceValue -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
     }
 }
 
@@ -114,6 +224,28 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         $result.PSObject.Properties.Name | Should -Contain 'Security'
     }
 
+    It 'derives query scope only from enabled subscription container rows' {
+        $script:scopedCalls = [System.Collections.Generic.List[object]]::new()
+        function Search-AzGraph {
+            param([string] $Query, [string[]] $Subscription, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^resourcecontainers\b') {
+                return @(
+                    [pscustomobject]@{ id='/subscriptions/enabled-sub'; name='Enabled'; type='microsoft.resources/subscriptions'; subscriptionId='enabled-sub'; properties=[pscustomobject]@{ state='Enabled' } }
+                    [pscustomobject]@{ id='/subscriptions/disabled-sub'; name='Disabled'; type='microsoft.resources/subscriptions'; subscriptionId='disabled-sub'; properties=[pscustomobject]@{ state='Disabled' } }
+                )
+            }
+            $script:scopedCalls.Add(@($Subscription))
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory
+
+        @($script:scopedCalls).Count | Should -BeGreaterThan 0
+        foreach ($scope in $script:scopedCalls) { @($scope) | Should -Be @('enabled-sub') }
+        @($result.ResourceContainers | Where-Object subscriptionId -eq 'disabled-sub').Count | Should -Be 1
+    }
+
     It 'does not invoke optional non-ARG helpers unless their switches are supplied' {
         $script:armChildCalls = 0
         $script:subscriptionSweepCalls = 0
@@ -173,7 +305,8 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
     It 'appends ARM child rows exactly once when requested' {
         $script:armChildInputs = @()
         function Get-ScoutArmChildResource {
-            param([object[]] $Resources)
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Dataset, $CollectionHealth
             $script:armChildInputs += , @($Resources)
             [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
         }
@@ -182,6 +315,71 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
 
         $script:armChildInputs.Count | Should -Be 1
         @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+    }
+
+    It 'merges ARM-child failures into source health without dropping successful rows' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'MLComputes'; Status = 'Unavailable'; Reason = 'simulated child denial'
+                    ResourceTypes = @('AZSC/ARMChild/MLComputes')
+                })
+            [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset MLComputes
+
+        @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'MLComputes')
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].Source | Should -Be 'ARM Child'
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Collectors | Should -Contain 'AI/MLComputes'
+    }
+
+    It 'records source health when the ARM-child helper fails before returning per-dataset health' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset, $CollectionHealth
+            throw 'simulated helper failure'
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys -WarningAction SilentlyContinue
+
+        $health = @($result.CollectionHealth | Where-Object { $_.Source -eq 'ARM Child' -and $_.Operation -eq 'Sweep' })
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].SourceDataset | Should -Be 'KeyVaultKeys'
+        $health[0].Status | Should -Be 'Failed'
+        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/KeyVaultKeys')
+        $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+    }
+
+    It 'propagates a Key Vault child denial into a fail-closed Security assessment' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'KeyVaultKeys'; Operation = 'KeyVaultKeys'; Status = 'Unavailable'
+                    Reason = 'simulated Key Vault child denial'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+                })
+        }
+
+        $raw = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys
+        $mapped = @($raw.CollectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys')
+        @($mapped).Count | Should -Be 1
+        $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -202,6 +400,66 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $script:sweepSubscriptions.Count | Should -Be 1
         $script:sweepSubscriptions[0][0].id | Should -Be 'sub-1'
         @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep').Count | Should -Be 1
+    }
+
+    It 'maps each failed subscription sweep dataset only to its owning collector' -TestCases @(
+        @{ Dataset = 'DefenderAlerts'; Collector = 'Security/DefenderAlerts' }
+        @{ Dataset = 'DefenderAssessments'; Collector = 'Security/DefenderAssessments' }
+        @{ Dataset = 'DefenderPricing'; Collector = 'Security/DefenderPricing' }
+        @{ Dataset = 'DefenderSecureScores'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'DefenderSecureScoreControls'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'SubscriptionDiagnosticSettings'; Collector = 'Monitor/SubscriptionDiagnosticSettings' }
+        @{ Dataset = 'PolicyComplianceStates'; Collector = 'Management/PolicyComplianceStates' }
+    ) {
+        param($Dataset, $Collector)
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            $statuses = [ordered]@{
+                DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+            }
+            $statuses[$Dataset] = 'Unavailable'
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]$statuses
+                    CollectionErrors = @([pscustomobject]@{ Dataset = $Dataset; Message = "simulated $Dataset denial" })
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+        $health = @($result.CollectionHealth | Where-Object Dataset -like "SecurityPolicy/$Dataset*")
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Reason | Should -Be "simulated $Dataset denial"
+        @($health[0].Collectors) | Should -Be @($Collector)
+        @($result.CollectionHealth | Where-Object { $_.Collectors -contains 'Security/DefenderAlerts' -and $Dataset -ne 'DefenderAlerts' }).Count | Should -Be 0
+    }
+
+    It 'does not report dependent secure-score controls as failed when no secure score exists' {
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]@{
+                        DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                        DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                        SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+                    }
+                    CollectionErrors = @()
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+
+        @($result.CollectionHealth | Where-Object Dataset -like 'SecurityPolicy/DefenderSecureScoreControls*').Count | Should -Be 0
     }
 
     It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
@@ -251,6 +509,27 @@ param($Root) @() }
         $script:operationalInputs[0].Resources.Count | Should -BeGreaterThan 0
         $script:operationalInputs[0].Subscriptions[0].id | Should -Be 'sub-1'
         @($result.Resources | Where-Object type -eq 'AZSC/Operational/VirtualMachine').Count | Should -Be 1
+    }
+
+    It 'merges operational per-dataset failures into collector health while retaining envelopes' {
+        function Get-ScoutOperationalCollectorEnrichment {
+            param([object[]] $Resources, [object[]] $Subscriptions, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Subscriptions
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'Operational/VirtualMachine.EstimatedCost'; Source = 'Operational enrichment'
+                    SourceDataset = 'VirtualMachine.EstimatedCost'; Status = 'Unavailable'; Reason = 'simulated 429'
+                    ResourceTypes = @('AZSC/Operational/VirtualMachine'); Collectors = @('Compute/VirtualMachine')
+                })
+            [pscustomobject]@{ id = 'operational-vm'; type = 'AZSC/Operational/VirtualMachine'; properties = @{} }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeOperationalCollectorEnrichment
+
+        @($result.Resources | Where-Object id -eq 'operational-vm').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'VirtualMachine.EstimatedCost')
+        $health.Count | Should -Be 1
+        $health[0].Reason | Should -Be 'simulated 429'
+        $health[0].Collectors | Should -Be @('Compute/VirtualMachine')
     }
 }
 
@@ -646,6 +925,28 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         {
             Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
         } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'fails closed when selected Key Vault child evidence is unavailable' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
+                    Status = 'Unavailable'; Reason = 'simulated Key Vault child denial'
+                    ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys'); Collectors = @('Security/KeyVaultKeys')
+                })
+        }
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'Resources'
     }
 
     It 'does not block Identity when explicit Resources health names only a Compute collector' {

@@ -112,10 +112,10 @@ Describe 'AB#7187 — probe-loop branch placement (source analysis)' {
     }
 
     It 'the genuine-DENIED remediation for a DELEGATED token names the directory-role path, not the Enterprise Applications blade' {
-        $m = [regex]::Match($script:Source, '\$deniedRemediation = if \(\$tokenClaim -and \$tokenClaim\.IsDelegated\) \{\s*"([^"]+)"')
+        $m = [regex]::Match($script:Source, '\$deniedRemediation = if \(\$tokenClaim -and \$tokenClaim\.IsDelegated\) \{[\s\S]{0,800}?"([^"]*delegated token[^"]+)"')
         $m.Success | Should -BeTrue -Because 'the DENIED remediation must branch on token type'
-        $m.Groups[1].Value | Should -Match 'directory roles'
-        $m.Groups[1].Value | Should -Match 'Authentication Policy Administrator'
+        $m.Groups[1].Value | Should -Match 'directory role'
+        $script:Source | Should -Match 'DelegatedRoles'
         $m.Groups[1].Value | Should -Not -Match 'Enterprise Applications'
     }
 

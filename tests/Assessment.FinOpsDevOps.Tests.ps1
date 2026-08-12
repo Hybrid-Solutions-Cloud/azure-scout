@@ -35,6 +35,26 @@ BeforeAll {
     . "$script:Root/src/collect/Get-ScoutCostInventory.ps1"
     Import-Module powershell-yaml -ErrorAction Stop
 
+    # Script-scope command doubles are visible to the ingestors defined above. Defining these
+    # inside an individual It block is not: PowerShell command discovery then auto-loads the real
+    # Az.CostManagement/Azure DevOps implementation and can contact the operator's live tenant.
+    $script:CostQueryHandler = { param($Scope) [pscustomobject]@{ Row = @() } }
+    function global:Invoke-AzCostManagementQuery {
+        [CmdletBinding()]
+        param(
+            [string]$Type, [string]$Scope, [string]$Timeframe,
+            [string]$DatasetGranularity, [object[]]$DatasetGrouping,
+            [hashtable]$DatasetAggregation, [datetime]$TimePeriodFrom, [datetime]$TimePeriodTo
+        )
+        return & $script:CostQueryHandler $Scope
+    }
+    $script:DevOpsExtractionHandler = { [pscustomobject]@{ DevOpsResources = @() } }
+    function global:Start-AZSCDevOpsExtraction {
+        [CmdletBinding()]
+        param([string]$TenantID, [string]$Organization, [string]$Pat)
+        return & $script:DevOpsExtractionHandler
+    }
+
     $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
     function New-ScoutRule {
@@ -45,6 +65,11 @@ BeforeAll {
         if ($DenominatorQuery) { $assert.denominatorQuery = $DenominatorQuery }
         return @{ id = $Id; title = 't'; severity = 'medium'; query = $Query; assert = $assert; remediation = 'r'; manual = $false }
     }
+}
+
+AfterAll {
+    Remove-Item Function:global:Invoke-AzCostManagementQuery -Force -ErrorAction SilentlyContinue
+    Remove-Item Function:global:Start-AZSCDevOpsExtraction -Force -ErrorAction SilentlyContinue
 }
 
 Describe 'AB#6826 -- Invoke-Rule assert.gate' {
@@ -96,9 +121,9 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
         $result.finops.moduleAvailable | Should -BeFalse
     }
     It 'available when the module resolves and returns real cost rows' {
-        function Invoke-AzCostManagementQuery {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:CostQueryHandler = {
+            param($Scope)
+            $null = $Scope
             return [pscustomobject]@{ Row = @(, @(42.5, '20260701', 'Microsoft.Compute/virtualMachines', 'rg-1', 'eastus', 'Virtual Machines', 'USD')) }
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -107,12 +132,10 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
         $result.finops.moduleAvailable | Should -BeTrue
         @($result.finops.costRows).Count | Should -Be 1
         $result.finops.costRows[0].Cost | Should -Be 42.5
-        Remove-Item function:Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue
     }
     It 'unavailable (blocked) when the module resolves but every subscription errors -- never reads as zero-spend' {
-        function Invoke-AzCostManagementQuery {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:CostQueryHandler = {
+            param($Scope)
             throw "Forbidden: the caller does not have permission to perform action 'Microsoft.CostManagement/query/action' for subscription '$Scope'"
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -120,7 +143,6 @@ param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
         $result.finops.available | Should -BeFalse -Because 'a billing-permission-blocked pull must degrade to unavailable, not a scored zero'
         $result.finops.moduleAvailable | Should -BeTrue -Because 'the module itself resolved fine -- only the API call was blocked'
         @($result.finops.blockedSubscriptions) | Should -Contain 'sub-one'
-        Remove-Item function:Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue
     }
     It 'trivially available on an estate with zero subscriptions -- an empty estate is not a blocked one' {
         Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
@@ -149,18 +171,14 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
         $result.devops.attempted | Should -BeFalse
     }
     It 'unavailable when -IncludeDevOps is set but the extraction finds zero resources of any type' {
-        function Start-AZSCDevOpsExtraction {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) return [pscustomobject]@{ DevOpsResources = @() } }
+        $script:DevOpsExtractionHandler = { return [pscustomobject]@{ DevOpsResources = @() } }
         $collect = [pscustomobject]@{}
         $result = Import-ScoutDevOpsCapability -Collect $collect -IncludeDevOps
         $result.devops.available | Should -BeFalse -Because 'attempted but zero resources came back must not read as a clean zero'
         $result.devops.attempted | Should -BeTrue
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'available and shapes projects/pipelines/serviceConnections when resources come back' {
-        function Start-AZSCDevOpsExtraction {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:DevOpsExtractionHandler = {
             return [pscustomobject]@{
                 DevOpsResources = @(
                     [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{ state = 'wellFormed' } }
@@ -176,12 +194,10 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
         @($result.devops.serviceConnections).Count | Should -Be 2
         ($result.devops.serviceConnections | Where-Object Name -eq 'conn1').CredentialFree | Should -BeTrue
         ($result.devops.serviceConnections | Where-Object Name -eq 'conn2').CredentialFree | Should -BeFalse
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'reuses -FromInventory rows (devops/* types only) without calling Start-AZSCDevOpsExtraction again' {
         $calledExtraction = $false
-        function Start-AZSCDevOpsExtraction {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
+        $script:DevOpsExtractionHandler = { $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
         $fromInventory = @(
             [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{} }
             [pscustomobject]@{ name = 'vm1'; type = 'microsoft.compute/virtualmachines'; properties = [pscustomobject]@{} }
@@ -191,7 +207,6 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) $script:calledExtraction =
         $result.devops.available | Should -BeTrue
         @($result.devops.projects).Count | Should -Be 1
         $calledExtraction | Should -BeFalse -Because 'the collect-once pattern must not re-call Azure when rows were already handed in'
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'preserves the ARM-sourced stub fields Invoke-Collect already attached (managedPools etc.)' {
         $collect = [pscustomobject]@{ devops = [pscustomobject]@{ managedPools = @(@{ name = 'pool1' }) } }

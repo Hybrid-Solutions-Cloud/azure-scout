@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.3] - 2026-08-11 - every collector tells the truth
+
+### Fixed
+
+- **ARM child discovery works on supported Az.Accounts releases (AB#7279).** Removed the invalid
+  `Invoke-AzRestMethod -SkipHttpErrorCheck` switch that prevented every child request from reaching
+  Azure. All 23 child datasets now distinguish successful rows, valid empty results, expected 404s,
+  authorization/throttle/service failures, null responses, and malformed payloads. Partial rows are
+  retained and failures carry exact collector ownership into assessment and report health.
+- **Entra and management-group readiness now gives permission-specific answers.** Risky Users joins
+  the two Verified ID endpoints behind exact delegated-scope gates, so unsupported interactive tokens
+  become Not assessed without doomed requests. A scope-present 403 names the endpoint's actual Entra
+  roles. The management-group audit probes the tenant root and distinguishes authorization failure
+  from transient/module failure before recommending least-privilege Management Group Reader.
+- **Defender Alerts no longer turns an Az.Security null-reference into guessed onboarding advice.**
+  That exact client failure falls back to the documented paginated ARM endpoint; actual HTTP and
+  provider results determine Success or Unavailable while preserving the collector row contract.
+- **Azure DevOps authentication failure cannot masquerade as an empty organization.** Rejected
+  project, pipeline, service-connection, repository, and agent-pool requests now produce exact
+  Partial/Unavailable collection health. A successful zero-row response remains cleanly empty.
+- **Permission results and run termination are logged once and durably.** Guided preflight uses the
+  permission audit's structured quiet mode, while standalone permission audit keeps its console UX.
+  Logging starts before preflight and an unfinished run receives one terminal FAILED marker.
+
+### Changed
+
+- Operational enrichment now reports a bounded request plan, monotonically increasing progress,
+  retry/timing heartbeats, and one terminal completion record without logging resource identifiers
+  or payloads. Extraction subphases likewise move forward instead of appearing frozen at 4%.
+- Added a runtime compatibility gate that validates production Az/HTTP command parameters against
+  the installed modules and requires every remote-calling function to have an offline test owner.
+- Live read-only HCS acceptance reconciled all 278 collectors: populated ARM, Graph, governance,
+  Defender, quota, ARM-child, and Azure DevOps datasets were compared with independent queries;
+  filtered and empty collectors were proven from their source data; three unsupported Entra surfaces
+  remained explicitly Not assessed. Raw discovery data and every processing artifact remain retained.
+
 ## [3.12.2] - 2026-08-11 - honest collection, retained evidence
 
 ### Fixed

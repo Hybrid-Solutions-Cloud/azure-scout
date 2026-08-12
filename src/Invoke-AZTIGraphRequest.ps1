@@ -32,6 +32,10 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER MaxRetries
     Maximum number of retries for transient errors (429, 5xx). Default: 5.
 
+.PARAMETER SuppressFailureWarning
+    Do not write the final warning before rethrowing a failed request. Intended for callers such
+    as the permission audit that catch the exception and emit a more specific structured result.
+
 .PARAMETER TenantID
     Optional tenant ID to scope the underlying Graph token to. See Get-AZSCGraphToken --
     without this, the token comes from az CLI's ambient default tenant, which is not
@@ -67,7 +71,9 @@ function Invoke-AZSCGraphRequest {
 
         [string]$TenantID,
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
-        [string]$AzureEnvironment
+        [string]$AzureEnvironment,
+
+        [switch]$SuppressFailureWarning
     )
 
     if (-not $AzureEnvironment) {
@@ -141,7 +147,9 @@ function Invoke-AZSCGraphRequest {
                 if ($statusCode -eq 429 -or ($statusCode -ge 500 -and $statusCode -lt 600)) {
                     $retryCount++
                     if ($retryCount -gt $MaxRetries) {
-                        Write-Warning "Graph API request failed after $MaxRetries retries: $($_.Exception.Message)"
+                        if (-not $SuppressFailureWarning) {
+                            Write-Warning "Graph API request failed after $MaxRetries retries: $($_.Exception.Message)"
+                        }
                         throw
                     }
 
@@ -173,7 +181,9 @@ function Invoke-AZSCGraphRequest {
                 }
                 else {
                     # Non-retryable error — propagate
-                    Write-Warning "Graph API request failed: $($_.Exception.Message)"
+                    if (-not $SuppressFailureWarning) {
+                        Write-Warning "Graph API request failed: $($_.Exception.Message)"
+                    }
                     throw
                 }
             }
