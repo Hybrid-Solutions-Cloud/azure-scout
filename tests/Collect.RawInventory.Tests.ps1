@@ -36,7 +36,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
 }
 
 Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
-    It 'keeps a dynamically dot-sourced helper available after the loader returns' {
+    It 'keeps a dynamically dot-sourced helper for the phase and removes it before returning' {
         Remove-Item Function:script:Get-ScoutArmChildResource -ErrorAction SilentlyContinue
         function Search-AzGraph {
             param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
@@ -51,7 +51,7 @@ Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
             -WarningAction SilentlyContinue
 
         Get-Command Get-ScoutArmChildResource -CommandType Function -ErrorAction SilentlyContinue |
-            Should -Not -BeNullOrEmpty
+            Should -BeNullOrEmpty
         @($result.CollectionHealth | Where-Object {
                 $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
                 $_.PSObject.Properties['Operation'] -and [string]$_.Operation -eq 'Sweep'

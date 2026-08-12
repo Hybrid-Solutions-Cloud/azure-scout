@@ -645,6 +645,11 @@ function Get-ScoutRawInventory {
         return , @($rows)
     }
 
+    # A standalone caller may dot-source only this file. Track helpers loaded on demand so they
+    # remain available for this raw pass, then remove them before returning. Module imports load
+    # every helper up front, so production module commands are never added to this list or removed.
+    $dynamicallyLoadedHelpers = [System.Collections.Generic.List[string]]::new()
+
     function Import-ScoutRawInventoryHelper {
         param(
             [Parameter(Mandatory)] [string] $CommandName,
@@ -674,6 +679,9 @@ function Get-ScoutRawInventory {
             $loadedCommand = Get-Command $CommandName -CommandType Function -ErrorAction SilentlyContinue
             if ($loadedCommand) {
                 Set-Item -Path ("Function:script:$CommandName") -Value $loadedCommand.ScriptBlock -Force
+                if (-not $dynamicallyLoadedHelpers.Contains($CommandName)) {
+                    $dynamicallyLoadedHelpers.Add($CommandName)
+                }
             }
         }
         catch {
@@ -1216,7 +1224,7 @@ function Get-ScoutRawInventory {
 
     Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status 'Extraction subphases complete' -Completed
 
-    return [pscustomobject]@{
+    $result = [pscustomobject]@{
         Resources          = @($resources)
         ResourceContainers = @($resourceContainers)
         Advisories         = @($advisories)
@@ -1228,4 +1236,14 @@ function Get-ScoutRawInventory {
         Governance         = $governance
         CollectionHealth   = @($collectionHealth)
     }
+
+    # Do not leak dynamically loaded collectors into a standalone caller's session. Persistent
+    # global functions make later isolated tests (or scripts) silently call live Azure cmdlets.
+    foreach ($helperName in $dynamicallyLoadedHelpers) {
+        Remove-Item -Path ("Function:$helperName") -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path ("Function:script:$helperName") -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path ("Function:global:$helperName") -Force -ErrorAction SilentlyContinue
+    }
+
+    return $result
 }
