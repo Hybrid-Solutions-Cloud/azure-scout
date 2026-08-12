@@ -35,6 +35,30 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
     }
 }
 
+Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
+    It 'keeps a dynamically dot-sourced helper available after the loader returns' {
+        Remove-Item Function:script:Get-ScoutArmChildResource -ErrorAction SilentlyContinue
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Query
+            $null = $Rest
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory `
+            -IncludeArmChildResources `
+            -ArmChildDataset @('KeyVaultSecrets', 'KeyVaultKeys') `
+            -WarningAction SilentlyContinue
+
+        Get-Command Get-ScoutArmChildResource -CommandType Function -ErrorAction SilentlyContinue |
+            Should -Not -BeNullOrEmpty
+        @($result.CollectionHealth | Where-Object {
+                $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+                $_.PSObject.Properties['Operation'] -and [string]$_.Operation -eq 'Sweep'
+            }).Count | Should -Be 0
+    }
+}
+
 Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'always queries resources, networkresources and resourcecontainers' {
         $script:queries = @()

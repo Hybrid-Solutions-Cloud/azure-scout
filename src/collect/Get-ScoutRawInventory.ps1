@@ -661,7 +661,21 @@ function Get-ScoutRawInventory {
             return $false
         }
 
-        try { . $helperPath }
+        try {
+            . $helperPath
+
+            # Dot-sourcing from inside this loader creates the helper in the loader's local
+            # function scope. Without promotion, that command disappears as soon as this
+            # function returns: the caller then enters the opted-in phase, cannot find the
+            # command it just "loaded", and records a systemic source failure. Normal module
+            # imports masked the defect because all helpers were already present. Promote the
+            # newly loaded function into the owning script/module scope so direct dot-source,
+            # isolated tests, and partial-source consumers obey the same contract.
+            $loadedCommand = Get-Command $CommandName -CommandType Function -ErrorAction SilentlyContinue
+            if ($loadedCommand) {
+                Set-Item -Path ("Function:script:$CommandName") -Value $loadedCommand.ScriptBlock -Force
+            }
+        }
         catch {
             Write-Warning "Get-ScoutRawInventory: optional helper '$CommandName' could not be loaded; skipping its opted-in dataset: $($_.Exception.Message)"
             return $false

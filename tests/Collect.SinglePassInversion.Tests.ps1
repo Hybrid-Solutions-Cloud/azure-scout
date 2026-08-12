@@ -44,6 +44,58 @@ BeforeAll {
         $null = $TenantID
         return [pscustomobject]@{ Collected = $false }
     }
+
+    # The raw path owns several non-ARG helpers. Keep this round-trip-count suite hermetic and
+    # make their successful-empty contracts explicit; otherwise the optional loader imports the
+    # real helper implementations and the fixture can reach the operator's ambient Az context.
+    function Get-ScoutArmChildResource {
+        param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+        $null = $Resources; $null = $Dataset; $null = $CollectionHealth
+        return @()
+    }
+    function Get-ScoutApiResources {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutTenantWideResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutGovernanceDataset {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return [pscustomobject]@{
+            roleAssignments = @(); roleDefinitions = @(); policyAssignments = @()
+            budgets = @(); resourceLocks = @()
+        }
+    }
+    function Get-ScoutOperationalCollectorEnrichment {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutSubscriptionSecurityPolicySweep {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function ConvertTo-ScoutAvdAzureLocalSessionHost {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function ConvertTo-ScoutArcSiteResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutOutageResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
     $script:root = Split-Path $PSScriptRoot -Parent
 
     # Neutralise Import-Module so `Import-Module Az.ResourceGraph` inside the functions under
@@ -208,7 +260,7 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
     }
 
     # One stub, two dispatch modes. The raw pass is identified by its projection
-    # (`project id,name,type,tenantId,...`), which no typed query uses.
+    # (`project id,name,type,tenantId,kind,...`), which no typed query uses.
     function New-CountingSearchAzGraph {
         $script:argQueries = [System.Collections.Generic.List[string]]::new()
         function global:Search-AzGraph {
@@ -218,7 +270,7 @@ param(
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
             $script:argQueries.Add($Query)
-            $isRawProjection = $Query -match 'project id,name,type,tenantId'
+            $isRawProjection = $Query -match 'project id,name,type,tenantId,kind'
             if ($isRawProjection -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
             if ($isRawProjection -and $Query -match '^resources\b')           { return Get-FixtureResourceRows }
             if ($isRawProjection)                                            { return @() }
@@ -238,7 +290,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
     It 'the DEFAULT assessment collect reaches Resource Graph exactly 7 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
-        # Four raw tables carrying the `project id,name,type,tenantId` marker, plus two more raw
+        # Four raw tables carrying the `project id,name,type,tenantId,kind` marker, plus two more raw
         # tables that do NOT carry it (see below), plus the one query that genuinely cannot be
         # served from inventory.
         #
@@ -255,10 +307,10 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # $columns` clause every OTHER raw table carries (Get-ScoutRawInventory.ps1's AB#6731
         # comment explains why: a `project` naming a column the table does not define fails the
         # whole query, and these two tables' schema is not guaranteed to match the `resources`
-        # projection). That means the `project id,name,type,tenantId` marker below only ever
+        # projection). That means the `project id,name,type,tenantId,kind` marker below only ever
         # matches 4 of the 6 raw-pass queries, not all 6 -- an accident of the heuristic, not a
         # sign the patch queries are typed/live queries.
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 4
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 4
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match '^patchassessmentresources' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match '^patchinstallationresources' }).Count | Should -Be 1
@@ -266,7 +318,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     It 'the queries outside the projection marker are the documented SecurityResources exception plus the two patch tables, nothing else' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
-        $unmarked = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId' })
+        $unmarked = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId,kind' })
         $unmarked.Count | Should -Be 3
 
         $securityException = @($unmarked | Where-Object { $_ -match 'SecurityResources' -and $_ -match 'microsoft\.security/pricings' })
@@ -280,7 +332,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         Invoke-Collect -Source TypedQueries -WarningAction SilentlyContinue | Out-Null
         $script:argQueries.Count | Should -BeGreaterThan 30
         # And it makes no raw pass at all -- the two sources are genuinely alternatives.
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 0
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 0
     }
 
     It 'a narrowed -Categories collect never costs more than the full run' {
@@ -450,8 +502,8 @@ param(
             if ($Query -match 'microsoft\.security/pricings') {
                 return @([pscustomobject]@{ subscriptionId = 'aaa'; name = 'SqlServers'; pricingTier = 'Standard' })
             }
-            if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
-            if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
+            if ($Query -match 'project id,name,type,tenantId,kind' -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
+            if ($Query -match 'project id,name,type,tenantId,kind' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
             return @()
         }
         try {
@@ -471,7 +523,7 @@ param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
-            if ($Query -match 'project id,name,type,tenantId') { throw 'ARG is unavailable' }
+            if ($Query -match 'project id,name,type,tenantId,kind') { throw 'ARG is unavailable' }
             return Invoke-FixtureTypedQuery -Query $Query
         }
         try {
