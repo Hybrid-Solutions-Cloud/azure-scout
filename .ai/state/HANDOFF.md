@@ -1,5 +1,40 @@
 # Handoff
 
+## Session 2026-08-12 — AzureScout copy cutover to Hybrid-Solutions-Cloud
+
+The user replaced the blocked GitHub ownership-transfer approach with a copy-and-cutover. The
+source repository was not deleted or transferred. Its `main` now contains legacy landing commit
+`406cbabf1f81bfaa961532194f1773ec999e958a`; source documentation deployment run `31607587273`
+succeeded, and `https://thisismydemo.cloud/azure-scout/` returns HTTP 200 with links to both new
+canonical locations.
+
+The public target repository is `Hybrid-Solutions-Cloud/azure-scout`, GitHub ID `1332126664`.
+The independent canonical clone is `D:/git/hybrid-solutions-cloud/azure-scout`; its `origin` points
+directly to the target. Target `main` is the validated migration-only commit
+`11783cd54c766dc4707e2003418e076d61afa8ee`. It does not contain the seven untested 3.12.3 product
+commits. Manifest 3.12.2 validated, 285 changed PowerShell files parsed, VitePress built, and the
+docs/version gate passed 8/8 with no skips.
+
+Git parity is verified: the source has 45 branches and the target has 46, with the only additional
+branch being the recovered `agent/ab7279-run-errors-3.12.3`. Every shared branch object matches
+except intentionally divergent `main` and `gh-pages`. All 82 advertised tag refs match exactly.
+The 42 source release records were recreated against those tags; the source remains authoritative
+for original publication timestamps. Target branch protection matches the source: strict update,
+one approving review, no force pushes, and no deletions. Documentation run `31608227519` and Pages
+run `31608350559` succeeded. The canonical root and a representative guide deep link return HTTP
+200. Target CI run `31608229740` was still running at this handoff checkpoint.
+
+The HCS registry was updated in the isolated platform worktree and merged through ADO PR 17 as
+platform commit `053edfe981d74b97082b04dd6203de98cf7956c1`. It registers `azure-scout` with
+`org=Hybrid-Solutions-Cloud`, `local_path=D:/git/hybrid-solutions-cloud/azure-scout`, and
+`docs_platform=vitepress`. Platform Docs build 557 and MCP build/deploy 558 were running at this
+checkpoint. The user's unrelated dirty platform checkout files were not staged or changed.
+
+The product branch was rebuilt cleanly on canonical target `main` by cherry-picking only the seven
+product/test commits. Its product tip immediately before this state-only update is `8a1bd611`.
+Resume by reproducing the same three focused raw-inventory failures described below, fix the proven
+owner, complete the focused suite, and then run the full zero-failure/zero-skip gate.
+
 ## Session 2026-08-12 — crash recovery for 3.12.3 collector correctness
 
 The laptop crash is confirmed by Windows boot time: the machine restarted at 03:31:32. The active
