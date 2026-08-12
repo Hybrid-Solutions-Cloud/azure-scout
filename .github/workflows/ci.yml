@@ -40,12 +40,6 @@ jobs:
       - name: Install test tools and module dependencies
         shell: pwsh
         run: |
-          if ($IsLinux) {
-            # System.Drawing-backed JPEG fixture generation needs the native GDI+ shim.
-            & apt-get update
-            & apt-get install --yes libgdiplus
-          }
-
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Write-Host 'Installing Pester 5.x...'
           Install-Module Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser -SkipPublisherCheck

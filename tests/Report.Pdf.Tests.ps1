@@ -163,30 +163,21 @@ Describe 'Export-Pdf -- AB#379 diagram embed' {
         # phase, so the condition would always see an unset value at
         # discovery). Checking availability inside the It body with
         # Set-ItResult -Skipped is the safe, well-documented alternative.
-        try {
-            Add-Type -AssemblyName System.Drawing.Common -ErrorAction Stop
-        }
-        catch {
-            Set-ItResult -Skipped -Because 'System.Drawing.Common is unavailable on this platform'
-            return
-        }
-
         $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-diagram'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            $bmp = [System.Drawing.Bitmap]::new(80, 40)
-            $g = [System.Drawing.Graphics]::FromImage($bmp)
-            $g.Clear([System.Drawing.Color]::CornflowerBlue)
-            $bmp.Save((Join-Path -Path $dir -ChildPath 'diagram.jpg'), [System.Drawing.Imaging.ImageFormat]::Jpeg)
-            $g.Dispose(); $bmp.Dispose()
+            # A real 8x4 baseline JPEG fixture, embedded so this offline test does not require
+            # Windows-only System.Drawing support or a native GDI+ library on Linux runners.
+            $jpeg = [Convert]::FromBase64String('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAEAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDq6KKK/os/Kj//2Q==')
+            [IO.File]::WriteAllBytes((Join-Path -Path $dir -ChildPath 'diagram.jpg'), $jpeg)
 
             $path = Export-Pdf -Findings $script:Scored -Collect $script:Collect -OutputPath $dir
             $text = Get-PdfText -Path $path
             $text | Should -Match '/Filter /DCTDecode'
             $text | Should -Match '/Subtype /Image'
-            $text | Should -Match '/Width 80'
-            $text | Should -Match '/Height 40'
+            $text | Should -Match '/Width 8'
+            $text | Should -Match '/Height 4'
             $text | Should -Not -Match 'Architecture diagram not embedded'
         }
         finally {
@@ -223,24 +214,11 @@ Describe 'Get-ScoutPdfJpegInfo (unit)' {
         Get-ScoutPdfJpegInfo -Bytes ([byte[]]@(1, 2, 3, 4, 5)) | Should -BeNullOrEmpty
     }
 
-    It 'parses width/height/components out of a real baseline JPEG' -Skip:(-not (Get-Command -Name 'Add-Type' -ErrorAction SilentlyContinue)) {
-        try {
-            Add-Type -AssemblyName System.Drawing.Common -ErrorAction Stop
-        }
-        catch {
-            Set-ItResult -Skipped -Because 'System.Drawing.Common is unavailable on this platform'
-            return
-        }
-        $bmp = [System.Drawing.Bitmap]::new(64, 32)
-        $g = [System.Drawing.Graphics]::FromImage($bmp)
-        $g.Clear([System.Drawing.Color]::Red)
-        $ms = [System.IO.MemoryStream]::new()
-        $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Jpeg)
-        $g.Dispose(); $bmp.Dispose()
-
-        $info = Get-ScoutPdfJpegInfo -Bytes $ms.ToArray()
-        $info.Width | Should -Be 64
-        $info.Height | Should -Be 32
+    It 'parses width/height/components out of a real baseline JPEG' {
+        $jpeg = [Convert]::FromBase64String('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAEAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDq6KKK/os/Kj//2Q==')
+        $info = Get-ScoutPdfJpegInfo -Bytes $jpeg
+        $info.Width | Should -Be 8
+        $info.Height | Should -Be 4
         $info.Components | Should -BeIn @(1, 3)
     }
 }

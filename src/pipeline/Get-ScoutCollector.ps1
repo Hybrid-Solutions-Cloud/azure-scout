@@ -76,7 +76,10 @@ function Get-ScoutCollector {
             if (Test-Path -LiteralPath $FixtureDefinitionRoot -PathType Container) {
                 $DefinitionRoot = $FixtureDefinitionRoot
             } else {
-                $ModuleRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $InventoryRoot))
+                # The shipped definition catalog is anchored to this function, not to an
+                # arbitrary legacy fixture path. Walking parents from /tmp on Linux can reach
+                # the filesystem root and then collapse to an empty string.
+                $ModuleRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
             }
         }
         if ([string]::IsNullOrWhiteSpace($DefinitionRoot)) {
