@@ -10,7 +10,7 @@ Run the draw.io diagram build.
 Builds the draw.io topology diagram for the collected resources.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/pipeline/Invoke-ScoutDrawIoJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/pipeline/Invoke-ScoutDrawIoJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

@@ -8,7 +8,7 @@ components via the ARM REST API (microsoft.insights/workitemconfigurations).
 Excel Sheet Name: App Insights Work Items
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsWorkItems.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsWorkItems.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

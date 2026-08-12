@@ -8,7 +8,7 @@ This script consolidates information for all Azure Bot Service resources
 Excel Sheet Name: Bot Services
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/BotServices.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/BotServices.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

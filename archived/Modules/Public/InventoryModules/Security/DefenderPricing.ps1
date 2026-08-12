@@ -8,7 +8,7 @@ Captures which Defender plans are enabled, pricing tiers, and extensions.
 Excel Sheet Name: Defender Pricing
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Security/DefenderPricing.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Security/DefenderPricing.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

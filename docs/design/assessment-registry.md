@@ -82,7 +82,7 @@ category](../assessment/assessment.md#architecture-three-layers-json-on-disk) fo
 full explanation.
 :::
 
-Source of truth: [`manifests/assessments.psd1`](https://github.com/thisismydemo/azure-scout/blob/main/manifests/assessments.psd1).
+Source of truth: [`manifests/assessments.psd1`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/manifests/assessments.psd1).
 Tracks Epic **AB#5056** (foundation **AB#5057**).
 
 Minimum auth per assessment (ARM Reader vs. the AzGovViz-only Graph

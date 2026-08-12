@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.hybridcompute/gateways re
 Excel Sheet Name: Arc Gateways
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcGateways.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcGateways.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

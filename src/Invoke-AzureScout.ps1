@@ -263,7 +263,7 @@ $ErrorActionPreference = 'Stop'
     THE SOFTWARE.
 
 .LINK
-    Official Repository: https://github.com/thisismydemo/azure-scout
+    Official Repository: https://github.com/Hybrid-Solutions-Cloud/azure-scout
 #>
 function Test-AZSCWizardEligible {
     <#

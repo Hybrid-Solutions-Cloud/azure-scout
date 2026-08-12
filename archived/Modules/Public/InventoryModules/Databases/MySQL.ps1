@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.dbformysql/servers resour
 Excel Sheet Name: MySQL
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/MySQL.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/MySQL.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

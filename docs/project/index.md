@@ -33,7 +33,7 @@ How AzureScout is built, tested, released, and contributed to.
 
 Audits, plans, the original enhancement spec and the generated task list are **not** published
 here. They are internal programme records rather than product documentation, and they live in
-[`pmo/`](https://github.com/thisismydemo/azure-scout/blob/main/pmo/README.md) in the
+[`pmo/`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/README.md) in the
 repository — including the
-[Azure Scout audit](https://github.com/thisismydemo/azure-scout/blob/main/pmo/audits/AZURE-SCOUT-AUDIT.md),
+[Azure Scout audit](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/audits/AZURE-SCOUT-AUDIT.md),
 which is the honest account of what this tool does and does not cover.

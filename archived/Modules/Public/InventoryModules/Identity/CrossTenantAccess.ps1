@@ -7,7 +7,7 @@ This script consolidates information for all entra/crosstenantaccess resources.
 Excel Sheet Name: Cross-Tenant Access
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/CrossTenantAccess.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/CrossTenantAccess.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

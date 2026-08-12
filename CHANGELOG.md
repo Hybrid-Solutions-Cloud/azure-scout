@@ -1007,7 +1007,7 @@ full-suite run and pass in isolation.
   Az cmdlets that `-SkipAPIs` has no business touching. The parameter was deleted; `-SkipAPIs` now
   only degrades the REST sweep, in its own `try` block (AB#6755, correction).
 
-See [`.ai/state/HANDOFF.md`](https://github.com/thisismydemo/azure-scout/blob/main/.ai/state/HANDOFF.md)
+See [`.ai/state/HANDOFF.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/.ai/state/HANDOFF.md)
 for the full session account, including what this epic left open (governance-data rendering,
 `ResourceDiagnosticSettings` re-sourcing, `LighthouseDelegations`, network-diagram rasterization,
 and 40 remaining child-loop collectors that can still drop their parent resource on a sparse
@@ -2216,7 +2216,7 @@ Closes the collection-hardening epic (AB#5411) and the external-platform integra
   scope.
 - **GitHub Action** (AB#328) — the repository now ships a composite `action.yml`, so a
   workflow can generate an inventory with
-  `uses: thisismydemo/azure-scout@v2`. It installs the module and dependencies,
+  `uses: Hybrid-Solutions-Cloud/azure-scout@v2`. It installs the module and dependencies,
   authenticates, runs the collection, and uploads the reports as an artifact. Every input
   reaches PowerShell as an environment variable rather than through `${{ }}` interpolation
   into a script body, so a crafted input value cannot break out and execute.
@@ -2347,7 +2347,7 @@ PSScriptAnalyzer: 0 Error-severity findings across `Modules/`.
 
 ### Changed
 
-- **Manifest `ProjectUri`** now points at the documentation site (`https://thisismydemo.cloud/azure-scout/`) so the PowerShell Gallery "Project Site" link lands on the docs rather than the GitHub repo.
+- **Manifest `ProjectUri`** now points at the documentation site (`https://hybrid-solutions-cloud.github.io/azure-scout/`) so the PowerShell Gallery "Project Site" link lands on the docs rather than the GitHub repo.
 
 ## [2.0.0] - 2026-07-23
 

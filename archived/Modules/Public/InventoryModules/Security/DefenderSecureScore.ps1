@@ -8,7 +8,7 @@ Captures overall secure score, security controls, max scores, and current achiev
 Excel Sheet Name: Defender Secure Score
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Security/DefenderSecureScore.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Security/DefenderSecureScore.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

@@ -9,7 +9,7 @@ Captures log categories, metric categories, and destinations.
 Excel Sheet Name: Resource Diagnostic Settings
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/ResourceDiagnosticSettings.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/ResourceDiagnosticSettings.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

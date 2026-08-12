@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.app/containerapps resourc
 Excel Sheet Name: Container App
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Container/ContainerApp.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Container/ContainerApp.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

@@ -8,7 +8,7 @@ workspaces via the ARM REST API (workspaces/data).
 Excel Sheet Name: ML Datasets
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/MLDatasets.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/MLDatasets.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

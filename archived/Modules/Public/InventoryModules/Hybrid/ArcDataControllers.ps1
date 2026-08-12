@@ -8,7 +8,7 @@ This script consolidates information for all Arc Data Controller resources
 Excel Sheet Name: Arc Data Controllers
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcDataControllers.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcDataControllers.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

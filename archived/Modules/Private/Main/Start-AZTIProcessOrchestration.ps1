@@ -6,7 +6,7 @@ Process orchestration for Azure Resource Inventory
 This module orchestrates the processing of resources for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

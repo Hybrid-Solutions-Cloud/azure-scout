@@ -6,7 +6,7 @@ Module for Main Dashboard
 This script process and creates the Overview sheet.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AzureScout)

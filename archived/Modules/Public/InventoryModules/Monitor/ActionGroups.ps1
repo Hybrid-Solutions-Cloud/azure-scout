@@ -8,7 +8,7 @@ Captures notification channels, receivers, and alert routing configurations.
 Excel Sheet Name: Action Groups
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/ActionGroups.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/ActionGroups.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

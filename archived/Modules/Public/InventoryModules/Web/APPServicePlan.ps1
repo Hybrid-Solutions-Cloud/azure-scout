@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.web/serverfarms resource 
 Excel Sheet Name: APPSERVICEPLAN
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Web/APPServicePlan.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Web/APPServicePlan.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)

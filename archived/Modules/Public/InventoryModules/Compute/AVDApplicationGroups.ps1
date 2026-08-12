@@ -8,7 +8,7 @@ This script consolidates information for all AVD Application Group resources
 Excel Sheet Name: AVD Application Groups
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/AVDApplicationGroups.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/AVDApplicationGroups.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

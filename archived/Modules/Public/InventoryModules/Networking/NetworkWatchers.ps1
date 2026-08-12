@@ -8,7 +8,7 @@ Captures flow logs, connection monitors, packet captures, and diagnostic capabil
 Excel Sheet Name: Network Watchers
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Network/NetworkWatchers.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Network/NetworkWatchers.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

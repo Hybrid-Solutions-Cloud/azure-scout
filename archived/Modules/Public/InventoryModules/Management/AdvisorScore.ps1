@@ -6,7 +6,7 @@ Inventory for Azure Advisor Score
 Excel Sheet Name: AdvisorScore
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/public/InventoryModules/APIs/AdvisorScore.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/public/InventoryModules/APIs/AdvisorScore.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

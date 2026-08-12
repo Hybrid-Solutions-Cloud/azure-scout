@@ -9,7 +9,7 @@ Personalizer, Immersive Reader variants).
 Excel Sheet Name: Applied AI Services
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/AppliedAIServices.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/AppliedAIServices.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

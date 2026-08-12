@@ -6,7 +6,7 @@ Inventory for Azure Outages
 Excel Sheet Name: Outages
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/APIs/Outages.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/APIs/Outages.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

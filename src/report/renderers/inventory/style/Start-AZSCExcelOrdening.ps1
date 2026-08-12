@@ -10,7 +10,7 @@ Module for Excel Sheet Ordering
 This script organizes the order of sheets in the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelOrdening.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelOrdening.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AzureScout)

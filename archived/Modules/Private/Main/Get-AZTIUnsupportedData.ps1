@@ -6,7 +6,7 @@ Retrieve unsupported data for Azure Resource Inventory
 This module retrieves unsupported data from a predefined JSON file for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Get-AZSCUnsupportedData.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Get-AZSCUnsupportedData.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

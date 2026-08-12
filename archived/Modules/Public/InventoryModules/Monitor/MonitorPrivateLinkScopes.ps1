@@ -8,7 +8,7 @@ This script consolidates information for all Azure Monitor Private Link Scopes
 Excel Sheet Name: Monitor Private Link Scopes
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorPrivateLinkScopes.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorPrivateLinkScopes.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

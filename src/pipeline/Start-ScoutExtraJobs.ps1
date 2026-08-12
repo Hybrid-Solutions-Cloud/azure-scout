@@ -12,7 +12,7 @@ their results, then starts the draw.io diagram work. Formerly this started one b
 per item; see the AB#5649 notes on the function for why that changed.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

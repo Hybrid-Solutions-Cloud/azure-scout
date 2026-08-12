@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.containerinstance/contain
 Excel Sheet Name: REGISTRIES
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Container/ContainerRegistries.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Container/ContainerRegistries.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

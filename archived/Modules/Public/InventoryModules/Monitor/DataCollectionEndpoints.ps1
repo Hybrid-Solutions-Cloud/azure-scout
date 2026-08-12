@@ -8,7 +8,7 @@ Captures ingestion endpoints, network access configurations, and associated DCRs
 Excel Sheet Name: Data Collection Endpoints
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/DataCollectionEndpoints.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/DataCollectionEndpoints.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

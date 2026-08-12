@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.network/Netowrksecuritygr
 Excel Sheet Name: NetworkSecuritytGroup
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Network_2/NetworkSecurityGroup.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Network_2/NetworkSecurityGroup.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

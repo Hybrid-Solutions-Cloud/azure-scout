@@ -8,7 +8,7 @@ This script consolidates information for all AVD Scaling Plan resources
 Excel Sheet Name: AVD Scaling Plans
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/AVDScalingPlans.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/AVDScalingPlans.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

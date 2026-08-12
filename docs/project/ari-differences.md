@@ -243,4 +243,4 @@ ARI v3.6.11 (microsoft/ARI)
 - [Credits & Attribution](./credits.md) — full list of original authors and contributors
 - [AzureScout Documentation Home](../index.md)
 - [ARI on GitHub](https://github.com/microsoft/ARI) — the original project
-- [AzureScout on GitHub](https://github.com/thisismydemo/azure-scout) — this fork
+- [AzureScout on GitHub](https://github.com/Hybrid-Solutions-Cloud/azure-scout) — this fork

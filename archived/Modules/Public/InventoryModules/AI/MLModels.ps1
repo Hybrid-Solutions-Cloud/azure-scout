@@ -8,7 +8,7 @@ via the ARM REST API.
 Excel Sheet Name: ML Models
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/MLModels.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/MLModels.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

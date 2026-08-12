@@ -8,7 +8,7 @@ This script consolidates information for all Arc-enabled SQL Server instances
 Excel Sheet Name: Arc SQL Servers
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcSQLServers.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcSQLServers.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

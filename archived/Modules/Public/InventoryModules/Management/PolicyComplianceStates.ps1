@@ -7,7 +7,7 @@ This script consolidates information for all Azure Policy compliance states acro
 Excel Sheet Name: Policy Compliance
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/PolicyComplianceStates.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/PolicyComplianceStates.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

@@ -6,7 +6,7 @@ Module for Excel Chart Creation
 This script creates charts in the Overview sheet of the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Build-AZSCExcelChart.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Build-AZSCExcelChart.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

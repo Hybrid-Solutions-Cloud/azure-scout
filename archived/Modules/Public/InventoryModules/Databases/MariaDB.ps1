@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.dbformariadb/servers reso
 Excel Sheet Name: MariaDB
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/MariaDB.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/MariaDB.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

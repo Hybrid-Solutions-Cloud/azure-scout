@@ -250,7 +250,7 @@ function Export-React {
     $productUrl = if ($manifestData -and $manifestData.PrivateData -and
                       $manifestData.PrivateData.PSData -and $manifestData.PrivateData.PSData.ProjectUri) {
                       $manifestData.PrivateData.PSData.ProjectUri
-                  } else { 'https://thisismydemo.cloud/azure-scout/' }
+                  } else { 'https://hybrid-solutions-cloud.github.io/azure-scout/' }
 
     $runId = if ($OutputPath) { Split-Path $OutputPath -Leaf } else { '' }
 

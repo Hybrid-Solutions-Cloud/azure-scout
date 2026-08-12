@@ -8,7 +8,7 @@ via the ARM REST API (microsoft.cognitiveservices/accounts/deployments).
 Excel Sheet Name: OpenAI Deployments
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/OpenAIDeployments.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/OpenAIDeployments.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

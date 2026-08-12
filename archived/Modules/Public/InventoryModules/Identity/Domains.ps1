@@ -7,7 +7,7 @@ This script consolidates information for all entra/domains resources.
 Excel Sheet Name: Entra Domains
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/Domains.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/Domains.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

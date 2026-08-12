@@ -10,7 +10,7 @@ This page outlines what's planned, what's in progress, and what's been delivered
 Community contributions are welcome — see [Contributing](./contributing.md) to get involved.
 
 > The consolidated architecture, work-item index, audit findings, and delivery
-> plan live in the [Master Design & Plan](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md). This roadmap is
+> plan live in the [Master Design & Plan](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/plans/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
 ## v3.0.0 engine rebuild status
@@ -331,7 +331,7 @@ branch through its own duplicate discovery.
 Live-verified: 5:37, 136 resources, 481 Excel rows, zero leftover background jobs, zero collector
 failures.
 
-Full detail: [CHANGELOG.md § 2.11.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2110---2026-07-26).
+Full detail: [CHANGELOG.md § 2.11.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#2110---2026-07-26).
 
 ## Previous Release — v2.10.0 — The Declarative Collectors Actually Run
 
@@ -368,7 +368,7 @@ each collector's `.ps1` reporting branch through its own duplicate discovery, so
 
 Live-verified: 6:37, 136 resources, 481 Excel rows, 43 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.10.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2100---2026-07-26).
+Full detail: [CHANGELOG.md § 2.10.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#2100---2026-07-26).
 
 ## Previous Release — v2.9.0 — The Collectors Become Data, and the Module Runs Strict
 
@@ -410,7 +410,7 @@ StrictMode passes, 146 emit zero rows because the capture covers only 32 resourc
 
 Live-verified: 4:52, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.9.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#290---2026-07-26).
+Full detail: [CHANGELOG.md § 2.9.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#290---2026-07-26).
 
 ## Previous Release — v2.8.0 — Collection Actually Happens Once
 
@@ -458,7 +458,7 @@ v1 implementations for ARM REST, VM quota/SKU and Cost Management.
 
 Live-verified: 5:11, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.8.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#280---2026-07-26).
+Full detail: [CHANGELOG.md § 2.8.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#280---2026-07-26).
 
 ## Previous Release — v2.7.0 — Reporting Leaves `Modules/`, and Collectors Become Data
 
@@ -497,7 +497,7 @@ fired on the default path. The subscription list was never derived from `resourc
 every later table degraded to a single un-batched tenant-wide call with none of the documented
 per-batch isolation. Same `@($null).Count` class as the empty-Excel-loop bug fixed in v2.6.0.
 
-Full detail: [CHANGELOG.md § 2.7.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#270---2026-07-26).
+Full detail: [CHANGELOG.md § 2.7.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#270---2026-07-26).
 
 ## Previous Release — v2.6.0 — The Engine Stops Using Background Jobs
 
@@ -538,7 +538,7 @@ machinery are **deleted**; the run orchestration starts no background jobs.
 - The Excel report loop invoked every collector whether or not it had data, because it counted
   rows with `@($SmaResources).count` and **`@($null).Count` is 1, not 0**.
 
-Full detail: [CHANGELOG.md § 2.6.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#260---2026-07-25).
+Full detail: [CHANGELOG.md § 2.6.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#260---2026-07-25).
 
 ## Previous Release — v2.5.3 — Empty Is Not Null, and Runs That Explain Themselves
 
@@ -567,7 +567,7 @@ on failure — the full error record including the failing script, line number a
 trace. `scout-console.log` carries the transcript. It paid for itself during this release: two of
 the four defects above were found by reading the log rather than by re-running with `-Debug`.
 
-Full detail: [CHANGELOG.md § 2.5.3](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.3](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
 
 ## Earlier Release — v2.5.2 — Determinism
 
@@ -586,7 +586,7 @@ Verified by **three consecutive live runs producing byte-identical results**: 22
 994 Excel rows, 40 Power BI files / 1013 rows, 166 Azure DevOps resources, 0 empty-category
 warnings, 0 raw COM errors.
 
-Full detail: [CHANGELOG.md § 2.5.2](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.2](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
 
 ## Earlier Release — v2.5.1 — Live-Run Hardening
 
@@ -605,7 +605,7 @@ against real collector output. This release also carries the first live-tenant v
 `-IncludeDevOps` collectors — 166 resources across 74 projects — which previously had only mocked
 tests.
 
-Full detail: [CHANGELOG.md § 2.5.1](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#251---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.1](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#251---2026-07-25).
 
 ## Previous Release — v2.5.0 — One Collection Pass
 
@@ -617,7 +617,7 @@ from those rows rather than re-issuing its own Resource Graph pack over the same
 One query still goes to Azure in a combined run — the Defender for SQL pricing lookup, which
 reads a table the inventory does not collect. The assessment-only path is unchanged.
 
-Full detail: [CHANGELOG.md § 2.5.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#250---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#250---2026-07-25).
 
 ## Previous Release — v2.4.0 — One Command, and a Guided Wizard
 
@@ -631,7 +631,7 @@ Released 25 July 2026, published to the PowerShell Gallery.
 | Assessment entry point | The former standalone assessment command is removed in v3.0.0; use `Invoke-AzureScout -Assessment` |
 | Documentation | Corrected pages claiming a PowerShell 5.1 floor the module never had, and collapsed the "Inventory vs Assessment" framing across the site |
 
-Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
+Full detail: [CHANGELOG.md § 2.4.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
 
 ::: tip Resolved in v2.5.0
 The duplicate collection pass described here was collapsed in v2.5.0 (AB#5543) — a combined run
@@ -651,7 +651,7 @@ epic and the external-platform integrations.
 | Reliability | Subscription context restored in a `finally` at all five `Set-AzContext` sites (AB#368); post-login management group access probe naming the role to assign (AB#351) |
 | Documentation | [Category Reference](../reference/category-reference.md) (AB#318/5417) and [Validation Matrix](../reference/validation-matrix.md) (AB#315) |
 
-Full detail: [CHANGELOG.md § 2.3.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#230---2026-07-25).
+Full detail: [CHANGELOG.md § 2.3.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#230---2026-07-25).
 
 ## v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
 
@@ -667,7 +667,7 @@ functions, deeper collector coverage, and a round of platform hardening on top o
 | Config | `Import-ScoutConfig` / `Export-ScoutConfig` (AB#373–375) — save/reload a benchmark + rule-selection + threshold-override config as JSON, with a safe fallback to the built-in default |
 | Platform | CI pipeline (AB#317); a real, non-simulated `azure-inventory` workflow (AB#340); module auto-update check (AB#369); login auth banner (AB#349); five v1 inventory bug fixes (AB#335–340); draw.io merge/StrictMode repairs (AB#342); documented Entra Graph delegated scopes (AB#347/338) |
 
-Full detail: [CHANGELOG.md § 2.2.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#220---2026-07-24).
+Full detail: [CHANGELOG.md § 2.2.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#220---2026-07-24).
 
 ## v2.1.0 — Platform Hardening
 
@@ -767,7 +767,7 @@ Focus: depth, breadth, and multi-tenant scenarios.
 | Bicep / IaC gap detection | Shipped as the offline `Get-ScoutIacGap` function (v2.2.0) — compares discovered resources against a folder of Bicep/ARM-JSON templates and flags unmanaged resources; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#325) |
 | Resource drift reporting | Shipped as the offline `Get-ScoutInventoryDrift` function (v2.2.0) — compares the current `collect.json` against the previous run's snapshot and reports Added/Removed/Changed resources. | :white_check_mark: Done (v2.2.0, AB#326) |
 | Azure DevOps integration | Shipped as `-IncludeDevOps` (v2.3.0) — inventories projects, pipelines, service connections, repositories, and agent pools across one or more organizations, adding five worksheets. Authentication reuses the current Azure sign-in; `-DevOpsPat` covers a separate identity. The ADO Service Connections sheet cross-references each ARM connection against the subscriptions in scope. | :white_check_mark: Done (v2.3.0, AB#327) |
-| GitHub Actions module | Shipped as a composite `action.yml` at the repository root (v2.3.0) — `uses: thisismydemo/azure-scout@v2` installs the module, authenticates, collects, and uploads reports as an artifact. | :white_check_mark: Done (v2.3.0, AB#328) |
+| GitHub Actions module | Shipped as a composite `action.yml` at the repository root (v2.3.0) — `uses: Hybrid-Solutions-Cloud/azure-scout@v2` installs the module, authenticates, collects, and uploads reports as an artifact. | :white_check_mark: Done (v2.3.0, AB#328) |
 | Azure Automation Account | Shipped as first-class unattended execution (v2.3.0) — the eight-step setup guide now exists, plus fixes for the blob-upload collision on a second scheduled run and the diagnostic log that never uploaded. | :white_check_mark: Done (v2.3.0, AB#343) |
 | Fabric / Power BI export (#17) | `-OutputFormat PowerBI` generates a flat normalized CSV bundle (`PowerBI/` folder) with `_metadata.csv`, `Subscriptions.csv`, per-module `Resources_*.csv` and `Entra_*.csv` files, and a `_relationships.json` star-schema manifest for Power BI Desktop / Microsoft Fabric | :white_check_mark: Done |
 | IoT deep coverage | Shipped in the assessment Collect layer (v2.2.0) — `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them. | :white_check_mark: Done (v2.2.0, AB#330) |
@@ -790,7 +790,7 @@ Turned inventory into a **scored CAF/WAF landing-zone assessment**. Collection s
 
 Three more Epic AB#5023 capabilities shipped ahead of the full per-domain
 analytics epic below. Tagged and released as `v2.1.0` — see
-[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+[`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md)
 for the build ledger.
 
 | Capability | Description | Status |
@@ -806,7 +806,7 @@ analysis functions shipped in v2.2.0 next.
 ## Major — v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
 
 Delivered on `main` — not yet tagged/published, see
-[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+[`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md)
 for cut status.
 
 | Capability | Description | Status |
@@ -837,7 +837,7 @@ Focus: extend CAF/WAF analytics to **every** Scout category, not just the landin
 | Per-category coverage | CAF/WAF rule coverage authored for each category — Management, Monitor, Networking, Identity, Security, Compute, Storage, Databases, Containers, Web, Analytics, AI, Integration, Hybrid, IoT | :blue_circle: Planned (AB#5061–AB#5075) |
 | Registry document | A table of every possible assessment: category, sub-bundles, CAF areas, WAF pillars, tags | :blue_circle: Planned (AB#5057) |
 
-See [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md) for the build/release ledger.
+See [`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md) for the build/release ledger.
 
 ## Far-future — Web version of Azure Scout (Epic AB#5093)
 
@@ -921,7 +921,7 @@ See the [Changelog](./changelog.md) for the full history.
 
 ## Suggest a Feature
 
-Open an issue at [github.com/thisismydemo/azure-scout/issues](https://github.com/thisismydemo/azure-scout/issues) with the label `enhancement`.
+Open an issue at [github.com/Hybrid-Solutions-Cloud/azure-scout/issues](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues) with the label `enhancement`.
 
 Pull requests are welcome — see [Contributing](./contributing.md) for guidelines.
 

@@ -9,7 +9,7 @@ instances and connected Arc machines that are tagged or configured as AVD sessio
 Excel Sheet Name: AVD on Azure Local/Arc
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/AVDAzureLocal.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/AVDAzureLocal.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

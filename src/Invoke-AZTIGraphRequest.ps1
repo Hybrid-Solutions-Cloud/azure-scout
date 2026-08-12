@@ -41,7 +41,7 @@ $ErrorActionPreference = 'Stop'
     [PSObject[]] Aggregated .value array, or the raw response for single-object endpoints.
 
 .LINK
-    https://github.com/thisismydemo/azure-scout
+    https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)

@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.redhatopenshift/openshift
 Excel Sheet Name: ARO
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Container/ARO.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Container/ARO.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

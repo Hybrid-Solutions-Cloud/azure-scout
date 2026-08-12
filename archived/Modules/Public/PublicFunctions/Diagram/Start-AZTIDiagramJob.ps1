@@ -7,7 +7,7 @@ Filters the resource set by the types the network and organisation diagrams draw
 them as a hashtable keyed by the short names those builders expect.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

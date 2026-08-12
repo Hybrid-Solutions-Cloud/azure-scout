@@ -6,7 +6,7 @@ Module responsible for retrieving Azure Management Groups.
 This module retrieves Azure Management Groups and their associated subscriptions.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCManagementGroups.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCManagementGroups.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

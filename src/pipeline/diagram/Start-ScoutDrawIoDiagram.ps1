@@ -11,7 +11,7 @@ Diagram Module for Draw.io
 This script processes and creates a Draw.io Diagram based on resources present in the extraction variable $Resources.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDrawIODiagram.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDrawIODiagram.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

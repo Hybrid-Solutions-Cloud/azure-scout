@@ -10,7 +10,7 @@ Module for Initial Block in Excel Report
 This script creates the initial block with metadata and summary information in the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Build-AZSCExcelinitialBlock.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Build-AZSCExcelinitialBlock.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -112,7 +112,7 @@ function Build-AZSCInitialBlock {
     $txt.ComplexFont = $Font
     $txt.LatinFont = $Font
 
-    $txt = $Draw.RichText.Add('https://github.com/thisismydemo/azure-scout' + "`n" + "`n")
+    $txt = $Draw.RichText.Add('https://github.com/Hybrid-Solutions-Cloud/azure-scout' + "`n" + "`n")
     $txt.Size = 11
     $txt.ComplexFont = $Font
     $txt.LatinFont = $Font

@@ -7,7 +7,7 @@ This script consolidates information for all Management Groups in the tenant hie
 Excel Sheet Name: Management Groups
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/ManagementGroups.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/ManagementGroups.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

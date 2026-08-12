@@ -7,7 +7,7 @@ This script consolidates information for all entra/securitypolicies resources.
 Excel Sheet Name: Security Policies
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/SecurityPolicies.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/SecurityPolicies.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -13,7 +13,7 @@ written alongside (or instead of) the Excel report depending on the
 -OutputFormat parameter on Invoke-AzureScout.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

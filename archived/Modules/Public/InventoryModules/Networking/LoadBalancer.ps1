@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.network/loadbalancers and
 Excel Sheet Name: LoadBalancer
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Network_1/LoadBalancer.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Network_1/LoadBalancer.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

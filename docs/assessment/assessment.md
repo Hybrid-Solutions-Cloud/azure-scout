@@ -464,5 +464,5 @@ copies of anything do. The detail now lives in one place and the other two link 
 ## Design reference
 
 The full architecture, rule catalogue, and decision records live in the
-[Master Design & Plan](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md) and the
+[Master Design & Plan](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/plans/master-plan.md) and the
 [assessment registry](../design/assessment-registry.md).

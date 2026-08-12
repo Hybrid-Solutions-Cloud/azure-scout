@@ -21,7 +21,7 @@ returns today.
 ## Current state
 
 The suite is **1,648 automated tests across 56 files**, run by
-[`ci.yml`](https://github.com/thisismydemo/azure-scout/blob/main/.github/workflows/ci.yml)
+[`ci.yml`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/.github/workflows/ci.yml)
 on every push and pull request.
 
 ```powershell
@@ -30,7 +30,7 @@ Invoke-Pester -Path .\tests\ -Output Detailed
 ```
 
 Live-tenant checks are run against a scratch subscription before a release. The
-[`azure-inventory.yml`](https://github.com/thisismydemo/azure-scout/blob/main/.github/workflows/azure-inventory.yml)
+[`azure-inventory.yml`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/.github/workflows/azure-inventory.yml)
 workflow (`workflow_dispatch`) is the harness for that — it runs a real headless scan with
 a service principal and uploads the reports as artifacts for inspection.
 

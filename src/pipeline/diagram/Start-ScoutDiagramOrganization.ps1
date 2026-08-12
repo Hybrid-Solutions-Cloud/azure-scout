@@ -11,7 +11,7 @@ Organization Module for Draw.io Diagram
 This module is used for the Organization topology in the Draw.io Diagram.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramOrganization.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramOrganization.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

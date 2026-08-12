@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.azurestackhci/logicalnetw
 Excel Sheet Name: AzLocal Networks
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AzureLocal/LogicalNetworks.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AzureLocal/LogicalNetworks.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

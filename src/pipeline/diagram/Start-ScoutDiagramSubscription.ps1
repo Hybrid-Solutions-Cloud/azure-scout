@@ -11,7 +11,7 @@ Subscription Module for Draw.io Diagram
 This module is used for the Subscription topology in the Draw.io Diagram.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -6,7 +6,7 @@ Inventory for Azure Managed Identities
 Excel Sheet Name: ManagedIdentities
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/APIs/ManagedIdentities.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/APIs/ManagedIdentities.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

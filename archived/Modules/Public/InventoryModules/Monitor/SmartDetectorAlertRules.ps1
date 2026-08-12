@@ -8,7 +8,7 @@ This script consolidates information for all Smart Detector Alert Rules
 Excel Sheet Name: Smart Detector Alerts
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/SmartDetectorAlertRules.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/SmartDetectorAlertRules.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

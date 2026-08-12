@@ -8,7 +8,7 @@ This script consolidates information for all Azure Stack HCI (Azure Local) Site 
 Excel Sheet Name: Arc Sites
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcSites.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcSites.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

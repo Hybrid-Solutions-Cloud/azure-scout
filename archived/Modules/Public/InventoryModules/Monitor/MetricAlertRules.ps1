@@ -8,7 +8,7 @@ Captures threshold conditions, severity, evaluation frequency, and action groups
 Excel Sheet Name: Metric Alerts
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/MetricAlertRules.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/MetricAlertRules.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

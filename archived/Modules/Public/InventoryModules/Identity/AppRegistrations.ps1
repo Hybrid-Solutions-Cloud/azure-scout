@@ -7,7 +7,7 @@ This script consolidates information for all entra/applications resources.
 Excel Sheet Name: App Registrations
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/AppRegistrations.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/AppRegistrations.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.documentdb/databaseaccoun
 Excel Sheet Name: CosmosDB
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/CosmosDB.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/CosmosDB.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

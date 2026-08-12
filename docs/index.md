@@ -18,7 +18,7 @@ hero:
       link: /reference/assessment-catalogue
     - theme: alt
       text: View on GitHub
-      link: https://github.com/thisismydemo/azure-scout
+      link: https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 features:
   - title: Two modes, one command

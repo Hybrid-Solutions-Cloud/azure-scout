@@ -10,7 +10,7 @@ description: Master design and delivery plan for Azure Scout — the single sour
 > decided, or shipped, it is recorded here and reflected in ADO.
 
 - **ADO project:** `This Is My Demo — Azure Scout` (dev.azure.com/hybridcloudsolutions)
-- **GitHub repo:** `thisismydemo/azure-scout`
+- **GitHub repo:** `Hybrid-Solutions-Cloud/azure-scout`
 - **Working branch:** `claude/repo-access-wexuku`
 - **Governance:** HCS split source-of-truth — ADO masters Epic→Feature→Story→Task; GitHub masters Bug/Feature-request intake.
 - **Last updated:** 2026-07-23 (AB#5041/#5050/#5053 delivered — native governance collector, unattended pipeline, React report + drift; §5/§6/§8 corrected)
@@ -33,7 +33,7 @@ the authoritative source this page has not been reconciled against.
 | [`enhancement-spec.md`](../enhancement-spec.md) | **The owner's original AzureScout Enhancement Specification, verbatim** — the source requirement this whole plan derives from (§0–§12: architecture, engine, ingest, benchmark, reporting, build phases). |
 | [`task-list.md`](../task-list.md) | Complete flat list of every task (161 ADO items / 91 GitHub issues) grouped by release/epic. |
 | [`assessment-registry.md`](../../docs/design/assessment-registry.md) | Catalogue of every runnable assessment (category, sub-bundles, CAF/WAF coverage, tags). |
-| [`../roadmap.md`](../../docs/project/roadmap.md) · [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md) | Public roadmap and release/build ledger. |
+| [`../roadmap.md`](../../docs/project/roadmap.md) · [`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md) | Public roadmap and release/build ledger. |
 
 ### ⚠️ ADO verification status (2026-07-21 07:20 UTC)
 
@@ -65,7 +65,7 @@ re-scanning. **Read-only throughout** (Reader at MG root + read-only Graph).
 Repository layout (implemented on the working branch): `src/Invoke-AzureScout.ps1`,
 `manifests/assessments.psd1`, `src/assess/` (engine + rules + benchmarks),
 `src/ingest/`, `src/report/` (+ renderers + templates), `.ado/azure-pipelines.yml`.
-See [`src/README.md`](https://github.com/thisismydemo/azure-scout/blob/main/src/README.md).
+See [`src/README.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/src/README.md).
 
 ## 3. Scope model — how Scout collects
 
@@ -189,7 +189,7 @@ Cross-layer correctness audit (2026-07-20). **All findings are now logged as aut
 ## 7. New feature requests / decisions captured here
 
 - **Per-domain CAF/WAF analytics** (Epic AB#5056) — every category an independently runnable, tagged assessment. **Added.**
-- **Release/build ledger** — [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md). **Added.**
+- **Release/build ledger** — [`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md). **Added.**
 - `azure-scout` retained as a de-facto repo tag (not in the formal vocabulary) — pending decision to keep or strip.
 - GitHub roadmap projection (Flow 2) for approved Features — **not done** (bot-only per standard); pending "approve + project" decision.
 
@@ -263,7 +263,7 @@ Design Goal #4 requires **replacing Excel-first output with a better, tiered ren
 
 ## 12. Release plan
 
-See [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md). Summary: v1.1.0 (quality), v1.2.0 (collector depth), **v2.0.0** (assessment platform — major, breaking output surface), **v2.1.0** (per-domain analytics).
+See [`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md). Summary: v1.1.0 (quality), v1.2.0 (collector depth), **v2.0.0** (assessment platform — major, breaking output surface), **v2.1.0** (per-domain analytics).
 
 ---
 

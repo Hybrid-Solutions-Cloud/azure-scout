@@ -11,7 +11,7 @@ Public Advisory Job Module
 This script creates the job to process the Advisory data.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCAdvisoryJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCAdvisoryJob.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)

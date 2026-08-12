@@ -5,7 +5,7 @@ name: Azure Scout
 #
 # This workflow consumes the repository's own composite action (./), so it
 # exercises the same code path external consumers get from
-# `uses: thisismydemo/azure-scout@v2`.
+# `uses: Hybrid-Solutions-Cloud/azure-scout@v2`.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   AZURE_TENANT_ID        - Entra tenant (directory) ID

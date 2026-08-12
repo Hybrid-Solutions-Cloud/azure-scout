@@ -7,7 +7,7 @@ This script consolidates information for all  resource provider in $Resources va
 Excel Sheet Name: NetApp
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Storage/NetApp.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Storage/NetApp.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)

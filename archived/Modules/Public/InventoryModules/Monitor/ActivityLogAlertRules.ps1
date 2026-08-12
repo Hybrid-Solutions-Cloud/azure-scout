@@ -8,7 +8,7 @@ This script consolidates information for all Activity Log Alert rules
 Excel Sheet Name: Activity Log Alerts
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/ActivityLogAlertRules.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/ActivityLogAlertRules.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

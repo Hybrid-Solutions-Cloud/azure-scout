@@ -155,13 +155,13 @@ PrivateData = @{
         Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','React','Json','JsonEvidence')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/thisismydemo/azure-scout/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://thisismydemo.cloud/azure-scout/'
+        ProjectUri = 'https://hybrid-solutions-cloud.github.io/azure-scout/'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/public/images/azurescout-icon.svg'
+        IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
         ReleaseNotes = 'v3.12.2 - Honest collection, retained evidence. Guided combined runs authenticate and audit once; management-group and Graph readiness report what can actually be collected. Known unavailable Entra endpoints are classified before any request; held Lighthouse is removed; oversized Security Center results retry safely; expected ARM absence stays quiet; and upstream failures flow into collection-health.json instead of looking empty. Completed runs retain raw-inventory.json, ReportCache, DiagramCache, and health/evidence artifacts until explicit cleanup. AB#7279.'

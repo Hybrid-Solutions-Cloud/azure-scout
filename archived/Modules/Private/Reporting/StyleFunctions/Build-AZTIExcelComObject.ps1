@@ -6,7 +6,7 @@ Module for Excel COM Object Customizations
 This script applies additional customizations to the Excel report using the Excel COM object.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/StyleFunctions/Build-AZTIExcelComObject.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/StyleFunctions/Build-AZTIExcelComObject.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AzureScout)

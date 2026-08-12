@@ -8,7 +8,7 @@ This script consolidates information for all AVD Workspace resources
 Excel Sheet Name: AVD Workspaces
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/AVDWorkspaces.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/AVDWorkspaces.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

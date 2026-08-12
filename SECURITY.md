@@ -1,7 +1,7 @@
 # Security Policy
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
+  <img src="https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
   <h2>Azure Scout Security Policy</h2>
 </div>
 
@@ -39,7 +39,7 @@ Providing thorough information helps us evaluate your report more efficiently.
 
 ## 🔒 Scope
 
-This security policy covers the Azure Scout PowerShell module and all code within the [thisismydemo/azure-scout](https://github.com/thisismydemo/azure-scout) repository.
+This security policy covers the Azure Scout PowerShell module and all code within the [Hybrid-Solutions-Cloud/azure-scout](https://github.com/Hybrid-Solutions-Cloud/azure-scout) repository.
 
 ## 🌐 Communication
 

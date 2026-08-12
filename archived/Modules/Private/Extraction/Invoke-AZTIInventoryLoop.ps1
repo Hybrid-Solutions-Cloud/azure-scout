@@ -6,7 +6,7 @@ Module responsible for looping through Azure Resource Graph queries.
 This module is used to loop through Azure Resource Graph queries and retrieve resources in batches.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Invoke-AZSCInventoryLoop.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/Invoke-AZSCInventoryLoop.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

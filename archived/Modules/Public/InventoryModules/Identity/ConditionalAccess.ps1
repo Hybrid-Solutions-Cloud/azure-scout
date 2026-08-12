@@ -7,7 +7,7 @@ This script consolidates information for all entra/conditionalaccesspolicies res
 Excel Sheet Name: Conditional Access
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/ConditionalAccess.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/ConditionalAccess.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

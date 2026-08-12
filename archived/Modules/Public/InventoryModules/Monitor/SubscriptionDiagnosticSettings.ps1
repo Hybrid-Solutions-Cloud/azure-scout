@@ -8,7 +8,7 @@ Captures log categories, retention policies, and destinations (Log Analytics, St
 Excel Sheet Name: Subscription Diagnostics
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/SubscriptionDiagnosticSettings.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/SubscriptionDiagnosticSettings.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

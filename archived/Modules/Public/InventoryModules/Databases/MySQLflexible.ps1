@@ -7,7 +7,7 @@ This script consolidates information for all  resource provider in $Resources va
 Excel Sheet Name: MySQL flexible
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/MySQLflexible.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/MySQLflexible.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)

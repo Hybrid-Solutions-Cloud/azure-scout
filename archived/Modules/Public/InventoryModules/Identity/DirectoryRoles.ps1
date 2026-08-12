@@ -7,7 +7,7 @@ This script consolidates information for all entra/directoryroles resources.
 Excel Sheet Name: Directory Roles
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Identity/DirectoryRoles.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Identity/DirectoryRoles.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

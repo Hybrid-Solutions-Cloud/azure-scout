@@ -8,7 +8,7 @@ Solutions (microsoft.operationsmanagement/solutions).
 Excel Sheet Name: LA Solutions
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceSolutions.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceSolutions.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

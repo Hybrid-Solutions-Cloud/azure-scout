@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.servicebus/namespaces and
 Excel Sheet Name: ServiceBUS
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Integration/ServiceBUS.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Integration/ServiceBUS.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

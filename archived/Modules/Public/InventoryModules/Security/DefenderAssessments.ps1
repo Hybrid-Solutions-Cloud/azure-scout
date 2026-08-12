@@ -8,7 +8,7 @@ Captures security recommendations, severity, remediation steps, and compliance i
 Excel Sheet Name: Defender Assessments
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Security/DefenderAssessments.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Security/DefenderAssessments.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

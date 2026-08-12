@@ -10,7 +10,7 @@ count, and management group path.
 Excel Sheet Name: All Subscriptions
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/AllSubscriptions.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/AllSubscriptions.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

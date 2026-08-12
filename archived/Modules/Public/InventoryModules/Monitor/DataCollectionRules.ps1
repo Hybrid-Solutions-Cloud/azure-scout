@@ -8,7 +8,7 @@ Captures data sources, destinations, transformations, and associations.
 Excel Sheet Name: Data Collection Rules
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/DataCollectionRules.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/DataCollectionRules.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

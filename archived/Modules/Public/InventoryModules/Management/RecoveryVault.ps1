@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.recoveryservices/vaults a
 Excel Sheet Name: RecoveryVault
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/RecoveryVault.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/RecoveryVault.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

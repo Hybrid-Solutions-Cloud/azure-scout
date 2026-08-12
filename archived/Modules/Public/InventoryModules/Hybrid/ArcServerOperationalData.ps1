@@ -9,7 +9,7 @@ Supplement to ARCServers.ps1 — does not replace it.
 Excel Sheet Name: Arc Server Operational Data
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcServerOperationalData.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcServerOperationalData.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

@@ -8,7 +8,7 @@ in the tenant using the ARM REST API.
 Excel Sheet Name: LA Saved Searches
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceSavedSearches.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceSavedSearches.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

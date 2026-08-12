@@ -27,7 +27,7 @@ runs against different tenants are distinguishable at a glance.
 Write into the base path directly, overwriting any previous run in place.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/Set-AZTIReportPath.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/Set-AZTIReportPath.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

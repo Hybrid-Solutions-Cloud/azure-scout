@@ -22,7 +22,7 @@ After merge, the GitHub Actions workflow builds and deploys to GitHub Pages auto
 To enable GitHub Pages (first time only):
 1. Go to **Settings → Pages**
 2. Set source to **GitHub Actions**
-3. The site will be available at `https://thisismydemo.github.io/azure-scout/`
+3. The site will be available at `https://hybrid-solutions-cloud.github.io/azure-scout/`
 
 ## Checklist
 

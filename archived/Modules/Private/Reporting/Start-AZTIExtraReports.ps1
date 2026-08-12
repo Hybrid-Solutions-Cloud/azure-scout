@@ -6,7 +6,7 @@ Module for Extra Reports
 This script processes and creates additional report sheets such as Quotas, Security Center, Policies, and Advisory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExtraReports.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExtraReports.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

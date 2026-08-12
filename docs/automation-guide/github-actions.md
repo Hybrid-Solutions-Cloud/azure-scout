@@ -8,7 +8,7 @@ AzureScout ships a composite action, so a workflow can produce an inventory repo
 installing PowerShell modules by hand or checking anything out.
 
 ```yaml
-- uses: thisismydemo/azure-scout@v2
+- uses: Hybrid-Solutions-Cloud/azure-scout@v2
   with:
     tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
     client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -53,7 +53,7 @@ jobs:
   inventory:
     runs-on: ubuntu-latest
     steps:
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -94,7 +94,7 @@ context established by an earlier step, such as an OIDC login via `azure/login`.
 | `report-count` | Number of report files generated |
 
 ```yaml
-- uses: thisismydemo/azure-scout@v2
+- uses: Hybrid-Solutions-Cloud/azure-scout@v2
   id: scout
   with:
     tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
@@ -117,7 +117,7 @@ EPPlus/ImportExcel (`Build-AZSCExcelChartStyle`) without an installed Excel appl
 A full tenant scan is expensive. Split it or narrow it:
 
 ```yaml
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -144,7 +144,7 @@ jobs:
           - 'Identity,Security,Management'
           - 'Hybrid,Monitor,Integration'
     steps:
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -160,7 +160,7 @@ Give each matrix leg a distinct `artifact-name`; identical names collide on uplo
 The action leaves reports in the workspace, so any upload step can pick them up:
 
 ```yaml
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         id: scout
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}

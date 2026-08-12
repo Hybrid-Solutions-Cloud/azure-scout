@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.dbforpostgresql/servers r
 Excel Sheet Name: POSTGRE
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/POSTGRE.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/POSTGRE.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

@@ -8,7 +8,7 @@ from all Application Insights components via the ARM REST API.
 Excel Sheet Name: App Insights Proactive Detection
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsProactiveDetection.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsProactiveDetection.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

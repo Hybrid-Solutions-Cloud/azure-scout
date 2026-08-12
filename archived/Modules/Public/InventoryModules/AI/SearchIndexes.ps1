@@ -8,7 +8,7 @@ via the Search REST management API.
 Excel Sheet Name: Search Indexes
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/SearchIndexes.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/SearchIndexes.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

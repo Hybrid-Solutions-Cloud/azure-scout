@@ -8,7 +8,7 @@ via the ARM REST API.
 Excel Sheet Name: ML Datastores
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/MLDatastores.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/MLDatastores.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

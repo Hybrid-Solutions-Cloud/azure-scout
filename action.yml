@@ -1,6 +1,6 @@
 name: 'Azure Scout Inventory'
 description: 'Generate an Azure ARM + Entra ID inventory report and expose it as a workflow artifact.'
-author: 'thisismydemo'
+author: 'Hybrid Solutions Cloud'
 
 branding:
   icon: 'search'

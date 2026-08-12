@@ -6,7 +6,7 @@ Module responsible for coordinate the extraction of Resource and build the Graph
 This module is the main module for the Azure Resource Graphs that will be run against the environment.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Start-AZSCGraphExtraction.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/Start-AZSCGraphExtraction.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

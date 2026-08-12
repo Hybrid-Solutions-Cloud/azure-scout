@@ -6,7 +6,7 @@ Module responsible for retrieving Azure subscriptions.
 This module retrieves Azure subscriptions for a given tenant or specific subscription IDs.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCSubscriptions.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCSubscriptions.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

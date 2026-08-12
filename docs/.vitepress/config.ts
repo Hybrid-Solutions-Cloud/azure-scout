@@ -169,7 +169,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/thisismydemo/azure-scout' },
+      { icon: 'github', link: 'https://github.com/Hybrid-Solutions-Cloud/azure-scout' },
     ],
 
     search: {
@@ -182,7 +182,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/thisismydemo/azure-scout/edit/main/docs/:path',
+      pattern: 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
   },

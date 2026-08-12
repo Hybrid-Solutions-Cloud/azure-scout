@@ -6,7 +6,7 @@ Inventory for Azure Support Tickets
 Excel Sheet Name: SupportTickets
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/APIs/SupportTickets.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/APIs/SupportTickets.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

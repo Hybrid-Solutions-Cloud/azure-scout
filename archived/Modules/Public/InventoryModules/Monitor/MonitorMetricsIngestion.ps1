@@ -8,7 +8,7 @@ capacity/retention settings that govern metrics and log ingestion.
 Excel Sheet Name: Monitor Metrics Ingestion
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorMetricsIngestion.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorMetricsIngestion.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

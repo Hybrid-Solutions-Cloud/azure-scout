@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.sqlvirtualmachine/sqlvirt
 Excel Sheet Name: SQLVM
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/SQLVM.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/SQLVM.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

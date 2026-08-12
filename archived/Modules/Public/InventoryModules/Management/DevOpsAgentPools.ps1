@@ -10,7 +10,7 @@ for is distinguishable at a glance.
 Excel Sheet Name: ADO Agent Pools
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/DevOpsAgentPools.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/DevOpsAgentPools.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -8,7 +8,7 @@ This script consolidates information for all Azure Monitor Workbooks
 Excel Sheet Name: Monitor Workbooks
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorWorkbooks.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/MonitorWorkbooks.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

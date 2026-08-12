@@ -42,7 +42,7 @@ param(
     [string] $OutputPath   = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'pmo', 'task-list.md'),
     [string] $Organization = 'https://dev.azure.com/hybridcloudsolutions',
     [string] $ProjectId    = '85b6e47e-a666-4a38-8c43-de87dd21aa56',
-    [string] $Repository   = 'thisismydemo/azure-scout'
+    [string] $Repository   = 'Hybrid-Solutions-Cloud/azure-scout'
 )
 
 Set-StrictMode -Version Latest

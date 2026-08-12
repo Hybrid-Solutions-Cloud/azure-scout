@@ -8,7 +8,7 @@ Captures threat intelligence, affected resources, severity, and recommended acti
 Excel Sheet Name: Defender Alerts
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Security/DefenderAlerts.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Security/DefenderAlerts.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

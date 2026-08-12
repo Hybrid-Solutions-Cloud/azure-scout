@@ -8,7 +8,7 @@ This script consolidates information for all Azure AI Foundry Hub resources
 Excel Sheet Name: AI Foundry Hubs
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/AIFoundryHubs.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/AIFoundryHubs.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

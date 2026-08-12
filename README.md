@@ -7,16 +7,16 @@ Tags: PowerShell, Azure, Inventory, Entra ID, React Report, JSON Evidence
 
 <div align="center">
 
-![AzureScout](https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-banner.svg)
+![AzureScout](https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/images/azurescout-banner.svg)
 
 # AzureScout
 
 ### See everything. Own your cloud.
 
-[![GitHub](https://img.shields.io/github/license/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout/blob/main/LICENSE)
-[![GitHub repo size](https://img.shields.io/github/repo-size/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout)
-[![GitHub last commit](https://img.shields.io/github/last-commit/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout/commits/main)
-[![GitHub top language](https://img.shields.io/github/languages/top/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout)
+[![GitHub](https://img.shields.io/github/license/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE)
+[![GitHub repo size](https://img.shields.io/github/repo-size/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout/commits/main)
+[![GitHub top language](https://img.shields.io/github/languages/top/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout)
 [![Azure](https://badgen.net/badge/icon/azure?icon=azure&label)](https://azure.microsoft.com)
 
 </div>
@@ -65,7 +65,7 @@ need a consolidated view of their Azure environment.
 ### Installation
 
 ```powershell
-git clone https://github.com/thisismydemo/azure-scout.git
+git clone https://github.com/Hybrid-Solutions-Cloud/azure-scout.git
 Import-Module ./azure-scout/AzureScout.psd1
 ```
 

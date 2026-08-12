@@ -43,7 +43,7 @@ Scan scope: All, ArmOnly, or EntraOnly.
 [string] Path to the PowerBI output folder.
 
 .LINK
-https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

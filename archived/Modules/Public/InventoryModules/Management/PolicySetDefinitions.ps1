@@ -7,7 +7,7 @@ This script consolidates information for all custom Azure Policy Set Definitions
 Excel Sheet Name: Policy Initiatives
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/PolicySetDefinitions.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/PolicySetDefinitions.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

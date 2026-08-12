@@ -6,7 +6,7 @@ description: How to contribute new inventory modules and improvements to AzureSc
 
 The full contributing guide is maintained in the repository root and rendered on GitHub.
 
-[View CONTRIBUTING.md on GitHub](https://github.com/thisismydemo/azure-scout/blob/main/CONTRIBUTING.md){ .md-button .md-button--primary }
+[View CONTRIBUTING.md on GitHub](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CONTRIBUTING.md){ .md-button .md-button--primary }
 
 ## Quick Reference
 

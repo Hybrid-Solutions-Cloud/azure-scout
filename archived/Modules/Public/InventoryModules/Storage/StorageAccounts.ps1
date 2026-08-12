@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.storage/storageaccounts a
 Excel Sheet Name: StorageAcc
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Storage/StorageAccounts.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Storage/StorageAccounts.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

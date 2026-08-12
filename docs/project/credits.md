@@ -11,7 +11,7 @@ Without the foundation built by the ARI team at Microsoft, this project would no
 
 The full credits file is maintained in the repository root and rendered on GitHub.
 
-[View CREDITS.md on GitHub](https://github.com/thisismydemo/azure-scout/blob/main/CREDITS.md)
+[View CREDITS.md on GitHub](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CREDITS.md)
 
 ## Fork Origin
 
@@ -38,6 +38,6 @@ For a detailed breakdown of what AzureScout has added, changed, and diverged fro
 
 ## License & Disclaimer
 
-Both the original ARI project and AzureScout are licensed under the MIT License. See [LICENSE](https://github.com/thisismydemo/azure-scout/blob/main/LICENSE) for full details.
+Both the original ARI project and AzureScout are licensed under the MIT License. See [LICENSE](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE) for full details.
 
 AzureScout is an independent community project and is **not affiliated with or endorsed by Microsoft**.

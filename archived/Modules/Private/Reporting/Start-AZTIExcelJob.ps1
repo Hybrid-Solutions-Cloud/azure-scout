@@ -6,7 +6,7 @@ Module for Excel Job Processing
 This script processes inventory modules and builds the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

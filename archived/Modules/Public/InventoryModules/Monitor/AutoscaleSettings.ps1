@@ -8,7 +8,7 @@ This script consolidates information for all Autoscale Settings
 Excel Sheet Name: Autoscale Settings
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/AutoscaleSettings.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/AutoscaleSettings.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

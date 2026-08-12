@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.search/searchservices and
 Excel Sheet Name: SearchServices
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AI/SearchServices.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AI/SearchServices.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

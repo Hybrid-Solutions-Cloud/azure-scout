@@ -7,7 +7,7 @@ This script consolidates information for all devops/projects resources.
 Excel Sheet Name: ADO Projects
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/DevOpsProjects.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/DevOpsProjects.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

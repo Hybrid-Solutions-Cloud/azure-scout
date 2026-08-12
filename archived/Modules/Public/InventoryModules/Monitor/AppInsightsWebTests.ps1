@@ -8,7 +8,7 @@ This script inventories Application Insights Standard Web Tests
 Excel Sheet Name: App Insights Web Tests
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsWebTests.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsWebTests.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

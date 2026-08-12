@@ -28,7 +28,7 @@ Behaviour differences from the deleted implementation, all deliberate:
     with an empty -Subscription list.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/collect/Start-ScoutGraphExtraction.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/collect/Start-ScoutGraphExtraction.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

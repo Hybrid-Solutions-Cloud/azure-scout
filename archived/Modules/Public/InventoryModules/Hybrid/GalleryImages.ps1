@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.azurestackhci/galleryimag
 Excel Sheet Name: AzLocal Images
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/AzureLocal/GalleryImages.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/AzureLocal/GalleryImages.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

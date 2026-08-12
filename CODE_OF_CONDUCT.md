@@ -47,7 +47,7 @@ used by the project.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainer at [conduct@hybridsolutions.cloud](mailto:conduct@hybridsolutions.cloud)
-or by opening a private issue on the [repository](https://github.com/thisismydemo/azure-scout).
+or by opening a private issue on the [repository](https://github.com/Hybrid-Solutions-Cloud/azure-scout).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

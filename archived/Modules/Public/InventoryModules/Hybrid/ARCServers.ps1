@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.hybridcompute/machines an
 Excel Sheet Name: EvHub
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ARCServers.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ARCServers.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

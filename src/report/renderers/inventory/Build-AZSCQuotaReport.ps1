@@ -10,7 +10,7 @@ Module for Quota Report
 This script processes and creates the Quota Usage sheet in the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCQuotaReport.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCQuotaReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -8,7 +8,7 @@ Web Tests (microsoft.insights/webtests).
 Excel Sheet Name: App Insights Availability Tests
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsAvailabilityTests.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/AppInsightsAvailabilityTests.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

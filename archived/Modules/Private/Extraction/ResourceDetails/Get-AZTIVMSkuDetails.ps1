@@ -6,7 +6,7 @@ Module responsible for retrieving Azure VM SKU details.
 This module retrieves details about Azure VM SKUs available in specific locations.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMSkuDetails.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMSkuDetails.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).

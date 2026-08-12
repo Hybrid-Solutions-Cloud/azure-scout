@@ -253,7 +253,7 @@
     THE SOFTWARE.
 
 .LINK
-    Official Repository: https://github.com/thisismydemo/azure-scout
+    Official Repository: https://github.com/Hybrid-Solutions-Cloud/azure-scout
 #>
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]

@@ -8,7 +8,7 @@ Log Analytics workspaces using the ARM REST API.
 Excel Sheet Name: LA Linked Services
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceLinkedServices.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Monitoring/LAWorkspaceLinkedServices.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).

@@ -10,7 +10,7 @@ you can see which of your subscriptions are reachable from a pipeline.
 Excel Sheet Name: ADO Service Connections
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Management/DevOpsServiceConnections.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Management/DevOpsServiceConnections.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

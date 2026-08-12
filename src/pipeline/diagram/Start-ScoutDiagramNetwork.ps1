@@ -11,7 +11,7 @@ Network Module for Draw.io Diagram
 This module is use for the Network topology in the Draw.io Diagram.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -1372,7 +1372,7 @@ Function Start-AZSCDiagramNetwork {
         Function Set-AZSCDiagramLabel {
             $Date = get-date -Format "yyyy-MM-dd_HH_mm"
             $Script:XmlWriter.WriteStartElement('object')
-            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/thisismydemo/azure-scout' + "`n" +'Date:' + "`n" + $Date))
+            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/Hybrid-Solutions-Cloud/azure-scout' + "`n" +'Date:' + "`n" + $Date))
             $Script:XmlWriter.WriteAttributeString('author', 'Claudio Merola')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
         }

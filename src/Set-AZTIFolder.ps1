@@ -10,7 +10,7 @@ Set up folders for Azure Resource Inventory
 This module creates and validates the necessary folders for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Set-AZSCFolder.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Set-AZSCFolder.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

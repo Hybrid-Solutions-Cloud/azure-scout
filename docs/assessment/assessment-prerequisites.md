@@ -21,7 +21,7 @@ Desktop as a second guard. Run everything in `pwsh`.
 
 | Requirement | Details |
 |---|---|
-| PowerShell | 7.0.3+ (source: [`pmo/plans/master-plan.md` §10](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md#10-dependencies-from-spec-10)) |
+| PowerShell | 7.0.3+ (source: [`pmo/plans/master-plan.md` §10](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/plans/master-plan.md#10-dependencies-from-spec-10)) |
 | Operating System | Windows, Linux, or macOS — the platform is pure PowerShell/.NET |
 | .NET SDK | Not required for live outputs. The held PowerPoint renderer's implementation uses it; see [below](#held-powerpoint-renderer-net-sdk-not-python) |
 | `git` | Required only if you opt an assessment into the legacy `AzGovViz` ingestor instead of the native `Governance` default (see [Auth & permissions](./assessment-permissions.md)) — used to shallow-clone the Azure Governance Visualizer tool at first use. Not needed by any assessment out of the box. |
