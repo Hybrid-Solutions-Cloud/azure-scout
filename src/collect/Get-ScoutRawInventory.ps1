@@ -914,6 +914,15 @@ function Get-ScoutRawInventory {
     }
 
     if ($IncludeSubscriptionSecurityPolicy -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutSubscriptionSecurityPolicySweep' -FileName 'Get-ScoutSubscriptionSecurityPolicySweep.ps1')) {
+        $securityPolicyCollectorMap = @{
+            DefenderAlerts                 = @('Security/DefenderAlerts')
+            DefenderAssessments            = @('Security/DefenderAssessments')
+            DefenderPricing                = @('Security/DefenderPricing')
+            DefenderSecureScores           = @('Security/DefenderSecureScore')
+            DefenderSecureScoreControls    = @('Security/DefenderSecureScore')
+            SubscriptionDiagnosticSettings = @('Monitor/SubscriptionDiagnosticSettings')
+            PolicyComplianceStates         = @('Management/PolicyComplianceStates')
+        }
         $securityPolicyTimer = [System.Diagnostics.Stopwatch]::StartNew()
         Write-ScoutRawInventoryStart -Name 'subscription security and policy sweep'
         $securityPolicyStartCount = $resources.Count
@@ -924,13 +933,26 @@ function Get-ScoutRawInventory {
                 $resources.Add($row)
                 $statusProperty = $row.properties.PSObject.Properties['CollectionStatus']
                 if ($statusProperty -and $statusProperty.Value) {
+                    $collectionErrors = if ($row.properties.PSObject.Properties['CollectionErrors']) {
+                        @($row.properties.CollectionErrors)
+                    }
+                    else { @() }
+                    $contextError = @($collectionErrors | Where-Object Dataset -eq 'Context' | Select-Object -First 1)
                     foreach ($status in $statusProperty.Value.PSObject.Properties) {
-                        if ([string]$status.Value -in @('Unavailable', 'Skipped', 'Failed')) {
+                        $statusValue = [string]$status.Value
+                        $isUnavailable = $statusValue -in @('Unavailable', 'Failed') -or
+                            ($statusValue -eq 'Skipped' -and $contextError.Count -gt 0)
+                        if ($isUnavailable) {
+                            $datasetError = @($collectionErrors | Where-Object Dataset -eq $status.Name | Select-Object -First 1)
+                            $reason = if ($datasetError.Count -gt 0) { [string]$datasetError[0].Message }
+                            elseif ($contextError.Count -gt 0) { [string]$contextError[0].Message }
+                            else { 'The subscription-scoped dataset was not available.' }
                             $collectionHealth.Add([pscustomobject]@{
                                     Dataset       = "SecurityPolicy/$($status.Name) [$($row.subscriptionName)]"
-                                    Status        = [string]$status.Value
-                                    Reason        = 'The subscription-scoped dataset was not available.'
+                                    Status        = if ($statusValue -eq 'Skipped') { 'Unavailable' } else { $statusValue }
+                                    Reason        = $reason
                                     ResourceTypes = @('AZSC/Subscription/SecurityPolicySweep')
+                                    Collectors     = @($securityPolicyCollectorMap[$status.Name])
                                 })
                         }
                     }
@@ -952,10 +974,21 @@ function Get-ScoutRawInventory {
         Write-ScoutRawInventoryStart -Name 'operational enrichment'
         $operationalStartCount = $resources.Count
         $operationalStatus = 'Completed'
+        $operationalHealth = [System.Collections.Generic.List[object]]::new()
         try {
-            foreach ($row in @(Get-ScoutOperationalCollectorEnrichment -Resources @($resources) -Subscriptions $subscriptionEnvelopes)) {
+            $operationalArguments = @{
+                Resources     = @($resources)
+                Subscriptions = $subscriptionEnvelopes
+            }
+            $operationalCommand = Get-Command Get-ScoutOperationalCollectorEnrichment -ErrorAction Stop
+            if ($operationalCommand.Parameters.ContainsKey('CollectionHealth')) {
+                $operationalArguments['CollectionHealth'] = $operationalHealth
+            }
+            foreach ($row in @(Get-ScoutOperationalCollectorEnrichment @operationalArguments)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
+            foreach ($health in $operationalHealth) { $collectionHealth.Add($health) }
+            if ($operationalHealth.Count -gt 0) { $operationalStatus = 'Partial' }
         }
         catch {
             $operationalStatus = 'Failed'

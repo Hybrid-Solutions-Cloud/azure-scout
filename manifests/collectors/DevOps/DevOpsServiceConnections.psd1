@@ -17,6 +17,20 @@
 
     RowLoopVariable = '1'
 
+    SetupPreamble = @'
+$inScopeSubs = @{}
+foreach ($subscription in @($SUB)) {
+    $subscriptionId = Get-AZSCSafeProperty -InputObject $subscription -Path 'Id'
+    if ([string]::IsNullOrWhiteSpace([string]$subscriptionId)) { continue }
+    $subscriptionName = Get-AZSCSafeProperty -InputObject $subscription -Path 'Name'
+    $inScopeSubs[[string]$subscriptionId] = if ($subscriptionName) { [string]$subscriptionName } else { '' }
+}
+'@
+
+    SetupVariables = @(
+        'inScopeSubs'
+    )
+
     Preamble = @'
 $ResUCount = 1
             $data = $1.properties

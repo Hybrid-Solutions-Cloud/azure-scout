@@ -57,6 +57,33 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($Warnings -join "`n") | Should -Match 'VirtualMachine.CpuMetrics'
     }
 
+    It 'records exact collector health for every operational wrapper family that fails' {
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction)
+            $null=$Method,$Payload,$ErrorAction
+            if($Path -match 'Microsoft.CostManagement/query'){ throw 'HTTP 429 TooManyRequests' }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        function global:Get-AzStorageBlobServiceProperty { param($ResourceGroupName,$Name,$ErrorAction) $null=$ResourceGroupName,$Name,$ErrorAction; throw 'blob read denied' }
+        function global:Search-AzGraph { param($Query,$First,$ErrorAction) $null=$Query,$First,$ErrorAction; throw 'management group query denied' }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @(
+                [pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}
+            ) -CollectionHealth $health -WarningAction SilentlyContinue)
+
+        $rows.Count | Should -Be 6
+        @($health | ForEach-Object Collectors) | Should -Contain 'Compute/VirtualMachine'
+        @($health | ForEach-Object Collectors) | Should -Contain 'Hybrid/ARCServers'
+        @($health | ForEach-Object Collectors) | Should -Contain 'Storage/StorageAccounts'
+        @($health | ForEach-Object Collectors) | Should -Contain 'Management/AllSubscriptions'
+        @($health | Where-Object SourceDataset -eq 'VirtualMachine.EstimatedCost').Count | Should -Be 1
+        @($health | Where-Object SourceDataset -eq 'ARCServers.EstimatedCost').Count | Should -Be 1
+        @($health | Where-Object SourceDataset -eq 'StorageAccounts.BlobService').Count | Should -Be 1
+        @($health | Where-Object SourceDataset -eq 'AllSubscriptions.ManagementGroupPath').Count | Should -Be 1
+        @($health | Where-Object Collectors -contains 'Storage/StorageAccounts')[0].ResourceTypes | Should -Be @('AZSC/Operational/StorageAccount')
+    }
+
     # AB#6731 -- Scout must never command a machine to run a patch scan. `assessPatches` is an ARM
     # *action*, not a read: the previous implementation POSTed it once per VM and once per Arc
     # machine on every run, triggering guest-OS scans that can take hours, that Reader does not

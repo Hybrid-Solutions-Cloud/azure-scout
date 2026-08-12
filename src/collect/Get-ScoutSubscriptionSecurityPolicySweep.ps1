@@ -101,7 +101,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     }
                 }
 
-                $transientFailure = $message -match '(?i)\bHTTP\s*(500|502|503|504)\b|InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout'
+                $transientFailure = $message -match '(?i)\bHTTP\s*(429|500|502|503|504)\b|InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests|HttpClient\.Timeout|timed out|TaskCanceled|operation (?:was|has been) canceled'
                 if ($transientFailure -and $attempt -lt $MaxAttempts) {
                     Start-Sleep -Milliseconds (200 * $attempt)
                     continue
@@ -246,6 +246,101 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         }
     }
 
+    function ConvertFrom-ScoutDefenderAssessmentRestRow {
+        param([Parameter(Mandatory)]$Assessment)
+
+        function Get-AssessmentValue {
+            param($Object, [Parameter(Mandatory)][string]$Name)
+            if ($null -eq $Object) { return $null }
+            $property = $Object.PSObject.Properties[$Name]
+            if ($null -eq $property) { return $null }
+            return $property.Value
+        }
+
+        $properties = Get-AssessmentValue -Object $Assessment -Name 'properties'
+        if ($null -eq $properties) { $properties = $Assessment }
+
+        # Preserve the Get-AzSecurityAssessment projection consumed by the shipped collector.
+        # The documented REST response nests these values beneath `properties`.
+        [pscustomobject]@{
+            Id              = Get-AssessmentValue -Object $Assessment -Name 'id'
+            Name            = Get-AssessmentValue -Object $Assessment -Name 'name'
+            DisplayName     = Get-AssessmentValue -Object $properties -Name 'displayName'
+            ResourceDetails = Get-AssessmentValue -Object $properties -Name 'resourceDetails'
+            Status          = Get-AssessmentValue -Object $properties -Name 'status'
+            Metadata        = Get-AssessmentValue -Object $properties -Name 'metadata'
+            AdditionalData  = Get-AssessmentValue -Object $properties -Name 'additionalData'
+            Links           = Get-AssessmentValue -Object $properties -Name 'links'
+            PartnersData    = Get-AssessmentValue -Object $properties -Name 'partnersData'
+        }
+    }
+
+    function Invoke-ScoutDefenderAssessmentRestFallback {
+        param([Parameter(Mandatory)][string]$SubscriptionId)
+
+        $assessments = [System.Collections.Generic.List[object]]::new()
+        $path = "/subscriptions/$SubscriptionId/providers/Microsoft.Security/assessments?api-version=2021-06-01"
+        do {
+            $response = Invoke-AzRestMethod -Path $path -Method GET -ErrorAction Stop
+            if ($null -eq $response) { throw 'Defender assessments REST fallback returned no response.' }
+
+            $statusProperty = $response.PSObject.Properties['StatusCode']
+            if ($null -ne $statusProperty) {
+                $statusCode = [int]$statusProperty.Value
+                if ($statusCode -lt 200 -or $statusCode -ge 300) {
+                    $responseContent = $response.PSObject.Properties['Content']
+                    $responseText = if ($null -ne $responseContent) { [string]$responseContent.Value } else { '' }
+                    throw "Defender assessments REST fallback returned HTTP $statusCode. $responseText"
+                }
+            }
+
+            $contentProperty = $response.PSObject.Properties['Content']
+            $content = if ($null -ne $contentProperty) { $contentProperty.Value } else { $response }
+            if ($content -is [string]) {
+                if ([string]::IsNullOrWhiteSpace($content)) { $content = [pscustomobject]@{ value = @() } }
+                else { $content = $content | ConvertFrom-Json }
+            }
+            if ($null -eq $content) { $content = [pscustomobject]@{ value = @() } }
+
+            $valueProperty = $content.PSObject.Properties['value']
+            foreach ($assessment in @(if ($null -ne $valueProperty) { $valueProperty.Value } else { @() })) {
+                if ($null -ne $assessment) {
+                    $assessments.Add((ConvertFrom-ScoutDefenderAssessmentRestRow -Assessment $assessment))
+                }
+            }
+            $nextLinkProperty = $content.PSObject.Properties['nextLink']
+            $path = if ($null -ne $nextLinkProperty) { [string]$nextLinkProperty.Value } else { $null }
+        } while (-not [string]::IsNullOrWhiteSpace($path))
+
+        return $assessments.ToArray()
+    }
+
+    function Get-ScoutDefenderAssessments {
+        param(
+            [Parameter(Mandatory)][string]$SubscriptionId
+        )
+
+        # Az.Security can surface an HttpClient.Timeout after 100 seconds even though the
+        # documented list endpoint remains healthy. Suppress the raw cmdlet error record, retain
+        # its message for classification, and fall back only for client-side timeout/null failures.
+        $assessmentErrors = @()
+        $assessmentData = @()
+        try {
+            $assessmentData = @(Get-AzSecurityAssessment -ErrorAction SilentlyContinue -ErrorVariable +assessmentErrors)
+        }
+        catch {
+            $assessmentErrors += $_
+        }
+        if (@($assessmentErrors).Count -eq 0) { return $assessmentData }
+
+        $message = (@($assessmentErrors | ForEach-Object { $_.Exception.Message }) -join '; ')
+        $fallbackRequired = $message -match '(?i)HttpClient\.Timeout|timed out|TaskCanceled|operation (?:was|has been) canceled|Object reference not set'
+        if (-not $fallbackRequired) { throw $message }
+
+        Write-Verbose 'Get-AzSecurityAssessment failed inside Az.Security; using the documented Defender for Cloud assessments REST endpoint.'
+        return @(Invoke-ScoutDefenderAssessmentRestFallback -SubscriptionId $SubscriptionId)
+    }
+
     $originalContext = try {
         Get-AzContext -ErrorAction SilentlyContinue
     }
@@ -344,7 +439,8 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 -Dataset 'DefenderAssessments' `
                 -SubscriptionName $subscriptionName `
                 -MaxAttempts 3 `
-                -Operation { Get-AzSecurityAssessment -ErrorAction Stop }
+                -ProviderRegistrationIsUnavailable `
+                -Operation { Get-ScoutDefenderAssessments -SubscriptionId $subscriptionId }
 
             $queries.DefenderPricing = Invoke-ScoutDefenderPricingDataset -SubscriptionName $subscriptionName
 

@@ -270,6 +270,66 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep').Count | Should -Be 1
     }
 
+    It 'maps each failed subscription sweep dataset only to its owning collector' -TestCases @(
+        @{ Dataset = 'DefenderAlerts'; Collector = 'Security/DefenderAlerts' }
+        @{ Dataset = 'DefenderAssessments'; Collector = 'Security/DefenderAssessments' }
+        @{ Dataset = 'DefenderPricing'; Collector = 'Security/DefenderPricing' }
+        @{ Dataset = 'DefenderSecureScores'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'DefenderSecureScoreControls'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'SubscriptionDiagnosticSettings'; Collector = 'Monitor/SubscriptionDiagnosticSettings' }
+        @{ Dataset = 'PolicyComplianceStates'; Collector = 'Management/PolicyComplianceStates' }
+    ) {
+        param($Dataset, $Collector)
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            $statuses = [ordered]@{
+                DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+            }
+            $statuses[$Dataset] = 'Unavailable'
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]$statuses
+                    CollectionErrors = @([pscustomobject]@{ Dataset = $Dataset; Message = "simulated $Dataset denial" })
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+        $health = @($result.CollectionHealth | Where-Object Dataset -like "SecurityPolicy/$Dataset*")
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Reason | Should -Be "simulated $Dataset denial"
+        @($health[0].Collectors) | Should -Be @($Collector)
+        @($result.CollectionHealth | Where-Object { $_.Collectors -contains 'Security/DefenderAlerts' -and $Dataset -ne 'DefenderAlerts' }).Count | Should -Be 0
+    }
+
+    It 'does not report dependent secure-score controls as failed when no secure score exists' {
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]@{
+                        DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                        DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                        SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+                    }
+                    CollectionErrors = @()
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+
+        @($result.CollectionHealth | Where-Object Dataset -like 'SecurityPolicy/DefenderSecureScoreControls*').Count | Should -Be 0
+    }
+
     It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
         $script:apiSubscriptions = @()
         function Get-ScoutApiResources {
@@ -317,6 +377,27 @@ param($Root) @() }
         $script:operationalInputs[0].Resources.Count | Should -BeGreaterThan 0
         $script:operationalInputs[0].Subscriptions[0].id | Should -Be 'sub-1'
         @($result.Resources | Where-Object type -eq 'AZSC/Operational/VirtualMachine').Count | Should -Be 1
+    }
+
+    It 'merges operational per-dataset failures into collector health while retaining envelopes' {
+        function Get-ScoutOperationalCollectorEnrichment {
+            param([object[]] $Resources, [object[]] $Subscriptions, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Subscriptions
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'Operational/VirtualMachine.EstimatedCost'; Source = 'Operational enrichment'
+                    SourceDataset = 'VirtualMachine.EstimatedCost'; Status = 'Unavailable'; Reason = 'simulated 429'
+                    ResourceTypes = @('AZSC/Operational/VirtualMachine'); Collectors = @('Compute/VirtualMachine')
+                })
+            [pscustomobject]@{ id = 'operational-vm'; type = 'AZSC/Operational/VirtualMachine'; properties = @{} }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeOperationalCollectorEnrichment
+
+        @($result.Resources | Where-Object id -eq 'operational-vm').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'VirtualMachine.EstimatedCost')
+        $health.Count | Should -Be 1
+        $health[0].Reason | Should -Be 'simulated 429'
+        $health[0].Collectors | Should -Be @('Compute/VirtualMachine')
     }
 }
 

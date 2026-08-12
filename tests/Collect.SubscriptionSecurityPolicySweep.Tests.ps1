@@ -53,8 +53,8 @@ BeforeAll {
         }
 
         function global:Get-AzSecurityAssessment {
-            param($ErrorAction)
-            $null = $ErrorAction
+            param($ErrorAction, $ErrorVariable)
+            $null = $ErrorAction, $ErrorVariable
             if ($script:deniedDataset -eq 'DefenderAssessments') { throw 'HTTP 403 AuthorizationFailed: assessments/read denied' }
             $subId = $script:currentSubscription
             if (-not $script:assessmentAttempts.ContainsKey($subId)) {
@@ -220,6 +220,57 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $results[0].properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
     }
 
+    It 'falls back to the paged REST endpoint when Az.Security times out without losing assessment fields' {
+        function global:Get-AzSecurityAssessment {
+            param($ErrorAction, $ErrorVariable)
+            $null = $ErrorAction, $ErrorVariable
+            throw 'The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.'
+        }
+        $script:assessmentRestPaths = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction)
+            $null = $Method, $ErrorAction
+            $script:assessmentRestPaths.Add($Path)
+            if ($script:assessmentRestPaths.Count -eq 1) {
+                return [pscustomobject]@{
+                    StatusCode = 200
+                    Content = @{
+                        value = @(@{
+                            id = '/subscriptions/sub-1/providers/Microsoft.Security/assessments/a'
+                            name = 'a'
+                            properties = @{
+                                displayName = 'Assessment A'
+                                resourceDetails = @{ id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-1' }
+                                status = @{ code = 'Unhealthy'; severity = 'High'; description = 'remediate' }
+                                metadata = @{ category = @('Compute'); implementationEffort = 'Low' }
+                                additionalData = @{ assessedResourceType = 'VirtualMachine' }
+                            }
+                        })
+                        nextLink = 'https://management.azure.com/next-assessment-page'
+                    } | ConvertTo-Json -Depth 10
+                }
+            }
+            [pscustomobject]@{
+                StatusCode = 200
+                Content = '{"value":[{"id":"/subscriptions/sub-1/providers/Microsoft.Security/assessments/b","name":"b","properties":{"displayName":"Assessment B","status":{"code":"Healthy"}}}]}'
+            }
+        }
+
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]) -WarningVariable warnings -WarningAction SilentlyContinue)[0]
+
+        @($result.properties.DefenderAssessments).Count | Should -Be 2
+        $result.properties.DefenderAssessments[0].DisplayName | Should -Be 'Assessment A'
+        $result.properties.DefenderAssessments[0].Status.Code | Should -Be 'Unhealthy'
+        $result.properties.DefenderAssessments[0].ResourceDetails.Id | Should -Match '/vm-1$'
+        $result.properties.DefenderAssessments[1].Name | Should -Be 'b'
+        @($script:assessmentRestPaths) | Should -Be @(
+            '/subscriptions/sub-1/providers/Microsoft.Security/assessments?api-version=2021-06-01'
+            'https://management.azure.com/next-assessment-page'
+        )
+        $result.properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
+        ($warnings -join "`n") | Should -Not -Match 'DefenderAssessments|Timeout'
+    }
+
     It 'falls back to REST and preserves the established alert projection after an Az.Security null reference' {
         function global:Get-AzSecurityAlert {
             param($ErrorAction) $null = $ErrorAction
@@ -285,7 +336,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
 
     It 'preserves successful empty-versus-skipped status for every sweep dataset' {
         function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction }
-        function global:Get-AzSecurityAssessment { param($ErrorAction) $null = $ErrorAction }
+        function global:Get-AzSecurityAssessment { param($ErrorAction, $ErrorVariable) $null = $ErrorAction, $ErrorVariable }
         function global:Get-AzSecurityPricing { param($ErrorAction, $ErrorVariable) $null = $ErrorAction, $ErrorVariable }
         function global:Get-AzSecuritySecureScore { param($ErrorAction) $null = $ErrorAction }
         function global:Get-AzSecuritySecureScoreControl { param($ErrorAction) $null = $ErrorAction }

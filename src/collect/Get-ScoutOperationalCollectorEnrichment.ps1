@@ -30,7 +30,11 @@ function Get-ScoutOperationalCollectorEnrichment {
 
         [Parameter()]
         [AllowEmptyCollection()]
-        [object[]]$Subscriptions = @()
+        [object[]]$Subscriptions = @(),
+
+        [Parameter()]
+        [AllowNull()]
+        [System.Collections.IList]$CollectionHealth
     )
 
     function Get-ScoutValue {
@@ -52,6 +56,40 @@ function Get-ScoutOperationalCollectorEnrichment {
         Completed = 0
         Failed    = 0
         Started   = [System.Diagnostics.Stopwatch]::StartNew()
+    }
+    $OperationalHealthDatasets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    function Add-ScoutOperationalHealth {
+        param(
+            [Parameter(Mandatory)][string]$Dataset,
+            [Parameter(Mandatory)][string]$Reason
+        )
+        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($Dataset)) { return }
+
+        $ownership = if ($Dataset -like 'VirtualMachine.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/VirtualMachine'; Collector = 'Compute/VirtualMachine' }
+        }
+        elseif ($Dataset -like 'ARCServers.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/ARCServers'; Collector = 'Hybrid/ARCServers' }
+        }
+        elseif ($Dataset -like 'StorageAccounts.*' -and $Dataset -ne 'StorageAccounts.RestoreSubscriptionContext') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Operational/StorageAccount'; Collector = 'Storage/StorageAccounts' }
+        }
+        elseif ($Dataset -like 'AllSubscriptions.*') {
+            [pscustomobject]@{ ResourceType = 'AZSC/Management/SubscriptionEnrichment'; Collector = 'Management/AllSubscriptions' }
+        }
+        else { $null }
+        if ($null -eq $ownership) { return }
+
+        [void]$CollectionHealth.Add([pscustomobject]@{
+                Dataset       = "Operational/$Dataset"
+                Source        = 'Operational enrichment'
+                SourceDataset = $Dataset
+                Status        = 'Unavailable'
+                Reason        = $Reason
+                ResourceTypes = @($ownership.ResourceType)
+                Collectors     = @($ownership.Collector)
+            })
     }
 
     function Write-ScoutOperationalDetail {
@@ -110,6 +148,7 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
         catch {
             Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Failed
+            Add-ScoutOperationalHealth -Dataset $Dataset -Reason $_.Exception.Message
             throw
         }
     }
@@ -185,11 +224,13 @@ function Get-ScoutOperationalCollectorEnrichment {
                 if ($StatusCode -eq 409) {
                     Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset for '$ParentId' still in progress (409) after $Attempt attempt(s)."
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status OperationInProgress -Attempts $Attempt
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)."
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
                 Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Failed -Attempts $Attempt
+                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message
                 return [PSCustomObject]@{ __AZSCError = $Message }
             }
         }
