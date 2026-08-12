@@ -1,6 +1,6 @@
 # Current Task: AB#7279 — validate AzureScout 3.12.3 in its new HCS home
 
-- Status: **REPOSITORY CUTOVER AND COMPLETE LOCAL TEST GATE PASSED; TARGET CI/PR REMAIN**
+- Status: **REPOSITORY CUTOVER, LOCAL GATE, AND HCS TARGET CI PASSED; PR REVIEW/RELEASE REMAIN**
 - Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
 - Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
 - Branch: `agent/ab7279-run-errors-3.12.3`
@@ -47,10 +47,10 @@ tests, or failed containers, and a clean worktree before and after.
 
 ## Required gates
 
-1. Push the tested branch to `Hybrid-Solutions-Cloud/azure-scout` using the GitHub App.
-2. Require green target-repository CI and documentation checks on the branch tip.
-3. Open/complete the protected product PR only after those checks pass.
-4. Only then tag 3.12.3, stage the allow-listed package, validate and
+1. Completed: branch pushed with the GitHub App; PR 1 is open.
+2. Completed at `0df4e636`: HCS CI 3,591/3,591 plus StrictMode and analyzer gates; docs green.
+3. Obtain the protected product PR's required review, then merge.
+4. Only after merge, tag 3.12.3, stage the allow-listed package, validate and
    secret-scan it, publish to PowerShell Gallery, download it back, and compare package hashes.
 
 ## PowerShell Gallery transition

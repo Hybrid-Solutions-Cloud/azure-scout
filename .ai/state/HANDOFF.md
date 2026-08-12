@@ -1,5 +1,38 @@
 # Handoff
 
+## Session 2026-08-12 — HCS runner onboarding and target CI green
+
+PR `Hybrid-Solutions-Cloud/azure-scout#1` is open from
+`agent/ab7279-run-errors-3.12.3` to `main`. Current tested tip is
+`0df4e63614e146dc8fdea17c11cab97613fdfc9d`.
+
+The HCS Governance `ci-runners` standard was applied to every workflow: CI, docs, inventory,
+and stale automation now target the HCS self-hosted Linux fleet. Live Azure inspection showed
+the Hybrid-Solutions-Cloud ACA runner job is deployed, but KEDA did not wake it for this public
+repository because the org Default runner group has `allows_public_repositories=false`.
+For these trusted same-repository PR checks, the setting was temporarily enabled only until the
+ephemeral runners claimed their jobs, then restored to `false`. The Windows VMSS described by the
+standard is not deployed (`deployWindowsRunner=false`), so the cross-platform AzureScout CI job
+runs on HCS Linux.
+
+Clean Linux runners exposed missing CI prerequisites and genuine portability assumptions. CI now
+installs all `AzureScout.psd1` RequiredModules, sets `TEMP`/`TMP`, provisions .NET 8 for OpenXML,
+and supplies an inert `az` command surface solely so Pester can prove the product never invokes
+Azure CLI. Product/test portability fixes anchor fallback collector definitions to the module,
+sanitize report names with the portable Windows-invalid-character superset, and use embedded JPEG
+bytes instead of System.Drawing in PDF tests.
+
+Final target results at `0df4e636`:
+
+- HCS CI run 31630406334: success; Pester 3,591/3,591, 0 failed, 0 skipped, 0 not run; standalone
+  StrictMode guard success; PSScriptAnalyzer 0 errors (551 non-blocking warnings).
+- HCS documentation run 31630406332: success.
+- Focused portability regression set: 105/105 locally, zero failed containers.
+- The authoritative Windows/local full gate remains 3,593/3,593 at product commit `2c5be8f5`.
+
+Do not merge or release until the protected PR review requirement is satisfied. PowerShell Gallery
+3.12.3 is not published.
+
 ## Session 2026-08-12 — post-cutover complete collector gate
 
 The canonical product branch is `agent/ab7279-run-errors-3.12.3`. The three recovered
