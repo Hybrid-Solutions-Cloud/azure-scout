@@ -1,5 +1,41 @@
 # Handoff
 
+## Session 2026-08-12 — crash recovery for 3.12.3 collector correctness
+
+The laptop crash is confirmed by Windows boot time: the machine restarted at 03:31:32. The active
+branch is `agent/ab7279-run-errors-3.12.3` at `1460b0ecd258d7f33ee8d4679eb8ecf761be5055`, seven
+local commits ahead of `origin/main`. The working tree was clean at recovery start, and none of the
+seven 3.12.3 commits has been pushed. The manifest is version 3.12.3.
+
+The seven commits preserve the post-3.12.2 fixes for honest ARM-child, Entra, management-group,
+Defender, Azure DevOps, logging/progress, disabled-subscription, and dynamically loaded collector
+helper behavior. The changelog records a completed read-only HCS live acceptance that reconciled all
+278 released collectors against independent queries, including explicit filtered/empty/not-assessed
+outcomes. That live reconciliation is distinct from the complete automated Pester gate.
+
+The complete automated gate is **not finished and not green**. An exact-HEAD all-134-suite run was
+started at 03:20:35 using `D:/tmp/azsc-full-suite.ps1`. Its stream logs are under
+`D:/tmp/azsc-final-full-1460b0ecd258d7f33ee8d4679eb8ecf761be5055-*.log`; they stopped at 03:24:40,
+before the runner wrote its result JSON, and the reboot followed. Therefore that run has no valid
+summary and must not be counted as a pass. An earlier affected regression batch passed 174/174 with
+zero skips before the final helper-dependency commit. Earlier exact-commit shards at `07dbfb8` found
+14 failures that prompted the subsequent helper-lifetime and test-isolation commits.
+
+The recovery-session exact-HEAD run of `tests/Collect.RawInventory.Tests.ps1` confirmed the two new
+helper-lifetime tests pass, but exposed three failures before the diagnostic command timed out:
+
+- `derives query scope only from enabled subscription container rows` received a null scope instead
+  of `enabled-sub` at line 176.
+- `appends ARM child rows exactly once when requested` could not resolve property `id` at line 248.
+- `merges ARM-child failures into source health without dropping successful rows` hit the same
+  missing `id` shape at line 264.
+
+No source fix was attempted during crash recovery. Resume by reproducing and isolating those three
+failures, repair product or fixture ownership as evidence dictates, rerun the complete
+`Collect.RawInventory.Tests.ps1` suite to completion, then run all 134 Pester files against one exact
+clean commit with zero failures, skips, not-run tests, or failed containers. Only after that gate is
+green should the branch be pushed and 3.12.3 proceed to PR/release verification.
+
 ## Session 2026-08-11 — 3.12.2 post-review source-honesty closure
 
 PR #263's three review findings and the subsequent adversarial source-ownership audit are resolved
@@ -140,7 +176,7 @@ before a patch release.
 
 AzureScout 3.12.1 is released. PR #262 merged to main as
 `7660d9cbd6b20f0c125b13832b1554f1bec48d8c`; annotated tag `v3.12.1` points to that release,
-the GitHub Release is <https://github.com/thisismydemo/azure-scout/releases/tag/v3.12.1>, and
+the GitHub Release is <https://github.com/Hybrid-Solutions-Cloud/azure-scout/releases/tag/v3.12.1>, and
 the PowerShell Gallery package is <https://www.powershellgallery.com/packages/AzureScout/3.12.1>.
 
 The live 3.12.0 failure was a split identity: ARM used the account and tenant selected in the Az
@@ -169,7 +205,7 @@ remain Not assessed under a user token because no directory role can add their m
 
 AzureScout 3.12.0 is released and installed. PR #261 merged as
 `8f1d2fcd92ad70dbd4dc962eabe815651f28ea55`; annotated tag `v3.12.0` peels to that exact merge commit.
-The GitHub Release is <https://github.com/thisismydemo/azure-scout/releases/tag/v3.12.0>, and the
+The GitHub Release is <https://github.com/Hybrid-Solutions-Cloud/azure-scout/releases/tag/v3.12.0>, and the
 PowerShell Gallery package is <https://www.powershellgallery.com/packages/AzureScout/3.12.0>.
 
 The release implements four measured call-count reductions. A manifest-derived category plan reaches
