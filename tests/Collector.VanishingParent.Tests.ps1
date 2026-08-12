@@ -66,9 +66,11 @@ BeforeDiscovery {
                 # sentinel that saves a parent can be assigned in the setup preamble, the row
                 # preamble or an OUTER loop's preamble, and AzureFirewall uses all three.
                 $Statements = @(
-                    $Raw.SetupPreamble
-                    $Raw.Preamble
-                    @($Raw.AdditionalRowLoops) | ForEach-Object { $_.Preamble }
+                    if ($Raw.Contains('SetupPreamble')) { $Raw.SetupPreamble }
+                    if ($Raw.Contains('Preamble')) { $Raw.Preamble }
+                    @($Raw.AdditionalRowLoops) | ForEach-Object {
+                        if ($_.Contains('Preamble')) { $_.Preamble }
+                    }
                 ) -join "`n"
 
                 # Comments are the one thing Import-PowerShellDataFile throws away, and the
