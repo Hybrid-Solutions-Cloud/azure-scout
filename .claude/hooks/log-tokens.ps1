@@ -3,7 +3,7 @@
 # Input: JSON from stdin { tool_name, tool_input, tool_response }
 # Configure: set $logDir to your repo's .claude/logs/ path
 
-$logDir = "D:\git\thisismydemo\azure-scout\.claude\logs"
+$logDir = "D:\git\hybrid-solutions-cloud\azure-scout\.claude\logs"
 
 $input_json = $input | Out-String
 try { $payload = $input_json | ConvertFrom-Json } catch { exit 0 }

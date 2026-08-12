@@ -1,4 +1,4 @@
-# thisismydemo-azure-scout — Copilot instructions
+# azure-scout — Copilot instructions
 
 Read [`AGENTS.md`](../AGENTS.md) at the repo root for full repo context, hard rules,
 and the HCS Governance MCP bootstrap instruction. Follow the `.ai/` session protocol

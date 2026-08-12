@@ -278,7 +278,7 @@ than silently editing them out, so a reader who saw the earlier version knows wh
 
 ## Drift tab vs. Microsoft's milestone model — feature-for-feature comparison
 
-Read directly: `D:\git\thisismydemo\azure-scout\src\report\Get-ScoutDrift.ps1`.
+Read directly: `D:\git\hybrid-solutions-cloud\azure-scout\src\report\Get-ScoutDrift.ps1`.
 
 Microsoft's milestone model, from `microsoft-assessment-methodology.md` §10.7, has four elements:
 (a) named runs, (b) an explicitly stated recommended cadence, (c) prior-run-as-baseline, (d)
