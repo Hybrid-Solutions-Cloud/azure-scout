@@ -57,6 +57,23 @@ Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
                 $_.PSObject.Properties['Operation'] -and [string]$_.Operation -eq 'Sweep'
             }).Count | Should -Be 0
     }
+
+    It 'loads private companion functions for the opted-in phase and removes the complete set afterward' {
+        Remove-Item Function:script:ConvertTo-ScoutGovernanceResource -ErrorAction SilentlyContinue
+        Remove-Item Function:script:Get-ScoutGovernanceValue -ErrorAction SilentlyContinue
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+        function Get-ScoutGovernanceDataset {
+            param([Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Rest
+            [pscustomobject]@{ roleAssignments=@(); roleDefinitions=@(); policyAssignments=@(); budgets=@(); resourceLocks=@() }
+        }
+
+        $result = Get-ScoutRawInventory -WarningAction SilentlyContinue
+
+        @($result.CollectionHealth | Where-Object Dataset -eq 'Governance').Count | Should -Be 0
+        Get-Command ConvertTo-ScoutGovernanceResource -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+        Get-Command Get-ScoutGovernanceValue -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+    }
 }
 
 Describe 'Get-ScoutRawInventory -- table coverage' {

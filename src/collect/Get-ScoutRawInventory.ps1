@@ -672,6 +672,13 @@ function Get-ScoutRawInventory {
         }
 
         try {
+            $functionNamesBeforeLoad = [System.Collections.Generic.HashSet[string]]::new(
+                [System.StringComparer]::OrdinalIgnoreCase
+            )
+            foreach ($existingFunction in @(Get-ChildItem Function:)) {
+                $null = $functionNamesBeforeLoad.Add([string]$existingFunction.Name)
+            }
+
             . $helperPath
 
             # Dot-sourcing from inside this loader creates the helper in the loader's local
@@ -681,11 +688,16 @@ function Get-ScoutRawInventory {
             # imports masked the defect because all helpers were already present. Promote the
             # newly loaded function into the owning script/module scope so direct dot-source,
             # isolated tests, and partial-source consumers obey the same contract.
-            $loadedCommand = Get-Command $CommandName -CommandType Function -ErrorAction SilentlyContinue
-            if ($loadedCommand) {
-                Set-Item -Path ("Function:script:$CommandName") -Value $loadedCommand.ScriptBlock -Force
-                if (-not $dynamicallyLoadedHelpers.Contains($CommandName)) {
-                    $dynamicallyLoadedHelpers.Add($CommandName)
+            # Promote every function introduced by the helper file, not merely its public entry
+            # command. Several helpers carry private companions in the same file (for example,
+            # ConvertTo-ScoutGovernanceResource depends on Get-ScoutGovernanceValue). Promoting
+            # only the named command made that companion disappear with this loader's scope.
+            foreach ($loadedFunction in @(Get-ChildItem Function:)) {
+                $loadedName = [string]$loadedFunction.Name
+                if ($functionNamesBeforeLoad.Contains($loadedName)) { continue }
+                Set-Item -Path ("Function:script:$loadedName") -Value $loadedFunction.ScriptBlock -Force
+                if (-not $dynamicallyLoadedHelpers.Contains($loadedName)) {
+                    $dynamicallyLoadedHelpers.Add($loadedName)
                 }
             }
         }
