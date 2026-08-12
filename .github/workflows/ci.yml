@@ -23,13 +23,29 @@ permissions:
 jobs:
   test-and-lint:
     runs-on: [self-hosted, linux, x64, hcs]
+    env:
+      # PowerShell tests historically use $env:TEMP; minimal Linux containers generally
+      # expose TMPDIR only. Keep the test/runtime scratch contract platform-neutral.
+      TEMP: /tmp
+      TMP: /tmp
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Install test tools and module dependencies
         shell: pwsh
         run: |
+          if ($IsLinux) {
+            # System.Drawing-backed JPEG fixture generation needs the native GDI+ shim.
+            & apt-get update
+            & apt-get install --yes libgdiplus
+          }
+
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
           Write-Host 'Installing Pester 5.x...'
           Install-Module Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser -SkipPublisherCheck
@@ -65,6 +81,13 @@ jobs:
         shell: pwsh
         run: |
           Import-Module Pester -RequiredVersion 5.7.1 -Force
+
+          # Get-AZSCGraphToken.Tests proves the module never falls back to Azure CLI. Pester
+          # can mock only a command that exists, so provide an inert command surface on the
+          # deliberately minimal HCS image. Any real invocation still fails the test loudly.
+          if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
+            function global:az { throw 'Azure CLI compatibility shim was invoked.' }
+          }
 
           $resultsDir = Join-Path $env:GITHUB_WORKSPACE 'test-results'
           New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
