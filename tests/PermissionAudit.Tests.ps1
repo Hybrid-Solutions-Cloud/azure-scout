@@ -341,6 +341,21 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         $script:Result.ProviderResults.Count | Should -BeGreaterThan 0
     }
 
+    It 'does not audit an explicitly disabled subscription as runnable scope' {
+        Mock Get-AzSubscription {
+            @(
+                $script:FakeSub
+                [pscustomobject]@{ Id = 'disabled-sub'; Name = 'Disabled'; State = 'Disabled' }
+            )
+        }
+
+        $result = Invoke-AZSCPermissionAudit -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $subscriptionChecks = @($result.ArmDetails | Where-Object Check -like 'ARM: Subscription *')
+
+        @($subscriptionChecks | Where-Object Check -like '*demo-sub*').Count | Should -Be 1
+        @($subscriptionChecks | Where-Object Check -like '*Disabled*').Count | Should -Be 0
+    }
+
     It 'Recommendations is a real array whose .Count never throws even when empty (Sort-Object -Unique null-collapse guard)' {
         { $script:Result.Recommendations.Count } | Should -Not -Throw
     }

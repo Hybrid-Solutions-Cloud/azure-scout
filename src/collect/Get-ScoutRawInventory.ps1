@@ -694,7 +694,13 @@ function Get-ScoutRawInventory {
     if ($resolvedSubscriptionIds.Count -eq 0) {
         $resolvedSubscriptionIds = @(
             $resourceContainers |
-                Where-Object { [string] $_.type -ieq 'microsoft.resources/subscriptions' } |
+                Where-Object {
+                    [string] $_.type -ieq 'microsoft.resources/subscriptions' -and
+                    ($null -eq $_.PSObject.Properties['properties'] -or
+                        $null -eq $_.properties -or
+                        $null -eq $_.properties.PSObject.Properties['state'] -or
+                        [string]$_.properties.state -ieq 'Enabled')
+                } |
                 ForEach-Object { $_.subscriptionId } |
                 Where-Object { $_ }
         )
@@ -899,7 +905,13 @@ function Get-ScoutRawInventory {
     # resourcecontainers call is unavailable, but container names take precedence when present.
     $subscriptionEnvelopes = @(
         $resourceContainers |
-            Where-Object { [string] $_.type -ieq 'microsoft.resources/subscriptions' -and $_.subscriptionId } |
+            Where-Object {
+                [string] $_.type -ieq 'microsoft.resources/subscriptions' -and $_.subscriptionId -and
+                ($null -eq $_.PSObject.Properties['properties'] -or
+                    $null -eq $_.properties -or
+                    $null -eq $_.properties.PSObject.Properties['state'] -or
+                    [string]$_.properties.state -ieq 'Enabled')
+            } |
             ForEach-Object {
                 [pscustomobject]@{
                     id   = [string] $_.subscriptionId

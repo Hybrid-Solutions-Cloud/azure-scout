@@ -290,7 +290,10 @@ function Invoke-AZSCPermissionAudit {
     try {
         $subParams = @{ ErrorAction = 'Stop' }
         if ($TenantID) { $subParams['TenantId'] = $TenantID }
-        $allSubs = @(Get-AzSubscription @subParams)
+        $allSubs = @(Get-AzSubscription @subParams | Where-Object {
+                $stateProperty = $_.PSObject.Properties['State']
+                $null -eq $stateProperty -or [string]$stateProperty.Value -ieq 'Enabled'
+            })
 
         # When -SubscriptionID is specified, scope the audit to only those subscriptions
         if ($SubscriptionID -and $SubscriptionID.Count -gt 0) {

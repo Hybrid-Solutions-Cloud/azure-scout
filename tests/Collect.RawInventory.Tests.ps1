@@ -114,6 +114,28 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         $result.PSObject.Properties.Name | Should -Contain 'Security'
     }
 
+    It 'derives query scope only from enabled subscription container rows' {
+        $script:scopedCalls = [System.Collections.Generic.List[object]]::new()
+        function Search-AzGraph {
+            param([string] $Query, [string[]] $Subscription, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^resourcecontainers\b') {
+                return @(
+                    [pscustomobject]@{ id='/subscriptions/enabled-sub'; name='Enabled'; type='microsoft.resources/subscriptions'; subscriptionId='enabled-sub'; properties=[pscustomobject]@{ state='Enabled' } }
+                    [pscustomobject]@{ id='/subscriptions/disabled-sub'; name='Disabled'; type='microsoft.resources/subscriptions'; subscriptionId='disabled-sub'; properties=[pscustomobject]@{ state='Disabled' } }
+                )
+            }
+            $script:scopedCalls.Add(@($Subscription))
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory
+
+        @($script:scopedCalls).Count | Should -BeGreaterThan 0
+        foreach ($scope in $script:scopedCalls) { @($scope) | Should -Be @('enabled-sub') }
+        @($result.ResourceContainers | Where-Object subscriptionId -eq 'disabled-sub').Count | Should -Be 1
+    }
+
     It 'does not invoke optional non-ARG helpers unless their switches are supplied' {
         $script:armChildCalls = 0
         $script:subscriptionSweepCalls = 0

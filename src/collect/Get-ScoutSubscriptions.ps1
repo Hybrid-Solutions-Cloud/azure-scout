@@ -66,5 +66,15 @@ function Get-AZSCSubscriptions {
                 }
         }
 
+    # Disabled subscriptions can still be returned by Get-AzSubscription and Resource Graph, but
+    # their resource providers cannot be queried. Treating them as runnable scope creates a false
+    # Partial inventory (for example Defender Pricing appears unavailable) and wastes every
+    # subscription-scoped call. Preserve test/legacy objects that do not expose State, while
+    # excluding only an explicitly non-Enabled Azure subscription.
+    $Subscriptions = @($Subscriptions | Where-Object {
+            $stateProperty = $_.PSObject.Properties['State']
+            $null -eq $stateProperty -or [string]$stateProperty.Value -ieq 'Enabled'
+        })
+
     return $Subscriptions
 }
