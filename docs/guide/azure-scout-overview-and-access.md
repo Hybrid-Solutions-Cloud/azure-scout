@@ -75,9 +75,12 @@ Access can be revoked the moment collection finishes; report generation needs no
 | Role | Scope | Why |
 |---|---|---|
 | **Reader** | **Root management group** (Tenant Root Group) | One assignment, inherited by every management group, subscription and resource group beneath it |
+| **Key Vault Reader** | **Key Vaults to inventory**, directly or inherited | Lists secret/key names, tags and lifecycle metadata; cannot read secret values or private key material |
 
-This is the **entire Azure RBAC requirement**. Reader is a built-in role that confers no write,
-no delete and no data-plane access.
+`Reader` is the entire ARM control-plane requirement and confers no write or delete. The separate
+metadata-only `Key Vault Reader` grant is needed only for complete Key Vault object worksheets and
+the assessments that evaluate their expiry/enabled state; Scout reports those datasets unavailable
+when it is absent rather than substituting the incomplete ARM child-resource view.
 
 Assigning at the root management group is preferred over per-subscription assignment for two
 reasons: it is one auditable grant instead of many, and it means a subscription created mid-
@@ -223,12 +226,14 @@ declined, the DevOps capability findings are reported as not assessed and nothin
 | Plane | Grant | Scope |
 |---|---|---|
 | **Azure** | `Reader` | Root management group |
+| **Key Vault metadata** | `Key Vault Reader` | Key Vaults to inventory, directly or inherited |
 | **Azure cost visibility** *(optional)* | No additional role beyond `Reader`; enable EA/MCA view-charges policy | Billing account/profile |
 | **Entra ID** | `Global Reader` for a user, **or** the Graph application permissions in section 4 for a service principal | Tenant |
 | **Azure DevOps** *(optional)* | Read-only PAT | Organisation |
 
-Every grant above is **read-only**. There is no write permission, no data-plane permission and no
-standing access anywhere in this list.
+Every grant above is **read-only**. There is no write permission or standing access anywhere in
+this list. `Key Vault Reader` adds metadata-only data actions but cannot read secret values or
+private key material.
 
 ---
 
@@ -237,8 +242,9 @@ standing access anywhere in this list.
 **Does it exfiltrate anything?** No. Scout runs where you run it and writes its output to the
 local path you specify. There is no telemetry, no phone-home and no cloud service component.
 
-**Does it read our data?** No — control plane only. Not blob contents, database rows, Key Vault
-secret values, mail or documents. Key Vault items are read as names and expiry dates.
+**Does it read our data?** It reads resource configuration and metadata, not tenant content: no
+blob contents, database rows, Key Vault secret values, private key material, mail or documents.
+Key Vault items are limited to names, tags, content type and lifecycle metadata.
 
 **Can it change anything?** No. Every permission listed is read-only, and Scout has no write code
 path.

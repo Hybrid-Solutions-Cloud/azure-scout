@@ -69,4 +69,17 @@ Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (Stri
         # The ARM Reader @ MG root check always runs regardless.
         @($results | Where-Object Check -eq 'ARM Reader @ MG root').Count | Should -Be 1
     }
+
+    It 'requests Key Vault Reader only for assessments that consume key metadata (AB#7358)' {
+        $manifest = @{
+            'Microsoft: CASA' = @{ Ingest = @('Governance') }
+            'Assess: Compute' = @{ Ingest = @() }
+        }
+
+        $casa = Test-ScoutPermission -Assessment @('Microsoft: CASA') -Manifest $manifest 6>$null
+        $compute = Test-ScoutPermission -Assessment @('Assess: Compute') -Manifest $manifest 6>$null
+
+        @($casa | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 1
+        @($compute | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 0
+    }
 }

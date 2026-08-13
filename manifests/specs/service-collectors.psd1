@@ -1106,6 +1106,121 @@ $VIStorageAccount = if(![string]::IsNullOrEmpty($data.storageServices.resourceId
         }
 
         # ---------------------------------------------------------------------------------------
+        # Live tenant reconciliation close-out (AB#7358). These seven ARG-indexed types were
+        # present in raw inventory but no released collector consumed them, so they disappeared
+        # between acquisition and the report. Keep them as focused service worksheets rather than
+        # hiding unlike schemas inside an older collector with a similar product name.
+        # ---------------------------------------------------------------------------------------
+        @{
+            Category = 'Containers'
+            Name = 'ContainerAppJobs'
+            Worksheet = 'Container App Jobs'
+            ResourceTypes = @('microsoft.app/jobs')
+            Fields = @(
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+                @{ Name = 'Running Status';     Expression = '$data.runningStatus' }
+                @{ Name = 'Environment';        Expression = '$EnvironmentName' }
+                @{ Name = 'Workload Profile';   Expression = '$data.workloadProfileName' }
+                @{ Name = 'Trigger Type';       Expression = '$data.configuration.triggerType' }
+                @{ Name = 'Replica Timeout';    Expression = '[string]$data.configuration.replicaTimeout' }
+                @{ Name = 'Replica Retry Limit'; Expression = '[string]$data.configuration.replicaRetryLimit' }
+                @{ Name = 'Container Count';    Expression = '[string]@($data.template.containers).Count' }
+                @{ Name = 'Outbound IP Count';  Expression = '[string]@($data.outboundIpAddresses).Count' }
+                @{ Name = 'Identity Type';      Expression = '$1.identity.type' }
+            )
+            Preamble = @'
+$EnvironmentName = if(![string]::IsNullOrEmpty($data.environmentId)){Get-AZSCIdSegment -Id $data.environmentId -Index 8}else{$null}
+'@
+        }
+        @{
+            Category = 'Containers'
+            Name = 'ContainerAppManagedCertificates'
+            Worksheet = 'Container App Managed Certs'
+            ResourceTypes = @('microsoft.app/managedenvironments/managedcertificates')
+            Fields = @(
+                @{ Name = 'Environment';               Expression = '$EnvironmentName' }
+                @{ Name = 'Subject Name';              Expression = '$data.subjectName' }
+                @{ Name = 'Validation Method';         Expression = '$data.validationMethod' }
+                @{ Name = 'Domain Control Validation'; Expression = '[string]$data.domainControlValidation' }
+                @{ Name = 'Provisioning State';        Expression = '$data.provisioningState' }
+            )
+            Preamble = @'
+$EnvironmentName = if([string]::IsNullOrEmpty($1.id)){$null}else{Get-AZSCIdSegment -Id $1.id -Index 8}
+'@
+        }
+        @{
+            Category = 'Identity'
+            Name = 'CIAMDirectories'
+            Worksheet = 'CIAM Directories'
+            ResourceTypes = @('microsoft.azureactivedirectory/ciamdirectories')
+            Fields = @(
+                @{ Name = 'Directory Display Name'; Expression = '$data.createTenantProperties.displayName' }
+                @{ Name = 'Domain Name';            Expression = '$data.domainName' }
+                @{ Name = 'Country Code';           Expression = '$data.createTenantProperties.countryCode' }
+                @{ Name = 'Billing Type';           Expression = '$data.billingConfig.billingType' }
+                @{ Name = 'Billing Effective Date'; Expression = '[string]$data.billingConfig.effectiveStartDateUtc' }
+                @{ Name = 'SKU';                    Expression = '$1.sku.name' }
+                @{ Name = 'SKU Tier';               Expression = '$1.sku.tier' }
+                @{ Name = 'Provisioning State';     Expression = '$data.provisioningState' }
+            )
+        }
+        @{
+            Category = 'AI'
+            Name = 'AIFoundryAccountProjects'
+            Worksheet = 'AI Foundry Account Projects'
+            ResourceTypes = @('microsoft.cognitiveservices/accounts/projects')
+            Fields = @(
+                @{ Name = 'AI Services Account'; Expression = '$AccountName' }
+                @{ Name = 'Project Name';        Expression = '$ProjectName' }
+                @{ Name = 'Kind';                Expression = '$1.kind' }
+                @{ Name = 'Provisioning State';  Expression = '$data.provisioningState' }
+                @{ Name = 'Default Project';     Expression = '[string]$data.isDefault' }
+                @{ Name = 'AI Foundry API';      Expression = '$FoundryEndpoint' }
+            )
+            Preamble = @'
+$AccountName = if([string]::IsNullOrEmpty($1.id)){$null}else{Get-AZSCIdSegment -Id $1.id -Index 8}
+$ProjectName = if([string]::IsNullOrEmpty($1.id)){$null}else{Get-AZSCIdSegment -Id $1.id -Index 10}
+$FoundryEndpointProperty = if($data.endpoints){$data.endpoints.PSObject.Properties['AI Foundry API']}else{$null}
+$FoundryEndpoint = if($FoundryEndpointProperty){$FoundryEndpointProperty.Value}else{$null}
+'@
+        }
+        @{
+            Category = 'Monitor'
+            Name = 'AzureDashboards'
+            Worksheet = 'Azure Dashboards'
+            ResourceTypes = @('microsoft.dashboard/dashboards')
+            Fields = @(
+                @{ Name = 'Provisioning State'; Expression = '$data.provisioningState' }
+            )
+        }
+        @{
+            Category = 'Monitor'
+            Name = 'AzureMonitorWorkspaces'
+            Worksheet = 'Azure Monitor Workspaces'
+            ResourceTypes = @('microsoft.monitor/accounts')
+            Fields = @(
+                @{ Name = 'Provisioning State';       Expression = '$data.provisioningState' }
+                @{ Name = 'Public Network Access';    Expression = '$data.publicNetworkAccess' }
+                @{ Name = 'Prometheus Query Endpoint'; Expression = '$data.metrics.prometheusQueryEndpoint' }
+                @{ Name = 'Data Collection Endpoint'; Expression = '$DataCollectionEndpoint' }
+                @{ Name = 'Data Collection Rule';     Expression = '$DataCollectionRule' }
+            )
+            Preamble = @'
+$DataCollectionEndpoint = if(![string]::IsNullOrEmpty($data.defaultIngestionSettings.dataCollectionEndpointResourceId)){Get-AZSCIdSegment -Id $data.defaultIngestionSettings.dataCollectionEndpointResourceId -Index 8}else{$null}
+$DataCollectionRule = if(![string]::IsNullOrEmpty($data.defaultIngestionSettings.dataCollectionRuleResourceId)){Get-AZSCIdSegment -Id $data.defaultIngestionSettings.dataCollectionRuleResourceId -Index 8}else{$null}
+'@
+        }
+        @{
+            Category = 'DevOps'
+            Name = 'VisualStudioAccounts'
+            Worksheet = 'Visual Studio Accounts'
+            ResourceTypes = @('microsoft.visualstudio/account')
+            Fields = @(
+                @{ Name = 'Account URL'; Expression = '$data.AccountURL' }
+            )
+        }
+
+        # ---------------------------------------------------------------------------------------
         # Child resources (AB#6833 / AB#6834 / AB#6751).
         #
         # `Get-ScoutArmChildResource` COLLECTS these; without a collector to render them the data

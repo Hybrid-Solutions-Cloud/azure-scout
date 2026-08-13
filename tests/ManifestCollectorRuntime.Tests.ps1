@@ -16,7 +16,7 @@ Describe 'Manifest collector runtime catalog' {
         $Actual = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot)
 
         $Actual.Count | Should -Be $Expected.Count
-        $Actual.Count | Should -Be 278   # 279 after the coverage-gap closeout; -1 when AB#7279 removed the unreleased Lighthouse collector/query.
+        $Actual.Count | Should -Be 285   # 278 after AB#7279; +7 reconciled tenant resource types under AB#7358.
         @($Actual | Where-Object {
             -not $_.HasDeclarativeDefinition -or
             [string]::IsNullOrWhiteSpace($_.DefinitionPath) -or

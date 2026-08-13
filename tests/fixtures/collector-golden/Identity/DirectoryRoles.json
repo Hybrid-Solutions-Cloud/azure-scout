@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "DirectoryRoles",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "1df7fa7a387bc94a24513d1f1a25abc5869391aa6a1351f10fc0cfcf77e23e6a",
+  "FixtureSha256": "45fde6b9f78ea27454d93d9aa0299b67a853c88489ea6ea86e7eb4cad25c2058",
   "Rows": [
     "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/directoryroles/directoryroles-t1a-1|Resource U=j:1|Role Template ID=s:res-value|Tenant ID=s:res-value",
     "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/directoryroles/directoryroles-t1b-1|Resource U=j:1|Role Template ID=s:res-value|Tenant ID=s:res-value",

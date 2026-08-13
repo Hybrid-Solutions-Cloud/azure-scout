@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "VideoIndexerAccounts",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
+  "FixtureSha256": "9e43b1056eb6d7d788d816530fa0eb0de1c10c1e6c8d748062667d6bf4667a1c",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:videoindexeraccounts-t1a|OpenAI Services Linked=s:True|Private Endpoint Connections=s:2|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Storage Account=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1b-1|Identity Type=s:res-value|Location=s:res-value|Name=s:videoindexeraccounts-t1b|OpenAI Services Linked=s:True|Private Endpoint Connections=s:2|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Storage Account=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

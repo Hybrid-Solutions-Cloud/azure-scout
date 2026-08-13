@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "AppliedAIServices",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
+  "FixtureSha256": "9e43b1056eb6d7d788d816530fa0eb0de1c10c1e6c8d748062667d6bf4667a1c",
   "Rows": [
     "Custom Subdomain=s:res-value|Disable Local Auth=s:No|Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/appliedaiservices-t1a-1|Kind=s:FormRecognizer|Location=s:res-value|Name=s:appliedaiservices-t1a|Private Endpoints=j:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Custom Subdomain=s:res-value|Disable Local Auth=s:No|Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/appliedaiservices-t1b-1|Kind=s:FormRecognizer|Location=s:res-value|Name=s:appliedaiservices-t1b|Private Endpoints=j:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

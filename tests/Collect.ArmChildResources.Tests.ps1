@@ -108,15 +108,55 @@ BeforeAll {
         }
     }
 
+    function Get-KeyVaultResponseStub {
+        function global:Get-AzContext {
+            [pscustomobject]@{ Environment = [pscustomobject]@{ Name = 'AzureCloud' } }
+        }
+        function global:Get-AzEnvironment {
+            param([string]$Name)
+            $null = $Name
+            [pscustomobject]@{
+                AzureKeyVaultDnsSuffix = 'vault.azure.net'
+                AzureKeyVaultServiceEndpointResourceId = 'https://vault.azure.net'
+            }
+        }
+        function global:Get-AzAccessToken {
+            param(
+                [string]$ResourceUrl,
+                [switch]$AsSecureString,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $ResourceUrl, $AsSecureString, $Rest
+            [pscustomobject]@{ Token = [securestring]::new() }
+        }
+        function global:Invoke-WebRequest {
+            [CmdletBinding()]
+            param(
+                [string]$Uri,
+                [string]$Method,
+                [string]$Authentication,
+                [securestring]$Token,
+                [switch]$SkipHttpErrorCheck,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck, $Rest
+            Invoke-AzRestMethod -Path $Uri -Method GET
+        }
+    }
+
     Get-ArmChildResponseStub
+    Get-KeyVaultResponseStub
 }
 
 AfterAll {
-    Remove-Item -Path Function:\Invoke-AzRestMethod -Force -ErrorAction SilentlyContinue
+    foreach ($Name in 'Invoke-AzRestMethod', 'Get-AzContext', 'Get-AzEnvironment', 'Get-AzAccessToken', 'Invoke-WebRequest') {
+        Remove-Item -Path "Function:\$Name" -Force -ErrorAction SilentlyContinue
+    }
 }
 
 BeforeEach {
     Get-ArmChildResponseStub
+    Get-KeyVaultResponseStub
 }
 
 Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
@@ -274,6 +314,94 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
 
         @($Rows | Where-Object TYPE -match 'AppInsights(ContinuousExport|WorkItems)').Count | Should -Be 0
         ($script:ArmCalls -join "`n") | Should -Not -Match '(?i)exportconfiguration|WorkItemConfigs'
+    }
+
+    It 'follows ARM nextLink pages without dropping child resources (AB#7358)' {
+        $storage = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-paged'
+        $script:pagedCalls = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            [CmdletBinding()]
+            param([string]$Path, [string]$Uri, [string]$Method)
+            $null = $Method
+            $RequestUri = if ($Uri) { $Uri } else { $Path }
+            $script:pagedCalls.Add($RequestUri)
+
+            $payload = if ($RequestUri -eq 'https://management.azure.com/next-queues-page') {
+                @{ value = @(@{ id = "$($storage.id)/queueServices/default/queues/queue-two"; name = 'queue-two'; properties = @{} }) }
+            }
+            else {
+                @{
+                    value = @(@{ id = "$($storage.id)/queueServices/default/queues/queue-one"; name = 'queue-one'; properties = @{} })
+                    nextLink = 'https://management.azure.com/next-queues-page'
+                }
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = ($payload | ConvertTo-Json -Depth 8 -Compress) }
+        }
+
+        $rows = @(Get-ScoutArmChildResource -Resources @($storage) -Dataset StorageQueues)
+
+        $rows.Count | Should -Be 2
+        @($rows.name | Sort-Object) | Should -Be @('queue-one', 'queue-two')
+        $script:pagedCalls | Should -Be @(
+            "$($storage.id)/queueServices/default/queues?api-version=2023-05-01"
+            'https://management.azure.com/next-queues-page'
+        )
+    }
+
+    It 'lists every Key Vault secret metadata page without requesting a secret value (AB#7358)' {
+        $vault = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-paged' `
+            -Properties @{ vaultUri = 'https://kv-paged.vault.azure.net/' }
+        $script:keyVaultCalls = [System.Collections.Generic.List[string]]::new()
+        $script:keyVaultTokenResource = $null
+        function global:Get-AzAccessToken {
+            param(
+                [string]$ResourceUrl,
+                [switch]$AsSecureString,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $AsSecureString, $Rest
+            $script:keyVaultTokenResource = $ResourceUrl
+            [pscustomobject]@{ Token = [securestring]::new() }
+        }
+        function global:Invoke-WebRequest {
+            [CmdletBinding()]
+            param(
+                [string]$Uri,
+                [string]$Method,
+                [string]$Authentication,
+                [securestring]$Token,
+                [switch]$SkipHttpErrorCheck,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck, $Rest
+            $script:keyVaultCalls.Add($Uri)
+            $payload = if ($Uri -eq 'https://kv-paged.vault.azure.net/secrets/next-page') {
+                @{ value = @(@{ id = 'https://kv-paged.vault.azure.net/secrets/secret-two'; attributes = @{ enabled = $true } }) }
+            }
+            else {
+                @{
+                    value = @(@{ id = 'https://kv-paged.vault.azure.net/secrets/secret-one'; attributes = @{ enabled = $true } })
+                    nextLink = 'https://kv-paged.vault.azure.net/secrets/next-page'
+                }
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = ($payload | ConvertTo-Json -Depth 8 -Compress) }
+        }
+
+        $rows = @(Get-ScoutArmChildResource -Resources @($vault) -Dataset KeyVaultSecrets)
+
+        $rows.Count | Should -Be 2
+        @($rows.name | Sort-Object) | Should -Be @('secret-one', 'secret-two')
+        @($rows.id | Sort-Object) | Should -Be @(
+            "$($vault.id)/secrets/secret-one"
+            "$($vault.id)/secrets/secret-two"
+        )
+        $rows[0].properties.PSObject.Properties['value'] | Should -BeNullOrEmpty
+        $script:keyVaultTokenResource | Should -Be 'https://vault.azure.net'
+        $script:keyVaultCalls | Should -Be @(
+            'https://kv-paged.vault.azure.net/secrets?api-version=7.4&maxresults=25'
+            'https://kv-paged.vault.azure.net/secrets/next-page'
+        )
+        ($script:keyVaultCalls -join "`n") | Should -Not -Match '/secrets/[^?]+\?api-version='
     }
 
     It 'treats an absent storage lifecycle policy as empty without warning or terminating error' {
@@ -445,6 +573,29 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
                         'NullResponse' { return $null }
                         'MalformedJson' { return [pscustomobject]@{ StatusCode = 200; Content = '{not-json' } }
                     }
+                }
+                function global:Invoke-WebRequest {
+                    [CmdletBinding()]
+                    param(
+                        [string]$Uri,
+                        [string]$Method,
+                        [string]$Authentication,
+                        [securestring]$Token,
+                        [switch]$SkipHttpErrorCheck
+                    )
+                    $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck
+                    $response = Invoke-AzRestMethod -Path $Uri -Method GET
+                    if ($script:ArmMatrixOutcome -eq 'Success200') {
+                        $kind = if ($Uri -match '/keys(?:\?|/)') { 'keys' } else { 'secrets' }
+                        $identifierName = if ($kind -eq 'keys') { 'kid' } else { 'id' }
+                        $item = @{ attributes = @{ enabled = $true } }
+                        $item[$identifierName] = "https://kv.vault.azure.net/$kind/item-one"
+                        return [pscustomobject]@{
+                            StatusCode = 200
+                            Content = (@{ value = @($item) } | ConvertTo-Json -Depth 8 -Compress)
+                        }
+                    }
+                    return $response
                 }
 
                 $warnings = @()

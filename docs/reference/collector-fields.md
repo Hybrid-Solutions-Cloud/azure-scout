@@ -4,7 +4,7 @@ description: The held legacy worksheet metadata and columns declared by each Azu
 
 # Collector Fields
 
-What each collector can shape internally. **All 278 collectors** declare legacy worksheet
+What each collector can shape internally. **All 285 collectors** declare legacy worksheet
 metadata and an ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -30,10 +30,11 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 "none exist" or "not permitted".
 :::
 
-## AI (30 collectors)
+## AI (31 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
+| **AIFoundryAccountProjects** | AI Foundry Account Projects | `Subscription`, `Resource Group`, `Name`, `Location`, `AI Services Account`, `Project Name`, `Kind`, `Provisioning State`, `Default Project`, `AI Foundry API`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **AIFoundryHubs** | AI Foundry Hubs | `Subscription`, `Resource Group`, `Hub Name`, `Location`, `Friendly Name`, `Description`, `SKU`, `Public Network Access`, `Storage Account`, `Key Vault`, `App Insights`, `Container Registry`, `Provisioning State`, `Resource U` |
 | **AIFoundryProjects** | AI Foundry Projects | `Subscription`, `Resource Group`, `Project Name`, `Location`, `Friendly Name`, `Description`, `Hub Name`, `Public Network Access`, `Storage Account`, `Key Vault`, `App Insights`, `Container Registry`, `Provisioning State`, `Resource U` |
 | **AppliedAIServices** | Applied AI Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Kind`, `SKU`, `Endpoint`, `Custom Subdomain`, `Public Network Access`, `Private Endpoints`, `Disable Local Auth`, `Provisioning State`, `Resource U` |
@@ -106,7 +107,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **VMOperationalData** | VM Operational Data | `Subscription`, `Resource Group`, `VM Name`, `Location`, `Power State`, `Extensions Count`, `Extensions Installed`, `Azure Monitor Agent`, `Defender Extension`, `Boot Diagnostics`, `Boot Diag Storage`, `Backup Enabled`, `Last Backup Time`, `Backup Vault`, `Backup Policy`, `Advisor Recs Total`, `Advisor Cost Recs`, `Advisor Security Recs`, `Pending Critical Patches`, `Pending Other Patches`, `Last Patch Assessment`, `Tag: Environment`, `Tag: Owner`, `Tag: Cost Center`, `Tag: Expiration Date`, `Resource U` |
 | **VMWare** | VMWare | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Availability Strategy`, `Zone`, `Express Route Circuit`, `Encryption`, `External Cloud Links`, `Identity Sources`, `Internet`, `Cluster Size`, `Management Network`, `Network Block`, `Provisioning Network`, `vMotion Network`, `HCX Cloud Manager`, `NSXT Manager`, `VCSA`, `Resource U` |
 
-## Containers (6 collectors)
+## Containers (8 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -114,6 +115,8 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **ARO** | ARO | `Subscription`, `Resource Group`, `Clusters`, `Location`, `Retiring Feature`, `Retiring Date`, `ARO Version`, `ARO Domain`, `Outbound Type`, `Ingress Profile Name`, `Ingress Profile type`, `Ingress Profile IP`, `API Server type`, `API Server URL`, `API Server IP`, `Docker Pod Cidr`, `Service Cidr`, `Console URL`, `Master SKU`, `Master vNET`, `Master Subnet`, `Worker SKU`, `Worker DiskSize`, `Total Worker Nodes`, `Worker vNET`, `Worker Subnet`, `Resource U` |
 | **ContainerApp** | Container Apps | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Running Status`, `Container App Environment`, `Workload Profile`, `Ingress`, `Ingress Port`, `External Ingress`, `Insecure Connections`, `Ingress Transport`, `Dapr`, `Secrets`, `Container`, `CPU Cores`, `Memory Size (Gi)`, `Ephemeral Storage (Gi)`, `Container Image`, `Resource U` |
 | **ContainerAppEnv** | Container App Env | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Public Access`, `Zone Redundant`, `Static IP`, `KEDA version`, `Dapr version`, `Workload Profile`, `Workload Profile Type`, `Workload Profile Min`, `Workload Profile Max`, `Resource U` |
+| **ContainerAppJobs** | Container App Jobs | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Running Status`, `Environment`, `Workload Profile`, `Trigger Type`, `Replica Timeout`, `Replica Retry Limit`, `Container Count`, `Outbound IP Count`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **ContainerAppManagedCertificates** | Container App Managed Certs | `Subscription`, `Resource Group`, `Name`, `Location`, `Environment`, `Subject Name`, `Validation Method`, `Domain Control Validation`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ContainerGroups** | Containers | `Subscription`, `Resource Group`, `Instance Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Instance OS Type`, `Container Name`, `Container State`, `Container Image`, `Restart Count`, `Start Time`, `Command`, `Request CPU`, `Request Memory (GB)`, `IP`, `Protocol`, `Port`, `Resource U` |
 | **ContainerRegistries** | Registries | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Anonymous Pull Enabled`, `Encryption`, `Public Network Access`, `Zone Redundancy`, `Private Link`, `Soft Delete Policy`, `Trust Policy`, `Created Time`, `Resource U` |
 
@@ -137,7 +140,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **SQLVM** | SQL VMs | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Zone`, `SQL Server License Type`, `SQL Image`, `SQL Management`, `SQL Image Sku`, `Resource U` |
 | **StorageTables** | Storage Tables | `Subscription`, `Resource Group`, `Storage Account`, `Table`, `Metadata Keys`, `Resource U` |
 
-## DevOps (18 collectors)
+## DevOps (19 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -159,6 +162,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **ManagedDevOpsPools** | Managed DevOps Pools | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Maximum Agents`, `Organisation Kind`, `Agent OS`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ManagedGrafana** | Managed Grafana | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Provisioning State`, `Endpoint`, `Grafana Major Version`, `Public Network Access`, `Zone Redundancy`, `API Key`, `Deterministic Outbound IP`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **PlaywrightTesting** | Playwright Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Dashboard URI`, `Local Auth`, `Regional Affinity`, `Reporting`, `Scalable Execution`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **VisualStudioAccounts** | Visual Studio Accounts | `Subscription`, `Resource Group`, `Name`, `Location`, `Account URL`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
 ## General (5 collectors)
 
@@ -191,12 +195,13 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **StorageContainers** | AzLocal Storage | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Status`, `Path`, `Available Size GB`, `Container Size GB`, `Resource U` |
 | **VirtualMachines** | AzLocal VMs | `Subscription`, `Resource Group`, `Name`, `Location`, `Power State`, `Provisioning State`, `VM Size`, `OS Type`, `Computer Name`, `Processor Count`, `Memory MB`, `Dynamic Memory`, `Dynamic Mem Min MB`, `Dynamic Mem Max MB`, `Data Disk Count`, `Image Reference`, `Network Interfaces`, `Status`, `Resource U` |
 
-## Identity (20 collectors)
+## Identity (21 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
 | **AdminUnits** | Admin Units | `Display Name`, `Description`, `Membership Type`, `Membership Rule`, `Visibility`, `Resource U` |
 | **AppRegistrations** | App Registrations | `Display Name`, `Application ID`, `Sign-In Audience`, `Key Credential Expiry`, `Password Credential Expiry`, `API Permission Count`, `Publisher Domain`, `Created DateTime`, `Resource U` |
+| **CIAMDirectories** | CIAM Directories | `Subscription`, `Resource Group`, `Name`, `Location`, `Directory Display Name`, `Domain Name`, `Country Code`, `Billing Type`, `Billing Effective Date`, `SKU`, `SKU Tier`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **ConditionalAccess** | Conditional Access | `Display Name`, `State`, `Users Included`, `Users Excluded`, `Apps Included`, `Grant Controls`, `Session Controls`, `Created DateTime`, `Modified DateTime`, `Resource U` |
 | **CrossTenantAccess** | Cross-Tenant Access | `Display Name`, `Partner Tenant ID`, `Inbound Trust`, `B2B Collaboration`, `B2B Direct Connect`, `Is Service Provider`, `Resource U` |
 | **DirectoryRoles** | Directory Roles | `Display Name`, `Role Template ID`, `Description`, `Resource U` |
@@ -278,7 +283,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **DataBox** | Data Box Jobs | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Job Status`, `Transfer Type`, `Delivery Type`, `Start Time`, `Cancellation Reason`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **StackEdge** | Stack Edge Devices | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Device Status`, `Device Type`, `Model`, `Software Version`, `Serial Number`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Monitor (22 collectors)
+## Monitor (24 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -289,6 +294,8 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **AppInsightsProactiveDetection** | App Insights ProactiveDetection | `App Insights Name`, `Subscription`, `Resource Group`, `Rule Name`, `Display Name`, `Enabled`, `Send Email to Sub Owners`, `Custom Emails`, `Last Updated`, `Resource U` |
 | **AppInsightsWebTests** | App Insights Web Tests | `Subscription`, `Resource Group`, `Test Name`, `Location`, `Enabled`, `Test URL`, `Frequency (seconds)`, `Timeout (seconds)`, `Expected HTTP Status`, `SSL Check`, `SSL Alert Days`, `Follow Redirects`, `App Insights Resource`, `Test Locations Count`, `Test Locations`, `Provisioning State`, `Resource U` |
 | **AutoscaleSettings** | Autoscale Settings | `Subscription`, `Resource Group`, `Autoscale Setting Name`, `Location`, `Enabled`, `Target Resource`, `Target Location`, `Profiles Count`, `Profile Names`, `Default Profile Min`, `Default Profile Max`, `Default Profile Default`, `Default Profile Rules`, `Notification Emails`, `Notification Webhooks`, `Resource U` |
+| **AzureDashboards** | Azure Dashboards | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **AzureMonitorWorkspaces** | Azure Monitor Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Public Network Access`, `Prometheus Query Endpoint`, `Data Collection Endpoint`, `Data Collection Rule`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **DataCollectionEndpoints** | Data Collection Endpoints | `Subscription`, `Resource Group`, `DCE Name`, `Description`, `Location`, `Public Network Access`, `Configuration Endpoint`, `Logs Ingestion Endpoint`, `Metrics Ingestion Endpoint`, `Private Link Scopes`, `Failover Configuration`, `Immutable ID`, `Resource U` |
 | **DataCollectionRules** | Data Collection Rules | `Subscription`, `Resource Group`, `DCR Name`, `Description`, `Location`, `Data Sources`, `Destinations`, `Data Flows`, `Transformations`, `Data Collection Endpoint`, `Immutable ID`, `Resource U` |
 | **LAWorkspaceLinkedServices** | LA Linked Services | `Workspace Name`, `Subscription`, `Resource Group`, `Linked Service Name`, `Linked Resource Name`, `Linked Resource Type`, `Provisioning State`, `Resource U` |

@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "ComputerVision",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
+  "FixtureSha256": "9e43b1056eb6d7d788d816530fa0eb0de1c10c1e6c8d748062667d6bf4667a1c",
   "Rows": [
     "Creation Time=s:2026-01-15 10:30|Custom Domain Name=s:res-value|Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/computervision-t1a-1|IP Rules=j:2|Is Migrated=s:res-value|Name=s:computervision-t1a|Network Default Action=s:res-value|Private Endpoint=s:seg8|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network Rules=j:2",
     "Creation Time=s:2026-01-15 10:30|Custom Domain Name=s:res-value|Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/computervision-t1b-1|IP Rules=j:2|Is Migrated=s:res-value|Name=s:computervision-t1b|Network Default Action=s:res-value|Private Endpoint=s:seg8|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network Rules=j:2",

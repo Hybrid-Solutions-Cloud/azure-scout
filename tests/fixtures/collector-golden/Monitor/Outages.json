@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "Outages",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
+  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
   "Rows": [
     "Event Level=s:res-value|Event Type=s:res-value|How are we making incidents like this less likely or less impactful=s:res-value|How can customers make incidents like this less impactful=s:res-value|How did we respond=s:res-value|ID=s:res-value|Impact Mitigation Time=s:2026-01-15 10:30|Impact Start Time=s:2026-01-15 10:30|Impacted Services=s:res-item-0 , res-item-1 |Outage ID=s:res-value|Resource U=j:1|Status=s:res-value|Subscription=<null>|Title=s:res-value|What happened=s:res-value|What went wrong and why=s:res-value",
     "Event Level=s:res-value|Event Type=s:res-value|How are we making incidents like this less likely or less impactful=s:res-value|How can customers make incidents like this less impactful=s:res-value|How did we respond=s:res-value|ID=s:res-value|Impact Mitigation Time=s:2026-01-15 10:30|Impact Start Time=s:2026-01-15 10:30|Impacted Services=s:res-item-0 , res-item-1 |Outage ID=s:res-value|Resource U=j:0|Status=s:res-value|Subscription=<null>|Title=s:res-value|What happened=s:res-value|What went wrong and why=s:res-value",

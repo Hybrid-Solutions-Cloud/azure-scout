@@ -78,6 +78,30 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1e-1/managedcertificates/containerappmanagedcertificates-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1f-1/managedcertificates/containerappmanagedcertificates-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1f-1/managedcertificates/containerappmanagedcertificates-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -2071,6 +2095,324 @@
         }
       ]
     },
+    "ContainerAppJobs": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1a",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1b",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1c",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1d",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1e",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+            "provisioningState": "res-value",
+            "runningStatus": "res-value",
+            "workloadProfileName": "res-value",
+            "configuration": {
+              "triggerType": "res-value",
+              "replicaTimeout": "res-value",
+              "replicaRetryLimit": "res-value"
+            },
+            "template": {
+              "containers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "outboundIpAddresses": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappjobs-t1f",
+          "LOCATION": "res-value",
+          "identity": {
+            "type": "res-value"
+          },
+          "TYPE": "microsoft.app/jobs"
+        }
+      ]
+    },
+    "ContainerAppManagedCertificates": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1a-1/managedcertificates/containerappmanagedcertificates-t1a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        },
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1b-1/managedcertificates/containerappmanagedcertificates-t1b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        },
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1c-1/managedcertificates/containerappmanagedcertificates-t1c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        },
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1d-1/managedcertificates/containerappmanagedcertificates-t1d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        },
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1e-1/managedcertificates/containerappmanagedcertificates-t1e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        },
+        {
+          "PROPERTIES": {
+            "subjectName": "res-value",
+            "validationMethod": "res-value",
+            "domainControlValidation": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1f-1/managedcertificates/containerappmanagedcertificates-t1f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappmanagedcertificates-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        }
+      ]
+    },
     "ContainerGroups": {
       "resources": [
         {
@@ -2082,7 +2424,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2106,7 +2448,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2149,7 +2491,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2173,7 +2515,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2217,7 +2559,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2241,7 +2583,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2282,7 +2624,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2306,7 +2648,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2349,7 +2691,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2373,7 +2715,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2416,7 +2758,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2440,7 +2782,7 @@
                   "instanceView": {
                     "currentState": {
                       "state": "res-value",
-                      "startTime": "2026-01-15T10:30:00.0000000Z"
+                      "startTime": "2026-01-15T10:30:00Z"
                     },
                     "restartCount": "res-value"
                   },
@@ -2480,7 +2822,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"
@@ -2512,7 +2854,7 @@
         },
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"
@@ -2545,7 +2887,7 @@
         },
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"
@@ -2575,7 +2917,7 @@
         },
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"
@@ -2607,7 +2949,7 @@
         },
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"
@@ -2639,7 +2981,7 @@
         },
         {
           "PROPERTIES": {
-            "creationDate": "2026-01-15T10:30:00.0000000Z",
+            "creationDate": "2026-01-15T10:30:00Z",
             "anonymouspullenabled": "res-value",
             "encryption": {
               "status": "res-value"

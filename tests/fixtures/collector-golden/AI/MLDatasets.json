@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "MLDatasets",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
+  "FixtureSha256": "9e43b1056eb6d7d788d816530fa0eb0de1c10c1e6c8d748062667d6bf4667a1c",
   "Rows": [
     "Created Date=s:2026-01-15|Data Path=s:res-value|Dataset Name=s:mldatasets-t1a|Dataset Type=s:res-value|Description=s:res-value|Latest Version=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:mldatasets-t1a-parent",
     "Created Date=s:2026-01-15|Data Path=s:res-value|Dataset Name=s:mldatasets-t1b|Dataset Type=s:res-value|Description=s:res-value|Latest Version=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:mldatasets-t1b-parent",

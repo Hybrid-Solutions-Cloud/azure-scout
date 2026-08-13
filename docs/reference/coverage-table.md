@@ -21,30 +21,31 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 
 | Category | Modules | Notes |
 |----------|---------|-------|
-| AI | 30 | Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search. |
+| AI | 31 | Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search. |
 | Analytics | 12 | Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview. |
 | Compute | 19 | Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate. |
-| Containers | 6 | AKS, ARO, Container Apps, container instances, and container registries. |
+| Containers | 8 | AKS, ARO, Container Apps, container instances, and container registries. |
 | Databases | 15 | Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis. |
-| DevOps | 18 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
+| DevOps | 19 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 5 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
 | Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
-| Identity | 20 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
+| Identity | 21 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 8 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
 | Management | 19 | Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
-| Monitor | 22 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
+| Monitor | 24 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 25 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
 | Security | 18 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 16 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **278** | across all 18 of Microsoft's published service categories |
+| **Total** | **285** | across all 18 of Microsoft's published service categories |
 
-## AI Category (30 modules)
+## AI Category (31 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
+| AIFoundryAccountProjects | `microsoft.cognitiveservices/accounts/projects` | AI Foundry Account Projects |
 | AIFoundryHubs | `microsoft.machinelearningservices/workspaces` | AI Foundry Hubs |
 | AIFoundryProjects | `microsoft.machinelearningservices/workspaces` | AI Foundry Projects |
 | AppliedAIServices | `microsoft.cognitiveservices/accounts` | Applied AI Services |
@@ -117,7 +118,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | VMOperationalData | `microsoft.compute/virtualmachines` | VM Operational Data |
 | VMWare | `Microsoft.AVS/privateClouds` | VMWare |
 
-## Containers Category (6 modules)
+## Containers Category (8 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -125,6 +126,8 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ARO | `microsoft.redhatopenshift/openshiftclusters` | ARO |
 | ContainerApp | `microsoft.app/containerapps` | Container Apps |
 | ContainerAppEnv | `microsoft.app/managedenvironments` | Container App Env |
+| ContainerAppJobs | `microsoft.app/jobs` | Container App Jobs |
+| ContainerAppManagedCertificates | `microsoft.app/managedenvironments/managedcertificates` | Container App Managed Certs |
 | ContainerGroups | `microsoft.containerinstance/containergroups` | Containers |
 | ContainerRegistries | `microsoft.containerregistry/registries` | Registries |
 
@@ -148,7 +151,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | SQLVM | `microsoft.sqlvirtualmachine/sqlvirtualmachines` | SQL VMs |
 | StorageTables | `AZSC/ARMChild/StorageTables` | Storage Tables |
 
-## DevOps Category (18 modules)
+## DevOps Category (19 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -170,6 +173,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ManagedDevOpsPools | `microsoft.devopsinfrastructure/pools` | Managed DevOps Pools |
 | ManagedGrafana | `microsoft.dashboard/grafana` | Managed Grafana |
 | PlaywrightTesting | `microsoft.azureplaywrightservice/accounts` | Playwright Workspaces |
+| VisualStudioAccounts | `microsoft.visualstudio/account` | Visual Studio Accounts |
 
 ## General Category (5 modules)
 
@@ -202,12 +206,13 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` | AzLocal VMs |
 
-## Identity Category (20 modules)
+## Identity Category (21 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
 | AdminUnits | `entra/administrativeunits` | Admin Units |
 | AppRegistrations | `entra/applications` | App Registrations |
+| CIAMDirectories | `microsoft.azureactivedirectory/ciamdirectories` | CIAM Directories |
 | ConditionalAccess | `entra/conditionalaccesspolicies` | Conditional Access |
 | CrossTenantAccess | `entra/crosstenantaccess` | Cross-Tenant Access |
 | DirectoryRoles | `entra/directoryroles` | Directory Roles |
@@ -289,7 +294,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DataBox | `microsoft.databox/jobs` | Data Box Jobs |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` | Stack Edge Devices |
 
-## Monitor Category (22 modules)
+## Monitor Category (24 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -300,6 +305,8 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` | App Insights ProactiveDetection |
 | AppInsightsWebTests | `microsoft.insights/webtests` | App Insights Web Tests |
 | AutoscaleSettings | `microsoft.insights/autoscalesettings` | Autoscale Settings |
+| AzureDashboards | `microsoft.dashboard/dashboards` | Azure Dashboards |
+| AzureMonitorWorkspaces | `microsoft.monitor/accounts` | Azure Monitor Workspaces |
 | DataCollectionEndpoints | `microsoft.insights/datacollectionendpoints` | Data Collection Endpoints |
 | DataCollectionRules | `microsoft.insights/datacollectionrules` | Data Collection Rules |
 | LAWorkspaceLinkedServices | `AZSC/ARMChild/LAWorkspaceLinkedServices` | LA Linked Services |
