@@ -446,9 +446,16 @@ function Get-ScoutRawInventory {
             'governance dataset sweep'                 { 96 }
             default                                    { 1 }
         }
-        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status (
-            '{0} {1}; {2} row(s); elapsed {3}' -f $Name, $Status.ToLowerInvariant(), $Rows, $Timer.Elapsed.ToString('hh\:mm\:ss')
-        ) -PercentComplete $phasePercent
+        $progressStatus = '{0} {1}; {2} row(s); elapsed {3}' -f
+            $Name, $Status.ToLowerInvariant(), $Rows, $Timer.Elapsed.ToString('hh\:mm\:ss')
+        if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+            Write-ScoutProgress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+                -Status $progressStatus -PercentComplete $phasePercent
+        }
+        else {
+            Write-Progress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+                -Status $progressStatus -PercentComplete $phasePercent
+        }
     }
 
     function Write-ScoutRawInventoryStart {
@@ -466,7 +473,14 @@ function Get-ScoutRawInventory {
             'governance dataset sweep'                 { 85 }
             default                                    { 1 }
         }
-        Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status "$Name started" -PercentComplete $phasePercent
+        if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+            Write-ScoutProgress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+                -Status "$Name started" -PercentComplete $phasePercent
+        }
+        else {
+            Write-Progress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+                -Status "$Name started" -PercentComplete $phasePercent
+        }
     }
 
     $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
@@ -1239,7 +1253,14 @@ function Get-ScoutRawInventory {
             'at the target scope (root management group for full coverage) and that -ManagementGroupId/-SubscriptionIds is correct.')
     }
 
-    Write-Progress -Id 1 -Activity 'Azure Inventory extraction' -Status 'Extraction subphases complete' -Completed
+    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+        Write-ScoutProgress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+            -Status 'Extraction subphases complete' -Completed
+    }
+    else {
+        Write-Progress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction' `
+            -Status 'Extraction subphases complete' -Completed
+    }
 
     $result = [pscustomobject]@{
         Resources          = @($resources)

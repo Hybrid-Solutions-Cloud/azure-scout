@@ -379,6 +379,9 @@ Function Invoke-AzureScout {
         # opens, and run the default full ARM inventory instead.
         [Alias('NonInteractive')]
         [switch]$NoWizard,
+        # Suppress all interactive progress rendering. CI/unattended hosts also suppress the
+        # Spectre TUI automatically and retain log-friendly phase records.
+        [switch]$NoProgress,
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
         [string]$RunName,
@@ -400,6 +403,8 @@ Function Invoke-AzureScout {
         [ValidateSet('Executive', 'Consultant', 'Data')]
         [string]$DefaultReportMode = 'Consultant'
         )
+
+    if ($NoProgress.IsPresent) { $ProgressPreference = 'SilentlyContinue' }
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
 
@@ -994,7 +999,26 @@ Function Invoke-AzureScout {
         $extractionIncludeTags = [switch]$true
     }
 
-        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat -Category $Category -PreserveAssessmentDependencies:($null -ne $deferredAssessArgs)
+    $extractionOperation = {
+        # Keep the named call explicit: these parameters are a safety contract for the
+        # collect-once tag handoff and category/dependency extraction plan.
+        Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions `
+            -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter `
+            -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags `
+            -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails `
+            -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment `
+            -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps `
+            -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat -Category $Category `
+            -PreserveAssessmentDependencies:($null -ne $deferredAssessArgs)
+    }
+    if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+        $ExtractionData = Invoke-ScoutProgressOperation -Activity 'Azure Inventory' `
+            -Status 'Starting extraction' -PercentComplete 1 -Id 1 `
+            -Operation $extractionOperation
+    }
+    else {
+        $ExtractionData = & $extractionOperation
+    }
 
     $ExtractionRuntime.Stop()
 
@@ -1228,7 +1252,14 @@ Function Invoke-AzureScout {
 
             $TotalRes = Start-AZSCExcelCustomization -File $File -TableStyle $TableStyle -PlatOS $PlatOS -Subscriptions $Subscriptions -ExtractionRunTime $ExtractionRuntime -ProcessingRunTime $ProcessingRunTime -ReportingRunTime $ReportingRunTime -IncludeCosts $IncludeCosts -RunLite $RunLite -Overview $Overview -Category $Category
 
-            Write-Progress -activity 'Azure Inventory' -Status "95% Complete." -PercentComplete 95 -CurrentOperation "Excel Customization Completed. Total resources inventoried: $TotalRes"
+            if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
+                Write-ScoutProgress -Activity 'Azure Inventory' -Status '95% Complete.' -PercentComplete 95 `
+                    -CurrentOperation "Excel customization complete. Total resources inventoried: $TotalRes"
+            }
+            else {
+                Write-Progress -Activity 'Azure Inventory' -Status '95% Complete.' -PercentComplete 95 `
+                    -CurrentOperation "Excel customization complete. Total resources inventoried: $TotalRes"
+            }
         }
         catch {
             Write-Warning "Excel report generation failed: $($_.Exception.Message)"
@@ -1381,7 +1412,12 @@ Function Invoke-AzureScout {
 
     $Measure = $TotalRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
-Write-Progress -activity 'Azure Inventory' -Status "100% Complete." -Completed
+if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
+    Write-ScoutProgress -Activity 'Azure Inventory' -Status '100% Complete.' -Completed
+}
+else {
+    Write-Progress -Activity 'Azure Inventory' -Status '100% Complete.' -Completed
+}
 
 Write-AZSCLogPhase -Name 'Run complete' -Elapsed $Measure -Detail @{
     'Resources on Azure' = $ResourcesCount

@@ -1,5 +1,66 @@
 # Handoff
 
+## Session 2026-08-13 — AB#405 live progress implementation and v3.12.5 release
+
+The static v3.12.4 progress line has been replaced on branch
+`agent/ab405-live-progress-3.12.5` with a real Spectre auto-refreshing progress host. Its spinner
+and elapsed-time column are owned by Spectre's refresh loop, so they continue moving while the
+PowerShell execution thread is blocked inside a long Azure call. The Azure operation has an
+execute-once boundary: startup failures fall back before work begins, while any failure after work
+begins is propagated without replaying collection.
+
+The operator rejected black phase text on dark blue. The product and updated mockup now use bright
+cyan/white foreground labels on the terminal's normal background, never a colored background; the
+phase/state words remain meaningful without color. `-NoProgress` was added, and CI, redirected,
+non-interactive, and missing-module paths retain native/log-friendly behavior. Progress sites in
+extraction and collector processing route through the shared helper with native fallbacks.
+
+Version and documentation are staged for v3.12.5, "The compass keeps moving." Focused Pester 5.7.1
+passed 57/57. A direct smoke against PwshSpectreConsole 2.6.3 successfully rendered a three-second
+blocking operation, accepted a task update, completed, and returned the operation result. Full
+validation, protected PR/merge, CI/docs, tag, and PowerShell Gallery publication remain in progress.
+
+## Session 2026-08-13 — AB#405 progress-TUI audit and concept mockup
+
+The operator reported that the inventory elapsed timer froze after the ARG sweep and remembered a
+planned rich PowerShell progress solution. The reference is confirmed as `PwshSpectreConsole`.
+Azure Boards feature AB#405, "Integrate PwshSpectreConsole for rich terminal TUI progress display
+in Azure Scout," is Closed, but its stated acceptance criteria required live multi-bar progress,
+long-operation spinners, CI fallback, and `-NoProgress`. The released implementation only detects
+the optional module and calls `Write-SpectreHost` for a static styled line; native extraction timing
+is updated only at subphase boundaries. The observed frozen timer is therefore consistent with the
+implementation and shows that the original feature was closed without its core live-refresh UX.
+
+An in-conversation design mockup was created at
+`D:/tmp/azure-scout-spectre-mockup.html`. It demonstrates the intended experience: an independently
+ticking overall and phase timer, animated current-operation spinner, overall and per-phase status,
+resource/dataset counts, recent activity, and a heartbeat indicator. No product code was changed.
+
+## Session 2026-08-13 — AzureScout 3.12.4 merged and published
+
+The operator approved the protected merge and publication. Product PR #2 merged as
+`0ad57f073e89ded38e9014fdd7b69b4926670d69`; release PR #3 merged as
+`ec3750d423f452e3a27c4d0548d8052b5868d139`. Both approvals were recorded against the exact PR
+heads before squash merge. The release commit's post-merge CI run `31742722594` and documentation
+build/deploy run `31742722585` completed successfully. HCS ephemeral runners serviced the jobs,
+and the Default runner group's public-repository allowance was restored to `false` afterward.
+
+Annotated tag `v3.12.4` and the GitHub Release point to the exact release merge commit. The final
+PowerShell Gallery module was constructed from `git archive v3.12.4` using the established
+allow-list: five root files, `config`, `manifests`, `src`, and `archived/Modules` mapped to
+`Modules`. It contains 732 files (8,736,748 bytes); all 674 PowerShell files parse, the manifest
+reports 3.12.4, a fresh process imports 22 exports, and gitleaks is clean.
+
+PowerShell Gallery accepted AzureScout 3.12.4. A fresh public `Save-Module` download contained the
+same 732 package files with zero missing, extra, or SHA-256-mismatched paths. Both staged and
+downloaded artifacts have deterministic tree hash
+`f678d4244e67a3225af26e8cb82288a8317e7e855e70fc5c9c37e9f6219984f3`. The downloaded package
+fresh-imported as 3.12.4 with 22 exports. The Gallery page, GitHub Release, and Labs documentation
+all returned HTTP 200.
+
+No 3.12.4 release work remains. These state updates are intentionally local post-release notes;
+the immutable release tag and published package do not include them.
+
 ## Session 2026-08-12 — HCS runner onboarding and target CI green
 
 PR `Hybrid-Solutions-Cloud/azure-scout#1` is open from

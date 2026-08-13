@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.4'
+ModuleVersion = '3.12.5'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.4 - Close the reconciliation gaps. Adds seven dedicated collectors for Container Apps jobs and managed certificates, Azure Monitor workspaces, CIAM directories, Foundry account projects, Azure dashboards, and Visual Studio accounts, taking the catalog to 285. ARM child collection follows every continuation link. Key Vault secret and key inventory now uses paged metadata-only LIST operations, never reads values or private key material, and reports missing Key Vault Reader access explicitly instead of returning a plausible partial result. Network diagram job tracking and Key Vault assessment mapping are corrected. Independently reconciled against the retained tenant run; all 27 formerly uncovered resource IDs are now collected. AB#7358.'
+        ReleaseNotes = 'v3.12.5 - The compass keeps moving. Interactive inventory extraction now uses a real auto-refreshing PwshSpectreConsole progress host when the optional module is available, so the spinner and elapsed timer keep advancing during long blocking Azure calls. Phase labels use high-contrast foreground text with no colored background, native and CI-safe fallbacks remain intact, and -NoProgress suppresses interactive rendering explicitly. Progress failures cannot execute a collector twice. AB#405.'
 
         # Prerelease string of this module
         # Prerelease = ''
@@ -172,8 +172,10 @@ PrivateData = @{
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
 
-        # External dependent modules of this module
-        # ExternalModuleDependencies = @()
+        # Optional rich terminal progress. AzureScout remains fully functional on PowerShell 7.0
+        # without it; current PwshSpectreConsole releases require newer PowerShell versions, so it
+        # cannot be a hard RequiredModules dependency without breaking the supported engine floor.
+        ExternalModuleDependencies = @('PwshSpectreConsole')
 
     } # End of PSData hashtable
 

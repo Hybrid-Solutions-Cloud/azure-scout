@@ -402,9 +402,13 @@ Describe 'Invoke-AzureScout wiring' {
     It 'uses independent nested progress records and reserves Completed for actual terminal points' {
         $raw = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/collect/Get-ScoutRawInventory.ps1')
         $operational = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'src/collect/Get-ScoutOperationalCollectorEnrichment.ps1')
-        $raw | Should -Match "Write-Progress -Id 1 -Activity 'Azure Inventory extraction'"
+        $raw | Should -Match "Write-ScoutProgress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction'"
+        $raw | Should -Match "Write-Progress -Id 2 -ParentId 1 -Activity 'Azure Inventory extraction'"
         $raw | Should -Match "Status 'Extraction subphases complete' -Completed"
-        ([regex]::Matches($raw, '-Completed')).Count | Should -Be 1
+        # The live helper and native fallback each declare the same terminal point, but the
+        # guarded if/else executes exactly one renderer at runtime.
+        ([regex]::Matches($raw, "Status 'Extraction subphases complete' -Completed")).Count | Should -Be 2
+        ([regex]::Matches($raw, '-Completed')).Count | Should -Be 2
 
         $timingStart = $raw.IndexOf('function Write-ScoutRawInventoryTiming')
         $startStart = $raw.IndexOf('function Write-ScoutRawInventoryStart')
@@ -426,7 +430,8 @@ Describe 'Invoke-AzureScout wiring' {
             $finished | Should -BeLessOrEqual 99
             $lastPercent = $finished
         }
-        $operational | Should -Match "Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment'"
-        ([regex]::Matches($operational, '-Completed')).Count | Should -Be 1
+        $operational | Should -Match "Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment'"
+        $operational | Should -Match "Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment'"
+        ([regex]::Matches($operational, '-Completed')).Count | Should -Be 2
     }
 }

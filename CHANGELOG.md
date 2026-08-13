@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.5] - 2026-08-13 - the compass keeps moving
+
+### Added
+
+- **Interactive inventory runs now have a real live terminal progress host (AB#405).** When the
+  optional `PwshSpectreConsole` module is available, Scout renders an auto-refreshing spinner,
+  progress bar, percentage, and elapsed-time column around extraction. The display keeps updating
+  while PowerShell is blocked inside a long Azure SDK or REST call.
+- `-NoProgress` explicitly suppresses interactive progress for operators and automation wrappers
+  that want quiet output.
+
+### Fixed
+
+- **The extraction timer no longer appears frozen after the ARG sweep.** The timer is owned by the
+  live renderer rather than advanced only when a collector returns.
+- **Phase names remain readable in light and dark terminals.** The Spectre display uses bright
+  foreground text on the terminal's normal background; it never places black text on a dark-blue
+  phase block. Color reinforces state but is not the only state indicator.
+- A renderer failure can never cause the wrapped Azure operation to execute twice. If Spectre
+  cannot start, Scout falls back before collection begins; after collection begins, errors are
+  propagated without replaying work.
+
+### Changed
+
+- `PwshSpectreConsole` is declared as an optional external dependency rather than a hard required
+  module, preserving AzureScout's PowerShell 7.0 engine floor. Missing-module, redirected,
+  non-interactive, and CI hosts retain native or log-friendly progress behavior.
+
 ## [3.12.4] - 2026-08-13 - close the reconciliation gaps
 
 ### Added
