@@ -18,6 +18,7 @@ description: Complete reference of all Invoke-AzureScout and Test-AZSCPermission
 | `-OutputFormat` | Global output contract for every run mode: `React`, `Json`, `JsonEvidence`, or `All` (default, selects all three). Accepts an array. Legacy names still bind for compatibility but are on hold and are not emitted. See [Report tiers](../assessment/configuration.md#report-tiers). |
 | `-Assessment` | Switches the run to **assessment mode** — see [Assessment-mode Parameters](#assessment-mode-parameters). Omit for an inventory run |
 | `-NoWizard` | Skip the guided wizard that a bare, interactive `Invoke-AzureScout` opens, and run the default inventory instead. Alias: `-NonInteractive`. Never needed in CI — the wizard already suppresses itself in non-interactive hosts |
+| `-NoProgress` | Suppress interactive progress rendering. Scout already chooses log-friendly output automatically in CI, redirected, and non-interactive hosts |
 | `-Category` | Filter by resource category: `AI`, `Analytics`, `Compute`, `Containers`, `Databases`, `Hybrid`, `Identity`, `Integration`, `IoT`, `Management`, `Monitor`, `Networking`, `Security`, `Storage`, `Web` — see [Category Filtering](./category-filtering.md) |
 
 ### Authentication

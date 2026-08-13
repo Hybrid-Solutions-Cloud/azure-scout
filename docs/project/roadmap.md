@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.4 — close the reconciliation gaps
+## Current Release — v3.12.5 — the compass keeps moving
+
+Released 13 August 2026. Interactive inventory extraction now uses a real auto-refreshing optional
+Spectre progress host, keeping its spinner and elapsed clock moving during blocking Azure calls.
+High-contrast phase labels use no colored background, `-NoProgress` gives operators an explicit
+quiet mode, native/CI fallbacks remain intact, and renderer failures cannot replay collector work.
+See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.4 — close the reconciliation gaps
 
 Released 13 August 2026. Seven dedicated collectors now cover every live resource type found only
 in raw inventory during the independent tenant reconciliation, taking the catalog to 285. ARM child

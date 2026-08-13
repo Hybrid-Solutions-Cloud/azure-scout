@@ -34,6 +34,7 @@ Describe 'Single entry point — parameter surface' {
         @{ Name = 'CollectOnly' }
         @{ Name = 'FromCollect' }
         @{ Name = 'NoWizard' }
+        @{ Name = 'NoProgress' }
     ) {
         $script:Cmd.Parameters.ContainsKey($Name) | Should -BeTrue
     }

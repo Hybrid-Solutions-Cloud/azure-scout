@@ -19,6 +19,18 @@ Invoke-AzureScout -NoWizard                    # inventory, default settings
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'      # CAF/WAF assessment
 ```
 
+For a live spinner, progress bar, and elapsed clock during long inventory calls, optionally install
+`PwshSpectreConsole` in a compatible PowerShell session:
+
+```powershell
+Install-Module -Name PwshSpectreConsole -Scope CurrentUser
+```
+
+Scout does not require it. If it is unavailable—or the run is in CI, redirected, or started with
+`-NoProgress`—Scout automatically uses its native, log-friendly fallback. The rich display uses
+high-contrast foreground labels and no colored text backgrounds so phase names remain readable in
+light and dark terminal themes.
+
 ## Just run it
 
 Run `Invoke-AzureScout` with no parameters and you get a wizard. It signs you in, checks the
