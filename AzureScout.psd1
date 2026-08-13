@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.3'
+ModuleVersion = '3.12.4'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.3 - Every collector tells the truth. ARM child discovery now works with supported Az.Accounts versions and records per-dataset failures instead of silently returning empty data. Risky Users, Verified ID, management-group, Defender, and Azure DevOps availability are classified from the real permission, licence, HTTP, and provider results. Operational collection emits bounded progress and durable heartbeats; run logs always receive a terminal status. A live HCS acceptance pass independently reconciled all 278 collector outcomes while retaining raw inventory, caches, health, and logs. AB#7279.'
+        ReleaseNotes = 'v3.12.4 - Close the reconciliation gaps. Adds seven dedicated collectors for Container Apps jobs and managed certificates, Azure Monitor workspaces, CIAM directories, Foundry account projects, Azure dashboards, and Visual Studio accounts, taking the catalog to 285. ARM child collection follows every continuation link. Key Vault secret and key inventory now uses paged metadata-only LIST operations, never reads values or private key material, and reports missing Key Vault Reader access explicitly instead of returning a plausible partial result. Network diagram job tracking and Key Vault assessment mapping are corrected. Independently reconciled against the retained tenant run; all 27 formerly uncovered resource IDs are now collected. AB#7358.'
 
         # Prerelease string of this module
         # Prerelease = ''

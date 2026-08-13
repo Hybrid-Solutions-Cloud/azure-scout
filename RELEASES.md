@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.12.4** | 2026-08-13 | ✅ | **Close the reconciliation gaps.** Adds seven collectors for all 27 uncovered live resources, follows ARM continuation links, replaces incomplete Key Vault ARM-child results with paged metadata-only inventory and explicit permission health, and fixes Key Vault assessment shaping plus network-diagram job tracking. | **AB#7358** |
 | **3.12.3** | 2026-08-11 | ✅ | **Every collector tells the truth.** Restores all ARM-child requests on supported Az.Accounts; makes Risky Users, management-group, Defender, and Azure DevOps failures precise and visible; adds durable operational progress and terminal logging; and independently reconciles all 278 collectors against the HCS tenant while retaining every raw/cache artifact. | **AB#7279** |
 | **3.12.2** | 2026-08-11 | ✅ | **Honest collection, retained evidence.** Guided runs authenticate and audit once; management-group/Graph readiness reflects collectible data; expected Entra gaps are classified before HTTP calls; held Lighthouse is removed; Security Center payloads retry safely; normal absence stays quiet; and every raw/cache artifact remains until explicit cleanup. | **AB#7279** |
 | **3.12.1** | 2026-08-11 | ✅ | **One sign-in, one tenant.** Graph reuses the exact selected Azure PowerShell account and tenant instead of an unrelated Azure CLI session; Entra authentication failures are attempted and reported once rather than repeated for every dataset. | **AB#7279** |

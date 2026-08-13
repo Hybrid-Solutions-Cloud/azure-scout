@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.4] - 2026-08-13 - close the reconciliation gaps
+
+### Added
+
+- **Seven dedicated collectors close every resource-type gap found by the independent tenant scan
+  (AB#7358).** Container Apps jobs, managed-environment managed certificates, Azure Monitor
+  workspaces, CIAM directories, Foundry account projects, Azure dashboards, and Visual Studio
+  accounts take the catalog from 278 to 285 collectors. All 27 live resource IDs that previously
+  existed only in raw inventory are now emitted by a dedicated collector.
+
+### Fixed
+
+- **ARM child collections no longer stop at the first response page.** The shared helper follows
+  relative and absolute continuation links, rejects repeated links, and preserves the established
+  singleton and bare-array response contracts.
+- **Key Vault inventory no longer reports a plausible but incomplete result.** Secret and key
+  collection uses paged, metadata-only Key Vault LIST operations and whitelists names, tags,
+  content type, and lifecycle attributes into the existing child-resource contract. Scout never
+  requests a secret value or private key material. Missing `Key Vault Reader` access produces an
+  explicit unavailable health record instead of substituting the incomplete ARM-deployment view.
+- **Key Vault assessment fields now match the collected row contract.** Content type and lifecycle
+  attributes are read from the synthetic row's `properties` payload, restoring certificate
+  classification, enabled state, and expiry evaluation.
+- **Network diagram subnet jobs are tracked by their real job objects.** Waiting, receiving, and
+  cleanup no longer depend on nonexistent doubled `Job_Job_*` variable names, so completed subnet
+  fragments reliably reach the final diagram.
+
+### Changed
+
+- Permission preflight and documentation identify the metadata-only `Key Vault Reader` requirement
+  for complete Key Vault object inventory and the AVS/CASA assessments while stating explicitly
+  that it cannot read secret values or private key material.
+- Independent acceptance reconciled the retained tenant run against direct source queries: all 27
+  newly covered resource IDs matched, and 150 Key Vault objects resolved as 129 readable metadata
+  rows plus 21 explicitly unavailable rows on the one vault missing metadata access.
+
 ## [3.12.3] - 2026-08-11 - every collector tells the truth
 
 ### Fixed
