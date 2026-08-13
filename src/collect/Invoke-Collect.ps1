@@ -2675,12 +2675,13 @@ resources
             # AB#6821 (Feature AB#6748, Epic AB#6454) -- CASA scores confidentiality/integrity
             # controls that live on Key Vault CHILD objects (a secret's contentType distinguishes
             # a certificate from a plain secret; both carry attributes.enabled/exp), which are not
-            # Resource Graph indexed -- only reachable via the vault's own ARM REST child listing.
+            # completely Resource Graph or ARM indexed. Scout uses metadata-only Key Vault LIST
+            # operations and never requests secret values or private key material.
             # -ArmChildDataset scopes Get-ScoutArmChildResource to exactly these two datasets
             # (KeyVaultSecrets, KeyVaultKeys) rather than its full 'All' sweep (ML/Search/Storage/
             # Backup/diagnostics children an assessment collect has no rule that reads), so the
-            # added cost is bounded to two REST calls per Key Vault in scope, not per-parent across
-            # every dataset the declarative inventory collectors need.
+            # added cost is bounded to two paged metadata LIST operations per Key Vault in scope,
+            # not per-parent across every dataset the declarative inventory collectors need.
             #
             # -IncludeUpdateManagerResources (AB#7107 AB#7108, Story AB#7059, Feature AB#7069,
             # Epic AB#7099) is the second -Include* switch this path needs, added the same way
@@ -3086,7 +3087,17 @@ resources
     # worksheet agree on what a given secret/key looks like.
     function ConvertTo-ScoutKeyVaultChildRow {
         param([Parameter(Mandatory)] $Row)
-        $attrs = if ($Row.PSObject.Properties['attributes']) { $Row.attributes } else { $null }
+        # Get-ScoutArmChildResource preserves the service payload under `.properties`, matching
+        # every declarative collector. The original assessment adapter incorrectly looked for
+        # contentType/attributes at the synthetic row's top level, so real runs silently erased
+        # certificate classification, enabled state and expiry even when collection succeeded.
+        $data = if ($Row.PSObject.Properties['properties'] -and $Row.properties) {
+            $Row.properties
+        }
+        else {
+            $Row
+        }
+        $attrs = if ($data.PSObject.Properties['attributes']) { $data.attributes } else { $null }
         [pscustomobject]@{
             id             = if ($Row.PSObject.Properties['id']) { [string]$Row.id } else { $null }
             keyVaultName   = if ($Row.PSObject.Properties['PARENTNAME']) { [string]$Row.PARENTNAME } else { $null }
@@ -3097,7 +3108,7 @@ resources
             # Key Vault has no separate "certificate" list API result shape at this level; see
             # src/collect/Get-ScoutArmChildResource.ps1 (~line 453) and
             # manifests/collectors/Security/KeyVaultSecrets.psd1's $Kind derivation.
-            contentType    = if ($Row.PSObject.Properties['contentType']) { [string]$Row.contentType } else { $null }
+            contentType    = if ($data.PSObject.Properties['contentType']) { [string]$data.contentType } else { $null }
             enabled        = ConvertTo-ScoutBool ($(if ($attrs -and $attrs.PSObject.Properties['enabled']) { $attrs.enabled } else { $null }))
             expires        = if ($attrs -and $attrs.PSObject.Properties['exp']) { $attrs.exp } else { $null }
         }

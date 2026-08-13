@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "ManagedGrafana",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
+  "FixtureSha256": "15ea3b37dc164eb395d5225a5a35231619190a77026731a196cde8b70c6301d7",
   "Rows": [
     "API Key=s:res-value|Deterministic Outbound IP=s:res-value|Endpoint=s:res-value|Grafana Major Version=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1a-1|Location=s:res-value|Name=s:managedgrafana-t1a|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zone Redundancy=s:res-value",
     "API Key=s:res-value|Deterministic Outbound IP=s:res-value|Endpoint=s:res-value|Grafana Major Version=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1b-1|Location=s:res-value|Name=s:managedgrafana-t1b|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zone Redundancy=s:res-value",

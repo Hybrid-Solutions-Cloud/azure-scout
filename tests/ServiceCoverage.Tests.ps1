@@ -118,6 +118,32 @@ Describe 'Generated collectors match their spec (AB#6741)' {
     }
 }
 
+Describe 'Live reconciliation resource types have collector coverage (AB#7358)' {
+
+    $ExpectedCoverage = @(
+        @{ Category = 'Containers'; Name = 'ContainerAppJobs';                Type = 'microsoft.app/jobs' }
+        @{ Category = 'Containers'; Name = 'ContainerAppManagedCertificates'; Type = 'microsoft.app/managedenvironments/managedcertificates' }
+        @{ Category = 'Identity';   Name = 'CIAMDirectories';                  Type = 'microsoft.azureactivedirectory/ciamdirectories' }
+        @{ Category = 'AI';         Name = 'AIFoundryAccountProjects';         Type = 'microsoft.cognitiveservices/accounts/projects' }
+        @{ Category = 'Monitor';    Name = 'AzureDashboards';                  Type = 'microsoft.dashboard/dashboards' }
+        @{ Category = 'Monitor';    Name = 'AzureMonitorWorkspaces';           Type = 'microsoft.monitor/accounts' }
+        @{ Category = 'DevOps';     Name = 'VisualStudioAccounts';             Type = 'microsoft.visualstudio/account' }
+    )
+
+    It '<Category>/<Name> consumes <Type>' -ForEach $ExpectedCoverage {
+        $SpecEntry = @($script:Spec.Collectors | Where-Object {
+            $_.Category -eq $Category -and $_.Name -eq $Name
+        })
+        $SpecEntry.Count | Should -Be 1 -Because 'the generated spec is the source of truth for service collectors'
+        @($SpecEntry[0].ResourceTypes) | Should -Contain $Type
+
+        $Path = Join-Path -Path $script:DefinitionRoot -ChildPath "$Category/$Name.psd1"
+        $Path | Should -Exist
+        $Definition = Get-ScoutCollectorDefinition -Path $Path
+        @($Definition.ResourceTypes) | Should -Contain $Type
+    }
+}
+
 Describe 'Cross-resource joins (AB#6835)' {
 
     BeforeAll {

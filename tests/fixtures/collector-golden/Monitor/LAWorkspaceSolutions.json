@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "LAWorkspaceSolutions",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
+  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/laworkspacesolutions-t1a-1|Location=s:res-value|Plan Name=s:res-value|Product=s:res-value|Provisioning State=s:res-value|Publisher=s:res-value|Resource Group=s:res-value|Resource U=j:1|Solution Name=s:laworkspacesolutions-t1a|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:res-value|Workspace Resource ID=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationsmanagement/solutions/laworkspacesolutions-t1b-1|Location=s:res-value|Plan Name=s:res-value|Product=s:res-value|Provisioning State=s:res-value|Publisher=s:res-value|Resource Group=s:res-value|Resource U=j:1|Solution Name=s:laworkspacesolutions-t1b|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:res-value|Workspace Resource ID=s:res-value",

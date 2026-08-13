@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "MetricAlertRules",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
+  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
   "Rows": [
     "Action Groups=s:res-value, res-value|Alert Rule Name=s:metricalertrules-t1a|Auto Mitigate=s:No|Conditions=s:res-value res-value res-value (res-value); res-value res-value res-value (res-value)|Criteria Type=s:res-value|Description=s:res-value|Evaluation Frequency=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/metricalerts/metricalertrules-t1a-1|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Severity=s:res-value|Status=s:Disabled|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Target Resource Type=s:res-value|Target Resources=s:res-item-0, res-item-1|Window Size=s:res-value",
     "Action Groups=s:res-value, res-value|Alert Rule Name=s:metricalertrules-t1b|Auto Mitigate=s:No|Conditions=s:res-value res-value res-value (res-value); res-value res-value res-value (res-value)|Criteria Type=s:res-value|Description=s:res-value|Evaluation Frequency=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/metricalerts/metricalertrules-t1b-1|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Severity=s:res-value|Status=s:Disabled|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Target Resource Type=s:res-value|Target Resources=s:res-item-0, res-item-1|Window Size=s:res-value",

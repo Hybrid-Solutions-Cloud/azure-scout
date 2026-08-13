@@ -3,7 +3,7 @@
   "Category": "Containers",
   "Name": "ContainerGroups",
   "FixturePath": "tests/fixtures/collector-equivalence/Containers.json",
-  "FixtureSha256": "fe3063c5624aaab79c6c564ecf1449282eb78cd9d9d92a902452064233eea9a3",
+  "FixtureSha256": "cc1f023f45b0747a8b7e33ea43b7b584dabf5afa299fa14a27621353186ed66b",
   "Rows": [
     "Command=s:res-value|Container Image=s:res-value|Container Name=s:res-value|Container State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerinstance/containergroups/containergroups-t1a-1|Instance Name=s:containergroups-t1a|Instance OS Type=s:res-value|IP=s:res-value|Location=s:res-value|Port=s:res-value|Protocol=s:res-value|Request CPU=s:res-value|Request Memory (GB)=s:res-value|Resource Group=s:res-value|Resource U=j:1|Restart Count=s:res-value|Retiring Date=<null>|Retiring Feature=<null>|Start Time=j:\"2026-01-15T10:30:00Z\"|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Command=s:res-value|Container Image=s:res-value|Container Name=s:res-value|Container State=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerinstance/containergroups/containergroups-t1a-1|Instance Name=s:containergroups-t1a|Instance OS Type=s:res-value|IP=s:res-value|Location=s:res-value|Port=s:res-value|Protocol=s:res-value|Request CPU=s:res-value|Request Memory (GB)=s:res-value|Resource Group=s:res-value|Resource U=j:0|Restart Count=s:res-value|Retiring Date=<null>|Retiring Feature=<null>|Start Time=j:\"2026-01-15T10:30:00Z\"|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

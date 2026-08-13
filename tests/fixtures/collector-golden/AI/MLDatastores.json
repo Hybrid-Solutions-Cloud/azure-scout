@@ -3,7 +3,7 @@
   "Category": "AI",
   "Name": "MLDatastores",
   "FixturePath": "tests/fixtures/collector-equivalence/AI.json",
-  "FixtureSha256": "3bffe531b6e929a8aaf5dbc02c6d108b4f51186a19853271b5f432d18b6bbe2b",
+  "FixtureSha256": "9e43b1056eb6d7d788d816530fa0eb0de1c10c1e6c8d748062667d6bf4667a1c",
   "Rows": [
     "Container/Share=s:res-value|Credentials Type=s:res-value|Datastore Name=s:mldatastores-t1a|Datastore Type=s:res-value|Description=s:res-value|Is Default=s:No|Resource Group=s:rg-fixture-01|Resource U=j:1|Storage Account=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:mldatastores-t1a-parent",
     "Container/Share=s:res-value|Credentials Type=s:res-value|Datastore Name=s:mldatastores-t1b|Datastore Type=s:res-value|Description=s:res-value|Is Default=s:No|Resource Group=s:rg-fixture-01|Resource U=j:1|Storage Account=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:mldatastores-t1b-parent",

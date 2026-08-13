@@ -21,10 +21,11 @@ full comparison.
 |-------------|-------------------------------------|-------------------------------------------|
 | PowerShell | **7.0 or later, PowerShell Core** — the manifest declares `PowerShellVersion = '7.0'` and `CompatiblePSEditions = @('Core')`, so Windows PowerShell 5.1 cannot import the module | Same — **7.0 or later only**; every assessment script also starts with `#Requires -Version 7.0` |
 | Operating System | Windows, Linux, or macOS | Windows, Linux, or macOS |
-| Azure Account | Azure RBAC `Reader` — no more, on any subscription — with read access to target resources | ARM `Reader` at the tenant-root management group — see [Assessment Permissions](../assessment/assessment-permissions.md) |
+| Azure Account | Azure RBAC `Reader` on the scanned scope; add metadata-only `Key Vault Reader` for complete secret/key inventory | ARM `Reader` at the tenant-root management group; `Workload: AVS` and `Microsoft: CASA` also need metadata-only `Key Vault Reader` — see [Assessment Permissions](../assessment/assessment-permissions.md) |
 | Entra ID Access | Entra `Global Reader` (single-role user option), the documented split least-privilege roles, or equivalent Graph app permissions (service principal) — required only for `-Scope All` or `-Scope EntraOnly` | Not required by default — 26 assessments collect governance data natively via ARM; Graph only applies if you opt one back into the legacy `AzGovViz` ingestor |
 
-`Reader` is the whole ARM ask — no elevated role, and no other Azure RBAC role, is required for
+`Reader` is the whole ARM control-plane ask. Complete Key Vault secret/key metadata inventory also
+requires the metadata-only `Key Vault Reader` role; it cannot read secret values. No elevated role is required for
 either mode. If a checklist you're handing to a security team lists `Security Reader`,
 `Monitoring Reader`, or `Cost Management Reader` (the **Azure RBAC** ones) as optional extras,
 drop them — see [Permissions](./permissions.md#arm-permissions) for why they add nothing Scout

@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "LAWorkspaceLinkedServices",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
+  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
   "Rows": [
     "Linked Resource ID=s:res-value|Linked Resource Name=s:res-value|Linked Resource Type=s:N/A|Linked Service Name=s:laworkspacelinkedservices-t1a|Provisioning State=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:laworkspacelinkedservices-t1a-parent|Write Access Resource ID=s:res-value",
     "Linked Resource ID=s:res-value|Linked Resource Name=s:res-value|Linked Resource Type=s:N/A|Linked Service Name=s:laworkspacelinkedservices-t1b|Provisioning State=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:laworkspacelinkedservices-t1b-parent|Write Access Resource ID=s:res-value",

@@ -3,7 +3,7 @@
   "Category": "Containers",
   "Name": "ContainerApp",
   "FixturePath": "tests/fixtures/collector-equivalence/Containers.json",
-  "FixtureSha256": "fe3063c5624aaab79c6c564ecf1449282eb78cd9d9d92a902452064233eea9a3",
+  "FixtureSha256": "cc1f023f45b0747a8b7e33ea43b7b584dabf5afa299fa14a27621353186ed66b",
   "Rows": [
     "Container=s:res-value|Container App Environment=s:seg8|Container Image=s:res-value|CPU Cores=s:res-value|Dapr=j:true|Ephemeral Storage (Gi)=s:res-value|External Ingress=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1a-1|Ingress=j:true|Ingress Port=s:res-value|Ingress Transport=s:res-value|Insecure Connections=s:res-value|Location=s:res-value|Memory Size (Gi)=s:res-value|Name=s:containerapp-t1a|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Running Status=s:res-value|Secrets=s:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workload Profile=s:res-value",
     "Container=s:res-value|Container App Environment=s:seg8|Container Image=s:res-value|CPU Cores=s:res-value|Dapr=j:true|Ephemeral Storage (Gi)=s:res-value|External Ingress=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/containerapps/containerapp-t1a-1|Ingress=j:true|Ingress Port=s:res-value|Ingress Transport=s:res-value|Insecure Connections=s:res-value|Location=s:res-value|Memory Size (Gi)=s:res-value|Name=s:containerapp-t1a|Resource Group=s:res-value|Resource U=j:0|Retiring Date=<null>|Retiring Feature=<null>|Running Status=s:res-value|Secrets=s:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workload Profile=s:res-value",

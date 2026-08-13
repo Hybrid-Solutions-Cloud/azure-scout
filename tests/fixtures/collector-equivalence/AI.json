@@ -366,6 +366,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.videoindexer/accounts/videoindexeraccounts-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1e-1/projects/aifoundryaccountprojects-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1f-1/projects/aifoundryaccountprojects-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1f-1/projects/aifoundryaccountprojects-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -381,6 +393,111 @@
     }
   ],
   "collectors": {
+    "AIFoundryAccountProjects": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1a-1/projects/aifoundryaccountprojects-t1a-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1a",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        },
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1b-1/projects/aifoundryaccountprojects-t1b-2",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1b",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        },
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1c-1/projects/aifoundryaccountprojects-t1c-2",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1c",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        },
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1d-1/projects/aifoundryaccountprojects-t1d-2",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1d",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        },
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1e-1/projects/aifoundryaccountprojects-t1e-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1e",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        },
+        {
+          "PROPERTIES": {
+            "endpoints": "res-value",
+            "provisioningState": "res-value",
+            "isDefault": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.cognitiveservices/accounts/aifoundryaccountprojects-t1f-1/projects/aifoundryaccountprojects-t1f-2",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aifoundryaccountprojects-t1f",
+          "LOCATION": "res-value",
+          "kind": "res-value",
+          "TYPE": "microsoft.cognitiveservices/accounts/projects"
+        }
+      ]
+    },
     "AIFoundryHubs": {
       "resources": [
         {

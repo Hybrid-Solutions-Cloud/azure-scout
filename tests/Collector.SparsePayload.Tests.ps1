@@ -86,6 +86,31 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
        Properties = @{ provisioningState = 'Succeeded' }
        Because = 'a policy with no custom rules has no customRules key' }
 
+    # AB#7358 — types observed live in the independent tenant reconciliation. These are deliberately
+    # sparse so adding a worksheet cannot trade the former no-collector gap for a collector that
+    # disappears whenever an optional nested block is absent.
+    @{ Category = 'Containers'; Name = 'ContainerAppJobs'; Type = 'microsoft.app/jobs'
+       Properties = @{ provisioningState = 'Succeeded'; configuration = [pscustomobject]@{}; template = [pscustomobject]@{} }
+       Because = 'a Container Apps job can exist before its trigger and container template are fully materialised' }
+    @{ Category = 'Containers'; Name = 'ContainerAppManagedCertificates'; Type = 'microsoft.app/managedenvironments/managedcertificates'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'certificate validation details are absent while a managed certificate is provisioning' }
+    @{ Category = 'Identity'; Name = 'CIAMDirectories'; Type = 'microsoft.azureactivedirectory/ciamdirectories'
+       Properties = @{ provisioningState = 'Succeeded'; createTenantProperties = [pscustomobject]@{}; billingConfig = [pscustomobject]@{} }
+       Because = 'directory creation and billing detail can be partially projected by Resource Graph' }
+    @{ Category = 'AI'; Name = 'AIFoundryAccountProjects'; Type = 'microsoft.cognitiveservices/accounts/projects'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'a Foundry project without an endpoint projection is still a real project' }
+    @{ Category = 'Monitor'; Name = 'AzureDashboards'; Type = 'microsoft.dashboard/dashboards'
+       Properties = @{ provisioningState = 'Succeeded' }
+       Because = 'the dashboard resource exposes only a minimal ARG control-plane projection' }
+    @{ Category = 'Monitor'; Name = 'AzureMonitorWorkspaces'; Type = 'microsoft.monitor/accounts'
+       Properties = @{ provisioningState = 'Succeeded'; metrics = [pscustomobject]@{}; defaultIngestionSettings = [pscustomobject]@{} }
+       Because = 'ingestion defaults can be absent while an Azure Monitor workspace is provisioning' }
+    @{ Category = 'DevOps'; Name = 'VisualStudioAccounts'; Type = 'microsoft.visualstudio/account'
+       Properties = @{}
+       Because = 'legacy Visual Studio account rows must survive even when AccountURL is not projected' }
+
     # AB#6844 — the second class: a string method called on a payload value that is absent. These
     # four each held an unguarded `.split('/')[N]` and threw "You cannot call a method on a
     # null-valued expression" before those 75 sites were routed through Get-AZSCIdSegment.

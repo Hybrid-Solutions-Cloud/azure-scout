@@ -146,6 +146,16 @@ Describe 'Diagram module files exist and parse cleanly' {
         [System.Management.Automation.Language.Parser]::ParseFile($filePath, [ref]$null, [ref]$errors) | Out-Null
         $errors | Should -BeNullOrEmpty
     }
+
+    It 'owns subnet thread jobs as job objects instead of looking up doubled Job_ variable names (AB#7358)' {
+        $source = Get-Content -LiteralPath (Join-Path -Path $script:DiagramPath -ChildPath 'Start-ScoutDiagramNetwork.ps1') -Raw
+
+        $source | Should -Match '\$SubnetJob\s*=\s*Start-ThreadJob'
+        $source | Should -Match 'Wait-Job\s+-Job\s+\$Script:jobs'
+        $source | Should -Match 'Receive-Job\s+-Job\s+\$Job'
+        $source | Should -Match 'Remove-Job\s+-Job\s+\$Job'
+        $source | Should -Not -Match "Get-Variable\s+-Name\s+\('Job_'\s*\+\s*\`$job\)"
+    }
 }
 
 # =====================================================================

@@ -70,6 +70,11 @@ New-AzRoleAssignment -ObjectId $principalId `
   -RoleDefinitionName 'Reader' `
   -Scope '/providers/Microsoft.Management/managementGroups/<tenant-root-mg-id>'
 
+# List Key Vault secret/key metadata without permission to read secret values
+New-AzRoleAssignment -ObjectId $principalId `
+  -RoleDefinitionName 'Key Vault Reader' `
+  -Scope '/providers/Microsoft.Management/managementGroups/<tenant-root-mg-id>'
+
 # Write the reports to blob storage
 New-AzRoleAssignment -ObjectId $principalId `
   -RoleDefinitionName 'Storage Blob Data Contributor' `

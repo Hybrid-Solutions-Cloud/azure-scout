@@ -3,7 +3,7 @@
   "Category": "DevOps",
   "Name": "DevTestLabs",
   "FixturePath": "tests/fixtures/collector-equivalence/DevOps.json",
-  "FixtureSha256": "08ffce760458cb88301651c67cdc49f308c1db797f3f23026bf5ff5758ab9470",
+  "FixtureSha256": "15ea3b37dc164eb395d5225a5a35231619190a77026731a196cde8b70c6301d7",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devtestlab/labs/devtestlabs-t1a-1|Lab Storage Type=s:res-value|Location=s:res-value|Name=s:devtestlabs-t1a|Premium Data Disks=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.devtestlab/labs|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Schedule Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Task Type=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devtestlab/schedules/devtestlabs-t2a-1|Lab Storage Type=s:res-value|Location=s:res-value|Name=s:devtestlabs-t2a|Premium Data Disks=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.devtestlab/schedules|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Schedule Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Task Type=s:res-value",

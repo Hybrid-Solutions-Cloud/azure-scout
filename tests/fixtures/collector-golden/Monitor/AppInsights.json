@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "AppInsights",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "acc739bd9cb9e84647e9affb75100d4524a18f6c6ad16a8f4cddfcd105964d6b",
+  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
   "Rows": [
     "Application Type=s:res-value|Created Time=s:2026-01-15 10:30|Data Sampling %=s:res-value|Flow Type=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1a-1|Ingestion Mode=s:res-value|Location=s:res-value|Name=s:appinsights-t1a|Public Access For Ingestion=s:res-value|Public Access For Query=s:res-value|Request Source=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retention In Days=s:res-value|Retirement Date=s:|Retirement Feature=<null>|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Version=s:res-value",
     "Application Type=s:res-value|Created Time=s:2026-01-15 10:30|Data Sampling %=s:res-value|Flow Type=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/components/appinsights-t1b-1|Ingestion Mode=s:res-value|Location=s:res-value|Name=s:appinsights-t1b|Public Access For Ingestion=s:res-value|Public Access For Query=s:res-value|Request Source=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retention In Days=s:res-value|Retirement Date=s:|Retirement Feature=<null>|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Version=s:res-value",

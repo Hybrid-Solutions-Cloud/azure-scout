@@ -15,18 +15,20 @@ See the [Overview](./overview.md).
 
 ## Overview
 
-AzureScout requires two categories of permissions:
+AzureScout requires three categories of permissions:
 
 1. **ARM (Azure Resource Manager)** — RBAC role assignments on subscriptions
-2. **Microsoft Graph API** — Application or delegated permissions for Entra ID data
+2. **Key Vault metadata** — the metadata-only `Key Vault Reader` role when secret/key inventory is required
+3. **Microsoft Graph API** — Application or delegated permissions for Entra ID data
 
 ## ARM Permissions
 
 | Permission | Scope | Purpose |
 |------------|-------|---------|
-| `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources, read properties — covers every ARM collector Scout has |
+| `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources and read ARM properties |
+| `Key Vault Reader` | Each Key Vault, or an inherited scope that contains it | List secret/key metadata (names, tags, lifecycle attributes); cannot read secret values |
 
-**One role is the whole ARM ask.** Azure's `Reader` role is `Actions: */read` with an empty
+Azure's `Reader` role is the whole **ARM control-plane** ask. It is `Actions: */read` with an empty
 `NotActions` — a single wildcard over every control-plane read. There is no ARM collector in
 Scout that needs more than this, including roughly 130 of them that reach Azure through Azure
 Resource Graph (`Microsoft.ResourceGraph/resources/read` — also inside `Reader`'s `*/read`, so
@@ -63,13 +65,15 @@ The pre-flight checker no longer asks for any of the three, and `Test-AZSCPermis
 reports them as missing.
 :::
 
-::: tip Key Vault secrets, keys and certificates never need a data-plane grant
-`KeyVaultSecrets` and `KeyVaultKeys` (AB#6822) read `Microsoft.KeyVault/vaults/secrets` and
-`.../keys` — **ARM control-plane list operations** that return metadata only: id, `contentType`,
-and the `attributes` block (`enabled`, `exp`, `nbf`, `created`, `updated`). `Reader` on the vault
-is sufficient; reading a secret's or key's **value** is a separate data-plane operation against
-`<vault>.vault.azure.net` that needs a Key Vault access policy or data-plane RBAC role, and Scout
-never makes that call. A Key Vault certificate has no ARM list endpoint of its own — it is
+::: tip Key Vault object inventory needs metadata permission, never secret-value permission
+`KeyVaultSecrets` and `KeyVaultKeys` use the Key Vault LIST operations, which return metadata
+only: id, `contentType`, tags and the `attributes` block (`enabled`, `exp`, `nbf`, `created`,
+`updated`). Generic ARM `Reader` is not sufficient for a complete list: ARM sees only objects
+created as deployable ARM child resources. Assign built-in **`Key Vault Reader`** to supply
+`Microsoft.KeyVault/vaults/secrets/readMetadata/action` and the equivalent key metadata read.
+That role explicitly cannot read secret contents or private key material. Scout never invokes
+GET-secret, and it whitelists list-response fields before writing raw inventory. A Key Vault
+certificate has no separate list in Scout — it is
 materialised as a secret whose `contentType` is `application/x-pkcs12` or `application/x-pem-file`,
 and that secret's `attributes.exp` **is** the certificate's expiry, so certificate expiry is
 already present in the `KeyVaultSecrets` worksheet's `Kind`/`Expires` columns rather than a

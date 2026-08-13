@@ -32,11 +32,12 @@ longer a default requirement for any assessment.
 | Requirement | Who needs it |
 |---|---|
 | **ARM `Reader` at the tenant-root management group** | **Every assessment, with no exception** — including the 5 governance-data assessments, now served by the native `Import-Governance` collector. |
+| **`Key Vault Reader` on Key Vaults in scope** | **`Workload: AVS` and `Microsoft: CASA`** — their key-management rules inspect key metadata. The role cannot read secret values or private key material. |
 | **Microsoft Graph app permissions** (`User.Read.All`, `Group.Read.All`, `Application.Read.All`, `PrivilegedAccess.Read.AzureResources`) | **Only** if you opt an assessment into the legacy `AzGovViz` ingestor instead of the native `Governance` default. Not required by any assessment out of the box. |
 
-Every entry in [the registry](../design/assessment-registry.md) needs
-**ARM Reader only** by default. No Graph permission, delegated or
-application, is required unless you deliberately switch an assessment's
+Every entry in [the registry](../design/assessment-registry.md) needs ARM Reader; the two
+key-metadata assessments above additionally need Key Vault Reader. No Graph permission, delegated
+or application, is required unless you deliberately switch an assessment's
 `Ingest` back to `AzGovViz`.
 
 ::: tip Check before you scan
