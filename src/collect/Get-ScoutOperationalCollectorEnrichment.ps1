@@ -124,10 +124,16 @@ function Get-ScoutOperationalCollectorEnrichment {
         if ($Status -in @('Failed', 'OperationInProgress')) { $ProgressState.Failed++ }
         $denominator = [Math]::Max(1, [int]$ProgressState.Planned)
         $percent = [Math]::Min(99, [int](100 * $ProgressState.Completed / $denominator))
-        Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
-            'Operational enrichment: {0}/{1} requests; {2} unavailable' -f
-                $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed
-        ) -PercentComplete $percent
+        $progressStatus = 'Operational enrichment: {0}/{1} requests; {2} unavailable' -f
+            $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed
+        if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+            Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+                -Status $progressStatus -PercentComplete $percent
+        }
+        else {
+            Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+                -Status $progressStatus -PercentComplete $percent
+        }
         Write-ScoutOperationalDetail -Level VERBOSE -Message (
             'Operational request finished: dataset={0}; status={1}; attempts={2}; elapsed={3}; completed={4}; planned={5}; unavailable={6}' -f
                 $Dataset, $Status, $Attempts, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff'),
@@ -157,10 +163,16 @@ function Get-ScoutOperationalCollectorEnrichment {
         'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; subscriptions={3}; minimumRequests={4}' -f
             $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, @($Subscriptions).Count, $ProgressState.Planned
     )
-    Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
-        'Operational enrichment planned: {0} VM; {1} Arc; {2} storage' -f
-            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count
-    ) -PercentComplete 0
+    $progressStatus = 'Operational enrichment planned: {0} VM; {1} Arc; {2} storage' -f
+        $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count
+    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+        Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+            -Status $progressStatus -PercentComplete 0
+    }
+    else {
+        Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+            -Status $progressStatus -PercentComplete 0
+    }
 
     function Invoke-ScoutOperationalArm {
         param(
@@ -564,10 +576,16 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     $ProgressState.Started.Stop()
-    Write-Progress -Id 2 -ParentId 1 -Activity 'Operational enrichment' -Status (
-        'Operational enrichment complete: {0} requests; {1} unavailable' -f
-            $ProgressState.Completed, $ProgressState.Failed
-    ) -Completed
+    $progressStatus = 'Operational enrichment complete: {0} requests; {1} unavailable' -f
+        $ProgressState.Completed, $ProgressState.Failed
+    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
+        Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+            -Status $progressStatus -Completed
+    }
+    else {
+        Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
+            -Status $progressStatus -Completed
+    }
     Write-ScoutOperationalDetail -Level VERBOSE -Message (
         'Operational enrichment complete: status={0}; completed={1}; planned={2}; unavailable={3}; elapsed={4}' -f
             $(if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }),
