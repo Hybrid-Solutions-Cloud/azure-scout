@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.3 — every collector tells the truth
+## Current Release — v3.12.4 — close the reconciliation gaps
+
+Released 13 August 2026. Seven dedicated collectors now cover every live resource type found only
+in raw inventory during the independent tenant reconciliation, taking the catalog to 285. ARM child
+collection follows continuation links. Key Vault secret/key inventory uses paged metadata-only LIST
+operations, never reads values or private key material, and reports missing access explicitly rather
+than returning an incomplete first page. Key Vault assessment mapping and network diagram job
+tracking are also corrected. See CHANGELOG.md and AB#7358.
+
+## Previous Release — v3.12.3 — every collector tells the truth
 
 Released 11 August 2026. ARM child discovery now runs on supported Az.Accounts versions and
 propagates exact per-dataset availability. Risky Users, Verified ID, management-group, Defender,
