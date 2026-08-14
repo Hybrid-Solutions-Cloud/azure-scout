@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.8] - 2026-08-14 - partial evidence stays partial
+
+### Fixed
+
+- **A denial from one Key Vault no longer aborts every selected assessment.** Granular ARM-child
+  health remains attached to the collect, while the broad `Resources` fail-closed gate is reserved
+  for a true whole-source failure.
+- Rules that consume Key Vault key metadata now use an explicit availability gate. If any requested
+  vault cannot return key metadata, those rules are `NotAssessed` rather than a false Pass/Fail;
+  unrelated CAF/WAF rules continue to score.
+- Saved-collect provenance accepts scoped ARM-child health for the same rule-level handling, while
+  continuing to reject missing required categories and unscoped required-source failures.
+
+### Changed
+
+- Interactive runs use standard PowerShell `Write-Progress` by default. The experimental bordered
+  multi-line renderer remains available only when `AZURESCOUT_NATIVE_PROGRESS=1`, preventing stale,
+  contradictory phase rows and incomplete terminal percentages in ordinary runs.
+
+### Validation
+
+- Replayed the reported 1,649-resource tenant inventory with its five collection-health records:
+  730 findings, zero rule errors, and only the Key Vault key-dependent CASA rule changed from Pass
+  to `NotAssessed` because one vault returned 403.
+- Passed all 3,663 tests across all 134 repository test files with zero failures and zero skips.
+
 ## [3.12.7] - 2026-08-14 - the report always comes home
 
 ### Fixed

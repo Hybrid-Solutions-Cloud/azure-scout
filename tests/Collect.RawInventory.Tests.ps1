@@ -357,7 +357,7 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
     }
 
-    It 'propagates a Key Vault child denial into a fail-closed Security assessment' {
+    It 'propagates a Key Vault child denial into the rule-level availability gate' {
         function Get-ScoutArmChildResource {
             param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
             $null = $Resources, $Dataset
@@ -372,14 +372,10 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         @($mapped).Count | Should -Be 1
         $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
 
-        $caught = $null
-        try {
-            Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
-        }
-        catch { $caught = $_ }
+        $collect = Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue
 
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
+        @($collect._meta.collectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys').Count | Should -Be 1
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -927,7 +923,7 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
     }
 
-    It 'fails closed when selected Key Vault child evidence is unavailable' {
+    It 'continues scoring with explicit Key Vault availability gates when one child source is unavailable' {
         $raw = [pscustomobject]@{
             Resources = @()
             ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
@@ -938,15 +934,11 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
                 })
         }
 
-        $caught = $null
-        try {
-            Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
-        }
-        catch { $caught = $_ }
+        $collect = Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue
 
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
-        $caught.Exception.Message | Should -Match 'Resources'
+        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
+        $collect.domains.security.keyVaultSecretsAvailable | Should -BeTrue
+        @($collect._meta.collectionHealth).Count | Should -Be 1
     }
 
     It 'does not block Identity when explicit Resources health names only a Compute collector' {

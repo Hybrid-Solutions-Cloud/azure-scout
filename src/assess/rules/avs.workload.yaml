@@ -138,7 +138,7 @@ rules:
     # Evidences that CMK material exists in the tenant at all -- not that it is bound to this
     # private cloud's vSAN datastore, which is not an ARM-readable property.
     query: "$.domains.security.keyVaultKeys[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.domains.security.keyVaultKeysAvailable" }
     remediation: "WAF-AVS-SEC-05. No Key Vault key was found in scope, so there is no CMK material to evidence. Finding one does not prove it is bound to this private cloud's vSAN datastore encryption -- confirm the binding directly."
     manual: false
   - id: WAF-AVS-SEC-06

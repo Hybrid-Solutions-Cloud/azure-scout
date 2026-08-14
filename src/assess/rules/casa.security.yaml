@@ -160,7 +160,7 @@ rules:
     # domains.security.keyVaultKeys is wired by this story (AB#6821) -- existence of CMK material
     # in the tenant, not proof it is applied to every sensitive data store.
     query: "$.domains.security.keyVaultKeys[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.domains.security.keyVaultKeysAvailable" }
     remediation: "CASA-CO-01. No Key Vault key was found in scope. Enforce confidentiality with encryption and centralized key management -- key existence alone does not confirm every sensitive data store actually uses it; verify the binding for each store directly."
     manual: false
   - id: CASA-CO-02

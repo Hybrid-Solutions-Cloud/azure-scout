@@ -2750,6 +2750,18 @@ resources
         param($Health)
 
         if ($null -eq $Health -or -not $Health.PSObject.Properties['Dataset']) { return $false }
+
+        # ARM-child health is intentionally granular: a denial can belong to one parent (for
+        # example one Key Vault) while every ARG table and every other vault still succeeds.
+        # Treating that row as a failure of the broad Resources dataset aborts every selected
+        # assessment. Keep the health record so rules that consume that child dataset can close
+        # their availability gate, but do not promote it to a whole-estate source failure.
+        $source = if ($Health.PSObject.Properties['Source']) { [string]$Health.Source } else { '' }
+        $sourceDataset = if ($Health.PSObject.Properties['SourceDataset']) { [string]$Health.SourceDataset } else { '' }
+        if ($source -eq 'ARM Child' -and -not [string]::IsNullOrWhiteSpace($sourceDataset)) {
+            return $false
+        }
+
         $dataset = [string]$Health.Dataset
         if (-not $assessmentBlockingDatasets.ContainsKey($dataset) -or -not [bool]$assessmentBlockingDatasets[$dataset]) {
             return $false
@@ -3127,6 +3139,20 @@ resources
                 ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
         )
     }
+    $keyVaultSecretsAvailable = -not [bool]@(
+        $rawCollectionHealth | Where-Object {
+            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultSecrets' -and
+            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
+        }
+    ).Count
+    $keyVaultKeysAvailable = -not [bool]@(
+        $rawCollectionHealth | Where-Object {
+            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultKeys' -and
+            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
+        }
+    ).Count
 
     # ---- invocation-local security/policy sweep reuse (AB#7279) -------------------------------
     # The completed inventory extraction already appends one AZSC/Subscription/
@@ -3627,6 +3653,8 @@ resources
             security     = [pscustomobject]@{
                 keyVaults = $r.keyVaults
                 keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
+                keyVaultSecretsAvailable = $keyVaultSecretsAvailable
+                keyVaultKeysAvailable = $keyVaultKeysAvailable
                 # AB#7110 -- Security plumbing.
                 # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security
                 # coverage-gap close-out.

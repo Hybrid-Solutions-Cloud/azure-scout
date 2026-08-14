@@ -141,6 +141,22 @@ Describe 'assessment category evidence closure' {
         { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('Identity') } |
             Should -Not -Throw
     }
+
+    It 'accepts scoped ARM-child health so dependent rules can become NotAssessed' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{
+                categories = @('*')
+                collectionHealth = @([pscustomobject]@{
+                        Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
+                        Status = 'Unavailable'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+                        Collectors = @('Security/KeyVaultKeys')
+                    })
+            }
+        }
+
+        { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('*') } |
+            Should -Not -Throw
+    }
 }
 
 Describe 'AB#6775 — the combined run is reachable from the command line' {

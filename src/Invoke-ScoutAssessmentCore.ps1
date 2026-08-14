@@ -62,6 +62,17 @@ function Assert-ScoutAssessmentCollectProvenance {
                 ) { continue }
 
                 $dataset = if ($health.PSObject.Properties['Dataset']) { [string]$health.Dataset } else { 'Unknown source' }
+
+                # A scoped ARM-child denial is partial evidence loss, not failure of the broad
+                # Resources dataset. Invoke-Collect carries explicit availability flags for the
+                # affected child datasets; dependent rules close their gate and become
+                # NotAssessed while unrelated rules continue to score.
+                $source = if ($health.PSObject.Properties['Source']) { [string]$health.Source } else { '' }
+                $sourceDataset = if ($health.PSObject.Properties['SourceDataset']) { [string]$health.SourceDataset } else { '' }
+                if ($source -eq 'ARM Child' -and -not [string]::IsNullOrWhiteSpace($sourceDataset)) {
+                    continue
+                }
+
                 if ($dataset -eq 'Advisories' -and $RequiredIngestors -contains 'AdvisorScores') {
                     $health
                     continue
