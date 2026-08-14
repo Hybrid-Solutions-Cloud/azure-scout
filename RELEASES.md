@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.13.0** | 2026-08-14 | ✅ | **Every resource accounted for.** Adds a universal discovery ledger, provider-level detail, effective NIC routes/NSGs, normalized exposure, generic ARM topology, explicit per-resource gaps, always-retained tags, NSG default rules, and secret-safe React/JSON reporting. | **AB#7366, AB#7367** |
 | **3.12.8** | 2026-08-14 | ✅ | **Partial evidence stays partial.** A per-vault Key Vault metadata denial now gates only dependent rules as `NotAssessed` while every unrelated assessment continues scoring; standard PowerShell progress is restored as the stable default. | **AB#405** |
 | **3.12.7** | 2026-08-14 | ✅ | **The report always comes home.** Guarantees a network-free inventory React/evidence fallback when partial source data safely stops scoring, hardens React indexing for open-ended Azure values, and replaces the bare live line with a high-contrast bordered multi-phase ledger. | **AB#405** |
 | **3.12.6** | 2026-08-13 | ✅ | **The progress display ships inside Scout.** Adds a self-contained live spinner, progress bar, phase text, and elapsed clock with no third-party renderer dependency, and keeps preflight, extraction, diagrams, assessment/report rendering, and collector processing behind execute-once progress hosts. | **AB#405** |
