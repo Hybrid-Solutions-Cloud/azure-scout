@@ -2,9 +2,9 @@
 #Requires -Modules Pester
 
 <#
-    Pester tests for src/Write-ScoutProgress.ps1 (AB#405) -- the required,
-    install-time live progress host shared by the collect/assess/report
-    pipeline. No live Azure connection is needed.
+    Pester tests for src/Write-ScoutProgress.ps1 (AB#405) -- AzureScout's built-in live
+    progress host shared by the collect/assess/report pipeline. No live Azure connection
+    or third-party renderer module is needed.
 #>
 
 BeforeAll {
@@ -30,63 +30,12 @@ Describe 'Write-ScoutProgress -- interactive (Write-Progress) path' {
     }
 }
 
-Describe 'Write-ScoutProgress -- live Spectre task updates' {
-    BeforeEach {
-        $script:createdTasks = [System.Collections.Generic.List[object]]::new()
-        $script:fakeContext = [pscustomobject]@{}
-        $script:fakeContext | Add-Member -MemberType ScriptMethod -Name AddTask -Value {
-            param([string] $Description)
-            $task = [pscustomobject]@{
-                Description     = $Description
-                Value           = 0.0
-                IsIndeterminate = $false
-                Stopped         = $false
-            }
-            $task | Add-Member -MemberType ScriptMethod -Name StopTask -Value { $this.Stopped = $true }
-            $script:createdTasks.Add($task)
-            return $task
-        }
-        $script:ScoutSpectreProgressContext = $script:fakeContext
-        $script:ScoutSpectreProgressTasks = [System.Collections.Generic.Dictionary[string, object]]::new(
-            [System.StringComparer]::OrdinalIgnoreCase
-        )
-    }
-
-    AfterEach {
-        Remove-Variable ScoutSpectreProgressContext -Scope Script -ErrorAction SilentlyContinue
-        Remove-Variable ScoutSpectreProgressTasks -Scope Script -ErrorAction SilentlyContinue
-        Remove-Variable fakeContext -Scope Script -ErrorAction SilentlyContinue
-        Remove-Variable createdTasks -Scope Script -ErrorAction SilentlyContinue
-    }
-
-    It 'creates and updates one live task instead of printing a static Spectre line' {
-        Write-ScoutProgress -Activity 'Azure Inventory extraction' -Status 'ARM child-resource sweep' `
-            -PercentComplete 30 -Id 2
-        Write-ScoutProgress -Activity 'Azure Inventory extraction' -Status 'Still collecting' `
-            -PercentComplete 31 -Id 2
-
-        $script:createdTasks.Count | Should -Be 1
-        $script:createdTasks[0].Value | Should -Be 31
-        $script:createdTasks[0].Description | Should -Match '\[bold cyan1\]Azure Inventory extraction\[/\]'
-        $script:createdTasks[0].Description | Should -Match '\[white\]Still collecting\[/\]'
-    }
-
-    It 'marks the live task complete without losing its readable label' {
-        Write-ScoutProgress -Activity 'Azure Inventory extraction' -Status 'Working' -Id 2
-        Write-ScoutProgress -Activity 'Azure Inventory extraction' -Status 'Complete' -Id 2 -Completed
-
-        $script:createdTasks[0].Stopped | Should -BeTrue
-        $script:createdTasks[0].Value | Should -Be 100
-        $script:createdTasks[0].Description | Should -Match '\[white\]Complete\[/\]'
-    }
-}
-
 Describe 'Invoke-ScoutProgressOperation -- execute-once safety' {
     BeforeEach { $script:operationCount = 0 }
     AfterEach { Remove-Variable operationCount -Scope Script -ErrorAction SilentlyContinue }
 
-    It 'runs directly exactly once when Spectre is unavailable' {
-        Mock Test-ScoutSpectreAvailable { return $false }
+    It 'runs directly exactly once when a live console is unavailable' {
+        Mock Test-ScoutNativeLiveHost { return $false }
 
         $result = Invoke-ScoutProgressOperation -Activity 'Test' -Operation {
             $script:operationCount++
@@ -98,9 +47,9 @@ Describe 'Invoke-ScoutProgressOperation -- execute-once safety' {
     }
 
     It 'falls back exactly once when the live host fails before work starts' {
-        Mock Test-ScoutSpectreAvailable { return $true }
-        Mock Import-ScoutSpectreConsole { return $true }
-        Mock Start-ScoutSpectreProgressHost { throw 'host startup failed' }
+        Mock Test-ScoutNativeLiveHost { return $true }
+        Mock Initialize-ScoutNativeProgressRenderer { return $true }
+        Mock Start-ScoutNativeProgressHost { throw 'host startup failed' }
 
         $result = Invoke-ScoutProgressOperation -Activity 'Test' -Operation {
             $script:operationCount++
@@ -112,9 +61,9 @@ Describe 'Invoke-ScoutProgressOperation -- execute-once safety' {
     }
 
     It 'never reruns Azure work after the live host has started it' {
-        Mock Test-ScoutSpectreAvailable { return $true }
-        Mock Import-ScoutSpectreConsole { return $true }
-        Mock Start-ScoutSpectreProgressHost {
+        Mock Test-ScoutNativeLiveHost { return $true }
+        Mock Initialize-ScoutNativeProgressRenderer { return $true }
+        Mock Start-ScoutNativeProgressHost {
             $script:operationCount++
             $exception = [InvalidOperationException]::new('operation failed')
             $exception.Data['ScoutProgressOperationStarted'] = $true
@@ -127,20 +76,33 @@ Describe 'Invoke-ScoutProgressOperation -- execute-once safety' {
     }
 }
 
-Describe 'Start-ScoutSpectreProgressHost -- live rendering contract' {
+Describe 'Start-ScoutNativeProgressHost -- self-contained live rendering contract' {
     BeforeAll { $script:source = Get-Content "$root/src/Write-ScoutProgress.ps1" -Raw }
 
-    It 'uses Spectre auto-refresh with spinner and elapsed-time columns' {
-        $script:source | Should -Match '\[Spectre\.Console\.SpinnerColumn\]::new\(\)'
-        $script:source | Should -Match '\[Spectre\.Console\.ElapsedTimeColumn\]::new\(\)'
-        $script:source | Should -Match 'AutoRefresh\(\$progress, \$true\)'
+    It 'uses a background timer and stopwatch so elapsed time moves during blocked calls' {
+        $script:source | Should -Match 'new Timer\(RenderTick'
+        $script:source | Should -Match 'Stopwatch\.StartNew\(\)'
+        $script:source | Should -Match 'TimeSpan\.FromMilliseconds\(125\)'
     }
 
-    It 'uses high-contrast phase text without a colored background' {
-        $description = New-ScoutSpectreDescription -Activity 'Azure Inventory' -Status 'ARM child-resource sweep'
-        $description | Should -Match '\[bold cyan1\]Azure Inventory\[/\]'
-        $description | Should -Match '\[white\]ARM child-resource sweep\[/\]'
-        $description | Should -Not -Match ' on '
+    It 'has no PwshSpectreConsole or Spectre.Console dependency' {
+        $script:source | Should -Not -Match 'PwshSpectreConsole'
+        $script:source | Should -Not -Match 'Spectre\.Console'
+    }
+
+    It 'uses bright foreground colours without ANSI background colours' {
+        $script:source | Should -Match 'BrightCyan = "\\u001b\[96;1m"'
+        $script:source | Should -Not -Match '\\u001b\[4[0-9]'
+    }
+
+    It 'compiles and runs the native renderer without an installed third-party module' {
+        Initialize-ScoutNativeProgressRenderer | Should -BeTrue
+        ('AzureScout.NativeProgressRenderer' -as [type]) | Should -Not -BeNullOrEmpty
+
+        $result = Start-ScoutNativeProgressHost -Activity 'Test' -Status 'Working' `
+            -PercentComplete 5 -Operation { Start-Sleep -Milliseconds 450; return 'done' }
+        $result | Should -Be 'done'
+        [AzureScout.NativeProgressRenderer]::RenderCount | Should -BeGreaterThan 1
     }
 }
 

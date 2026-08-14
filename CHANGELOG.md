@@ -11,11 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Installing AzureScout now installs its live terminal renderer (AB#405).**
-  `PwshSpectreConsole` 2.1.2 is a required dependency rather than informational
-  `ExternalModuleDependencies` metadata. Version 2.1.2 declares PowerShell 7.0 compatibility, so
-  the dependency no longer depends on a separate manual command and does not raise Scout's engine
-  floor.
+- **AzureScout now owns its live terminal renderer (AB#405).** The spinner, progress bar,
+  percentage, phase text, and elapsed clock are implemented inside Scout with no third-party
+  renderer module. Installation no longer downloads `PwshSpectreConsole`, changes repository
+  trust, or introduces a dependency-specific confirmation prompt.
 - **The rich display starts during permission preflight.** It no longer waits until extraction,
   leaving a potentially long permission audit behind a static console line.
 - Long supplemental and diagram processing, standalone and deferred assessments, inventory report
@@ -29,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redirected output, CI, `-NoProgress`, and non-interactive hosts retain native/log-friendly
   behavior. A renderer startup failure can fall back before work starts, but no Azure operation is
   replayed after it has begun.
+- The documented PSGallery installation command includes `-Force`, preventing PowerShellGet's
+  default untrusted-repository confirmation from blocking a deliberate or unattended install.
 
 ## [3.12.5] - 2026-08-13 - the compass keeps moving
 

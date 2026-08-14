@@ -43,11 +43,11 @@ publication. Historical v2 entries below are retained as release history rather 
 
 ## Current Release — v3.12.6 — the progress display ships with Scout
 
-Release candidate for 13 August 2026. AzureScout now declares the PowerShell 7.0-compatible
-`PwshSpectreConsole` 2.1.2 renderer as an install-time dependency instead of optional metadata.
-Live progress starts during permission preflight and covers extraction, diagrams and supplemental
-processing, assessment and inventory rendering, and deterministic collector processing. CI,
-redirected, and `-NoProgress` runs keep their safe fallbacks. See CHANGELOG.md and AB#405.
+Release candidate for 13 August 2026. AzureScout now ships a self-contained native live renderer
+with no third-party progress dependency. Its spinner, progress bar, phase text, and elapsed clock
+start during permission preflight and cover extraction, diagrams and supplemental processing,
+assessment and inventory rendering, and deterministic collector processing. CI, redirected, and
+`-NoProgress` runs keep their safe fallbacks. See CHANGELOG.md and AB#405.
 
 ## Previous Release — v3.12.5 — the compass keeps moving
 
@@ -919,7 +919,7 @@ static/React reports) *and* the web portal. Same capability, per-surface deliver
 - **Collector / pipeline resilience** (shared engine): per-subscription try/catch/continue, MG
   role-requirement hint, false RP-registration-error swallow, per-group firewall-parse-error
   logging, empty-data guard, pipeline-`HadErrors` warning capture (AB#397–402).
-- **Live-progress UX** — same feature, per-surface delivery: Spectre.Console TUI in the CLI,
+- **Live-progress UX** — same feature, per-surface delivery: AzureScout's native TUI in the CLI,
   browser progress in the web portal (AB#405).
 
 ## Long-term Vision

@@ -40,7 +40,7 @@ mode's additional modules and held-renderer development notes, see
 
 ```powershell
 # From the PowerShell Gallery
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 
 # Or import directly from a local clone
 Import-Module ./AzureScout.psd1
@@ -55,7 +55,6 @@ it explicitly with the commands below and import the module again.
 
 | Module | Purpose | Required? |
 |--------|---------|-----------|
-| `PwshSpectreConsole` 2.1.2 | Live interactive preflight, inventory, assessment, and reporting progress | **Yes**; installed automatically with AzureScout |
 | `Az.Accounts` | Azure authentication and token acquisition | **Yes** |
 | `Az.ResourceGraph` | ARM resource extraction via batch KQL | **Yes** (ARM scope) |
 | `Az.Compute` | VM SKU and quota details | **Yes** (ARM scope) |
@@ -70,7 +69,6 @@ it explicitly with the commands below and import the module again.
 
 ```powershell
 Install-Module -Name Az.Accounts -Scope CurrentUser -Force
-Install-Module -Name PwshSpectreConsole -RequiredVersion 2.1.2 -Scope CurrentUser -Force
 Install-Module -Name Az.ResourceGraph -Scope CurrentUser -Force
 Install-Module -Name Az.Compute -Scope CurrentUser -Force
 Install-Module -Name Az.Resources -Scope CurrentUser -Force

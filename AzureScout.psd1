@@ -58,8 +58,8 @@ PowerShellVersion = '7.0'
 # Keep optional feature dependencies (for example Az.CostManagement) out of this list.
 # Declaring the core dependencies here lets Install-Module resolve them and makes a
 # source-tree Import-Module fail cleanly instead of installing software as a side effect.
+# The live progress renderer is built into AzureScout and has no external module dependency.
 RequiredModules = @(
-    @{ ModuleName = 'PwshSpectreConsole'; RequiredVersion = '2.1.2' }
     'ImportExcel'
     'Az.Accounts'
     'Az.ResourceGraph'
@@ -165,7 +165,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.6 - The progress display ships with Scout. PwshSpectreConsole 2.1.2 is now a required PowerShell 7.0-compatible dependency installed automatically by PowerShell Gallery. Live rendering begins during permission preflight and covers extraction, supplemental and diagram processing, assessment rendering, inventory output rendering, and collector processing. CI, redirected, and -NoProgress runs retain safe fallbacks, and progress failures still cannot execute an operation twice. AB#405.'
+        ReleaseNotes = 'v3.12.6 - The progress display ships inside Scout with no external renderer dependency. The native live spinner, progress bar, phase text, and elapsed clock begin during permission preflight and continue through extraction, supplemental and diagram processing, assessment rendering, inventory output rendering, and collector processing. CI, redirected, and -NoProgress runs retain safe fallbacks, and progress failures still cannot execute an operation twice. AB#405.'
 
         # Prerelease string of this module
         # Prerelease = ''

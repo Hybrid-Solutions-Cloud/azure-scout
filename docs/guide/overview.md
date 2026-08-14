@@ -11,7 +11,7 @@ estate against Microsoft's Cloud Adoption Framework and Well-Architected Framewo
 You pick a mode with a switch — not with a different tool.
 
 ```powershell
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 Connect-AzAccount
 
 Invoke-AzureScout                              # guided wizard — pick everything from a menu
@@ -19,12 +19,11 @@ Invoke-AzureScout -NoWizard                    # inventory, default settings
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'      # CAF/WAF assessment
 ```
 
-AzureScout installs the PowerShell 7.0-compatible `PwshSpectreConsole` 2.1.2 dependency
-automatically. Interactive runs use it for a live spinner, progress bar, and elapsed clock during
-preflight and every long inventory or assessment phase. Runs in CI, redirected hosts, and runs
-started with `-NoProgress` use the native, log-friendly fallback. The rich display uses
-high-contrast foreground labels and no colored text backgrounds so phase names remain readable in
-light and dark terminal themes.
+AzureScout includes its own live spinner, progress bar, phase display, and elapsed clock. The timer
+keeps moving during blocked Azure calls without installing a separate renderer module. Runs in CI,
+redirected hosts, and runs started with `-NoProgress` use the log-friendly fallback. The rich
+display uses high-contrast foreground labels and no colored text backgrounds so phase names remain
+readable in light and dark terminal themes.
 
 ## Just run it
 

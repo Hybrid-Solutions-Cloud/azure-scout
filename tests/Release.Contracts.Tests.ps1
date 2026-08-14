@@ -82,11 +82,11 @@ Describe 'release automation executes the code and contracts it advertises' {
         @($manifest.RequiredModules).Count | Should -BeGreaterThan 0
         @($manifest.RequiredModules) | Should -Contain 'Az.Accounts'
         @($manifest.RequiredModules) | Should -Contain 'powershell-yaml'
-        $spectreDependency = @($manifest.RequiredModules | Where-Object {
-            $_ -is [System.Collections.IDictionary] -and $_.ModuleName -eq 'PwshSpectreConsole'
-        })
-        $spectreDependency.Count | Should -Be 1
-        [version]$spectreDependency[0].RequiredVersion | Should -Be ([version]'2.1.2')
+        @($manifest.RequiredModules | Where-Object {
+            ($_ -is [string] -and $_ -eq 'PwshSpectreConsole') -or
+            ($_ -is [System.Collections.IDictionary] -and $_.ModuleName -eq 'PwshSpectreConsole')
+        }).Count | Should -Be 0
+        $module | Should -Not -Match 'PwshSpectreConsole'
         $ci | Should -Match '\$install\.RequiredVersion = \$requiredModule\.RequiredVersion'
         $module | Should -Not -Match '(?m)^\s*Install-Module\b'
     }

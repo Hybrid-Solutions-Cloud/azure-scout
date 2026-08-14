@@ -380,7 +380,7 @@ Function Invoke-AzureScout {
         [Alias('NonInteractive')]
         [switch]$NoWizard,
         # Suppress all interactive progress rendering. CI/unattended hosts also suppress the
-        # Spectre TUI automatically and retain log-friendly phase records.
+        # native live display automatically and retain log-friendly phase records.
         [switch]$NoProgress,
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),

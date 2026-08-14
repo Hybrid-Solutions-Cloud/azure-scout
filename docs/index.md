@@ -51,7 +51,7 @@ features:
 
 ```powershell
 # Install from the PowerShell Gallery
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 
 # Guided wizard — no parameters needed
 Invoke-AzureScout
