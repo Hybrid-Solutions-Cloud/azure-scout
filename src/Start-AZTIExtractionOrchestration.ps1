@@ -44,6 +44,7 @@ function Resolve-AZSCExtractionCategoryPlan {
             IncludeArmChildResources             = $true
             ArmChildDataset                      = @('All')
             IncludeOperationalCollectorEnrichment = $true
+            IncludeProviderResourceDetails        = $true
             IncludeSubscriptionSecurityPolicy   = $true
             IncludeApiResourceSweep              = $true
             CollectTenantWideResources           = $true
@@ -135,7 +136,8 @@ function Resolve-AZSCExtractionCategoryPlan {
         IncludeAdvisories                    = $true
         IncludeArmChildResources             = ($armChildDataset.Count -gt 0)
         ArmChildDataset                      = $armChildDataset
-        IncludeOperationalCollectorEnrichment = (& $hasType '(?i)^AZSC/(Operational/|Management/SubscriptionEnrichment$)')
+        IncludeOperationalCollectorEnrichment = ((& $hasType '(?i)^AZSC/(Operational/|Management/SubscriptionEnrichment$)') -or $azureTypes.Count -gt 0)
+        IncludeProviderResourceDetails        = ($azureTypes.Count -gt 0)
         IncludeSubscriptionSecurityPolicy   = (& $hasType '(?i)^AZSC/Subscription/SecurityPolicySweep$')
         IncludeApiResourceSweep              = $includeApiSweep
         CollectTenantWideResources           = $includeTenantWide

@@ -460,8 +460,10 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
         }
 
         # _meta carries a generation timestamp, so it is excluded and asserted separately.
-        $invertedMap = Get-ScoutFlatMap -InputObject ($inverted | Select-Object -ExcludeProperty _meta)
-        $typedMap = Get-ScoutFlatMap -InputObject ($typed | Select-Object -ExcludeProperty _meta)
+        # discovery is intentionally source-specific: the Inventory path can prove universal
+        # ARM-row completeness, while the legacy TypedQueries path has no raw resource corpus.
+        $invertedMap = Get-ScoutFlatMap -InputObject ($inverted | Select-Object -ExcludeProperty _meta, discovery)
+        $typedMap = Get-ScoutFlatMap -InputObject ($typed | Select-Object -ExcludeProperty _meta, discovery)
 
         # Same key SET first: a key present in one and absent in the other is the failure mode
         # that a value-only comparison misses entirely.

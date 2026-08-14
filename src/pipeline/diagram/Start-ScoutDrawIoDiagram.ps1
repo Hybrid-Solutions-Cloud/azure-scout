@@ -61,6 +61,8 @@ function Start-AZSCDrawIODiagram {
 
     $XMLFiles += Join-Path $DiagramCache 'Organization.xml'
     $XMLFiles += Join-Path $DiagramCache 'Subscriptions.xml'
+    $UniversalGraphFile = Join-Path $DiagramCache 'UniversalResourceGraph.xml'
+    $XMLFiles += $UniversalGraphFile
 
     # Own only the jobs started by this invocation. Session-wide name searches can wait on,
     # drain, or delete another concurrent caller's Diagram_* jobs.
@@ -73,6 +75,13 @@ function Start-AZSCDrawIODiagram {
         {
             Remove-Item -Path $File -ErrorAction SilentlyContinue
         }
+
+    try {
+        New-ScoutUniversalRelationshipDiagram -Resources @($Resources) -Path $UniversalGraphFile | Out-Null
+    }
+    catch {
+        ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Universal relationship graph skipped: '+$_.Exception.Message) | Out-File -FilePath $LogFile -Append
+    }
 
     ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Starting Subscription Jobs') | Out-File -FilePath $LogFile -Append
 

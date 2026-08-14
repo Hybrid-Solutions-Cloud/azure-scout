@@ -135,6 +135,7 @@ function Export-React {
 
     $metaSrc = Get-ReactSafeProp $Collect @('_meta')
     $subscriptions = @(Get-ReactSafeProp $Collect @('subscriptions'))
+    $discovery = Get-ReactSafeProp $Collect @('discovery')
 
     # `ran` drives the adaptive nav -- which top-level sections the shell even offers -- AND the
     # derived reportTitle default just below, so it is computed here, ahead of the identity block.
@@ -152,7 +153,8 @@ function Export-React {
     }
     $inventoryHasData = [bool]((Test-ReactHasRow (Get-ReactSafeProp $Collect @('subscriptions'))) -or
         (Test-ReactHasRow (Get-ReactSafeProp $Collect @('networking', 'virtualNetworks'))) -or
-        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))))
+        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))) -or
+        (Test-ReactHasRow (Get-ReactSafeProp $discovery @('Resources'))))
     $entraResourcesValue = Get-ReactSafeProp $Collect @('entraResources')
     $entraResources = if ($null -eq $entraResourcesValue) { @() } else { @($entraResourcesValue) }
     $allFindingsRows = @(Get-ReactSafeProp $Findings @('Findings'))
@@ -1002,8 +1004,9 @@ function Export-React {
     # ---- inventory{} -----------------------------------------------------------------------------
     # Generic recursive walker over $Collect: every array found (at any depth) becomes its own
     # inventory category keyed by its dotted path, so a category added to Collect tomorrow shows
-    # up here with no renderer change. `_meta` is the only excluded branch (run metadata, not
-    # inventory). Rows are capped so one enormous category (policy compliance can run into the
+    # up here with no renderer change. `_meta` and `discovery` are excluded: discovery has its own
+    # completeness explorer and including it here would double-count every asset. Rows are capped
+    # so one enormous category (policy compliance can run into the
     # thousands) doesn't bloat the embedded payload; `truncated` records the honest shown/actual
     # split so the UI never presents a cap as a total (AB#6864's own rule, applied here too).
     $inventoryRowCap = 300
@@ -1039,7 +1042,7 @@ function Export-React {
         foreach ($p in $props) { Add-ReactInventoryCategory -Node $p.Value -PathSegments ($PathSegments + $p.Name) }
     }
     if ($Collect) {
-        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -ne '_meta' })) {
+        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -notin @('_meta', 'discovery') })) {
             Add-ReactInventoryCategory -Node $p.Value -PathSegments @($p.Name)
         }
     }
@@ -1142,6 +1145,7 @@ function Export-React {
         meta           = $meta
         ran            = $ran
         inventory      = $inventory
+        discovery      = $discovery
         subscriptions  = @($subscriptions | ForEach-Object {
             [pscustomobject]@{ id = (Get-ReactRowProp $_ 'id'); name = (Get-ReactRowProp $_ 'name'); state = (Get-ReactRowProp $_ 'state') }
         })

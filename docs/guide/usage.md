@@ -89,9 +89,12 @@ Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`,
 [Output Files & Formats](./output.md#run-isolation).
 
 Every run retains its complete evidence set: `raw-inventory.json` (everything the Resource Graph
-pass collected, before any manifest filtered it down), `collector-rowcounts.json`,
+pass collected, before any manifest filtered it down), `ReportCache/Discovery.json` (one
+completeness record per resource plus generic ARM relationships), `collector-rowcounts.json`,
 `collection-health.json`, and the complete `ReportCache`/`DiagramCache` trees. See
 [Output Files & Formats — evidence artifacts](./output.md#evidence-artifacts).
+Discovery/report payloads preserve sensitive field presence but replace credential values with
+`[REDACTED]`.
 
 ## Content Toggles
 

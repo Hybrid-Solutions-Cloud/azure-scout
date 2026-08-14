@@ -18,7 +18,8 @@ $ErrorActionPreference = 'Stop'
 .OUTPUTS
     Typed envelopes: AZSC/Operational/VirtualMachine, AZSC/Operational/VMOperationalData,
     AZSC/Operational/ArcServerOperationalData, AZSC/Operational/ARCServers,
-    AZSC/Operational/StorageAccount, and AZSC/Management/SubscriptionEnrichment.
+    AZSC/Operational/StorageAccount, AZSC/Operational/NetworkInterface, and
+    AZSC/Management/SubscriptionEnrichment.
 #>
 function Get-ScoutOperationalCollectorEnrichment {
     [CmdletBinding()]
@@ -34,7 +35,9 @@ function Get-ScoutOperationalCollectorEnrichment {
 
         [Parameter()]
         [AllowNull()]
-        [System.Collections.IList]$CollectionHealth
+        [System.Collections.IList]$CollectionHealth,
+
+        [switch]$IncludeProviderResourceDetails
     )
 
     function Get-ScoutValue {
@@ -47,12 +50,24 @@ function Get-ScoutOperationalCollectorEnrichment {
         return $null
     }
 
-    $VirtualMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' })
-    $ArcMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' })
-    $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
+    function Get-ScoutUniqueResource {
+        param([AllowEmptyCollection()][object[]]$InputRows)
+        $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($inputRow in @($InputRows)) {
+            if ($null -eq $inputRow) { continue }
+            $resourceId = [string](Get-ScoutValue $inputRow @('id', 'ID'))
+            if ([string]::IsNullOrWhiteSpace($resourceId) -or -not $seen.Add($resourceId)) { continue }
+            $inputRow
+        }
+    }
+
+    $VirtualMachines = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' }))
+    $ArcMachines = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' }))
+    $StorageAccounts = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' }))
+    $NetworkInterfaces = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.network/networkinterfaces' }))
     $VmSubscriptionCount = @($VirtualMachines | ForEach-Object { [string](Get-ScoutValue $_ @('subscriptionId')) } | Where-Object { $_ } | Sort-Object -Unique).Count
     $ProgressState = @{
-        Planned  = (($VirtualMachines.Count * 4) + $VmSubscriptionCount + ($ArcMachines.Count * 2))
+        Planned  = (($VirtualMachines.Count * 4) + $VmSubscriptionCount + ($ArcMachines.Count * 2) + ($NetworkInterfaces.Count * 2))
         Completed = 0
         Failed    = 0
         Started   = [System.Diagnostics.Stopwatch]::StartNew()
@@ -62,9 +77,13 @@ function Get-ScoutOperationalCollectorEnrichment {
     function Add-ScoutOperationalHealth {
         param(
             [Parameter(Mandatory)][string]$Dataset,
-            [Parameter(Mandatory)][string]$Reason
+            [Parameter(Mandatory)][string]$Reason,
+            [AllowNull()][string]$ParentId,
+            [AllowNull()][string]$ResourceType,
+            [AllowNull()][string]$Collector
         )
-        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($Dataset)) { return }
+        $healthKey = "$Dataset|$ParentId"
+        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($healthKey)) { return }
 
         $ownership = if ($Dataset -like 'VirtualMachine.*') {
             [pscustomobject]@{ ResourceType = 'AZSC/Operational/VirtualMachine'; Collector = 'Compute/VirtualMachine' }
@@ -75,8 +94,14 @@ function Get-ScoutOperationalCollectorEnrichment {
         elseif ($Dataset -like 'StorageAccounts.*' -and $Dataset -ne 'StorageAccounts.RestoreSubscriptionContext') {
             [pscustomobject]@{ ResourceType = 'AZSC/Operational/StorageAccount'; Collector = 'Storage/StorageAccounts' }
         }
+        elseif ($Dataset -like 'NetworkInterface.*') {
+            [pscustomobject]@{ ResourceType = 'microsoft.network/networkinterfaces'; Collector = 'Networking/NetworkInterface' }
+        }
         elseif ($Dataset -like 'AllSubscriptions.*') {
             [pscustomobject]@{ ResourceType = 'AZSC/Management/SubscriptionEnrichment'; Collector = 'Management/AllSubscriptions' }
+        }
+        elseif ($ResourceType -and $Collector) {
+            [pscustomobject]@{ ResourceType = $ResourceType; Collector = $Collector }
         }
         else { $null }
         if ($null -eq $ownership) { return }
@@ -89,6 +114,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 Reason        = $Reason
                 ResourceTypes = @($ownership.ResourceType)
                 Collectors     = @($ownership.Collector)
+                ResourceIds    = @($ParentId | Where-Object { $_ })
             })
     }
 
@@ -160,11 +186,11 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     Write-ScoutOperationalDetail -Level DEBUG -Message (
-        'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; subscriptions={3}; minimumRequests={4}' -f
-            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, @($Subscriptions).Count, $ProgressState.Planned
+        'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; networkInterfaces={3}; subscriptions={4}; minimumRequests={5}' -f
+            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, $NetworkInterfaces.Count, @($Subscriptions).Count, $ProgressState.Planned
     )
-    $progressStatus = 'Operational enrichment planned: {0} VM; {1} Arc; {2} storage' -f
-        $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count
+    $progressStatus = 'Operational enrichment planned: {0} VM; {1} Arc; {2} storage; {3} NIC' -f
+        $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, $NetworkInterfaces.Count
     if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
         Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
             -Status $progressStatus -PercentComplete 0
@@ -182,6 +208,7 @@ function Get-ScoutOperationalCollectorEnrichment {
             [ValidateSet('GET', 'POST')][string]$Method = 'GET',
             [AllowNull()]$Payload,
             [ValidateRange(1, 5)][int]$MaxAttempts = 3,
+            [switch]$PollAsync,
             # 404 on this dataset is an expected "not configured" state, not a failure -- do not warn.
             [switch]$QuietNotFound,
             [switch]$DynamicRequest
@@ -195,6 +222,37 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $Response = Invoke-AzRestMethod @Arguments
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
                 $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
+                if ([int]$Status -eq 202 -and $PollAsync) {
+                    $headers = Get-ScoutValue -InputObject $Response -Name @('Headers')
+                    $location = $null
+                    if ($headers -is [System.Collections.IDictionary]) {
+                        foreach ($headerKey in $headers.Keys) {
+                            if ([string]$headerKey -notin @('Location', 'Azure-AsyncOperation')) { continue }
+                            $location = [string]$headers[$headerKey]
+                            if ($location) { break }
+                        }
+                    }
+                    elseif ($null -ne $headers) {
+                        $location = [string](Get-ScoutValue -InputObject $headers -Name @('Location', 'Azure-AsyncOperation'))
+                    }
+                    if ([string]::IsNullOrWhiteSpace($location)) {
+                        throw 'ARM returned status 202 without a Location or Azure-AsyncOperation header.'
+                    }
+                    $pollComplete = $false
+                    for ($pollAttempt = 1; $pollAttempt -le 30; $pollAttempt++) {
+                        if ($pollAttempt -gt 1) { Start-Sleep -Milliseconds 1000 }
+                        $pollArguments = @{ Method = 'GET'; ErrorAction = 'Stop' }
+                        if ($location -match '^https?://') { $pollArguments['Uri'] = $location }
+                        else { $pollArguments['Path'] = $location }
+                        $Response = Invoke-AzRestMethod @pollArguments
+                        if ($null -eq $Response) { throw 'ARM async status request returned no response.' }
+                        $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
+                        if ([int]$Status -eq 202) { continue }
+                        $pollComplete = $true
+                        break
+                    }
+                    if (-not $pollComplete) { throw 'ARM asynchronous request did not complete within 30 seconds.' }
+                }
                 if ($null -ne $Status -and ([int]$Status -lt 200 -or [int]$Status -ge 300)) {
                     throw "ARM returned status $Status."
                 }
@@ -236,13 +294,13 @@ function Get-ScoutOperationalCollectorEnrichment {
                 if ($StatusCode -eq 409) {
                     Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset for '$ParentId' still in progress (409) after $Attempt attempt(s)."
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status OperationInProgress -Attempts $Attempt
-                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)."
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)." -ParentId $ParentId
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
                 Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Failed -Attempts $Attempt
-                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message
+                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message -ParentId $ParentId
                 return [PSCustomObject]@{ __AZSCError = $Message }
             }
         }
@@ -424,6 +482,32 @@ function Get-ScoutOperationalCollectorEnrichment {
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ARCServers' -Parent $Arc -Properties @{ PolicyCompliance = $Policy; CpuMetrics = $Cpu; EstimatedCost = $Cost }
     }
 
+    # AB#7367: configured route tables and NSG rules do not describe the state Azure actually
+    # applies to a NIC after subnet associations, platform routes, BGP, peering, and multiple NSG
+    # scopes are combined. These read-only POST actions return that effective control-plane state.
+    # Every NIC receives an envelope even when either request is denied or unsupported, so the
+    # discovery index can distinguish an unavailable detail from an absent NIC.
+    foreach ($Nic in $NetworkInterfaces) {
+        $Id = [string](Get-ScoutValue $Nic @('id', 'ID'))
+        if ([string]::IsNullOrWhiteSpace($Id)) { continue }
+        $effectiveNsgs = Invoke-ScoutOperationalArm `
+            -Dataset 'NetworkInterface.EffectiveNetworkSecurityGroups' `
+            -ParentId $Id `
+            -Method POST `
+            -PollAsync `
+            -Path "$Id/effectiveNetworkSecurityGroups?api-version=2025-05-01"
+        $effectiveRoutes = Invoke-ScoutOperationalArm `
+            -Dataset 'NetworkInterface.EffectiveRouteTable' `
+            -ParentId $Id `
+            -Method POST `
+            -PollAsync `
+            -Path "$Id/effectiveRouteTable?api-version=2025-05-01"
+        ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/NetworkInterface' -Parent $Nic -Properties @{
+            EffectiveNetworkSecurityGroups = $effectiveNsgs
+            EffectiveRouteTable            = $effectiveRoutes
+        }
+    }
+
     $SubscriptionsById = @{}
     foreach ($Subscription in @($Subscriptions)) {
         $SubscriptionKey = [string](Get-ScoutValue $Subscription @('id', 'Id'))
@@ -523,6 +607,73 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
     }
 
+    if ($IncludeProviderResourceDetails) {
+        # AB#7366: ARG is the universal discovery pass, but its `properties` bag is not guaranteed
+        # to equal the resource provider's GET response. Resolve API versions once per provider
+        # namespace and then GET every concrete ARM resource. Failures become resource-scoped
+        # health records; the ARG parent remains in the inventory and is marked Partial.
+        $armResources = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object {
+                $candidateType = [string](Get-ScoutValue $_ @('type', 'TYPE'))
+                $candidateId = [string](Get-ScoutValue $_ @('id', 'ID'))
+                $candidateType -match '(?i)^microsoft\.[^/]+/.+' -and $candidateId -match '(?i)/providers/'
+            }))
+        $providerMetadataByKey = @{}
+        foreach ($resource in $armResources) {
+            $id = [string](Get-ScoutValue $resource @('id', 'ID'))
+            $resourceType = [string](Get-ScoutValue $resource @('type', 'TYPE'))
+            $subscriptionId = [string](Get-ScoutValue $resource @('subscriptionId', 'SubscriptionId'))
+            if ([string]::IsNullOrWhiteSpace($id) -or [string]::IsNullOrWhiteSpace($subscriptionId)) { continue }
+            $typeParts = @($resourceType -split '/', 2)
+            if ($typeParts.Count -ne 2) { continue }
+            $namespace = $typeParts[0]
+            $providerType = $typeParts[1]
+            $providerKey = "$subscriptionId|$namespace".ToLowerInvariant()
+            if (-not $providerMetadataByKey.ContainsKey($providerKey)) {
+                $providerMetadataByKey[$providerKey] = Invoke-ScoutOperationalArm `
+                    -Dataset "ProviderDetails.Metadata.$namespace" `
+                    -ParentId "/subscriptions/$subscriptionId/providers/$namespace" `
+                    -Path "/subscriptions/$subscriptionId/providers/${namespace}?api-version=2021-04-01" `
+                    -DynamicRequest
+            }
+            $providerMetadata = $providerMetadataByKey[$providerKey]
+            $metadataError = [string](Get-ScoutValue $providerMetadata @('__AZSCError'))
+            if (-not [string]::IsNullOrWhiteSpace($metadataError)) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "Provider API-version discovery failed: $metadataError" `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+                continue
+            }
+            $typeMetadata = @(Get-ScoutValue $providerMetadata @('resourceTypes', 'ResourceTypes') | Where-Object {
+                    [string](Get-ScoutValue $_ @('resourceType', 'ResourceTypeName')) -ieq $providerType
+                } | Select-Object -First 1)
+            $apiVersions = if ($typeMetadata.Count -gt 0) { @((Get-ScoutValue $typeMetadata[0] @('apiVersions', 'ApiVersions')) | Where-Object { $_ }) } else { @() }
+            $stableVersions = @($apiVersions | Where-Object { [string]$_ -notmatch '(?i)preview|beta|alpha|private' })
+            $candidateVersions = $apiVersions
+            if ($stableVersions.Count -gt 0) {
+                $candidateVersions = $stableVersions
+            }
+            $apiVersion = @($candidateVersions | Sort-Object -Descending | Select-Object -First 1)
+            if ($apiVersion.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$apiVersion[0])) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "No API version was advertised for provider type '$providerType'." `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+                continue
+            }
+            $detail = Invoke-ScoutOperationalArm `
+                -Dataset "ProviderDetails.Resource.$namespace.$providerType" `
+                -ParentId $id `
+                -Path "${id}?api-version=$($apiVersion[0])" `
+                -DynamicRequest
+            $detailError = [string](Get-ScoutValue $detail @('__AZSCError'))
+            if (-not [string]::IsNullOrWhiteSpace($detailError)) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason $detailError `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+            }
+            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/ProviderDetail' -Parent $resource -Properties @{
+                ApiVersion = [string]$apiVersion[0]
+                Payload    = $detail
+            }
+        }
+    }
+
     $ResourceCounts = @{}
     $ResourceGroupCounts = @{}
     foreach ($Resource in @($Resources)) {
@@ -586,9 +737,10 @@ function Get-ScoutOperationalCollectorEnrichment {
         Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
             -Status $progressStatus -Completed
     }
+    $completionStatus = if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }
     Write-ScoutOperationalDetail -Level VERBOSE -Message (
         'Operational enrichment complete: status={0}; completed={1}; planned={2}; unavailable={3}; elapsed={4}' -f
-            $(if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }),
+            $completionStatus,
             $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed,
             $ProgressState.Started.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
     )

@@ -253,6 +253,7 @@ var DATA = window.__SCOUT_DATA__ || {};
 var identity = DATA.identity || {};
 var meta = DATA.meta || {};
 var inventory = DATA.inventory || {};
+var discovery = DATA.discovery || {};
 var subscriptions = DATA.subscriptions || [];
 var assessments = DATA.assessments || [];
 var drift = DATA.drift || null;
@@ -720,6 +721,28 @@ function pageInventory(){
     '<div class="gaugebox slim">'+mgTree(roots,0)+'</div><div class="eyebrow">Subscriptions ('+subscriptions.length+')</div>'+
     '<div class="twrap"><table><tr><th>Subscription</th><th>Id</th><th>State</th></tr>'+subRows+'</table></div>';
 
+  var discoverySummary = discovery.Summary || discovery.summary || {};
+  var discoveryResources = safeArr(discovery.Resources || discovery.resources);
+  var discoveryRelationships = safeArr(discovery.Relationships || discovery.relationships);
+  var discoveryRows = discoveryResources.slice(0,500).map(function(r){
+    var reasons = safeArr(r.DetailReasons || r.detailReasons).join('; ');
+    return '<tr><td>'+esc(r.Name||r.name)+'</td><td class="mono small">'+esc(r.Type||r.type)+'</td><td>'+esc(r.ResourceGroup||r.resourceGroup)+'</td><td>'+esc(r.DetailStatus||r.detailStatus)+'</td><td>'+esc(r.Exposure||r.exposure)+'</td><td>'+n(r.RelationshipCount||r.relationshipCount||0)+'</td><td class="small">'+esc(reasons)+'</td></tr>';
+  }).join('');
+  var relationshipRows = discoveryRelationships.slice(0,500).map(function(r){
+    return '<tr><td class="mono small">'+esc(r.SourceId||r.sourceId)+'</td><td>'+esc(r.RelationshipType||r.relationshipType)+'</td><td class="mono small">'+esc(r.TargetId||r.targetId)+'</td><td class="mono small">'+esc(r.PropertyPath||r.propertyPath)+'</td></tr>';
+  }).join('');
+  var discoveryPane = '<h2>Discovery completeness</h2>'+
+    '<div class="about"><b>Every discovered resource has a visible record.</b> Specialized detail, generic Resource Graph properties, provider enrichment, exposure evidence, relationship evidence, and permission failures are kept together so missing detail cannot look like an absent resource.</div>'+
+    '<div class="kpis"><div class="kpi"><div class="l">Resources</div><div class="v">'+n(discoverySummary.Resources||discoverySummary.resources||discoveryResources.length)+'</div><div class="f">unique discovered identities</div></div>'+
+    '<div class="kpi"><div class="l">Detailed</div><div class="v">'+n(discoverySummary.Detailed||discoverySummary.detailed||0)+'</div><div class="f">specialized collector available</div></div>'+
+    '<div class="kpi"><div class="l">Partial / unavailable</div><div class="v">'+n((discoverySummary.Partial||discoverySummary.partial||0)+(discoverySummary.Unavailable||discoverySummary.unavailable||0))+'</div><div class="f">review reasons below</div></div>'+
+    '<div class="kpi"><div class="l">Relationships</div><div class="v">'+n(discoverySummary.Relationships||discoverySummary.relationships||discoveryRelationships.length)+'</div><div class="f">generic ARM references</div></div></div>'+
+    '<div class="eyebrow">Resource completeness records'+(discoveryResources.length>500?' — showing 500 of '+n(discoveryResources.length):'')+'</div>'+
+    '<div class="twrap"><table><tr><th>Name</th><th>Type</th><th>Resource group</th><th>Detail</th><th>Exposure</th><th class="num">Links</th><th>Reason</th></tr>'+discoveryRows+'</table></div>'+
+    '<div class="eyebrow">Universal ARM relationship evidence'+(discoveryRelationships.length>500?' — showing 500 of '+n(discoveryRelationships.length):'')+'</div>'+
+    '<div class="twrap"><table><tr><th>Source</th><th>Relationship</th><th>Target</th><th>Property path</th></tr>'+relationshipRows+'</table></div>'+
+    '<p class="lede small">The interactive page caps each table at 500 rows for usability. The embedded report data and JSON export retain the complete arrays.</p>';
+
   var overviewPane = '<h2>Inventory &amp; audit — overview</h2>'+
     '<div class="about"><b>About this environment.</b> The estate holds <b>'+n(invTotal)+' collected items</b> across <b>'+subscriptions.length+' subscriptions</b> in '+invEntries.length+' categories, catalogued read-only via Azure Resource Graph and ARM. This page describes what exists and flags what looks wrong; conformance judgements live on the Assessments pages.</div>'+
     '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div><div class="f">read-only, ARG + ARM</div></div>'+
@@ -784,7 +807,7 @@ function pageInventory(){
     categoryBlocksFor('costCleanup.orphanedDisks', inventory['costCleanup.orphanedDisks']||{rows:[],count:0})+
     '<div class="prov">Pricing as of Aug 2026 — <a href="'+AZURE_PRICING_URL+'" rel="noopener">official pricing</a>.</div>';
 
-  var panes = [['inv-overview', overviewPane], ['inv-structure', '<h2>Tenant structure</h2>'+tenantStructure],
+  var panes = [['inv-overview', overviewPane], ['inv-discovery', discoveryPane], ['inv-structure', '<h2>Tenant structure</h2>'+tenantStructure],
     ['inv-audit', '<h2>Audit callouts</h2>'+(estateCallouts()||'<p class="lede">Nothing looks wrong in the estate.</p>')],
     ['inv-opp', costPane]].concat(groupPanes).concat(
     Object.keys(inventory).filter(function(k){ return inventory[k]; }).map(function(k){ return [catId(k), categoryPane(k, inventory[k])]; })
@@ -792,6 +815,7 @@ function pageInventory(){
 
   return '<div class="invlayout"><nav class="side"><div class="sidehead">Inventory</div>'+
     '<a class="sideitem invgo on" data-pane="inv-overview" href="#"><span>Overview</span></a>'+
+    '<a class="sideitem invgo" data-pane="inv-discovery" href="#"><span>Discovery completeness</span><span class="cnt">'+n(discoveryResources.length)+'</span></a>'+
     '<a class="sideitem invgo" data-pane="inv-structure" href="#"><span>🏛 Tenant structure</span><span class="cnt">'+((inventory['governance.managementGroups']||{}).count||0)+' MG · '+subscriptions.length+' subs</span></a>'+
     '<a class="sideitem invgo" data-pane="inv-audit" href="#"><span>⚠ Audit callouts</span></a>'+
     '<a class="sideitem invgo" data-pane="inv-opp" href="#"><span>💰 Cost optimization</span></a>'+
@@ -1946,6 +1970,7 @@ function buildJsonExport(){
         findings: safeArr(a.findings).map(function(f){ var c={}; for(var k in f) c[k]=f[k]; c.learnUrl = betterLearnUrl(f); return c; }) };
     }),
     inventory: (function(){ var o={}; invEntries.forEach(function(p){ o[p[0]] = { label:p[1].label, count:p[1].count }; }); return o; })(),
+    discovery: discovery,
     drift: drift
   }, null, 1);
 }

@@ -106,6 +106,23 @@ function Export-AZSCJsonReport {
         if (-not $CacheByName.ContainsKey($CacheFile.Name)) { $CacheByName[$CacheFile.Name] = $CacheFile }
     }
     $ParsedCache = @{}
+    $DiscoveryData = $null
+
+    # AB#7366 -- Discovery.json is intentionally not a collector-manifest section. It is the
+    # universal fallback/completeness ledger for every raw row, including types no specialized
+    # collector knows yet. Read it explicitly so the structured JSON report cannot silently drop
+    # the very rows this ledger exists to preserve.
+    if ($CacheByName.ContainsKey('Discovery.json')) {
+        try {
+            $DiscoveryRaw = [System.IO.File]::ReadAllText($CacheByName['Discovery.json'].FullName)
+            if (-not [string]::IsNullOrWhiteSpace($DiscoveryRaw)) {
+                $DiscoveryData = $DiscoveryRaw | ConvertFrom-Json -Depth 100
+            }
+        }
+        catch {
+            Write-Warning "Could not read the universal discovery index: $($_.Exception.Message)"
+        }
+    }
 
     foreach ($Section in $SectionIndex) {
         if ($Scope -eq 'ArmOnly' -and $Section.Category -in $EntraCategories) { continue }
@@ -221,6 +238,43 @@ function Export-AZSCJsonReport {
 
     if ($Scope -in ('All', 'EntraOnly') -and $EntraData.Count -gt 0) {
         $Report['entra'] = $EntraData
+    }
+
+    if ($DiscoveryData) {
+        $discoveryResources = @($DiscoveryData.Resources)
+        if ($Scope -eq 'ArmOnly') {
+            $discoveryResources = @($discoveryResources | Where-Object SourceKind -in @('ARM', 'Enrichment'))
+        }
+        elseif ($Scope -eq 'EntraOnly') {
+            $discoveryResources = @($discoveryResources | Where-Object SourceKind -eq 'Entra')
+        }
+        $includedIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($resource in $discoveryResources) {
+            if ($resource.Id) { [void]$includedIds.Add([string]$resource.Id) }
+        }
+        $discoveryRelationships = @($DiscoveryData.Relationships | Where-Object {
+            $includedIds.Contains([string]$_.SourceId)
+        })
+        $Report['discovery'] = [ordered]@{
+            schema           = $DiscoveryData.Schema
+            generatedAt      = $DiscoveryData.GeneratedAt
+            summary          = [ordered]@{
+                resources       = $discoveryResources.Count
+                detailed        = @($discoveryResources | Where-Object DetailStatus -eq 'Detailed').Count
+                genericOnly     = @($discoveryResources | Where-Object DetailStatus -eq 'GenericOnly').Count
+                partial         = @($discoveryResources | Where-Object DetailStatus -eq 'Partial').Count
+                unavailable     = @($discoveryResources | Where-Object DetailStatus -eq 'Unavailable').Count
+                public          = @($discoveryResources | Where-Object Exposure -eq 'Public').Count
+                private         = @($discoveryResources | Where-Object Exposure -eq 'Private').Count
+                mixed           = @($discoveryResources | Where-Object Exposure -eq 'Mixed').Count
+                exposureNone    = @($discoveryResources | Where-Object Exposure -eq 'None').Count
+                exposureUnknown = @($discoveryResources | Where-Object Exposure -eq 'Unknown').Count
+                relationships   = $discoveryRelationships.Count
+            }
+            resources        = $discoveryResources
+            relationships    = $discoveryRelationships
+            collectionHealth = @($DiscoveryData.CollectionHealth)
+        }
     }
 
     # Merge extra data sections at the top level

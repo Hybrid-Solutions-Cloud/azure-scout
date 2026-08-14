@@ -49,6 +49,117 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($script:ContextCalls | Where-Object Subscription -eq 'sub-1').Tenant | Should -Be 'tenant-a'
         ($script:ContextCalls | Where-Object Subscription -eq 'original-sub').Tenant | Should -Be 'tenant-a'
     }
+    It 'collects effective NSGs and routes for every NIC and retains both payloads' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-1'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Payload,$ErrorAction
+            $script:Calls.Add("$Method $Path")
+            if ($Path -match 'effectiveNetworkSecurityGroups') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"networkSecurityGroup":{"id":"/nsg/one"},"effectiveSecurityRules":[{"name":"AllowVnetInBound"}]}]}' }
+            }
+            if ($Path -match 'effectiveRouteTable') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"source":"Default","addressPrefix":["0.0.0.0/0"],"nextHopType":"Internet"}]}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @())
+        $envelope = $rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface'
+
+        $envelope | Should -Not -BeNullOrEmpty
+        $envelope.properties.EffectiveNetworkSecurityGroups.value[0].effectiveSecurityRules[0].name | Should -Be 'AllowVnetInBound'
+        $envelope.properties.EffectiveRouteTable.value[0].nextHopType | Should -Be 'Internet'
+        ($script:Calls -join "`n") | Should -Match 'POST .*/networkInterfaces/nic-1/effectiveNetworkSecurityGroups'
+        ($script:Calls -join "`n") | Should -Match 'POST .*/networkInterfaces/nic-1/effectiveRouteTable'
+    }
+
+    It 'polls a 202 effective-network response and records a per-NIC health failure without dropping the NIC' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-1'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $script:PollCount = 0
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Payload,$ErrorAction
+            if ($Path -match 'effectiveNetworkSecurityGroups') {
+                return [pscustomobject]@{ StatusCode=202; Content=''; Headers=@{ Location='/operations/nsg-1' } }
+            }
+            if ($Uri -or $Path -eq '/operations/nsg-1') {
+                $script:PollCount++
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+            }
+            if ($Path -match 'effectiveRouteTable') { return [pscustomobject]@{ StatusCode=403; Content='{}' } }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @() -CollectionHealth $health -WarningAction SilentlyContinue)
+        $envelope = $rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface'
+
+        $script:PollCount | Should -Be 1
+        $envelope.properties.EffectiveNetworkSecurityGroups.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+        $envelope.properties.EffectiveRouteTable.__AZSCError | Should -Match 'status 403'
+        @($health | Where-Object SourceDataset -eq 'NetworkInterface.EffectiveRouteTable').Count | Should -Be 1
+        @($health | Where-Object SourceDataset -eq 'NetworkInterface.EffectiveRouteTable')[0].ResourceIds | Should -Contain $nic.id
+    }
+
+    It 'resolves a stable provider API version once and retains the provider GET payload' {
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+            properties = [pscustomobject]@{ argOnly = 'summary' }
+        }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            $script:Calls.Add($Path)
+            if ($Path -match '/providers/Microsoft\.Contoso\?api-version=2021-04-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2026-01-01-preview","2025-06-01","2024-01-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?api-version=2025-06-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"id":"widget-1","properties":{"fullSetting":"retained"}}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails)
+        $detail = $rows | Where-Object type -eq 'AZSC/ProviderDetail'
+
+        $detail | Should -Not -BeNullOrEmpty
+        $detail.properties.ApiVersion | Should -Be '2025-06-01'
+        $detail.properties.Payload.properties.fullSetting | Should -Be 'retained'
+        @($script:Calls | Where-Object { $_ -match '/providers/Microsoft\.Contoso\?' }).Count | Should -Be 1
+    }
+
+    It 'records provider-detail denial against only the affected resource and still emits its envelope' {
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            if ($Path -match '/providers/Microsoft\.Contoso\?') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2025-06-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?') { return [pscustomobject]@{ StatusCode=403; Content='{}' } }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health -WarningAction SilentlyContinue)
+        $detail = $rows | Where-Object type -eq 'AZSC/ProviderDetail'
+        $detail.properties.Payload.__AZSCError | Should -Match 'status 403'
+        $providerHealth = @($health | Where-Object SourceDataset -eq 'ProviderDetails.Resource')
+        $providerHealth.Count | Should -Be 1
+        $providerHealth[0].ResourceIds | Should -Contain $widget.id
+        $providerHealth[0].ResourceTypes | Should -Contain $widget.type
+    }
     It 'contains a failed parent request while producing other envelopes' {
         function global:Invoke-AzRestMethod { param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction; if($Path -match 'vm-1/providers/microsoft.insights/metrics'){throw 'metrics denied'}; [pscustomobject]@{StatusCode=200;Content='{}'} }
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() -WarningVariable Warnings)
