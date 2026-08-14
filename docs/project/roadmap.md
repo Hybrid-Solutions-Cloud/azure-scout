@@ -43,7 +43,7 @@ publication. Historical v2 entries below are retained as release history rather 
 
 ## Current Release — v3.12.7 — the report always comes home
 
-Release candidate for 14 August 2026. A combined run whose scored assessment stops safely because
+Released 14 August 2026. A combined run whose scored assessment stops safely because
 required evidence is unavailable now reuses the completed inventory to render React and JsonEvidence
 without another Azure call, writing the deliverable into the predictable `assessment-report` folder.
 React indexing tolerates open-ended Azure values, including Boolean `name` fields. The built-in
