@@ -13,25 +13,65 @@ $ErrorActionPreference = 'Stop'
     styled output.
 
     The renderer has no external module dependency and never changes PowerShell repository trust.
-    It uses bright foreground colours only (never a coloured background) and falls back to native
-    Write-Progress or log-friendly information records in redirected, CI, or suppressed hosts.
-    Rendering failures can never cause Azure work to execute twice.
+    It presents a bordered, multi-phase ledger: finished phases remain visible while the active
+    phase keeps a moving spinner, progress bar, status and elapsed clock. It uses bright foreground
+    colours only (never a coloured background) and falls back to native Write-Progress or
+    log-friendly information records in redirected, CI, or suppressed hosts. Rendering failures
+    can never cause Azure work to execute twice.
 #>
 
 function Test-ScoutNativeLiveHost {
     [CmdletBinding()]
     param([switch] $Force)
 
-    if ($ProgressPreference -eq 'SilentlyContinue') { return $false }
-    if ($Force) { return $true }
-
-    if ($env:CI -or $env:TF_BUILD -or $env:GITHUB_ACTIONS -or $env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI) {
+    if ($ProgressPreference -eq 'SilentlyContinue') {
+        $script:ScoutNativeProgressDecision = 'disabled: ProgressPreference is SilentlyContinue'
         return $false
     }
-    if (-not [Environment]::UserInteractive) { return $false }
-    try { if ([Console]::IsOutputRedirected) { return $false } } catch { return $false }
-    if ($null -eq $Host -or $Host.Name -in @('Default Host', 'ServerRemoteHost')) { return $false }
+    if ($Force) {
+        $script:ScoutNativeProgressDecision = 'eligible: forced by caller'
+        return $true
+    }
+
+    if ($env:CI -or $env:TF_BUILD -or $env:GITHUB_ACTIONS -or $env:SYSTEM_TEAMFOUNDATIONCOLLECTIONURI) {
+        $script:ScoutNativeProgressDecision = 'disabled: CI environment detected'
+        return $false
+    }
+    if (-not [Environment]::UserInteractive) {
+        $script:ScoutNativeProgressDecision = 'disabled: process is not user-interactive'
+        return $false
+    }
+    try {
+        if ([Console]::IsOutputRedirected) {
+            $script:ScoutNativeProgressDecision = 'disabled: console output is redirected'
+            return $false
+        }
+    }
+    catch {
+        $script:ScoutNativeProgressDecision = 'disabled: console redirection state is unavailable'
+        return $false
+    }
+    if ($null -eq $Host -or $Host.Name -in @('Default Host', 'ServerRemoteHost')) {
+        $hostLabel = if ($null -eq $Host) { '<null>' } else { $Host.Name }
+        $script:ScoutNativeProgressDecision = "disabled: unsupported host '$hostLabel'"
+        return $false
+    }
+    $script:ScoutNativeProgressDecision = "eligible: interactive $($Host.Name) host"
     return $true
+}
+
+function Write-ScoutProgressDiagnostic {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)] [string] $Message)
+
+    try {
+        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'DEBUG' -Message "Live progress: $Message"
+        }
+    }
+    catch {
+        Write-Verbose "AzureScout could not write the live-progress diagnostic: $($_.Exception.Message)"
+    }
 }
 
 function Initialize-ScoutNativeProgressRenderer {
@@ -55,6 +95,7 @@ namespace AzureScout
         private const string BrightCyan = "\u001b[96;1m";
         private const string BrightGreen = "\u001b[92;1m";
         private const string BrightRed = "\u001b[91;1m";
+        private const string BrightYellow = "\u001b[93;1m";
         private const string Dim = "\u001b[90m";
         private const string Reset = "\u001b[0m";
 
@@ -62,12 +103,15 @@ namespace AzureScout
         private static Stopwatch _stopwatch;
         private static string _activity = "Azure Scout";
         private static string _status = "Starting...";
+        private static string _rootActivity = "Azure Scout";
+        private static string _taskKey = String.Empty;
         private static int _percent = -1;
         private static int _frame;
         private static int _renderCount;
-        private static int _lastPlainLength;
+        private static int _liveRow = -1;
         private static bool _ansi;
         private static bool _active;
+        private static bool _hasLiveRow;
 
         public static bool IsActive
         {
@@ -85,26 +129,54 @@ namespace AzureScout
             {
                 DisposeTimer();
                 _activity = Clean(activity, "Azure Scout");
+                _rootActivity = _activity;
                 _status = Clean(status, "Starting...");
+                _taskKey = "1|" + _activity;
                 _percent = ClampPercent(percent);
                 _ansi = ansi;
                 _frame = 0;
                 _renderCount = 0;
-                _lastPlainLength = 0;
+                _liveRow = -1;
+                _hasLiveRow = true;
                 _stopwatch = Stopwatch.StartNew();
                 _active = true;
-                _timer = new Timer(RenderTick, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(125));
+                WriteHeader();
+                RenderLocked();
+                _timer = new Timer(RenderTick, null, TimeSpan.FromMilliseconds(125), TimeSpan.FromMilliseconds(125));
             }
         }
 
-        public static void Update(string activity, string status, int percent, bool completed)
+        public static void Update(string activity, string status, int percent, bool completed, int id, int parentId)
         {
             lock (Gate)
             {
                 if (!_active) return;
-                _activity = Clean(activity, _activity);
+                string nextActivity = Clean(activity, _activity);
+                string nextKey = id.ToString() + "|" + nextActivity;
+
+                if (!String.Equals(nextKey, _taskKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    FinishLiveRow(false, "phase changed");
+                    _activity = nextActivity;
+                    _taskKey = nextKey;
+                    _hasLiveRow = true;
+                    _liveRow = GetCursorTop();
+                }
+                else
+                {
+                    _activity = nextActivity;
+                }
+
                 _status = Clean(status, _status);
                 _percent = completed ? 100 : ClampPercent(percent);
+                if (completed)
+                {
+                    FinishLiveRow(true, _status);
+                }
+                else
+                {
+                    RenderLocked();
+                }
             }
         }
 
@@ -120,15 +192,9 @@ namespace AzureScout
                 try
                 {
                     string elapsed = _stopwatch == null ? "00:00:00" : _stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
-                    string symbol = succeeded ? "✓" : "✗";
                     string finalStatus = Clean(status, succeeded ? "Complete" : "Failed");
-                    string plain = String.Format("{0} {1} — {2} (elapsed {3})", symbol, _activity, finalStatus, elapsed);
-                    int width = GetWidth();
-                    plain = Truncate(plain, Math.Max(20, width - 1));
-                    string colour = succeeded ? BrightGreen : BrightRed;
-                    string rendered = _ansi ? colour + plain + Reset : plain;
-                    Console.Write("\r" + rendered + Spaces(Math.Max(0, _lastPlainLength - plain.Length)) + Environment.NewLine);
-                    _lastPlainLength = 0;
+                    if (_hasLiveRow) FinishLiveRow(succeeded, finalStatus);
+                    WriteFooter(succeeded, _rootActivity, finalStatus, elapsed);
                 }
                 catch
                 {
@@ -144,30 +210,8 @@ namespace AzureScout
                 if (!_active) return;
                 try
                 {
-                    int width = GetWidth();
                     _renderCount++;
-                    string frame = Frames[_frame++ % Frames.Length];
-                    string activity = Truncate(_activity, 30);
-                    string bar = BuildBar(_percent, 20, _frame);
-                    string percent = _percent < 0 ? " --%" : String.Format("{0,3}%", _percent);
-                    string elapsed = _stopwatch == null ? "00:00:00" : _stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
-                    string fixedPlain = String.Format("{0} {1} [{2}] {3} elapsed {4}  ", frame, activity, bar, percent, elapsed);
-                    int statusWidth = Math.Max(0, width - 1 - fixedPlain.Length);
-                    string status = Truncate(_status, statusWidth);
-                    string plain = fixedPlain + status;
-                    string padding = Spaces(Math.Max(0, _lastPlainLength - plain.Length));
-
-                    if (_ansi)
-                    {
-                        Console.Write("\r" + BrightCyan + frame + " " + activity + Reset +
-                            " [" + bar + "] " + percent + " " + Dim + "elapsed " + elapsed + Reset +
-                            "  " + status + padding);
-                    }
-                    else
-                    {
-                        Console.Write("\r" + plain + padding);
-                    }
-                    _lastPlainLength = plain.Length;
+                    RenderLocked();
                 }
                 catch
                 {
@@ -175,6 +219,83 @@ namespace AzureScout
                     DisposeTimer();
                 }
             }
+        }
+
+        private static void RenderLocked()
+        {
+            if (!_active || !_hasLiveRow) return;
+
+            int currentTop = GetCursorTop();
+            if (_liveRow < 0 || currentTop != _liveRow)
+            {
+                // A warning or host message was written while the timer owned the live row.
+                // Move the renderer to the new cursor row so that message remains visible.
+                _liveRow = currentTop;
+            }
+
+            int width = GetWidth();
+            string frame = Frames[_frame++ % Frames.Length];
+            string activity = Truncate(_activity, 26);
+            string bar = BuildBar(_percent, 16, _frame);
+            string percent = _percent < 0 ? " --%" : String.Format("{0,3}%", _percent);
+            string elapsed = _stopwatch == null ? "00:00:00" : _stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+            string body = String.Format("{0} {1} [{2}] {3}  {4}  {5}",
+                frame, activity, bar, percent, elapsed, _status);
+            string plain = PanelLine(body, width);
+            string rendered = _ansi ? BrightCyan + plain + Reset : plain;
+
+            // Return to column zero after every tick. Normal PowerShell host output can then
+            // replace the live row cleanly; the next tick detects the cursor-row change and
+            // continues beneath it instead of appending progress text to the warning.
+            Console.Write("\r" + rendered + "\r");
+            _liveRow = GetCursorTop();
+        }
+
+        private static void FinishLiveRow(bool succeeded, string status)
+        {
+            if (!_hasLiveRow) return;
+
+            string elapsed = _stopwatch == null ? "00:00:00" : _stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+            string symbol = succeeded ? "✓" : "→";
+            string body = String.Format("{0} {1} — {2}  ({3})", symbol, _activity, Clean(status, _status), elapsed);
+            string plain = PanelLine(body, GetWidth());
+            string colour = succeeded ? BrightGreen : BrightYellow;
+            string rendered = _ansi ? colour + plain + Reset : plain;
+            Console.Write("\r" + rendered + Environment.NewLine);
+            _hasLiveRow = false;
+            _liveRow = GetCursorTop();
+        }
+
+        private static void WriteHeader()
+        {
+            int width = GetWidth();
+            string title = " Azure Scout — live progress ";
+            int remaining = Math.Max(1, width - title.Length - 2);
+            string plain = "╭" + title + new string('─', remaining) + "╮";
+            plain = Truncate(plain, width);
+            Console.WriteLine(_ansi ? BrightCyan + plain + Reset : plain);
+            _liveRow = GetCursorTop();
+        }
+
+        private static void WriteFooter(bool succeeded, string activity, string status, string elapsed)
+        {
+            int width = GetWidth();
+            string summary = String.Format(" {0} {1}: {2}; elapsed {3} ",
+                succeeded ? "✓" : "✗", activity, status, elapsed);
+            summary = Truncate(summary, Math.Max(1, width - 2));
+            int remaining = Math.Max(1, width - summary.Length - 2);
+            string plain = "╰" + summary + new string('─', remaining) + "╯";
+            plain = Truncate(plain, width);
+            string colour = succeeded ? BrightGreen : BrightRed;
+            Console.WriteLine(_ansi ? colour + plain + Reset : plain);
+            _liveRow = GetCursorTop();
+        }
+
+        private static string PanelLine(string body, int width)
+        {
+            int innerWidth = Math.Max(1, width - 4);
+            string inner = Truncate(Clean(body, String.Empty), innerWidth);
+            return "│ " + inner + Spaces(Math.Max(0, innerWidth - inner.Length)) + " │";
         }
 
         private static string BuildBar(int percent, int width, int frame)
@@ -215,8 +336,14 @@ namespace AzureScout
 
         private static int GetWidth()
         {
-            try { return Math.Max(60, Console.WindowWidth); }
+            try { return Math.Max(72, Console.WindowWidth); }
             catch { return 120; }
+        }
+
+        private static int GetCursorTop()
+        {
+            try { return Console.CursorTop; }
+            catch { return -1; }
         }
 
         private static string Spaces(int count)
@@ -266,6 +393,10 @@ function Start-ScoutNativeProgressHost {
         [AzureScout.NativeProgressRenderer]::Start($Activity, $Status, $PercentComplete, $supportsAnsi)
         $script:ScoutNativeProgressActive = $true
         $state.Started = $true
+        Write-ScoutProgressDiagnostic -Message (
+            "renderer started; activity={0}; host={1}; virtualTerminal={2}" -f
+                $Activity, $Host.Name, $supportsAnsi
+        )
         try {
             $state.Output = @(& $Operation @ArgumentList)
         }
@@ -305,8 +436,20 @@ function Invoke-ScoutProgressOperation {
         [object[]] $ArgumentList = @()
     )
 
-    if (-not (Test-ScoutNativeLiveHost)) { return (& $Operation @ArgumentList) }
-    if (-not (Initialize-ScoutNativeProgressRenderer)) { return (& $Operation @ArgumentList) }
+    if (-not (Test-ScoutNativeLiveHost)) {
+        $decision = if (Get-Variable -Name ScoutNativeProgressDecision -Scope Script -ErrorAction SilentlyContinue) {
+            [string]$script:ScoutNativeProgressDecision
+        }
+        else {
+            'disabled: live console unavailable'
+        }
+        Write-ScoutProgressDiagnostic -Message $decision
+        return (& $Operation @ArgumentList)
+    }
+    if (-not (Initialize-ScoutNativeProgressRenderer)) {
+        Write-ScoutProgressDiagnostic -Message 'disabled: built-in renderer failed to initialize'
+        return (& $Operation @ArgumentList)
+    }
 
     try {
         return Start-ScoutNativeProgressHost -Activity $Activity -Status $Status `
@@ -347,7 +490,9 @@ function Write-ScoutProgress {
                 $Activity,
                 $displayStatus,
                 $PercentComplete,
-                $Completed.IsPresent
+                $Completed.IsPresent,
+                $Id,
+                $ParentId
             )
             return
         }

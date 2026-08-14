@@ -361,6 +361,13 @@ Describe 'Single entry point — output format guards' {
                 Should -Invoke Out-AZSCReportResults -Exactly 1 -ParameterFilter { $TotalRes -eq 0 }
 
                 Mock Invoke-ScoutAssessmentCore {
+                    if ($InventoryOnly) {
+                        $fallbackPath = if ($ReservedRunPath) { $ReservedRunPath } else { Join-Path $Work 'assessment-report' }
+                        New-Item -ItemType Directory -Path $fallbackPath -Force | Out-Null
+                        '<html>inventory fallback</html>' | Set-Content (Join-Path $fallbackPath 'report-react.html')
+                        '{}' | Set-Content (Join-Path $fallbackPath 'evidence.json')
+                        return $fallbackPath
+                    }
                     $exception = [System.InvalidOperationException]::new('required source unavailable')
                     $exception.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
                     throw $exception
@@ -369,7 +376,12 @@ Describe 'Single entry point — output format guards' {
                 Invoke-AzureScout -NoWizard -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment `
                     -OutputFormat React,JsonEvidence -SkipPermissionCheck -SkipDiagram
 
-                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 2
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 3
+                Should -Invoke Invoke-ScoutAssessmentCore -Exactly 1 -ParameterFilter {
+                    $InventoryOnly -and $null -ne $FromInventory -and
+                        $OutputFormat -contains 'React' -and $OutputFormat -contains 'JsonEvidence'
+                }
+                Test-Path (Join-Path $Work 'assessment-report\report-react.html') | Should -BeTrue
                 Should -Invoke Start-AZSCProcessOrchestration -Exactly 2
                 Should -Invoke Out-AZSCReportResults -Exactly 2
                 Should -Invoke Write-Warning -ParameterFilter { $Message -like '*skipped*assessment*inventory run will continue*' }

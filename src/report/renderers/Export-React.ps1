@@ -305,7 +305,12 @@ function Export-React {
         if ($null -eq $Row -or $Row -isnot [pscustomobject]) { return }
         $n = Get-ReactRowProp $Row 'name'
         if (-not $n) { $n = Get-ReactRowProp $Row 'displayName' }
-        if (-not $n) { return }
+        # Collect is a recursively walked, open-ended object graph. Some service payloads use
+        # `name` for a Boolean feature flag rather than a resource identity. Normalise before
+        # applying string methods so one such row cannot prevent the entire React report from
+        # rendering (observed live in the 2026-08-14 thisismydemo run).
+        $n = if ($null -eq $n) { '' } else { [string]$n }
+        if ([string]::IsNullOrWhiteSpace($n)) { return }
         $rid = Get-ReactRowProp $Row 'id'
         if (-not $rid) { $rid = Get-ReactRowProp $Row 'ResourceId' }
         $sub = Get-ReactRowProp $Row 'subscriptionId'
@@ -432,7 +437,8 @@ function Export-React {
         $lookupName = if ($isJoinRow) { $null } else { Get-ReactRowProp $identitySource 'vnet' }
         if (-not $lookupName) { $lookupName = $name }
         if ((-not $subscriptionId -or -not $resourceGroup -or -not $resourceId) -and $lookupName) {
-            $hit = $collectNameIndex[$lookupName.ToLowerInvariant()]
+            $lookupKey = ([string]$lookupName).ToLowerInvariant()
+            $hit = $collectNameIndex[$lookupKey]
             if ($hit) {
                 if (-not $subscriptionId -and $hit.SubscriptionId) { $subscriptionId = $hit.SubscriptionId }
                 if (-not $resourceGroup -and $hit.ResourceGroup) { $resourceGroup = $hit.ResourceGroup }
