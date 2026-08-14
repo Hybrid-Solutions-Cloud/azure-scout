@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.7 — the report always comes home
+## Current Release — v3.12.8 — partial evidence stays partial
+
+Released 14 August 2026. A metadata denial from one Key Vault no longer promotes a granular
+ARM-child gap into failure of the entire Azure resource dataset. Only rules that require incomplete
+Key Vault key evidence become `NotAssessed`; unrelated CAF/WAF checks continue scoring. Standard
+PowerShell progress is restored as the stable interactive default, with the experimental bordered
+renderer available only by explicit opt-in. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.7 — the report always comes home
 
 Released 14 August 2026. A combined run whose scored assessment stops safely because
 required evidence is unavailable now reuses the completed inventory to render React and JsonEvidence

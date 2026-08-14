@@ -43,7 +43,10 @@ BeforeAll {
                 databases = [pscustomobject]@{ sqlDatabases = @(); sqlServers = @(); sqlDefenderPricing = @() }
                 web = [pscustomobject]@{ webApps = @() }
                 containers = [pscustomobject]@{ aksClusters = @(); containerRegistries = @() }
-                security = [pscustomobject]@{ keyVaults = @(); keyVaultSecrets = @(); keyVaultKeys = @() }
+                security = [pscustomobject]@{
+                    keyVaults = @(); keyVaultSecrets = @(); keyVaultKeys = @()
+                    keyVaultSecretsAvailable = $true; keyVaultKeysAvailable = $true
+                }
                 ai = [pscustomobject]@{ cognitiveAccounts = @() }
                 hybrid = [pscustomobject]@{ arcServers = @(); arcExtensions = @(); azureLocalClusters = @() }
                 integration = [pscustomobject]@{ eventHubNamespaces = @(); apiManagement = @(); serviceBusNamespaces = @() }
@@ -134,6 +137,17 @@ Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
         )
         $after = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA'
         ($after | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'Pass'
+    }
+
+    It 'marks only Key Vault key-dependent rules NotAssessed when key metadata is incomplete' {
+        $casa = Get-RuleSet -Patterns @('casa.*')
+        $collect = New-EmptyCollect
+        $collect.domains.security.keyVaultKeysAvailable = $false
+
+        $findings = Invoke-Assessment -Collect $collect -RuleSet $casa -Assessment 'Microsoft: CASA'
+
+        ($findings | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'NotAssessed'
+        ($findings | Where-Object Id -eq 'CASA-CO-03').Status | Should -Be 'Fail'
     }
 
     It 'is proven non-vacuous: CASA-CO-04 flips from Fail to Pass when a Purview account is collected' {
