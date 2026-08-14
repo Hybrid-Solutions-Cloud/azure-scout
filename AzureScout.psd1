@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.6'
+ModuleVersion = '3.12.7'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -165,7 +165,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.6 - The progress display ships inside Scout with no external renderer dependency. The native live spinner, progress bar, phase text, and elapsed clock begin during permission preflight and continue through extraction, supplemental and diagram processing, assessment rendering, inventory output rendering, and collector processing. CI, redirected, and -NoProgress runs retain safe fallbacks, and progress failures still cannot execute an operation twice. AB#405.'
+        ReleaseNotes = 'v3.12.7 - React reporting survives partial tenant data and open-ended Azure payload shapes. If scored assessment safely stops because required evidence is unavailable, a network-free inventory-only React/evidence fallback now fills the predictable assessment-report folder instead of leaving it empty. Boolean name fields can no longer crash React indexing. The built-in console renderer now presents a high-contrast bordered multi-phase ledger with persistent phase transitions and a live elapsed clock, without external modules or repository-trust changes. AB#405.'
 
         # Prerelease string of this module
         # Prerelease = ''

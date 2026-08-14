@@ -891,7 +891,13 @@ Function Invoke-AzureScout {
     # (the only renderer the assessment side of a combined run actually produces) landing in the
     # one the operator had no reason to go looking in. Retarget it to the real run folder now
     # that Set-AZSCReportPath has created it.
-    if ($deferredAssessArgs) { $deferredAssessArgs.OutputPath = $DefaultPath }
+    if ($deferredAssessArgs) {
+        $deferredAssessArgs.OutputPath = $DefaultPath
+        # Reserve the predictable primary folder up front. If scoring later fails closed because
+        # evidence is unavailable, the inventory-only React fallback can fill this same folder
+        # instead of leaving `assessment-report` empty and hiding the usable report in `_01`.
+        $deferredAssessArgs.ReservedRunPath = Join-Path $DefaultPath 'assessment-report'
+    }
     if ($deferredInventoryOutputArgs) { $deferredInventoryOutputArgs.OutputPath = $DefaultPath }
 
     if (-not $Force.IsPresent)
@@ -1218,6 +1224,85 @@ Function Invoke-AzureScout {
                 $assessmentGap = $_.Exception.Message
                 Write-Warning "Azure Scout skipped the scored assessment because required source data was unavailable. The inventory run will continue. $assessmentGap"
                 Write-AZSCLog -Level 'WARN' -Message "Deferred assessment skipped; inventory continues. $assessmentGap" -Exception $_.Exception
+
+                # A partial source must never fabricate scored Pass findings, but it must not
+                # erase the React deliverable either. Render the complete inventory and evidence
+                # we DO have, with assessment rules disabled and collection-health metadata
+                # preserved. This is network-free because -InventoryOnly forces
+                # -OfflineFromInventory inside Invoke-ScoutAssessmentCore.
+                $fallbackFormats = @(
+                    $deferredAssessArgs.OutputFormat |
+                        Where-Object { $_ -in @('React', 'JsonEvidence') } |
+                        Select-Object -Unique
+                )
+                if ($fallbackFormats.Count -gt 0) {
+                    try {
+                        $inventoryFallbackArgs = @{
+                            InventoryOnly = $true
+                            OutputFormat  = $fallbackFormats
+                            OutputPath    = $DefaultPath
+                            Scope         = $Scope
+                        }
+                        if ($TenantID) { $inventoryFallbackArgs.TenantID = $TenantID }
+                        if ($ReportIdentity -and $ReportIdentity.Count -gt 0) {
+                            $inventoryFallbackArgs.ReportIdentity = $ReportIdentity
+                        }
+                        if ($PSBoundParameters.ContainsKey('DefaultReportMode')) {
+                            $inventoryFallbackArgs.DefaultReportMode = $DefaultReportMode
+                        }
+
+                        $primaryAssessmentPath = [string]$deferredAssessArgs.ReservedRunPath
+                        if (
+                            $primaryAssessmentPath -and
+                            (
+                                -not (Test-Path -LiteralPath $primaryAssessmentPath -PathType Container) -or
+                                @(Get-ChildItem -LiteralPath $primaryAssessmentPath -Force -ErrorAction Stop).Count -eq 0
+                            )
+                        ) {
+                            $inventoryFallbackArgs.ReservedRunPath = $primaryAssessmentPath
+                        }
+
+                        Write-AZSCLog -Level 'VERBOSE' -Message (
+                            'Scored assessment unavailable; starting network-free inventory React/evidence fallback. Formats={0}' -f
+                                ($fallbackFormats -join ',')
+                        )
+                        $inventoryFallbackOperation = {
+                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData
+                        }
+                        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+                            $inventoryFallbackPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
+                                -Status 'Rendering partial-data fallback' -PercentComplete 70 -Id 1 `
+                                -Operation $inventoryFallbackOperation
+                        }
+                        else {
+                            $inventoryFallbackPath = & $inventoryFallbackOperation
+                        }
+                        Write-Output $inventoryFallbackPath
+
+                        if ($inventoryFallbackPath) {
+                            $fallbackReact = Join-Path ([string]$inventoryFallbackPath) 'report-react.html'
+                            if (Test-Path -LiteralPath $fallbackReact -PathType Leaf) {
+                                $ReactFile = $fallbackReact
+                                Write-Host ''
+                                Write-Host '  Scored assessment unavailable; inventory React report: ' -NoNewline -ForegroundColor Yellow
+                                Write-Host $fallbackReact -ForegroundColor Cyan
+                                Write-Host ''
+                            }
+                            $fallbackEvidence = Join-Path ([string]$inventoryFallbackPath) 'evidence.json'
+                            if (Test-Path -LiteralPath $fallbackEvidence -PathType Leaf) {
+                                $EvidenceFile = $fallbackEvidence
+                            }
+                        }
+                        Write-AZSCLog -Level 'WARN' -Message (
+                            'Scored assessment unavailable; inventory-only React/evidence fallback completed: {0}' -f
+                                ([string]$inventoryFallbackPath)
+                        )
+                    }
+                    catch {
+                        Write-Warning "Azure Scout could not render the inventory React fallback after assessment scoring was skipped: $($_.Exception.Message)"
+                        Write-AZSCLog -Level 'WARN' -Message 'Inventory React fallback failed after assessment source became unavailable.' -Exception $_.Exception
+                    }
+                }
             }
             finally {
                 $ProcessingRunTime.Start()

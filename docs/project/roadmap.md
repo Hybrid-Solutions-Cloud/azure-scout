@@ -41,13 +41,22 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.6 — the progress display ships with Scout
+## Current Release — v3.12.7 — the report always comes home
 
-Release candidate for 13 August 2026. AzureScout now ships a self-contained native live renderer
-with no third-party progress dependency. Its spinner, progress bar, phase text, and elapsed clock
-start during permission preflight and cover extraction, diagrams and supplemental processing,
-assessment and inventory rendering, and deterministic collector processing. CI, redirected, and
-`-NoProgress` runs keep their safe fallbacks. See CHANGELOG.md and AB#405.
+Release candidate for 14 August 2026. A combined run whose scored assessment stops safely because
+required evidence is unavailable now reuses the completed inventory to render React and JsonEvidence
+without another Azure call, writing the deliverable into the predictable `assessment-report` folder.
+React indexing tolerates open-ended Azure values, including Boolean `name` fields. The built-in
+progress renderer now shows a high-contrast bordered multi-phase ledger whose elapsed clock continues
+during blocking operations. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.6 — the progress display ships with Scout
+
+Released 13 August 2026. AzureScout ships a self-contained native live renderer with no third-party
+progress dependency. Its spinner, progress bar, phase text, and elapsed clock start during permission
+preflight and cover extraction, diagrams and supplemental processing, assessment and inventory
+rendering, and deterministic collector processing. CI, redirected, and `-NoProgress` runs keep their
+safe fallbacks. See CHANGELOG.md and AB#405.
 
 ## Previous Release — v3.12.5 — the compass keeps moving
 

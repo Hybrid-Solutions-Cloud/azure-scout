@@ -462,6 +462,27 @@ Describe 'Export-React — resourceIndex + subscription attribution' {
         # Every resource in this fixture set is subscription-scoped -- none should be unattributable.
         $noSub.Count | Should -Be 0
     }
+
+    It 'renders when an arbitrary collected row uses a Boolean name field' {
+        # Azure service payloads are open-ended. A live tenant returned a feature/configuration
+        # row whose `name` field was Boolean; the recursive resource-index walk must ignore or
+        # stringify that value instead of calling a string method on System.Boolean and losing
+        # the entire React report.
+        $booleanNameCollect = $script:Collect | ConvertTo-Json -Depth 100 | ConvertFrom-Json -Depth 100
+        $booleanNameCollect | Add-Member -NotePropertyName rendererRegression -NotePropertyValue ([pscustomobject]@{
+                rows = @(
+                    [pscustomobject]@{
+                        name = $true
+                        id   = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Contoso.Features/settings/example'
+                    }
+                )
+            }) -Force
+        $outputPath = Join-Path $script:OutDir 'boolean-name'
+
+        { Export-React -Findings $script:Scored -Collect $booleanNameCollect -OutputPath $outputPath } |
+            Should -Not -Throw
+        Join-Path $outputPath 'report-react.html' | Should -Exist
+    }
 }
 
 Describe 'Export-React — report identity (AB#6930)' {

@@ -348,6 +348,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
     # nothing here executes the run.
     BeforeAll {
         $script:Source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
+        $script:DeferredRetargetPattern = 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\b'
 
         function Get-ScoutSourceIndex {
             param([string]$Pattern)
@@ -420,17 +421,21 @@ Describe 'AB#7185 — the deferred assessment writes into the SAME run folder as
     }
 
     It 'retargets $deferredAssessArgs.OutputPath to $DefaultPath, guarded on $deferredAssessArgs being set' {
-        Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}' | Out-Null
+        Get-ScoutSourceIndex $script:DeferredRetargetPattern | Out-Null
+    }
+
+    It 'reserves the predictable assessment-report folder for scored output or the safe inventory fallback' {
+        Get-ScoutSourceIndex '\$deferredAssessArgs\.ReservedRunPath\s*=\s*Join-Path\s+\$DefaultPath\s+''assessment-report''' | Out-Null
     }
 
     It 'retargets OutputPath after $DefaultPath is assigned from $ReportingPath, not before' {
         $defaultPathIdx = Get-ScoutSourceIndex '\$DefaultPath\s*=\s*\$ReportingPath\.DefaultPath'
-        $retargetIdx    = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
+        $retargetIdx    = Get-ScoutSourceIndex $script:DeferredRetargetPattern
         $defaultPathIdx | Should -BeLessThan $retargetIdx
     }
 
     It 'retargets OutputPath before the deferred Invoke-ScoutAssessmentCore call consumes it' {
-        $retargetIdx     = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
+        $retargetIdx     = Get-ScoutSourceIndex $script:DeferredRetargetPattern
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $retargetIdx | Should -BeLessThan $deferredCallIdx
     }

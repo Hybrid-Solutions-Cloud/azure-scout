@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.7] - 2026-08-14 - the report always comes home
+
+### Fixed
+
+- **A combined run no longer leaves `assessment-report` empty when scoring fails closed.** If a
+  required assessment source is unavailable, AzureScout now reuses the completed in-memory
+  inventory to render React and JsonEvidence without another Azure call. The fallback is explicitly
+  inventory-only, so it preserves the deliverable without inventing assessment scores.
+- **Open-ended Azure payloads can no longer crash React resource indexing.** Boolean or other
+  non-string `name` values are normalized before string operations. This exact shape prevented the
+  React report from rendering after a successful 285-collector tenant run.
+- The combined-run assessment path reserves the predictable `assessment-report` folder so either
+  scored output or its safe inventory fallback lands where the operator expects it.
+
+### Changed
+
+- The dependency-free console renderer now displays a high-contrast bordered multi-phase ledger.
+  Completed and changed phases remain visible while the active row continues to show its spinner,
+  progress bar, percentage, status, and elapsed clock during blocking Azure operations.
+- Progress-host eligibility and startup decisions are written to the run log at DEBUG level, making
+  host-specific fallback behavior diagnosable without adding console noise.
+
+### Safety
+
+- React fallback rendering is network-free and does not rerun collection. Missing assessment
+  evidence still prevents scored Pass findings; the fallback says that assessments did not run.
+
 ## [3.12.6] - 2026-08-13 - the progress display ships with Scout
 
 ### Fixed

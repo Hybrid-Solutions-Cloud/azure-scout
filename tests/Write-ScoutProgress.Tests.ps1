@@ -92,7 +92,16 @@ Describe 'Start-ScoutNativeProgressHost -- self-contained live rendering contrac
 
     It 'uses bright foreground colours without ANSI background colours' {
         $script:source | Should -Match 'BrightCyan = "\\u001b\[96;1m"'
+        $script:source | Should -Match 'BrightGreen = "\\u001b\[92;1m"'
+        $script:source | Should -Match 'BrightYellow = "\\u001b\[93;1m"'
         $script:source | Should -Not -Match '\\u001b\[4[0-9]'
+    }
+
+    It 'renders an unmistakable bordered multi-phase ledger instead of a bare progress line' {
+        $script:source | Should -Match 'Azure Scout — live progress'
+        $script:source | Should -Match 'PanelLine'
+        $script:source | Should -Match 'FinishLiveRow'
+        $script:source | Should -Match 'phase changed'
     }
 
     It 'compiles and runs the native renderer without an installed third-party module' {
@@ -100,7 +109,14 @@ Describe 'Start-ScoutNativeProgressHost -- self-contained live rendering contrac
         ('AzureScout.NativeProgressRenderer' -as [type]) | Should -Not -BeNullOrEmpty
 
         $result = Start-ScoutNativeProgressHost -Activity 'Test' -Status 'Working' `
-            -PercentComplete 5 -Operation { Start-Sleep -Milliseconds 450; return 'done' }
+            -PercentComplete 5 -Operation {
+                Write-ScoutProgress -Activity 'Child phase' -Status 'Blocked operation' `
+                    -PercentComplete 35 -Id 2 -ParentId 1
+                Start-Sleep -Milliseconds 450
+                Write-ScoutProgress -Activity 'Child phase' -Status 'Complete' `
+                    -PercentComplete 100 -Id 2 -ParentId 1 -Completed
+                return 'done'
+            }
         $result | Should -Be 'done'
         [AzureScout.NativeProgressRenderer]::RenderCount | Should -BeGreaterThan 1
     }
