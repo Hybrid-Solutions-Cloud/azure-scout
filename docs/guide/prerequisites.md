@@ -40,7 +40,7 @@ mode's additional modules and held-renderer development notes, see
 
 ```powershell
 # From the PowerShell Gallery
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 
 # Or import directly from a local clone
 Import-Module ./AzureScout.psd1

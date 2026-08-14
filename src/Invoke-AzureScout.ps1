@@ -380,7 +380,7 @@ Function Invoke-AzureScout {
         [Alias('NonInteractive')]
         [switch]$NoWizard,
         # Suppress all interactive progress rendering. CI/unattended hosts also suppress the
-        # Spectre TUI automatically and retain log-friendly phase records.
+        # native live display automatically and retain log-friendly phase records.
         [switch]$NoProgress,
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
@@ -686,7 +686,17 @@ Function Invoke-AzureScout {
         # as well as the wizard, without collecting from Azure twice to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
         else {
-            $standaloneRunPath = Invoke-ScoutAssessmentCore @assessArgs
+            $standaloneAssessmentOperation = {
+                Invoke-ScoutAssessmentCore @assessArgs
+            }
+            if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+                $standaloneRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
+                    -Status 'Collecting, scoring, and rendering' -PercentComplete 1 -Id 1 `
+                    -Operation $standaloneAssessmentOperation
+            }
+            else {
+                $standaloneRunPath = & $standaloneAssessmentOperation
+            }
             # AB#7224 -- same discoverability pointer as the combined path below.
             if ($standaloneRunPath) {
                 $reactFile = Join-Path ([string]$standaloneRunPath) 'report-react.html'
@@ -960,7 +970,17 @@ Function Invoke-AzureScout {
     # the underlying audit quietly; this loop is the sole pre-flight renderer.
     if (-not $SkipPermissionCheck.IsPresent) {
         Write-Host 'Running pre-flight permission checks...' -ForegroundColor Cyan
-        $permResult = Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
+        $permissionOperation = {
+            Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
+        }
+        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+            $permResult = Invoke-ScoutProgressOperation -Activity 'Azure Scout' `
+                -Status 'Validating tenant permissions' -PercentComplete 0 -Id 1 `
+                -Operation $permissionOperation
+        }
+        else {
+            $permResult = & $permissionOperation
+        }
         foreach ($detail in $permResult.Details) {
             switch ($detail.Status) {
                 'Pass' { Write-Host "  [PASS] $($detail.Check): $($detail.Message)" -ForegroundColor Green }
@@ -1117,7 +1137,23 @@ Function Invoke-AzureScout {
         # Start-AZSCReporOrchestration below. (AB#5649)
         $ExtraProcessingTimer = [System.Diagnostics.Stopwatch]::StartNew()
         Write-AZSCLog -Level 'DEBUG' -Message 'Processing subphase for diagram and supplemental datasets started.'
-        $ExtraData = Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Security $Security -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
+        $extraProcessingOperation = {
+            Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory `
+                -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions `
+                -Resources $Resources -Advisories $Advisories -DDFile $DDFile `
+                -DiagramCache $DiagramCache -FullEnv $FullEnv `
+                -ResourceContainers $ResourceContainers -Security $Security `
+                -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef `
+                -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
+        }
+        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+            $ExtraData = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
+                -Status 'Building diagrams and supplemental datasets' -PercentComplete 55 -Id 1 `
+                -Operation $extraProcessingOperation
+        }
+        else {
+            $ExtraData = & $extraProcessingOperation
+        }
         $ExtraProcessingTimer.Stop()
         Write-AZSCLog -Level 'VERBOSE' -Message (
             'Processing subphase for diagram and supplemental datasets finished: elapsed={0}' -f
@@ -1144,7 +1180,17 @@ Function Invoke-AzureScout {
             try {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Deferred assessment started from the in-memory inventory.'
-                $deferredRunPath = Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
+                $deferredAssessmentOperation = {
+                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
+                }
+                if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+                    $deferredRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
+                        -Status 'Scoring and rendering selected assessments' -PercentComplete 70 -Id 1 `
+                        -Operation $deferredAssessmentOperation
+                }
+                else {
+                    $deferredRunPath = & $deferredAssessmentOperation
+                }
                 Write-Output $deferredRunPath
                 # AB#7224 -- the React report is the assessment's deliverable, and on a combined
                 # run it lands in a dated subfolder the operator has no reason to know about
@@ -1182,7 +1228,17 @@ Function Invoke-AzureScout {
             try {
                 $InventoryOutputRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Inventory React/evidence rendering started from the in-memory inventory; assessment rules are disabled.'
-                $inventoryOutputRunPath = Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData
+                $inventoryOutputOperation = {
+                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData
+                }
+                if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+                    $inventoryOutputRunPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
+                        -Status 'Rendering React and evidence outputs' -PercentComplete 70 -Id 1 `
+                        -Operation $inventoryOutputOperation
+                }
+                else {
+                    $inventoryOutputRunPath = & $inventoryOutputOperation
+                }
                 Write-Output $inventoryOutputRunPath
                 if ($inventoryOutputRunPath -and $deferredInventoryOutputArgs.OutputFormat -contains 'React') {
                     $reactFile = Join-Path ([string]$inventoryOutputRunPath) 'report-react.html'
@@ -1209,7 +1265,20 @@ Function Invoke-AzureScout {
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
-        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category -CollectionHealth $CollectionHealth
+        $collectorProcessingOperation = {
+            Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources `
+                -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath `
+                -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation `
+                -Category $Category -CollectionHealth $CollectionHealth
+        }
+        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+            $null = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
+                -Status 'Running collectors' -PercentComplete 75 -Id 1 `
+                -Operation $collectorProcessingOperation
+        }
+        else {
+            $null = & $collectorProcessingOperation
+        }
 
     $ProcessingRunTime.Stop()
 

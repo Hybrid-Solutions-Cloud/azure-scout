@@ -362,7 +362,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # Start-AZSCExtraJobs (which builds the diagram synchronously, AB#5649), before the
         # deferred-assessment call this Describe block is really testing.
         $ddFileIdx      = Get-ScoutSourceIndex '\$DDFile = Join-Path \$DefaultPath \$DDName'
-        $extraJobsIdx   = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $extraJobsIdx   = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
         $ddFileIdx | Should -BeLessThan $extraJobsIdx
     }
 
@@ -370,7 +370,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # AB#6737 -- this used to be reversed: the deferred assessment (and its PDF, AB#379)
         # rendered before $DDFile existed at all, so a combined run could never have a diagram
         # ready in time to embed it.
-        $extraJobsIdx    = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $extraJobsIdx    = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $extraJobsIdx | Should -BeLessThan $deferredCallIdx
     }
@@ -387,7 +387,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # reassigns those variables, the same values reach both the diagram build and the
         # (now-later) assessment call unchanged.
         $unpackIdx    = Get-ScoutSourceIndex '\$Resources = \$ExtractionData\.Resources'
-        $extraJobsIdx = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
+        $extraJobsIdx = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
         $unpackIdx | Should -BeLessThan $extraJobsIdx
     }
 

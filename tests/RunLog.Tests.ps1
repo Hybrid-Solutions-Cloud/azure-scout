@@ -388,7 +388,7 @@ Describe 'Invoke-AzureScout wiring' {
     It 'initializes durable logging and the failure trap before permission preflight' {
         $startIndex = $script:EntryPoint.IndexOf('Start-AZSCRunLog -DefaultPath $DefaultPath')
         $trapIndex = $script:EntryPoint.IndexOf('trap {', $startIndex)
-        $preflightIndex = $script:EntryPoint.IndexOf('$permResult = Test-AZSCPermissions')
+        $preflightIndex = $script:EntryPoint.IndexOf('Test-AZSCPermissions -TenantID $TenantID')
         $startIndex | Should -BeGreaterThan -1
         $trapIndex | Should -BeGreaterThan $startIndex
         $preflightIndex | Should -BeGreaterThan $trapIndex

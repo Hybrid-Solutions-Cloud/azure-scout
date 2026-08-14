@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.5 — the compass keeps moving
+## Current Release — v3.12.6 — the progress display ships with Scout
+
+Release candidate for 13 August 2026. AzureScout now ships a self-contained native live renderer
+with no third-party progress dependency. Its spinner, progress bar, phase text, and elapsed clock
+start during permission preflight and cover extraction, diagrams and supplemental processing,
+assessment and inventory rendering, and deterministic collector processing. CI, redirected, and
+`-NoProgress` runs keep their safe fallbacks. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.5 — the compass keeps moving
 
 Released 13 August 2026. Interactive inventory extraction now uses a real auto-refreshing optional
 Spectre progress host, keeping its spinner and elapsed clock moving during blocking Azure calls.
@@ -911,7 +919,7 @@ static/React reports) *and* the web portal. Same capability, per-surface deliver
 - **Collector / pipeline resilience** (shared engine): per-subscription try/catch/continue, MG
   role-requirement hint, false RP-registration-error swallow, per-group firewall-parse-error
   logging, empty-data guard, pipeline-`HadErrors` warning capture (AB#397–402).
-- **Live-progress UX** — same feature, per-surface delivery: Spectre.Console TUI in the CLI,
+- **Live-progress UX** — same feature, per-surface delivery: AzureScout's native TUI in the CLI,
   browser progress in the web portal (AB#405).
 
 ## Long-term Vision
