@@ -19,15 +19,10 @@ Invoke-AzureScout -NoWizard                    # inventory, default settings
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'      # CAF/WAF assessment
 ```
 
-For a live spinner, progress bar, and elapsed clock during long inventory calls, optionally install
-`PwshSpectreConsole` in a compatible PowerShell session:
-
-```powershell
-Install-Module -Name PwshSpectreConsole -Scope CurrentUser
-```
-
-Scout does not require it. If it is unavailable—or the run is in CI, redirected, or started with
-`-NoProgress`—Scout automatically uses its native, log-friendly fallback. The rich display uses
+AzureScout installs the PowerShell 7.0-compatible `PwshSpectreConsole` 2.1.2 dependency
+automatically. Interactive runs use it for a live spinner, progress bar, and elapsed clock during
+preflight and every long inventory or assessment phase. Runs in CI, redirected hosts, and runs
+started with `-NoProgress` use the native, log-friendly fallback. The rich display uses
 high-contrast foreground labels and no colored text backgrounds so phase names remain readable in
 light and dark terminal themes.
 

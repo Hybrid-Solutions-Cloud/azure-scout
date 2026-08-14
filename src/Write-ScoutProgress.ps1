@@ -12,10 +12,11 @@ $ErrorActionPreference = 'Stop'
     thread is blocked in an Azure SDK or REST call. Phase updates change the live task instead of
     printing static styled lines.
 
-    PwshSpectreConsole remains an optional dependency so AzureScout keeps its PowerShell 7.0
-    compatibility. When the module is absent, the host is redirected, CI is detected, or progress
-    is suppressed, the same calls fall back to native Write-Progress or log-friendly Information
-    records. Progress rendering can never cause Azure work to execute twice.
+    AzureScout requires PwshSpectreConsole 2.1.2, a release that declares PowerShell 7.0
+    compatibility. PowerShell Gallery therefore installs the
+    renderer with AzureScout instead of leaving the primary interactive experience to a manual
+    prerequisite. Redirected hosts, CI, and explicitly suppressed progress still use native or
+    log-friendly fallbacks. Progress rendering can never cause Azure work to execute twice.
 #>
 
 function Test-ScoutSpectreAvailable {

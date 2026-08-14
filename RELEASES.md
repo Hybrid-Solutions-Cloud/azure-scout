@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.12.6** | 2026-08-13 | 🟡 | **The progress display ships with Scout.** Installs the PowerShell 7.0-compatible Spectre renderer automatically and keeps preflight, extraction, diagrams, assessment/report rendering, and collector processing behind live execute-once progress hosts. | **AB#405** |
 | **3.12.5** | 2026-08-13 | ✅ | **The compass keeps moving.** Adds a real auto-refreshing optional Spectre terminal host, keeps spinner and elapsed time alive during blocking Azure calls, uses high-contrast phase text without dark backgrounds, preserves native/CI fallbacks, and adds `-NoProgress`. | **AB#405** |
 | **3.12.4** | 2026-08-13 | ✅ | **Close the reconciliation gaps.** Adds seven collectors for all 27 uncovered live resources, follows ARM continuation links, replaces incomplete Key Vault ARM-child results with paged metadata-only inventory and explicit permission health, and fixes Key Vault assessment shaping plus network-diagram job tracking. | **AB#7358** |
 | **3.12.3** | 2026-08-11 | ✅ | **Every collector tells the truth.** Restores all ARM-child requests on supported Az.Accounts; makes Risky Users, management-group, Defender, and Azure DevOps failures precise and visible; adds durable operational progress and terminal logging; and independently reconciles all 278 collectors against the HCS tenant while retaining every raw/cache artifact. | **AB#7279** |

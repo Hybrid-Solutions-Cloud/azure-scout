@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.6] - 2026-08-13 - the progress display ships with Scout
+
+### Fixed
+
+- **Installing AzureScout now installs its live terminal renderer (AB#405).**
+  `PwshSpectreConsole` 2.1.2 is a required dependency rather than informational
+  `ExternalModuleDependencies` metadata. Version 2.1.2 declares PowerShell 7.0 compatibility, so
+  the dependency no longer depends on a separate manual command and does not raise Scout's engine
+  floor.
+- **The rich display starts during permission preflight.** It no longer waits until extraction,
+  leaving a potentially long permission audit behind a static console line.
+- Long supplemental and diagram processing, standalone and deferred assessments, inventory report
+  rendering, and deterministic collector processing now run inside the same execute-once live-host
+  boundary used by extraction.
+- CI installs structured manifest dependencies with their declared required or minimum versions
+  instead of flattening them to names and silently discarding version constraints.
+
+### Safety
+
+- Redirected output, CI, `-NoProgress`, and non-interactive hosts retain native/log-friendly
+  behavior. A renderer startup failure can fall back before work starts, but no Azure operation is
+  replayed after it has begun.
+
 ## [3.12.5] - 2026-08-13 - the compass keeps moving
 
 ### Added

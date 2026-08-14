@@ -2,8 +2,8 @@
 #Requires -Modules Pester
 
 <#
-    Pester tests for src/Write-ScoutProgress.ps1 (AB#405) -- the optional,
-    soft-dependency live progress host shared by the collect/assess/report
+    Pester tests for src/Write-ScoutProgress.ps1 (AB#405) -- the required,
+    install-time live progress host shared by the collect/assess/report
     pipeline. No live Azure connection is needed.
 #>
 
@@ -167,9 +167,31 @@ Describe 'Write-ScoutProgress -- CI / headless (log-line) fallback' {
     }
 }
 
-Describe 'Write-ScoutProgress -- soft dependency' {
-    It 'never throws when PwshSpectreConsole is unavailable' {
+Describe 'Write-ScoutProgress -- isolated fallback' {
+    It 'never throws when the helper is tested without the manifest dependency loaded' {
         { Write-ScoutProgress -Activity 'Test' -Status 'step' -PercentComplete 5 } | Should -Not -Throw
+    }
+}
+
+Describe 'Invoke-AzureScout -- production live-host boundaries' {
+    BeforeAll {
+        $script:invokeSource = Get-Content "$root/src/Invoke-AzureScout.ps1" -Raw
+    }
+
+    It 'starts the live host for preflight instead of waiting until extraction' {
+        $script:invokeSource | Should -Match "Invoke-ScoutProgressOperation -Activity 'Azure Scout'"
+        $script:invokeSource | Should -Match "-Status 'Validating tenant permissions'"
+    }
+
+    It 'keeps every long top-level phase behind a live host' {
+        foreach ($status in @(
+            'Starting extraction',
+            'Building diagrams and supplemental datasets',
+            'Running collectors',
+            'Scoring and rendering selected assessments'
+        )) {
+            $script:invokeSource | Should -Match ([regex]::Escape("-Status '$status'"))
+        }
     }
 }
 

@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.5'
+ModuleVersion = '3.12.6'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -59,6 +59,7 @@ PowerShellVersion = '7.0'
 # Declaring the core dependencies here lets Install-Module resolve them and makes a
 # source-tree Import-Module fail cleanly instead of installing software as a side effect.
 RequiredModules = @(
+    @{ ModuleName = 'PwshSpectreConsole'; RequiredVersion = '2.1.2' }
     'ImportExcel'
     'Az.Accounts'
     'Az.ResourceGraph'
@@ -164,18 +165,13 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.5 - The compass keeps moving. Interactive inventory extraction now uses a real auto-refreshing PwshSpectreConsole progress host when the optional module is available, so the spinner and elapsed timer keep advancing during long blocking Azure calls. Phase labels use high-contrast foreground text with no colored background, native and CI-safe fallbacks remain intact, and -NoProgress suppresses interactive rendering explicitly. Progress failures cannot execute a collector twice. AB#405.'
+        ReleaseNotes = 'v3.12.6 - The progress display ships with Scout. PwshSpectreConsole 2.1.2 is now a required PowerShell 7.0-compatible dependency installed automatically by PowerShell Gallery. Live rendering begins during permission preflight and covers extraction, supplemental and diagram processing, assessment rendering, inventory output rendering, and collector processing. CI, redirected, and -NoProgress runs retain safe fallbacks, and progress failures still cannot execute an operation twice. AB#405.'
 
         # Prerelease string of this module
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
-
-        # Optional rich terminal progress. AzureScout remains fully functional on PowerShell 7.0
-        # without it; current PwshSpectreConsole releases require newer PowerShell versions, so it
-        # cannot be a hard RequiredModules dependency without breaking the supported engine floor.
-        ExternalModuleDependencies = @('PwshSpectreConsole')
 
     } # End of PSData hashtable
 

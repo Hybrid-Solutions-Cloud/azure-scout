@@ -52,11 +52,30 @@ jobs:
           # required Az module; reading the manifest prevents CI from drifting when that contract
           # changes later.
           $manifest = Import-PowerShellDataFile ./AzureScout.psd1
-          $requiredModules = @($manifest.RequiredModules | ForEach-Object {
-              if ($_ -is [string]) { $_ } else { $_.ModuleName }
-          })
-          Write-Host "Installing AzureScout dependencies: $($requiredModules -join ', ')"
-          Install-Module -Name $requiredModules -Force -Scope CurrentUser -SkipPublisherCheck
+          foreach ($requiredModule in @($manifest.RequiredModules)) {
+              $install = @{
+                  Force              = $true
+                  Scope              = 'CurrentUser'
+                  SkipPublisherCheck = $true
+              }
+              if ($requiredModule -is [string]) {
+                  $install.Name = $requiredModule
+              }
+              else {
+                  $install.Name = $requiredModule.ModuleName
+                  if ($requiredModule.RequiredVersion) {
+                      $install.RequiredVersion = $requiredModule.RequiredVersion
+                  }
+                  elseif ($requiredModule.ModuleVersion) {
+                      $install.MinimumVersion = $requiredModule.ModuleVersion
+                  }
+                  if ($requiredModule.MaximumVersion) {
+                      $install.MaximumVersion = $requiredModule.MaximumVersion
+                  }
+              }
+              Write-Host "Installing AzureScout dependency: $($install.Name)"
+              Install-Module @install
+          }
 
       - name: Validate declarative collector definitions
         shell: pwsh

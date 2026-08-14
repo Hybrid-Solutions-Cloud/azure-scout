@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.12.5 — the compass keeps moving
+## Current Release — v3.12.6 — the progress display ships with Scout
+
+Release candidate for 13 August 2026. AzureScout now declares the PowerShell 7.0-compatible
+`PwshSpectreConsole` 2.1.2 renderer as an install-time dependency instead of optional metadata.
+Live progress starts during permission preflight and covers extraction, diagrams and supplemental
+processing, assessment and inventory rendering, and deterministic collector processing. CI,
+redirected, and `-NoProgress` runs keep their safe fallbacks. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.5 — the compass keeps moving
 
 Released 13 August 2026. Interactive inventory extraction now uses a real auto-refreshing optional
 Spectre progress host, keeping its spinner and elapsed clock moving during blocking Azure calls.

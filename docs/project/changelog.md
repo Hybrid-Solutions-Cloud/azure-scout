@@ -14,6 +14,7 @@ AzureScout follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form
 
 | Version | Highlights |
 |---------|------------|
+| **v3.12.6** (2026-08-13) | **The progress display ships with Scout.** Installs the PowerShell 7.0-compatible Spectre renderer automatically and starts live progress during permission preflight, extraction, diagrams/supplemental processing, assessments, report rendering, and collector processing. See CHANGELOG.md and AB#405. |
 | **v3.12.5** (2026-08-13) | **The compass keeps moving.** Adds a true auto-refreshing optional Spectre progress host whose spinner and elapsed timer stay live during blocking Azure calls, high-contrast phase labels without colored backgrounds, safe native/CI fallback, and `-NoProgress`. See CHANGELOG.md and AB#405. |
 | **v3.12.4** (2026-08-13) | **Close the reconciliation gaps.** Adds seven dedicated collectors for all 27 formerly uncovered live resources, follows ARM continuation links, inventories Key Vault objects through paged metadata-only operations with explicit permission health, and fixes Key Vault assessment shaping plus network-diagram job tracking. See CHANGELOG.md and AB#7358. |
 | **v3.12.3** (2026-08-11) | **Every collector tells the truth.** Restores ARM-child discovery on supported Az.Accounts, gives precise Entra/MG/Defender/DevOps availability, adds operational progress and terminal run logging, and independently reconciles every collector in a live HCS acceptance run. Raw and cache evidence remains retained. See CHANGELOG.md and AB#7279. |

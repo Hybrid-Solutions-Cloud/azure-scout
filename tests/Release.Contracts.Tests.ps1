@@ -77,10 +77,17 @@ Describe 'release automation executes the code and contracts it advertises' {
         $manifestPath = Join-Path $script:Root 'AzureScout.psd1'
         $manifest = Import-PowerShellDataFile -Path $manifestPath
         $module = Get-Content -Raw (Join-Path $script:Root 'AzureScout.psm1')
+        $ci = Get-Content -Raw (Join-Path $script:Root '.github/workflows/ci.yml')
 
         @($manifest.RequiredModules).Count | Should -BeGreaterThan 0
         @($manifest.RequiredModules) | Should -Contain 'Az.Accounts'
         @($manifest.RequiredModules) | Should -Contain 'powershell-yaml'
+        $spectreDependency = @($manifest.RequiredModules | Where-Object {
+            $_ -is [System.Collections.IDictionary] -and $_.ModuleName -eq 'PwshSpectreConsole'
+        })
+        $spectreDependency.Count | Should -Be 1
+        [version]$spectreDependency[0].RequiredVersion | Should -Be ([version]'2.1.2')
+        $ci | Should -Match '\$install\.RequiredVersion = \$requiredModule\.RequiredVersion'
         $module | Should -Not -Match '(?m)^\s*Install-Module\b'
     }
 }
