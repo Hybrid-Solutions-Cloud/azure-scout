@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.14.0] - 2026-08-15 - large tenants finish cleanly
+
+### Fixed
+
+- Raw-inventory and discovery JSON exports now stream top-level collections to an adjacent temporary
+  file and atomically replace the destination. A 50,081-row inventory no longer requires one giant
+  in-memory JSON string or leaves a partial file when serialization fails.
+- Sparse private-endpoint connection arrays no longer throw an index-out-of-range exception during
+  assessment shaping. Resource-type indexes replace repeated full-estate scans while retaining the
+  original interleaved collector order.
+- Six invalid Resource Graph queries now use valid escaped identifiers, and deterministic query
+  syntax/BadRequest failures stop after the first response instead of repeating once per subscription.
+- Cost Management requests are grouped by subscription in batches of up to 100 resource IDs and
+  split back into the existing per-parent evidence contract. Throttled requests honor `Retry-After`.
+
+### Changed
+
+- Expected Azure capability boundaries are reported precisely: missing metrics become
+  `NotConfigured`; unsupported storage child services become `NotSupported`; Search indexes are
+  `NotAssessed` because they require data-plane access; and Key Vault metadata denials are aggregated
+  by dataset without dropping or flooding warnings for the parent vaults.
+- Management-group hierarchy and custom-role gaps are carried into collection health and completion
+  summaries. The least-privilege guidance now states that Management Group Reader must be assigned at
+  the tenant root when hierarchy evidence is required.
+
+### Validation
+
+- Passed all 3,690 repository tests with zero failures or skips. A 50,081-row nested streaming stress
+  run wrote and parsed 15,380,619 bytes in 16.91 seconds without an orphan temporary file.
+- Executed all six corrected Resource Graph queries successfully against Azure and received HTTP 200
+  from a live grouped Cost Management request.
+
 ## [3.13.0] - 2026-08-14 - every resource accounted for
 
 ### Added
