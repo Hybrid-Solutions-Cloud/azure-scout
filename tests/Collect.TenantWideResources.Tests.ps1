@@ -231,4 +231,17 @@ Describe 'Get-ScoutTenantWideResource - permission degradation' {
         ($Warnings -join ' ') | Should -Match 'custom role definitions could not be read'
         ($Warnings -join ' ') | Should -Match 'management groups could not be read'
     }
+
+    It 'records exact tenant-wide coverage gaps without changing the four-envelope contract' {
+        $health = [System.Collections.Generic.List[object]]::new()
+
+        $resources = @(Get-ScoutTenantWideResource -ApiResources @() -CollectionHealth $health `
+                -WarningAction SilentlyContinue)
+
+        $resources.Count | Should -Be 4
+        @($health).Count | Should -Be 2
+        @($health.SourceDataset) | Should -Contain 'CustomRoleDefinitions'
+        @($health.SourceDataset) | Should -Contain 'ManagementGroups'
+        ($health | Where-Object SourceDataset -eq 'ManagementGroups').Reason | Should -Match 'Management Group Reader'
+    }
 }

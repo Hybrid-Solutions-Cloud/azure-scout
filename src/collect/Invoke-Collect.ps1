@@ -1044,7 +1044,7 @@ resources | where type =~ "microsoft.documentdb/databaseaccounts"
 | extend accountKind = tostring(['kind'])
 | extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
-| project id, name, resourceGroup, subscriptionId, location, kind = accountKind,
+| project id, name, resourceGroup, subscriptionId, location, ['kind'] = accountKind,
           publicNetworkAccess, disableLocalAuth
 '@
         mariaDbServers = @'
@@ -1160,7 +1160,7 @@ resources | where type =~ "microsoft.domainregistration/domains"
 resources | where type =~ "microsoft.web/hostingenvironments"
 | extend status = tostring(properties.status)
 | extend aseKind = tostring(['kind'])
-| project id, name, resourceGroup, subscriptionId, location, status, kind = aseKind
+| project id, name, resourceGroup, subscriptionId, location, status, ['kind'] = aseKind
 '@
         appServicePlans = @'
 resources | where type =~ "microsoft.web/serverfarms"
@@ -1819,8 +1819,8 @@ resources
           provisioningState = tostring(properties.provisioningState),
           dataControllerId = tostring(properties.dataControllerId),
           tier = tostring(properties.tier),
-          vCoresRequest = toint(properties.vCores.request),
-          vCoresLimit = toint(properties.vCores.limit)
+          vCoresRequest = toint(properties.vCores['request']),
+          vCoresLimit = toint(properties.vCores['limit'])
 '@
         arcSqlServers = @'
 resources
@@ -2146,7 +2146,7 @@ resources
 resources
 | where type =~ "microsoft.insights/workbooks"
 | project id, name, resourceGroup, subscriptionId, location,
-          kind = tostring(kind),
+          ['kind'] = tostring(['kind']),
           category = tostring(properties.category),
           sourceId = tostring(properties.sourceId),
           version = tostring(properties.version)
@@ -2179,7 +2179,7 @@ resources
 resources
 | where type =~ "microsoft.insights/webtests"
 | project id, name, resourceGroup, subscriptionId, location,
-          kind = tostring(kind),
+          ['kind'] = tostring(['kind']),
           enabled = tobool(properties.Enabled),
           frequency = toint(properties.Frequency),
           timeoutSeconds = toint(properties.Timeout),
@@ -2244,7 +2244,7 @@ resources
           enabled = tobool(properties.enabled),
           severity = toint(properties.severity),
           autoMitigate = tobool(properties.autoMitigate),
-          kind = tostring(properties.kind),
+          ['kind'] = tostring(properties.kind),
           scopeCount = array_length(properties.scopes)
 '@
         activityLogAlertRules = @'
@@ -2568,6 +2568,16 @@ resources
                        $Message -match '(?i)SubscriptionNotRegistered')
     }
 
+    # Invalid KQL is deterministic. Repeating the same parser-rejected text once per
+    # subscription cannot recover data and turned six bad projections into 96 warnings and
+    # roughly two minutes of wasted calls in the audited run.
+    function Test-ScoutDeterministicQueryError([string] $Message) {
+        return [bool]($Message -match '(?i)\bBadRequest\b' -or
+                       $Message -match '(?i)\bInvalidQuery\b' -or
+                       $Message -match '(?i)\bParserFailure\b' -or
+                       $Message -match '(?i)query\s+is\s+invalid')
+    }
+
     function Invoke-CollectQuery {
         param([string] $Key, [string] $Query, [string[]] $SubscriptionIds)
         try {
@@ -2583,6 +2593,11 @@ resources
                 # zero output objects -- the caller's `$r[$k] = Invoke-CollectQuery ...`
                 # would capture $null instead of an empty array. The unary comma
                 # prevents that (same idiom Invoke-Arg already uses for `$rows`).
+                return , @()
+            }
+
+            if (Test-ScoutDeterministicQueryError $errText) {
+                Write-Warning "Invoke-Collect: query '$Key' was rejected as invalid and will not be retried per subscription: $errText"
                 return , @()
             }
 

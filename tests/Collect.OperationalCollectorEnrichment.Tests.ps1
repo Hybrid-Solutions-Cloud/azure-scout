@@ -30,7 +30,7 @@ BeforeAll {
     function Clear-OperationalStubs {
         [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
         param()
- foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
+ foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph','Start-Sleep'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
 }
 Describe 'Get-ScoutOperationalCollectorEnrichment' {
     BeforeEach { Initialize-OperationalStubs }
@@ -269,6 +269,58 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $script:AttemptCount | Should -BeGreaterOrEqual 2
         $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
         $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+    }
+    It 'honors Retry-After when Azure throttles a request' {
+        $script:AttemptCount = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -eq 1) {
+                    return [pscustomobject]@{ StatusCode=429; Content='{}'; Headers=@{ 'Retry-After' = '2' } }
+                }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+
+        $null = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @())
+
+        $script:SleepMilliseconds | Should -Contain 2000
+    }
+    It 'treats missing VM metrics as not configured without warnings or failed health' {
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'providers/microsoft.insights/metrics') {
+                return [pscustomobject]@{StatusCode=404;Content='{}'}
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $vm = $rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine'
+
+        $vm.properties.CpuMetrics.__AZSCStatus | Should -Be 'NotConfigured'
+        $vm.properties.MemoryMetrics.__AZSCStatus | Should -Be 'NotConfigured'
+        ($warnings -join "`n") | Should -Not -Match 'Metrics'
+        @($health | Where-Object SourceDataset -match 'Metrics').Count | Should -Be 0
+    }
+    It 'normalizes an unsupported storage file service without a warning or health failure' {
+        function global:Get-AzStorageFileServiceProperty { throw 'File is not supported for the account.' }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $storage = $rows | Where-Object type -eq 'AZSC/Operational/StorageAccount'
+
+        $storage.properties.FileService.__AZSCStatus | Should -Be 'NotSupported'
+        ($warnings -join "`n") | Should -Not -Match 'FileService'
+        @($health | Where-Object SourceDataset -eq 'StorageAccounts.FileService').Count | Should -Be 0
     }
     It 'treats a persistent 409 as a distinct in-progress status, not a generic error' {
         # The 409 branch of Invoke-ScoutOperationalArm still matters for the remaining query-style

@@ -112,6 +112,28 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
         Export-ScoutRawInventoryDump -ExtractionData $null -DefaultPath $script:Work | Should -BeNullOrEmpty
     }
 
+    It 'streams a large resource set into valid JSON without a whole-document serializer call' {
+        $large = [pscustomobject]@{
+            Resources = @(1..10000 | ForEach-Object {
+                [pscustomobject]@{
+                    id = "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Example/widgets/$_"
+                    type = 'Microsoft.Example/widgets'
+                    properties = [pscustomobject]@{ ordinal = $_; nested = [pscustomobject]@{ retained = $true } }
+                }
+            })
+        }
+
+        $largePath = Export-ScoutRawInventoryDump -ExtractionData $large -DefaultPath $script:Work -FileName 'large.json'
+        $largeDump = Get-Content -Raw -LiteralPath $largePath | ConvertFrom-Json -Depth 100
+
+        @($largeDump.Resources).Count | Should -Be 10000
+        $largeDump.Resources[9999].properties.nested.retained | Should -BeTrue
+        @(Get-ChildItem -LiteralPath $script:Work -Filter 'large.json.*.tmp').Count | Should -Be 0
+
+        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Export-ScoutRawInventoryDump.ps1')
+        $source | Should -Not -Match '\$payload\s*\|\s*ConvertTo-Json'
+    }
+
     It 'is called before the processing phase filters anything' {
         # "Before any manifest filtering" has to be a property of the call site, not a claim.
         $source   = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')

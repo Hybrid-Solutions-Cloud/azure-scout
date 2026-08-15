@@ -1136,7 +1136,12 @@ function Get-ScoutRawInventory {
         $tenantWideStartCount = $resources.Count
         $tenantWideStatus = 'Completed'
         try {
-            foreach ($row in @(Get-ScoutTenantWideResource -ApiResources $collectedApiResources)) {
+            $tenantWideArgs = @{ ApiResources = $collectedApiResources }
+            $tenantWideCommand = Get-Command Get-ScoutTenantWideResource -ErrorAction Stop
+            if ($tenantWideCommand.Parameters.ContainsKey('CollectionHealth')) {
+                $tenantWideArgs['CollectionHealth'] = $collectionHealth
+            }
+            foreach ($row in @(Get-ScoutTenantWideResource @tenantWideArgs)) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }

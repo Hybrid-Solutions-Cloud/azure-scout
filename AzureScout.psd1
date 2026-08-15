@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.13.0'
+ModuleVersion = '3.14.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -165,7 +165,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.13.0 - Every discovered resource now has a completeness record with retained control-plane configuration, normalized exposure evidence, collection-health gaps, and generic ARM relationships. Full scans add provider GET detail plus effective routes and NSGs per NIC; failures remain scoped without dropping the parent. React/JSON and Draw.io include the universal discovery graph. Tags are always retained, prior dashboard/template-spec exclusions are removed, NSG default rules are reported, and credential values are recursively redacted from discovery/report payloads. Reconciled 1,101/1,101 real-run resource IDs with zero missing or extra and exercised all 3,680 repository tests. AB#7366 AB#7367.'
+        ReleaseNotes = 'v3.14.0 - Large-tenant collection is bounded, faster, and more honest. Raw inventory and discovery JSON stream atomically instead of building multi-gigabyte strings in memory; collector shaping uses indexed resource types and tolerates sparse private-endpoint payloads. Cost queries are batched by subscription, Retry-After is honored, deterministic Resource Graph query failures stop retrying per subscription, and six invalid queries are corrected. Expected metric, storage-child, Search-index, and Key Vault metadata gaps are classified or aggregated without dropping parent resources. Management-group and custom-role permission gaps are explicit. Validated with all 3,690 repository tests, a 50,081-row streaming stress run, six live Resource Graph queries, and a live grouped Cost Management request. AB#7366.'
 
         # Prerelease string of this module
         # Prerelease = ''

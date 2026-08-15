@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.13.0 — every resource accounted for
+## Current Release — v3.14.0 — large tenants finish cleanly
+
+Released 15 August 2026. Raw inventory and discovery evidence now stream atomically instead of
+building whole JSON documents in memory, and indexed collector shaping avoids repeated scans of a
+large estate. Cost Management calls are subscription-batched, throttling guidance is honored, six
+invalid Resource Graph queries are corrected, and expected metric, storage, Search, Key Vault,
+management-group, and custom-role boundaries are reported precisely without dropping their parent
+resources. See CHANGELOG.md and AB#7366.
+
+## Previous Release — v3.13.0 — every resource accounted for
 
 Released 14 August 2026. Every unique resource discovered by Resource Graph now receives a
 report-visible completeness record. Full scans retain provider-level configuration and collect

@@ -161,6 +161,30 @@ function Invoke-ScoutProcessing {
         Unsupported   = $Unsupported
     }
 
+    # A 50k-row estate used to be scanned once for every one of the 285 collectors before a
+    # collector processed even one matching row. Build a stable, case-insensitive type index once.
+    # Lists preserve original order within a type; an ordinal map lets multi-type SinglePass
+    # collectors restore the original interleaved order without another full-estate scan.
+    $resourceTypeIndex = @{}
+    $resourceOrdinals = [System.Collections.Generic.Dictionary[object, int]]::new(
+        [System.Collections.Generic.ReferenceEqualityComparer]::Instance
+    )
+    $resourceOrdinal = 0
+    foreach ($resource in @($Resources)) {
+        if ($null -eq $resource) { continue }
+        $resourceOrdinals[$resource] = $resourceOrdinal
+        $resourceOrdinal++
+        $typeProperty = [System.Management.Automation.PSObject]::AsPSObject($resource).PSObject.Properties['TYPE']
+        if ($null -eq $typeProperty -or [string]::IsNullOrWhiteSpace([string]$typeProperty.Value)) { continue }
+        $typeKey = ([string]$typeProperty.Value).ToLowerInvariant()
+        if (-not $resourceTypeIndex.ContainsKey($typeKey)) {
+            $resourceTypeIndex[$typeKey] = [System.Collections.Generic.List[object]]::new()
+        }
+        $resourceTypeIndex[$typeKey].Add($resource)
+    }
+    $Context['ResourceTypeIndex'] = $resourceTypeIndex
+    $Context['ResourceOrdinals'] = $resourceOrdinals
+
     $CachePath  = Join-Path $DefaultPath 'ReportCache'
     # AB#6766 -- the per-collector row counts, retained. Before this, the only evidence of what
     # each collector produced was the ReportCache, and Invoke-AzureScout runs
@@ -332,7 +356,10 @@ function Invoke-ScoutProcessing {
             if (-not (Test-Path -LiteralPath $CachePath)) {
                 $null = New-Item -Path $CachePath -ItemType Directory -Force
             }
-            $Discovery | ConvertTo-Json -Depth 100 | Out-File -LiteralPath $DiscoveryPath -Encoding utf8
+            if (-not (Get-Command Write-ScoutJsonStream -ErrorAction SilentlyContinue)) {
+                . (Join-Path (Split-Path -Parent $PSScriptRoot) 'Write-ScoutJsonStream.ps1')
+            }
+            Write-ScoutJsonStream -InputObject $Discovery -Path $DiscoveryPath -Depth 100 | Out-Null
             $DiscoveryStatus = if (($Discovery.Summary.Partial + $Discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
             $DiscoverySummary = $Discovery.Summary
             $CacheFiles.Add([pscustomobject]@{
