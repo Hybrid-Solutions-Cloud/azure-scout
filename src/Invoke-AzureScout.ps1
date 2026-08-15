@@ -996,6 +996,12 @@ Function Invoke-AzureScout {
                 'Info' { Write-Host "  [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
             }
         }
+        if ($Scope -ne 'EntraOnly') {
+            Write-Host '  Coverage contract:' -ForegroundColor Cyan
+            Write-Host '    ARM Reader inventories resource parents and control-plane configuration.' -ForegroundColor DarkGray
+            Write-Host '    Key Vault Reader adds key/secret metadata; Management Group Reader at tenant root adds the full hierarchy.' -ForegroundColor DarkGray
+            Write-Host '    Missing optional detail is recorded as a coverage gap; discovered parent resources are retained.' -ForegroundColor DarkGray
+        }
         Write-Host ''
     }
 
@@ -1095,6 +1101,21 @@ Function Invoke-AzureScout {
     $PolicyDef = $ExtractionData.PolicyDef
     $PolicySetDef = $ExtractionData.PolicySetDef
     $CollectionHealth = if ($ExtractionData.PSObject.Properties['CollectionHealth']) { @($ExtractionData.CollectionHealth) } else { @() }
+
+    $KeyVaultCoverageGaps = @($CollectionHealth | Where-Object {
+            $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -in @('KeyVaultSecrets', 'KeyVaultKeys') -or
+            $_.PSObject.Properties['Dataset'] -and $_.Dataset -in @('KeyVaultSecrets', 'KeyVaultKeys')
+        })
+    if ($KeyVaultCoverageGaps.Count -gt 0) {
+        Write-Warning "Azure Scout coverage: Key Vault key/secret metadata is incomplete. Parent vaults remain inventoried; assign Key Vault Reader for metadata-only access. See collection-health.json for details."
+    }
+    $ManagementGroupCoverageGaps = @($CollectionHealth | Where-Object {
+            $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -eq 'ManagementGroups' -or
+            $_.PSObject.Properties['Dataset'] -and $_.Dataset -eq 'ManagementGroups'
+        })
+    if ($ManagementGroupCoverageGaps.Count -gt 0) {
+        Write-Warning 'Azure Scout coverage: the full management-group hierarchy is unavailable. Subscription resources remain inventoried; assign Management Group Reader at the tenant-root management group for hierarchy coverage.'
+    }
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 

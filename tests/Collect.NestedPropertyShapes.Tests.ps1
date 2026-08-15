@@ -182,3 +182,20 @@ Describe 'ConvertFrom-ScoutInventory shapes real values from the row shapes it c
         $app.used | Should -Be 2
     }
 }
+
+Describe 'ConvertFrom-ScoutInventory sparse relationship rows' {
+    It 'retains a private endpoint whose connection arrays are both absent' {
+        $row = [pscustomobject]@{
+            id = '/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Network/privateEndpoints/pe-empty'
+            type = 'microsoft.network/privateendpoints'
+            name = 'pe-empty'
+            resourceGroup = 'rg'
+            subscriptionId = 'sub'
+            properties = [pscustomobject]@{}
+        }
+
+        { $script:sparseResult = ConvertFrom-ScoutInventory -Resources @($row) -ResourceContainers @() } | Should -Not -Throw
+        @($script:sparseResult.privateEndpoints).Count | Should -Be 1
+        $script:sparseResult.privateEndpoints[0].targetResourceId | Should -BeNullOrEmpty
+    }
+}

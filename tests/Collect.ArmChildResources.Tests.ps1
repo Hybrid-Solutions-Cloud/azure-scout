@@ -172,7 +172,6 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/MLModels'
             'AZSC/ARMChild/MLPipelines'
             'AZSC/ARMChild/OpenAIDeployments'
-            'AZSC/ARMChild/SearchIndexes'
             'AZSC/ARMChild/AVDApplications'
             'AZSC/ARMChild/AppInsightsProactiveDetection'
             'AZSC/ARMChild/LAWorkspaceLinkedServices'
@@ -185,7 +184,7 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/ResourceDiagnosticSettings'
             'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
         )
-        $Rows.Count | Should -Be 15 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace also yields a diagnostic setting, and the Arc machine yields one Azure Local VM instance'
+        $Rows.Count | Should -Be 14 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace also yields a diagnostic setting, the Arc machine yields one Azure Local VM instance, and Search indexes are data-plane-only'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {
@@ -237,7 +236,7 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
         $Calls | Should -Match '/versions\?api-version=2023-04-01&\$orderby=createdTime desc&\$top=1'
         $Calls | Should -Match '/jobs\?api-version=2023-04-01&\$filter=jobType eq ''Pipeline'''
         $Calls | Should -Match '/deployments\?api-version=2023-05-01'
-        $Calls | Should -Match '/indexes\?api-version=2023-11-01'
+        $Calls | Should -Not -Match '/indexes\?api-version=2023-11-01' -Because 'Search indexes are data-plane objects and ARM Reader cannot list them'
         $Calls | Should -Match '/applications\?api-version=2022-09-09'
         $Calls | Should -Match '/ProactiveDetectionConfigs\?api-version=2018-05-01-preview'
         $Calls | Should -Match '/linkedServices\?api-version=2020-08-01'
@@ -262,11 +261,21 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
     It 'calls only requested datasets and still uses canonical dataset order' {
         $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents -Dataset @('SearchIndexes', 'MLComputes'))
 
-        $Rows.TYPE | Should -Be @(
-            'AZSC/ARMChild/MLComputes'
-            'AZSC/ARMChild/SearchIndexes'
-        )
-        $script:ArmCalls.Count | Should -Be 2
+        $Rows.TYPE | Should -Be @('AZSC/ARMChild/MLComputes')
+        $script:ArmCalls.Count | Should -Be 1
+    }
+
+    It 'marks Search indexes not assessed without calling an invalid ARM endpoint' {
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Parents -Dataset SearchIndexes `
+                -CollectionHealth $health)
+
+        $rows | Should -BeNullOrEmpty
+        $script:ArmCalls.Count | Should -Be 0
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'SearchIndexes'
+        $health[0].Status | Should -Be 'NotAssessed'
+        $health[0].Reason | Should -Match 'data-plane'
     }
 
     It 'makes no ARM calls when no matching parents exist' {
@@ -604,7 +613,13 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
                         -CollectionHealth $health -WarningVariable warnings)
                 $label = "$($case.Dataset)/$outcome"
 
-                if ($outcome -eq 'Success200') {
+                if ($case.Dataset -eq 'SearchIndexes') {
+                    @($rows).Count | Should -Be 0 -Because "$label has no ARM endpoint"
+                    @($warnings).Count | Should -Be 0 -Because "$label is an explicit coverage boundary"
+                    @($health).Count | Should -Be 1 -Because "$label must stay visibly not assessed"
+                    $health[0].Status | Should -Be 'NotAssessed'
+                }
+                elseif ($outcome -eq 'Success200') {
                     @($rows).Count | Should -BeGreaterThan 0 -Because "$label must retain successful rows"
                     @($warnings).Count | Should -Be 0 -Because "$label is successful"
                     @($health).Count | Should -Be 0 -Because "$label is successful"
@@ -628,6 +643,46 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
                 }
             }
         }
+    }
+
+    It 'skips unsupported storage services without warning or failed health' {
+        $parents = @(
+            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'blob-only' -Kind 'BlobStorage'
+            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'file-only' -Kind 'FileStorage'
+        )
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $null = Get-ScoutArmChildResource -Resources $parents `
+            -Dataset @('StorageFileShares', 'StorageQueues', 'StorageTables') `
+            -CollectionHealth $health -WarningVariable warnings
+
+        $script:ArmCalls.Count | Should -Be 1 -Because 'only FileStorage supports the requested file service'
+        $script:ArmCalls[0] | Should -Match 'file-only/fileServices/default/shares'
+        @($warnings).Count | Should -Be 0
+        @($health).Count | Should -Be 0
+    }
+
+    It 'aggregates Key Vault metadata denials into one warning and one health record per dataset' {
+        $vaults = @(
+            Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-one' -Properties @{ vaultUri = 'https://kv-one.vault.azure.net/' }
+            Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-two' -Properties @{ vaultUri = 'https://kv-two.vault.azure.net/' }
+        )
+        function global:Invoke-WebRequest {
+            throw [System.InvalidOperationException]::new('HTTP status code 403 Forbidden')
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutArmChildResource -Resources $vaults -Dataset KeyVaultSecrets `
+                -CollectionHealth $health -WarningVariable warnings)
+
+        $rows | Should -BeNullOrEmpty
+        @($warnings).Count | Should -Be 1
+        $warnings[0].Message | Should -Match '2 vault\(s\) unavailable'
+        @($health).Count | Should -Be 1
+        $health[0].FailedParents | Should -Be @('kv-one', 'kv-two')
+        $health[0].Reason | Should -Match 'Key Vault Reader'
     }
 
     It 'attributes every nested remote-operation failure to its public owning dataset' {

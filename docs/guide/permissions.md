@@ -26,6 +26,7 @@ AzureScout requires three categories of permissions:
 | Permission | Scope | Purpose |
 |------------|-------|---------|
 | `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources and read ARM properties |
+| `Management Group Reader` | Tenant-root management group | Enumerate and expand the complete management-group hierarchy |
 | `Key Vault Reader` | Each Key Vault, or an inherited scope that contains it | List secret/key metadata (names, tags, lifecycle attributes); cannot read secret values |
 
 Azure's `Reader` role is the whole **ARM control-plane** ask. It is `Actions: */read` with an empty
@@ -41,10 +42,11 @@ no error, no warning. Assign it at the tenant-root management group if you want 
 if you're running any assessment (assessment mode requires MG-root scope unconditionally — see
 [Assessment Permissions](../assessment/assessment-permissions.md)).
 
-Whether Reader at root MG alone is sufficient for the `ManagementGroups` and
-`CustomRoleDefinitions` worksheets, or whether `Management Group Reader` is genuinely additional,
-is **unresolved** — do not grant `Management Group Reader` on the strength of this page alone.
-See [Troubleshooting](./troubleshooting.md) if those worksheets come back empty.
+The management-group hierarchy uses `Get-AzManagementGroup -Expand -Recurse`. A live
+minimum-permission run confirmed that subscription-scoped Reader does not authorize that tenant
+operation. Assign **Management Group Reader at the tenant-root management group** when the full
+hierarchy is required. Scout records the missing hierarchy as a coverage gap and continues; it
+does not treat zero visible management groups as proof that none exist.
 :::
 
 ::: danger Do not grant these three roles — they were removed from the ask

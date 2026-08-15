@@ -172,6 +172,10 @@ function Get-ScoutArmChildResource {
     $FailedHealthDatasets = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::OrdinalIgnoreCase
     )
+    $KeyVaultMetadataFailures = @{
+        KeyVaultSecrets = [System.Collections.Generic.List[object]]::new()
+        KeyVaultKeys    = [System.Collections.Generic.List[object]]::new()
+    }
 
     function Get-ArmParentValue {
         param(
@@ -393,18 +397,29 @@ function Get-ScoutArmChildResource {
         }
         catch {
             $StatusCode = Get-KeyVaultHttpStatusCode -ErrorRecord $_
-            if ($null -ne $CollectionHealth -and $FailedHealthDatasets.Add($DatasetName)) {
-                [void]$CollectionHealth.Add([pscustomobject]@{
-                        Dataset       = $DatasetName
-                        Operation     = "$DatasetName.MetadataList"
-                        Status        = 'Unavailable'
-                        Reason        = "Vault '$ParentName': $($_.Exception.Message)"
-                        ResourceTypes = @("AZSC/ARMChild/$DatasetName")
-                        HttpStatus    = $StatusCode
-                    })
-            }
-            Write-Warning "Get-ScoutArmChildResource: '$DatasetName' metadata list failed for vault '$ParentName' -- skipping this vault: $($_.Exception.Message)"
+            $KeyVaultMetadataFailures[$DatasetName].Add([pscustomobject]@{
+                    ParentName = $ParentName
+                    HttpStatus = $StatusCode
+                    Reason     = $_.Exception.Message
+                })
+            Write-Verbose "Get-ScoutArmChildResource: '$DatasetName' metadata list unavailable for vault '$ParentName': $($_.Exception.Message)"
             return $null
+        }
+    }
+
+    function Test-StorageServiceSupported {
+        param(
+            [Parameter(Mandatory)]$Parent,
+            [Parameter(Mandatory)][ValidateSet('Blob', 'File', 'Queue', 'Table')][string]$Service
+        )
+
+        $Kind = [string](Get-ArmParentValue -InputObject $Parent -Name @('kind', 'KIND'))
+        if ([string]::IsNullOrWhiteSpace($Kind)) { return $true }
+        switch ($Service) {
+            'Blob'  { return $Kind -in @('Storage', 'StorageV2', 'BlobStorage', 'BlockBlobStorage') }
+            'File'  { return $Kind -in @('Storage', 'StorageV2', 'FileStorage') }
+            'Queue' { return $Kind -in @('Storage', 'StorageV2') }
+            'Table' { return $Kind -in @('Storage', 'StorageV2') }
         }
     }
 
@@ -701,15 +716,21 @@ function Get-ScoutArmChildResource {
                 }
             }
             'SearchIndexes' {
-                foreach ($Parent in $SearchParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    $Content = Get-ArmChildContent -Path "$Base/indexes?api-version=2023-11-01" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
+                # Search indexes are data-plane objects. Microsoft.Search does not expose an ARM
+                # `/indexes` child collection, and subscription Reader cannot authenticate to the
+                # Search data plane. The old request therefore generated a 404 per Search service
+                # while never returning an index. Keep this gap explicit without making a request
+                # that cannot succeed under Scout's read-only ARM permission contract.
+                if ($SearchParents.Count -gt 0 -and $null -ne $CollectionHealth) {
+                    [void]$CollectionHealth.Add([pscustomobject]@{
+                            Dataset       = $DatasetName
+                            Operation     = "$DatasetName.DataPlaneList"
+                            Status        = 'NotAssessed'
+                            Reason        = 'Azure AI Search indexes are data-plane objects and are not available through ARM Reader. Parent Search services remain inventoried.'
+                            ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                        })
                 }
+                Write-Verbose 'Get-ScoutArmChildResource: SearchIndexes not assessed because Azure AI Search exposes indexes only through its data plane.'
             }
             'AVDApplications' {
                 foreach ($Parent in $AvdParents) {
@@ -817,6 +838,7 @@ function Get-ScoutArmChildResource {
             # Nothing here reads a blob, a file, or an account key.
             'StorageBlobContainers' {
                 foreach ($Parent in $StorageAccountParents) {
+                    if (-not (Test-StorageServiceSupported -Parent $Parent -Service Blob)) { continue }
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/blobServices/default/containers?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
@@ -828,6 +850,7 @@ function Get-ScoutArmChildResource {
             }
             'StorageFileShares' {
                 foreach ($Parent in $StorageAccountParents) {
+                    if (-not (Test-StorageServiceSupported -Parent $Parent -Service File)) { continue }
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/fileServices/default/shares?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
@@ -860,6 +883,7 @@ function Get-ScoutArmChildResource {
             # `metadata` key/value bag a caller attached); no queue message is ever read.
             'StorageQueues' {
                 foreach ($Parent in $StorageAccountParents) {
+                    if (-not (Test-StorageServiceSupported -Parent $Parent -Service Queue)) { continue }
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/queueServices/default/queues?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
@@ -878,6 +902,7 @@ function Get-ScoutArmChildResource {
             # by Reader. Returns table name and metadata only; no table entity/row is ever read.
             'StorageTables' {
                 foreach ($Parent in $StorageAccountParents) {
+                    if (-not (Test-StorageServiceSupported -Parent $Parent -Service Table)) { continue }
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/tableServices/default/tables?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
@@ -1018,5 +1043,29 @@ function Get-ScoutArmChildResource {
                 }
             }
         }
+    }
+
+    foreach ($DatasetName in @('KeyVaultSecrets', 'KeyVaultKeys')) {
+        $Failures = @($KeyVaultMetadataFailures[$DatasetName])
+        if ($Failures.Count -eq 0) { continue }
+
+        $StatusSummary = @(
+            $Failures | Group-Object HttpStatus | Sort-Object Name | ForEach-Object {
+                $Label = if ([string]::IsNullOrWhiteSpace([string]$_.Name)) { 'unknown status' } else { "HTTP $($_.Name)" }
+                "$Label`: $($_.Count)"
+            }
+        ) -join ', '
+        $Reason = "$($Failures.Count) vault(s) unavailable ($StatusSummary). Assign Key Vault Reader for metadata access; parent vault resources remain inventoried."
+        if ($null -ne $CollectionHealth) {
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset       = $DatasetName
+                    Operation     = "$DatasetName.MetadataList"
+                    Status        = 'Unavailable'
+                    Reason        = $Reason
+                    ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                    FailedParents = @($Failures.ParentName)
+                })
+        }
+        Write-Warning "Get-ScoutArmChildResource: '$DatasetName' metadata unavailable for $Reason"
     }
 }
