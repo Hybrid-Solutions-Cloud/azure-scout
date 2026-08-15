@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-08-14 - every resource accounted for
+
+### Added
+
+- A universal discovery ledger now retains every unique discovered resource, its control-plane
+  configuration, specialized-collector coverage, collection-health gaps, normalized exposure
+  evidence, and generic ARM-resource relationships in `ReportCache/Discovery.json` and React/JSON
+  outputs.
+- Full runs collect each NIC's effective route table and effective NSGs and perform a provider GET
+  for every concrete ARM resource using its advertised stable API version. Per-resource failures
+  are recorded as Partial/Unavailable without dropping the parent resource.
+- The Draw.io output includes a `Universal Resource Graph` page built from every ARM ID reference,
+  including relationships not known to the curated network-diagram type map.
+
+### Changed
+
+- Resource tags are always retained in discovery evidence; `-IncludeTags` controls their Excel
+  presentation only. Portal dashboards, template specs, and template-spec versions are no longer
+  excluded from Resource Graph inventory.
+- Network Security Group reporting now includes Azure default rules and labels rules as Custom or
+  Default.
+- Discovery/report payloads recursively redact secret-valued password, token, shared-key,
+  private-key, connection-string, access-key, and secure-parameter fields while preserving their
+  presence.
+
+### Validation
+
+- Reconciled the 2026-08-14 tenant run: all 1,101 unique non-enrichment resources were present in
+  the discovery ledger (zero missing, zero extra), with 1,085 purpose-built matches, 16 generic
+  records, and 403 extracted relationships.
+- The complete 3,680-test repository suite was executed in four non-overlapping batches plus the
+  newly added redaction regression. One
+  generated-document drift and one secret-redaction regression were found, fixed, and rerun; all
+  remaining tests passed, including 187 post-fix processing/report tests and the exact secret
+  regression.
+
 ## [3.12.8] - 2026-08-14 - partial evidence stays partial
 
 ### Fixed

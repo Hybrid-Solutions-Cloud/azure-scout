@@ -225,11 +225,11 @@ function Start-AZSCWizard {
         $answers.Category = if ($categories.Count -eq $inventoryCategories.Count) { @('All') } else { $categories }
 
         Write-Host ''
-        $extras = Read-AZSCWizardChecklist -Title 'Optional inventory data (slower, but richer)' -Items @(
-            'Resource tags', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
-        ) -DefaultSelected @('Resource tags')
+        $extras = Read-AZSCWizardChecklist -Title 'Optional report and enrichment features' -Items @(
+            'Show resource tags in Excel', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
+        ) -DefaultSelected @('Show resource tags in Excel')
         if ($null -eq $extras) { return $null }
-        if ($extras -contains 'Resource tags')             { $answers.IncludeTags = [switch]$true }
+        if ($extras -contains 'Show resource tags in Excel') { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
         if ($extras -contains 'Cost data') {
             # Cost data silently comes back empty later in the run if Az.CostManagement isn't

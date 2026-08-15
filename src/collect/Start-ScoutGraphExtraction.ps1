@@ -124,6 +124,15 @@ Function Start-AZSCGraphExtraction {
     if (![string]::IsNullOrEmpty($TagKey))        { $RawArgs.TagKey = $TagKey }
     if (![string]::IsNullOrEmpty($TagValue))      { $RawArgs.TagValue = $TagValue }
     if (![string]::IsNullOrEmpty($ManagementGroup)) { $RawArgs.ManagementGroupName = $ManagementGroup }
+    $rawInventoryCommand = Get-Command Get-ScoutRawInventory -ErrorAction Stop
+    if ($rawInventoryCommand.Parameters.ContainsKey('IncludeProviderResourceDetails')) {
+        $RawArgs.IncludeProviderResourceDetails = (
+            -not [bool]$SkipAPIs -and (
+            -not $isSelectivePlan -or
+            ($CategoryPlan.PSObject.Properties['IncludeProviderResourceDetails'] -and [bool]$CategoryPlan.IncludeProviderResourceDetails)
+            )
+        )
+    }
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Invoking Get-ScoutRawInventory')
     $Raw = Get-ScoutRawInventory @RawArgs

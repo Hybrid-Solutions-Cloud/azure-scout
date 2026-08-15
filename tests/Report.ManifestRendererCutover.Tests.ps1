@@ -41,6 +41,18 @@ BeforeAll {
     @{ Users = @([ordered]@{ Name = 'user-01'; 'User Principal Name' = 'user@example.test' }) } |
         ConvertTo-Json -Depth 8 |
         Set-Content -LiteralPath (Join-Path -Path $script:CacheRoot -ChildPath 'Identity.json') -Encoding utf8
+    [pscustomobject]@{
+        Schema = 'azure-scout/discovery-completeness/v1'; GeneratedAt = '2026-08-14T00:00:00Z'
+        Summary = [pscustomobject]@{ Resources = 1 }
+        Resources = @([pscustomobject]@{
+                Id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Example/widgets/widget-01'
+                Name = 'widget-01'; Type = 'microsoft.example/widgets'; SourceKind = 'ARM'
+                DetailStatus = 'GenericOnly'; Exposure = 'Unknown'
+            })
+        Relationships = @()
+        CollectionHealth = @()
+    } | ConvertTo-Json -Depth 12 |
+        Set-Content -LiteralPath (Join-Path -Path $script:CacheRoot -ChildPath 'Discovery.json') -Encoding utf8
 }
 
 AfterAll {
@@ -61,6 +73,9 @@ Describe 'Manifest-backed inventory JSON and Markdown renderers' {
         $Report.arm.compute.widget[0].Name | Should -Be 'widget-01'
         $Report.entra.users[0].Name | Should -Be 'user-01'
         $Report.arm.compute.PSObject.Properties.Name | Should -Not -Contain 'unlisted'
+        $Report.discovery.schema | Should -Be 'azure-scout/discovery-completeness/v1'
+        $Report.discovery.summary.resources | Should -Be 1
+        $Report.discovery.resources[0].Name | Should -Be 'widget-01'
     }
 
     It 'Markdown honors scope using definition categories, without a collector-script walk' {

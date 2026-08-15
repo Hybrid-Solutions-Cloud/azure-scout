@@ -3110,6 +3110,10 @@ resources
             $Row
         }
         $attrs = if ($data.PSObject.Properties['attributes']) { $data.attributes } else { $null }
+        $enabledValue = $null
+        if ($attrs -and $attrs.PSObject.Properties['enabled']) {
+            $enabledValue = $attrs.enabled
+        }
         [pscustomobject]@{
             id             = if ($Row.PSObject.Properties['id']) { [string]$Row.id } else { $null }
             keyVaultName   = if ($Row.PSObject.Properties['PARENTNAME']) { [string]$Row.PARENTNAME } else { $null }
@@ -3121,7 +3125,7 @@ resources
             # src/collect/Get-ScoutArmChildResource.ps1 (~line 453) and
             # manifests/collectors/Security/KeyVaultSecrets.psd1's $Kind derivation.
             contentType    = if ($data.PSObject.Properties['contentType']) { [string]$data.contentType } else { $null }
-            enabled        = ConvertTo-ScoutBool ($(if ($attrs -and $attrs.PSObject.Properties['enabled']) { $attrs.enabled } else { $null }))
+            enabled        = ConvertTo-ScoutBool $enabledValue
             expires        = if ($attrs -and $attrs.PSObject.Properties['exp']) { $attrs.exp } else { $null }
         }
     }
@@ -3434,10 +3438,50 @@ resources
         if (-not $r.ContainsKey($declaredKey)) { $r[$declaredKey] = @() }
     }
 
+    # AB#7366 -- preserve a generic, control-plane-complete row for every object discovered by
+    # the single raw pass. Specialized scalar datasets remain the assessment contract; this
+    # parallel index is the honesty contract that prevents a new/unsupported type from vanishing.
+    $discovery = [pscustomobject]@{
+        Schema      = 'azure-scout/discovery-completeness/v1'
+        GeneratedAt = (Get-Date).ToString('o')
+        Summary     = [pscustomobject]@{
+            Resources = 0; Detailed = 0; GenericOnly = 0; Partial = 0; Unavailable = 0
+            Public = 0; Private = 0; Mixed = 0; ExposureNone = 0; ExposureUnknown = 0
+            Relationships = 0
+        }
+        Resources = @()
+        Relationships = @()
+        CollectionHealth = @($rawCollectionHealth)
+        Status = if ($rawInventory) { 'Unavailable' } else { 'NotCollected' }
+        StatusReason = if ($rawInventory) { 'The universal discovery index could not be built.' } else { 'No raw inventory pass was available (TypedQueries source).' }
+    }
+    if ($rawInventory -and $rawInventory.PSObject.Properties['Resources']) {
+        try {
+            if (-not (Get-Command Get-ScoutResourceCompleteness -ErrorAction SilentlyContinue)) {
+                . (Join-Path (Split-Path $PSScriptRoot -Parent) 'pipeline/Get-ScoutResourceCompleteness.ps1')
+            }
+            $discovery = Get-ScoutResourceCompleteness -Resources @($rawInventory.Resources) `
+                -CollectionHealth @($rawCollectionHealth)
+            $discoveryStatus = if (($discovery.Summary.Partial + $discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
+            $discovery | Add-Member -NotePropertyName Status -NotePropertyValue $discoveryStatus -Force
+            $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue '' -Force
+        }
+        catch {
+            if ($discovery.PSObject.Properties['StatusReason']) {
+                $discovery.StatusReason = $_.Exception.Message
+            }
+            else {
+                $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue $_.Exception.Message -Force
+            }
+            Write-Warning "Invoke-Collect: universal discovery index unavailable: $($_.Exception.Message)"
+        }
+    }
+
     # ---- shape into the canonical contract ----
     $collect = [pscustomobject]@{
         subscriptions = $r.subscriptions
         tags          = $tags
+        discovery     = $discovery
         networking    = [pscustomobject]@{
             virtualNetworks          = $r.virtualNetworks
             subnets                  = $r.subnets

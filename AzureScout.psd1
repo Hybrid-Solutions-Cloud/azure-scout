@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.8'
+ModuleVersion = '3.13.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -165,7 +165,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.8 - Partial Key Vault metadata access no longer aborts every Azure assessment. Scout preserves granular ARM-child collection health, marks only dependent key-evidence rules NotAssessed, and continues scoring unrelated CAF/WAF checks. Interactive runs use standard PowerShell progress by default; the experimental multi-line renderer is opt-in with AZURESCOUT_NATIVE_PROGRESS=1. Verified against the reported 1,649-resource tenant run and 3,663 repository tests. AB#405.'
+        ReleaseNotes = 'v3.13.0 - Every discovered resource now has a completeness record with retained control-plane configuration, normalized exposure evidence, collection-health gaps, and generic ARM relationships. Full scans add provider GET detail plus effective routes and NSGs per NIC; failures remain scoped without dropping the parent. React/JSON and Draw.io include the universal discovery graph. Tags are always retained, prior dashboard/template-spec exclusions are removed, NSG default rules are reported, and credential values are recursively redacted from discovery/report payloads. Reconciled 1,101/1,101 real-run resource IDs with zero missing or extra and exercised all 3,680 repository tests. AB#7366 AB#7367.'
 
         # Prerelease string of this module
         # Prerelease = ''

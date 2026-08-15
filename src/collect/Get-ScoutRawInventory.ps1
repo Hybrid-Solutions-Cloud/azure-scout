@@ -76,7 +76,8 @@ $ErrorActionPreference = 'Stop'
     overlap and this switch does not make `sqlDefenderPricing` derivable from the result.
 
 .PARAMETER IncludeTags
-    Project the `tags` column on every row (omitted by default, matching the legacy default).
+    Backward-compatible presentation switch. Discovery always projects and retains `tags`;
+    higher report layers use this switch to decide whether tag columns appear in Excel.
 
 .PARAMETER IncludeRetirements
     Also run the service-retirement KQL (`src/report/renderers/inventory/style/Retirement.kql`)
@@ -132,6 +133,12 @@ $ErrorActionPreference = 'Stop'
     inventory collectors (VM, Arc, storage, and subscription enrichment), appending them to
     `Resources`. Off by default so the ordinary Resource Graph output is unchanged.
 
+.PARAMETER IncludeProviderResourceDetails
+    Resolve a stable API version for each discovered resource provider and perform a read-only
+    provider GET for each concrete ARM resource. The complete payload is attached through an
+    `AZSC/ProviderDetail` envelope; denied/unsupported calls are recorded in collection health
+    without removing the Resource Graph parent.
+
 .PARAMETER RetirementQueryPath
     Overrides where the retirement KQL is read from. Defaults to
     `src/report/renderers/inventory/style/Retirement.kql` resolved from this file's location.
@@ -177,7 +184,7 @@ $ErrorActionPreference = 'Stop'
     populates every field:
 
         id, name, type, tenantId, kind, location, resourceGroup, subscriptionId, managedBy,
-        sku, plan, properties, identity, zones, extendedLocation[, tags when -IncludeTags]
+        sku, plan, properties, identity, zones, extendedLocation, tags
 
     GUARANTEES:
       - `id`, `name`, `type`, `resourceGroup`, `subscriptionId` are always non-null strings
@@ -192,9 +199,8 @@ $ErrorActionPreference = 'Stop'
         present as columns but are `$null`/empty for any resource type that does not define
         them -- never absent as a PROPERTY (StrictMode-safe to read directly, unlike
         `properties`' nested fields).
-      - `tags` is present ONLY when `-IncludeTags` was supplied; a caller that always needs
-        to check for it first (`$row.PSObject.Properties['tags']`) rather than assume its
-        presence.
+      - `tags` is always present in the projected discovery contract. `-IncludeTags` controls
+        legacy Excel tag columns, not acquisition.
       - `resources` and `networkresources` OVERLAP for several network resource types (the
         same VNet/NSG/etc. row can appear in both tables) -- callers MUST de-duplicate by
         `id` before counting or summarizing, exactly as `ConvertFrom-ScoutInventory` already
@@ -270,6 +276,7 @@ function Get-ScoutRawInventory {
         [string[]] $ResourceTypes,
 
         [switch]   $IncludeOperationalCollectorEnrichment,
+        [switch]   $IncludeProviderResourceDetails,
         [string]   $RetirementQueryPath,
         [string[]] $ResourceGroups,
         [string]   $TagKey,
@@ -483,8 +490,10 @@ function Get-ScoutRawInventory {
         }
     }
 
-    $tagProjection = if ($IncludeTags) { ',tags' } else { '' }
-    $columns = "id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation$tagProjection"
+    # AB#7366: tags are part of the resource's control-plane identity, not optional enrichment.
+    # Keep -IncludeTags as a backward-compatible presentation switch at higher layers, but never
+    # discard the tags column during discovery: doing so made a run impossible to audit later.
+    $columns = 'id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation,tags'
     $resolvedResourceTypes = @($ResourceTypes | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
     $resourceTypeClause = if ($resolvedResourceTypes.Count -gt 0) {
         $escapedTypes = @($resolvedResourceTypes | ForEach-Object { ([string]$_).Replace("'", "''") })
@@ -492,16 +501,9 @@ function Get-ScoutRawInventory {
     }
     else { '' }
 
-    # Inherited from Start-AZTIGraphExtraction's $ExcludedTypes. What remains -- portal dashboards
-    # and template-spec versions -- really are UI/authoring artifacts rather than inventory.
-    #
-    # `microsoft.logic/workflows` WAS on this list and has been removed (AB#6836). Its comment
-    # called it a "Logic Apps designer workflow def"; it is not. It is the Logic App itself, and
-    # excluding it made Integration -- Scout's thinnest category -- miss one of the most common
-    # resources in any Azure estate, with no way for a user to opt back in. Nothing downstream
-    # depended on the absence: no collector, rule or renderer referenced the type, which is why
-    # the gap survived every release. Integration/LogicApps.psd1 now consumes these rows.
-    $excludedTypesClause = "| where type !in ('microsoft.portal/dashboards','microsoft.resources/templatespecs/versions','microsoft.resources/templatespecs')"
+    # AB#7366: do not exclude authoring/UI resources. A complete inventory is an identity ledger,
+    # not a curated list of resources considered operationally interesting. Specialized collectors
+    # may omit a type, but the universal discovery index must still retain it as GenericOnly.
 
     # ---- legacy row-filter clauses (AB#5648) ----
     # Rendered here, byte for byte, from Start-AZTIGraphExtraction's $RGQueryExtension /
@@ -738,10 +740,8 @@ function Get-ScoutRawInventory {
     $argTimer = [System.Diagnostics.Stopwatch]::StartNew()
     Write-ScoutRawInventoryStart -Name 'ARG query sweep'
     $resolvedSubscriptionIds = @($SubscriptionIds | Where-Object { $_ })
-    # No $excludedTypesClause here: the legacy extractor applied its type exclusion to the
-    # `resources` table ONLY, and none of the four excluded types is a container type anyway.
-    # Applying it to resourcecontainers was a (harmless) divergence introduced in v2.7.0; it is
-    # removed so the query text matches the shipped one exactly (AB#5648).
+    # Resource containers use the same full projection as ordinary resources. No type is omitted
+    # from either table; resource-kind relevance is a reporting concern, not a discovery filter.
     $containerQuery = "resourcecontainers $rgClause $tagClause $mgContainerClause | project $columns | order by id asc"
     $resourceContainers = Invoke-ScoutRawTable -Query $containerQuery -LoopName 'Subscriptions and Resource Groups' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.resources/subscriptions', 'microsoft.resources/subscriptions/resourcegroups') -AffectedCollectorSource 'Subscriptions and Resource Groups'
     if ($resolvedSubscriptionIds.Count -eq 0) {
@@ -762,7 +762,7 @@ function Get-ScoutRawInventory {
     $resources = [System.Collections.Generic.List[object]]::new()
     if ($CollectResourceTable) {
         $resourceHealthTypes = if ($resolvedResourceTypes.Count -gt 0) { $resolvedResourceTypes } else { @() }
-        foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $resourceTypeClause $excludedTypesClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes $resourceHealthTypes -AffectedCollectorSource 'Resources')) { $resources.Add($row) }
+        foreach ($row in (Invoke-ScoutRawTable -Query "resources $rgClause $tagClause $mgJoinClause $resourceTypeClause | project $columns | order by id asc" -LoopName 'Resources' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes $resourceHealthTypes -AffectedCollectorSource 'Resources')) { $resources.Add($row) }
     }
     if ($CollectNetworkTable) {
         $networkHealthTypes = if ($resolvedResourceTypes.Count -gt 0) { @($resolvedResourceTypes | Where-Object { $_ -like 'microsoft.network/*' }) } else { @() }
@@ -1048,6 +1048,9 @@ function Get-ScoutRawInventory {
             $operationalCommand = Get-Command Get-ScoutOperationalCollectorEnrichment -ErrorAction Stop
             if ($operationalCommand.Parameters.ContainsKey('CollectionHealth')) {
                 $operationalArguments['CollectionHealth'] = $operationalHealth
+            }
+            if ($operationalCommand.Parameters.ContainsKey('IncludeProviderResourceDetails')) {
+                $operationalArguments['IncludeProviderResourceDetails'] = $IncludeProviderResourceDetails
             }
             foreach ($row in @(Get-ScoutOperationalCollectorEnrichment @operationalArguments)) {
                 if ($null -ne $row) { $resources.Add($row) }

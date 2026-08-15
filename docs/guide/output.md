@@ -109,16 +109,21 @@ See [Report tiers](../assessment/configuration.md#report-tiers) and
 | `scout-run.log` | Log | Detailed structured log — DEBUG/VERBOSE extraction and processing subphases, collector/rule/renderer status, row/evidence counts, timings, warnings, and full error detail on failure. Written by default without adding console noise. See [Troubleshooting](./troubleshooting.md#run-logs) |
 | `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
 | `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
+| `ReportCache/Discovery.json` | JSON | One record per discovered resource, ARG/provider configuration, exposure evidence, generic ARM relationships, and detail status. Secret-valued fields are retained as present but their values are replaced with `[REDACTED]`. |
 | `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |
 | `collection-health.json` | JSON | Upstream dataset availability: Complete, Partial, Not assessed, or Unavailable |
 
 ## Evidence artifacts
 
 These files exist to make a run auditable. Azure Scout retains `raw-inventory.json`,
-`collector-rowcounts.json`, `collection-health.json`, every `ReportCache` JSON file, and the
+`ReportCache/Discovery.json`, `collector-rowcounts.json`, `collection-health.json`, every `ReportCache` JSON file, and the
 `DiagramCache` contents after the scan. They remain available for other tools and reporting for as
 long as the run folder exists. Cleanup is operator-controlled through
 `Clear-AZSCCacheFolder -OlderThan <days>`; a successful scan does not delete its own evidence.
+
+The discovery ledger and supported report payloads recursively redact password, token, shared-key,
+private-key, connection-string, access-key, and secure parameter values. Their field names remain
+visible so Scout can report that the configuration exists without writing the credential itself.
 
 ### `raw-inventory.json`
 

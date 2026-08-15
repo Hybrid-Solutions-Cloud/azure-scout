@@ -412,7 +412,7 @@ Describe 'Invoke-AzureScout wiring' {
 
         $timingStart = $raw.IndexOf('function Write-ScoutRawInventoryTiming')
         $startStart = $raw.IndexOf('function Write-ScoutRawInventoryStart')
-        $startEnd = $raw.IndexOf('$tagProjection', $startStart)
+        $startEnd = $raw.IndexOf('$columns =', $startStart)
         $timingSection = $raw.Substring($timingStart, $startStart - $timingStart)
         $startSection = $raw.Substring($startStart, $startEnd - $startStart)
         $lastPercent = -1

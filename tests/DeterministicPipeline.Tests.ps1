@@ -123,7 +123,7 @@ $Preamble
     New-FixtureDefinition -Category 'Empty' -Name 'Nothing' -ResourceType 'nothing' -Kind 'nothing'
 
     $script:SampleResources = @(
-        [PSCustomObject]@{ NAME = 'vm-a';   TYPE = 'vm' }
+        [PSCustomObject]@{ id = '/synthetic/vm-a'; NAME = 'vm-a'; TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'vm-b';   TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'disk-a'; TYPE = 'disk' }
         [PSCustomObject]@{ NAME = 'sa-a';   TYPE = 'storage' }
@@ -292,7 +292,12 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Compute.json')    | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Storage.json')    | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Networking.json') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Discovery.json')  | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Empty.json')      | Should -BeFalse
+        $Discovery = Get-Content -LiteralPath (Join-Path -Path $Cache -ChildPath 'Discovery.json') -Raw | ConvertFrom-Json
+        $Discovery.Summary.Resources | Should -BeGreaterThan 0
+        $Discovery.Resources[0].PSObject.Properties.Name | Should -Contain 'DetailStatus'
+        $Discovery.Resources[0].PSObject.Properties.Name | Should -Contain 'Exposure'
     }
 
     It 'durably logs collector timing, row count, status, and category subphases' {
