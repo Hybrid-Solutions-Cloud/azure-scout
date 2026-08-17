@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.15.0 — complete discovery evidence
+## Current Release — v3.16.0 — one account, every reachable tenant
+
+Released 17 August 2026. Enterprise operators can explicitly scan every Azure tenant reachable by
+the signed-in account or select several tenant IDs. Each umbrella run writes a self-contained root
+overview and JSON summary, then isolates every tenant's evidence and detailed React report in its
+own named folder. A tenant failure is recorded without stopping later tenants. This is direct account
+access and remains separate from Azure Lighthouse. See CHANGELOG.md and AB#332/AB#7105.
+
+## Previous Release — v3.15.0 — complete discovery evidence
 
 Released 17 August 2026. Raw evidence schema v2 retains each successful parent and child response
 with its source operation, query outcome, and collection-health record. Twenty-nine report collectors
@@ -839,7 +847,8 @@ Focus: depth, breadth, and multi-tenant scenarios.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. The run-isolation prerequisite shipped in v2.3.0 (AB#331). | :bulb: Idea (AB#323) |
+| Enterprise direct-access tenant scanning | `-AllAccessibleTenants` enumerates every tenant the signed-in user can reach, while multiple `-TenantID` values select a subset. One umbrella run contains a root React overview and isolated per-tenant reports; one tenant failure does not block the others. This deliberately does not use Lighthouse. | :construction: Implemented for next release (AB#332, AB#7105) |
+| Azure Lighthouse delegated scanning | Discover and collect customer subscriptions delegated through Azure Lighthouse without switching the operator into each customer tenant. This remains a separate access model and backlog hierarchy. | :bulb: Idea (AB#323) |
 | Word document export (#22) | Shipped as `-OutputFormat Word` in assessment mode: `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
 | PDF report export (#23) | Shipped as `-OutputFormat Pdf` in assessment mode: `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
 | Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |

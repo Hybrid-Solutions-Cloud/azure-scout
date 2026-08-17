@@ -102,6 +102,12 @@ Invoke-AzureScout -TenantID <your-tenant-id> -IncludeDevOps
 
 # Name this run's output folder
 Invoke-AzureScout -TenantID <your-tenant-id> -RunName 'Production-TenantA'
+
+# Scan every tenant the signed-in account can directly access (no Lighthouse)
+Invoke-AzureScout -AllAccessibleTenants -RunName 'Enterprise-Portfolio'
+
+# Or scan only a selected tenant subset
+Invoke-AzureScout -TenantID <tenant-a>,<tenant-b> -RunName 'Selected-Tenants'
 ```
 
 ## Category Quick Reference

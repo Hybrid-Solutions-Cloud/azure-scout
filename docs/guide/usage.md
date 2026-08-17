@@ -96,6 +96,29 @@ completeness record per resource plus generic ARM relationships), `collector-row
 Discovery/report payloads preserve sensitive field presence but replace credential values with
 `[REDACTED]`.
 
+## Enterprise tenant runs (direct account access)
+
+Use `-AllAccessibleTenants` when the signed-in user is already a member or guest with access in
+several Entra tenants. Azure Scout enumerates those tenants, runs the existing pipeline once per
+tenant, and contains an authentication or permission failure to that tenant. This path does **not**
+use Azure Lighthouse.
+
+```powershell
+# Every tenant visible to the signed-in account
+Invoke-AzureScout -AllAccessibleTenants -Scope All -RunName 'Enterprise-Portfolio'
+
+# Only a selected subset
+Invoke-AzureScout -TenantID '<tenant-a>','<tenant-b>' -Scope All -RunName 'Selected-Tenants'
+```
+
+A multi-tenant run creates one umbrella folder. Its root `report-react.html` (also copied as
+`index.html`) records what was selected, what was skipped, each tenant outcome, resource and
+subscription counts, and links to each detailed tenant report. `run-summary.json` exposes the same
+status for automation.
+
+The automatic enumeration switch is deliberately explicit: a bare `Invoke-AzureScout` remains a
+single-tenant run and cannot unexpectedly launch scans across every tenant the account can reach.
+
 ## Content Toggles
 
 Switch parameters to include/exclude specific content:

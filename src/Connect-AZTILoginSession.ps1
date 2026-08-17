@@ -162,6 +162,30 @@ function Connect-AZSCLoginSession {
         return $TenantID
     }
 
+    # AB#7105 -- a user who already authenticated to several directly accessible tenants may
+    # have an Az context cached for each one. Switch to that context before considering another
+    # interactive login. This keeps the outer enterprise-tenant loop to one initial sign-in in
+    # the common case while preserving the existing login path when no cached context exists.
+    if (-not $ForceLogin.IsPresent -and $TenantID -and $context -and $context.Account) {
+        try {
+            $matchingContext = @(
+                Get-AzContext -ListAvailable -ErrorAction Stop |
+                    Where-Object {
+                        $_.Tenant -and [string]$_.Tenant.Id -eq $TenantID -and
+                        $_.Account -and [string]$_.Account.Id -eq [string]$context.Account.Id
+                    }
+            ) | Select-Object -First 1
+            if ($matchingContext) {
+                $null = Set-AzContext -Context $matchingContext -ErrorAction Stop
+                Write-Host "Using cached Az context for tenant $TenantID" -ForegroundColor Green
+                return $TenantID
+            }
+        }
+        catch {
+            Write-Verbose "Could not reuse a cached Az context for tenant '$TenantID': $($_.Exception.Message)"
+        }
+    }
+
     # Need to authenticate interactively
     Write-Host 'No valid Az context found — launching interactive login...' -ForegroundColor Yellow
 

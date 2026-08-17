@@ -149,6 +149,31 @@ Describe 'Connect-AZSCLoginSession' {
             Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1
         }
 
+        It 'reuses a cached context for another tenant without another interactive login' {
+            Mock Get-AzContext {
+                if ($ListAvailable) {
+                    return [pscustomobject]@{
+                        Tenant  = [pscustomobject]@{ Id = 'tenant-target' }
+                        Account = [pscustomobject]@{ Id = 'user@example.test' }
+                    }
+                }
+                return [pscustomobject]@{
+                    Tenant  = [pscustomobject]@{ Id = 'tenant-current' }
+                    Account = [pscustomobject]@{ Id = 'user@example.test' }
+                }
+            } -ModuleName AzureScout
+            Mock Set-AzContext { } -ModuleName AzureScout
+            Mock Connect-AzAccount { } -ModuleName AzureScout
+
+            $result = InModuleScope 'AzureScout' {
+                Connect-AZSCLoginSession -TenantID 'tenant-target'
+            }
+
+            $result | Should -Be 'tenant-target'
+            Should -Invoke Set-AzContext -ModuleName AzureScout -Times 1 -Exactly
+            Should -Not -Invoke Connect-AzAccount -ModuleName AzureScout
+        }
+
         It 'forces a fresh interactive login when the wizard rejects the existing context' {
             Mock Get-AzContext {
                 [pscustomobject]@{

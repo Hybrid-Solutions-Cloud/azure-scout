@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.16.0] - 2026-08-17 - enterprise direct-access multi-tenant scanning
+
+### Added
+
+- Direct-access enterprise tenant scanning accepts several `-TenantID` values or explicitly
+  enumerates the signed-in user's reachable tenants with `-AllAccessibleTenants`. One umbrella run
+  retains isolated tenant evidence and reports plus a live root React overview and JSON summary;
+  a failed tenant does not block or discard the others. Azure Lighthouse remains a separate access
+  model. AB#332 / AB#7105.
+
 ## [3.15.0] - 2026-08-17 - complete discovery evidence
 
 ### Added

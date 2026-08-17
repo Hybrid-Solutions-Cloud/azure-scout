@@ -53,6 +53,41 @@ Invoke-AzureScout -TenantID '00000000-...' -RunName 'Production-TenantA'
 
 Invalid path characters in a `-RunName` are replaced with `-`.
 
+### Multi-tenant umbrella runs
+
+Direct-access enterprise scans create one root run with a self-contained overview and one isolated
+child run per tenant:
+
+```text
+C:\AzureScout\Enterprise-Portfolio\
+├── index.html
+├── report-react.html
+├── run-summary.json
+├── Contoso_11111111\
+│   ├── ReportCache\
+│   ├── DiagramCache\
+│   └── assessment-report\
+│       └── report-react.html
+└── Fabrikam_22222222\
+    ├── ReportCache\
+    ├── DiagramCache\
+    └── assessment-report\
+        └── report-react.html
+```
+
+The tenant ID suffix prevents two tenants with the same display name from sharing a directory.
+The root overview is rewritten atomically as tenants move from Pending to Running and then to
+Completed or Failed. A failed tenant remains visible with its error and does not block later tenants.
+
+```powershell
+Invoke-AzureScout -AllAccessibleTenants -RunName 'Enterprise-Portfolio'
+Invoke-AzureScout -TenantID '<tenant-a>','<tenant-b>' -RunName 'Selected-Tenants'
+```
+
+These commands use direct account access, not Azure Lighthouse. `-Force`, Automation managed
+identity, offline `-FromCollect`, permission-audit-only mode, and storage upload are not supported
+on the multi-tenant orchestration path in its first release.
+
 ### Writing in place with `-Force`
 
 `-Force` skips the run folder and writes straight into the base path, overwriting whatever was

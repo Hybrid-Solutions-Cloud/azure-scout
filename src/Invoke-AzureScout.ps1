@@ -12,9 +12,14 @@ $ErrorActionPreference = 'Stop'
     Use -Scope All or -Scope EntraOnly when Microsoft Entra ID data is required.
 
 .PARAMETER TenantID
-    Specify the tenant ID you want to create a Resource Inventory.
+    Specify one or more tenant IDs to inventory. One tenant preserves the existing single-tenant
+    behavior. Multiple tenant IDs create one umbrella run with an isolated report folder per tenant.
 
     >>> IMPORTANT: YOU NEED TO USE THIS PARAMETER FOR TENANTS WITH MULTI-FACTOR AUTHENTICATION. <<<
+
+.PARAMETER AllAccessibleTenants
+    Scan every tenant the signed-in account can reach. The run creates one isolated folder per
+    tenant plus a root report-react.html overview linking to every completed tenant report.
 
 .PARAMETER SubscriptionID
     Use this parameter to collect a specific Subscription in a Tenant
@@ -331,7 +336,10 @@ Function Invoke-AzureScout {
         [int]$Overview = 1,
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment = 'AzureCloud',
-        [string]$TenantID,
+        [Alias('TenantList')]
+        # Deliberately untyped: PowerShell otherwise keeps a [string[]] constraint after
+        # selection has been normalized to one tenant, which changes legacy control flow.
+        $TenantID,
         [string]$AppId,
         [string]$Secret,
         [string]$CertificatePath,
@@ -424,7 +432,11 @@ Function Invoke-AzureScout {
         # AB#6928 follow-up -- which view lens the React report opens on first (Executive/
         # Consultant/Data) when the browser has nothing persisted yet. Default Consultant.
         [ValidateSet('Executive', 'Consultant', 'Data')]
-        [string]$DefaultReportMode = 'Consultant'
+        [string]$DefaultReportMode = 'Consultant',
+        [Alias('AllTenants', 'AllReachableTenants')]
+        [switch]$AllAccessibleTenants,
+        [Parameter(DontShow)]
+        [switch]$PassThru
         )
 
     if ($NoProgress.IsPresent) { $ProgressPreference = 'SilentlyContinue' }
@@ -502,7 +514,8 @@ Function Invoke-AzureScout {
         Write-Host ""
         Write-Host "Parameters"
         Write-Host ""
-        Write-Host " -TenantID <ID>           :  Specifies the Tenant to be inventoried. "
+        Write-Host " -TenantID <ID[,ID]>      :  Specifies one tenant or a selected tenant list to inventory. "
+        Write-Host " -AllAccessibleTenants    :  Scans every tenant the signed-in user can directly access. "
         Write-Host " -SubscriptionID <ID>     :  Specifies Subscription(s) to be inventoried. "
         Write-Host " -ResourceGroup <NAME>    :  Specifies one (or more) unique Resource Group to be inventoried, This parameter requires the -SubscriptionID to work. "
         Write-Host " -AppId <ID>              :  Specifies the ApplicationID that is used to connect to Azure as service principal. This parameter requires the -TenantID and -Secret to work. "
@@ -607,6 +620,16 @@ Function Invoke-AzureScout {
     }
 
     $PlatOS = Test-AZSCPS
+
+    # AB#7105 -- preserve the established single-tenant pipeline and put enterprise tenant
+    # selection around it. An explicit switch is required for automatic enumeration so a bare
+    # invocation can never surprise an operator by launching dozens of tenant scans.
+    $requestedTenantIds = @($TenantID | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+    if ($AllAccessibleTenants.IsPresent -or $requestedTenantIds.Count -gt 1) {
+        return Invoke-AZSCMultiTenantRun -InvocationParameters $PSBoundParameters `
+            -RequestedTenantId $requestedTenantIds -AllAccessibleTenants:$AllAccessibleTenants
+    }
+    $TenantID = if ($requestedTenantIds.Count -eq 1) { [string]$requestedTenantIds[0] } else { $null }
 
     # ── Wizard mode (AB#5541) ────────────────────────────────────────────────
     # A bare `Invoke-AzureScout` in an interactive session opens the guided
@@ -752,6 +775,15 @@ Function Invoke-AzureScout {
                     Set-AzStorageBlobContent -File $artifactPath -Container $StorageContainer `
                         -Context $StorageContext -Force | Out-Null
                 }
+            }
+            if ($PassThru.IsPresent) {
+                $standaloneReact = if ($standaloneRunPath -and (Test-Path -LiteralPath $standaloneRunPath -PathType Container)) {
+                    $candidate = Join-Path ([string]$standaloneRunPath) 'report-react.html'
+                    if (Test-Path -LiteralPath $candidate -PathType Leaf) { $candidate } else { $null }
+                }
+                else { $null }
+                return New-AZSCRunResult -TenantId $TenantID -OutputPath $standaloneRunPath `
+                    -ReactFile $standaloneReact -SubscriptionCount 0 -ResourceCount 0
             }
             return $standaloneRunPath
         }
@@ -1633,6 +1665,12 @@ Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRe
 # Closed last so the transcript captures the run summary above, and so the operator is told
 # where the log is on a successful run as well as a failed one (AB#5635).
 $null = Stop-AZSCRunLog -Status 'COMPLETED'
+
+if ($PassThru.IsPresent) {
+    return New-AZSCRunResult -TenantId $TenantID -OutputPath $DefaultPath -ReactFile $ReactFile `
+        -EvidenceFile $EvidenceFile -JsonFile $JsonFile -SubscriptionCount @($Subscriptions).Count `
+        -ResourceCount $ResourcesCount -Duration $Measure
+}
 
     }
     finally {
