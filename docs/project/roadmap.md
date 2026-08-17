@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.15.0 — complete discovery evidence
+## Current Release — v3.16.0 — one account, every reachable tenant
+
+Released 17 August 2026. Enterprise operators can explicitly scan every Azure tenant reachable by
+the signed-in account or select several tenant IDs. Each umbrella run writes a self-contained root
+overview and JSON summary, then isolates every tenant's evidence and detailed React report in its
+own named folder. A tenant failure is recorded without stopping later tenants. This is direct account
+access and remains separate from Azure Lighthouse. See CHANGELOG.md and AB#332/AB#7105.
+
+## Previous Release — v3.15.0 — complete discovery evidence
 
 Released 17 August 2026. Raw evidence schema v2 retains each successful parent and child response
 with its source operation, query outcome, and collection-health record. Twenty-nine report collectors

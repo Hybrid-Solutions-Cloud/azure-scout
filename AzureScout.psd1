@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.15.0'
+ModuleVersion = '3.16.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.15.0 - Complete discovery evidence. Raw schema v2 retains every successful parent and child response with source-operation provenance and explicit collection health. Entra adds exact delegated-scope authentication, Conditional Access impact, MFA registration, legacy authentication, PIM active/eligible schedules, access reviews, emergency-access candidates, and hybrid topology. Optional adapters add Okta, local Entra Connect/AD, Azure billing, Defender controls/compliance/attack paths, Sentinel ingestion and retention, Entra diagnostic export, Azure RBAC PIM, and normalized storage exposure. The declarative catalog grows to 314 collectors, with sparse-payload and golden report coverage. Credential and Key Vault secret values are never persisted. AB#7441.'
+        ReleaseNotes = 'v3.16.0 - Enterprise direct-access multi-tenant scanning. Scan every Azure tenant reachable by the signed-in account with -AllAccessibleTenants, or select several tenants with repeated -TenantID values. One umbrella run creates an offline root overview and JSON summary plus an isolated folder and detailed React report for each tenant. Tenant failures are contained so later tenants continue, and cached Az contexts are reused when possible. This is direct account access and remains separate from Azure Lighthouse. AB#332 / AB#7105.'
 
         # Prerelease string of this module
         # Prerelease = ''
