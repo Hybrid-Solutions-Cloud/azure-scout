@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.14.0'
+ModuleVersion = '3.15.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -67,6 +67,7 @@ RequiredModules = @(
     'Az.Compute'
     'Az.Resources'
     'Az.Advisor'
+    'Microsoft.Graph.Authentication'
     'powershell-yaml'
 )
 
@@ -165,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.14.0 - Large-tenant collection is bounded, faster, and more honest. Raw inventory and discovery JSON stream atomically instead of building multi-gigabyte strings in memory; collector shaping uses indexed resource types and tolerates sparse private-endpoint payloads. Cost queries are batched by subscription, Retry-After is honored, deterministic Resource Graph query failures stop retrying per subscription, and six invalid queries are corrected. Expected metric, storage-child, Search-index, and Key Vault metadata gaps are classified or aggregated without dropping parent resources. Management-group and custom-role permission gaps are explicit. Validated with all 3,690 repository tests, a 50,081-row streaming stress run, six live Resource Graph queries, and a live grouped Cost Management request. AB#7366.'
+        ReleaseNotes = 'v3.15.0 - Complete discovery evidence. Raw schema v2 retains every successful parent and child response with source-operation provenance and explicit collection health. Entra adds exact delegated-scope authentication, Conditional Access impact, MFA registration, legacy authentication, PIM active/eligible schedules, access reviews, emergency-access candidates, and hybrid topology. Optional adapters add Okta, local Entra Connect/AD, Azure billing, Defender controls/compliance/attack paths, Sentinel ingestion and retention, Entra diagnostic export, Azure RBAC PIM, and normalized storage exposure. The declarative catalog grows to 314 collectors, with sparse-payload and golden report coverage. Credential and Key Vault secret values are never persisted. AB#7441.'
 
         # Prerelease string of this module
         # Prerelease = ''

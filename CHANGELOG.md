@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.15.0] - 2026-08-16 - complete discovery evidence
+
+### Added
+
+- Raw evidence schema v2 retains the request/source-operation ledger, Entra query outcomes, and
+  collection health alongside every successful parent and child response.
+- Entra discovery now includes MFA registration, 30-day sign-ins, active and eligible PIM
+  schedules, access reviews, organization/hybrid-sync state, Conditional Access report-only
+  impact, legacy-authentication summaries, masked emergency-access candidates, and stale
+  privileged-access evidence.
+- Added optional read-only Okta and local Entra Connect/Active Directory adapters, billing
+  hierarchy/role/benefit evidence, tenant Entra diagnostic settings, Log Analytics table
+  retention, Sentinel connector/ingestion freshness, Defender score controls/regulatory
+  compliance/attack paths/recommendation rollups, Azure RBAC PIM eligibility, and normalized
+  storage public/private exposure verdicts.
+
+### Changed
+
+- User-mode Graph collection uses the official `Microsoft.Graph.Authentication` device-code flow
+  to request the exact delegated scopes required by the selected query catalog instead of being
+  limited to the ambient Az Graph token; SDK tokens are never persisted by Scout.
+- Every unavailable endpoint is distinguished from a successful empty response and associated
+  with its source dataset and dependent collector.
+
+### Security
+
+- Key Vault evidence remains metadata-only. Okta tokens and other credential values are never
+  persisted; the raw ledger records operations and outcomes without authentication material.
+
+### Work tracking
+
+- Epic AB#7441 and linked features/tasks AB#7442-AB#7473.
+
 ## [3.14.0] - 2026-08-15 - large tenants finish cleanly
 
 ### Fixed

@@ -146,6 +146,24 @@ $ErrorActionPreference = 'Stop'
     Azure DevOps personal access token, used instead of the current Azure sign-in. Needs read
     scopes for Project and Team, Build, Release, Code, Service Connections, and Agent Pools.
 
+.PARAMETER IncludeOkta
+    Also collect read-only Okta federation, authentication-policy, factor-enrollment,
+    application-usage, directory-integration, and administrator-role evidence. Requires both
+    -OktaOrganizationUrl and -OktaApiToken. Okta is a separate control plane and is never queried
+    unless this switch is supplied.
+
+.PARAMETER OktaOrganizationUrl
+    HTTPS base URL of the Okta organization, for example https://example.okta.com.
+
+.PARAMETER OktaApiToken
+    Okta read-only API token as a SecureString. The token is used only in memory and is never
+    written to raw evidence, source-operation records, logs, or reports.
+
+.PARAMETER IncludeOnPremisesIdentity
+    Also run read-only local Entra Connect and Active Directory commands. Run Scout on an Entra
+    Connect/AD-capable host with the ADSync and ActiveDirectory modules installed. Missing local
+    capabilities are recorded as Not assessed rather than interpreted as an empty topology.
+
 .PARAMETER RunName
     Friendly name for this run's output folder instead of the generated timestamp, for example
     -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'.
@@ -393,6 +411,10 @@ Function Invoke-AzureScout {
         [string[]]$DevOpsOrganization,
         [Alias('ADOPat')]
         [string]$DevOpsPat,
+        [switch]$IncludeOkta,
+        [string]$OktaOrganizationUrl,
+        [securestring]$OktaApiToken,
+        [switch]$IncludeOnPremisesIdentity,
         # AB#6930 -- operator-supplied report identity for the React report (clientName,
         # engagementName, classification, preparedBy, etc.). Only meaningful with -Assessment
         # (or -CollectOnly/-FromCollect, which route to the same assessment core below); unset
@@ -406,6 +428,10 @@ Function Invoke-AzureScout {
         )
 
     if ($NoProgress.IsPresent) { $ProgressPreference = 'SilentlyContinue' }
+
+    if ($IncludeOkta.IsPresent -and ([string]::IsNullOrWhiteSpace($OktaOrganizationUrl) -or $null -eq $OktaApiToken)) {
+        throw '-IncludeOkta requires both -OktaOrganizationUrl and -OktaApiToken. The token must be supplied as a SecureString.'
+    }
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
 
@@ -1042,6 +1068,8 @@ Function Invoke-AzureScout {
             -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment `
             -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps `
             -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat -Category $Category `
+            -IncludeOkta:$IncludeOkta -OktaOrganizationUrl $OktaOrganizationUrl -OktaApiToken $OktaApiToken `
+            -IncludeOnPremisesIdentity:$IncludeOnPremisesIdentity `
             -PreserveAssessmentDependencies:($null -ne $deferredAssessArgs)
     }
     if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {

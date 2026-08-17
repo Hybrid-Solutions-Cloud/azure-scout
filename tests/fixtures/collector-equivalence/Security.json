@@ -306,6 +306,78 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasm-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1e-1/SecurityPolicySweep/defenderregulatorycompliance-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1f-1/SecurityPolicySweep/defenderregulatorycompliance-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1f-1/SecurityPolicySweep/defenderregulatorycompliance-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1e-1/SecurityPolicySweep/defenderscorecontrols-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1f-1/SecurityPolicySweep/defenderscorecontrols-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1f-1/SecurityPolicySweep/defenderscorecontrols-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1e-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1f-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1f-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1e-1/SentinelDataConnectors/sentineldataconnectors-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1f-1/SentinelDataConnectors/sentineldataconnectors-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1f-1/SentinelDataConnectors/sentineldataconnectors-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1e-1/SentinelIngestion/sentinelingestion-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1f-1/SentinelIngestion/sentinelingestion-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1f-1/SentinelIngestion/sentinelingestion-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -2073,6 +2145,195 @@
         }
       ]
     },
+    "DefenderAttackPaths": {
+      "resources": [
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1a-1",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderattackpaths-t1a",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1b-1",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderattackpaths-t1b",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1c-1",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderattackpaths-t1c",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1d-1",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "defenderattackpaths-t1d",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1e-1",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderattackpaths-t1e",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "displayName": "res-value",
+            "attackPathType": "res-value",
+            "description": "res-value",
+            "potentialImpact": "res-value",
+            "riskCategories": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "entryPointEntityInternalID": "res-value",
+            "targetEntityInternalID": "res-value",
+            "graphComponent": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "manualRemediationSteps": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/attackpaths/defenderattackpaths-t1f-1",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderattackpaths-t1f",
+          "TYPE": "microsoft.security/attackpaths",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "DefenderPricing": {
       "resources": [
         {
@@ -2304,6 +2565,318 @@
         }
       ]
     },
+    "DefenderRegulatoryCompliance": {
+      "resources": [
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1a-1/SecurityPolicySweep/defenderregulatorycompliance-t1a-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderregulatorycompliance-t1a",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1b-1/SecurityPolicySweep/defenderregulatorycompliance-t1b-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderregulatorycompliance-t1b",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1c-1/SecurityPolicySweep/defenderregulatorycompliance-t1c-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderregulatorycompliance-t1c",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1d-1/SecurityPolicySweep/defenderregulatorycompliance-t1d-2",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "NAME": "defenderregulatorycompliance-t1d",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1e-1/SecurityPolicySweep/defenderregulatorycompliance-t1e-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderregulatorycompliance-t1e",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PassedControls": 1024,
+          "FailedControls": 1024,
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderregulatorycompliance-t1f-1/SecurityPolicySweep/defenderregulatorycompliance-t1f-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "NAME": "defenderregulatorycompliance-t1f",
+          "State": "res-value",
+          "SkippedControls": "res-value",
+          "UnsupportedControls": "res-value",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderRegulatoryStandards": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DefenderScoreControls": {
+      "resources": [
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1a-1/SecurityPolicySweep/defenderscorecontrols-t1a-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1a",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1b-1/SecurityPolicySweep/defenderscorecontrols-t1b-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1b",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1c-1/SecurityPolicySweep/defenderscorecontrols-t1c-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1c",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {}
+        },
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1d-1/SecurityPolicySweep/defenderscorecontrols-t1d-2",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1d",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1e-1/SecurityPolicySweep/defenderscorecontrols-t1e-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1e",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "Score": {
+            "Percentage": 1024,
+            "Current": "res-value",
+            "Max": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Subscription/defenderscorecontrols-t1f-1/SecurityPolicySweep/defenderscorecontrols-t1f-2",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "DisplayName": "res-value",
+          "HealthyResourceCount": "res-value",
+          "UnhealthyResourceCount": "res-value",
+          "NotApplicableResourceCount": "res-value",
+          "Weight": "res-value",
+          "NAME": "defenderscorecontrols-t1f",
+          "TYPE": "AZSC/Subscription/SecurityPolicySweep",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {
+            "DefenderSecureScoreControls": [
+              {
+                "SubscriptionId": "res-value"
+              }
+            ]
+          },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
     "DefenderSecureScore": {
       "resources": [
         {
@@ -2481,6 +3054,207 @@
               }
             ]
           },
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "DefenderUnhealthyRecommendations": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1a-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1a-2",
+          "NAME": "defenderunhealthyrecommendations-t1a",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1b-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1b-2",
+          "NAME": "defenderunhealthyrecommendations-t1b",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1c-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1c-2",
+          "NAME": "defenderunhealthyrecommendations-t1c",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1d-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1d-2",
+          "NAME": "defenderunhealthyrecommendations-t1d",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1e-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1e-2",
+          "NAME": "defenderunhealthyrecommendations-t1e",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "PROPERTIES": {
+            "DisplayName": "res-value",
+            "Severity": "res-value",
+            "UnhealthyResourceCount": "res-value",
+            "SubscriptionCount": "res-value",
+            "PotentialScoreImpact": [
+              {
+                "DisplayName": "res-value",
+                "Severity": "res-value",
+                "UnhealthyResourceCount": "res-value",
+                "SubscriptionCount": "res-value",
+                "PotentialScoreImpact": "res-value",
+                "ScoreImpactStatus": "res-value",
+                "SecureScoreControls": "res-value"
+              }
+            ],
+            "ScoreImpactStatus": "res-value",
+            "SecureScoreControls": [
+              "res-item-0",
+              "res-item-1"
+            ]
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/defenderunhealthyrecommendations-t1f-1/DefenderUnhealthyRecommendation/defenderunhealthyrecommendations-t1f-2",
+          "NAME": "defenderunhealthyrecommendations-t1f",
+          "TYPE": "AZSC/Derived/DefenderUnhealthyRecommendation",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
           "tags": {
             "env": "prod"
           }
@@ -3325,6 +4099,210 @@
           "TYPE": "microsoft.securityinsights/onboardingstates",
           "plan": {
             "name": "res-value"
+          }
+        }
+      ]
+    },
+    "SentinelDataConnectors": {
+      "resources": [
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1a-1/SentinelDataConnectors/sentineldataconnectors-t1a-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1a",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1b-1/SentinelDataConnectors/sentineldataconnectors-t1b-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1b",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1c-1/SentinelDataConnectors/sentineldataconnectors-t1c-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1c",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1d-1/SentinelDataConnectors/sentineldataconnectors-t1d-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1d",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1e-1/SentinelDataConnectors/sentineldataconnectors-t1e-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1e",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "dataTypes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "tenantId": "res-value",
+            "subscriptionId": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1f-1/SentinelDataConnectors/sentineldataconnectors-t1f-2",
+          "PARENTNAME": "res-value",
+          "NAME": "sentineldataconnectors-t1f",
+          "kind": "res-value",
+          "TYPE": "AZSC/ARMChild/SentinelDataConnectors",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "SentinelIngestion": {
+      "resources": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1a-1/SentinelIngestion/sentinelingestion-t1a-2",
+          "NAME": "sentinelingestion-t1a",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1b-1/SentinelIngestion/sentinelingestion-t1b-2",
+          "NAME": "sentinelingestion-t1b",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1c-1/SentinelIngestion/sentinelingestion-t1c-2",
+          "NAME": "sentinelingestion-t1c",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {}
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1d-1/SentinelIngestion/sentinelingestion-t1d-2",
+          "NAME": "sentinelingestion-t1d",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1e-1/SentinelIngestion/sentinelingestion-t1e-2",
+          "NAME": "sentinelingestion-t1e",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1f-1/SentinelIngestion/sentinelingestion-t1f-2",
+          "NAME": "sentinelingestion-t1f",
+          "TYPE": "AZSC/ARMChild/SentinelIngestion",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "PROPERTIES": {},
+          "tags": {
+            "env": "prod"
           }
         }
       ]

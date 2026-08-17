@@ -33,6 +33,8 @@ function Get-ScoutEntraQueryCatalog {
     [OutputType([hashtable])]
     param()
 
+    $signInStart = (Get-Date).ToUniversalTime().AddDays(-30).ToString('yyyy-MM-ddTHH:mm:ssZ')
+
     # No unary comma: the catalog is never empty, so the usual "preserve an empty array" idiom
     # would only wrap seventeen hashtables inside one object and make every caller's @() count
     # read 1.
@@ -97,6 +99,58 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/conditionalaccesspolicies'
             NameProperty = 'displayName'
             Permission   = 'Policy.Read.All'
+        },
+        @{
+            Name         = 'Authentication Method Registration Details'
+            Uri          = '/v1.0/reports/authenticationMethods/userRegistrationDetails?$select=id,userPrincipalName,userDisplayName,isAdmin,isMfaRegistered,isMfaCapable,isPasswordlessCapable,methodsRegistered'
+            Type         = 'entra/authenticationmethodregistrations'
+            NameProperty = 'userPrincipalName'
+            Permission   = 'Reports.Read.All'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Reports Reader', 'Authentication Policy Administrator')
+        },
+        @{
+            Name         = 'Sign-ins (Last 30 Days)'
+            Uri          = "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $signInStart&`$select=id,createdDateTime,userId,userPrincipalName,appId,appDisplayName,clientAppUsed,status,conditionalAccessStatus,appliedConditionalAccessPolicies,authenticationRequirement,isInteractive,ipAddress,location,deviceDetail,riskDetail,riskLevelAggregated,riskState&`$top=1000"
+            Type         = 'entra/signins'
+            NameProperty = 'userPrincipalName'
+            Permission   = 'AuditLog.Read.All'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Security Reader', 'Reports Reader')
+        },
+        @{
+            Name         = 'Directory Role Assignment Schedules'
+            Uri          = '/v1.0/roleManagement/directory/roleAssignmentSchedules?$expand=roleDefinition($select=id,displayName)'
+            Type         = 'entra/roleassignmentschedules'
+            NameProperty = 'principalId'
+            Permission   = 'RoleAssignmentSchedule.Read.Directory'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Privileged Role Administrator')
+        },
+        @{
+            Name         = 'Directory Role Eligibility Schedules'
+            Uri          = '/v1.0/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition($select=id,displayName)'
+            Type         = 'entra/roleeligibilityschedules'
+            NameProperty = 'principalId'
+            Permission   = 'RoleEligibilitySchedule.Read.Directory'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Privileged Role Administrator')
+        },
+        @{
+            Name         = 'Access Review Definitions'
+            Uri          = '/v1.0/identityGovernance/accessReviews/definitions?$expand=instances'
+            Type         = 'entra/accessreviewdefinitions'
+            NameProperty = 'displayName'
+            Permission   = 'AccessReview.Read.All'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Identity Governance Administrator')
+        },
+        @{
+            Name         = 'Organization'
+            Uri          = '/v1.0/organization?$select=id,displayName,onPremisesSyncEnabled,onPremisesLastSyncDateTime,verifiedDomains'
+            Type         = 'entra/organization'
+            NameProperty = 'displayName'
+            Permission   = 'Directory.Read.All'
         },
         @{
             Name         = 'Named Locations'

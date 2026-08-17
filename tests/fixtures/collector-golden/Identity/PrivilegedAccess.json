@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "PrivilegedAccess",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1a-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\"",
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1b-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\"",
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1c-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\"",
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1d-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\"",
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1e-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\"",
+    "Account Enabled=s:res-value|Assignment Type=s:res-value|End=j:\"2026-01-15T10:30:00Z\"|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignments/privilegedaccess-t1f-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Membership=s:res-value|Principal=s:res-value|Principal Type=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value|Start=j:\"2026-01-15T10:30:00Z\""
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Role\tPrincipal\tPrincipal Type\tAssignment Type\tMembership\tStart\tEnd\tAccount Enabled\tLast Sign-in\tStale Permanent 90 Days\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1"
+    ],
+    "WithTags": [
+      "Role\tPrincipal\tPrincipal Type\tAssignment Type\tMembership\tStart\tEnd\tAccount Enabled\tLast Sign-in\tStale Permanent 90 Days\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t46037.4375\t46037.4375\tres-value\t46037.4375\tres-value\t1"
+    ]
+  }
+}

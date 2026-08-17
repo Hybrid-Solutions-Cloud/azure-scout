@@ -77,6 +77,9 @@ function Get-ScoutArmChildResource {
             'AppInsightsProactiveDetection',
             'LAWorkspaceLinkedServices',
             'LAWorkspaceSavedSearches',
+            'LAWorkspaceTables',
+            'SentinelDataConnectors',
+            'SentinelIngestion',
             'KeyVaultSecrets',
             'KeyVaultKeys',
             'StorageBlobContainers',
@@ -93,7 +96,11 @@ function Get-ScoutArmChildResource {
 
         [Parameter()]
         [AllowNull()]
-        [System.Collections.IList]$CollectionHealth
+        [System.Collections.IList]$CollectionHealth,
+
+        [Parameter()]
+        [AllowNull()]
+        [System.Collections.IList]$SourceOperations
     )
 
     $DatasetOrder = @(
@@ -109,6 +116,9 @@ function Get-ScoutArmChildResource {
         'AppInsightsProactiveDetection',
         'LAWorkspaceLinkedServices',
         'LAWorkspaceSavedSearches',
+        'LAWorkspaceTables',
+        'SentinelDataConnectors',
+        'SentinelIngestion',
         'KeyVaultSecrets',
         'KeyVaultKeys',
         'StorageBlobContainers',
@@ -221,6 +231,52 @@ function Get-ScoutArmChildResource {
             return $null
         }
 
+        function Get-ArmApiVersion {
+            param([string] $Uri)
+            if ($Uri -match '(?i)[?&]api-version=([^&]+)') { return $Matches[1] }
+            return $null
+        }
+
+        function Add-SourceOperation {
+            param(
+                [string] $Uri,
+                [string] $Status,
+                [int] $Count = 0,
+                [AllowNull()][string] $Reason,
+                [datetime] $StartedAt = (Get-Date)
+            )
+            if ($null -eq $SourceOperations) { return }
+            [void]$SourceOperations.Add([pscustomobject][ordered]@{
+                    Source      = 'Azure Resource Manager'
+                    Dataset     = $DatasetName
+                    ParentName  = $ParentName
+                    Operation   = 'GET'
+                    Uri         = $Uri
+                    ApiVersion  = Get-ArmApiVersion -Uri $Uri
+                    Status      = $Status
+                    Count       = $Count
+                    Reason      = $Reason
+                    StartedAt   = $StartedAt.ToString('o')
+                    CompletedAt = (Get-Date).ToString('o')
+                })
+        }
+
+        function Add-RowSourceMetadata {
+            param([AllowNull()]$Item, [string]$Uri, [datetime]$CollectedAt)
+            if ($null -eq $Item) { return }
+            $metadata = [pscustomobject][ordered]@{
+                Source      = 'Azure Resource Manager'
+                Dataset     = $DatasetName
+                Operation   = 'GET'
+                Uri         = $Uri
+                ApiVersion  = Get-ArmApiVersion -Uri $Uri
+                CollectedAt = $CollectedAt.ToString('o')
+            }
+            $Item | Add-Member -NotePropertyName '__AZSCSource' -NotePropertyValue $metadata -Force
+        }
+
+        $requestStartedAt = Get-Date
+        $CurrentPath = $Path
         try {
             # ARM list endpoints may paginate even tiny-looking datasets. AB#7358's tenant
             # reconciliation exposed first-page-only handling while auditing child resources.
@@ -230,7 +286,6 @@ function Get-ScoutArmChildResource {
             $SeenPaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::OrdinalIgnoreCase
             )
-            $CurrentPath = $Path
             $IsPaged = $false
 
             while ($CurrentPath) {
@@ -254,6 +309,7 @@ function Get-ScoutArmChildResource {
 
                 $Status = $Response.PSObject.Properties['StatusCode']
                 if ($null -ne $Status -and [int]$Status.Value -eq 404 -and $NotFoundIsEmpty) {
+                    Add-SourceOperation -Uri $CurrentPath -Status 'Empty' -StartedAt $requestStartedAt
                     return $null
                 }
                 if ($null -ne $Status -and ([int]$Status.Value -lt 200 -or [int]$Status.Value -ge 300)) {
@@ -263,12 +319,14 @@ function Get-ScoutArmChildResource {
                 $ContentProperty = $Response.PSObject.Properties['Content']
                 if ($null -eq $ContentProperty -or $null -eq $ContentProperty.Value) {
                     if ($IsPaged) { throw 'ARM returned no content for a continuation page.' }
+                    Add-SourceOperation -Uri $CurrentPath -Status 'Empty' -StartedAt $requestStartedAt
                     return $null
                 }
                 $Content = $ContentProperty.Value
                 if ($Content -is [string]) {
                     if ([string]::IsNullOrWhiteSpace($Content)) {
                         if ($IsPaged) { throw 'ARM returned empty content for a continuation page.' }
+                        Add-SourceOperation -Uri $CurrentPath -Status 'Empty' -StartedAt $requestStartedAt
                         return $null
                     }
                     $Content = $Content | ConvertFrom-Json
@@ -277,10 +335,23 @@ function Get-ScoutArmChildResource {
                 # Bare arrays and singleton objects retain their exact historical shape. Only a
                 # normal ARM list envelope (a `value` property) participates in pagination.
                 $ValueProperty = $Content.PSObject.Properties['value']
-                if ($null -eq $ValueProperty) { return $Content }
-                foreach ($Item in @($ValueProperty.Value)) {
-                    if ($null -ne $Item) { $Items.Add($Item) }
+                if ($null -eq $ValueProperty) {
+                    $collectedAt = Get-Date
+                    Add-RowSourceMetadata -Item $Content -Uri $CurrentPath -CollectedAt $collectedAt
+                    Add-SourceOperation -Uri $CurrentPath -Status 'Success' -Count 1 -StartedAt $requestStartedAt
+                    return $Content
                 }
+                $pageCount = 0
+                $collectedAt = Get-Date
+                foreach ($Item in @($ValueProperty.Value)) {
+                    if ($null -ne $Item) {
+                        Add-RowSourceMetadata -Item $Item -Uri $CurrentPath -CollectedAt $collectedAt
+                        $Items.Add($Item)
+                        $pageCount++
+                    }
+                }
+                Add-SourceOperation -Uri $CurrentPath -Status $(if ($pageCount -eq 0) { 'Empty' } else { 'Success' }) `
+                    -Count $pageCount -StartedAt $requestStartedAt
 
                 $NextLinkProperty = $Content.PSObject.Properties['nextLink']
                 if ($NextLinkProperty -and -not [string]::IsNullOrWhiteSpace([string]$NextLinkProperty.Value)) {
@@ -295,7 +366,11 @@ function Get-ScoutArmChildResource {
         }
         catch {
             $StatusCode = Get-ArmChildHttpStatusCode -ErrorRecord $_
-            if ($NotFoundIsEmpty -and $StatusCode -eq 404) { return $null }
+            if ($NotFoundIsEmpty -and $StatusCode -eq 404) {
+                Add-SourceOperation -Uri $CurrentPath -Status 'Empty' -StartedAt $requestStartedAt
+                return $null
+            }
+            Add-SourceOperation -Uri $CurrentPath -Status 'Failed' -Reason $_.Exception.Message -StartedAt $requestStartedAt
 
             # Version/deployment lookups are sub-operations of the owning dataset. Reporting a
             # synthetic type such as AZSC/ARMChild/MLModels.LatestVersion would match no collector
@@ -323,6 +398,9 @@ function Get-ScoutArmChildResource {
             [Parameter(Mandatory)][string]$DatasetName,
             [Parameter(Mandatory)][string]$ParentName
         )
+
+        $CurrentUri = $null
+        $requestStartedAt = $null
 
         function Get-KeyVaultHttpStatusCode {
             param([Parameter(Mandatory)][System.Management.Automation.ErrorRecord]$ErrorRecord)
@@ -358,6 +436,7 @@ function Get-ScoutArmChildResource {
                 [System.StringComparer]::OrdinalIgnoreCase
             )
             while ($CurrentUri) {
+                $requestStartedAt = Get-Date
                 if (-not $SeenUris.Add($CurrentUri)) {
                     throw "Key Vault returned a repeated nextLink '$CurrentUri'."
                 }
@@ -387,7 +466,32 @@ function Get-ScoutArmChildResource {
                 $ValueProperty = $Content.PSObject.Properties['value']
                 if ($null -eq $ValueProperty) { throw 'Key Vault list response did not contain a value collection.' }
                 foreach ($Item in @($ValueProperty.Value)) {
-                    if ($null -ne $Item) { $Items.Add($Item) }
+                    if ($null -ne $Item) {
+                        $Item | Add-Member -NotePropertyName '__AZSCSource' -NotePropertyValue ([pscustomobject][ordered]@{
+                                Source      = 'Azure Key Vault metadata API'
+                                Dataset     = $DatasetName
+                                Operation   = 'LIST metadata'
+                                Uri         = $CurrentUri
+                                ApiVersion  = '7.4'
+                                CollectedAt = (Get-Date).ToString('o')
+                            }) -Force
+                        $Items.Add($Item)
+                    }
+                }
+                if ($null -ne $SourceOperations) {
+                    [void]$SourceOperations.Add([pscustomobject][ordered]@{
+                            Source      = 'Azure Key Vault metadata API'
+                            Dataset     = $DatasetName
+                            ParentName  = $ParentName
+                            Operation   = 'LIST metadata'
+                            Uri         = $CurrentUri
+                            ApiVersion  = '7.4'
+                            Status      = if (@($ValueProperty.Value).Count -eq 0) { 'Empty' } else { 'Success' }
+                            Count       = @($ValueProperty.Value).Count
+                            Reason      = $null
+                            StartedAt   = $requestStartedAt.ToString('o')
+                            CompletedAt = (Get-Date).ToString('o')
+                        })
                 }
 
                 $NextLinkProperty = $Content.PSObject.Properties['nextLink']
@@ -397,6 +501,21 @@ function Get-ScoutArmChildResource {
         }
         catch {
             $StatusCode = Get-KeyVaultHttpStatusCode -ErrorRecord $_
+            if ($null -ne $SourceOperations) {
+                [void]$SourceOperations.Add([pscustomobject][ordered]@{
+                        Source      = 'Azure Key Vault metadata API'
+                        Dataset     = $DatasetName
+                        ParentName  = $ParentName
+                        Operation   = 'LIST metadata'
+                        Uri         = if ($CurrentUri) { $CurrentUri } else { $VaultUri }
+                        ApiVersion  = '7.4'
+                        Status      = 'Failed'
+                        Count       = 0
+                        Reason      = $_.Exception.Message
+                        StartedAt   = if ($requestStartedAt) { $requestStartedAt.ToString('o') } else { (Get-Date).ToString('o') }
+                        CompletedAt = (Get-Date).ToString('o')
+                    })
+            }
             $KeyVaultMetadataFailures[$DatasetName].Add([pscustomobject]@{
                     ParentName = $ParentName
                     HttpStatus = $StatusCode
@@ -463,7 +582,7 @@ function Get-ScoutArmChildResource {
         else { $Properties['keyUri'] = $Identifier }
 
         $TagsProperty = $Metadata.PSObject.Properties['tags']
-        return [pscustomobject][ordered]@{
+        $row = [pscustomobject][ordered]@{
             id         = "$ParentId/$ObjectKind/$Name"
             name       = $Name
             type       = "Microsoft.KeyVault/vaults/$ObjectKind"
@@ -471,6 +590,10 @@ function Get-ScoutArmChildResource {
             tags       = if ($TagsProperty) { $TagsProperty.Value } else { $null }
             properties = [pscustomobject]$Properties
         }
+        if ($Metadata.PSObject.Properties['__AZSCSource']) {
+            $row | Add-Member -NotePropertyName '__AZSCSource' -NotePropertyValue $Metadata.__AZSCSource -Force
+        }
+        return $row
     }
 
     function Get-ArmChildItemSet {
@@ -510,7 +633,7 @@ function Get-ScoutArmChildResource {
 
         $Reserved = @(
             'TYPE', 'PARENTID', 'PARENTTYPE', 'PARENTNAME',
-            'subscriptionId', 'RESOURCEGROUP', 'AZSC'
+            'subscriptionId', 'RESOURCEGROUP', 'AZSC', '__AZSCSource'
         )
         $Row = [ordered]@{}
         foreach ($Property in $Child.PSObject.Properties) {
@@ -525,8 +648,14 @@ function Get-ScoutArmChildResource {
         $Row['PARENTLOCATION'] = $ParentLocation
         $Row['subscriptionId'] = $SubscriptionId
         $Row['RESOURCEGROUP'] = $ResourceGroup
+        $sourceMetadata = if ($Child.PSObject.Properties['__AZSCSource']) { $Child.__AZSCSource } else { $null }
         $Row['AZSC'] = [PSCustomObject][ordered]@{
+            Source          = if ($sourceMetadata) { $sourceMetadata.Source } else { 'Azure Resource Manager' }
             Dataset         = $DatasetName
+            Operation       = if ($sourceMetadata) { $sourceMetadata.Operation } else { 'GET' }
+            Uri             = if ($sourceMetadata) { $sourceMetadata.Uri } else { $null }
+            ApiVersion      = if ($sourceMetadata) { $sourceMetadata.ApiVersion } else { $null }
+            CollectedAt     = if ($sourceMetadata) { $sourceMetadata.CollectedAt } else { $null }
             ParentId        = $ParentId
             ParentType      = $ParentType
             ParentName      = $ParentName
@@ -773,6 +902,194 @@ function Get-ScoutArmChildResource {
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
                         ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'LAWorkspaceTables' {
+                foreach ($Parent in $LogAnalyticsParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/tables?api-version=2022-10-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'SentinelDataConnectors' {
+                foreach ($Parent in $LogAnalyticsParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.SecurityInsights/dataConnectors?api-version=2023-11-01" -DatasetName $DatasetName -ParentName (
+                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
+                    )
+                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+            'SentinelIngestion' {
+                $logToken = $null
+                $tokenStartedAt = Get-Date
+                try {
+                    $tokenData = Get-AzAccessToken -ResourceUrl 'https://api.loganalytics.io' -AsSecureString -ErrorAction Stop
+                    if ($tokenData.Token -is [securestring]) {
+                        $logToken = $tokenData.Token
+                    }
+                    else {
+                        throw 'Get-AzAccessToken did not honor -AsSecureString for the Log Analytics resource.'
+                    }
+                    if ($null -ne $SourceOperations) {
+                        [void]$SourceOperations.Add([pscustomobject]@{
+                                Source = 'Azure PowerShell authentication'
+                                Dataset = $DatasetName
+                                Operation = 'Acquire Log Analytics query token'
+                                Uri = 'https://api.loganalytics.io'
+                                Status = 'Success'
+                                Count = 1
+                                Reason = $null
+                                StartedAt = $tokenStartedAt.ToString('o')
+                                CompletedAt = (Get-Date).ToString('o')
+                            })
+                    }
+                }
+                catch {
+                    if ($null -ne $CollectionHealth) {
+                        [void]$CollectionHealth.Add([pscustomobject]@{
+                                Dataset = $DatasetName
+                                Operation = 'Acquire Log Analytics query token'
+                                Status = 'Unavailable'
+                                Reason = $_.Exception.Message
+                                ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                            })
+                    }
+                    if ($null -ne $SourceOperations) {
+                        [void]$SourceOperations.Add([pscustomobject]@{
+                                Source = 'Azure PowerShell authentication'
+                                Dataset = $DatasetName
+                                Operation = 'Acquire Log Analytics query token'
+                                Uri = 'https://api.loganalytics.io'
+                                Status = 'Unavailable'
+                                Count = 0
+                                Reason = $_.Exception.Message
+                                StartedAt = $tokenStartedAt.ToString('o')
+                                CompletedAt = (Get-Date).ToString('o')
+                            })
+                    }
+                }
+                if ($logToken) {
+                    foreach ($Parent in $LogAnalyticsParents) {
+                        $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
+                        $properties = Get-ArmParentValue -InputObject $Parent -Name @('properties', 'PROPERTIES')
+                        $workspaceId = [string](Get-ArmParentValue -InputObject $properties -Name @('customerId', 'CUSTOMERID'))
+                        if ([string]::IsNullOrWhiteSpace($workspaceId)) {
+                            $reason = "Workspace '$ParentName' did not expose properties.customerId, so the Logs Query API could not be called."
+                            if ($null -ne $CollectionHealth) {
+                                [void]$CollectionHealth.Add([pscustomobject]@{
+                                        Dataset = $DatasetName
+                                        Operation = 'Query ingestion freshness'
+                                        Status = 'Unavailable'
+                                        Reason = $reason
+                                        ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                                    })
+                            }
+                            if ($null -ne $SourceOperations) {
+                                [void]$SourceOperations.Add([pscustomobject]@{
+                                        Source = 'Azure Monitor Logs Query API'
+                                        Dataset = $DatasetName
+                                        ParentName = $ParentName
+                                        Operation = 'POST query'
+                                        Uri = $null
+                                        ApiVersion = 'v1'
+                                        Status = 'Unavailable'
+                                        Count = 0
+                                        Reason = $reason
+                                        StartedAt = (Get-Date).ToString('o')
+                                        CompletedAt = (Get-Date).ToString('o')
+                                    })
+                            }
+                            continue
+                        }
+                        $uri = "https://api.loganalytics.io/v1/workspaces/$workspaceId/query"
+                        $startedAt = Get-Date
+                        try {
+                            $query = 'union withsource=TableName * | summarize LastRecord=max(TimeGenerated), Count=count() by TableName | order by Count desc | take 40'
+                            $response = Invoke-RestMethod -Uri $uri -Method POST -Authentication Bearer -Token $logToken -ContentType 'application/json' -Body (@{ query = $query; timespan = 'P30D' } | ConvertTo-Json -Compress) -ErrorAction Stop
+                            $table = @($response.tables | Select-Object -First 1)
+                            $columns = if ($table.Count -gt 0) { @($table[0].columns.name) } else { @() }
+                            $resultRows = [System.Collections.Generic.List[object]]::new()
+                            if ($table.Count -gt 0) {
+                                $rawRows = @($table[0].rows)
+                                # PowerShell functions can unwrap a single nested JSON row into
+                                # its scalar values even though Invoke-RestMethod normally keeps
+                                # rows as object[]. Accept both shapes without splitting a single
+                                # table summary into one bogus row per character/value.
+                                if ($rawRows.Count -gt 0 -and
+                                    ($rawRows[0] -isnot [System.Collections.IEnumerable] -or $rawRows[0] -is [string])) {
+                                    [void]$resultRows.Add([object[]]$rawRows)
+                                }
+                                else {
+                                    foreach ($rawRow in $rawRows) { [void]$resultRows.Add($rawRow) }
+                                }
+                            }
+                            foreach ($values in $resultRows) {
+                                $shape = [ordered]@{}
+                                for ($columnIndex = 0; $columnIndex -lt $columns.Count; $columnIndex++) {
+                                    $shape[$columns[$columnIndex]] = $values[$columnIndex]
+                                }
+                                $shape['id'] = "$workspaceId/$($shape.TableName)"
+                                $shape['name'] = [string]$shape.TableName
+                                $shape['__AZSCSource'] = [pscustomobject]@{
+                                    Source = 'Azure Monitor Logs Query API'
+                                    Dataset = $DatasetName
+                                    Operation = 'POST query'
+                                    Uri = $uri
+                                    ApiVersion = 'v1'
+                                    CollectedAt = (Get-Date).ToString('o')
+                                }
+                                ConvertTo-ArmChildRow -Child ([pscustomobject]$shape) -Parent $Parent -DatasetName $DatasetName
+                            }
+                            if ($null -ne $SourceOperations) {
+                                [void]$SourceOperations.Add([pscustomobject]@{
+                                        Source = 'Azure Monitor Logs Query API'
+                                        Dataset = $DatasetName
+                                        ParentName = $ParentName
+                                        Operation = 'POST query'
+                                        Uri = $uri
+                                        ApiVersion = 'v1'
+                                        Status = if ($resultRows.Count -gt 0) { 'Success' } else { 'Empty' }
+                                        Count = $resultRows.Count
+                                        Reason = $null
+                                        StartedAt = $startedAt.ToString('o')
+                                        CompletedAt = (Get-Date).ToString('o')
+                                    })
+                            }
+                        }
+                        catch {
+                            if ($null -ne $CollectionHealth) {
+                                [void]$CollectionHealth.Add([pscustomobject]@{
+                                        Dataset = $DatasetName
+                                        Operation = 'Query ingestion freshness'
+                                        Status = 'Unavailable'
+                                        Reason = "Workspace '$ParentName': $($_.Exception.Message)"
+                                        ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                                    })
+                            }
+                            if ($null -ne $SourceOperations) {
+                                [void]$SourceOperations.Add([pscustomobject]@{
+                                        Source = 'Azure Monitor Logs Query API'
+                                        Dataset = $DatasetName
+                                        ParentName = $ParentName
+                                        Operation = 'POST query'
+                                        Uri = $uri
+                                        ApiVersion = 'v1'
+                                        Status = 'Failed'
+                                        Count = 0
+                                        Reason = $_.Exception.Message
+                                        StartedAt = $startedAt.ToString('o')
+                                        CompletedAt = (Get-Date).ToString('o')
+                                    })
+                            }
+                        }
                     }
                 }
             }

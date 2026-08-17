@@ -40,7 +40,7 @@ a service principal and uploads the reports as artifacts for inspection.
 |---|---|
 | Entra modules produce populated worksheets | **Live tenant** — needs a tenant with Graph permissions granted |
 | Graph pagination, throttling, and backoff | **Automated** — `Invoke-AZSCGraphRequest.Tests.ps1` |
-| All 17 Entra resource types normalize correctly | **Automated** — `Start-AZSCEntraExtraction.Tests.ps1` |
+| All 26 Entra catalog entries normalize or report disabled/unavailable status correctly | **Automated** — `Start-AZSCEntraExtraction.Tests.ps1` |
 | Each Entra collector's Processing and Reporting phases | **Automated** — `Identity.Module.Tests.ps1` |
 
 ## Phase 6 — JSON output layer

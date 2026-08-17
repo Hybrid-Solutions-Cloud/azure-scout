@@ -133,6 +133,12 @@ Function Start-AZSCGraphExtraction {
             )
         )
     }
+    if ($rawInventoryCommand.Parameters.ContainsKey('CollectBillingEvidence')) {
+        $RawArgs.CollectBillingEvidence = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectGovernance)
+    }
+    if ($rawInventoryCommand.Parameters.ContainsKey('CollectEntraDiagnosticSettings')) {
+        $RawArgs.CollectEntraDiagnosticSettings = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectTenantWideResources)
+    }
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Invoking Get-ScoutRawInventory')
     $Raw = Get-ScoutRawInventory @RawArgs

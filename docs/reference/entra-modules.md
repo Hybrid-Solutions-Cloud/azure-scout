@@ -6,7 +6,10 @@ description: Complete catalog of AzureScout Microsoft Entra ID inventory modules
 
 ## Overview
 
-AzureScout includes **17 Entra ID (Identity) inventory modules** that extract tenant-wide identity and access management data via the Microsoft Graph API. They live alongside one ARM-based module (`ManagedIds` — user-assigned managed identity *resources*, as opposed to the Entra-side `ManagedIdentities` service-principal view below) in the `Identity` category folder — see [ARM Modules: Identity](./arm-modules.md#identity-1-arm-module) for that one.
+AzureScout's live Entra query catalog contains **26 entries**: 24 collected datasets and two
+disabled coverage records whose results no released collector consumes. It extracts tenant-wide
+identity and access-management data via Microsoft Graph, then retains every query outcome in the
+raw evidence ledger.
 
 Run Entra-only extraction with:
 
@@ -36,7 +39,7 @@ The `Start-AZSCEntraExtraction` function calls `Invoke-AZSCGraphRequest` for eac
 ## Module Catalog
 
 `Get-ScoutEntraQueryCatalog` (`src/collect/Get-ScoutEntraQueryCatalog.ps1`) is the single source
-of truth for these 17 queries — `Start-AZSCEntraExtraction` runs exactly this list, and the
+of truth for these 26 catalog entries — `Start-AZSCEntraExtraction` runs every enabled entry, and the
 `-PermissionAudit` impact table is built by joining the same list against the collector
 manifests, so the two can no longer drift the way a hand-maintained second copy could.
 
@@ -50,24 +53,30 @@ manifests, so the two can no longer drift the way a hand-maintained second copy 
 | Directory Roles | `/directoryRoles` | `RoleManagement.Read.Directory` | Activated directory roles and their members |
 | PIM Assignments | `/roleManagement/directory/roleAssignments` | `RoleManagement.Read.Directory` | Privileged Identity Management (PIM) role assignments |
 | Conditional Access Policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | Conditional Access policies |
+| Authentication Method Registration Details | `/reports/authenticationMethods/userRegistrationDetails` | `Reports.Read.All` | Per-user MFA registration, capability, and registered methods |
+| Sign-ins (last 30 days) | `/auditLogs/signIns` | `AuditLog.Read.All` | CA report-only impact, legacy authentication, and last-sign-in correlations |
+| Directory Role Assignment Schedules | `/roleManagement/directory/roleAssignmentSchedules` | `RoleAssignmentSchedule.Read.Directory` | Active/permanent PIM schedules |
+| Directory Role Eligibility Schedules | `/roleManagement/directory/roleEligibilitySchedules` | `RoleEligibilitySchedule.Read.Directory` | Eligible PIM schedules |
+| Access Review Definitions | `/identityGovernance/accessReviews/definitions` | `AccessReview.Read.All` | Access-review definitions and instances |
+| Organization | `/organization` | `Directory.Read.All` | Entra Connect sync state and last sync time |
 | Named Locations | `/identity/conditionalAccess/namedLocations` | `Policy.Read.All` | Trusted locations for conditional access |
 | Administrative Units | `/directory/administrativeUnits` | `AdministrativeUnit.Read.All` | Administrative units for delegated management |
 | Domains | `/domains` | `Domain.Read.All` | Verified and unverified domains |
 | Subscribed SKUs | `/subscribedSkus` | `Organization.Read.All` | License SKUs and service plan assignments |
 | Cross-Tenant Access | `/policies/crossTenantAccessPolicy/partners` | `Policy.Read.All` | B2B cross-tenant access settings |
+| External Identities | `/policies/crossTenantAccessPolicy/default` | `Policy.Read.All` | Default inbound/outbound B2B trust posture |
 | Security Policies | `/policies/authorizationPolicy` | `Policy.Read.All` | Tenant authorization policy |
 | Risky Users | `/identityProtection/riskyUsers` | `IdentityRiskyUser.Read.All` | Users flagged by Identity Protection (requires Entra ID P2) |
+| Verified ID Authentication Method | `/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials` | `Policy.Read.AuthenticationMethod` | Tenant Verified ID authentication-method state and target groups |
+| Verified ID Profiles | `/identity/verifiedId/profiles` | `VerifiedId-Profile.Read.All` | Configured Verified ID profiles |
 | Identity Providers ⚠️ | `/identity/identityProviders` | `IdentityProvider.Read.All` | Configured external/social identity providers |
 | Security Defaults ⚠️ | `/policies/identitySecurityDefaultsEnforcementPolicy` | `Policy.Read.All` | Tenant-wide security defaults enforcement state |
 
 ::: warning ⚠️ Collected, normalized, and read by nothing
-`Identity Providers` and `Security Defaults` are queried and land in `EntraResources` like every
-other row here, but no collector consumes either `entra/identityproviders` or
-`entra/securitydefaults` type. The catalog keeps them rather than dropping them so the
-`-PermissionAudit` impact table can say so explicitly — a permission Scout asks for and does not
-need belongs in the report, not in a comment nobody reads. `AuditLog.Read.All` used to be
-requested with the same problem (no collector ever consumed `auditLogs/*`); it has been removed
-from the ask entirely rather than kept as a fourth unconsumed entry.
+`Identity Providers` and `Security Defaults` remain in the catalog as disabled coverage records,
+but Scout does not issue those two requests. The raw query-outcome ledger states that no released
+collector consumes them. `AuditLog.Read.All`, by contrast, now has multiple released consumers and
+is required for the last-30-day correlation datasets.
 :::
 
 ## Required Microsoft Graph Permissions
@@ -93,11 +102,19 @@ which permission unlocks which module:
 | `Application.Read.All` | Applications, Service Principals, Managed Identities |
 | `RoleManagement.Read.Directory` | Directory Roles, PIM Assignments |
 | `Policy.Read.All` | Conditional Access Policies, Named Locations, Security Policies, Cross-Tenant Access, Security Defaults ⚠️ |
+| `Reports.Read.All` | Authentication Method Registration Details |
+| `AuditLog.Read.All` | Sign-ins (last 30 days) |
+| `RoleAssignmentSchedule.Read.Directory` | Directory Role Assignment Schedules |
+| `RoleEligibilitySchedule.Read.Directory` | Directory Role Eligibility Schedules |
+| `AccessReview.Read.All` | Access Review Definitions |
+| `Directory.Read.All` | Organization / hybrid sync state |
 | `AdministrativeUnit.Read.All` | Administrative Units |
 | `Domain.Read.All` | Domains |
 | `Organization.Read.All` | Subscribed SKUs |
 | `IdentityRiskyUser.Read.All` | Risky Users (Identity Protection — also requires Entra ID P2) |
 | `IdentityProvider.Read.All` ⚠️ | Identity Providers |
+| `Policy.Read.AuthenticationMethod` | Verified ID Authentication Method |
+| `VerifiedId-Profile.Read.All` | Verified ID Profiles |
 
 ⚠️ marks the two permissions behind the unconsumed queries — granting them satisfies the
 pre-flight but adds nothing to any report; see the warning above.
@@ -121,7 +138,7 @@ below rather than aborting the run.
 
 ## Data Normalization
 
-All 17 Entra modules produce output in the same normalized shape:
+All collected Entra datasets produce output in the same normalized shape:
 
 | Field | Source |
 |-------|--------|
@@ -138,7 +155,7 @@ This normalization allows ARM and Entra resources to be processed by the same re
 If a single Entra query fails (e.g., insufficient permissions for Conditional Access policies), the module:
 
 - Logs a warning
-- Continues with the remaining 16 queries
+- Continues with the remaining enabled queries
 - Returns partial results rather than failing entirely
 
 If *all* queries fail, the function returns an empty `EntraResources` collection.

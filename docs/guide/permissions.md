@@ -109,21 +109,27 @@ is called out rather than requested:
 | `User.Read.All` | Application or Delegated | Read all user profiles |
 | `Group.Read.All` | Application or Delegated | Read all groups and memberships |
 | `Application.Read.All` | Application or Delegated | Read all app registrations and service principals |
+| `Directory.Read.All` | Application or Delegated | Read organization and hybrid-sync state |
 | `RoleManagement.Read.Directory` | Application or Delegated | Read directory roles and PIM role assignments |
+| `RoleAssignmentSchedule.Read.Directory` | Application or Delegated | Distinguish active/permanent directory-role schedules |
+| `RoleEligibilitySchedule.Read.Directory` | Application or Delegated | Read PIM-eligible directory-role schedules |
 | `Policy.Read.All` | Application or Delegated | Read conditional access policies, named locations, authorization policy, cross-tenant access policy |
+| `Reports.Read.All` | Application or Delegated | Read per-user MFA registration/capability evidence |
+| `AuditLog.Read.All` | Application or Delegated | Read the last 30 days of sign-ins for report-only CA impact, legacy authentication, and privileged-access staleness |
+| `AccessReview.Read.All` | Application or Delegated | Read access-review definitions and instances |
 | `AdministrativeUnit.Read.All` | Application or Delegated | Read administrative units |
 | `Domain.Read.All` | Application or Delegated | Read verified domains |
 | `IdentityRiskyUser.Read.All` | Application or Delegated | Read risky-user signals — **also requires an Entra ID P2 licence**; a P1 tenant with the permission granted still returns nothing |
 | `Policy.Read.AuthenticationMethod` | Application or Delegated | Read the Verified ID authentication-method configuration (AB#7097) |
 | `VerifiedId-Profile.Read.All` | Application or Delegated | Read Verified ID profiles (AB#7097) |
 
-::: warning `IdentityProvider.Read.All` is queried but no collector reads the result — do not grant it
+::: warning `IdentityProvider.Read.All` is catalogued but disabled because no collector reads it
 Scout's pre-flight now derives criticality from which collectors actually consume a permission,
-not from a fixed list. `IdentityProvider.Read.All` still shows up as a probe because the query
-runs, but nothing downstream reads its output, so the pre-flight reports it `Warn` —
+not from a fixed list. `IdentityProvider.Read.All` still shows up as a disabled coverage record,
+but nothing downstream reads its output, so the pre-flight reports it `Warn` —
 "queried but NO collector reads the result. Do not grant it." — rather than asking for it.
-`AuditLog.Read.All` was removed from the ask entirely for the same reason: no collector ever
-consumed sign-in logs.
+Sign-in logs are now consumed by Conditional Access impact, legacy-authentication, emergency-access,
+and privileged-access evidence, so `AuditLog.Read.All` is part of the full Entra scan.
 :::
 
 If you're signing in as a **user** instead of a service principal, the equivalent least-privilege
@@ -134,6 +140,11 @@ as a user or a service principal, don't mix them.
 
 `Directory Readers` + `Security Reader` covers most Entra collectors; the following need
 additional roles of their own, evaluated least-privileged first:
+
+- MFA registration and sign-in-log evidence needs `Reports Reader` and/or `Security Reader` as
+  listed in the live query catalog; delegated OAuth scopes are still required.
+- Active-versus-eligible PIM schedules need `Privileged Role Administrator` or `Global Reader`.
+- Access reviews need `Identity Governance Administrator` or `Global Reader`.
 
 - `CrossTenantAccess` needs `Security Administrator` or `Tenant Governance Administrator` —
   evaluate both before reaching for `Global Reader`, which Microsoft classifies as a privileged
@@ -146,24 +157,30 @@ additional roles of their own, evaluated least-privileged first:
   Administrator` — Microsoft's documented least-privileged role for this endpoint.
 
 `Authentication Policy Administrator` covers both Verified ID collectors, so the full user-auth
-grant is three directory roles: `Directory Readers` + `Security Reader` + `Authentication Policy
-Administrator`, plus one of `Security Administrator` / `Tenant Governance Administrator` for
-`CrossTenantAccess`. See [Assessment Permissions](../assessment/assessment-permissions.md).
+grant depends on the selected evidence surfaces. Run `-PermissionAudit
+-IncludeEntraPermissions` to obtain the exact per-collector impact for the current token rather
+than treating one broad role bundle as universally sufficient. See
+[Assessment Permissions](../assessment/assessment-permissions.md).
 
-::: danger The two Verified ID collectors cannot run when the current delegated token lacks their scopes
-Scout acquires its user-mode Graph token from the same selected Az context used for ARM collection.
-That first-party client's delegated-scope set is fixed by Microsoft — `Get-AzAccessToken` cannot
-request an arbitrary extra scope — and the commonly issued user token does **not** include
-`Policy.Read.AuthenticationMethod` or `VerifiedId-Profile.Read.All` (measured live 2026-08-08;
-the set is `Directory.AccessAsUser.All`, `User.Read.All`, `Group.ReadWrite.All`,
-`Application.ReadWrite.All`, `AuditLog.Read.All` and a few others). The older endpoints keep
-working because `Directory.AccessAsUser.All` covers them; the newer granular surfaces
-(`authenticationMethodsPolicy`, `identity/verifiedId`) do not honour it and return 403 for
-**every** user — a Global Administrator included. **No directory role fixes this.** To populate
-`Identity/VerifiedIDConfiguration` and `Identity/VerifiedIDProfiles`, run Scout as a service
-principal with those two application permissions granted and admin-consented; under user
-sign-in the pre-flight reports them `UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN` and the report marks them
-*Not assessed* (AB#7187).
+## Optional non-Azure identity sources
+
+- **Okta:** `-IncludeOkta` needs a read-only Okta API token or OAuth grant able to read apps and
+  assignments, policies/rules, zones, factors/users, administrator roles, directories/agents,
+  ThreatInsight, and System Log SSO events. Each denied endpoint is isolated and recorded. The
+  token itself is never persisted.
+- **Entra Connect / AD:** `-IncludeOnPremisesIdentity` needs local read access to ADSync cmdlets,
+  the ADSync/Connect Health services, and the ActiveDirectory cmdlets. It grants nothing and makes
+  no changes; missing modules or host access are recorded as Not assessed.
+
+::: warning Complete delegated Entra collection can require a second device-code confirmation
+`Get-AzAccessToken` can select the Microsoft Graph audience but cannot request arbitrary delegated
+scopes. When an interactive user run selects Entra evidence, Scout therefore uses the official
+`Microsoft.Graph.Authentication` module to request the enabled catalog's exact read scopes through
+device code. Bearer and refresh tokens stay in the SDK cache; Scout retains only provider/scope
+metadata keyed by tenant, account, cloud, and scope set. Service principals and managed identities do not use device code;
+they continue to use the selected Az context and must have the equivalent Graph **application**
+permissions admin-consented. Directory roles and OAuth scopes are both enforced—neither one
+substitutes for the other.
 :::
 
 ## Licence tiers — what a permission cannot buy you

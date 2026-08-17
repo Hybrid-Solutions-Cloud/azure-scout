@@ -140,6 +140,16 @@ Describe 'Invoke-AzureScout — Parameter Validation' {
             $cmd = Get-Command Invoke-AzureScout
             $cmd.Parameters['SecurityCenter'].SwitchParameter | Should -BeTrue
         }
+
+        It 'IncludeOkta is an explicit opt-in switch' {
+            $cmd = Get-Command Invoke-AzureScout
+            $cmd.Parameters['IncludeOkta'].SwitchParameter | Should -BeTrue
+        }
+
+        It 'IncludeOnPremisesIdentity is an explicit opt-in switch' {
+            $cmd = Get-Command Invoke-AzureScout
+            $cmd.Parameters['IncludeOnPremisesIdentity'].SwitchParameter | Should -BeTrue
+        }
     }
 
     # ── Key Parameters Exist ──────────────────────────────────────────
@@ -173,6 +183,16 @@ Describe 'Invoke-AzureScout — Parameter Validation' {
         It 'Has ReportDir parameter' {
             $cmd = Get-Command Invoke-AzureScout
             $cmd.Parameters.Keys | Should -Contain 'ReportDir'
+        }
+
+        It 'accepts an Okta URL and only a SecureString token' {
+            $cmd = Get-Command Invoke-AzureScout
+            $cmd.Parameters.Keys | Should -Contain 'OktaOrganizationUrl'
+            $cmd.Parameters['OktaApiToken'].ParameterType | Should -Be ([securestring])
+        }
+
+        It 'rejects incomplete Okta configuration before Azure authentication' {
+            { Invoke-AzureScout -NoWizard -IncludeOkta -OktaOrganizationUrl 'https://example.okta.test' } | Should -Throw '*requires both*'
         }
     }
 }

@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "BillingAccounts",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
+  "Rows": [
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
+    "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Name\tAgreement Type\tAccount Type\tAccount Subtype\tStatus\tHas Read Access\tNotification Contact Configured\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue"
+    ],
+    "WithTags": [
+      "Name\tAgreement Type\tAccount Type\tAccount Subtype\tStatus\tHas Read Access\tNotification Contact Configured\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tTrue"
+    ]
+  }
+}

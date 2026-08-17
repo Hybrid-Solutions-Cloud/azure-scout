@@ -302,6 +302,27 @@ function ConvertTo-ScoutGovernanceResource {
         }
     )
 
+    $pimEligibilityRows = @(
+        foreach ($schedule in (Get-ScoutGovernanceSet 'pimEligibility')) {
+            $scope = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'Scope')
+            if ([string]::IsNullOrWhiteSpace($scope)) {
+                $scope = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'DirectoryScopeId')
+            }
+            [pscustomobject]@{
+                'Subscription'       = Resolve-ScoutGovernanceSubscriptionName $scope
+                'Scope'              = $scope
+                'Principal ID'       = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'PrincipalId')
+                'Principal Type'     = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'PrincipalType')
+                'Role Definition ID' = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'RoleDefinitionId')
+                'Member Type'        = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'MemberType')
+                'Start DateTime'     = Get-ScoutGovernanceValue -InputObject $schedule -Path 'StartDateTime'
+                'End DateTime'       = Get-ScoutGovernanceValue -InputObject $schedule -Path 'EndDateTime'
+                'Status'             = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'Status')
+                'ID'                 = [string](Get-ScoutGovernanceValue -InputObject $schedule -Path 'Id')
+            }
+        }
+    )
+
     @(
         [PSCustomObject]@{
             type       = 'AZSC/Governance/RoleAssignment'
@@ -318,6 +339,10 @@ function ConvertTo-ScoutGovernanceResource {
         [PSCustomObject]@{
             type       = 'AZSC/Governance/Budget'
             properties = @($budgetRows)
+        }
+        [PSCustomObject]@{
+            type       = 'AZSC/Governance/PimEligibility'
+            properties = @($pimEligibilityRows)
         }
     )
 }

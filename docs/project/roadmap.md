@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.14.0 — large tenants finish cleanly
+## Current Release — v3.15.0 — complete discovery evidence
+
+Released 16 August 2026. Raw evidence schema v2 retains each successful parent and child response
+with its source operation, query outcome, and collection-health record. Twenty-nine report collectors
+add Conditional Access impact, MFA and legacy-auth posture, Entra and Azure RBAC PIM, access reviews,
+hybrid identity, optional Okta, billing, Defender, Sentinel and Log Analytics retention, Entra log
+export, and normalized storage exposure. Unavailable or permission-limited evidence stays explicit;
+credentials and Key Vault secret values are never persisted. See CHANGELOG.md and AB#7441.
+
+## Previous Release — v3.14.0 — large tenants finish cleanly
 
 Released 15 August 2026. Raw inventory and discovery evidence now stream atomically instead of
 building whole JSON documents in memory, and indexed collector shaping avoids repeated scans of a

@@ -4,7 +4,7 @@ description: The held legacy worksheet metadata and columns declared by each Azu
 
 # Collector Fields
 
-What each collector can shape internally. **All 285 collectors** declare legacy worksheet
+What each collector can shape internally. **All 314 collectors** declare legacy worksheet
 metadata and an ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -195,24 +195,41 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **StorageContainers** | AzLocal Storage | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Status`, `Path`, `Available Size GB`, `Container Size GB`, `Resource U` |
 | **VirtualMachines** | AzLocal VMs | `Subscription`, `Resource Group`, `Name`, `Location`, `Power State`, `Provisioning State`, `VM Size`, `OS Type`, `Computer Name`, `Processor Count`, `Memory MB`, `Dynamic Memory`, `Dynamic Mem Min MB`, `Dynamic Mem Max MB`, `Data Disk Count`, `Image Reference`, `Network Interfaces`, `Status`, `Resource U` |
 
-## Identity (21 collectors)
+## Identity (38 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
+| **AccessReviews** | Access Reviews | `Display Name`, `Status`, `Scope`, `Recurrence`, `Last Completed`, `Instance Count`, `Resource U` |
 | **AdminUnits** | Admin Units | `Display Name`, `Description`, `Membership Type`, `Membership Rule`, `Visibility`, `Resource U` |
 | **AppRegistrations** | App Registrations | `Display Name`, `Application ID`, `Sign-In Audience`, `Key Credential Expiry`, `Password Credential Expiry`, `API Permission Count`, `Publisher Domain`, `Created DateTime`, `Resource U` |
+| **AuthenticationRegistration** | MFA Registration | `User Principal Name`, `Is Admin`, `MFA Registered`, `MFA Capable`, `Passwordless Capable`, `Methods Registered`, `Resource U` |
+| **AzurePIMEligibility** | Azure PIM Eligibility | `Subscription`, `Scope`, `Principal ID`, `Principal Type`, `Role Definition ID`, `Member Type`, `Start DateTime`, `End DateTime`, `Status`, `Resource U` |
 | **CIAMDirectories** | CIAM Directories | `Subscription`, `Resource Group`, `Name`, `Location`, `Directory Display Name`, `Domain Name`, `Country Code`, `Billing Type`, `Billing Effective Date`, `SKU`, `SKU Tier`, `Provisioning State`, `Retiring Feature`, `Retiring Date`, `Resource U` |
-| **ConditionalAccess** | Conditional Access | `Display Name`, `State`, `Users Included`, `Users Excluded`, `Apps Included`, `Grant Controls`, `Session Controls`, `Created DateTime`, `Modified DateTime`, `Resource U` |
+| **ConditionalAccess** | Conditional Access | `Display Name`, `State`, `Users Included`, `Users Excluded`, `Apps Included`, `Apps Excluded`, `Platforms`, `Locations`, `Grant Controls`, `Grant Controls JSON`, `Session Controls`, `Session Controls JSON`, `Conditions JSON`, `Created DateTime`, `Modified DateTime`, `Resource U` |
+| **ConditionalAccessImpact** | CA Report-Only Impact | `Policy`, `Would Fail`, `Would Succeed`, `Would Interrupt`, `Other Result`, `Observed Sign-ins`, `Window Days`, `Resource U` |
 | **CrossTenantAccess** | Cross-Tenant Access | `Display Name`, `Partner Tenant ID`, `Inbound Trust`, `B2B Collaboration`, `B2B Direct Connect`, `Is Service Provider`, `Resource U` |
 | **DirectoryRoles** | Directory Roles | `Display Name`, `Role Template ID`, `Description`, `Resource U` |
 | **Domains** | Entra Domains | `Domain Name`, `Is Verified`, `Is Default`, `Is Admin Managed`, `Authentication Type`, `Supported Services`, `Resource U` |
+| **EmergencyAccess** | Emergency Access | `Masked User`, `Cloud Only`, `Account Enabled`, `Last Sign-in`, `MFA Registered`, `Methods`, `Roles`, `Enabled Policies Excluding User`, `Evidence Scope`, `Resource U` |
+| **EntraDiagnosticSettings** | Entra Log Export | `Name`, `Log Analytics Workspace ID`, `Storage Account ID`, `Event Hub Authorization Rule ID`, `Event Hub Name`, `Enabled Log Categories` |
 | **ExternalIdentities** | External Identities | `Is Service Default`, `B2B Collaboration Inbound`, `B2B Collaboration Outbound`, `B2B Direct Connect Inbound`, `B2B Direct Connect Outbound`, `Inbound Trust`, `Tenant Restrictions`, `Resource U` |
 | **Groups** | Entra Groups | `Display Name`, `Group Type`, `Security Enabled`, `Mail Enabled`, `Is Role Assignable`, `Dynamic Membership`, `Dynamic Rule`, `On-Premises Sync`, `Description`, `Resource U` |
+| **HybridIdentityLocal** | Hybrid Identity Local | `Evidence Type`, `Name`, `Sync Cycle Enabled`, `Next Sync Policy`, `Staging Mode`, `Connector Type`, `Forest Mode`, `Domain Mode`, `Trust Type`, `Trust Direction` |
+| **HybridIdentityTopology** | Hybrid Identity | `Evidence Type`, `Name`, `Authentication Type`, `On-Premises Sync Enabled`, `Last Sync`, `Issuer URI`, `Passive Sign-In URI`, `Signing Certificate`, `Resource U` |
+| **LegacyAuthentication** | Legacy Authentication | `Masked User`, `Successful Sign-ins`, `Client Apps`, `Last Sign-in`, `Window Days`, `Resource U` |
 | **Licensing** | Licensing | `SKU Part Number`, `SKU ID`, `Consumed Units`, `Prepaid Enabled`, `Prepaid Suspended`, `Prepaid Warning`, `Applies To`, `Capability Status`, `Resource U` |
 | **ManagedIdentities** | Managed Identities | `Display Name`, `Application ID`, `Identity Type`, `Associated Resource`, `Resource U` |
 | **ManagedIds** | Managed Identity | `Subscription`, `Name`, `Location`, `Principal ID`, `Client ID` |
+| **MFARegistrationSummary** | MFA Summary | `Enabled Users`, `Enabled MFA Registered`, `Enabled MFA Percent`, `Admins`, `Admins MFA Registered`, `Admin MFA Percent`, `Phishing Resistant Registered`, `Resource U` |
 | **NamedLocations** | Named Locations | `Display Name`, `Location Type`, `Is Trusted`, `IP Ranges`, `Countries`, `Created DateTime`, `Modified DateTime`, `Resource U` |
+| **OktaAdministrators** | Okta Admin Summary | `Role Type`, `Assignment Count` |
+| **OktaApplicationUsage** | Okta Apps and Directories | `Evidence Type`, `Name`, `Application ID`, `Sign-ons (30 days)`, `Parent Directory ID`, `Configuration` |
+| **OktaAuthenticationPolicies** | Okta Auth Policies | `Evidence Type`, `Name`, `Type`, `Status`, `Priority`, `Conditions`, `Actions / Settings`, `Parent Policy ID` |
+| **OktaFactorEnrollment** | Okta MFA Summary | `Factor Type`, `Enrollment Count`, `Active User Count`, `Active Users Without Any Factor`, `Weak Factor` |
+| **OktaFederation** | Okta Federation | `Evidence Type`, `Name`, `Status`, `Sign-On Mode`, `Provisioning Mode`, `Parent App ID` |
 | **PIMAssignments** | PIM Assignments | `Principal Name`, `Principal Type`, `Role Name`, `Principal ID`, `Role Definition ID`, `Directory Scope`, `Resource U` |
+| **PrivilegedAccess** | Privileged Access | `Role`, `Principal`, `Principal Type`, `Assignment Type`, `Membership`, `Start`, `End`, `Account Enabled`, `Last Sign-in`, `Stale Permanent 90 Days`, `Resource U` |
+| **PrivilegedAccessSummary** | Privileged Summary | `Role`, `Permanent`, `Eligible`, `Active Time-Bound`, `Stale Permanent 90 Days`, `Resource U` |
 | **RiskyUsers** | Risky Users | `User Principal Name`, `User Display Name`, `Risk Level`, `Risk State`, `Risk Detail`, `Risk Last Updated DateTime`, `Is Deleted`, `Is Processing`, `Resource U` |
 | **RoleAssignments** | Role Assignments | `Subscription`, `Scope Type`, `Scope`, `Role Name`, `Role Type`, `Principal ID`, `Principal Type`, `Condition`, `Description`, `Created On`, `Assignment Name`, `Principal Resolution`, `Principal Display Name`, `Resource U` |
 | **SecurityPolicies** | Security Policies | `Display Name`, `Guest User Role ID`, `Allow Invites From`, `Allow Email Subscriptions`, `Allow Email Verified Join`, `Allow SSPR`, `Block MSOL PowerShell`, `Allow Create Apps`, `Allow Create Security Groups`, `Allow Read Other Users`, `Resource U` |
@@ -248,7 +265,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **IoTOperations** | IoT Operations | `Subscription`, `Resource Group`, `Name`, `Location`, `Description`, `Schema Registry Id`, `Identity Type`, `Extended Location`, `Extended Location Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Maps** | Azure Maps | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `SKU Tier`, `Provisioning State`, `Unique Id`, `Local Auth Disabled`, `Storage Units`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Management (19 collectors)
+## Management (23 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -258,6 +275,10 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **AutomationAccounts** | Runbooks | `Subscription`, `Resource Group`, `Automation Account Name`, `Retiring Feature`, `Retiring Date`, `Automation Account State`, `Automation Account SKU`, `Automation Account Created Time`, `Location`, `Runbook Name`, `Last Modified Time`, `Runbook State`, `Runbook Type`, `Runbook Description`, `Resource U` |
 | **Backup** | Backup | `Subscription`, `Resource Group`, `Backup Policy Name`, `Location`, `Datasource Type`, `Protected Items Count`, `Backup Compression`, `SQL Compression`, `Policy Type`, `Protected Item Type`, `Protected Item`, `Vault`, `Retention Period`, `Backup Frequency`, `Health Status`, `Protection Status`, `Archive Enabled`, `Last Backup Status`, `Last Backup Time`, `Days Since Last Backup`, `Last Recovery Point`, `Latest Recovery Point (Secondary Region)`, `Protection State`, `Protection State (Secondary Region)`, `Soft Delete Retention Period`, `Resource U` |
 | **BackupInstances** | Backup Instances | `Subscription`, `Resource Group`, `Backup Vault`, `Instance`, `Friendly Name`, `Datasource Type`, `Protected Resource`, `Protection State`, `Protection Status`, `Policy`, `Provisioning State`, `Resource U` |
+| **BillingAccounts** | Billing Accounts | `Name`, `Agreement Type`, `Account Type`, `Account Subtype`, `Status`, `Has Read Access`, `Notification Contact Configured` |
+| **BillingBenefits** | Billing Benefits | `Benefit Type`, `Name`, `State`, `Term`, `Expiry`, `Billing Scope` |
+| **BillingHierarchy** | Billing Hierarchy | `Hierarchy Type`, `Name`, `Status`, `Parent Department`, `Cost Center`, `Invoice Email Enabled` |
+| **BillingRoles** | Billing Roles | `Evidence Type`, `Role Name`, `Principal Type`, `Principal ID`, `Role Definition ID`, `Scope` |
 | **Budgets** | Budgets | `Subscription`, `Name`, `Category`, `Amount`, `Currency`, `Time Grain`, `Start Date`, `End Date`, `Current Spend`, `Forecast Spend`, `Budget Used %`, `Alerts Configured`, `Resource U` |
 | **CustomRoleDefinitions** | Custom Roles | `Role Name`, `Description`, `Role Type`, `Is Custom`, `Assignable Scopes`, `Actions`, `Not Actions`, `Data Actions`, `Not Data Actions`, `Created On`, `Updated On`, `Created By`, `Updated By`, `Resource U` |
 | **DefenderEasmWorkspaces** | Defender EASM | `Subscription`, `Resource Group`, `Workspace Name`, `Location`, `Data Plane Endpoint`, `Provisioning State`, `Resource U` |
@@ -283,7 +304,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **DataBox** | Data Box Jobs | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Job Status`, `Transfer Type`, `Delivery Type`, `Start Time`, `Cancellation Reason`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **StackEdge** | Stack Edge Devices | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Device Status`, `Device Type`, `Model`, `Software Version`, `Serial Number`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Monitor (24 collectors)
+## Monitor (25 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -311,6 +332,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **SmartDetectorAlertRules** | Smart Detector Alerts | `Subscription`, `Resource Group`, `Alert Rule Name`, `Location`, `State`, `Severity`, `Frequency`, `Detector ID`, `Detector Name`, `Target Scope`, `Action Groups`, `Throttling Duration`, `Resource U` |
 | **SubscriptionDiagnosticSettings** | Subscription Diagnostics | `Subscription`, `Diagnostic Setting Name`, `Enabled Log Categories`, `Categories Enabled`, `Destinations`, `Log Analytics Workspace`, `Storage Account`, `Event Hub`, `Partner Solution`, `Resource U` |
 | **Workspaces** | Workspaces | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Retiring Feature`, `Retiring Date`, `Retention Days`, `Daily Cap (GB)`, `Data Ingestion From Public Networks`, `Queries From Public Networks`, `Created Time`, `Resource U` |
+| **WorkspaceTableRetention** | Workspace Table Retention | `Workspace`, `Table`, `Plan`, `Retention Days`, `Total Retention Days`, `Archive Retention Days`, `Resource U` |
 
 ## Networking (25 collectors)
 
@@ -342,7 +364,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **VirtualWAN** | Virtual WAN | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Allow BranchToBranch Traffic`, `Allow VnetToVnet Traffic`, `Disable Vpn Encryption`, `HUB Name`, `HUB Location`, `HUB Address Prefix`, `HUB Gateway Preference`, `HUB Router ASN`, `HUB Router IPs`, `Virtual Site Name`, `Device Vendor`, `Device Vendor IpAddress`, `Link Provider name`, `Link Speed in Mbps`, `Virtual Site Private Address Space`, `Resource U` |
 | **vNETPeering** | Peering | `Subscription`, `Resource Group`, `Location`, `Zone`, `Peering Name`, `VNET Name`, `Address Space`, `Peering VNet`, `Peering Address Space`, `Peering State`, `Peering Use Remote Gateways`, `Peering Allow Gateway Transit`, `Peering Allow Forwarded Traffic`, `Peering Do Not Verify Remote Gateways`, `Peering Allow Virtual NetworkAccess`, `Resource U` |
 
-## Security (18 collectors)
+## Security (24 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -355,17 +377,23 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **DdosProtectionPlans** | DDoS Protection Plans | `Subscription`, `Resource Group`, `Name`, `Location`, `Provisioning State`, `Protected VNETs`, `Public IP Count`, `Resource GUID`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **DefenderAlerts** | Defender Alerts | `Subscription`, `Alert Name`, `Alert Type`, `Severity`, `Status`, `Time Generated (UTC)`, `Resource Group`, `Affected Resources`, `Description`, `Intent`, `Tactics (MITRE ATT&CK)`, `Remediation Steps`, `Confidence Level`, `Portal Link`, `Resource U` |
 | **DefenderAssessments** | Defender Assessments | `Subscription`, `Assessment Name`, `Category`, `Severity`, `Status`, `Resource Name`, `Resource Type`, `Resource Group`, `Remediation`, `Implementation Effort`, `User Impact`, `Threats`, `Compliance Standards`, `Portal Link`, `Resource U` |
+| **DefenderAttackPaths** | Defender Attack Paths | `Subscription ID`, `Display Name`, `Attack Path Type`, `Description`, `Potential Impact`, `Risk Categories`, `Entry Point`, `Target`, `Graph Components`, `Remediation`, `Resource U` |
 | **DefenderPricing** | Defender Pricing | `Subscription`, `Plan Name`, `Plan ID`, `Pricing Tier`, `Enabled`, `Extensions`, `Deprecated`, `Replaced By`, `Free Trial Remaining Days`, `Portal Link`, `Resource U` |
+| **DefenderRegulatoryCompliance** | Defender Compliance | `Subscription ID`, `Standard`, `State`, `Passed Controls`, `Failed Controls`, `Skipped Controls`, `Unsupported Controls`, `Pass Percent`, `Resource U` |
+| **DefenderScoreControls** | Defender Score Controls | `Subscription ID`, `Control`, `Current Score`, `Max Score`, `Percentage`, `Healthy Resources`, `Unhealthy Resources`, `Not Applicable`, `Weight`, `Resource U` |
 | **DefenderSecureScore** | Defender Secure Score | `Subscription`, `Secure Score Name`, `Current Score`, `Max Score`, `Score Percentage`, `Healthy Resources`, `Unhealthy Resources`, `Not Applicable Resources`, `Weight`, `Portal Link`, `Resource U` |
+| **DefenderUnhealthyRecommendations** | Defender Recommendations | `Recommendation`, `Severity`, `Affected Resources`, `Subscriptions`, `Potential Score Impact`, `Score Impact Status`, `Secure Score Controls`, `Resource U` |
 | **EntraDomainServices** | Entra Domain Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Domain Name`, `SKU`, `Provisioning State`, `Sync Scope`, `TLS v1 Enabled`, `NTLM v1 Enabled`, `Kerberos RC4`, `LDAPS Enabled`, `LDAPS External`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **KeyVaultKeys** | Key Vault Keys | `Subscription`, `Resource Group`, `Key Vault`, `Key`, `Key Type`, `Key Size`, `Curve`, `Enabled`, `Expires`, `Days To Expiry`, `Expiry Status`, `Rotation Policy`, `Resource U` |
 | **KeyVaultSecrets** | Key Vault Secrets | `Subscription`, `Resource Group`, `Key Vault`, `Secret`, `Content Type`, `Kind`, `Enabled`, `Expires`, `Days To Expiry`, `Expiry Status`, `Not Before`, `Created`, `Updated`, `Resource U` |
 | **ManagedHSM** | Managed HSM | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `SKU Family`, `Provisioning State`, `HSM URI`, `Public Network Access`, `Purge Protection`, `Soft Delete Days`, `Security Domain`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Sentinel** | Sentinel | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Workspace`, `Provisioning State`, `Customer Managed Key`, `Plan`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **SentinelDataConnectors** | Sentinel Connectors | `Workspace`, `Connector`, `Kind`, `Tenant ID`, `Subscription ID`, `Data Types`, `Resource U` |
+| **SentinelIngestion** | Sentinel Ingestion | `Workspace`, `Table`, `Last Record`, `Record Count 30 Days`, `Resource U` |
 | **Vault** | Key Vaults | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `SKU Family`, `SKU`, `Vault Uri`, `Public Network Access`, `Enable RBAC`, `Enable Soft Delete`, `Enable for Disk Encryption`, `Soft Delete Retention Days`, `Access Policy ObjectID`, `Certificate Permissions`, `Key Permissions`, `Secret Permissions`, `Resource U` |
 | **WafPolicies** | WAF Policies | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `SKU`, `Provisioning State`, `Enabled State`, `Mode`, `Managed Rule Sets`, `Custom Rules`, `Associations`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 
-## Storage (16 collectors)
+## Storage (17 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -382,6 +410,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **StorageAccounts** | Storage Accounts | `Subscription`, `Resource Group`, `Name`, `Location`, `Zone`, `SKU`, `Tier`, `Storage Account Kind`, `Retiring Feature`, `Retiring Date`, `Secure Transfer Required`, `Allow Blob Anonymous Access`, `Minimum TLS Version`, `Microsoft Entra Authorization`, `Allow Storage Account Key Access`, `SFTP Enabled`, `Blob Soft Delete Days`, `Container Soft Delete Days`, `File Share Soft Delete Days`, `Hierarchical Namespace`, `NFSv3 Enabled`, `Large File Shares`, `Access Tier`, `Allow Cross Tenant Replication`, `Infrastructure Encryption Enabled`, `Public Network Access`, `Private Endpoints`, `Direct Access Resources`, `Virtual Networks`, `Subnet`, `Direct Access IPs`, `Firewall Exceptions`, `Primary Location`, `Status Of Primary Location`, `Secondary Location`, `Status Of Secondary Location`, `Created Time`, `Resource U` |
 | **StorageActions** | Storage Actions | `Subscription`, `Resource Group`, `Name`, `Location`, `Enabled`, `Description`, `Provisioning State`, `Identity Type`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **StorageDiscovery** | Storage Discovery | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `Workspace Roots`, `Scope Count`, `Description`, `Retiring Feature`, `Retiring Date`, `Resource U` |
+| **StorageExposure** | Storage Exposure | `Subscription ID`, `Resource Group`, `Storage Account`, `Managed By`, `Public Network Access (Configured)`, `Public Network Access (Effective)`, `Network Default Action (Configured)`, `Network Default Action (Effective)`, `Allow Blob Public Access (Configured)`, `Allow Blob Public Access (Effective)`, `Allow Shared Key Access (Configured)`, `Allow Shared Key Access (Effective)`, `Minimum TLS Version`, `Private Endpoint Count`, `Private Endpoint IDs`, `Exposure`, `Verdict` |
 | **StorageMover** | Storage Mover | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Agent Status`, `Description`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **StorageQueues** | Storage Queues | `Subscription`, `Resource Group`, `Storage Account`, `Queue`, `Metadata Keys`, `Resource U` |
 | **StorageSync** | Storage Sync Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Provisioning State`, `Incoming Traffic`, `Server Name`, `Server OS`, `Agent Version`, `Server Status`, `Retiring Feature`, `Retiring Date`, `Resource U` |

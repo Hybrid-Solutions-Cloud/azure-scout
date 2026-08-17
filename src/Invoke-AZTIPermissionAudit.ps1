@@ -150,6 +150,14 @@ function Get-ScoutGraphTokenClaim {
     [OutputType([object])]
     param([Parameter(Mandatory)][hashtable]$Headers)
 
+    if ($Headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication') {
+        return [PSCustomObject]@{
+            IsDelegated = $true
+            Scopes      = @("$($Headers['X-AzureScout-GraphScopes'])" -split '\s+' | Where-Object { $_ })
+            AppRoles    = @()
+        }
+    }
+
     try {
         $jwt = "$($Headers['Authorization'])" -replace '^Bearer\s+', ''
         $payload = $jwt.Split('.')[1].Replace('-', '+').Replace('_', '/')

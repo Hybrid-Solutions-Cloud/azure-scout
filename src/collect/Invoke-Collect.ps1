@@ -2708,7 +2708,8 @@ resources
             $rawArgs = @{
                 IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true
                 IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
-                IncludeUpdateManagerResources = $true
+                IncludeUpdateManagerResources = $true; CollectBillingEvidence = $true
+                CollectEntraDiagnosticSettings = $true
             }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             # AB#6803 -- -IncludeAzureLocalArm turns on BOTH switches this needs:
@@ -3317,10 +3318,11 @@ resources
     $defenderAlerts = @()
     $defenderAssessments = @()
     $defenderSecureScores = @()
+    $defenderRegulatoryStandards = @()
     $policyRemoteSubscriptions = @()
     $remoteSweepResults = @()
     if ($IncludePolicyCompliance) {
-        $policyDatasets = @('PolicyComplianceStates', 'DefenderAlerts', 'DefenderAssessments', 'DefenderSecureScores')
+        $policyDatasets = @('PolicyComplianceStates', 'DefenderAlerts', 'DefenderAssessments', 'DefenderSecureScores', 'DefenderRegulatoryStandards')
         $policyRemoteSubscriptions = @(Get-ScoutMissingSweepSubscriptions -Datasets $policyDatasets)
         if ($policyRemoteSubscriptions.Count -gt 0 -and -not $OfflineFromInventory) {
             try {
@@ -3338,6 +3340,7 @@ resources
         $defenderAlerts = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAlerts' -RemoteSweeps $remoteSweepResults)
         $defenderAssessments = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAssessments' -RemoteSweeps $remoteSweepResults)
         $defenderSecureScores = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderSecureScores' -RemoteSweeps $remoteSweepResults)
+        $defenderRegulatoryStandards = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderRegulatoryStandards' -RemoteSweeps $remoteSweepResults)
     }
 
     # DefenderPricing in the inventory sweep is the Az.Security representation of the same
@@ -3610,6 +3613,7 @@ resources
             defenderAlerts = $defenderAlerts
             defenderAssessments = $defenderAssessments
             defenderSecureScores = $defenderSecureScores
+            defenderRegulatoryStandards = $defenderRegulatoryStandards
         }
         governance    = [pscustomobject]@{
             managementGroups = @()

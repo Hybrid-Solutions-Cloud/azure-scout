@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "AzurePIMEligibility",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>",
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>",
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>",
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>",
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>",
+    "End DateTime=<null>|ID=<null>|Member Type=<null>|Principal ID=<null>|Principal Type=<null>|Resource U=j:1|Role Definition ID=<null>|Scope=<null>|Start DateTime=<null>|Status=<null>|Subscription=<null>"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tScope\tPrincipal ID\tPrincipal Type\tRole Definition ID\tMember Type\tStart DateTime\tEnd DateTime\tStatus\tResource U\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1"
+    ],
+    "WithTags": [
+      "Subscription\tScope\tPrincipal ID\tPrincipal Type\tRole Definition ID\tMember Type\tStart DateTime\tEnd DateTime\tStatus\tResource U\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1\n\t\t\t\t\t\t\t\t\t1"
+    ]
+  }
+}
