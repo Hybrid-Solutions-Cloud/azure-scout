@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Security",
+  "Name": "SentinelIngestion",
+  "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
+  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1a-1/SentinelIngestion/sentinelingestion-t1a-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1b-1/SentinelIngestion/sentinelingestion-t1b-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1c-1/SentinelIngestion/sentinelingestion-t1c-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1d-1/SentinelIngestion/sentinelingestion-t1d-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1e-1/SentinelIngestion/sentinelingestion-t1e-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1f-1/SentinelIngestion/sentinelingestion-t1f-2|Last Record=<null>|Record Count 30 Days=<null>|Resource U=j:1|Table=<null>|Workspace=<null>"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Workspace\tTable\tLast Record\tRecord Count 30 Days\tResource U\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1"
+    ],
+    "WithTags": [
+      "Workspace\tTable\tLast Record\tRecord Count 30 Days\tResource U\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1\n\t\t\t\t1"
+    ]
+  }
+}

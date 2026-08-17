@@ -7,7 +7,8 @@ $ErrorActionPreference = 'Stop'
     Execute a Microsoft Graph REST API request with automatic pagination and throttle handling.
 
 .DESCRIPTION
-    Wrapper around Invoke-RestMethod for Microsoft Graph API calls. Automatically:
+    Wrapper around Invoke-RestMethod or Microsoft.Graph.Authentication for Microsoft Graph API
+    calls. Automatically:
       - Obtains a bearer token via Get-AZSCGraphToken
       - Builds the full URL from a relative path (e.g. /v1.0/users)
       - Follows @odata.nextLink for multi-page responses
@@ -70,6 +71,7 @@ function Invoke-AZSCGraphRequest {
         [int]$MaxRetries = 5,
 
         [string]$TenantID,
+        [string[]]$RequiredScopes = @(),
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment,
 
@@ -110,13 +112,19 @@ function Invoke-AZSCGraphRequest {
     $currentUri = $fullUri
 
     do {
-        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment
+        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment -Scopes $RequiredScopes
 
+        $useMgGraph = ($headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication')
         $requestParams = @{
             Uri         = $currentUri
             Method      = $Method
-            Headers     = $headers
             ErrorAction = 'Stop'
+        }
+        if ($useMgGraph) {
+            $requestParams['OutputType'] = 'PSObject'
+        }
+        else {
+            $requestParams['Headers'] = $headers
         }
 
         if ($Body) {
@@ -134,7 +142,12 @@ function Invoke-AZSCGraphRequest {
 
         while ($retryCount -le $MaxRetries) {
             try {
-                $response = Invoke-RestMethod @requestParams
+                $response = if ($useMgGraph) {
+                    Invoke-MgGraphRequest @requestParams
+                }
+                else {
+                    Invoke-RestMethod @requestParams
+                }
                 break
             }
             catch {
@@ -176,8 +189,16 @@ function Invoke-AZSCGraphRequest {
                     Start-Sleep -Seconds $retryAfter
 
                     # Refresh token in case it expired during wait
-                    $headers = Get-AZSCGraphToken -TenantID $TenantID
-                    $requestParams['Headers'] = $headers
+                    $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment -Scopes $RequiredScopes
+                    $useMgGraph = ($headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication')
+                    if ($useMgGraph) {
+                        $requestParams.Remove('Headers')
+                        $requestParams['OutputType'] = 'PSObject'
+                    }
+                    else {
+                        $requestParams.Remove('OutputType')
+                        $requestParams['Headers'] = $headers
+                    }
                 }
                 else {
                     # Non-retryable error — propagate

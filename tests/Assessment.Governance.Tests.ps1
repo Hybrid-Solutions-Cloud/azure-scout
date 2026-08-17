@@ -30,10 +30,10 @@ BeforeAll {
 
     # Stub Invoke-AzRestMethod so Import-Governance's Get-Command probe finds it
     # (skipping the Az.Accounts import) and Pester can mock it below.
-    if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
-        function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+    # Replace any prior test-file shadow unconditionally. Full-suite discovery shares a process,
+    # and retaining an older/incomplete signature makes Pester's mock lose the $Path argument.
+    function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([string] $Method, [string] $Path) }
-    }
 
     # Deterministic synthetic governance dataset used across the collector +
     # rule-scoring tests. Six policy assignments (all Default enforcement, all

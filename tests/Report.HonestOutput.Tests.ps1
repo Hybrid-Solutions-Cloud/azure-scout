@@ -52,6 +52,9 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
             Security           = @()
             Retirements        = @()
             EntraResources     = @([pscustomobject]@{ id = 'u1'; TYPE = 'entra/users' })
+            EntraQueryOutcomes = @([pscustomobject]@{ Source = 'Microsoft Graph'; Name = 'Users'; Status = 'Success'; Count = 1; Uri = 'https://graph.microsoft.com/v1.0/users' })
+            CollectionHealth   = @([pscustomobject]@{ Source = 'ARM'; Dataset = 'Example'; Status = 'NotAssessed'; Reason = 'fixture' })
+            SourceOperations   = @([pscustomobject]@{ Source = 'Azure Resource Graph'; Dataset = 'Resources'; Status = 'Success'; Count = 3 })
         }
 
         $script:DumpPath = Export-ScoutRawInventoryDump -ExtractionData $script:Extraction -DefaultPath $script:Work
@@ -89,11 +92,14 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
     It 'carries the other extraction sets too' {
         @($script:Dump.ResourceContainers).Count | Should -Be 1
         @($script:Dump.EntraResources).Count     | Should -Be 1
+        @($script:Dump.EntraQueryOutcomes).Count | Should -Be 1
+        @($script:Dump.CollectionHealth).Count   | Should -Be 1
+        @($script:Dump.SourceOperations).Count   | Should -Be 1
         $script:Dump.Counts.Resources            | Should -Be 3
     }
 
     It 'declares a schema so a later run can be diffed against it' {
-        $script:Dump.Schema | Should -Be 'azure-scout/raw-inventory/v1'
+        $script:Dump.Schema | Should -Be 'azure-scout/raw-inventory/v2'
     }
 
     It 'survives an extraction shape that omits half its properties' {
@@ -229,8 +235,10 @@ Describe 'AB#6765 — criticality is derived, not listed' {
         @($script:Impact.Queries) | Should -Not -Contain 'Security Defaults'
     }
 
-    It 'no longer checks AuditLog.Read.All, which no collector has ever consumed' {
-        @($script:Impact.Permission) | Should -Not -Contain 'AuditLog.Read.All'
+    It 'requests AuditLog.Read.All now that retained sign-in evidence is consumed' {
+        $auditImpact = @($script:Impact | Where-Object Permission -eq 'AuditLog.Read.All')[0]
+        $auditImpact.IsConsumed | Should -BeTrue
+        $auditImpact.Queries | Should -Contain 'Sign-ins (Last 30 Days)'
     }
 
     It 'has no hardcoded critical list left in the pre-flight' {
@@ -291,7 +299,7 @@ Describe 'AB#6765 — the query catalog is the single source both sides read' {
         }
     }
 
-    It 'still covers all twenty queries the extraction used to inline' {
-        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 20
+    It 'covers the original queries plus evidence-complete identity datasets' {
+        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 26
     }
 }

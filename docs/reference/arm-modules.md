@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **285 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **314 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -213,26 +213,43 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` |
 
-### Identity (21 modules)
+### Identity (38 modules)
 
 Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.
 
 | Module | Resource Type |
 |--------|---------------|
+| AccessReviews | `entra/accessreviewdefinitions` |
 | AdminUnits | `entra/administrativeunits` |
 | AppRegistrations | `entra/applications` |
+| AuthenticationRegistration | `entra/authenticationmethodregistrations` |
+| AzurePIMEligibility | `AZSC/Governance/PimEligibility` |
 | CIAMDirectories | `microsoft.azureactivedirectory/ciamdirectories` |
 | ConditionalAccess | `entra/conditionalaccesspolicies` |
+| ConditionalAccessImpact | `entra/conditionalaccessreportonlyimpact` |
 | CrossTenantAccess | `entra/crosstenantaccess` |
 | DirectoryRoles | `entra/directoryroles` |
 | Domains | `entra/domains` |
+| EmergencyAccess | `entra/breakglasscandidates` |
+| EntraDiagnosticSettings | `AZSC/Entra/DiagnosticSettings` |
 | ExternalIdentities | `entra/externalidentities` |
 | Groups | `entra/groups` |
+| HybridIdentityLocal | `AZSC/HybridIdentity/EntraConnectScheduler` · `AZSC/HybridIdentity/EntraConnectConnectors` · `AZSC/HybridIdentity/EntraConnectGlobalSettings` · `AZSC/HybridIdentity/EntraConnectService` · `AZSC/HybridIdentity/EntraConnectHealthAgents` · `AZSC/HybridIdentity/ActiveDirectoryForest` · `AZSC/HybridIdentity/ActiveDirectoryDomain` · `AZSC/HybridIdentity/ActiveDirectoryTrusts` |
+| HybridIdentityTopology | `entra/organization` · `entra/domains` · `entra/domainfederationconfigurations` |
+| LegacyAuthentication | `entra/legacyauthsummary` |
 | Licensing | `entra/subscribedskus` |
 | ManagedIdentities | `entra/managedidentities` |
 | ManagedIds | `Microsoft.ManagedIdentity/userAssignedIdentities` |
+| MFARegistrationSummary | `entra/mfaregistrationsummary` |
 | NamedLocations | `entra/namedlocations` |
+| OktaAdministrators | `AZSC/Okta/AdminRoleSummary` |
+| OktaApplicationUsage | `AZSC/Okta/ApplicationUsageSummary` · `AZSC/Okta/Directories` · `AZSC/Okta/DirectoryAgents` · `AZSC/Okta/DefaultUserSchema` |
+| OktaAuthenticationPolicies | `AZSC/Okta/Policies` · `AZSC/Okta/PolicyRules` · `AZSC/Okta/NetworkZones` · `AZSC/Okta/ThreatInsight` |
+| OktaFactorEnrollment | `AZSC/Okta/FactorEnrollmentSummary` |
+| OktaFederation | `AZSC/Okta/Applications` · `AZSC/Okta/MicrosoftAppGroupAssignments` · `AZSC/Okta/MicrosoftAppUserAssignments` · `AZSC/Okta/IdentityProviders` |
 | PIMAssignments | `entra/pimassignments` |
+| PrivilegedAccess | `entra/privilegedassignments` |
+| PrivilegedAccessSummary | `entra/privilegedassignmentsummary` |
 | RiskyUsers | `entra/riskyusers` |
 | RoleAssignments | `AZSC/Governance/RoleAssignment` |
 | SecurityPolicies | `entra/securitypolicies` |
@@ -272,7 +289,7 @@ IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defe
 | IoTOperations | `microsoft.iotoperations/instances` |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` |
 
-### Management (19 modules)
+### Management (23 modules)
 
 Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors.
 
@@ -284,6 +301,10 @@ Subscriptions, management groups, policy, backup, automation, Advisor, and the A
 | AutomationAccounts | `microsoft.automation/automationaccounts` |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` |
+| BillingAccounts | `AZSC/Billing/BillingAccounts` |
+| BillingBenefits | `AZSC/Billing/ReservationOrders` · `AZSC/Billing/SavingsPlanOrders` |
+| BillingHierarchy | `AZSC/Billing/BillingProfiles` · `AZSC/Billing/InvoiceSections` · `AZSC/Billing/Departments` · `AZSC/Billing/EnrollmentAccounts` |
+| BillingRoles | `AZSC/Billing/BillingRoleAssignments` · `AZSC/Billing/BillingRoleDefinitions` · `AZSC/Billing/SubscriptionCreationPermissions` |
 | Budgets | `AZSC/Governance/Budget` |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` |
 | DefenderEasmWorkspaces | `microsoft.easm/workspaces` |
@@ -311,7 +332,7 @@ Azure Migrate projects, assessments and discovery sites; Database Migration Serv
 | DataBox | `microsoft.databox/jobs` |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` |
 
-### Monitor (24 modules)
+### Monitor (25 modules)
 
 Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.
 
@@ -341,6 +362,7 @@ Alert rules, Application Insights, data collection rules, diagnostic settings, a
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` |
 | Workspaces | `microsoft.operationalinsights/workspaces` |
+| WorkspaceTableRetention | `AZSC/ARMChild/LAWorkspaceTables` |
 
 ### Networking (25 modules)
 
@@ -374,7 +396,7 @@ Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion,
 | VirtualWAN | `microsoft.network/virtualwans` |
 | vNETPeering | `microsoft.network/virtualnetworks` *(filtered)* |
 
-### Security (18 modules)
+### Security (24 modules)
 
 Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
 
@@ -389,17 +411,23 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | DdosProtectionPlans | `microsoft.network/ddosprotectionplans` |
 | DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` |
 | DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderAttackPaths | `microsoft.security/attackpaths` |
 | DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderRegulatoryCompliance | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderScoreControls | `AZSC/Subscription/SecurityPolicySweep` |
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` |
+| DefenderUnhealthyRecommendations | `AZSC/Derived/DefenderUnhealthyRecommendation` |
 | EntraDomainServices | `microsoft.aad/domainservices` |
 | KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` |
 | KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` |
 | ManagedHSM | `microsoft.keyvault/managedhsms` |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` *(filtered)* |
+| SentinelDataConnectors | `AZSC/ARMChild/SentinelDataConnectors` |
+| SentinelIngestion | `AZSC/ARMChild/SentinelIngestion` |
 | Vault | `microsoft.keyvault/vaults` |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` |
 
-### Storage (16 modules)
+### Storage (17 modules)
 
 Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.
 
@@ -418,6 +446,7 @@ Storage accounts and their containers, shares and lifecycle policies; NetApp Fil
 | StorageAccounts | `microsoft.storage/storageaccounts` |
 | StorageActions | `microsoft.storageactions/storagetasks` |
 | StorageDiscovery | `microsoft.storagediscovery/storagediscoveryworkspaces` |
+| StorageExposure | `AZSC/Derived/StorageExposure` |
 | StorageMover | `microsoft.storagemover/storagemovers` · `microsoft.storagemover/storagemovers/agents` · `microsoft.storagemover/storagemovers/endpoints` · `microsoft.storagemover/storagemovers/projects` |
 | StorageQueues | `AZSC/ARMChild/StorageQueues` |
 | StorageSync | `microsoft.storagesync/storagesyncservices` · `microsoft.storagesync/storagesyncservices/syncgroups` · `microsoft.storagesync/storagesyncservices/registeredservers` |

@@ -29,17 +29,17 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DevOps | 19 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 5 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
 | Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
-| Identity | 21 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
+| Identity | 38 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 8 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
-| Management | 19 | Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors. |
+| Management | 23 | Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
-| Monitor | 24 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
+| Monitor | 25 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 25 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
-| Security | 18 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
-| Storage | 16 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
+| Security | 24 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
+| Storage | 17 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **285** | across all 18 of Microsoft's published service categories |
+| **Total** | **314** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (31 modules)
 
@@ -206,24 +206,41 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` | AzLocal VMs |
 
-## Identity Category (21 modules)
+## Identity Category (38 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
+| AccessReviews | `entra/accessreviewdefinitions` | Access Reviews |
 | AdminUnits | `entra/administrativeunits` | Admin Units |
 | AppRegistrations | `entra/applications` | App Registrations |
+| AuthenticationRegistration | `entra/authenticationmethodregistrations` | MFA Registration |
+| AzurePIMEligibility | `AZSC/Governance/PimEligibility` | Azure PIM Eligibility |
 | CIAMDirectories | `microsoft.azureactivedirectory/ciamdirectories` | CIAM Directories |
 | ConditionalAccess | `entra/conditionalaccesspolicies` | Conditional Access |
+| ConditionalAccessImpact | `entra/conditionalaccessreportonlyimpact` | CA Report-Only Impact |
 | CrossTenantAccess | `entra/crosstenantaccess` | Cross-Tenant Access |
 | DirectoryRoles | `entra/directoryroles` | Directory Roles |
 | Domains | `entra/domains` | Entra Domains |
+| EmergencyAccess | `entra/breakglasscandidates` | Emergency Access |
+| EntraDiagnosticSettings | `AZSC/Entra/DiagnosticSettings` | Entra Log Export |
 | ExternalIdentities | `entra/externalidentities` | External Identities |
 | Groups | `entra/groups` | Entra Groups |
+| HybridIdentityLocal | `AZSC/HybridIdentity/EntraConnectScheduler` · `AZSC/HybridIdentity/EntraConnectConnectors` · `AZSC/HybridIdentity/EntraConnectGlobalSettings` · `AZSC/HybridIdentity/EntraConnectService` · `AZSC/HybridIdentity/EntraConnectHealthAgents` · `AZSC/HybridIdentity/ActiveDirectoryForest` · `AZSC/HybridIdentity/ActiveDirectoryDomain` · `AZSC/HybridIdentity/ActiveDirectoryTrusts` | Hybrid Identity Local |
+| HybridIdentityTopology | `entra/organization` · `entra/domains` · `entra/domainfederationconfigurations` | Hybrid Identity |
+| LegacyAuthentication | `entra/legacyauthsummary` | Legacy Authentication |
 | Licensing | `entra/subscribedskus` | Licensing |
 | ManagedIdentities | `entra/managedidentities` | Managed Identities |
 | ManagedIds | `Microsoft.ManagedIdentity/userAssignedIdentities` | Managed Identity |
+| MFARegistrationSummary | `entra/mfaregistrationsummary` | MFA Summary |
 | NamedLocations | `entra/namedlocations` | Named Locations |
+| OktaAdministrators | `AZSC/Okta/AdminRoleSummary` | Okta Admin Summary |
+| OktaApplicationUsage | `AZSC/Okta/ApplicationUsageSummary` · `AZSC/Okta/Directories` · `AZSC/Okta/DirectoryAgents` · `AZSC/Okta/DefaultUserSchema` | Okta Apps and Directories |
+| OktaAuthenticationPolicies | `AZSC/Okta/Policies` · `AZSC/Okta/PolicyRules` · `AZSC/Okta/NetworkZones` · `AZSC/Okta/ThreatInsight` | Okta Auth Policies |
+| OktaFactorEnrollment | `AZSC/Okta/FactorEnrollmentSummary` | Okta MFA Summary |
+| OktaFederation | `AZSC/Okta/Applications` · `AZSC/Okta/MicrosoftAppGroupAssignments` · `AZSC/Okta/MicrosoftAppUserAssignments` · `AZSC/Okta/IdentityProviders` | Okta Federation |
 | PIMAssignments | `entra/pimassignments` | PIM Assignments |
+| PrivilegedAccess | `entra/privilegedassignments` | Privileged Access |
+| PrivilegedAccessSummary | `entra/privilegedassignmentsummary` | Privileged Summary |
 | RiskyUsers | `entra/riskyusers` | Risky Users |
 | RoleAssignments | `AZSC/Governance/RoleAssignment` | Role Assignments |
 | SecurityPolicies | `entra/securitypolicies` | Security Policies |
@@ -259,7 +276,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | IoTOperations | `microsoft.iotoperations/instances` | IoT Operations |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` | Azure Maps |
 
-## Management Category (19 modules)
+## Management Category (23 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -269,6 +286,10 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AutomationAccounts | `microsoft.automation/automationaccounts` | Runbooks |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | Backup |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` | Backup Instances |
+| BillingAccounts | `AZSC/Billing/BillingAccounts` | Billing Accounts |
+| BillingBenefits | `AZSC/Billing/ReservationOrders` · `AZSC/Billing/SavingsPlanOrders` | Billing Benefits |
+| BillingHierarchy | `AZSC/Billing/BillingProfiles` · `AZSC/Billing/InvoiceSections` · `AZSC/Billing/Departments` · `AZSC/Billing/EnrollmentAccounts` | Billing Hierarchy |
+| BillingRoles | `AZSC/Billing/BillingRoleAssignments` · `AZSC/Billing/BillingRoleDefinitions` · `AZSC/Billing/SubscriptionCreationPermissions` | Billing Roles |
 | Budgets | `AZSC/Governance/Budget` | Budgets |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` | Custom Roles |
 | DefenderEasmWorkspaces | `microsoft.easm/workspaces` | Defender EASM |
@@ -294,7 +315,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DataBox | `microsoft.databox/jobs` | Data Box Jobs |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` | Stack Edge Devices |
 
-## Monitor Category (24 modules)
+## Monitor Category (25 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -322,6 +343,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` | Smart Detector Alerts |
 | SubscriptionDiagnosticSettings | `AZSC/Subscription/SecurityPolicySweep` | Subscription Diagnostics |
 | Workspaces | `microsoft.operationalinsights/workspaces` | Workspaces |
+| WorkspaceTableRetention | `AZSC/ARMChild/LAWorkspaceTables` | Workspace Table Retention |
 
 ## Networking Category (25 modules)
 
@@ -353,7 +375,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | VirtualWAN | `microsoft.network/virtualwans` | Virtual WAN |
 | vNETPeering | `microsoft.network/virtualnetworks` | Peering |
 
-## Security Category (18 modules)
+## Security Category (24 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -366,17 +388,23 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DdosProtectionPlans | `microsoft.network/ddosprotectionplans` | DDoS Protection Plans |
 | DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` | Defender Alerts |
 | DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` | Defender Assessments |
+| DefenderAttackPaths | `microsoft.security/attackpaths` | Defender Attack Paths |
 | DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` | Defender Pricing |
+| DefenderRegulatoryCompliance | `AZSC/Subscription/SecurityPolicySweep` | Defender Compliance |
+| DefenderScoreControls | `AZSC/Subscription/SecurityPolicySweep` | Defender Score Controls |
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` | Defender Secure Score |
+| DefenderUnhealthyRecommendations | `AZSC/Derived/DefenderUnhealthyRecommendation` | Defender Recommendations |
 | EntraDomainServices | `microsoft.aad/domainservices` | Entra Domain Services |
 | KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` | Key Vault Keys |
 | KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` | Key Vault Secrets |
 | ManagedHSM | `microsoft.keyvault/managedhsms` | Managed HSM |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` | Sentinel |
+| SentinelDataConnectors | `AZSC/ARMChild/SentinelDataConnectors` | Sentinel Connectors |
+| SentinelIngestion | `AZSC/ARMChild/SentinelIngestion` | Sentinel Ingestion |
 | Vault | `microsoft.keyvault/vaults` | Key Vaults |
 | WafPolicies | `microsoft.network/applicationgatewaywebapplicationfirewallpolicies` · `microsoft.network/frontdoorwebapplicationfirewallpolicies` · `microsoft.cdn/cdnwebapplicationfirewallpolicies` | WAF Policies |
 
-## Storage Category (16 modules)
+## Storage Category (17 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -393,6 +421,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | StorageAccounts | `microsoft.storage/storageaccounts` | Storage Accounts |
 | StorageActions | `microsoft.storageactions/storagetasks` | Storage Actions |
 | StorageDiscovery | `microsoft.storagediscovery/storagediscoveryworkspaces` | Storage Discovery |
+| StorageExposure | `AZSC/Derived/StorageExposure` | Storage Exposure |
 | StorageMover | `microsoft.storagemover/storagemovers` · `microsoft.storagemover/storagemovers/agents` · `microsoft.storagemover/storagemovers/endpoints` · `microsoft.storagemover/storagemovers/projects` | Storage Mover |
 | StorageQueues | `AZSC/ARMChild/StorageQueues` | Storage Queues |
 | StorageSync | `microsoft.storagesync/storagesyncservices` · `microsoft.storagesync/storagesyncservices/syncgroups` · `microsoft.storagesync/storagesyncservices/registeredservers` | Storage Sync Services |

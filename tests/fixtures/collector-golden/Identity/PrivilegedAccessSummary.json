@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "PrivilegedAccessSummary",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1a-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value",
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1b-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value",
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1c-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value",
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1d-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value",
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1e-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value",
+    "Active Time-Bound=s:res-value|Eligible=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/privilegedassignmentsummary/privilegedaccesssummary-t1f-1|Permanent=s:res-value|Resource U=j:1|Role=s:res-value|Stale Permanent 90 Days=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Role\tPermanent\tEligible\tActive Time-Bound\tStale Permanent 90 Days\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Role\tPermanent\tEligible\tActive Time-Bound\tStale Permanent 90 Days\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1\nres-value\tres-value\tres-value\tres-value\tres-value\t1"
+    ]
+  }
+}

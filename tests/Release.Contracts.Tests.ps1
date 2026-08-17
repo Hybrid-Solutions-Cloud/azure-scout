@@ -81,6 +81,7 @@ Describe 'release automation executes the code and contracts it advertises' {
 
         @($manifest.RequiredModules).Count | Should -BeGreaterThan 0
         @($manifest.RequiredModules) | Should -Contain 'Az.Accounts'
+        @($manifest.RequiredModules) | Should -Contain 'Microsoft.Graph.Authentication'
         @($manifest.RequiredModules) | Should -Contain 'powershell-yaml'
         @($manifest.RequiredModules | Where-Object {
             ($_ -is [string] -and $_ -eq 'PwshSpectreConsole') -or

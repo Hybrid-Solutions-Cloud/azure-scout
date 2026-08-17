@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "LifecyclePolicies",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "12cb3bb1b7c042854d935c1291641c4020fae08cf2bc17ee3bd0115dc8f9d4d6",
+  "FixtureSha256": "7a576a9fe66267b30c215d540ed80de65ac31d6f17230665247db64fd99a7925",
   "Rows": [
     "Enabled Rules=s:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1a-1/StorageLifecyclePolicies/lifecyclepolicies-t1a-2|Last Modified=s:01/15/2026 10:30:00|Resource Group=s:res-value|Resource U=j:1|Rule Count=s:2|Rule Names=s:res-value, res-value|Storage Account=s:res-value|Subscription=s:sub-fixture-01",
     "Enabled Rules=s:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/lifecyclepolicies-t1b-1/StorageLifecyclePolicies/lifecyclepolicies-t1b-2|Last Modified=s:01/15/2026 10:30:00|Resource Group=s:res-value|Resource U=j:1|Rule Count=s:2|Rule Names=s:res-value, res-value|Storage Account=s:res-value|Subscription=s:sub-fixture-01",

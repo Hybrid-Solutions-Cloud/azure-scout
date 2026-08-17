@@ -1,0 +1,29 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "BillingBenefits",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
+  "Rows": [
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value",
+    "Benefit Type=s:res-value|Billing Scope=s:res-value|Expiry=j:\"2026-01-15T10:30:00Z\"|ID=s:res-value|Name=s:res-value|State=s:res-value|Term=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Benefit Type\tName\tState\tTerm\tExpiry\tBilling Scope\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value"
+    ],
+    "WithTags": [
+      "Benefit Type\tName\tState\tTerm\tExpiry\tBilling Scope\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value\nres-value\tres-value\tres-value\tres-value\t46037.4375\tres-value"
+    ]
+  }
+}

@@ -176,6 +176,8 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/AppInsightsProactiveDetection'
             'AZSC/ARMChild/LAWorkspaceLinkedServices'
             'AZSC/ARMChild/LAWorkspaceSavedSearches'
+            'AZSC/ARMChild/LAWorkspaceTables'
+            'AZSC/ARMChild/SentinelDataConnectors'
             # AB#6769. The Log Analytics workspace in $script:Parents is one of the twenty parent
             # types the diagnostic-settings sweep is scoped to, so it emits here too. This entry
             # is the canary for that scope: if a type is ever added to
@@ -184,7 +186,7 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/ResourceDiagnosticSettings'
             'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
         )
-        $Rows.Count | Should -Be 14 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace also yields a diagnostic setting, the Arc machine yields one Azure Local VM instance, and Search indexes are data-plane-only'
+        $Rows.Count | Should -Be 16 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace yields tables, Sentinel connectors, and a diagnostic setting, the Arc machine yields one Azure Local VM instance, and Search indexes are data-plane-only'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {
@@ -201,7 +203,28 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             $Row.AZSC.Dataset | Should -Be ($Row.TYPE -replace '^AZSC/ARMChild/', '')
             $Row.AZSC.ParentId | Should -Be $Row.PARENTID
             $Row.AZSC.SourceType | Should -Not -BeNullOrEmpty
+            $Row.AZSC.Source | Should -Be 'Azure Resource Manager'
+            $Row.AZSC.Operation | Should -Be 'GET'
+            $Row.AZSC.Uri | Should -Match 'api-version='
+            $Row.AZSC.ApiVersion | Should -Not -BeNullOrEmpty
+            $Row.AZSC.CollectedAt | Should -Not -BeNullOrEmpty
         }
+    }
+
+    It 'records each successful ARM request independently from collection health' {
+        $health = [System.Collections.Generic.List[object]]::new()
+        $operations = [System.Collections.Generic.List[object]]::new()
+
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Parents -Dataset MLComputes `
+                -CollectionHealth $health -SourceOperations $operations)
+
+        @($rows).Count | Should -Be 1
+        @($health).Count | Should -Be 0
+        @($operations).Count | Should -Be 1
+        $operations[0].Source | Should -Be 'Azure Resource Manager'
+        $operations[0].Status | Should -Be 'Success'
+        $operations[0].Count | Should -Be 1
+        $operations[0].Uri | Should -Match '/computes\?api-version=2023-04-01'
     }
 
     It 'excludes ML Hub/Project workspaces and non-RemoteApp AVD groups before calling ARM' {
@@ -514,6 +537,8 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             @{ Dataset = 'AppInsightsProactiveDetection'; Parent = Get-TestParent -Type 'microsoft.insights/components' -Name 'appi'; NotFoundIsEmpty = $false }
             @{ Dataset = 'LAWorkspaceLinkedServices'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
             @{ Dataset = 'LAWorkspaceSavedSearches'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'LAWorkspaceTables'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
+            @{ Dataset = 'SentinelDataConnectors'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
             @{ Dataset = 'KeyVaultSecrets'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
             @{ Dataset = 'KeyVaultKeys'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
             @{ Dataset = 'StorageBlobContainers'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
@@ -532,7 +557,7 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
                 ForEach-Object ValidValues |
                 Where-Object { $_ -ne 'All' }
         )
-        @($datasetCases.Dataset) | Should -Be $declaredDatasets -Because 'the matrix must track every shipped dataset'
+        @($datasetCases.Dataset) | Should -Be @($declaredDatasets | Where-Object { $_ -ne 'SentinelIngestion' }) -Because 'the ARM/Key Vault matrix must track every shipped request dataset; Sentinel ingestion has its own Logs Query API contract tests'
 
         # Cross every shipped dataset with each materially different response class: usable
         # success, valid empty, returned/thrown not-found, authorization, throttling, server

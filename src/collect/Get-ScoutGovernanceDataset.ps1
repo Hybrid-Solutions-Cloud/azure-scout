@@ -211,12 +211,45 @@ policyresources
     # ---- budgets + resource locks: neither is Resource Graph-indexed --------------------------
     # Read-only ARM GETs on the ambient Az context (works headless under an SPN login). One
     # failing subscription costs that subscription's rows, never the dataset.
-    $budgets = @(); $locks = @()
+    $budgets = @(); $locks = @(); $pimEligibility = @()
+    $sourceOperations = [System.Collections.Generic.List[object]]::new()
     $subIds = @($Subscriptions | ForEach-Object {
             if ($_ -and $_.PSObject.Properties['id']) { $_.id }
         } | Where-Object { $_ })
 
     foreach ($sub in $subIds) {
+        $pimStartedAt = Get-Date
+        try {
+            $pimRows = @(Get-AzRoleEligibilitySchedule -Scope "/subscriptions/$sub" -ErrorAction Stop)
+            $pimEligibility += $pimRows
+            $sourceOperations.Add([pscustomobject]@{
+                    Source = 'Azure RBAC control plane'
+                    Dataset = 'PIM role eligibility schedules'
+                    SubscriptionId = $sub
+                    Operation = 'Get-AzRoleEligibilitySchedule'
+                    Scope = "/subscriptions/$sub"
+                    Status = if ($pimRows.Count -gt 0) { 'Success' } else { 'Empty' }
+                    Count = $pimRows.Count
+                    Reason = $null
+                    StartedAt = $pimStartedAt.ToString('o')
+                    CompletedAt = (Get-Date).ToString('o')
+                })
+        }
+        catch {
+            Write-Warning ('Get-ScoutGovernanceDataset: PIM eligibility read failed for {0}: {1}' -f $sub, $_.Exception.Message)
+            $sourceOperations.Add([pscustomobject]@{
+                    Source = 'Azure RBAC control plane'
+                    Dataset = 'PIM role eligibility schedules'
+                    SubscriptionId = $sub
+                    Operation = 'Get-AzRoleEligibilitySchedule'
+                    Scope = "/subscriptions/$sub"
+                    Status = 'Unavailable'
+                    Count = 0
+                    Reason = $_.Exception.Message
+                    StartedAt = $pimStartedAt.ToString('o')
+                    CompletedAt = (Get-Date).ToString('o')
+                })
+        }
         try {
             $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Consumption/budgets?api-version=2023-11-01"
             if ($resp -and $resp.StatusCode -eq 200) {
@@ -247,5 +280,7 @@ policyresources
         policyAssignments = @($policyAssignments | Where-Object { $_ })
         budgets           = @($budgets           | Where-Object { $_ })
         resourceLocks     = @($locks             | Where-Object { $_ })
+        pimEligibility    = @($pimEligibility    | Where-Object { $_ })
+        sourceOperations  = @($sourceOperations)
     }
 }

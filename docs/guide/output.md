@@ -135,7 +135,7 @@ contains rows no report shows.
 
 ```json
 {
-  "Schema": "azure-scout/raw-inventory/v1",
+  "Schema": "azure-scout/raw-inventory/v2",
   "GeneratedAt": "2026-07-31T18:04:14.0000000Z",
   "Counts": { "Resources": 4812, "ResourceContainers": 37, "EntraResources": 1204, "...": 0 },
   "ResourceTypes": [
@@ -144,12 +144,22 @@ contains rows no report shows.
   ],
   "Resources": [ /* full rows, properties bag intact */ ],
   "ResourceContainers": [], "Advisories": [], "Security": [], "Retirements": [],
-  "EntraResources": [], "Quotas": [], "PolicyAssign": [], "PolicyDef": [], "PolicySetDef": []
+  "EntraResources": [], "Quotas": [], "PolicyAssign": [], "PolicyDef": [], "PolicySetDef": [],
+  "CollectionHealth": [],
+  "SourceOperations": [
+    { "Source": "Microsoft Graph", "Dataset": "Sign-ins (Last 30 Days)", "Operation": "GET", "Status": "Success", "Count": 1000 }
+  ],
+  "EntraQueryOutcomes": []
 }
 ```
 
 `ResourceTypes` is the quickest answer to *"what did the estate contain that no worksheet
 showed?"* — compare it against the types listed in [the category reference](../reference/category-reference.md).
+`SourceOperations` is the request ledger: source, dataset, operation/URI, status, row count,
+timestamps, and failure reason. Child-resource, Graph, billing, Defender, Sentinel, Okta, and local
+hybrid-identity reads append to the same ledger. A successful response is retained in the typed raw
+rows; an unavailable response remains visible in `SourceOperations` and `CollectionHealth` instead
+of being represented as a successful empty dataset. Credential values are never retained.
 
 ### `collector-rowcounts.json`
 

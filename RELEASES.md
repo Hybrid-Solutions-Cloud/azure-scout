@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.15.0** | 2026-08-17 | ✅ | **Complete discovery evidence.** Raw schema v2 retains successful source responses and operation provenance; 29 new collectors add Entra posture/PIM, Okta, hybrid identity, billing, Defender, Sentinel/retention, Azure RBAC PIM, diagnostic export, and normalized storage exposure with explicit permission gaps. | **AB#7441–AB#7473** |
 | **3.14.0** | 2026-08-15 | ✅ | **Large tenants finish cleanly.** Streams large JSON evidence atomically, indexes collector shaping, batches Cost Management calls, corrects six Resource Graph queries, honors throttling guidance, and classifies expected Azure capability and permission gaps without dropping parent resources. | **AB#7366** |
 | **3.13.0** | 2026-08-14 | ✅ | **Every resource accounted for.** Adds a universal discovery ledger, provider-level detail, effective NIC routes/NSGs, normalized exposure, generic ARM topology, explicit per-resource gaps, always-retained tags, NSG default rules, and secret-safe React/JSON reporting. | **AB#7366, AB#7367** |
 | **3.12.8** | 2026-08-14 | ✅ | **Partial evidence stays partial.** A per-vault Key Vault metadata denial now gates only dependent rules as `NotAssessed` while every unrelated assessment continues scoring; standard PowerShell progress is restored as the stable default. | **AB#405** |

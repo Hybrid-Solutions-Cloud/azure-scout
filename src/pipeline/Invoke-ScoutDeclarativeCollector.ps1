@@ -404,6 +404,12 @@ function Invoke-ScoutDeclarativeProcessing {
         # those statements without $Resources in scope produced three empty columns.
         $Variables.Add([psvariable]::new('Resources', $Resources))
         $Variables.Add([psvariable]::new('ScoutRunTime', $ScoutRunTime))
+        # The lifted legacy collectors sometimes initialise this counter in their preamble and
+        # reset it after emitting a row. Hand-authored definitions do not need the counter at all,
+        # but the shared row epilogue still references it. Bind a neutral value so StrictMode keeps
+        # protecting genuine misspelled variables without making the optional legacy counter a
+        # requirement for every new declarative collector (AB#7441).
+        $Variables.Add([psvariable]::new('ResUCount', 0))
         foreach ($Binding in $SetupBindings) { $Variables.Add($Binding) }
 
         try {

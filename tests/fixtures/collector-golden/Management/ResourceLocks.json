@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "ResourceLocks",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
   "Rows": [
     "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
     "ID=s:ID value|Lock Level=s:Lock Level value|Lock Name=s:Lock Name value|Notes=s:Notes value|Protects=s:Protects value|Resource U=j:1|Scope Type=s:Scope Type value|Subscription=s:Subscription value",

@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "EntraDiagnosticSettings",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1a|Storage Account ID=s:res-value",
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1b|Storage Account ID=s:res-value",
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1c|Storage Account ID=s:res-value",
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1d|Storage Account ID=s:res-value",
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1e|Storage Account ID=s:res-value",
+    "Enabled Log Categories=s:res-value, res-value|Event Hub Authorization Rule ID=s:res-value|Event Hub Name=s:res-value|ID=s:res-value|Log Analytics Workspace ID=s:res-value|Name=s:entradiagnosticsettings-t1f|Storage Account ID=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Name\tLog Analytics Workspace ID\tStorage Account ID\tEvent Hub Authorization Rule ID\tEvent Hub Name\tEnabled Log Categories\nentradiagnosticsettings-t1a\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1b\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1c\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1d\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1e\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1f\tres-value\tres-value\tres-value\tres-value\tres-value, res-value"
+    ],
+    "WithTags": [
+      "Name\tLog Analytics Workspace ID\tStorage Account ID\tEvent Hub Authorization Rule ID\tEvent Hub Name\tEnabled Log Categories\nentradiagnosticsettings-t1a\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1b\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1c\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1d\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1e\tres-value\tres-value\tres-value\tres-value\tres-value, res-value\nentradiagnosticsettings-t1f\tres-value\tres-value\tres-value\tres-value\tres-value, res-value"
+    ]
+  }
+}

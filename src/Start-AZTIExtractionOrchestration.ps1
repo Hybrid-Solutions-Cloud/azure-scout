@@ -104,6 +104,7 @@ function Resolve-AZSCExtractionCategoryPlan {
         'MLComputes', 'MLDatasets', 'MLDatastores', 'MLEndpoints', 'MLModels', 'MLPipelines',
         'OpenAIDeployments', 'SearchIndexes', 'AVDApplications', 'AppInsightsProactiveDetection',
         'LAWorkspaceLinkedServices', 'LAWorkspaceSavedSearches', 'KeyVaultSecrets', 'KeyVaultKeys',
+        'LAWorkspaceTables', 'SentinelDataConnectors', 'SentinelIngestion',
         'StorageBlobContainers', 'StorageFileShares', 'StorageLifecyclePolicies', 'StorageQueues',
         'StorageTables', 'BackupInstances', 'ResourceDiagnosticSettings', 'ReservationUtilization',
         'AzureLocalVirtualMachineInstances'
@@ -157,6 +158,10 @@ function Start-AZSCExtractionOrchestration {
         [switch]$IncludeDevOps,
         [string[]]$DevOpsOrganization,
         [string]$DevOpsPat,
+        [switch]$IncludeOkta,
+        [string]$OktaOrganizationUrl,
+        [securestring]$OktaApiToken,
+        [switch]$IncludeOnPremisesIdentity,
         [string[]]$Category = @('All'),
         [switch]$PreserveAssessmentDependencies
     )
@@ -190,11 +195,14 @@ function Start-AZSCExtractionOrchestration {
     $Security = @()
     $Retirements = @()
     $EntraResources = @()
+    $OktaResources = @()
+    $HybridIdentityLocalResources = @()
     # AB#6456 -- Start-AZSCEntraExtraction's per-query success/failure record. Initialised here
     # (not only inside the Entra branch) for the same StrictMode reason $Governance is: an
     # ArmOnly run never enters that branch, and reading an unassigned variable throws.
     $EntraQueryOutcomes = @()
     $CollectionHealth = [System.Collections.Generic.List[object]]::new()
+    $SourceOperations = [System.Collections.Generic.List[object]]::new()
     $PolicyAssign = $null
     $PolicyDef = $null
     $PolicySetDef = $null
@@ -225,6 +233,9 @@ function Start-AZSCExtractionOrchestration {
         $Governance = $(if ($GraphData.PSObject.Properties['Governance']) { $GraphData.Governance } else { $null })
         if ($GraphData.PSObject.Properties['CollectionHealth']) {
             foreach ($health in @($GraphData.CollectionHealth)) { if ($null -ne $health) { $CollectionHealth.Add($health) } }
+        }
+        if ($GraphData.PSObject.Properties['SourceOperations']) {
+            foreach ($operation in @($GraphData.SourceOperations)) { if ($null -ne $operation) { $SourceOperations.Add($operation) } }
         }
 
         Remove-Variable -Name GraphData -ErrorAction SilentlyContinue
@@ -332,6 +343,9 @@ function Start-AZSCExtractionOrchestration {
             # EntraData produced by an older/mocked Start-AZSCEntraExtraction that predates this
             # field would throw a property-not-found under StrictMode instead of degrading.
             $EntraQueryOutcomes = if ($EntraData -and $EntraData.PSObject.Properties['QueryOutcomes']) { $EntraData.QueryOutcomes } else { @() }
+            foreach ($operation in @($EntraQueryOutcomes)) {
+                if ($null -ne $operation) { $SourceOperations.Add($operation) }
+            }
 
             # Disabled catalog entries remain in QueryOutcomes so the raw discovery record is
             # complete, but they are not failed collection work and must not make an otherwise
@@ -435,6 +449,41 @@ function Start-AZSCExtractionOrchestration {
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Azure DevOps extraction complete. ' + @($DevOpsResources).Count + ' resources added.')
     }
 
+    # Okta is a separate identity control plane. It is explicitly opt-in and its SecureString
+    # token is passed only to the read-only adapter; no token value enters Resources or logs.
+    if ($IncludeOkta.IsPresent) {
+        if (-not (Get-Command Get-ScoutOktaEvidence -ErrorAction SilentlyContinue)) {
+            $CollectionHealth.Add([pscustomobject]@{
+                    Dataset='Okta'; Operation='Load read-only adapter'; Status='Unavailable'
+                    Reason='Get-ScoutOktaEvidence is not available in this module build.'
+                    ResourceTypes=@('AZSC/Okta/*')
+                })
+        }
+        else {
+            $oktaData = Get-ScoutOktaEvidence -OrganizationUrl $OktaOrganizationUrl -ApiToken $OktaApiToken
+            $OktaResources = @($oktaData.Resources)
+            if ($OktaResources) { $Resources += $OktaResources }
+            foreach ($operation in @($oktaData.SourceOperations)) {
+                if ($null -ne $operation) { $SourceOperations.Add($operation) }
+            }
+            foreach ($health in @($oktaData.CollectionHealth)) {
+                if ($null -ne $health) { $CollectionHealth.Add($health) }
+            }
+        }
+    }
+
+    if ($IncludeOnPremisesIdentity.IsPresent) {
+        if (Get-Command Get-ScoutHybridIdentityLocalEvidence -ErrorAction SilentlyContinue) {
+            $hybridLocalData=Get-ScoutHybridIdentityLocalEvidence
+            $HybridIdentityLocalResources=@($hybridLocalData.Resources)
+            if($HybridIdentityLocalResources){$Resources += $HybridIdentityLocalResources}
+            foreach($operation in @($hybridLocalData.SourceOperations)){if($null-ne $operation){$SourceOperations.Add($operation)}}
+            foreach($health in @($hybridLocalData.CollectionHealth)){if($null-ne $health){$CollectionHealth.Add($health)}}
+        }else{
+            $CollectionHealth.Add([pscustomobject]@{Dataset='HybridIdentity/Local';Operation='Load local adapter';Status='Unavailable';Reason='Get-ScoutHybridIdentityLocalEvidence is not available in this module build.';ResourceTypes=@('AZSC/HybridIdentity/*')})
+        }
+    }
+
     # Return a clean resource contract even when an optional producer emitted no pipeline value.
     $Resources = @($Resources | Where-Object { $null -ne $_ })
 
@@ -449,6 +498,9 @@ function Start-AZSCExtractionOrchestration {
     $ReturnData = [PSCustomObject]@{
         Resources          = $Resources
         EntraResources     = $EntraResources
+        OktaResources      = $OktaResources
+        HybridIdentityLocalResources = $HybridIdentityLocalResources
+        EntraQueryOutcomes = @($EntraQueryOutcomes)
         Quotas             = $VMQuotas
         Costs              = $Costs
         ResourceContainers = $ResourceContainers
@@ -466,6 +518,7 @@ function Start-AZSCExtractionOrchestration {
         # half never re-collects role assignments, policy assignments, locks or budgets.
         Governance         = $Governance
         CollectionHealth   = @($CollectionHealth)
+        SourceOperations   = @($SourceOperations)
     }
 
     return $ReturnData

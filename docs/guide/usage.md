@@ -105,9 +105,28 @@ Switch parameters to include/exclude specific content:
 | `-SecurityCenter` | Include Microsoft Defender for Cloud findings |
 | `-IncludeTags` | Include resource tags in Excel worksheets |
 | `-IncludeDevOps` | Include Azure DevOps projects, pipelines, service connections, repositories, and agent pools |
+| `-IncludeOkta` | Include the separate Okta control plane; also requires an HTTPS `-OktaOrganizationUrl` and SecureString `-OktaApiToken` |
+| `-IncludeOnPremisesIdentity` | Include local Entra Connect and AD topology from a host with the required read-only modules |
 | `-SkipAdvisory` | Skip Azure Advisor recommendations |
 | `-SkipPolicy` | Skip Azure Policy compliance data |
 | `-SkipPermissionCheck` | Skip the pre-flight permission validation |
+
+Okta is explicitly opt-in. Supply its token without placing plaintext in shell history:
+
+```powershell
+$oktaToken = Read-Host 'Okta read-only API token' -AsSecureString
+Invoke-AzureScout -Scope All -IncludeOkta `
+  -OktaOrganizationUrl 'https://example.okta.com' -OktaApiToken $oktaToken
+```
+
+For Entra Connect/AD topology, run on a host that can read those local services and modules:
+
+```powershell
+Invoke-AzureScout -Scope All -IncludeOnPremisesIdentity
+```
+
+Unavailable local modules and denied Okta endpoints are recorded as coverage gaps; they are not
+reported as proof that the corresponding configuration is absent.
 
 ## Azure DevOps
 

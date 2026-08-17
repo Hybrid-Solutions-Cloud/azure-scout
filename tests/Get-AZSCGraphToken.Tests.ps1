@@ -11,6 +11,7 @@ InModuleScope 'AzureScout' {
     Describe 'Get-AZSCGraphToken authentication provider selection' {
         BeforeEach {
             $script:_AZSCGraphTokenCache = @{}
+            $script:AzAccessTokenRequests = [System.Collections.Generic.List[hashtable]]::new()
 
             Mock Get-AzContext {
                 [pscustomobject]@{
@@ -21,6 +22,10 @@ InModuleScope 'AzureScout' {
             }
 
             Mock Get-AzAccessToken {
+                $script:AzAccessTokenRequests.Add(@{
+                    TenantId   = [string] $TenantId
+                    ResourceUrl = [string] $ResourceUrl
+                })
                 $secureToken = [System.Security.SecureString]::new()
                 foreach ($character in 'az-context-graph-token'.ToCharArray()) {
                     $secureToken.AppendChar($character)
@@ -43,10 +48,9 @@ InModuleScope 'AzureScout' {
             $headers = Get-AZSCGraphToken -TenantID 'target-tenant'
 
             $headers.Authorization | Should -Be 'Bearer az-context-graph-token'
-            Should -Invoke Get-AzAccessToken -Times 1 -Scope It -ParameterFilter {
-                $TenantId -eq 'target-tenant' -and
-                $ResourceUrl -eq 'https://graph.microsoft.com'
-            }
+            $script:AzAccessTokenRequests.Count | Should -Be 1
+            $script:AzAccessTokenRequests[0].TenantId | Should -Be 'target-tenant'
+            $script:AzAccessTokenRequests[0].ResourceUrl | Should -Be 'https://graph.microsoft.com'
             Should -Invoke az -Times 0 -Scope It
         }
 
@@ -79,7 +83,7 @@ InModuleScope 'AzureScout' {
 
             {
                 Get-AZSCGraphToken -TenantID 'target-tenant'
-            } | Should -Throw '*selected Azure PowerShell context*Graph and ARM use the same Azure sign-in*Azure CLI is not used*Az token unavailable*'
+            } | Should -Throw '*selected Azure PowerShell context*Azure CLI is not used*Az token unavailable*'
 
             Should -Invoke Get-AzAccessToken -Times 1 -Scope It
             Should -Invoke az -Times 0 -Scope It
@@ -88,6 +92,52 @@ InModuleScope 'AzureScout' {
         It 'contains no Azure CLI token command in the implementation' {
             $command = Get-Command Get-AZSCGraphToken -ErrorAction Stop
             $command.ScriptBlock.ToString() | Should -Not -Match '(?i)az\s+account\s+get-access-token'
+        }
+
+        It 'uses the official Graph authentication module when explicit delegated scopes are required' {
+            $script:mgConnected = $false
+            Mock Get-MgContext {
+                if (-not $script:mgConnected) { return $null }
+                [pscustomobject]@{
+                    TenantId='target-tenant'
+                    Account='target.user@contoso.test'
+                    Environment='Global'
+                    Scopes=@('AuditLog.Read.All','Reports.Read.All')
+                }
+            }
+            Mock Connect-MgGraph { $script:mgConnected = $true }
+
+            $headers = Get-AZSCGraphToken -TenantID 'target-tenant' -Scopes @('AuditLog.Read.All', 'Reports.Read.All')
+
+            $headers['X-AzureScout-GraphProvider'] | Should -Be 'Microsoft.Graph.Authentication'
+            $headers['X-AzureScout-GraphScopes'] | Should -Match 'AuditLog.Read.All'
+            $headers.ContainsKey('Authorization') | Should -BeFalse
+            Should -Invoke Get-AzAccessToken -Times 0 -Scope It
+            Should -Invoke Connect-MgGraph -Times 1 -Scope It -ParameterFilter {
+                $TenantId -eq 'target-tenant' -and $UseDeviceCode -and
+                $Scopes -contains 'AuditLog.Read.All' -and $Scopes -contains 'Reports.Read.All'
+            }
+
+            $claim = Get-ScoutGraphTokenClaim -Headers $headers
+            $claim.IsDelegated | Should -BeTrue
+            $claim.Scopes | Should -Contain 'Reports.Read.All'
+        }
+
+        It 'uses the selected Az context for application identities even when catalog scopes are supplied' {
+            Mock Get-AzContext {
+                [pscustomobject]@{
+                    Account=[pscustomobject]@{Id='app-id';Type='ServicePrincipal'}
+                    Tenant=[pscustomobject]@{Id='target-tenant'}
+                    Environment=[pscustomobject]@{Name='AzureCloud'}
+                }
+            }
+            Mock Connect-MgGraph { throw 'Device code must not run for an application identity.' }
+
+            $headers=Get-AZSCGraphToken -TenantID 'target-tenant' -Scopes @('AuditLog.Read.All')
+
+            $headers.Authorization | Should -Be 'Bearer az-context-graph-token'
+            Should -Invoke Get-AzAccessToken -Times 1 -Scope It
+            Should -Invoke Connect-MgGraph -Times 0 -Scope It
         }
     }
 }

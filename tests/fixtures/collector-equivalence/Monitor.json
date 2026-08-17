@@ -330,6 +330,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1f-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1e-1/LAWorkspaceTables/workspacetableretention-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1f-1/LAWorkspaceTables/workspacetableretention-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1f-1/LAWorkspaceTables/workspacetableretention-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -5910,6 +5922,117 @@
           "NAME": "workspaces-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.operationalinsights/workspaces"
+        }
+      ]
+    },
+    "WorkspaceTableRetention": {
+      "resources": [
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1a-1/LAWorkspaceTables/workspacetableretention-t1a-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1a",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1b-1/LAWorkspaceTables/workspacetableretention-t1b-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1b",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1c-1/LAWorkspaceTables/workspacetableretention-t1c-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1c",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1d-1/LAWorkspaceTables/workspacetableretention-t1d-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1d",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1e-1/LAWorkspaceTables/workspacetableretention-t1e-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1e",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "plan": "res-value",
+            "retentionInDays": "res-value",
+            "totalRetentionInDays": "res-value",
+            "archiveRetentionInDays": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1f-1/LAWorkspaceTables/workspacetableretention-t1f-2",
+          "PARENTNAME": "res-value",
+          "NAME": "workspacetableretention-t1f",
+          "TYPE": "AZSC/ARMChild/LAWorkspaceTables",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     }

@@ -67,7 +67,8 @@ function Export-ScoutRawInventoryDump {
 
     $sets = [ordered]@{}
     foreach ($name in 'Resources', 'ResourceContainers', 'Advisories', 'Security', 'Retirements',
-                      'EntraResources', 'Quotas', 'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+                      'EntraResources', 'EntraQueryOutcomes', 'Quotas', 'PolicyAssign', 'PolicyDef',
+                      'PolicySetDef', 'CollectionHealth', 'SourceOperations') {
         $sets[$name] = Get-Set -Object $ExtractionData -Name $name
     }
 
@@ -92,7 +93,7 @@ function Export-ScoutRawInventoryDump {
         }
 
         $payload = [ordered]@{
-            Schema      = 'azure-scout/raw-inventory/v1'
+            Schema      = 'azure-scout/raw-inventory/v2'
             GeneratedAt = (Get-Date).ToString('o')
             Counts      = [ordered]@{}
             ResourceTypes = @(

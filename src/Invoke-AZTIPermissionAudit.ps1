@@ -150,6 +150,14 @@ function Get-ScoutGraphTokenClaim {
     [OutputType([object])]
     param([Parameter(Mandatory)][hashtable]$Headers)
 
+    if ($Headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication') {
+        return [PSCustomObject]@{
+            IsDelegated = $true
+            Scopes      = @("$($Headers['X-AzureScout-GraphScopes'])" -split '\s+' | Where-Object { $_ })
+            AppRoles    = @()
+        }
+    }
+
     try {
         $jwt = "$($Headers['Authorization'])" -replace '^Bearer\s+', ''
         $payload = $jwt.Split('.')[1].Replace('-', '+').Replace('_', '/')
@@ -719,6 +727,22 @@ function Invoke-AZSCPermissionAudit {
     else {
         $graphAccess = $null   # not checked
     }
+
+    # A correlation collector can depend on more than one exact-scope dataset. Report the
+    # collector once while retaining every missing permission/reason; otherwise the summary
+    # describes dependency failures as a larger number of distinct collectors.
+    $emptyCollectors = @(
+        $emptyCollectors |
+            Group-Object Collector |
+            Sort-Object Name |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    Collector  = $_.Name
+                    Reason     = (@($_.Group.Reason | Sort-Object -Unique) -join '; ')
+                    Permission = (@($_.Group.Permission | Sort-Object -Unique) -join ', ')
+                }
+            }
+    )
 
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 4 — Summary & Recommendations

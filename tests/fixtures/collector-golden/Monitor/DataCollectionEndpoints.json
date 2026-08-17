@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "DataCollectionEndpoints",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
+  "FixtureSha256": "6abfad481032743435b08ded66c9a6b7e749fbcb701c266112c505655e418124",
   "Rows": [
     "Configuration Endpoint=s:res-value|DCE Name=s:datacollectionendpoints-t1a|Description=s:res-value|Failover Configuration=s:Failover: res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/datacollectionendpoints/datacollectionendpoints-t1a-1|Immutable ID=s:res-value|Location=s:res-value|Logs Ingestion Endpoint=s:res-value|Metrics Ingestion Endpoint=s:res-value|Private Link Scopes=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Configuration Endpoint=s:res-value|DCE Name=s:datacollectionendpoints-t1b|Description=s:res-value|Failover Configuration=s:Failover: res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/datacollectionendpoints/datacollectionendpoints-t1b-1|Immutable ID=s:res-value|Location=s:res-value|Logs Ingestion Endpoint=s:res-value|Metrics Ingestion Endpoint=s:res-value|Private Link Scopes=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

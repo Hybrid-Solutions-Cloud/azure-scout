@@ -354,6 +354,18 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1f-1/StorageQueues/storagequeues-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1e-1/StorageExposure/storageexposure-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1f-1/StorageExposure/storageexposure-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1f-1/StorageExposure/storageexposure-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -3306,6 +3318,195 @@
           "NAME": "storagediscovery-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.storagediscovery/storagediscoveryworkspaces"
+        }
+      ]
+    },
+    "StorageExposure": {
+      "resources": [
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1a",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1a-1/StorageExposure/storageexposure-t1a-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1b",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1b-1/StorageExposure/storageexposure-t1b-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1c",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1c-1/StorageExposure/storageexposure-t1c-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1d",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1d-1/StorageExposure/storageexposure-t1d-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1e",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1e-1/StorageExposure/storageexposure-t1e-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "StorageAccountId": "res-value",
+            "ManagedBy": "res-value",
+            "PublicNetworkAccessConfigured": "res-value",
+            "PublicNetworkAccessEffective": "res-value",
+            "NetworkDefaultActionConfigured": "res-value",
+            "NetworkDefaultActionEffective": "res-value",
+            "AllowBlobPublicAccessConfigured": "res-value",
+            "AllowBlobPublicAccessEffective": "res-value",
+            "AllowSharedKeyAccessConfigured": "res-value",
+            "AllowSharedKeyAccessEffective": "res-value",
+            "MinimumTlsVersion": "res-value",
+            "PrivateEndpointCount": "res-value",
+            "PrivateEndpointIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "Exposure": "res-value",
+            "Verdict": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "resourceGroup": "res-value",
+          "NAME": "storageexposure-t1f",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Derived/storageexposure-t1f-1/StorageExposure/storageexposure-t1f-2",
+          "TYPE": "AZSC/Derived/StorageExposure",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
         }
       ]
     },

@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "Budgets",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
   "Rows": [
     "Alerts Configured=s:Alerts Configured value|Amount=s:Amount value|Budget Used %=s:Budget Used % value|Category=s:Category value|Currency=s:Currency value|Current Spend=s:Current Spend value|End Date=j:\"2026-01-15T10:30:00Z\"|Forecast Spend=s:Forecast Spend value|ID=s:ID value|Name=s:Name value|Resource U=j:1|Start Date=j:\"2026-01-15T10:30:00Z\"|Subscription=s:Subscription value|Time Grain=s:Time Grain value",
     "Alerts Configured=s:Alerts Configured value|Amount=s:Amount value|Budget Used %=s:Budget Used % value|Category=s:Category value|Currency=s:Currency value|Current Spend=s:Current Spend value|End Date=j:\"2026-01-15T10:30:00Z\"|Forecast Spend=s:Forecast Spend value|ID=s:ID value|Name=s:Name value|Resource U=j:1|Start Date=j:\"2026-01-15T10:30:00Z\"|Subscription=s:Subscription value|Time Grain=s:Time Grain value",

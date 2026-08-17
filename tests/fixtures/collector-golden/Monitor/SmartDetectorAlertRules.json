@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "SmartDetectorAlertRules",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "9d8672018ad8af73f3780f7425fedfacd34f8087b9ab9899ae59243dc4457407",
+  "FixtureSha256": "6abfad481032743435b08ded66c9a6b7e749fbcb701c266112c505655e418124",
   "Rows": [
     "Action Groups=s:res-item-0; res-item-1|Alert Rule Name=s:smartdetectoralertrules-t1a|Detector ID=s:res-value|Detector Name=s:res-value|Frequency=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1a-1|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Severity=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Target Scope=s:res-item-0; res-item-1|Throttling Duration=s:res-value",
     "Action Groups=s:res-item-0; res-item-1|Alert Rule Name=s:smartdetectoralertrules-t1b|Detector ID=s:res-value|Detector Name=s:res-value|Frequency=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/smartdetectoralertrules/smartdetectoralertrules-t1b-1|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Severity=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Target Scope=s:res-item-0; res-item-1|Throttling Duration=s:res-value",

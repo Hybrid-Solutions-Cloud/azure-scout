@@ -84,3 +84,26 @@ Describe 'Collector golden fixture hashing' {
         Get-ScoutFixtureSha256 -Path $CrLfPath | Should -Be $ExpectedHash
     }
 }
+
+Describe 'Collector golden JSON canonicalisation' {
+    It 'sorts nested object keys while preserving array order' {
+        $First = [ordered]@{
+            z = @([ordered]@{ beta = 2; alpha = 1 }, [ordered]@{ delta = 4; gamma = 3 })
+            a = [ordered]@{ settings = 'value'; actions = 'other' }
+        }
+        $Second = [ordered]@{
+            a = [ordered]@{ actions = 'other'; settings = 'value' }
+            z = @([ordered]@{ alpha = 1; beta = 2 }, [ordered]@{ gamma = 3; delta = 4 })
+        }
+
+        ConvertTo-ScoutComparableValue -Value $First |
+            Should -Be (ConvertTo-ScoutComparableValue -Value $Second)
+        ConvertTo-ScoutComparableValue -Value $First |
+            Should -Be 'j:{"a":{"actions":"other","settings":"value"},"z":[{"alpha":1,"beta":2},{"delta":4,"gamma":3}]}'
+    }
+
+    It 'canonicalises a JSON string without changing its scalar marker' {
+        ConvertTo-ScoutComparableValue -Value '{"settings":"value","actions":"other"}' |
+            Should -Be 's:{"actions":"other","settings":"value"}'
+    }
+}
