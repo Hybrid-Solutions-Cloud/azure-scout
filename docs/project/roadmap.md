@@ -43,7 +43,7 @@ publication. Historical v2 entries below are retained as release history rather 
 
 ## Current Release — v3.15.0 — complete discovery evidence
 
-Released 16 August 2026. Raw evidence schema v2 retains each successful parent and child response
+Released 17 August 2026. Raw evidence schema v2 retains each successful parent and child response
 with its source operation, query outcome, and collection-health record. Twenty-nine report collectors
 add Conditional Access impact, MFA and legacy-auth posture, Entra and Azure RBAC PIM, access reviews,
 hybrid identity, optional Okta, billing, Defender, Sentinel and Log Analytics retention, Entra log
