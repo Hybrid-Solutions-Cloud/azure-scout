@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Azure Scout multi-tenant run</title>
+<style>
+:root{--paper:#f7f8fa;--surface:#fff;--ink:#1a2530;--muted:#5a6b7a;--border:#d8dee5;--primary:#153e5f;--accent:#0b6e6e;--pass:#1e7b44;--fail:#b3261e;--warn:#b26a00;--pending:#6b7280;font-family:"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper)}
+@media(prefers-color-scheme:dark){:root{--paper:#10161c;--surface:#171f27;--ink:#e4eaf0;--muted:#9faebb;--border:#2a3540;--primary:#7fb2d9;--accent:#5fc9c4;--pass:#5cbf87;--fail:#e58c84;--warn:#d9a05b;--pending:#9faebb}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink)}main{max-width:1180px;margin:auto;padding:24px}.top,.panel,.tenant{background:var(--surface);border:1px solid var(--border);border-radius:10px}.top{padding:20px 22px;margin-bottom:14px}h1{font-size:24px;margin:0 0 5px;color:var(--primary)}h2{font-size:17px;margin:0 0 12px;color:var(--primary)}.muted{color:var(--muted)}.mono{font-family:Consolas,monospace;font-size:12px}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}.kpi{padding:13px 15px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:8px}.kpi .label{text-transform:uppercase;letter-spacing:.08em;font-size:10px;color:var(--muted);font-weight:700}.kpi .value{font-size:24px;font-weight:700;margin-top:3px}.panel{padding:18px 20px;margin:14px 0}.selection{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.selection div{padding:8px 0;border-bottom:1px solid var(--border)}.selection b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}.grid{display:grid;gap:10px}.tenant{padding:15px 17px;display:grid;grid-template-columns:minmax(230px,1.6fr) minmax(110px,.5fr) minmax(130px,.6fr) minmax(120px,.5fr) auto;gap:14px;align-items:center}.tenant-name{font-weight:700}.pill{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700}.Completed{color:var(--pass)}.Failed{color:var(--fail)}.Running{color:var(--warn)}.Pending{color:var(--pending)}a.button{display:inline-block;text-decoration:none;background:var(--primary);color:#fff;padding:7px 12px;border-radius:6px;font-weight:650;white-space:nowrap}a.button:hover{background:var(--accent)}.error{color:var(--fail);font-size:12px;margin-top:5px;overflow-wrap:anywhere}.empty{color:var(--muted);font-style:italic}.footer{font-size:11px;color:var(--muted);margin-top:18px}@media(max-width:800px){.tenant{grid-template-columns:1fr 1fr}.tenant .namecell,.tenant .action{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div class="muted">AZURE SCOUT · ENTERPRISE TENANT RUN</div>
+    <h1>Multi-tenant run overview</h1>
+    <div id="subtitle" class="muted"></div>
+  </section>
+  <section id="kpis" class="kpis"></section>
+  <section class="panel">
+    <h2>What this run was asked to do</h2>
+    <div id="selection" class="selection"></div>
+  </section>
+  <section class="panel">
+    <h2>Tenant outcomes</h2>
+    <div id="tenants" class="grid"></div>
+  </section>
+  <div class="footer">Self-contained offline overview. Detailed evidence remains inside each tenant folder.</div>
+</main>
+<script>window.__SCOUT_MULTI_TENANT_DATA__=/*__SCOUT_MULTI_TENANT_DATA__*/;</script>
+<script>
+const data=window.__SCOUT_MULTI_TENANT_DATA__||{};
+const text=v=>Array.isArray(v)?(v.length?v.join(', '):'None'):(v===null||v===undefined||v===''?'None':String(v));
+document.getElementById('subtitle').textContent=`${data.RunId||'run'} · ${data.Account||'unknown account'} · ${data.Status||'Unknown'}`;
+const counts=data.Counts||{};
+const cards=[['Tenants',counts.Total||0],['Completed',counts.Completed||0],['Failed',counts.Failed||0],['Subscriptions',counts.Subscriptions||0],['Resources',counts.Resources||0],['Running',counts.Running||0],['Pending',counts.Pending||0]];
+const kpis=document.getElementById('kpis');
+cards.forEach(([label,value])=>{const el=document.createElement('div');el.className='kpi';el.innerHTML=`<div class="label"></div><div class="value"></div>`;el.querySelector('.label').textContent=label;el.querySelector('.value').textContent=value;kpis.appendChild(el)});
+const selection=document.getElementById('selection');
+Object.entries(data.Selection||{}).forEach(([key,value])=>{const el=document.createElement('div');const label=document.createElement('b');label.textContent=key.replace(/([A-Z])/g,' $1').trim();const val=document.createElement('span');val.textContent=text(value);el.append(label,val);selection.appendChild(el)});
+const tenants=document.getElementById('tenants');
+(data.Tenants||[]).forEach(t=>{const row=document.createElement('article');row.className='tenant';
+ const name=document.createElement('div');name.className='namecell';name.innerHTML='<div class="tenant-name"></div><div class="mono muted"></div>';name.querySelector('.tenant-name').textContent=t.TenantName;name.querySelector('.mono').textContent=t.TenantId;
+ const status=document.createElement('div');const pill=document.createElement('span');pill.className=`pill ${t.Status}`;pill.textContent=t.Status;status.appendChild(pill);
+ const resources=document.createElement('div');resources.innerHTML='<span class="muted">Resources</span><br><strong></strong>';resources.querySelector('strong').textContent=t.ResourceCount||0;
+ const subscriptions=document.createElement('div');subscriptions.innerHTML='<span class="muted">Subscriptions</span><br><strong></strong>';subscriptions.querySelector('strong').textContent=t.SubscriptionCount||0;
+ const action=document.createElement('div');action.className='action';if(t.ReactReport){const link=document.createElement('a');link.className='button';link.href=t.ReactReport;link.textContent='Open tenant report';action.appendChild(link)}else{const empty=document.createElement('span');empty.className='empty';empty.textContent=t.Status==='Running'?'Report building…':'No React report';action.appendChild(empty)}
+ if(t.Error){const err=document.createElement('div');err.className='error';err.textContent=t.Error;name.appendChild(err)}row.append(name,status,resources,subscriptions,action);tenants.appendChild(row)});
+</script>
+</body>
+</html>
