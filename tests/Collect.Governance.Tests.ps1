@@ -40,10 +40,11 @@ BeforeAll {
 
     # Present so the Get-Command probe in both functions finds it and Pester can mock it, exactly
     # as tests/Assessment.Governance.Tests.ps1 already does.
-    if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
-        function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+    # Always replace a shadow left by another test file. Pester discovers the complete suite in
+    # one session, so merely checking that the command exists can retain an incompatible stub
+    # whose proxy has no $Path parameter. The real Az cmdlet is mocked below either way.
+    function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([string] $Method, [string] $Path) }
-    }
     if (-not (Get-Command Get-AzRoleEligibilitySchedule -ErrorAction SilentlyContinue)) {
         function Get-AzRoleEligibilitySchedule {
             param([string] $Scope, [string] $ErrorAction)

@@ -11,6 +11,7 @@ InModuleScope 'AzureScout' {
     Describe 'Get-AZSCGraphToken authentication provider selection' {
         BeforeEach {
             $script:_AZSCGraphTokenCache = @{}
+            $script:AzAccessTokenRequests = [System.Collections.Generic.List[hashtable]]::new()
 
             Mock Get-AzContext {
                 [pscustomobject]@{
@@ -21,6 +22,10 @@ InModuleScope 'AzureScout' {
             }
 
             Mock Get-AzAccessToken {
+                $script:AzAccessTokenRequests.Add(@{
+                    TenantId   = [string] $TenantId
+                    ResourceUrl = [string] $ResourceUrl
+                })
                 $secureToken = [System.Security.SecureString]::new()
                 foreach ($character in 'az-context-graph-token'.ToCharArray()) {
                     $secureToken.AppendChar($character)
@@ -43,10 +48,9 @@ InModuleScope 'AzureScout' {
             $headers = Get-AZSCGraphToken -TenantID 'target-tenant'
 
             $headers.Authorization | Should -Be 'Bearer az-context-graph-token'
-            Should -Invoke Get-AzAccessToken -Times 1 -Scope It -ParameterFilter {
-                $TenantId -eq 'target-tenant' -and
-                $ResourceUrl -eq 'https://graph.microsoft.com'
-            }
+            $script:AzAccessTokenRequests.Count | Should -Be 1
+            $script:AzAccessTokenRequests[0].TenantId | Should -Be 'target-tenant'
+            $script:AzAccessTokenRequests[0].ResourceUrl | Should -Be 'https://graph.microsoft.com'
             Should -Invoke az -Times 0 -Scope It
         }
 

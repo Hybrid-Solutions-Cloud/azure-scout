@@ -41,6 +41,13 @@ BeforeAll {
     # convenient. Anything else that cannot be found is a defect.
     $script:SyntheticPrefixes = @('azsc/', 'entra/', 'devops/')
 
+    # Resource Graph's securityresources table exposes attack paths as typed rows, but ARM
+    # provider metadata does not advertise that query-only entity. Keep this exception explicit
+    # and exact; it is neither a synthetic Scout type nor an ARM-addressable resource type.
+    $script:ResourceGraphOnlyTypes = [System.Collections.Generic.HashSet[string]]::new(
+        [string[]] @('microsoft.security/attackpaths'),
+        [System.StringComparer]::OrdinalIgnoreCase)
+
     function Test-ScoutSynthetic {
         param([string] $Type)
         $t = $Type.ToLowerInvariant()
@@ -62,6 +69,7 @@ BeforeAll {
 param([string] $Type)
         $t = $Type.ToLowerInvariant()
         if ($script:Known.Contains($t)) { return $true }
+        if ($script:ResourceGraphOnlyTypes.Contains($t)) { return $true }
 
         $segments = $t.Split('/')
         if ($segments.Count -ge 3) {
@@ -198,5 +206,11 @@ Describe 'AB#6772 — a manifest declaring a non-existent resource type fails th
     It 'still rejects a child whose parent does not exist' {
         # The parent rule must not become a way to smuggle anything through by adding a segment.
         Test-ScoutTypeExists 'microsoft.edgeconfig/sites/anything' | Should -BeFalse
+    }
+
+    It 'allows only the named Resource Graph entity, not its whole provider namespace' {
+        Test-ScoutTypeExists 'microsoft.security/attackpaths'       | Should -BeTrue
+        Test-ScoutTypeExists 'microsoft.security/not-a-real-entity' | Should -BeFalse
+        $script:ResourceGraphOnlyTypes.Count | Should -Be 1
     }
 }
