@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.16.0'
+ModuleVersion = '3.16.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.16.0 - Enterprise direct-access multi-tenant scanning. Scan every Azure tenant reachable by the signed-in account with -AllAccessibleTenants, or select several tenants with repeated -TenantID values. One umbrella run creates an offline root overview and JSON summary plus an isolated folder and detailed React report for each tenant. Tenant failures are contained so later tenants continue, and cached Az contexts are reused when possible. This is direct account access and remains separate from Azure Lighthouse. AB#332 / AB#7105.'
+        ReleaseNotes = 'v3.16.1 - Multi-tenant scanning reachable from the guided menu. The interactive wizard (a bare Invoke-AzureScout) now offers enterprise multi-tenant scanning whenever the signed-in account can reach more than one tenant: scan just the current tenant, choose specific tenants from a checklist, or scan every accessible tenant. Previously -AllAccessibleTenants and multiple -TenantID values only worked when typed explicitly, and a dispatch-ordering defect meant the wizard could not have reached the multi-tenant orchestrator even with a prompt. AB#7105.'
 
         # Prerelease string of this module
         # Prerelease = ''

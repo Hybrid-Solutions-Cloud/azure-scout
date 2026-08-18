@@ -41,7 +41,16 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.16.0 — one account, every reachable tenant
+## Current Release — v3.16.1 — the menu offers it too
+
+Released 18 August 2026. The guided wizard now offers enterprise multi-tenant scanning whenever
+the signed-in account can reach more than one tenant: scan just the current tenant, choose
+specific tenants from a checklist, or scan every accessible tenant. `-AllAccessibleTenants` and
+multiple `-TenantID` values previously only worked when typed explicitly on the command line; a
+dispatch-ordering fix also means a wizard-driven multi-tenant answer now actually reaches the
+orchestrator. See CHANGELOG.md and AB#7105.
+
+## Previous Release — v3.16.0 — one account, every reachable tenant
 
 Released 17 August 2026. Enterprise operators can explicitly scan every Azure tenant reachable by
 the signed-in account or select several tenant IDs. Each umbrella run writes a self-contained root

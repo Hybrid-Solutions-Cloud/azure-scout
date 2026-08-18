@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.16.1] - 2026-08-18 - multi-tenant scanning reachable from the guided menu
+
+### Fixed
+
+- The guided wizard (a bare, interactive `Invoke-AzureScout`) now offers enterprise multi-tenant
+  scanning when the signed-in account can reach more than one tenant: scan just the current
+  tenant, choose specific tenants from a checklist, or scan every accessible tenant. Previously
+  `-AllAccessibleTenants` and multiple `-TenantID` values only worked when typed explicitly on the
+  command line, and the wizard could not have reached the multi-tenant orchestrator even if it had
+  offered a prompt, because the dispatch check ran before the wizard executed. AB#7105.
+
 ## [3.16.0] - 2026-08-17 - enterprise direct-access multi-tenant scanning
 
 ### Added

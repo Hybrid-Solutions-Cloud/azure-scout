@@ -621,16 +621,6 @@ Function Invoke-AzureScout {
 
     $PlatOS = Test-AZSCPS
 
-    # AB#7105 -- preserve the established single-tenant pipeline and put enterprise tenant
-    # selection around it. An explicit switch is required for automatic enumeration so a bare
-    # invocation can never surprise an operator by launching dozens of tenant scans.
-    $requestedTenantIds = @($TenantID | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
-    if ($AllAccessibleTenants.IsPresent -or $requestedTenantIds.Count -gt 1) {
-        return Invoke-AZSCMultiTenantRun -InvocationParameters $PSBoundParameters `
-            -RequestedTenantId $requestedTenantIds -AllAccessibleTenants:$AllAccessibleTenants
-    }
-    $TenantID = if ($requestedTenantIds.Count -eq 1) { [string]$requestedTenantIds[0] } else { $null }
-
     # ── Wizard mode (AB#5541) ────────────────────────────────────────────────
     # A bare `Invoke-AzureScout` in an interactive session opens the guided
     # wizard: it signs in, verifies the account actually holds the rights the
@@ -663,6 +653,18 @@ Function Invoke-AzureScout {
         }
         $wizardRunBoth = $wizard.RunBoth
     }
+
+    # AB#7105 -- preserve the established single-tenant pipeline and put enterprise tenant
+    # selection around it. An explicit switch (or the wizard's own multi-tenant answer) is
+    # required for automatic enumeration so a bare invocation can never surprise an operator
+    # by launching dozens of tenant scans. Checked after the wizard so a guided selection of
+    # "all tenants" or several tenants routes here exactly like the command-line switches do.
+    $requestedTenantIds = @($TenantID | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+    if ($AllAccessibleTenants.IsPresent -or $requestedTenantIds.Count -gt 1) {
+        return Invoke-AZSCMultiTenantRun -InvocationParameters $PSBoundParameters `
+            -RequestedTenantId $requestedTenantIds -AllAccessibleTenants:$AllAccessibleTenants
+    }
+    $TenantID = if ($requestedTenantIds.Count -eq 1) { [string]$requestedTenantIds[0] } else { $null }
 
     # One global output contract for inventory, assessment, and combined runs. Legacy names stay
     # in the ValidateSet so existing automation still binds, but they are held rather than run.

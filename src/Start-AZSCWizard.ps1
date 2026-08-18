@@ -14,6 +14,9 @@ $ErrorActionPreference = 'Stop'
     The wizard runs five steps:
 
         1. Tenant      — show the signed-in context, or sign in / pick a tenant.
+                         When the account can reach more than one tenant, also
+                         offers scanning several selected tenants or every
+                         accessible tenant (AB#7105).
         2. Permissions — verify the account actually holds the rights the run
                          needs, and let the operator bail out before a long scan
                          fails halfway through.
@@ -128,6 +131,7 @@ function Start-AZSCWizard {
     # A declined context means tenant selection, never subscription selection.
     # Enumerate every tenant available to the newly authenticated user and let
     # the operator choose even when only one is currently visible.
+    $accessibleTenants = @()
     if ($selectTenant -and $tenantId) {
         $signedInContext = $null
         try { $signedInContext = Get-AzContext -ErrorAction Stop } catch { $signedInContext = $null }
@@ -138,19 +142,19 @@ function Start-AZSCWizard {
             Write-Host $signedInIdentity.AccountDisplayName -ForegroundColor Cyan
         }
 
-        $tenants = @(Get-AZSCAccessibleTenant)
-        if ($tenants.Count -eq 0 -and $signedInContext -and $signedInContext.Tenant) {
-            $tenants = @([pscustomobject]@{
+        $accessibleTenants = @(Get-AZSCAccessibleTenant)
+        if ($accessibleTenants.Count -eq 0 -and $signedInContext -and $signedInContext.Tenant) {
+            $accessibleTenants = @([pscustomobject]@{
                     Id   = [string]$signedInContext.Tenant.Id
                     Name = if ($signedInIdentity) { [string]$signedInIdentity.TenantDisplayName } else { '' }
                 })
         }
 
-        if ($tenants.Count -gt 0) {
+        if ($accessibleTenants.Count -gt 0) {
             Write-Host ''
             Write-Host '  Available tenants for this account:' -ForegroundColor DarkGray
             $tenantChoice = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
-                $tenants | ForEach-Object {
+                $accessibleTenants | ForEach-Object {
                     $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
                     [pscustomobject]@{ Label = $label; Value = $_.Id }
                 }
@@ -165,13 +169,55 @@ function Start-AZSCWizard {
         return $null
     }
 
+    # AB#7105 -- enterprise multi-tenant scanning was shipped as -AllAccessibleTenants / multiple
+    # -TenantID values, but nothing surfaced it in the guided menu, which is how most operators
+    # actually run Scout. Offer it here using whichever tenant list is already on hand; the
+    # confirm-existing-context path above never enumerates other tenants, so fetch it now.
+    if ($accessibleTenants.Count -eq 0) {
+        try { $accessibleTenants = @(Get-AZSCAccessibleTenant) } catch { $accessibleTenants = @() }
+    }
+
+    $tenantIds = @($tenantId)
+    $allAccessibleTenantsAnswer = $false
+    if ($accessibleTenants.Count -gt 1) {
+        $currentMatch = $accessibleTenants | Where-Object { $_.Id -eq $tenantId } | Select-Object -First 1
+        $currentLabel = if ($currentMatch -and $currentMatch.Name) { "$($currentMatch.Name)  ($tenantId)" } else { $tenantId }
+
+        Write-Host ''
+        Write-Host "  This account can directly reach $($accessibleTenants.Count) tenants." -ForegroundColor DarkGray
+        $tenantScope = Read-AZSCWizardChoice -Title 'How many tenants do you want to scan?' -Items @(
+            [pscustomobject]@{ Label = "Just this tenant — $currentLabel";                      Value = 'Single' }
+            [pscustomobject]@{ Label = 'Choose specific tenants from the list';                  Value = 'Select' }
+            [pscustomobject]@{ Label = "Every accessible tenant ($($accessibleTenants.Count))";  Value = 'All' }
+        )
+        if ($null -eq $tenantScope) { return $null }
+
+        if ($tenantScope -eq 'All') {
+            $allAccessibleTenantsAnswer = $true
+        }
+        elseif ($tenantScope -eq 'Select') {
+            Write-Host ''
+            $tenantLabelMap = @{}
+            $tenantLabels = @($accessibleTenants | ForEach-Object {
+                $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
+                $tenantLabelMap[$label] = $_.Id
+                $label
+            })
+            $defaultLabel = @($tenantLabels | Where-Object { $tenantLabelMap[$_] -eq $tenantId })
+            $chosenLabels = Read-AZSCWizardChecklist -Title 'Select the tenants to scan' -Items $tenantLabels -DefaultSelected $defaultLabel
+            if ($null -eq $chosenLabels) { return $null }
+            $tenantIds = @($chosenLabels | ForEach-Object { $tenantLabelMap[$_] })
+            if ($tenantIds.Count -eq 0) { $tenantIds = @($tenantId) }
+        }
+    }
+
     # ── Step 2: permissions ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 2 -Total 5 -Title 'Permissions'
     # The required Graph checks are unknowable until Step 3 establishes whether Entra was
     # selected. Running an ARM audit here and the selected-scope audit after confirmation made
     # every guided run enumerate subscriptions/providers twice. Defer the one authoritative
     # audit to Invoke-AzureScout after all answers are known (AB#7279).
-    Write-Host '  Access will be validated once after you confirm the selected run scope.' -ForegroundColor DarkGray
+    Write-Host '  Access will be validated once per tenant after you confirm the selected run scope.' -ForegroundColor DarkGray
     Write-Host ''
 
     $scopeAnswer = 'ArmOnly'
@@ -192,7 +238,12 @@ function Start-AZSCWizard {
         $scopeAnswer = 'All'
     }
 
-    $answers = @{ TenantID = $tenantId }
+    $answers = if ($allAccessibleTenantsAnswer) {
+        @{ AllAccessibleTenants = [switch]$true }
+    }
+    else {
+        @{ TenantID = if ($tenantIds.Count -gt 1) { $tenantIds } else { $tenantId } }
+    }
     if ($scopeAnswer -eq 'All') { $answers.Scope = 'All' }
     $runBoth = ($mode -eq 'Both')
     $wantsInventory = ($mode -in @('Inventory', 'Both'))
