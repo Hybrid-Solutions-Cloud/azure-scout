@@ -206,7 +206,11 @@ Describe 'AB#7105 multi-tenant orchestration' {
         }
         $realBoundParameters = Get-AZSCTestBoundParameters -TenantID @('tenant-one', 'tenant-two') -Category 'All' `
             -IncludeCosts -IncludeTags -OutputFormat @('React') -ReportDir (Join-Path $TestDrive 'real-params-run') -SecurityCenter
-        $realBoundParameters | Should -BeOfType 'System.Management.Automation.PSBoundParametersDictionary'
+        # Should -BeOfType with the internal type's full name string fails to resolve on some
+        # platforms/PS builds (confirmed failing on Linux CI while passing on Windows) --
+        # comparing the already-instantiated object's runtime type name needs no string-to-type
+        # lookup and is portable everywhere.
+        $realBoundParameters.GetType().Name | Should -Be 'PSBoundParametersDictionary'
 
         Mock Get-AzContext {
             [pscustomobject]@{
