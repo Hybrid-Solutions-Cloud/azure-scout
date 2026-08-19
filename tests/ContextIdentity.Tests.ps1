@@ -75,7 +75,7 @@ Describe 'Azure context display identity' {
 }
 
 Describe 'Wizard tenant-first behavior' {
-    It 'keeps the confirmed tenant without opening a tenant or subscription selector' {
+    It 'keeps the confirmed tenant without re-authenticating or opening a tenant selector when only one tenant is accessible' {
         & $script:Module {
             Mock Write-Host {}
             Mock Get-AzContext {
@@ -94,13 +94,54 @@ Describe 'Wizard tenant-first behavior' {
             Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this account and tenant?' }
             Mock Test-AZSCPermissions { [pscustomobject]@{ Details = @(); OverallReadiness = 'ARMOnly' } }
             Mock Read-AZSCWizardChoice { $null } -ParameterFilter { $Title -eq 'Choose a run type' }
-            Mock Get-AZSCAccessibleTenant { throw 'confirmed tenant must not enumerate tenants' }
+            # AB#7105 -- the confirmed-tenant path now enumerates accessible tenants once so the
+            # wizard can offer multi-tenant scanning; a single accessible tenant means no extra
+            # prompt is shown and the confirmed tenant is used as-is.
+            Mock Get-AZSCAccessibleTenant { @([pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }) }
             Mock Connect-AZSCLoginSession { throw 'confirmed tenant must not authenticate again' }
 
             $null = Start-AZSCWizard -AzureEnvironment AzureCloud -PlatOS Windows
 
-            Should -Not -Invoke Get-AZSCAccessibleTenant
+            Should -Invoke Get-AZSCAccessibleTenant -Times 1 -Exactly
             Should -Not -Invoke Connect-AZSCLoginSession
+            Should -Not -Invoke Read-AZSCWizardChoice -ParameterFilter { $Title -eq 'How many tenants do you want to scan?' }
+        }
+    }
+
+    It 'offers multi-tenant scanning after a confirmed context when several tenants are accessible' {
+        & $script:Module {
+            Mock Write-Host {}
+            Mock Get-AzContext {
+                [pscustomobject]@{
+                    Account = [pscustomobject]@{ Id = 'operator@example.test' }
+                    Tenant  = [pscustomobject]@{ Id = 'tenant-one' }
+                }
+            }
+            Mock Resolve-AZSCContextIdentity {
+                [pscustomobject]@{
+                    AccountDisplayName = 'operator@example.test'
+                    TenantDisplayName  = 'Tenant One'
+                    TenantId           = 'tenant-one'
+                }
+            }
+            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this account and tenant?' }
+            Mock Get-AZSCAccessibleTenant {
+                @(
+                    [pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }
+                    [pscustomobject]@{ Id = 'tenant-two'; Name = 'Tenant Two' }
+                )
+            }
+            Mock Read-AZSCWizardChoice {
+                if ($Title -eq 'How many tenants do you want to scan?') { return 'All' }
+                if ($Title -eq 'Choose a run type') { return $null }
+            }
+            Mock Connect-AZSCLoginSession { throw 'confirmed tenant must not authenticate again' }
+
+            $result = Start-AZSCWizard -AzureEnvironment AzureCloud -PlatOS Windows
+
+            Should -Invoke Get-AZSCAccessibleTenant -Times 1 -Exactly
+            Should -Invoke Read-AZSCWizardChoice -Times 1 -Exactly -ParameterFilter { $Title -eq 'How many tenants do you want to scan?' }
+            $result | Should -BeNullOrEmpty
         }
     }
 
