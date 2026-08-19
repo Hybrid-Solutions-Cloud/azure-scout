@@ -41,7 +41,17 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.16.1 — the menu offers it too
+## Current Release — v3.16.2 — hotfix: real multi-tenant runs no longer crash on launch
+
+Released 19 August 2026. A live enterprise run crashed immediately after confirmation with
+`Cannot find an overload for "Contains" and the argument count: "1".` `Invoke-AZSCMultiTenantRun`
+called a `Hashtable`-only `.Contains(name)` method on the real `$PSBoundParameters` type, which
+every existing test substituted with a hashtable literal or fully mocked away, so the defect
+shipped undetected in v3.16.0 and v3.16.1. Switched to `.ContainsKey(name)`, supported by both
+types, and added a regression test that builds a genuine `PSBoundParametersDictionary`. See
+CHANGELOG.md and AB#7105.
+
+## Previous Release — v3.16.1 — the menu offers it too
 
 Released 18 August 2026. The guided wizard now offers enterprise multi-tenant scanning whenever
 the signed-in account can reach more than one tenant: scan just the current tenant, choose
