@@ -125,30 +125,30 @@ function Get-AZSCMultiTenantSelectionSummary {
         [switch]$AllAccessibleTenants
     )
 
-    $runType = if ($InvocationParameters.Contains('InventoryAndAssessment') -and
+    $runType = if ($InvocationParameters.ContainsKey('InventoryAndAssessment') -and
         [bool]$InvocationParameters['InventoryAndAssessment']) { 'Inventory and assessment' }
-    elseif ($InvocationParameters.Contains('Assessment') -and @($InvocationParameters['Assessment']).Count -gt 0) { 'Assessment' }
+    elseif ($InvocationParameters.ContainsKey('Assessment') -and @($InvocationParameters['Assessment']).Count -gt 0) { 'Assessment' }
     else { 'Inventory' }
 
     $enabled = foreach ($name in @(
         'SecurityCenter', 'IncludeCosts', 'QuotaUsage', 'CheckResourceProviders', 'IncludeDevOps',
         'IncludeOkta', 'IncludeOnPremisesIdentity', 'IncludeTags', 'Heavy'
     )) {
-        if ($InvocationParameters.Contains($name) -and [bool]$InvocationParameters[$name]) { $name }
+        if ($InvocationParameters.ContainsKey($name) -and [bool]$InvocationParameters[$name]) { $name }
     }
     $skipped = foreach ($name in @('SkipAdvisory', 'SkipPolicy', 'SkipAPIs', 'SkipVMDetails', 'SkipDiagram')) {
-        if ($InvocationParameters.Contains($name) -and [bool]$InvocationParameters[$name]) { $name }
+        if ($InvocationParameters.ContainsKey($name) -and [bool]$InvocationParameters[$name]) { $name }
     }
 
     return [ordered]@{
         TenantSelection = if ($AllAccessibleTenants.IsPresent) { 'Every accessible tenant' } else { 'Selected tenant IDs' }
         RunType          = $runType
-        Scope            = if ($InvocationParameters.Contains('Scope')) { [string]$InvocationParameters['Scope'] } else { 'ArmOnly' }
-        Categories       = if ($InvocationParameters.Contains('Category')) { @($InvocationParameters['Category']) } else { @('All') }
-        Assessments      = if ($InvocationParameters.Contains('Assessment')) { @($InvocationParameters['Assessment']) } else { @() }
-        OutputFormats    = if ($InvocationParameters.Contains('OutputFormat')) { @($InvocationParameters['OutputFormat']) } else { @('All') }
-        SubscriptionIds  = if ($InvocationParameters.Contains('SubscriptionID')) { @($InvocationParameters['SubscriptionID']) } else { @() }
-        ManagementGroups = if ($InvocationParameters.Contains('ManagementGroup')) { @($InvocationParameters['ManagementGroup']) } else { @() }
+        Scope            = if ($InvocationParameters.ContainsKey('Scope')) { [string]$InvocationParameters['Scope'] } else { 'ArmOnly' }
+        Categories       = if ($InvocationParameters.ContainsKey('Category')) { @($InvocationParameters['Category']) } else { @('All') }
+        Assessments      = if ($InvocationParameters.ContainsKey('Assessment')) { @($InvocationParameters['Assessment']) } else { @() }
+        OutputFormats    = if ($InvocationParameters.ContainsKey('OutputFormat')) { @($InvocationParameters['OutputFormat']) } else { @('All') }
+        SubscriptionIds  = if ($InvocationParameters.ContainsKey('SubscriptionID')) { @($InvocationParameters['SubscriptionID']) } else { @() }
+        ManagementGroups = if ($InvocationParameters.ContainsKey('ManagementGroup')) { @($InvocationParameters['ManagementGroup']) } else { @() }
         EnabledOptions   = @($enabled)
         SkippedOptions   = @($skipped)
     }
@@ -226,22 +226,22 @@ function Invoke-AZSCMultiTenantRun {
         [scriptblock]$TenantRunner
     )
 
-    if ($InvocationParameters.Contains('FromCollect') -and $InvocationParameters['FromCollect']) {
+    if ($InvocationParameters.ContainsKey('FromCollect') -and $InvocationParameters['FromCollect']) {
         throw '-FromCollect is an offline single-run operation and cannot be combined with a multi-tenant scan.'
     }
-    if ($InvocationParameters.Contains('PermissionAudit') -and [bool]$InvocationParameters['PermissionAudit']) {
+    if ($InvocationParameters.ContainsKey('PermissionAudit') -and [bool]$InvocationParameters['PermissionAudit']) {
         throw '-PermissionAudit does not produce tenant React reports and cannot be combined with a multi-tenant scan.'
     }
-    if ($InvocationParameters.Contains('Automation') -and [bool]$InvocationParameters['Automation']) {
+    if ($InvocationParameters.ContainsKey('Automation') -and [bool]$InvocationParameters['Automation']) {
         throw 'Multi-tenant scanning currently supports directly signed-in user accounts, not Automation managed identities.'
     }
-    if ($InvocationParameters.Contains('StorageAccount') -and $InvocationParameters['StorageAccount']) {
+    if ($InvocationParameters.ContainsKey('StorageAccount') -and $InvocationParameters['StorageAccount']) {
         throw 'Multi-tenant storage upload is not yet supported because tenant artifacts require isolated blob prefixes.'
     }
-    if ($InvocationParameters.Contains('Force') -and [bool]$InvocationParameters['Force']) {
+    if ($InvocationParameters.ContainsKey('Force') -and [bool]$InvocationParameters['Force']) {
         throw 'Use -RunName for a named multi-tenant umbrella folder; -Force is not supported because it removes run isolation.'
     }
-    if ($AllAccessibleTenants.IsPresent -and $InvocationParameters.Contains('AppId') -and $InvocationParameters['AppId']) {
+    if ($AllAccessibleTenants.IsPresent -and $InvocationParameters.ContainsKey('AppId') -and $InvocationParameters['AppId']) {
         throw '-AllAccessibleTenants requires a signed-in user account. For a multi-tenant app registration, pass the consented tenant IDs explicitly.'
     }
 
@@ -249,10 +249,10 @@ function Invoke-AZSCMultiTenantRun {
     $summary = $null
     try {
         $loginParameters = @{
-            AzureEnvironment = if ($InvocationParameters.Contains('AzureEnvironment')) { $InvocationParameters['AzureEnvironment'] } else { 'AzureCloud' }
+            AzureEnvironment = if ($InvocationParameters.ContainsKey('AzureEnvironment')) { $InvocationParameters['AzureEnvironment'] } else { 'AzureCloud' }
         }
         foreach ($name in @('DeviceLogin', 'AppId', 'Secret', 'CertificatePath', 'CertificatePassword')) {
-            if ($InvocationParameters.Contains($name)) { $loginParameters[$name] = $InvocationParameters[$name] }
+            if ($InvocationParameters.ContainsKey($name)) { $loginParameters[$name] = $InvocationParameters[$name] }
         }
         if (-not $AllAccessibleTenants.IsPresent -and @($RequestedTenantId).Count -gt 0) {
             $loginParameters.TenantID = [string]$RequestedTenantId[0]
@@ -261,8 +261,8 @@ function Invoke-AZSCMultiTenantRun {
 
         $targets = @(Resolve-AZSCMultiTenantTarget -RequestedTenantId $RequestedTenantId `
             -AllAccessibleTenants:$AllAccessibleTenants)
-        $reportDir = if ($InvocationParameters.Contains('ReportDir')) { [string]$InvocationParameters['ReportDir'] } else { $null }
-        $runName = if ($InvocationParameters.Contains('RunName')) { [string]$InvocationParameters['RunName'] } else { $null }
+        $reportDir = if ($InvocationParameters.ContainsKey('ReportDir')) { [string]$InvocationParameters['ReportDir'] } else { $null }
+        $runName = if ($InvocationParameters.ContainsKey('RunName')) { [string]$InvocationParameters['RunName'] } else { $null }
         $layout = Set-AZSCReportPath -ReportDir $reportDir -RunName $runName -ScopeId 'multi-tenant'
         $rootPath = [string]$layout.DefaultPath
 

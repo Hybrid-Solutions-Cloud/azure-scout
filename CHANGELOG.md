@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.16.2] - 2026-08-19 - hotfix: real multi-tenant runs no longer crash on launch
+
+### Fixed
+
+- A real enterprise multi-tenant run crashed immediately after confirming the run with
+  `Cannot find an overload for "Contains" and the argument count: "1".` `Invoke-AZSCMultiTenantRun`
+  read its invocation parameters with `.Contains(name)`, a `Hashtable`-only method. Production
+  always passes the real `$PSBoundParameters` (a `Dictionary`-backed type without a matching
+  `.Contains(key)` overload), so every real multi-tenant run failed before doing any work. Every
+  existing test used a hashtable literal or fully mocked the function, so the defect shipped
+  undetected in v3.16.0 and v3.16.1. Switched to `.ContainsKey(name)`, supported by both types, and
+  added a regression test that builds a genuine `PSBoundParametersDictionary` the way
+  `Invoke-AzureScout` actually does. AB#7105.
+
 ## [3.16.1] - 2026-08-18 - multi-tenant scanning reachable from the guided menu
 
 ### Fixed

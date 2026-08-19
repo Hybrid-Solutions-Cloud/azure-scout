@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.16.2** | 2026-08-19 | ✅ | **Hotfix: real multi-tenant runs no longer crash on launch.** A live run crashed immediately after confirmation because `Invoke-AZSCMultiTenantRun` called a `Hashtable`-only `.Contains()` method on the real `$PSBoundParameters` type; switched to `.ContainsKey()` and added a regression test using a genuine bound-parameters object. | **AB#7105** |
 | **3.16.1** | 2026-08-18 | ✅ | **The menu offers it too.** The guided wizard now offers enterprise multi-tenant scanning (single tenant, a chosen set, or every accessible tenant) whenever the signed-in account can reach more than one tenant, and a dispatch-ordering fix makes wizard-driven multi-tenant answers actually route to the orchestrator. | **AB#7105** |
 | **3.16.0** | 2026-08-17 | ✅ | **One account, every reachable tenant.** Direct-access enterprise scans can target every accessible tenant or a selected set, retain isolated tenant evidence and React reports, and publish an offline root overview with per-tenant outcomes and links. | **AB#332, AB#7105** |
 | **3.15.0** | 2026-08-17 | ✅ | **Complete discovery evidence.** Raw schema v2 retains successful source responses and operation provenance; 29 new collectors add Entra posture/PIM, Okta, hybrid identity, billing, Defender, Sentinel/retention, Azure RBAC PIM, diagnostic export, and normalized storage exposure with explicit permission gaps. | **AB#7441–AB#7473** |

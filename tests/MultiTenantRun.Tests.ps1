@@ -187,6 +187,63 @@ Describe 'AB#7105 multi-tenant orchestration' {
         $source | Should -Match '\$AllAccessibleTenants\.IsPresent\s+-or\s+\$requestedTenantIds\.Count\s+-gt\s+1'
         $source | Should -Match '\$requestedTenantIds\.Count\s+-eq\s+1'
     }
+
+    It 'accepts the real $PSBoundParameters type as -InvocationParameters, not just a plain hashtable' {
+        # AB#7105 hotfix -- a live enterprise run crashed immediately with "Cannot find an
+        # overload for 'Contains' and the argument count: '1'." because every existing test
+        # here (and the caller in Invoke-AzureScout.ps1) worked with either a real
+        # PSBoundParametersDictionary or a hand-built [hashtable]; but the function body called
+        # $InvocationParameters.Contains(...) -- a Hashtable method that PSBoundParametersDictionary
+        # (backed by Dictionary[string,object]) does not expose the same way, since its own
+        # .Contains(...) only matches KeyValuePair, not a bare key. Every prior test constructed
+        # -InvocationParameters from a hashtable literal (which has a working .Contains(key)), so
+        # none of them caught it. This test builds a genuine PSBoundParametersDictionary the same
+        # way Invoke-AzureScout does -- via $PSBoundParameters inside a real function call -- so a
+        # regression to .Contains(...) here fails loudly again.
+        function Get-AZSCTestBoundParameters {
+            param($TenantID, $Category, [switch]$IncludeCosts, [switch]$IncludeTags, $OutputFormat, $ReportDir, [switch]$SecurityCenter)
+            return $PSBoundParameters
+        }
+        $realBoundParameters = Get-AZSCTestBoundParameters -TenantID @('tenant-one', 'tenant-two') -Category 'All' `
+            -IncludeCosts -IncludeTags -OutputFormat @('React') -ReportDir (Join-Path $TestDrive 'real-params-run') -SecurityCenter
+        # Should -BeOfType with the internal type's full name string fails to resolve on some
+        # platforms/PS builds (confirmed failing on Linux CI while passing on Windows) --
+        # comparing the already-instantiated object's runtime type name needs no string-to-type
+        # lookup and is portable everywhere.
+        $realBoundParameters.GetType().Name | Should -Be 'PSBoundParametersDictionary'
+
+        Mock Get-AzContext {
+            [pscustomobject]@{
+                Account = [pscustomobject]@{ Id = 'operator@example.test' }
+                Tenant  = [pscustomobject]@{ Id = 'tenant-one' }
+            }
+        }
+        Mock Set-AzContext { }
+        Mock Connect-AZSCLoginSession { 'tenant-one' }
+        Mock Get-AZSCAccessibleTenant {
+            @(
+                [pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }
+                [pscustomobject]@{ Id = 'tenant-two'; Name = 'Tenant Two' }
+            )
+        }
+        $runner = {
+            param($arguments)
+            $tenantId = [string]@($arguments.TenantID)[0]
+            $reportFolder = Join-Path $arguments.ReportDir 'assessment-report'
+            $null = New-Item -ItemType Directory -Path $reportFolder -Force
+            $react = Join-Path $reportFolder 'report-react.html'
+            '<html>tenant report</html>' | Set-Content -LiteralPath $react
+            [pscustomobject]@{
+                PSTypeName = 'AzureScout.RunResult'; Status = 'Completed'; TenantId = $tenantId
+                OutputPath = $arguments.ReportDir; ReactFile = $react; EvidenceFile = $null; JsonFile = $null
+                SubscriptionCount = 1; ResourceCount = 1; Duration = '00:00:00:01.000'
+            }
+        }
+
+        { Invoke-AZSCMultiTenantRun -InvocationParameters $realBoundParameters `
+            -RequestedTenantId @('tenant-one', 'tenant-two') -TenantRunner $runner -WarningAction SilentlyContinue
+        } | Should -Not -Throw
+    }
 }
 
 } # end InModuleScope
