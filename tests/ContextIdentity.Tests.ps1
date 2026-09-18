@@ -91,7 +91,7 @@ Describe 'Wizard tenant-first behavior' {
                     TenantId           = 'tenant-one'
                 }
             }
-            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this account and tenant?' }
+            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this signed-in account?' }
             Mock Test-AZSCPermissions { [pscustomobject]@{ Details = @(); OverallReadiness = 'ARMOnly' } }
             Mock Read-AZSCWizardChoice { $null } -ParameterFilter { $Title -eq 'Choose a run type' }
             # AB#7105 -- the confirmed-tenant path now enumerates accessible tenants once so the
@@ -124,7 +124,7 @@ Describe 'Wizard tenant-first behavior' {
                     TenantId           = 'tenant-one'
                 }
             }
-            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this account and tenant?' }
+            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this signed-in account?' }
             Mock Get-AZSCAccessibleTenant {
                 @(
                     [pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }
@@ -162,7 +162,7 @@ Describe 'Wizard tenant-first behavior' {
                 }
             }
             Mock Read-AZSCWizardConfirm {
-                if ($Prompt -eq 'Use this account and tenant?') { return $false }
+                if ($Prompt -eq 'Use this signed-in account?') { return $false }
                 if ($Prompt -like 'Sign in with a device code*') { return $false }
                 return $false
             }
@@ -174,6 +174,7 @@ Describe 'Wizard tenant-first behavior' {
                 )
             }
             Mock Read-AZSCWizardChoice {
+                if ($Title -eq 'How many tenants do you want to scan?') { return 'Single' }
                 if ($Title -eq 'Select the tenant to scan') { return 'tenant-two' }
                 if ($Title -eq 'Choose a run type') { return $null }
             }

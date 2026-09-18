@@ -107,7 +107,7 @@ InModuleScope 'AzureScout' {
             }
             Mock Connect-MgGraph { $script:mgConnected = $true }
 
-            $headers = Get-AZSCGraphToken -TenantID 'target-tenant' -Scopes @('AuditLog.Read.All', 'Reports.Read.All')
+            $headers = Get-AZSCGraphToken -TenantID 'target-tenant' -Scopes @('AuditLog.Read.All', 'Reports.Read.All') -Interactive
 
             $headers['X-AzureScout-GraphProvider'] | Should -Be 'Microsoft.Graph.Authentication'
             $headers['X-AzureScout-GraphScopes'] | Should -Match 'AuditLog.Read.All'

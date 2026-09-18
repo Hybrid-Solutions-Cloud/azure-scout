@@ -75,6 +75,39 @@ Azure portal labels** — the taxonomy is defined once in
   ellipsise at 80 characters with the full value on hover. Columns are chosen by density, not
   hard-coded per category.
 
+### Complete inventory and item details
+
+Processed collector datasets are included before the report is generated, in both combined
+assessment and inventory-only runs. They appear under their existing category as **collected
+details**, alongside the normalized evidence used by assessment rules. Empty datasets remain
+visible, with wording that distinguishes missing evidence from proven absence. Collection-health
+records are available in the discovery-completeness blade.
+
+The embedded payload retains every inventory row. Consultant view shows a sample; Data view,
+item details and exports can access the full retained dataset. Each table offers **Export all
+rows as CSV**, using the union of row fields, including fields absent from the first row. JSON
+export includes complete inventory rows, not only totals. Counts are labeled as evidence rows;
+distinct resource identities are reported separately when every row has a usable identity.
+
+Click a row, or focus it and press Enter, to open its full details. The dialog presents readable
+field names, nested values, long lists, guidance links and Azure portal resource links. Escape
+closes the dialog and returns focus to the row. Raw evidence remains available even when a field
+is not selected as one of the table's compact columns.
+
+### Diagram reference experience
+
+The standard report includes the reviewed regional VNet/subnet cards, hub/spoke connectivity,
+private-link/DNS, exposure, edge-delivery and routing layouts. Additional blades cover region
+footprint, site-to-Azure flow, appliance availability, backup coverage, private/public access
+paths and regional storage private-endpoint trade-offs. These retain the reviewed card, lane,
+arrow and status styling while taking regions, resource names and counts from each run.
+
+Configuration diagrams distinguish observed relationships from conceptual review paths. They
+must not copy a prior customer's regions, site names, appliances, endpoint reachability or
+failover conclusions. Missing backup evidence is **Unknown**, not unprotected. Appliance
+candidates inferred from image metadata require role validation; running power state alone
+does not prove active/standby health. Empty diagrams show an explicit missing-evidence message.
+
 ## 3. The register completeness rule
 
 **This is the rule the report exists to satisfy.** The owner's verdict on an earlier draft —

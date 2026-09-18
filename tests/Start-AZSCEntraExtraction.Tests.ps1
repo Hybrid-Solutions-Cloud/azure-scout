@@ -150,6 +150,10 @@ Describe 'Start-AZSCEntraExtraction' {
 
     Context 'Known availability gates' {
         BeforeEach {
+            # Sign-in URIs embed a clock-derived cutoff. Share one catalog snapshot
+            # across extraction, mock lookup and assertions within each test.
+            $availabilityCatalog = @(Get-ScoutEntraQueryCatalog)
+            Mock Get-ScoutEntraQueryCatalog { $availabilityCatalog }
             # Delegated user token with none of the granular exact-scope permissions.
             Mock Get-AZSCGraphToken {
                 @{ Authorization = 'Bearer e30.eyJzY3AiOiJVc2VyLlJlYWQuQWxsIEdyb3VwLlJlYWQuQWxsIn0.sig'; 'Content-Type' = 'application/json' }

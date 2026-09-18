@@ -8,8 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 .DESCRIPTION
     Uses Get-AzAccessToken for service principals, managed identities, and requests that do not
-    need explicit delegated scopes. Interactive user collection that requires granular delegated
-    scopes uses Microsoft.Graph.Authentication's device-code flow. Azure CLI is never used.
+    need explicit delegated scopes. An explicitly connected SDK context can supply granular delegated
+    scopes when account, tenant and cloud match. Collection never starts a second login. Azure CLI is never used.
     Successful authentication state is cached per Graph
     endpoint, tenant, selected Az account identity, and scope set, and are refreshed automatically
     when within 5 minutes of expiry.
@@ -45,6 +45,7 @@ function Get-AZSCGraphToken {
     param(
         [string]$TenantID,
         [string[]]$Scopes = @(),
+        [switch]$Interactive,
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment
     )
@@ -84,6 +85,18 @@ function Get-AZSCGraphToken {
         $azAccountIdentity = "$accountType|$accountId"
     }
     $requestedScopes = @($Scopes | Where-Object { $_ } | Sort-Object -Unique)
+    if (-not $TenantID -and $azContext -and $azContext.Tenant) { $TenantID = [string]$azContext.Tenant.Id }
+    $mgEnvironment = switch ($AzureEnvironment) {
+        'AzureUSGovernment' { 'USGov' }
+        'AzureChinaCloud' { 'China' }
+        default { 'Global' }
+    }
+    $mgContext = $null
+    if (Get-Command Get-MgContext -ErrorAction SilentlyContinue) { $mgContext = Get-MgContext -ErrorAction SilentlyContinue }
+    $sdkMatches = $mgContext -and $TenantID -and $accountId -and
+        $mgContext.TenantId -eq $TenantID -and $mgContext.Account -eq $accountId -and
+        $mgContext.Environment -eq $mgEnvironment -and
+        @($requestedScopes | Where-Object { $mgContext.Scopes -notcontains $_ }).Count -eq 0
     $scopeKey = $requestedScopes -join ','
     $cacheKey = "$graphResource|$(if ($TenantID) { $TenantID } else { '' })|$azAccountIdentity|$scopeKey"
 
@@ -95,7 +108,9 @@ function Get-AZSCGraphToken {
     $cache = $Script:_AZSCGraphTokenCache[$cacheKey]
 
     # Reuse cached token if still valid (more than 5 min from expiry)
-    if ($cache -and $cache.ExpiresOn -gt $now.AddMinutes(5)) {
+    if ($cache -and $cache.ExpiresOn -gt $now.AddMinutes(5) -and
+        (-not $cache.Headers.ContainsKey('X-AzureScout-GraphProvider') -or $sdkMatches) -and
+        -not ($sdkMatches -and $cache.Provider -eq 'Az PowerShell')) {
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Reusing cached Graph token for tenant ' + $(if ($TenantID) { $TenantID } else { '(ambient)' }) + ' (expires ' + $cache.ExpiresOn.ToString('HH:mm:ss') + ' UTC)')
         return $cache.Headers
     }
@@ -108,7 +123,7 @@ function Get-AZSCGraphToken {
     try {
         $accountType = if ($azContext -and $azContext.Account -and $azContext.Account.PSObject.Properties['Type']) { [string]$azContext.Account.Type } else { '' }
         $applicationIdentity = $accountType -match '(?i)ServicePrincipal|ManagedService|ManagedIdentity'
-        if ($requestedScopes.Count -gt 0 -and -not $applicationIdentity) {
+        if (-not $applicationIdentity -and ($sdkMatches -or $Interactive)) {
             # Get-AzAccessToken can select a resource audience but cannot request delegated OAuth
             # scopes. Directory roles such as Global Reader therefore do not unlock granular
             # Graph surfaces (sign-ins, reports, access reviews, and role schedules) by themselves.
@@ -155,6 +170,10 @@ function Get-AZSCGraphToken {
             if ($accountId -and $contextAccount -and $contextAccount -ne $accountId) {
                 throw "Microsoft Graph authenticated as '$contextAccount', not the selected Azure PowerShell account '$accountId'."
             }
+            if ($mgContext.TenantId -ne $TenantID -or $mgContext.Environment -ne $mgEnvironment -or
+                -not $contextAccount -or $contextAccount -ne $accountId) {
+                throw 'Microsoft Graph context does not match the selected tenant, account and cloud.'
+            }
 
             # Invoke-AZSCGraphRequest recognizes this metadata-only marker and delegates the HTTP
             # call to Invoke-MgGraphRequest. No bearer or refresh token leaves the SDK cache.
@@ -164,7 +183,7 @@ function Get-AZSCGraphToken {
                 'X-AzureScout-GraphAccount'  = $contextAccount
             }
             $expiresOn = $now.AddMinutes(30)
-            $provider = 'Microsoft.Graph.Authentication device code'
+            $provider = 'Microsoft.Graph.Authentication'
         }
         else {
             # Service principals and managed identities receive application roles in their
@@ -206,16 +225,16 @@ function Get-AZSCGraphToken {
             $provider = 'Az PowerShell'
         }
 
-        if ($provider -ne 'Microsoft.Graph.Authentication device code' -and [string]::IsNullOrWhiteSpace($plainToken)) {
+        if ($provider -ne 'Microsoft.Graph.Authentication' -and [string]::IsNullOrWhiteSpace($plainToken)) {
             throw 'The authentication provider returned an empty token.'
         }
     }
     catch {
-        $pathDescription = if ($requestedScopes.Count -gt 0 -and -not $applicationIdentity) { 'delegated Microsoft Graph authentication' } else { 'the selected Azure PowerShell context' }
+        $pathDescription = if ($Interactive -or $sdkMatches) { 'delegated Microsoft Graph authentication' } else { 'the selected Azure PowerShell context' }
         throw "Failed to acquire Microsoft Graph token from $pathDescription for tenant '$(if ($TenantID) { $TenantID } else { '(ambient)' })'. Azure CLI is not used. Error: $($_.Exception.Message)"
     }
 
-    if ($provider -ne 'Microsoft.Graph.Authentication device code') {
+    if ($provider -ne 'Microsoft.Graph.Authentication') {
         $headers = @{
             'Authorization' = "Bearer $plainToken"
             'Content-Type'  = 'application/json'

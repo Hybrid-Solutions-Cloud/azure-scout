@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.16.2 — hotfix: real multi-tenant runs no longer crash on launch
+## Current Release — v3.17.0 — reliable tenant recovery and complete reports
+
+Version 3.17.0 reuses authentication across tenants, selects scan scope before individual tenants,
+and adds persisted failed/selected-tenant recovery. Reports retain complete collector evidence,
+with inventory detail dialogs, exports and evidence-driven diagrams. Normalization failure stops
+scoring instead of silently narrowing the evidence; drift retains assessment membership.
+See AB#9290 and [multi-tenant recovery](../how-to/multi-tenant-recovery.md).
+
+## Previous Release — v3.16.2 — hotfix: real multi-tenant runs no longer crash on launch
 
 Released 19 August 2026. A live enterprise run crashed immediately after confirmation with
 `Cannot find an overload for "Contains" and the argument count: "1".` `Invoke-AZSCMultiTenantRun`

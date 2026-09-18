@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.17.0] - 2026-09-18 - reliable tenant recovery and complete reports
+
+### Added
+
+- Versioned multi-tenant checkpoints with `-ResumeRun`, `-RetryFailed` and `-RetryTenant`.
+  Retries use isolated attempt folders and preserve successful artifacts. AB#9290.
+- Catalog-derived identity permission requirements in reports, with consent, role and licensing
+  boundaries explained in the multi-tenant recovery guide.
+- Standard offline reports now include the reviewed inventory detail dialogs, readable property
+  formatting, action lists, and regional/network/availability/backup/storage diagram experience.
+  Diagrams use the current run's evidence and explicitly label unknown or conceptual paths.
+- Inventory tables export every retained row to CSV with all fields; JSON export includes the
+  complete inventory. Distinct resource identities are separated from denormalized evidence rows.
+
+### Fixed
+
+- Reuse matching Azure contexts before device-code login, acquire tenant contexts silently,
+  and prevent child scans from starting interactive authentication. Graph collection defaults
+  to the signed-in Az identity; matching preconnected SDK contexts are revalidated per lookup.
+- Choose scan scope before an individual tenant in the wizard. Empty selections cancel.
+- Require typed tenant results and existing in-attempt artifacts; preserve Partial outcomes.
+- Stop scoring on inventory normalization failure instead of substituting narrower ARG data.
+  Combined runs retain raw inventory and identity evidence in a partial report.
+- Key drift by assessment and rule so repeated rule IDs cannot overwrite different verdicts.
+- Keep the mobile inventory sidebar scrollable and use a readable light palette for printing.
+- Process collector datasets before report generation and retain them in scored, inventory-only
+  and partial-fallback reports. Preserve identity evidence in combined assessment runs.
+- Display Monitor, General, Identity and previously uncategorized inventory datasets. Remove the
+  300-row payload truncation and expose collection health without presenting empty evidence as
+  proof that no resources exist.
+
 ## [3.16.2] - 2026-08-19 - hotfix: real multi-tenant runs no longer crash on launch
 
 ### Fixed

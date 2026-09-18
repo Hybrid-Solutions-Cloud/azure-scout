@@ -408,10 +408,16 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         $unpackIdx | Should -BeLessThan $extraJobsIdx
     }
 
-    It 'runs the deferred assessment before Start-AZSCProcessOrchestration (kept close to the diagram build, not deferred further than needed)' {
+    It 'finishes processed collector evidence before rendering the deferred assessment' {
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $processIdx      = Get-ScoutSourceIndex 'Start-AZSCProcessOrchestration -Subscriptions \$Subscriptions'
-        $deferredCallIdx | Should -BeLessThan $processIdx
+        $processIdx | Should -BeLessThan $deferredCallIdx
+    }
+
+    It 'passes the same run cache to scored, inventory-only and partial fallback rendering' {
+        foreach ($argumentSet in @('deferredAssessArgs', 'deferredInventoryOutputArgs', 'inventoryFallbackArgs')) {
+            $script:Source | Should -Match ('Invoke-ScoutAssessmentCore @' + $argumentSet + ' -FromInventory \$ExtractionData -ReportCachePath \$ReportCache')
+        }
     }
 }
 

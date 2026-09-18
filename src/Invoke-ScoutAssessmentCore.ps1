@@ -200,6 +200,7 @@ function Invoke-ScoutAssessmentCore {
         # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
         # rows already in memory instead of querying Azure a second time.
         [object]   $FromInventory,
+        [string]   $ReportCachePath,
         # Render React/JsonEvidence from an inventory pass already in memory. This deliberately
         # skips assessment rules and forces Invoke-Collect's no-live-fallback shaping path.
         [switch]   $InventoryOnly,
@@ -457,12 +458,18 @@ function Invoke-ScoutAssessmentCore {
                     $i, $ingestTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
             )
         }
-        if ($InventoryOnly) {
+        if ($FromInventory) {
             $entraRows = if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
                 @($FromInventory.EntraResources)
             }
             else { @() }
             $collect | Add-Member -NotePropertyName entraResources -NotePropertyValue $entraRows -Force
+        }
+        if ($ReportCachePath) {
+            if (-not (Get-Command Import-ScoutReportInventory -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'report/Import-ScoutReportInventory.ps1')
+            }
+            $collect = Import-ScoutReportInventory -Collect $collect -ReportCachePath $ReportCachePath
         }
         $collect | ConvertTo-Json -Depth 100 | Out-File "$runPath/collect.json"
     }

@@ -56,8 +56,8 @@ svg text{font-family:var(--font-sans)}
 .mainnav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
 .nav{border:1px solid var(--border);background:var(--surface);color:var(--muted);font:600 12px var(--font-sans);padding:6px 13px;border-radius:6px;cursor:pointer}
 .nav.on{background:var(--primary);border-color:var(--primary);color:#fff}
-.collbox{display:flex;flex-wrap:wrap;gap:0;background:color-mix(in srgb,var(--pass) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--pass) 35%,var(--border));border-radius:8px;margin:10px 0 14px;overflow:hidden}
-.collbox .ci{padding:10px 18px;border-right:1px solid color-mix(in srgb,var(--pass) 25%,var(--border));display:flex;flex-direction:column;gap:2px}
+.collbox{display:flex;flex-wrap:wrap;gap:0;background:color-mix(in srgb,var(--band-exc) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--band-exc) 35%,var(--border));border-radius:8px;margin:10px 0 14px;overflow:hidden}
+.collbox .ci{padding:10px 18px;border-right:1px solid color-mix(in srgb,var(--band-exc) 25%,var(--border));display:flex;flex-direction:column;gap:2px}
 .collbox .ci:last-child{border-right:none}
 .collbox .cl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700}
 .collbox .cv{font-size:13px;font-weight:650}
@@ -73,9 +73,9 @@ td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .faintt{color:var(--faint);font-size:11px}
-.okc{color:var(--pass)} .badc{color:var(--fail)}
+.okc{color:var(--band-exc)} .badc{color:var(--fail)}
 .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:9px;border:1px solid;white-space:nowrap}
-.p-pass{color:var(--pass);border-color:var(--pass)} .p-fail{color:var(--fail);border-color:var(--fail)}
+.p-pass{color:var(--band-exc);border-color:var(--band-exc)} .p-fail{color:var(--fail);border-color:var(--fail)}
 .p-manual{color:var(--manual);border-color:var(--manual)}
 .s-high{color:var(--high);border-color:var(--high)} .s-med{color:var(--med);border-color:var(--med)} .s-low{color:var(--low);border-color:var(--low)}
 .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
@@ -85,7 +85,7 @@ a.kpi{text-decoration:none;color:inherit;display:block}
 .kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
 .kpi .f{font-size:10.5px;color:var(--faint)}
 .kpi.bad{border-left-color:var(--fail)} .kpi.bad .v{color:var(--fail)}
-.kpi.good{border-left-color:var(--pass)} .kpi.good .v{color:var(--pass)}
+.kpi.good{border-left-color:var(--band-exc)} .kpi.good .v{color:var(--band-exc)}
 .gaugebox{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:10px 0}
 .gaugebox.slim{padding:9px 14px}
 .gaugebox.hover:hover{border-color:var(--accent)}
@@ -166,7 +166,7 @@ a.sidehead:hover{color:var(--accent)}
 .sideitem{display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:5px;color:var(--ink);text-decoration:none;font-size:12.5px}
 .sideitem:hover{background:var(--primary-tint)}
 .sideitem .cnt{color:var(--faint);font-variant-numeric:tabular-nums}
-@media (max-width:820px){.invlayout{grid-template-columns:1fr}.side{position:static;max-height:none}}
+@media (max-width:820px){.invlayout{grid-template-columns:1fr}.side{position:static;max-height:35vh}}
 .about{border-left:3px solid var(--accent);background:var(--surface);border-radius:0 6px 6px 0;padding:9px 13px;font-size:12.5px;color:var(--muted);margin:8px 0;max-width:86ch}
 .opp{background:linear-gradient(100deg,#3A2E6E,#1C4B6E);color:#fff;border-radius:8px;padding:14px 18px;margin:12px 0}
 .opp .t{font-size:12px;font-weight:700;letter-spacing:.04em}
@@ -217,7 +217,9 @@ body[data-view="data"] tr.depth-data{display:table-row}
 #about-panel dd{margin:2px 0 0}
 #export-warning{display:none;position:fixed;bottom:16px;right:16px;background:var(--fail);color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.4);font-size:12.8px;max-width:320px;z-index:70}
 @media print{
-  .topbar,.side,.no-print,#about-overlay,#export-warning{display:none !important}
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--paper:#fff;--surface:#fff;--ink:#1A2530;--muted:#5A6B7A;--faint:#667788;--border:#D8DEE5;--primary:#153E5F;--primary-tint:#E7EEF4;--accent:#0B6E6E;--pass:#1E7B44;--fail:#B3261E;--manual:#6B5CA5;--high:#B3261E;--med:#B26A00;--low:#4A6B8A}
+  .topbar,.side,.no-print,#about-overlay,#export-warning,.tfilter,[data-inventory-export]{display:none !important}
+  .twrap,.catwrap .twrap{max-height:none;overflow:visible}table{width:100%;table-layout:fixed}th,td{white-space:normal!important;overflow-wrap:anywhere}.catwrap .twrap th{position:static}.catwrap td{max-width:none}
   body{background:#fff;font-size:11pt}
   .page{padding:0;max-width:none}
   .invlayout{display:block}
@@ -225,6 +227,23 @@ body[data-view="data"] tr.depth-data{display:table-row}
   th{position:static}
   a{color:#000;text-decoration:none}
 }
+
+.actls{margin:0;padding:0;list-style:none;min-width:420px}
+.actls>li{padding:6px 0;border-bottom:1px dashed var(--border)}
+.actls>li:first-child{padding-top:2px}
+.actls>li:last-child{border-bottom:0;padding-bottom:2px}
+.actls .actt{font-weight:600}
+.actfix{font-size:11.5px;color:var(--ink);margin-top:4px;padding-left:15px;line-height:1.55;max-width:860px}
+.actfix b{color:var(--accent);font-size:9.5px;letter-spacing:.6px}
+.actr{font-size:11px;color:var(--muted);margin-top:3px;padding-left:15px;line-height:1.5}
+.actr .mono{font-size:10.5px}
+.sevdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.sevlab{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-left:7px}
+.acmore{color:var(--faint);font-size:11px;font-style:italic}
+body[data-view="data"] .acmore{display:none}
+.rowclick{cursor:pointer}.rowclick:hover td{background:var(--primary-tint)}.rowpop{position:fixed;inset:0;background:rgba(10,20,30,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow:auto}.rp-card{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:12px;max-width:860px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.35)}.rp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}.rp-kicker{font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}.rp-title{font-size:17px;font-weight:700;color:var(--primary);margin-top:3px;word-break:break-word}.rp-actions{display:flex;flex-wrap:wrap;gap:14px;padding:10px 20px;border-bottom:1px solid var(--border);font-size:12.5px}.rp-body{padding:6px 20px 18px;max-height:70vh;overflow:auto}.rp-body table{width:100%;border-collapse:collapse}.rp-body th{text-align:left;vertical-align:top;width:30%;padding:7px 10px 7px 0;color:var(--muted);font-weight:600;font-size:12.5px;border-bottom:1px solid var(--border)}.rp-body td{padding:7px 0;font-size:13px;border-bottom:1px solid var(--border);word-break:break-word}.rp-list{display:flex;flex-wrap:wrap;gap:4px;max-height:220px;overflow:auto}.rp-list span{font-family:var(--font-mono);font-size:11px;background:var(--primary-tint);border-radius:5px;padding:2px 6px}.rp-pre{white-space:pre-wrap;font-size:11.5px;margin:0}
+.p-partial{color:var(--med);border-color:var(--med)}
+.p-notassessed{color:var(--faint);border-color:var(--faint)}
 </style>
 </head>
 <body data-page="ov" data-view="cons">
@@ -263,6 +282,89 @@ function n(x){ return Number(x||0).toLocaleString('en-US'); }
 function safeArr(v){ return Array.isArray(v) ? v : []; }
 function lc(s){ return (s||'').toString().toLowerCase(); }
 
+function tcDiagramList(key, rows, title, detail){
+  var cards=tcRegionCards(rows,function(r,x,y,w,h){return tcNode(key,tcBox(x,y,w,h,{fill:'var(--surface)'})+
+    tcText(x+14,y+24,tcTrunc(tcName(r),43),{fs:12,fw:800})+tcText(x+14,y+46,tcRegionLoc(tcLocation(r))||'Region not collected',{fs:10,fill:'var(--muted)'})+
+    detail(r).map(function(line,j){return tcText(x+14,y+67+j*16,tcTrunc(line,56),{fs:9.5,fill:'var(--muted)'});}).join(''));});
+  return svgWrap(key.replace(/\W/g,'-'),title,'Collected configuration. Click a card for full inventory evidence. Missing fields mean unknown, not absent.',cards.svg,cards.width,cards.height);
+}
+
+function tcRegionCards(rows, render){
+  var W=1200, out='', columns=3, width=380, height=118;
+  rows.forEach(function(r,i){var x=20+(i%columns)*395,y=20+Math.floor(i/columns)*(height+14);out+=render(r,x,y,width,height);});
+  return {svg:out,width:W,height:Math.max(70,40+Math.ceil(rows.length/columns)*(height+14))};
+}
+
+function tcPrepareInventory(){
+  // ReportCache evidence is retained separately from normalized assessment rows.
+  var machines=tcUnique(tcRows('compute.virtualMachines',['VirtualMachine']));
+  var apps=machines.filter(function(v){return /silver.?peak|velocloud|fortinet|palo.?alto|cisco.*sd.?wan/i.test(String(tcValue(v,['image','Image Reference','imagePublisher'])||''));}).map(function(v){return {
+    id:tcId(v),name:tcName(v),location:tcLocation(v),powerState:tcValue(v,['powerState','Power State']),vmSize:tcValue(v,['vmSize','VM Size']),
+    availabilityZone:tcValue(v,['availabilityZone','Availability Zone']),hubVirtualNetwork:tcValue(v,['virtualNetwork','Virtual Network']),
+    evidence:'Appliance candidate identified by collected image metadata; operational role requires validation'
+  };});
+  tcDataset('networking.sdwanAppliances',apps,'Networking → SD-WAN appliances');
+  tcDataset('networking.routes',tcRows('networking.routes',['RouteTables']).map(function(r){return {routeTable:tcValue(r,['routeTable','Name']),location:tcLocation(r),route:tcValue(r,['route','Routes']),addressPrefix:tcValue(r,['addressPrefix','Routes Prefixes']),nextHopIp:tcValue(r,['nextHopIp','Routes Next Hop IP']),nextHopType:tcValue(r,['nextHopType','Routes Next Hop Type'])};}),'Networking → Routes');
+  tcDataset('networking.firewallRules',tcRows('networking.firewallRules',['AzureFirewall']).map(function(r){return {name:tcValue(r,['name','Name']),location:tcLocation(r),privateIp:tcValue(r,['privateIp','Firewall Private IP']),policy:tcValue(r,['policy','Policy Name']),sku:tcValue(r,['sku','SKU']),ruleName:tcValue(r,['ruleName','Rule Name']),source:tcValue(r,['source','Source']),destination:tcValue(r,['destination','Destination']),availabilityZones:tcValue(r,['availabilityZones','Zone']),threatIntelMode:tcValue(r,['threatIntelMode','Threat Intel Mode'])};}),'Networking → Firewall rules');
+
+  var resources=tcUnique(safeArr(discovery.Resources||discovery.resources));
+  if(!resources.length){
+    resources=tcUnique(['compute.virtualMachines','networking.virtualNetworks','domains.storage.storageAccounts','networking.privateEndpoints'].reduce(function(a,k){return a.concat(tcRows(k));},[]));
+  }
+  var regions=Object.create(null);
+  resources.forEach(function(r){var loc=tcLocation(r)||'unknown'; if(!regions[loc])regions[loc]={region:tcRegionLoc(loc),location:loc,resources:0,virtualMachines:0,storageAccounts:0,virtualNetworks:0,privateEndpoints:0}; regions[loc].resources++;});
+  [['compute.virtualMachines','virtualMachines'],['domains.storage.storageAccounts','storageAccounts'],['networking.virtualNetworks','virtualNetworks'],['networking.privateEndpoints','privateEndpoints']].forEach(function(pair){
+    tcUnique(tcRows(pair[0])).forEach(function(r){var loc=tcLocation(r)||'unknown';if(!regions[loc])regions[loc]={region:tcRegionLoc(loc),location:loc,resources:0,virtualMachines:0,storageAccounts:0,virtualNetworks:0,privateEndpoints:0}; regions[loc][pair[1]]++;});
+  });
+  tcDataset('general.azureRegions',Object.keys(regions).sort().map(function(k){return regions[k];}),'General → Azure regions');
+  var items=tcRows('management.backupProtectedItems',['BackupProtectedItems']);
+  var coverage=machines.map(function(v){
+    var id=tcId(v), matches=id ? items.filter(function(b){return String(tcValue(b,['sourceResourceId','Source Resource ID','SourceResourceId','Virtual Machine ID'])||'').toLowerCase()===id;}) : [];
+    var item=matches[0], state=item && tcValue(item,['protectionState','Protection State']);
+    return {id:id,name:tcName(v),location:tcLocation(v),protected:item ? (String(state).toLowerCase()==='protected'?'Yes':'Unknown'):'Unknown',
+      protectionState:state||'Not established',vault:item?tcValue(item,['vault','Vault','Recovery Services Vault']):'',
+      coverageNote:item?'Matched by source resource ID; see protection state':'No matching item in collected evidence; absence does not establish protection status'};
+  });
+  tcDataset('management.backupCoverage',coverage,'Management → Backup coverage');
+}
+
+function tcDataset(key, rows, label){
+  if(!inventory[key]) inventory[key]={label:label,count:rows.length,rows:rows,truncated:null};
+}
+
+function tcUnique(rows){
+  var seen=Object.create(null);
+  return rows.filter(function(r,i){var id=tcId(r); if(!id) return true; if(seen[id])return false; seen[id]=true;return true;});
+}
+
+var tcResourceLocations=Object.create(null),tcNamedLocations=Object.create(null);
+safeArr(discovery.Resources||discovery.resources).forEach(function(r){var id=tcId(r);var loc=String(tcValue(r,['Location','location'])||'').toLowerCase();if(id)tcResourceLocations[id]=loc;var name=tcName(r).toLowerCase();if(!tcNamedLocations[name])tcNamedLocations[name]=[];tcNamedLocations[name].push(loc);});
+function tcLocation(r){
+  var location=tcValue(r,['location','Location','Resource Location','region','Region']);
+  if(location) return String(location).toLowerCase();
+  var byId=tcResourceLocations[tcId(r)];if(byId)return byId;var candidates=tcNamedLocations[tcName(r).toLowerCase()]||[];return candidates.length===1?candidates[0]:'';
+}
+
+function tcName(r){ return String(tcValue(r,['name','Name','VM Name','Virtual Machine','Resource Name'])||tcId(r)||'Unnamed resource'); }
+
+function tcId(r){ return String(tcValue(r,['id','ID','Id','ResourceId','Resource ID','resourceId'])||'').toLowerCase(); }
+
+function tcRows(key, sections){
+  var direct=safeArr((inventory[key]||{}).rows);
+  if(!sections) return direct;
+  var names=(sections||[]).map(function(x){return x.toLowerCase();});
+  var processed = Object.keys(inventory).filter(function(k){return k.indexOf('collected.')===0 && names.indexOf(k.split('.').pop().toLowerCase())>=0;}).reduce(function(rows,k){return rows.concat(safeArr(inventory[k].rows));},[]);
+  return processed.length ? processed : direct;
+}
+
+function tcValue(row, names){
+  if(!row) return null;
+  for(var i=0;i<names.length;i++){ if(row[names[i]]!==undefined && row[names[i]]!==null && row[names[i]]!=='') return row[names[i]]; }
+  return null;
+}
+
+tcPrepareInventory();
+
 /* ---- derived facts (ported from the approved mockup, D:\tmp\azure-scout-react-mockups\_build\build-register.mjs) ---- */
 var allFindings = [];
 assessments.forEach(function(a){
@@ -272,10 +374,11 @@ assessments.forEach(function(a){
     allFindings.push(clone);
   });
 });
-var counts = { total: allFindings.length, pass: 0, fail: 0, manual: 0, unknown: 0, error: 0, notAssessed: 0, high: 0 };
+var counts = { total: allFindings.length, pass: 0, fail: 0, partial: 0, manual: 0, unknown: 0, error: 0, notAssessed: 0, high: 0 };
 allFindings.forEach(function(f){
   if(f.status==='Pass') counts.pass++;
   else if(f.status==='Fail'){ counts.fail++; if(f.severity==='high') counts.high++; }
+  else if(f.status==='Partial') counts.partial++;
   else if(f.status==='Manual') counts.manual++;
   else if(f.status==='Error') counts.error++;
   else if(f.status==='NotAssessed') counts.notAssessed++;
@@ -304,7 +407,7 @@ function verdictSentence(pct){
 var AZURE_PRICING_URL = 'https://azure.microsoft.com/pricing/';
 var sevRank = { high:0, medium:1, low:2 };
 function sevPill(s){ return '<span class="pill s-'+(s==='high'?'high':s==='medium'?'med':'low')+'">'+(s==='medium'?'Medium':(s?s[0].toUpperCase()+s.slice(1):'Low'))+'</span>'; }
-function statusLabel(s){ return s==='Fail'?'Not met':s==='Pass'?'Met':s==='NotAssessed'?'Not assessed':s==='Error'?'Error':s==='Unknown'?'Unknown':s==='Manual'?'Manual':String(s||'Unknown'); }
+function statusLabel(s){ return s==='Fail'?'Not met':s==='Pass'?'Met':s==='NotAssessed'?'Not assessed':s==='Partial'?'Partially met':s==='Error'?'Error':s==='Unknown'?'Unknown':s==='Manual'?'Manual':String(s||'Unknown'); }
 function statusPill(s){ return '<span class="pill p-'+lc(s)+'">'+esc(statusLabel(s))+'</span>'; }
 function anchorId(id){ return String(id).replace(/[^A-Za-z0-9_-]+/g,'-'); }
 function shortId(id){ return id && id.indexOf(':')!==-1 ? id.split(':').pop() : id; }
@@ -401,11 +504,12 @@ function areaStats(a, area){
     findings: fs,
     pass: fs.filter(function(f){return f.status==='Pass';}).length,
     fail: fs.filter(function(f){return f.status==='Fail';}).length,
+    partial: fs.filter(function(f){return f.status==='Partial';}).length,
     manual: fs.filter(function(f){return f.status==='Manual';}).length,
     unknown: fs.filter(function(f){return f.status==='Unknown';}).length,
     error: fs.filter(function(f){return f.status==='Error';}).length,
     notAssessed: fs.filter(function(f){return f.status==='NotAssessed';}).length,
-    review: fs.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';}).length
+    review: fs.filter(function(f){return f.status!=='Pass' && f.status!=='Fail' && f.status!=='Partial';}).length
   };
 }
 function evidenceTable(f){
@@ -472,42 +576,45 @@ function manualAgenda(fs){
    rect/text bars -- no new rendering path).
    ============================================================ */
 function currentStateProse(area, st){
-  var scored = st.pass + st.fail, pct = area.percent;
+  var scored = st.pass + st.fail + st.partial, pct = area.percent;
+  var partTxt = st.partial ? ', '+st.partial+' partially met' : '';
   if(!scored){
     return '<p class="lede">No check in <b>'+esc(area.name)+'</b> was scored in this run. '+st.review+' item'+(st.review===1?' is':'s are')+' listed below with its exact Manual, Unknown, Error, or Not assessed status.</p>';
   }
   if(pct>=67){
-    return '<p class="lede"><b>'+esc(area.name)+'</b> is in good shape: '+st.pass+' of '+scored+' automated checks pass'+(st.manual?', and '+st.manual+' more need a manual look':'')+'. The gaps below are the last mile, not a foundational problem.</p>';
+    return '<p class="lede"><b>'+esc(area.name)+'</b> is in good shape: '+st.pass+' of '+scored+' automated checks pass'+partTxt+(st.manual?', and '+st.manual+' more need a manual look':'')+'. The gaps below are the last mile, not a foundational problem.</p>';
   }
   if(pct>=34){
-    return '<p class="lede"><b>'+esc(area.name)+'</b> is partially conformant: '+st.pass+' of '+scored+' automated checks pass and '+st.fail+' do not'+(st.manual?', plus '+st.manual+' manual item'+(st.manual===1?'':'s')+' still to review':'')+'. The failures below are concentrated enough to close in a focused pass.</p>';
+    return '<p class="lede"><b>'+esc(area.name)+'</b> is partially conformant: '+st.pass+' of '+scored+' automated checks pass'+partTxt+' and '+st.fail+' do not'+(st.manual?', plus '+st.manual+' manual item'+(st.manual===1?'':'s')+' still to review':'')+'. The failures below are concentrated enough to close in a focused pass.</p>';
   }
-  return '<p class="lede"><b>'+esc(area.name)+'</b> has not been operationalised yet: only '+st.pass+' of '+scored+' automated checks pass and '+st.fail+' fail'+(st.manual?' ('+st.manual+' more await manual review)':'')+'. Treat this design area as something to build, not patch.</p>';
+  return '<p class="lede"><b>'+esc(area.name)+'</b> has not been operationalized yet: only '+st.pass+' of '+scored+' automated checks pass'+partTxt+' and '+st.fail+' fail'+(st.manual?' ('+st.manual+' more await manual review)':'')+'. Treat this design area as something to build, not patch.</p>';
 }
 function chapterFindingsTables(fs, gopage){
   var fails = fs.filter(function(f){ return f.status==='Fail'; });
-  var manuals = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail'; });
+  var partials = fs.filter(function(f){ return f.status==='Partial'; });
+  var manuals = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail' && f.status!=='Partial'; });
   var passes = fs.filter(function(f){ return f.status==='Pass'; });
   var out = '';
   if(fails.length) out += '<div class="eyebrow">Findings — not met ('+fails.length+')</div>'+registerTable(fails,gopage);
+  if(partials.length) out += '<div class="eyebrow">Findings — partially met ('+partials.length+')</div>'+registerTable(partials,gopage);
   if(manuals.length) out += '<div class="eyebrow">Findings — unscored / review ('+manuals.length+')</div>'+registerTable(manuals,gopage);
   if(passes.length) out += '<div class="eyebrow">Findings — compliant ('+passes.length+')</div>'+registerTable(passes,gopage);
   return out;
 }
 function areaStatusFigure(a, area, idx, st){
-  var w = 560, lw = 130, y = 14;
-  var segs = [['Met',st.pass,'var(--band-exc)'],['Not met',st.fail,'var(--band-crit)'],['Manual',st.manual,'var(--muted)'],['Unknown',st.unknown,'#777'],['Error',st.error,'#b91c1c'],['Not assessed',st.notAssessed,'#64748b']].filter(function(s){ return s[1]>0; });
-  var total = st.pass+st.fail+st.review;
+  var w = 560, lw = 0, y = 26;
+  var segs = [['Met',st.pass,'var(--band-exc)'],['Partially met',st.partial,'var(--band-mod)'],['Not met',st.fail,'var(--band-crit)'],['Manual',st.manual,'var(--muted)'],['Unknown',st.unknown,'#777'],['Error',st.error,'#b91c1c'],['Not assessed',st.notAssessed,'#64748b']].filter(function(s){ return s[1]>0; });
+  var total = st.pass+st.fail+st.partial+st.review;
   if(!total) return '<p class="lede">No checks scored in this area.</p>';
-  var xcur = lw+12, bars = '', legend = '';
+  var xcur = 0, bars = '', legend = '';
   segs.forEach(function(s){
-    var wid = Math.max(2,(w-lw-40)*s[1]/total);
+    var wid = Math.max(2,(w-24)*s[1]/total);
     bars += '<rect x="'+xcur+'" y="'+y+'" width="'+wid+'" height="26" rx="4" fill="'+s[2]+'"></rect>'+
       '<text x="'+(xcur+wid/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="11" fill="#fff">'+s[1]+'</text>';
     xcur += wid;
     legend += '<span style="color:'+s[2]+'">■</span> '+s[0]+' ('+s[1]+') &nbsp; ';
   });
-  var inner = '<text x="0" y="'+(y+18)+'" fill="var(--ink)" font-size="11.5" font-weight="600">'+esc(catLeaf(area.name))+'</text>'+bars;
+  var inner = '<text x="0" y="14" fill="var(--ink)" font-size="11.5" font-weight="600">'+esc(catLeaf(area.name))+'</text>'+bars;
   return svgWrap('area-'+anchorId(a.slug)+'-'+idx, area.name+' — check outcomes', legend+' — '+total+' check'+(total===1?'':'s')+' evaluated', inner, w, y+26+12);
 }
 function areaFigure(a, area, idx, st){
@@ -571,24 +678,88 @@ function estateCallouts(){
     rows.map(function(r){ return '<tr><td>'+r[0]+'</td><td class="num"><b>'+n(r[1])+'</b></td><td>'+r[3]+'</td><td><a class="jump invgo" data-pane="'+catId(r[2])+'" href="#">items →</a></td></tr>'; }).join('')+'</table></div>';
 }
 
+
+/* ---- v1.3: click any inventory row for a formatted detail pop-up ---- */
+var ROWREG = {};
+function tcHuman(k){
+  var map = {id:'Resource ID', ResourceId:'Resource ID', subscriptionId:'Subscription', resourceGroup:'Resource group', learnMore:'Microsoft guidance', openInPortal:'Open in Azure portal', impactedResources:'Impacted resources', subscriptionNames:'Subscriptions', ShortDescriptionProblem:'Recommendation', ShortDescriptionSolution:'Solution', ImpactedField:'Resource type', ImpactedValue:'Impacted resource'};
+  if(map[k]) return map[k];
+  var s = String(k).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/[_]+/g,' ');
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function tcRowTitle(r){
+  var keys = ['recommendation','ShortDescriptionProblem','name','Name','VM Name','tag','region','Alert Rule Name','Display Name','Subscription Name','displayName','routeTable','Session Host','Workspace Name','key'];
+  for(var i=0;i<keys.length;i++){ if(r[keys[i]]) return String(r[keys[i]]); }
+  for(var k in r){ if(typeof r[k]==='string' && r[k] && r[k].length<80) return r[k]; }
+  return 'Item details';
+}
+function tcPortalLink(id){ return 'https://portal.azure.com/#@'+(meta.tenantId||'')+'/resource'+id; }
+function tcFmtVal(k, v){
+  if(v===null || v===undefined || v==='') return '<span class="faintt">—</span>';
+  if(typeof v==='object') return '<pre class="rp-pre">'+esc(JSON.stringify(v,null,2))+'</pre>';
+  var s = String(v);
+  if(/^https?:\/\//.test(s)) return '<a href="'+esc(s)+'" target="_blank" rel="noopener">'+esc(s.replace(/^https?:\/\//,'').slice(0,90))+' ↗</a>';
+  if(/^\/subscriptions\/[^/]+(\/|$)/i.test(s)) return '<span class="mono">'+esc(s)+'</span><br><a href="'+esc('https://portal.azure.com/#resource'+s)+'" target="_blank" rel="noopener">Open in Azure portal ↗</a>';
+  if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) && subscriptions.some(function(x){ return x.id===s; })) return esc(subName(s))+' <span class="mono faintt">(subscription '+esc(s)+')</span>';
+  if(s.length>160 && s.indexOf(', ')>=0){
+    var parts = s.split(/,\s|;\s/);
+    return '<div class="rp-list">'+parts.map(function(p){ return '<span>'+esc(p)+'</span>'; }).join('')+'</div><div class="faintt small">'+parts.length+' entries</div>';
+  }
+  if(s.indexOf('; ')>=0 && s.length>60) return s.split('; ').map(esc).join('<br>');
+  return esc(s);
+}
+function showRowPopup(k, i){
+  var rows = ROWREG[k] || [], r = rows[i];
+  if(!r) return;
+  var v = inventory[k] || {};
+  var extra = '';
+  if(k==='advisor'){
+    var cat = String(r.Category||'');
+    var slug = {HighAvailability:'reliability',OperationalExcellence:'operational-excellence',Cost:'cost',Performance:'performance',Security:'security'}[cat] || 'reliability';
+    extra = '<div class="rp-actions"><a href="#" class="rp-go" data-pane="'+catId('general.advisorRecommendations')+'">See this recommendation across every resource →</a>'+
+      '<a href="'+esc('https://learn.microsoft.com/azure/advisor/advisor-reference-'+slug+'-recommendations')+'" target="_blank" rel="noopener">Microsoft guidance ↗</a>'+
+      '<a href="'+esc('https://portal.azure.com/#view/Microsoft_Azure_Expert/AdvisorMenuBlade/~/overview')+'" target="_blank" rel="noopener">Open Azure Advisor ↗</a></div>';
+  }
+  var body = Object.keys(r).filter(function(key){ return !/^(Resource U|ResourceId)$/.test(key); }).map(function(key){
+    return '<tr><th>'+esc(tcHuman(key))+'</th><td>'+tcFmtVal(key, r[key])+'</td></tr>';
+  }).join('');
+  var previousFocus=document.activeElement;
+  var ov = document.createElement('div');
+  ov.className = 'rowpop no-print';
+  ov.innerHTML = '<div class="rp-card" role="dialog" aria-modal="true" aria-label="Inventory item details" tabindex="-1"><div class="rp-head"><div><div class="rp-kicker">'+esc(catLeaf(v.label||k))+'</div><div class="rp-title">'+esc(tcRowTitle(r))+'</div></div><button class="btn rp-close" title="Close (Esc)">✕</button></div>'+
+    extra+'<div class="rp-body"><table>'+body+'</table></div></div>';
+  document.body.appendChild(ov);
+  function close(){ ov.remove(); window.removeEventListener('keydown', onKey); if(previousFocus && previousFocus.focus) previousFocus.focus(); }
+  function onKey(e){ if(e.key==='Escape') close(); if(e.key==='Tab'){ var f=Array.from(ov.querySelectorAll('button,a[href],[tabindex="0"]')); var first=f[0],last=f[f.length-1]; if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();} } }
+  window.addEventListener('keydown', onKey);
+  ov.querySelector('.rp-close').focus();
+  ov.addEventListener('click', function(e){
+    if(e.target===ov || e.target.closest('.rp-close')){ close(); return; }
+    var go = e.target.closest('.rp-go');
+    if(go){ e.preventDefault(); close(); setPage('inv'); invSelect(go.getAttribute('data-pane')); }
+  });
+}
+
 function categoryBlocksFor(k, v){
   var skipCols = { id:1, subscriptionId:1 };
   var rows = safeArr(v.rows);
+  ROWREG[k] = rows;
   var sample = rows.slice(0,50);
   var cols = [];
   if(rows.length){
-    var candidateCols = Object.keys(rows[0]).filter(function(c){ return !skipCols[c]; });
+    var candidateCols = []; rows.forEach(function(r){Object.keys(r).forEach(function(c){if(!skipCols[c] && candidateCols.indexOf(c)<0)candidateCols.push(c);});});
     var scored = candidateCols.map(function(c){
       var d = sample.filter(function(r){ return r[c]!==null && r[c]!==undefined && String(r[c])!==''; }).length;
       return [c,d];
     }).filter(function(p){ return p[1] > sample.length*0.2; });
-    scored.sort(function(a,b){ return b[1]-a[1]; });
+    function columnPriority(c){var k=c.toLowerCase().replace(/[^a-z]/g,'');return /^(name|displayname|vmname|resourcename|recommendation)$/.test(k)?3:/^(resourcegroup|subscription|subscriptionname|location|region)$/.test(k)?2:/^(status|powerstate)$/.test(k)?1:0;}
+    scored.sort(function(a,b){ return columnPriority(b[0])-columnPriority(a[0]) || b[1]-a[1]; });
     cols = scored.slice(0,7).map(function(p){ return p[0]; });
   }
   var cap = 50;
   if(!rows.length){
     return v.count ? '<p class="lede small">Count only — no per-item rows collected for this category.</p>'
-      : '<p class="lede small">The collector ran and found <b>0 items</b> of this type in scope — listed so absence is visible, not hidden.</p>';
+      : '<p class="lede small">No rows were retained for this dataset. Review collection health and selected scope before concluding that no resources exist.</p>';
   }
   var trs = rows.map(function(r,i){
     var cells = cols.map(function(c){
@@ -599,14 +770,15 @@ function categoryBlocksFor(k, v){
       if(val.length>80) val = val.slice(0,77)+'…';
       return '<td class="mono"'+full+'>'+esc(val)+'</td>';
     }).join('');
-    return '<tr'+(i>=cap?' class="depth-data"':'')+'>'+cells+'<td class="mono">'+esc(subName(r.subscriptionId))+'</td></tr>';
+    return '<tr tabindex="0" aria-label="Open item details" class="rowclick'+(i>=cap?' depth-data':'')+'" data-rk="'+esc(k)+'" data-ri="'+i+'" title="Click for full details">'+cells+'<td class="mono">'+esc(subName(r.subscriptionId))+'</td></tr>';
   }).join('');
   var capNote = rows.length>cap ? '<div class="capnote">Showing '+cap+' of '+n(v.count)+' by default — switch to the Data view for every row, or use the CSV export.</div>'
     : (v.count>rows.length ? '<div class="capnote">'+n(v.count)+' total; '+rows.length+' sampled rows collected.</div>' : '');
   var headCells = cols.map(function(c){ return '<th>'+esc(c)+' ⇅</th>'; }).join('')+'<th>subscription ⇅</th>';
   var table = '<div class="catwrap"><input class="tfilter" placeholder="Filter '+esc(catLeaf(v.label||k)).toLowerCase()+'… (any column)"><div class="twrap"><table><tr>'+headCells+'</tr>'+trs+'</table></div>'+capNote+'</div>';
+  var unitNote = '<p class="lede small">'+n(v.count)+' '+esc(v.countUnit||'rows')+(v.resourceCount!=null?' · '+n(v.resourceCount)+' distinct resource identities':'')+'. Rows may describe child objects; dataset totals are not an estate resource count.</p>';
   var execNote = '<p class="lede small depth-exec">'+n(v.count)+' item'+(v.count===1?'':'s')+' collected. Switch to <b>Consultant</b> to browse a sample of '+Math.min(cap,rows.length)+', or <b>Data</b> for every row.</p>';
-  return execNote+'<div class="depth-cons">'+table+'</div>';
+  return unitNote+execNote+'<div class="depth-cons"><button type="button" class="btn" data-inventory-export="'+esc(k)+'">Export all rows as CSV</button>'+table+'</div>';
 }
 function categoryPane(k, v){
   var block = categoryBlocksFor(k, v);
@@ -646,17 +818,17 @@ function pageOverview(){
   '<div class="ci"><span class="cl">Collected</span><span class="cv">'+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+'</span></div>'+
   '<div class="ci"><span class="cl">Subscriptions in scope</span><span class="cv">'+subscriptions.length+'</span></div>'+
   '<div class="ci"><span class="cl">Method</span><span class="cv">Azure Resource Graph + ARM</span></div></div>'+
-  '<p class="lede"><b>'+counts.total+' CAF/WAF checks were evaluated against this tenant</b> — '+counts.pass+' met, <b>'+counts.fail+' not met</b> ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, and '+counts.error+' errors — across an estate of '+n(invTotal)+' collected items in '+subscriptions.length+' subscriptions.</p>'+
+  '<p class="lede"><b>'+counts.total+' CAF/WAF checks were evaluated against this tenant</b> — '+counts.pass+' met, '+counts.partial+' partially met, <b>'+counts.fail+' not met</b> ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, and '+counts.error+' errors — across an estate of '+n(invTotal)+' evidence rows in '+subscriptions.length+' subscriptions.</p>'+
   '<div class="kpis"><div class="kpi"><div class="l">Checks evaluated</div><div class="v">'+counts.total+'</div><div class="f">across '+assessments.length+' assessments</div></div>'+
-  '<div class="kpi good"><div class="l">Met</div><div class="v">'+counts.pass+'</div><div class="f">of '+(counts.pass+counts.fail)+' automated</div></div>'+
+  '<div class="kpi good"><div class="l">Met</div><div class="v">'+counts.pass+'</div><div class="f">of '+(counts.pass+counts.partial+counts.fail)+' automated · '+counts.partial+' partial</div></div>'+
   '<div class="kpi bad"><div class="l">Not met</div><div class="v">'+counts.fail+'</div><div class="f">'+counts.high+' high severity</div></div>'+
   '<div class="kpi"><div class="l">Manual review</div><div class="v">'+counts.manual+'</div><div class="f">listed as an agenda</div></div>'+
   '<a class="kpi tilelink goto" data-gopage="inv" href="#inv-structure"><div class="l">Management groups</div><div class="v">'+((inventory['governance.managementGroups']||{}).count||0)+'</div><div class="f">view hierarchy →</div></a>'+
   '<a class="kpi tilelink goto" data-gopage="inv" href="#inv-structure"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div><div class="f">view list →</div></a></div>'+
   '<div class="eyebrow">Where to go</div><div class="menutiles">'+
-  '<a class="mtile goto" data-gopage="inv" href="#top"><div class="mt">📦 Inventory &amp; audit</div><div class="md">'+n(invTotal)+' items in '+invEntries.length+' categories · what exists, and what looks wrong</div></a>'+
+  '<a class="mtile goto" data-gopage="inv" href="#top"><div class="mt">📦 Inventory &amp; audit</div><div class="md">'+n(invTotal)+' evidence rows in '+invEntries.length+' categories · what exists, and what looks wrong</div></a>'+
   '<a class="mtile goto" data-gopage="as" href="#top"><div class="mt">📋 Assessments</div><div class="md">'+assessments.length+' assessments · '+counts.total+' checks · the complete conformance register</div></a>'+
-  '<a class="mtile goto" data-gopage="data" href="#top"><div class="mt">🗃️ Data &amp; drift</div><div class="md">Every finding and evidence row · change since the previous run</div></a>'+
+  '<a class="mtile goto" data-gopage="data" href="#top"><div class="mt">🗃️ Data</div><div class="md">Every finding and evidence row</div></a>'+
   '<a class="mtile goto" data-gopage="road" href="#top"><div class="mt">🛠️ Remediation plan</div><div class="md">All '+counts.fail+' gaps, by team, with windows</div></a></div>'+
   '<div class="depth-exec"><div class="eyebrow">Assessment scores — Executive view</div>'+
   assessments.map(function(a){ var s=a.score||{}; return '<div class="arearow"><a class="goto" data-gopage="a-'+a.slug+'" href="#top">'+esc(a.name)+'</a>'+(s.percent!=null?gauge(s.percent,false):'<span class="mono faintt manualonly">manual only</span>')+bandChip(s.percent)+'</div>'; }).join('')+
@@ -679,6 +851,7 @@ function pageOverview(){
 var CAT_ORDER = ['General','AI','Analytics','Compute','Containers','Databases','DevOps','Hybrid','Identity','Integration','IoT','Management','Migration','Monitor','Networking','Security','Storage','Web'];
 var CAT_LABEL = { AI:'AI + Machine Learning', Hybrid:'Hybrid + multicloud', IoT:'Internet of Things', Management:'Management and governance', Web:'Web & Mobile' };
 function keyCat(k){
+  if(k.indexOf('collected.')===0){ var c=k.split('.')[1]; return CAT_ORDER.filter(function(x){return x.toLowerCase()===c.toLowerCase();})[0] || 'General'; }
   if(/^(subscriptions|tags|advisor)$/.test(k)) return 'General';
   if(k.indexOf('networking.')===0) return 'Networking';
   if(k.indexOf('compute.')===0) return 'Compute';
@@ -688,12 +861,14 @@ function keyCat(k){
   if(/^governance\.(roleAssignments|pimEligibility|classicAdministrators)$/.test(k)) return 'Identity';
   if(k.indexOf('governance.')===0) return 'Management';
   if(k.indexOf('devops.')===0) return 'DevOps';
+  if(k.indexOf('monitor.')===0) return 'Monitor';
+  if(k.indexOf('general.')===0) return 'General';
   var m = k.match(/^domains\.([a-z]+)\./i);
   if(m){
-    var map = { storage:'Storage', databases:'Databases', web:'Web', containers:'Containers', security:'Security', ai:'AI', hybrid:'Hybrid', integration:'Integration', iot:'IoT', migration:'Migration', analytics:'Analytics', management:'Management' };
+    var map = { storage:'Storage', databases:'Databases', web:'Web', containers:'Containers', security:'Security', ai:'AI', hybrid:'Hybrid', integration:'Integration', iot:'IoT', migration:'Migration', analytics:'Analytics', management:'Management', identity:'Identity' };
     return map[m[1].toLowerCase()] || 'General';
   }
-  return null; // derived set (costCleanup.*/finops.*) — lives in the audit/cost blades, not the category tree
+  return /^(costCleanup|finops)\./.test(k) ? null : 'General'; // Derived cost sets have their own blade; other evidence remains visible.
 }
 function grpId(g){ return 'grp-'+g.replace(/[^A-Za-z0-9_-]+/g,'-'); }
 
@@ -721,6 +896,8 @@ function pageInventory(){
     '<div class="gaugebox slim">'+mgTree(roots,0)+'</div><div class="eyebrow">Subscriptions ('+subscriptions.length+')</div>'+
     '<div class="twrap"><table><tr><th>Subscription</th><th>Id</th><th>State</th></tr>'+subRows+'</table></div>';
 
+  var collectionHealth=safeArr(meta.collectionHealth).concat(safeArr(discovery.CollectionHealth||discovery.collectionHealth));
+  var healthRows=collectionHealth.filter(Boolean).map(function(h){return '<tr><td>'+esc(h.Dataset||h.Collector||h.Name||h.dataset||'Collection')+'</td><td>'+esc(h.Status||h.status||'Unknown')+'</td><td>'+esc(h.Reason||h.Message||h.Error||h.reason||'See retained collection logs')+'</td></tr>';}).join('');
   var discoverySummary = discovery.Summary || discovery.summary || {};
   var discoveryResources = safeArr(discovery.Resources || discovery.resources);
   var discoveryRelationships = safeArr(discovery.Relationships || discovery.relationships);
@@ -732,6 +909,7 @@ function pageInventory(){
     return '<tr><td class="mono small">'+esc(r.SourceId||r.sourceId)+'</td><td>'+esc(r.RelationshipType||r.relationshipType)+'</td><td class="mono small">'+esc(r.TargetId||r.targetId)+'</td><td class="mono small">'+esc(r.PropertyPath||r.propertyPath)+'</td></tr>';
   }).join('');
   var discoveryPane = '<h2>Discovery completeness</h2>'+
+    (healthRows?'<h3>Collection health</h3><div class="twrap"><table><tr><th>Dataset</th><th>Status</th><th>Detail</th></tr>'+healthRows+'</table></div>':'<p class="lede small">No collection-health records were supplied; coverage is not independently established.</p>')+
     '<div class="about"><b>Every discovered resource has a visible record.</b> Specialized detail, generic Resource Graph properties, provider enrichment, exposure evidence, relationship evidence, and permission failures are kept together so missing detail cannot look like an absent resource.</div>'+
     '<div class="kpis"><div class="kpi"><div class="l">Resources</div><div class="v">'+n(discoverySummary.Resources||discoverySummary.resources||discoveryResources.length)+'</div><div class="f">unique discovered identities</div></div>'+
     '<div class="kpi"><div class="l">Detailed</div><div class="v">'+n(discoverySummary.Detailed||discoverySummary.detailed||0)+'</div><div class="f">specialized collector available</div></div>'+
@@ -744,8 +922,8 @@ function pageInventory(){
     '<p class="lede small">The interactive page caps each table at 500 rows for usability. The embedded report data and JSON export retain the complete arrays.</p>';
 
   var overviewPane = '<h2>Inventory &amp; audit — overview</h2>'+
-    '<div class="about"><b>About this environment.</b> The estate holds <b>'+n(invTotal)+' collected items</b> across <b>'+subscriptions.length+' subscriptions</b> in '+invEntries.length+' categories, catalogued read-only via Azure Resource Graph and ARM. This page describes what exists and flags what looks wrong; conformance judgements live on the Assessments pages.</div>'+
-    '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div><div class="f">read-only, ARG + ARM</div></div>'+
+    '<div class="about"><b>About this environment.</b> The estate holds <b>'+n(invTotal)+' evidence rows</b> across <b>'+subscriptions.length+' subscriptions</b> in '+invEntries.length+' categories, cataloged read-only via Azure Resource Graph and ARM. This page describes what exists and flags what looks wrong; conformance judgements live on the Assessments pages.</div>'+
+    '<div class="kpis"><div class="kpi"><div class="l">Evidence rows</div><div class="v">'+n(invTotal)+'</div><div class="f">read-only, ARG + ARM</div></div>'+
     '<div class="kpi"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div><div class="f">all enabled</div></div>'+
     '<div class="kpi"><div class="l">Categories</div><div class="v">'+invEntries.length+'</div><div class="f">of '+Object.keys(inventory).length+' collected have data</div></div>'+
     '<div class="kpi"><div class="l">Virtual machines</div><div class="v">'+((inventory['compute.virtualMachines']||{}).count||0)+'</div><div class="f">select Compute on the left</div></div></div>'+
@@ -833,18 +1011,19 @@ function pageAssessments(){
     var fs = safeArr(a.findings);
     var fails = fs.filter(function(f){return f.status==='Fail';}).length;
     var passes = fs.filter(function(f){return f.status==='Pass';}).length;
-    var manuals = fs.length - fails - passes;
+    var partials = fs.filter(function(f){return f.status==='Partial';}).length;
+    var manuals = fs.length - fails - passes - partials;
     var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar).findings.length; });
     var preview = areas.slice(0,6).map(function(ar){
       var b = band(ar.percent);
       return '<div class="arearow"><span>'+esc(ar.name)+'</span>'+(ar.percent!=null?gauge(ar.percent,false):'<span class="mono faintt manualonly">manual only</span>')+'<span class="bandlab" style="color:'+(b?bandVar[b]:'var(--faint)')+'">'+(b?bandLabel[b]:'MANUAL')+'</span></div>';
     }).join('');
     return '<div class="gaugebox"><div class="gtitle">'+esc(a.name)+' <a class="btn goto" data-gopage="a-'+a.slug+'" href="#top">Open full register →</a></div>'+
-      '<div class="lede small">'+esc(a.framework||'')+'</div>'+bandChip(s.percent)+' <b style="margin-left:6px">'+(s.percent!=null?s.percent+' / 100':'')+'</b>'+
+      ((a.framework&&a.framework!==a.name)?'<div class="lede small">'+esc(a.framework)+'</div>':'')+bandChip(s.percent)+' <b style="margin-left:6px">'+(s.percent!=null?s.percent+' / 100':'')+'</b>'+
       '<span class="lede"> '+verdictSentence(s.percent)+'</span>'+gauge(s.percent,true)+
       '<div class="gl"><span>CRITICAL 0–33</span><span>MODERATE 34–66</span><span>EXCELLENT 67–100</span></div>'+
       '<div class="mono faintt" style="margin-top:5px">'+esc(s.formula||'')+'</div>'+
-      '<div class="lede small" style="margin-top:8px">'+fs.length+' checks: <b class="okc">'+passes+' met</b> · <b class="badc">'+fails+' not met</b> · '+manuals+' manual</div>'+
+      '<div class="lede small" style="margin-top:8px">'+fs.length+' checks: <b class="okc">'+passes+' met</b> · '+partials+' partial · <b class="badc">'+fails+' not met</b> · '+manuals+' manual or N/A</div>'+
       preview+(areas.length>6?'<div class="lede small">…and '+(areas.length-6)+' more areas in the full register</div>':'')+'</div>';
   }).join('');
   return '<h2>Assessments</h2><p class="lede">'+assessments.length+' assessments ran against this tenant — '+counts.total+' checks in total. Each opens into its complete conformance register: every check with its result, a gap block for every "Not met", and the manual checks as a review agenda.</p>'+tiles;
@@ -863,7 +1042,7 @@ function areaChapter(a, area, idx){
   // AB#6938 chapter shape: scorecard -> Current State prose -> 1-3 grouped findings tables ->
   // one figure -> (consultant-depth) a gap block per failure + the manual review agenda.
   return '<details class="chapter" id="a-'+a.slug+'-'+idx+'" open><summary><span class="chsum">'+esc(area.name)+'</span> '+bandChip(area.percent)+
-    '<span class="chstats"><b class="okc">'+st.pass+'✓</b> <b class="badc">'+st.fail+'✗</b> '+st.manual+'👁</span></summary>'+
+    '<span class="chstats"><b class="okc">'+st.pass+'✓</b> <b class="badc">'+st.fail+'✗</b> '+(st.partial?st.partial+'½ ':'')+st.manual+'👁</span></summary>'+
     '<div class="gaugebox slim">'+scoreLine+gauge(area.percent,false)+'</div>'+
     '<div class="eyebrow">Current state</div>'+currentStateProse(area, st)+
     chapterFindingsTables(st.findings, 'a-'+a.slug)+
@@ -877,7 +1056,8 @@ function pageAssessment(a){
   var fs = safeArr(a.findings);
   var fails = fs.filter(function(f){return f.status==='Fail';}).length;
   var passes = fs.filter(function(f){return f.status==='Pass';}).length;
-  var manuals = fs.length - fails - passes;
+  var partials = fs.filter(function(f){return f.status==='Partial';}).length;
+  var manuals = fs.length - fails - passes - partials;
   var bandRows = areas.map(function(ar,i){
     var st = areaStats(a, ar);
     var b = band(ar.percent);
@@ -899,7 +1079,7 @@ function pageAssessment(a){
     top.map(function(f){ return '<tr><td>'+esc(f.title)+'</td><td>'+sevPill(f.severity)+'</td><td class="num">'+(f.evidenceCount||'—')+'</td></tr>'; }).join('')+'</table></div>'+
     '<p class="lede small">Executive view shows the summary this register earns. Switch the View toggle to <b>Consultant</b> for every check and every fix, or <b>Data</b> for everything expanded.</p>';
   return '<div class="crumb"><a class="goto" data-gopage="as" href="#top">← All assessments</a></div>'+
-    '<h2>'+esc(a.name)+' <span class="h2sub">'+esc(a.framework||'')+' · '+fs.length+' checks: '+passes+' met · '+fails+' not met · '+manuals+' manual</span></h2>'+
+    '<h2>'+esc(a.name)+' <span class="h2sub">'+((a.framework&&a.framework!==a.name)?esc(a.framework)+' · ':'')+fs.length+' checks: '+passes+' met · '+partials+' partial · '+fails+' not met · '+manuals+' manual or N/A</span></h2>'+
     '<div class="gaugebox">'+bandChip(s.percent)+' <b style="margin-left:8px">'+(s.percent!=null?s.percent+' / 100':'')+'</b><span class="lede"> '+verdictSentence(s.percent)+'</span>'+gauge(s.percent,true)+
     '<div class="gl"><span>CRITICAL 0–33</span><span>MODERATE 34–66</span><span>EXCELLENT 67–100</span></div><div class="mono faintt" style="margin-top:5px">'+esc(s.formula||'')+'</div></div>'+
     '<div class="eyebrow">Design areas — click a name to jump to its chapter; chapters collapse</div><div class="gaugebox">'+bandRows+'</div>'+
@@ -950,7 +1130,7 @@ function pageData(){
   var d = drift || {};
   var dsum = d.Summary || {};
   var dRows = safeArr(d.Findings).filter(function(f){ return f.Drift && f.Drift!=='Unchanged'; }).map(function(f){
-    var col = f.Drift==='Regressed' ? 'var(--fail)' : f.Drift==='Resolved' ? 'var(--pass)' : 'var(--ink)';
+    var col = f.Drift==='Regressed' ? 'var(--fail)' : f.Drift==='Resolved' ? 'var(--band-exc)' : 'var(--ink)';
     return '<tr><td class="mono">'+esc(f.Id)+'</td><td>'+esc(f.Title)+'</td><td>'+esc(f.Area)+'</td><td>'+statusPill(f.PreviousStatus)+'</td><td>'+statusPill(f.CurrentStatus)+'</td><td><b style="color:'+col+'">'+esc(f.Drift)+'</b></td></tr>';
   }).join('');
   var execTop = failsRanked.slice(0,10).map(function(f){
@@ -983,20 +1163,45 @@ function pageData(){
 /* ============================================================
    PAGE: remediation plan
    ============================================================ */
+
 function pageRoadmap(){
   var groups = {}, order = [];
   allFindings.filter(function(f){return f.status==='Fail';}).forEach(function(f){ if(!groups[f.area]){groups[f.area]=[];order.push(f.area);} groups[f.area].push(f); });
-  function actionLabel(f){
-    var evn = safeArr(f.evidence).filter(function(e){return e.resourceName;}).length;
-    var names = safeArr(f.evidence).filter(function(e){return e.resourceName;}).slice(0,2).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
-    return esc((f.title||'').replace(/\.$/,'')) + (evn?' ('+evn+' resource'+(evn===1?'':'s')+': '+names+(evn>2?', …':'')+')':'');
+  var sevColor = function(s){ return s==='high' ? 'var(--band-crit)' : s==='medium' ? 'var(--band-mod)' : 'var(--faint)'; };
+  function actionItem(f, hidden, withRes){
+    var ev = safeArr(f.evidence).filter(function(e){ return e.resourceName; });
+    var resLine = '';
+    if(withRes){
+      var names = ev.slice(0,3).map(function(e){ return '<span class="mono">'+esc(e.resourceName)+'</span>'; }).join(', ');
+      resLine = ev.length
+        ? '<div class="actr">'+ev.length+' resource'+(ev.length===1?'':'s')+' — '+names+(ev.length>3?' <span class="faintt">+ '+(ev.length-3)+' more in the gap block</span>':'')+'</div>'
+        : '<div class="actr"><i>nothing in scope satisfies this check — the gap is the absence itself</i></div>';
+    }
+    var fixLine = f.remediation ? '<div class="actfix"><b>FIX</b>&nbsp; '+esc(f.remediation)+'</div>' : '';
+    return '<li'+(hidden?' class="depth-data"':'')+'>'+
+      '<span class="sevdot" style="background:'+sevColor(f.severity)+'"></span>'+
+      '<a class="goto jump actt" data-gopage="a-'+f.slug+'" href="#g-'+anchorId(f.id)+'">'+esc((f.title||'').replace(/\.$/,''))+'</a>'+
+      '<span class="sevlab" style="color:'+sevColor(f.severity)+'">'+esc(f.severity||'')+'</span>'+fixLine+resLine+'</li>';
+  }
+  function actionList(fs, withRes){
+    /* the same check can be evaluated by several assessment packs — the plan needs each action once */
+    var seen = {}, acts = [];
+    fs.forEach(function(f){
+      var k = String(f.title||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+      if(seen[k]){ seen[k].dup++; } else { seen[k] = { f:f, dup:1 }; acts.push(seen[k]); }
+    });
+    var lis = acts.map(function(a, i){
+      var item = actionItem(a.f, i>=3, withRes);
+      if(a.dup>1) item = item.replace('</a>', '</a> <span class="faintt" style="font-size:10px">· closes '+a.dup+' checks</span>');
+      return item;
+    }).join('');
+    var moreN = acts.length - 3;
+    return '<ul class="actls">'+lis+
+      (moreN>0 ? '<li class="acmore">+ '+moreN+' more action'+(moreN===1?'':'s')+' — switch to the Data view for the full list</li>' : '')+'</ul>';
   }
   var rows = order.map(function(area){
     var fs = groups[area].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
-    var top = fs.slice(0,3).map(actionLabel).join(' · ');
-    var rest = fs.length>3 ? '<span class="depth-data"> · '+fs.slice(3).map(actionLabel).join(' · ')+'</span>' : '';
-    var count = fs.length>3 ? ' <span class="faintt">('+fs.length+' total)</span>' : '';
-    return { area:area, cell: top+rest+count, owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
+    return { area:area, cell: actionList(fs, true), owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
   }).sort(function(a,b){ return a.sev-b.sev || b.count-a.count; });
   var trs = rows.map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b><div class="q">'+r.count+' gap'+(r.count===1?'':'s')+'</div></td><td>'+r.cell+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('');
 
@@ -1009,10 +1214,7 @@ function pageRoadmap(){
   var ws = wsOrder.map(function(team){
     var fs = wsGroups[team].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
     var size = fs.length>12?'XL':fs.length>6?'M':'S';
-    var top = fs.slice(0,3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ');
-    var rest = fs.length>3 ? '<span class="depth-data"> · '+fs.slice(3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ')+'</span>' : '';
-    var count = fs.length>3 ? ' <span class="faintt">('+fs.length+' total)</span>' : '';
-    return '<tr><td><b>'+esc(team)+'</b></td><td>'+sevPill(fs[0].severity)+'</td><td>'+top+rest+count+'</td><td class="num">'+size+'</td><td class="num">'+fs.length+'</td></tr>';
+    return '<tr><td><b>'+esc(team)+'</b></td><td>'+sevPill(fs[0].severity)+'</td><td>'+actionList(fs, false)+'</td><td class="num">'+size+'</td><td class="num">'+fs.length+'</td></tr>';
   }).join('');
 
   var execRows = rows.slice(0,5).map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b></td><td class="num">'+r.count+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('');
@@ -1029,7 +1231,7 @@ function pageRoadmap(){
 
 /* ============================================================
    DIAGRAM KERNEL (AB#6933) — collision-free layout primitives.
-   Kept intact (same signatures/behaviour) because tests/
+   Kept intact (same signatures/behavior) because tests/
    ReactReport.DiagramOverlap.Tests.ps1 runs this kernel in a Node
    vm sandbox and asserts diagramNetworkTopology()/diagramMgHierarchy()
    never overlap a rect/edge — see tests/diagram-overlap-checker.mjs.
@@ -1295,52 +1497,130 @@ function diagMgTreeBlade(){
   var mgRows = safeArr((inventory['governance.managementGroups']||{}).rows);
   return svgWrap('mg','Management-group hierarchy', mgRows.length+' management groups, drawn from governance.managementGroups. Click a node to open Tenant structure.', d.svg.replace(/^<svg[^>]*>|<\/svg>$/g,''), d.width, d.height);
 }
-function diagNetworkBlade(){
-  var d = diagramNetworkTopology();
-  if(!d) return '<p class="lede">No virtual networks collected in this run.</p>';
-  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows).length;
-  var subnets = safeArr((inventory['networking.subnets']||{}).rows).length;
-  return svgWrap('net','Virtual networks & subnets', vnets+' VNets, '+subnets+' subnets. Click to open the Networking inventory.', d.svg.replace(/^<svg[^>]*>|<\/svg>$/g,''), d.width, d.height);
+/* ============================================================
+   Networking diagrams v2 — shared helpers.
+   ============================================================ */
+function tcDisp(nm){ return String(nm||'').replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-?/i,''); }
+function tcRegion(nm){ return ''; }
+
+function tcRegionLoc(loc){
+  var s = String(loc||'').toLowerCase();
+  if(s==='eastus') return 'East US'; if(s==='westus') return 'West US';
+  if(s==='westeurope') return 'West Europe'; if(s==='northeurope') return 'North Europe';
+  return loc||'';
 }
+function tcTrunc(s, max){ s = String(s||''); return s.length>max ? s.slice(0, max-1)+'…' : s; }
+function tcChipW(txt, fs){ return Math.round(String(txt).length*fs*0.66)+18; }
+
+function diagNetworkBlade(){
+  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
+  if(!vnets.length) return '<p class="lede">No virtual networks collected in this run.</p>';
+  var laneMap = {};
+  var lanes = [];
+  vnets.forEach(function(v){
+    var d = tcDisp(v.name);
+    var subs = subnets.filter(function(s){ return s.vnet===v.name || s.vnet===d; });
+    subs = subs.slice().sort(function(a,b){ return (b.ipUtilizationPct||0)-(a.ipUtilizationPct||0); });
+    var r = tcLocation(v) || 'Region not collected';
+    if(!laneMap[r]){ laneMap[r]=[]; lanes.push([tcRegionLoc(r),laneMap[r]]); }
+    laneMap[r].push({ v:v, disp:d, subs:subs });
+  });
+  lanes.forEach(function(L){ L[1].sort(function(a,b){ return b.subs.length-a.subs.length; }); });
+  var laneW = 380, cardW = 362, gap = 15;
+  var x0s = lanes.map(function(_,i){return 10+i*(laneW+gap);}), W = 20+lanes.length*laneW+Math.max(0,lanes.length-1)*gap;
+  var maxShow = 8, headerH = 46, rowH = 19, laneTop = 54;
+  function utilColor(p){ return p==null ? 'var(--faint)' : p>80 ? 'var(--band-crit)' : p>=60 ? 'var(--band-mod)' : 'var(--accent)'; }
+  var out = '', maxH = laneTop;
+  lanes.forEach(function(L, li){
+    var x = x0s[li], y = laneTop;
+    out += '<text x="'+(x+2)+'" y="30" fill="var(--faint)" font-size="11" font-weight="800" letter-spacing="1.5">'+esc(L[0].toUpperCase())+'</text>'+
+      '<text x="'+(x+2)+'" y="44" fill="var(--muted)" font-size="9.5">'+L[1].length+' VNet'+(L[1].length===1?'':'s')+' · '+L[1].reduce(function(a,b){return a+b.subs.length;},0)+' subnets</text>';
+    L[1].forEach(function(it){
+      var shown = it.subs.slice(0, maxShow), more = it.subs.length - shown.length;
+      var bodyRows = it.subs.length ? shown.length + (more>0?1:0) : 1;
+      var cardH = headerH + bodyRows*rowH + 8;
+      out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'"><title>'+esc(it.disp)+' — '+it.subs.length+' subnets · '+esc(subName(it.v.subscriptionId)||'')+'</title>'+
+        '<rect x="'+x+'" y="'+y+'" width="'+cardW+'" height="'+cardH+'" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.2"/>'+
+        '<path d="M '+x+' '+(y+26)+' V '+(y+8)+' Q '+x+' '+y+' '+(x+8)+' '+y+' H '+(x+cardW-8)+' Q '+(x+cardW)+' '+y+' '+(x+cardW)+' '+(y+8)+' V '+(y+26)+' Z" fill="var(--primary-tint)"/>'+
+        '<text x="'+(x+10)+'" y="'+(y+17)+'" fill="var(--ink)" font-weight="700" font-size="10.5">'+esc(tcTrunc(it.disp,42))+'</text>'+
+        '<text x="'+(x+cardW-10)+'" y="'+(y+17)+'" text-anchor="end" fill="'+(it.v.ddosEnabled?'var(--muted)':'var(--band-crit)')+'" font-size="8.5" font-weight="600">'+(it.v.ddosEnabled?'DDoS on':'DDoS off')+'</text>'+
+        '<text x="'+(x+10)+'" y="'+(y+39)+'" fill="var(--muted)" font-size="9">'+it.subs.length+' subnet'+(it.subs.length===1?'':'s')+' · '+esc(tcTrunc(subName(it.v.subscriptionId)||'',34))+'</text>';
+      var ry = y + headerH;
+      if(!it.subs.length){
+        out += '<text x="'+(x+10)+'" y="'+(ry+12)+'" fill="var(--faint)" font-size="9" font-style="italic">no subnet rows collected for this VNet</text>';
+        ry += rowH;
+      }
+      shown.forEach(function(s){
+        var barW = 52, pctX = x+cardW-10, barX = pctX-30-barW, pfxX = barX-8;
+        var pct = (s.ipUtilizationPct===undefined) ? null : s.ipUtilizationPct;
+        out += '<g><title>'+esc(s.subnet)+' · '+esc(s.prefix||'no prefix')+(pct!=null?' · '+Math.round(pct)+'% of addresses in use':'')+'</title>'+
+          '<text x="'+(x+10)+'" y="'+(ry+12)+'" fill="var(--ink)" font-size="9">'+esc(tcTrunc(s.subnet,24))+'</text>'+
+          '<text x="'+pfxX+'" y="'+(ry+12)+'" text-anchor="end" fill="var(--faint)" font-size="8" class="mono">'+esc(s.prefix||'')+'</text>'+
+          '<rect x="'+barX+'" y="'+(ry+5)+'" width="'+barW+'" height="6" rx="3" fill="color-mix(in srgb,var(--ink) 9%,transparent)"/>'+
+          (pct!=null ? '<rect x="'+barX+'" y="'+(ry+5)+'" width="'+Math.max(2, barW*Math.min(100,pct)/100)+'" height="6" rx="3" fill="'+utilColor(pct)+'"/>' : '')+
+          '<text x="'+pctX+'" y="'+(ry+12)+'" text-anchor="end" fill="'+utilColor(pct)+'" font-size="8" font-weight="600">'+(pct!=null?Math.round(pct)+'%':'n/a')+'</text></g>';
+        ry += rowH;
+      });
+      if(more>0){
+        out += '<text x="'+(x+10)+'" y="'+(ry+12)+'" fill="var(--faint)" font-size="9">+ '+more+' more subnet'+(more===1?'':'s')+' — full list in the Networking inventory</text>';
+        ry += rowH;
+      }
+      y += cardH + 12;
+    });
+    maxH = Math.max(maxH, y);
+  });
+  var hot = subnets.filter(function(s){ return (s.ipUtilizationPct||0)>80; });
+  return svgWrap('net','Virtual networks & subnets — by region',
+    vnets.length+' VNets and '+subnets.length+' subnets, grouped by region and ordered by size. Each subnet row shows its address prefix and how much of the range is in use — green under 60%, amber 60–80%, red over 80%'+
+    (hot.length ? '. <b>'+esc(hot.map(function(s){return s.subnet;}).join(', '))+'</b> '+(hot.length===1?'is':'are')+' running out of addresses.' : '. No collected utilization value exceeds 80%; missing values remain unknown.')+
+    ' Hover a row for the full name; click a card to open the Networking inventory.',
+    out, W, maxH+6);
+}
+
 function diagEstateBars(){
   if(!invSorted.length) return '<p class="lede">No inventory categories with data in this run.</p>';
   var top = invSorted.slice(0,10);
-  var max = top[0][1].count, rowH = 30, w = 720, lw = 240;
+  var max = top[0][1].count, rowH = 30, w = 900, lw = 330;
   var out = '';
   top.forEach(function(p,i){
     var k=p[0], v=p[1];
+    var full = catLeaf(v.label||k), shortLab = tcTrunc(full.replace(/\s*\(.*$/,''), 48);
     var y = 12 + i*rowH, bwid = Math.max(3, (w-lw-90) * v.count/max);
-    out += '<g class="diag-node" data-gopane="'+catId(k)+'"><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc(catLeaf(v.label||k))+'</text>'+
+    out += '<g class="diag-node" data-gopane="'+catId(k)+'"><title>'+esc(full)+'</title><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc(shortLab)+'</text>'+
       '<rect x="'+(lw+12)+'" y="'+y+'" width="'+bwid+'" height="19" rx="4" fill="var(--primary)"></rect>'+
       '<text x="'+(lw+20+bwid)+'" y="'+(y+14)+'" fill="var(--muted)" font-size="11">'+n(v.count)+'</text></g>';
   });
   return svgWrap('estate','Estate — top categories', 'Top 10 inventory categories by item count. Click a bar to open that category.', out, w, 12+top.length*rowH+8);
 }
+function primaryAssessment(){
+  return assessments.filter(function(x){ return x.slug==='caf-azure-landing-zone'; })[0] || assessments.slice().sort(function(x,y){ return safeArr(y.findings).length-safeArr(x.findings).length; })[0];
+}
 function diagSeverity(){
-  var a = assessments[0];
+  var a = primaryAssessment();
   if(!a) return '<p class="lede">No assessments ran in this run.</p>';
   var areas = dedupeAreas(a.areas).map(function(ar){ return { ar:ar, st:areaStats(a,ar) }; }).filter(function(x){ return x.st.fail>0; })
-    .sort(function(x,y){ return y.st.fail-x.st.fail; }).slice(0,10);
+    .sort(function(x,y){ return y.st.fail-x.st.fail; }).slice(0,20);
   if(!areas.length) return '<p class="lede">No gaps in '+esc(a.name)+'.</p>';
-  var max = Math.max.apply(null, areas.map(function(x){return x.st.fail;})), rowH = 30, w = 720, lw = 250;
+  var max = Math.max.apply(null, areas.map(function(x){return x.st.fail;})), rowH = 30, w = 900, lw = 330;
   var out = '';
   areas.forEach(function(x,i){
     var ar = x.ar, st = x.st;
     var y = 12 + i*rowH;
-    var fails = safeArr(a.findings).filter(function(f){ return f.area===ar.name && f.status==='Fail'; });
+    var fails = st.findings.filter(function(f){ return f.status==='Fail'; });
     var hi = fails.filter(function(f){return f.severity==='high';}).length;
     var med = fails.filter(function(f){return f.severity==='medium';}).length;
     var lo = st.fail - hi - med;
     var unit = (w-lw-90)/max;
     var xcur = lw+12;
-    out += '<g class="diag-node" data-gopage="a-'+a.slug+'"><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc(ar.name)+'</text>';
+    out += '<g class="diag-node" data-gopage="a-'+a.slug+'"><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc((ar.framework?ar.framework+' · ':'')+ar.name)+'</text>';
     [[hi,'var(--band-crit)'],[med,'var(--band-mod)'],[lo,'var(--low)']].forEach(function(pair){
       var cnt = pair[0], col = pair[1];
       if(cnt>0){ out += '<rect x="'+xcur+'" y="'+y+'" width="'+Math.max(2,cnt*unit-2)+'" height="19" rx="3" fill="'+col+'"></rect>'; xcur += cnt*unit; }
     });
     out += '<text x="'+(xcur+8)+'" y="'+(y+14)+'" fill="var(--muted)" font-size="11">'+st.fail+'</text></g>';
   });
-  return svgWrap('sev','Gaps by design area — '+esc(a.name), 'Not-met checks per area, split high / medium / low. Click to open the assessment register.', out, w, 12+areas.length*rowH+8);
+  return svgWrap('sev','Gaps by design area — '+esc(a.name), 'Not-met checks per CAF design area and WAF pillar in the landing zone assessment, split high (red) / medium (amber) / low (blue). Management-group benchmark gaps are listed separately in the assessment register. Click a bar to open the register.', out, w, 12+areas.length*rowH+8);
 }
 /* ---- AB#7050-7058 four additional network diagrams (VNet connectivity,
    hybrid site-to-site, private link & DNS, internet exposure). Ported from
@@ -1350,297 +1630,287 @@ function diagSeverity(){
    port reading straight off the global `inventory` bag. ---- */
 function diagVnetTopology(){
   var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
-  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
-  var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
-  /* AB#6928: real peering pairs when the collect carries them; older collects
-     fall back to the per-VNet peeringCount inference below. */
   var peers = safeArr((inventory['networking.vnetPeerings']||{}).rows);
-  var peersOf = function(n){ return peers.filter(function(p){ return p.vnet === n; }); };
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
+  var fws = safeArr((inventory['networking.azureFirewalls']||{}).rows);
+  var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
+  var ercs = safeArr((inventory['networking.expressRouteCircuits']||{}).rows);
   if(!vnets.length) return '';
+  var byDisp = {}; vnets.forEach(function(v){ byDisp[tcDisp(v.name)] = v; });
+  var subCount = function(d){ var v = byDisp[d]; if(!v) return 0; return subnets.filter(function(s){ return s.vnet===v.name || s.vnet===d; }).length; };
 
-  var gwRg = gws.length ? gws[0].resourceGroup : null;
-  var hub = vnets.find(function(v){ return gwRg && v.resourceGroup === gwRg; })
-    || vnets.find(function(v){ return subnets.some(function(s){ return s.vnet === v.name && /gateway/i.test(s.subnet); }); })
-    || vnets[0];
-  var spokes = vnets.filter(function(v){ return v !== hub; });
-
-  var w = 860, cx = w/2, cy = 210, hubW = 240, hubH = 78;
-  var out = '';
-
-  if(gws.length){
-    var g = gws[0];
-    out += '<g class="diag-node" data-gopane="'+catId('networking.vpnGateways')+'">'+
-      '<rect x="'+(cx-110)+'" y="14" width="220" height="52" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 3"/>'+
-      '<text x="'+cx+'" y="34" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12">'+esc(g.name)+'</text>'+
-      '<text x="'+cx+'" y="50" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+esc(g.gatewayType)+' · '+esc(g.sku)+' · BGP '+(g.bgp?'on':'off')+' · '+(g.activeActive?'active-active':'⚠ single instance')+'</text></g>'+
-      '<path d="M '+cx+' 66 V '+(cy-hubH/2)+'" stroke="var(--accent)" stroke-width="2" fill="none"/>';
-  }
-
-  var hubSubs = subnets.filter(function(s){ return s.vnet === hub.name; });
-  out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'">'+
-    '<rect x="'+(cx-hubW/2)+'" y="'+(cy-hubH/2)+'" width="'+hubW+'" height="'+hubH+'" rx="9" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="2.5"/>'+
-    '<text x="'+cx+'" y="'+(cy-16)+'" text-anchor="middle" fill="var(--primary)" font-weight="800" font-size="10">HUB</text>'+
-    '<text x="'+cx+'" y="'+(cy+2)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12">'+esc(hub.name)+'</text>'+
-    '<text x="'+cx+'" y="'+(cy+19)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+hubSubs.length+' subnet'+(hubSubs.length===1?'':'s')+' · '+(hub.peeringCount||0)+' peering'+((hub.peeringCount||0)===1?'':'s')+' · DDoS '+(hub.ddosEnabled?'on':'off')+'</text></g>';
-  if(peersOf(hub.name).some(function(p){ return p.allowGatewayTransit; })){
-    out += '<text x="'+(cx+hubW/2+10)+'" y="'+(cy+4)+'" fill="var(--accent)" font-weight="700" font-size="10">⇄ gateway transit</text>';
-  }
-
-  var sw = 210, gap = 22, totalW = spokes.length*sw + (spokes.length-1)*gap;
-  var sx = cx - totalW/2, sy = cy + 130;
-  spokes.forEach(function(s){
-    var subs = subnets.filter(function(x){ return x.vnet === s.name; });
-    var sRows = peersOf(s.name);
-    var toHub = sRows.find(function(p){ return p.remoteVnetName === hub.name; }) || sRows[0] || null;
-    var peered = peers.length ? sRows.length > 0 : (s.peeringCount||0) > 0;
-    var mx = sx + sw/2;
-    out += peered
-      ? '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--primary)" stroke-width="2" fill="none"/>'
-      : '<path d="M '+cx+' '+(cy+hubH/2)+' V '+(sy-26)+' H '+mx+' V '+sy+'" stroke="var(--band-crit)" stroke-width="2" stroke-dasharray="4 4" fill="none" opacity=".55"/>'+
-        '<text x="'+mx+'" y="'+(sy-32)+'" text-anchor="middle" fill="var(--band-crit)" font-size="10" font-weight="700">no peering</text>';
-    if(peered && toHub){
-      var edgeLbl = (toHub.remoteVnetName && toHub.remoteVnetName !== hub.name ? '→ '+toHub.remoteVnetName+' · ' : '')+(toHub.peeringState||'')+
-        ((toHub.useRemoteGateways||toHub.allowGatewayTransit)?' · gw transit':'');
-      out += '<text x="'+mx+'" y="'+(sy-32)+'" text-anchor="middle" fill="'+(toHub.peeringState==='Connected'?'var(--primary)':'var(--band-crit)')+'" font-size="9.5" font-weight="600">'+esc(edgeLbl)+'</text>';
-    }
-    out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'">'+
-      '<rect x="'+sx+'" y="'+sy+'" width="'+sw+'" height="66" rx="8" fill="var(--surface)" stroke="'+(peered?'var(--primary)':'var(--band-crit)')+'" stroke-width="1.5"/>'+
-      '<text x="'+(sx+sw/2)+'" y="'+(sy+24)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11.5">'+esc(s.name)+'</text>'+
-      '<text x="'+(sx+sw/2)+'" y="'+(sy+41)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+subs.length+' subnet'+(subs.length===1?'':'s')+' · '+(s.peeringCount||0)+' peering'+((s.peeringCount||0)===1?'':'s')+'</text>'+
-      '<text x="'+(sx+sw/2)+'" y="'+(sy+56)+'" text-anchor="middle" fill="var(--faint)" font-size="9.5">'+esc(s.resourceGroup)+'</text></g>';
-    sx += sw + gap;
+  /* dedupe reciprocal peerings into pairs */
+  var pairKey = {}, pairs = [];
+  peers.forEach(function(p){
+    var a = tcDisp(p.vnet), b = tcDisp(p.remoteVnetName);
+    var k = a<b ? a+'|'+b : b+'|'+a;
+    if(!pairKey[k]){ pairKey[k] = { a:a, b:b, state:p.peeringState||'', gwt:!!(p.allowGatewayTransit||p.useRemoteGateways) }; pairs.push(pairKey[k]); }
+    else if(p.allowGatewayTransit||p.useRemoteGateways){ pairKey[k].gwt = true; }
   });
+  var deg = {}; pairs.forEach(function(p){ deg[p.a]=(deg[p.a]||0)+1; deg[p.b]=(deg[p.b]||0)+1; });
+  var hubs = Object.keys(deg).filter(function(k){ return deg[k]>=2; })
+    .sort(function(x,y){ return deg[y]-deg[x]; }).slice(0,2)
+    .sort(function(x,y){ return String(tcRegion(x)||'z').localeCompare(String(tcRegion(y)||'z')); });
+  var isHub = {}; hubs.forEach(function(h){ isHub[h]=1; });
+  var spokesOf = {}; hubs.forEach(function(h){ spokesOf[h]=[]; });
+  var crossPairs = [], islandPairs = [];
+  pairs.forEach(function(p){
+    if(isHub[p.a] && isHub[p.b]) crossPairs.push(p);
+    else if(isHub[p.a]) spokesOf[p.a].push(p);
+    else if(isHub[p.b]) spokesOf[p.b].push({ a:p.b, b:p.a, state:p.state, gwt:p.gwt });
+    else islandPairs.push(p);
+  });
+  var unpeered = vnets.map(function(v){ return tcDisp(v.name); }).filter(function(d){ return !deg[d]; });
+
+  var W = 1200, out = '';
+  /* legend */
+  var lg = 14;
+  out += '<rect x="'+lg+'" y="12" width="14" height="14" rx="3" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="1.6"/><text x="'+(lg+20)+'" y="23" fill="var(--muted)" font-size="9.5">Hub VNet</text>';
+  out += '<rect x="'+(lg+92)+'" y="12" width="14" height="14" rx="3" fill="var(--surface)" stroke="var(--primary)"/><text x="'+(lg+112)+'" y="23" fill="var(--muted)" font-size="9.5">Spoke VNet</text>';
+  out += '<line x1="'+(lg+196)+'" y1="19" x2="'+(lg+228)+'" y2="19" stroke="var(--primary)" stroke-width="2"/><text x="'+(lg+234)+'" y="23" fill="var(--muted)" font-size="9.5">VNet peering (Connected)</text>';
+  out += '<rect x="'+(lg+390)+'" y="12" width="14" height="14" rx="3" fill="var(--surface)" stroke="var(--band-mod)" stroke-width="1.6"/><text x="'+(lg+410)+'" y="23" fill="var(--muted)" font-size="9.5">Configuration issue</text>';
+  out += '<rect x="'+(lg+530)+'" y="12" width="14" height="14" rx="3" fill="var(--surface)" stroke="var(--faint)" stroke-dasharray="3 3"/><text x="'+(lg+550)+'" y="23" fill="var(--muted)" font-size="9.5">Not peered — no collected hub peering</text>';
+
+  var hubW = 340, hubH = 96, hubY = 74, centers = hubs.length===2 ? [320, 880] : [W/2];
+  var spokeW = 300, spokeH = 58, spokeGap = 16, spokeY0 = hubY + hubH + 58;
+  var bottoms = [];
+
+  hubs.forEach(function(h, i){
+    var cx = centers[i], v = byDisp[h] || {};
+    var reg = tcLocation(v) || '';
+    var fw = fws.filter(function(f){ return reg && tcLocation(f)===reg; })[0];
+    out += '<text x="'+cx+'" y="'+(hubY-14)+'" text-anchor="middle" fill="var(--faint)" font-size="11" font-weight="800" letter-spacing="2">'+esc(reg.toUpperCase()||'REGION')+'</text>';
+    out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'"><title>'+esc(h)+'</title>'+
+      '<rect x="'+(cx-hubW/2)+'" y="'+hubY+'" width="'+hubW+'" height="'+hubH+'" rx="10" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="2.4"/>'+
+      '<text x="'+cx+'" y="'+(hubY+20)+'" text-anchor="middle" fill="var(--primary)" font-weight="800" font-size="9.5" letter-spacing="1.5">HUB</text>'+
+      '<text x="'+cx+'" y="'+(hubY+38)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="12.5">'+esc(h)+'</text>'+
+      '<text x="'+cx+'" y="'+(hubY+56)+'" text-anchor="middle" fill="var(--muted)" font-size="10">'+subCount(h)+' subnets'+(fw?' · '+esc(fw.name):'')+'</text>'+
+      '<text x="'+cx+'" y="'+(hubY+74)+'" text-anchor="middle" fill="var(--band-crit)" font-size="9.5" font-weight="600">'+
+        (v.ddosEnabled?'':'DDoS off')+((gws.length||ercs.length)?'':(v.ddosEnabled?'':' · ')+'no VPN gateway · no ExpressRoute')+'</text></g>';
+    var sps = spokesOf[h] || [], sy = spokeY0;
+    sps.sort(function(x,y){ return subCount(y.b)-subCount(x.b); });
+    sps.forEach(function(p){
+      var okc = p.state==='Connected';
+      out += '<path d="M '+cx+' '+(hubY+hubH)+' V '+(sy-22)+' '+' M '+cx+' '+(sy-22)+' V '+sy+'" stroke="'+(okc?'var(--primary)':'var(--band-crit)')+'" stroke-width="2" fill="none"/>'+
+        '<text x="'+(cx+8)+'" y="'+(sy-8)+'" fill="'+(okc?'var(--primary)':'var(--band-crit)')+'" font-size="8.5" font-weight="600">'+esc(p.state||'state n/a')+'</text>';
+      var v2 = byDisp[p.b] || {};
+      out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'"><title>'+esc(p.b)+'</title>'+
+        '<rect x="'+(cx-spokeW/2)+'" y="'+sy+'" width="'+spokeW+'" height="'+spokeH+'" rx="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.4"/>'+
+        '<text x="'+cx+'" y="'+(sy+23)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11.5">'+esc(p.b)+'</text>'+
+        '<text x="'+cx+'" y="'+(sy+42)+'" text-anchor="middle" fill="var(--muted)" font-size="9.5">'+subCount(p.b)+' subnets · '+esc(tcTrunc(subName(v2.subscriptionId)||'',30))+'</text></g>';
+      sy += spokeH + spokeGap;
+    });
+    bottoms.push(sps.length ? sy - spokeGap : hubY + hubH);
+  });
+
+  if(hubs.length===2 && crossPairs.length){
+    var yMid = hubY + hubH/2;
+    out += '<path d="M '+(centers[0]+hubW/2)+' '+yMid+' H '+(centers[1]-hubW/2)+'" stroke="var(--primary)" stroke-width="2.4" fill="none"/>'+
+      '<text x="'+((centers[0]+centers[1])/2)+'" y="'+(yMid-8)+'" text-anchor="middle" fill="var(--primary)" font-size="9.5" font-weight="700">hub-to-hub peering · '+esc(crossPairs[0].state)+'</text>';
+  }
+
+  var y = Math.max.apply(null, bottoms.concat([spokeY0])) + 44;
+
+  if(islandPairs.length){
+    out += '<text x="14" y="'+y+'" fill="var(--faint)" font-size="10" font-weight="800" letter-spacing="1.5">PEERED OUTSIDE THE HUB-AND-SPOKE ('+islandPairs.length+' pair'+(islandPairs.length===1?'':'s')+')</text>';
+    y += 14;
+    islandPairs.forEach(function(p){
+      var bw = 280, bh = 52, x1 = 40, x2 = x1 + bw + 150, warn = p.gwt && !gws.length;
+      [[p.a,x1],[p.b,x2]].forEach(function(pair){
+        var v3 = byDisp[pair[0]] || {};
+        out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'"><title>'+esc(pair[0])+'</title>'+
+          '<rect x="'+pair[1]+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="8" fill="var(--surface)" stroke="'+(warn?'var(--band-mod)':'var(--primary)')+'" stroke-width="1.4"/>'+
+          '<text x="'+(pair[1]+bw/2)+'" y="'+(y+21)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11">'+esc(tcTrunc(pair[0],34))+'</text>'+
+          '<text x="'+(pair[1]+bw/2)+'" y="'+(y+38)+'" text-anchor="middle" fill="var(--muted)" font-size="9">'+subCount(pair[0])+' subnets · '+esc(tcTrunc(subName(v3.subscriptionId)||'',26))+'</text></g>';
+      });
+      out += '<path d="M '+(x1+bw)+' '+(y+bh/2)+' H '+x2+'" stroke="'+(warn?'var(--band-mod)':'var(--primary)')+'" stroke-width="2" fill="none"/>'+
+        '<text x="'+(x1+bw+75)+'" y="'+(y+bh/2-6)+'" text-anchor="middle" fill="'+(warn?'var(--band-mod)':'var(--primary)')+'" font-size="8.5" font-weight="600">'+esc(p.state)+'</text>';
+      if(warn){
+        out += '<text x="'+(x2+bw+16)+'" y="'+(y+bh/2+4)+'" fill="var(--band-mod)" font-size="9.5" font-weight="700">⚠ gateway transit configured, but no gateway was collected</text>';
+      }
+      y += 52 + 18;
+    });
+    y += 10;
+  }
+
+  if(unpeered.length){
+    var chips = unpeered.map(function(d){ return { d:d, t: tcTrunc(d,30)+' · '+subCount(d) }; });
+    var cy = y + 30, cxp = 30, rowH2 = 30, trayX = 14, trayW = W-28;
+    var pos = [];
+    chips.forEach(function(c){
+      var wch = tcChipW(c.t, 9.5);
+      if(cxp + wch > trayW - 14){ cxp = 30; cy += rowH2; }
+      pos.push({ x:cxp, y:cy, w:wch, c:c });
+      cxp += wch + 10;
+    });
+    var trayH = (cy + rowH2 + 6) - y;
+    out += '<rect x="'+trayX+'" y="'+y+'" width="'+trayW+'" height="'+trayH+'" rx="10" fill="none" stroke="var(--faint)" stroke-width="1.2" stroke-dasharray="5 4"/>'+
+      '<text x="30" y="'+(y+19)+'" fill="var(--faint)" font-size="10" font-weight="800" letter-spacing="1.5">NOT PEERED — '+unpeered.length+' VNETS WITH NO COLLECTED PEERING</text>';
+    pos.forEach(function(p){
+      out += '<g class="diag-node" data-gopane="'+catId('networking.virtualNetworks')+'"><title>'+esc(p.c.d)+' · '+subCount(p.c.d)+' subnets</title>'+
+        '<rect x="'+p.x+'" y="'+(p.y+8)+'" width="'+p.w+'" height="20" rx="10" fill="var(--surface)" stroke="var(--border)"/>'+
+        '<text x="'+(p.x+p.w/2)+'" y="'+(p.y+21)+'" text-anchor="middle" fill="var(--muted)" font-size="9.5">'+esc(p.c.t)+'</text></g>';
+    });
+    y += trayH + 12;
+  }
 
   return svgWrap('vnettopo', 'VNet connectivity — hub and spoke',
-    peers.length
-      ? vnets.length+' VNets, '+peers.length+' measured peering pair'+(peers.length===1?'':'s')+'. Each edge is a real peering with its remote VNet and state; red marks a VNet with no peering; ⇄ marks gateway transit.'
-      : vnets.length+' VNets. The hub is identified by the gateway it hosts; an edge is drawn where a peering exists and marked in red where a VNet has none. <b>Peering direction and the remote end of each edge need the collector extension</b> — today the payload carries a peering count per VNet, not the pairs.',
-    out, w, sy+90);
+    vnets.length+' VNets, '+pairs.length+' peering relationships (reciprocal links shown once). Hub candidates are selected by peering degree; each spoke label shows its subnet count and subscription. The pair outside the hubs and the '+unpeered.length+' unpeered VNets are drawn separately — other connectivity cannot be inferred from peering rows alone.',
+    out, W, y+6);
 }
+
 function diagHybrid(){
-  var gws = safeArr((inventory['networking.vpnGateways']||{}).rows);
-  var azl = safeArr((inventory['domains.hybrid.azureLocalClusters']||{}).rows);
-  var lnets = safeArr((inventory['domains.hybrid.logicalNetworks']||{}).rows);
-  var arc = safeArr((inventory['domains.hybrid.arcServers']||{}).rows);
-  /* AB#6928: connection-level detail when the collect carries it. */
-  var conns = safeArr((inventory['networking.vpnConnections']||{}).rows);
-  var lngs = safeArr((inventory['networking.localNetworkGateways']||{}).rows);
-  var ercs = safeArr((inventory['networking.expressRouteCircuits']||{}).rows);
-  var wans = safeArr((inventory['networking.virtualWans']||{}).rows);
-  var vhubs = safeArr((inventory['networking.virtualHubs']||{}).rows);
-  if(!gws.length && !azl.length && !arc.length && !conns.length && !ercs.length && !wans.length) return '';
-
-  var w = 860;
-  var out = '';
-  var y = 16;
-
-  out += '<rect x="12" y="'+y+'" width="330" height="'+(azl.length?210:96)+'" rx="10" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 4"/>'+
-    '<text x="26" y="'+(y+22)+'" fill="var(--muted)" font-weight="700" font-size="11">ON-PREMISES / EDGE</text>';
-
-  var oy = y + 40;
-  azl.forEach(function(c){
-    out += '<g class="diag-node" data-gopane="'+catId('domains.hybrid.azureLocalClusters')+'">'+
-      '<rect x="26" y="'+oy+'" width="302" height="48" rx="7" fill="var(--primary-tint)" stroke="var(--primary)"/>'+
-      '<text x="38" y="'+(oy+20)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(c.name)+'</text>'+
-      '<text x="38" y="'+(oy+36)+'" fill="var(--muted)" font-size="10.5">Azure Local '+esc(c.clusterVersion)+' · '+esc(c.connectivityStatus)+'</text></g>';
-    oy += 56;
-  });
-
-  if(lnets.length){
-    var shown = lnets.slice(0,4);
-    out += '<text x="26" y="'+(oy+12)+'" fill="var(--faint)" font-size="10" font-weight="700">LOGICAL NETWORKS ('+lnets.length+')</text>';
-    oy += 22;
-    shown.forEach(function(l){
-      out += '<g class="diag-node" data-gopane="'+catId('domains.hybrid.logicalNetworks')+'">'+
-        '<rect x="26" y="'+oy+'" width="302" height="20" rx="4" fill="var(--surface)" stroke="var(--border)"/>'+
-        '<text x="34" y="'+(oy+14)+'" fill="var(--ink)" font-size="10">'+esc(l.name)+' <tspan fill="var(--faint)">'+esc(l.addressPrefix||'no prefix')+(l.vlan?' · VLAN '+esc(l.vlan):'')+'</tspan></text></g>';
-      oy += 24;
-    });
-  }
-
-  if(arc.length){
-    out += '<text x="26" y="'+(oy+14)+'" fill="var(--muted)" font-size="10.5">+ '+arc.length+' Arc-connected server'+(arc.length===1?'':'s')+' projecting into Azure</text>';
-  }
-
-  var midY = y + 96;
-  if(gws.length){
-    var g = gws[0];
-    out += '<path d="M 342 '+midY+' H 518" stroke="var(--accent)" stroke-width="3" fill="none"/>'+
-      '<text x="430" y="'+(midY-10)+'" text-anchor="middle" fill="var(--accent)" font-weight="700" font-size="10.5">SITE-TO-SITE '+esc(String(g.gatewayType||'').toUpperCase())+'</text>'+
-      '<text x="430" y="'+(midY+18)+'" text-anchor="middle" fill="var(--muted)" font-size="10">BGP '+(g.bgp?'enabled':'disabled')+'</text>';
-    if(!g.activeActive){
-      out += '<text x="430" y="'+(midY+54)+'" text-anchor="middle" fill="var(--band-crit)" font-weight="700" font-size="10">⚠ single instance — no active-active</text>';
-    }
-    out += '<g class="diag-node" data-gopane="'+catId('networking.vpnGateways')+'">'+
-      '<rect x="518" y="'+(midY-32)+'" width="240" height="64" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>'+
-      '<text x="638" y="'+(midY-12)+'" text-anchor="middle" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(g.name)+'</text>'+
-      '<text x="638" y="'+(midY+5)+'" text-anchor="middle" fill="var(--muted)" font-size="10.5">'+esc(g.sku)+'</text>'+
-      '<text x="638" y="'+(midY+22)+'" text-anchor="middle" fill="var(--faint)" font-size="10">'+esc(g.resourceGroup)+'</text></g>';
-  }
-
-  var h = Math.max(oy+40, midY+70);
-
-  /* ---- AB#6928 connection lane: each measured connection from its local network
-     gateway, through the tunnel, to the VPN gateway it terminates on. Additive —
-     older collects without these keys render exactly as before. ---- */
-  if(conns.length || lngs.length){
-    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">SITE-TO-SITE CONNECTIONS ('+conns.length+') · LOCAL NETWORK GATEWAYS ('+lngs.length+')</text>';
-    var ry = h + 28;
-    var drawnLngs = {};
-    conns.forEach(function(c){
-      var lng = lngs.find(function(l){ return l.name === c.localNetworkGatewayName; }) || null;
-      if(lng) drawnLngs[lng.name] = true;
-      var ip = lng ? lng.gatewayIpAddress : '';
-      var pfx = (lng && lng.addressPrefixes) ? lng.addressPrefixes : (c.localAddressPrefixes||'');
-      var okConn = String(c.connectionStatus||'') === 'Connected';
-      out += '<g class="diag-node" data-gopane="'+catId('networking.localNetworkGateways')+'">'+
-        '<rect x="12" y="'+ry+'" width="330" height="44" rx="7" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>'+
-        '<text x="26" y="'+(ry+18)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(c.localNetworkGatewayName||'(local gateway)')+'</text>'+
-        '<text x="26" y="'+(ry+34)+'" fill="var(--muted)" font-size="10">'+esc(ip||'IP n/a')+(pfx?' · '+esc(String(pfx).slice(0,40)):'')+'</text></g>';
-      out += '<path d="M 342 '+(ry+22)+' H 518" stroke="'+(okConn?'var(--accent)':'var(--band-crit)')+'" stroke-width="2"'+(okConn?'':' stroke-dasharray="5 4"')+' fill="none"/>'+
-        '<text x="430" y="'+(ry+16)+'" text-anchor="middle" fill="'+(okConn?'var(--accent)':'var(--band-crit)')+'" font-weight="700" font-size="9.5">'+esc(c.connectionStatus||'status n/a')+'</text>';
-      out += '<g class="diag-node" data-gopane="'+catId('networking.vpnConnections')+'">'+
-        '<rect x="518" y="'+ry+'" width="240" height="44" rx="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>'+
-        '<text x="638" y="'+(ry+18)+'" text-anchor="middle" fill="var(--ink)" font-weight="650" font-size="11">'+esc(c.name)+'</text>'+
-        '<text x="638" y="'+(ry+34)+'" text-anchor="middle" fill="var(--muted)" font-size="10">'+esc(c.gatewayName||'')+' · '+esc(c.connectionType||'')+'</text></g>';
-      ry += 52;
-    });
-    lngs.filter(function(l){ return !drawnLngs[l.name]; }).forEach(function(l){
-      out += '<g class="diag-node" data-gopane="'+catId('networking.localNetworkGateways')+'">'+
-        '<rect x="12" y="'+ry+'" width="330" height="44" rx="7" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3"/>'+
-        '<text x="26" y="'+(ry+18)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(l.name)+'</text>'+
-        '<text x="26" y="'+(ry+34)+'" fill="var(--muted)" font-size="10">'+esc(l.gatewayIpAddress||'IP n/a')+(l.addressPrefixes?' · '+esc(String(l.addressPrefixes).slice(0,40)):'')+' · no connection</text></g>';
-      ry += 52;
-    });
-    h = ry + 8;
-  }
-
-  /* ---- AB#6928 ExpressRoute lane. ---- */
-  if(ercs.length){
-    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">EXPRESSROUTE CIRCUITS ('+ercs.length+')</text>';
-    var ey = h + 28;
-    ercs.forEach(function(e){
-      var prov = String(e.serviceProviderProvisioningState||e.circuitProvisioningState||'');
-      out += '<g class="diag-node" data-gopane="'+catId('networking.expressRouteCircuits')+'">'+
-        '<rect x="12" y="'+ey+'" width="746" height="44" rx="7" fill="var(--primary-tint)" stroke="var(--primary)" stroke-width="1.5"/>'+
-        '<text x="26" y="'+(ey+18)+'" fill="var(--ink)" font-weight="700" font-size="11">'+esc(e.name)+' <tspan fill="var(--muted)" font-weight="400">'+esc(e.sku||'')+'</tspan></text>'+
-        '<text x="26" y="'+(ey+34)+'" fill="var(--muted)" font-size="10">'+esc(e.serviceProviderName||'provider n/a')+' · '+esc(e.peeringLocation||'location n/a')+(e.bandwidthInMbps?' · '+esc(e.bandwidthInMbps)+' Mbps':'')+' · '+esc(prov||'state n/a')+'</text></g>';
-      ey += 52;
-    });
-    h = ey + 8;
-  }
-
-  /* ---- AB#6928 Virtual WAN lane with its hubs. ---- */
-  if(wans.length){
-    out += '<text x="12" y="'+(h+16)+'" fill="var(--faint)" font-size="10" font-weight="700">VIRTUAL WAN ('+wans.length+') · HUBS ('+vhubs.length+')</text>';
-    var wy = h + 28;
-    wans.forEach(function(wn){
-      var myHubs = vhubs.filter(function(hb){ return hb.virtualWanName === wn.name; });
-      out += '<g class="diag-node" data-gopane="'+catId('networking.virtualWans')+'">'+
-        '<rect x="12" y="'+wy+'" width="746" height="44" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>'+
-        '<text x="26" y="'+(wy+18)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(wn.name)+'</text>'+
-        '<text x="26" y="'+(wy+34)+'" fill="var(--muted)" font-size="10">'+esc(wn.wanType||'')+' vWAN · branch-to-branch '+(wn.allowBranchToBranchTraffic?'allowed':'blocked')+'</text></g>';
-      wy += 52;
-      myHubs.forEach(function(hb){
-        out += '<path d="M 26 '+(wy-8)+' V '+(wy+8)+' H 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/>'+
-          '<g class="diag-node" data-gopane="'+catId('networking.virtualHubs')+'">'+
-          '<rect x="40" y="'+wy+'" width="702" height="16" rx="3" fill="color-mix(in srgb,var(--accent) 10%,transparent)"/>'+
-          '<text x="48" y="'+(wy+12)+'" fill="var(--ink)" font-size="9.5">hub '+esc(hb.name)+' <tspan fill="var(--faint)">'+esc(hb.addressPrefix||'no prefix')+'</tspan></text></g>';
-        wy += 22;
-      });
-      wy += 8;
-    });
-    h = wy + 6;
-  }
-
-  return svgWrap('hybrid', 'Hybrid connectivity — on-premises to Azure',
-    (conns.length||lngs.length||ercs.length||wans.length)
-      ? 'The tunnel, its gateway and the on-premises estate that reaches Azure through it — with each measured connection, its local network gateway and on-premises address space'+(ercs.length?', the ExpressRoute circuits':'')+(wans.length?', and the Virtual WAN hubs':'')+'.'
-      : 'The tunnel, its gateway and the on-premises estate that reaches Azure through it. <b>The connections themselves, the local network gateways and their on-premises address spaces need the collector extension</b> — the gateway is collected today, what it connects to is not.',
-    out, w, h);
+  var er=tcRows('networking.expressRouteCircuits',['ExpressRoute']),vpn=tcRows('networking.vpnConnections',['VirtualNetworkGateways','VPNGateway']),apps=tcRows('networking.sdwanAppliances');
+  var rows=er.concat(vpn,apps);if(!rows.length)return '';
+  return tcDiagramList('networking.virtualNetworks',rows,'Hybrid connectivity — site-to-Azure evidence',function(r){return [
+    'Connection: '+(tcValue(r,['connectionStatus','Connection Status','powerState'])||'not collected'),
+    'Network: '+(tcValue(r,['hubVirtualNetwork','virtualNetwork','Virtual Network'])||'not collected'),
+    'End-to-end connectivity and failover require validation'];});
 }
+
 function diagPrivateLink(){
   var pes = safeArr((inventory['networking.privateEndpoints']||{}).rows);
   var dns = safeArr((inventory['networking.privateDnsZones']||{}).rows);
   if(!pes.length) return '';
+  var zoneSet = {}; dns.forEach(function(z){ zoneSet[String(z.name).toLowerCase()] = 1; });
+  var FAM = [
+    ['storage','storageaccounts','Storage accounts',['privatelink.blob.core.windows.net','privatelink.file.core.windows.net','privatelink.queue.core.windows.net','privatelink.table.core.windows.net','privatelink.dfs.core.windows.net','privatelink.web.core.windows.net']],
+    ['keyvault','vaults','Key Vault',['privatelink.vaultcore.azure.net']],
+    ['datafactory','factories','Data Factory',['privatelink.datafactory.azure.net','privatelink.adf.azure.com']],
+    ['web','sites','App Service',['privatelink.azurewebsites.net']],
+    ['sql','servers','SQL Database',['privatelink.database.windows.net']],
+    ['machinelearningservices','workspaces','Azure Machine Learning',['privatelink.api.azureml.ms','privatelink.notebooks.azure.net']],
+    ['containerregistry','registries','Container Registry',['privatelink.azurecr.io']],
+    ['databricks','workspaces','Azure Databricks',['privatelink.azuredatabricks.net']],
+    ['synapse','workspaces','Synapse Analytics',['privatelink.sql.azuresynapse.net']],
+    ['eventhub','namespaces','Event Hubs',['privatelink.servicebus.windows.net']],
+    ['deviceupdate','accounts','Device Update for IoT Hub',['privatelink.api.adu.microsoft.com']],
+    ['devices','iothubs','IoT Hub',['privatelink.azure-devices.net']],
+    ['desktopvirtualization','hostpools','AVD host pools',['privatelink.wvd.microsoft.com']],
+    ['compute','diskaccesses','Disk Access',['privatelink.blob.core.windows.net']],
+    ['botservice','botservices','Bot Service',['privatelink.directline.botframework.com']],
+    ['eventgrid','topics','Event Grid',['privatelink.eventgrid.azure.net']],
+    ['iotcentral','iotapps','IoT Central',['privatelink.azureiotcentral.com']],
+    ['web','staticsites','Static Web Apps',['privatelink.azurestaticapps.net']],
+    ['dbforpostgresql','flexibleservers','PostgreSQL Flexible Server',['privatelink.postgres.database.azure.com']]
+  ];
+  var counts = {}, other = 0;
+  pes.forEach(function(p){
+    var prov = String(p.targetProvider||'').toLowerCase().replace('microsoft.',''), typ = String(p.targetType||'').toLowerCase();
+    var fam = FAM.filter(function(f){ return f[0]===prov && f[1]===typ; })[0];
+    if(fam) counts[fam[2]] = (counts[fam[2]]||0)+1; else other++;
+  });
+  var rows = FAM.filter(function(f){ return counts[f[2]]; }).map(function(f){
+    var zs = f[3], present = zs.filter(function(z){ return zoneSet[z]; }).length;
+    return { label:f[2], count:counts[f[2]], zones:zs, present:present };
+  }).sort(function(a,b){ return b.count-a.count; });
+  if(other) rows.push({ label:'Other services', count:other, zones:[], present:0 });
+  var maxC = rows[0].count;
 
-  var w = 860, rowH = 54;
-  var out = '';
-  var shortType = function(r){ return String(r.targetProvider||'').replace(/^microsoft\./i,'')+'/'+(r.targetType||''); };
-  var targetName = function(r){ return String(r.targetResourceId||'').split('/').pop(); };
-
-  pes.forEach(function(pe, i){
-    var y = 18 + i*rowH;
-    out += '<g class="diag-node" data-gopane="'+catId('networking.privateEndpoints')+'">'+
-      '<rect x="12" y="'+y+'" width="300" height="40" rx="7" fill="var(--surface)" stroke="var(--primary)"/>'+
-      '<text x="24" y="'+(y+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(pe.name)+'</text>'+
-      '<text x="24" y="'+(y+32)+'" fill="var(--faint)" font-size="10">'+esc(pe.resourceGroup)+'</text>'+
-      '<path d="M 312 '+(y+20)+' H 470" stroke="var(--accent)" stroke-width="2" fill="none" marker-end="url(#arw)"/>'+
-      '<rect x="470" y="'+y+'" width="370" height="40" rx="7" fill="var(--primary-tint)" stroke="var(--border)"/>'+
-      '<text x="484" y="'+(y+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(targetName(pe))+'</text>'+
-      '<text x="484" y="'+(y+32)+'" fill="var(--muted)" font-size="10">'+esc(shortType(pe))+'</text></g>';
+  var W = 1200, y = 46, rowH = 30, out = '';
+  out += '<text x="14" y="24" fill="var(--faint)" font-size="10" font-weight="800" letter-spacing="1.5">'+pes.length+' PRIVATE ENDPOINTS BY TARGET SERVICE · DNS ZONE COVERAGE</text>';
+  var barX = 300, barMax = 560, chipX = 900;
+  rows.forEach(function(r){
+    var bw = Math.max(3, barMax*r.count/maxC);
+    out += '<g class="diag-node" data-gopane="'+catId('networking.privateEndpoints')+'"><title>'+esc(r.label)+' — '+r.count+' private endpoint'+(r.count===1?'':'s')+'</title>'+
+      '<text x="'+(barX-14)+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="10.5">'+esc(r.label)+'</text>'+
+      '<rect x="'+barX+'" y="'+(y+3)+'" width="'+bw+'" height="15" rx="3" fill="var(--primary)" opacity="0.85"/>'+
+      '<text x="'+(barX+bw+8)+'" y="'+(y+14)+'" fill="var(--muted)" font-size="10" font-weight="650">'+r.count+'</text></g>';
+    if(r.zones.length){
+      var ok = r.present===r.zones.length, none = r.present===0;
+      var ctext = ok ? (r.zones.length>1 ? r.present+'/'+r.zones.length+' DNS zones' : 'DNS zone present') : none ? 'DNS zone missing' : r.present+'/'+r.zones.length+' DNS zones';
+      var ccol = ok ? 'var(--band-exc)' : none ? 'var(--band-crit)' : 'var(--band-mod)';
+      out += '<g><title>'+esc(r.zones.join(', '))+'</title><rect x="'+chipX+'" y="'+(y+2)+'" width="128" height="17" rx="8.5" fill="color-mix(in srgb,'+ccol+' 12%,transparent)"/>'+
+        '<text x="'+(chipX+64)+'" y="'+(y+14)+'" text-anchor="middle" fill="'+ccol+'" font-size="8.5" font-weight="700">'+(ok?'✓ ':'')+esc(ctext)+'</text></g>';
+    }
+    y += rowH;
   });
 
-  var y2 = 18 + pes.length*rowH + 10;
-  out += '<text x="12" y="'+(y2+12)+'" fill="var(--faint)" font-size="10" font-weight="700">PRIVATE DNS ZONES ('+dns.length+') — resolution for the endpoints above</text>';
-  y2 += 22;
-
-  var uniq = dns.map(function(z){ return z.name; }).filter(function(v,i,a){ return a.indexOf(v)===i; });
+  y += 18;
+  var uniq = dns.map(function(z){ return z.name; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).sort();
+  out += '<text x="14" y="'+y+'" fill="var(--faint)" font-size="10" font-weight="800" letter-spacing="1.5">PRIVATE DNS ZONES ('+uniq.length+')</text>';
+  y += 10;
   uniq.forEach(function(z, i){
-    var x = 12 + (i%3)*280;
-    var yy = y2 + Math.floor(i/3)*28;
-    out += '<g class="diag-node" data-gopane="'+catId('networking.privateDnsZones')+'"><rect x="'+x+'" y="'+yy+'" width="268" height="22" rx="4" fill="var(--surface)" stroke="var(--border)"/>'+
-      '<text x="'+(x+10)+'" y="'+(yy+15)+'" fill="var(--ink)" font-size="10.5" class="mono">'+esc(z)+'</text></g>';
+    var x = 14 + (i%3)*394, yy = y + Math.floor(i/3)*25;
+    out += '<g class="diag-node" data-gopane="'+catId('networking.privateDnsZones')+'"><rect x="'+x+'" y="'+yy+'" width="382" height="20" rx="4" fill="var(--surface)" stroke="var(--border)"/>'+
+      '<text x="'+(x+9)+'" y="'+(yy+14)+'" fill="var(--ink)" font-size="9.5" class="mono">'+esc(z)+'</text></g>';
   });
+  y += Math.ceil(uniq.length/3)*25 + 14;
 
-  var h = y2 + Math.ceil(uniq.length/3)*28 + 20;
-  var defs = '<defs><marker id="arw" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="var(--accent)"/></marker></defs>';
-
-  return svgWrap('plink', 'Private link — endpoints and the services they front',
-    pes.length+' private endpoints and the '+uniq.length+' DNS zones that resolve them. Drawn from measured data: each endpoint\'s target resource is collected today.',
-    defs+out, w, h);
+  var missing = rows.filter(function(r){ return r.zones.length && r.present<r.zones.length; });
+  return svgWrap('plink', 'Private Link — endpoint coverage and DNS resolution',
+    pes.length+' private endpoints aggregated by the service they front, with the private DNS zone coverage each service family needs'+
+    (missing.length ? '. <b>'+esc(missing.map(function(m){ return m.label; }).join(', '))+'</b> '+(missing.length===1?'has':'have')+' endpoints without a matching privatelink DNS zone — private resolution for those endpoints should be verified.' : '. Every service family with endpoints has its privatelink DNS zones in place.')+
+    ' The full endpoint-by-endpoint register is in the Data view and the Networking inventory.',
+    out, W, y);
 }
+
 function diagExposure(){
   var rules = safeArr((inventory['networking.nsgPublicInbound']||{}).rows);
   if(!rules.length) return '';
+  function rank(r){
+    var p = String(r.port||'');
+    if(p==='*'||/AllowAll/i.test(r.rule||'')) return 0;
+    if(p==='3389') return 1;
+    if(p==='22') return 2;
+    if(p==='443') return 4;
+    return 3;
+  }
+  var byNsg = {}, order = [];
+  rules.forEach(function(r){ if(!byNsg[r.nsg]){ byNsg[r.nsg]=[]; order.push(r.nsg); } byNsg[r.nsg].push(r); });
+  var groups = order.map(function(nsgName){
+    var rs = byNsg[nsgName].slice().sort(function(a,b){ return rank(a)-rank(b); });
+    return { nsg:nsgName, rs:rs, sev:Math.min.apply(null, rs.map(rank)) };
+  }).sort(function(a,b){ return a.sev-b.sev || b.rs.length-a.rs.length; });
+  var crit = groups.filter(function(g){ return g.sev<=2; }), rest = groups.filter(function(g){ return g.sev>2; });
 
-  var byNsg = {}; var order = [];
-  rules.forEach(function(r){
-    if(!byNsg[r.nsg]){ byNsg[r.nsg] = []; order.push(r.nsg); }
-    byNsg[r.nsg].push(r);
-  });
+  var W = 1200, out = '', y = 16;
+  out += '<defs><marker id="arw2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="var(--band-crit)"/></marker></defs>';
+  out += '<text x="24" y="'+(y+12)+'" fill="var(--band-crit)" font-weight="800" font-size="12" letter-spacing="2">INTERNET</text>';
+  var spineTop = y+20; y += 34;
 
-  var w = 860;
-  var out = '<text x="20" y="26" fill="var(--band-crit)" font-weight="800" font-size="11">INTERNET</text>'+
-    '<path d="M 20 34 V '+(30+order.length*76)+'" stroke="var(--band-crit)" stroke-width="2.5" stroke-dasharray="5 4" fill="none"/>';
-
-  var y = 20;
-  order.forEach(function(nsg){
-    var rs = byNsg[nsg];
-    out += '<path d="M 20 '+(y+30)+' H 130" stroke="var(--band-crit)" stroke-width="2" fill="none"/>'+
-      '<g class="diag-node" data-gopane="'+catId('networking.nsgPublicInbound')+'">'+
-      '<rect x="130" y="'+y+'" width="710" height="62" rx="8" fill="var(--surface)" stroke="var(--band-crit)" stroke-width="1.5"/>'+
-      '<text x="146" y="'+(y+22)+'" fill="var(--ink)" font-weight="700" font-size="11.5">'+esc(nsg)+'</text>'+
-      '<text x="146" y="'+(y+38)+'" fill="var(--faint)" font-size="10">'+esc(rs[0].resourceGroup)+'</text>';
-
-    rs.slice(0,6).forEach(function(r, i){
-      var x = 150 + i*115;
-      out += '<rect x="'+x+'" y="'+(y+44)+'" width="106" height="14" rx="3" fill="color-mix(in srgb,var(--band-crit) 16%,transparent)"/>'+
-        '<text x="'+(x+6)+'" y="'+(y+55)+'" fill="var(--band-crit)" font-size="9.5" font-weight="600">:'+esc(r.port)+' '+esc(String(r.rule||'').slice(0,14))+'</text>';
+  function section(title, gs, color){
+    if(!gs.length) return;
+    out += '<text x="60" y="'+(y+12)+'" fill="'+color+'" font-size="10" font-weight="800" letter-spacing="1.5">'+esc(title)+'</text>';
+    y += 22;
+    gs.forEach(function(g){
+      var chipY = 0, chipX0 = 470, cx2 = chipX0, rows2 = 1;
+      var chips = g.rs.map(function(r){
+        var t = ':'+r.port+' · '+String(r.rule||'');
+        var wc = tcChipW(t, 9);
+        if(cx2 + wc > 1150){ cx2 = chipX0; rows2++; }
+        var pos2 = { x:cx2, row:rows2, t:t, sev:rank(r) };
+        cx2 += wc + 12; pos2.w = wc;
+        return pos2;
+      });
+      var cardH = 26 + rows2*22 + 6;
+      out += '<path d="M 30 '+(y+cardH/2)+' H 52" stroke="'+color+'" stroke-width="2" fill="none" marker-end="url(#arw2)"/>'+
+        '<g class="diag-node" data-gopane="'+catId('networking.nsgPublicInbound')+'"><title>'+esc(g.nsg)+' — '+g.rs.length+' internet-inbound rule'+(g.rs.length===1?'':'s')+'</title>'+
+        '<rect x="56" y="'+y+'" width="1124" height="'+cardH+'" rx="8" fill="var(--surface)" stroke="'+color+'" stroke-width="1.4"/>'+
+        '<text x="72" y="'+(y+19)+'" fill="var(--ink)" font-weight="700" font-size="11">'+esc(g.nsg)+'</text>'+
+        '<text x="'+(chipX0-8)+'" y="'+(y+19)+'" fill="var(--faint)" font-size="9" text-anchor="end"> </text>'+
+        '<text x="72" y="'+(y+19+16)+'" fill="var(--faint)" font-size="9">'+esc(g.rs[0].resourceGroup)+'</text>';
+      chips.forEach(function(c){
+        var cy2 = y + 8 + (c.row-1)*22;
+        var col = c.sev<=2 ? 'var(--band-crit)' : c.sev===4 ? 'var(--band-mod)' : 'var(--band-mod)';
+        out += '<rect x="'+c.x+'" y="'+cy2+'" width="'+c.w+'" height="18" rx="9" fill="color-mix(in srgb,'+col+' 13%,transparent)"/>'+
+          '<text x="'+(c.x+c.w/2)+'" y="'+(cy2+13)+'" text-anchor="middle" fill="'+col+'" font-size="9" font-weight="650" class="mono">'+esc(c.t)+'</text>';
+      });
+      out += '</g>';
+      y += cardH + 12;
     });
-
-    out += '</g>';
-    y += 76;
-  });
+    y += 8;
+  }
+  section('CRITICAL — ALLOW-ALL AND MANAGEMENT PORTS ('+crit.length+' NSGS)', crit, 'var(--band-crit)');
+  section('REVIEW — HTTPS AND SCOPED SERVICES ('+rest.length+' NSGS)', rest, 'var(--band-mod)');
+  out += '<path d="M 30 '+spineTop+' V '+(y-24)+'" stroke="var(--band-crit)" stroke-width="2.4" stroke-dasharray="6 4" fill="none"/>';
 
   return svgWrap('exposure', 'Internet exposure — inbound paths from outside',
-    rules.length+' NSG rules across '+order.length+' network security groups permit inbound traffic from the internet, with the ports each one opens. Every one should be intentional; this is the estate\'s front door.',
-    out, w, y+16);
+    rules.length+' NSG rules across '+groups.length+' network security groups permit inbound traffic from the internet, ordered worst-first: allow-all and management ports (RDP 3389, SSH 22) before scoped HTTPS. The collect records the rule and port; the subnet or NIC each NSG protects is in the Networking inventory. Every one of these should be intentional — this is the estate\'s front door.',
+    out, W, y+4);
 }
+
 function diagEdgeDelivery(){
-  /* AB#6928: internet-facing delivery tiers, drawn only for the service types
-     the collect actually carries -- older collects without these keys return
-     nothing and the Blade shows its fallback. */
   var fds  = safeArr((inventory['networking.frontDoors']||{}).rows);
   var tms  = safeArr((inventory['networking.trafficManagerProfiles']||{}).rows);
   var agws = safeArr((inventory['networking.applicationGateways']||{}).rows);
@@ -1657,98 +1927,116 @@ function diagEdgeDelivery(){
       warn:function(r){ return String(r.monitorStatus||'')==='Degraded' ? '⚠ probe degraded' : null; }, flag:function(){ return null; } },
     { key:'networking.applicationGateways', label:'APPLICATION GATEWAYS', rows:agws,
       sub:function(r){ return (r.tier||r.sku||'sku n/a')+' · '+plur(r.listenerCount||0,'listener')+' · '+plur(r.backendPoolCount||0,'pool'); },
-      warn:function(r){ return r.wafEnabled ? null : '⚠ no WAF'; }, flag:function(r){ return r.wafEnabled ? 'WAF on' : null; } },
+      warn:function(r){ return r.wafEnabled ? null : '⚠ no WAF in front of internet traffic'; }, flag:function(r){ return r.wafEnabled ? 'WAF on' : null; } },
     { key:'networking.loadBalancers', label:'LOAD BALANCERS', rows:lbs,
-      sub:function(r){ return (r.sku||'sku n/a')+' · '+plur(r.frontendIpCount||0,'frontend')+' · '+plur(r.backendPoolCount||0,'pool'); },
-      warn:function(){ return null; }, flag:function(r){ return r.hasPublicFrontend ? 'public frontend' : null; } },
-    { key:'networking.natGateways', label:'NAT GATEWAYS', rows:nats,
-      sub:function(r){ return plur(r.publicIpCount||0,'public IP')+' · '+plur(r.subnetCount||0,'subnet')+(r.idleTimeoutInMinutes?' · idle '+r.idleTimeoutInMinutes+'m':''); },
+      sub:function(r){ return (r.sku||'sku n/a')+' · '+tcRegionLoc(r.location)+' · '+plur(r.frontendIpCount||0,'frontend')+' · '+plur(r.backendPoolCount||0,'pool'); },
+      warn:function(){ return null; }, flag:function(r){ return r.hasPublicFrontend ? 'public frontend — internet entry point' : 'internal only'; },
+      flagColor:function(r){ return r.hasPublicFrontend ? 'var(--band-crit)' : 'var(--band-exc)'; } },
+    { key:'networking.natGateways', label:'NAT GATEWAYS — OUTBOUND ONLY', rows:nats,
+      sub:function(r){ return tcRegionLoc(r.location)+' · '+plur(r.publicIpCount||0,'public IP')+' · '+plur(r.subnetCount||0,'subnet')+(r.idleTimeoutInMinutes?' · idle timeout '+r.idleTimeoutInMinutes+' min':''); },
       warn:function(){ return null; }, flag:function(){ return null; } },
-    { key:'networking.bastionHosts', label:'BASTION HOSTS', rows:bas,
-      sub:function(r){ return (r.sku||'sku n/a')+(r.vnet?' · '+r.vnet:''); },
-      warn:function(){ return null; }, flag:function(){ return null; } }
+    { key:'networking.bastionHosts', label:'BASTION HOSTS — ADMIN ACCESS', rows:bas,
+      sub:function(r){ return (r.sku||'sku n/a')+' · '+tcRegionLoc(r.location)+(r.vnet?' · '+tcDisp(r.vnet):''); },
+      warn:function(r){ return String(r.sku||'')==='Basic' ? '⚠ Basic SKU — no session recording, no scaling' : null; }, flag:function(r){ return String(r.sku||'')==='Basic' ? null : (r.sku||null); } }
   ].filter(function(t){ return t.rows.length; });
   if(!tiers.length) return '';
 
-  var w = 860, cardW = 240, cardH = 50, perRow = 3, gapX = 13, gapY = 10, x0 = 44;
-  var out = '<text x="20" y="26" fill="var(--band-crit)" font-weight="800" font-size="11">INTERNET</text>';
-  var y = 44;
-  var maxCards = 6;
+  var W = 1200, cardW = 360, cardH = 54, perRow = 3, gapX = 16, gapY = 10, x0 = 48;
+  var out = '<text x="20" y="26" fill="var(--band-crit)" font-weight="800" font-size="12" letter-spacing="2">INTERNET</text>';
+  var y = 48;
   tiers.forEach(function(t){
-    out += '<path d="M 20 '+(y+4)+' H 36" stroke="var(--band-crit)" stroke-width="2" fill="none"/>'+
-      '<text x="'+x0+'" y="'+(y+8)+'" fill="var(--faint)" font-size="10" font-weight="700">'+t.label+' ('+t.rows.length+')</text>';
+    out += '<path d="M 24 '+(y+4)+' H 40" stroke="var(--band-crit)" stroke-width="2" fill="none"/>'+
+      '<text x="'+x0+'" y="'+(y+8)+'" fill="var(--faint)" font-size="10" font-weight="800" letter-spacing="1.5">'+t.label+' ('+t.rows.length+')</text>';
     y += 18;
-    var shown = t.rows.slice(0, maxCards);
-    shown.forEach(function(r, i){
+    t.rows.forEach(function(r, i){
       var col = i % perRow, row = Math.floor(i / perRow);
       var cx0 = x0 + col*(cardW+gapX), cy0 = y + row*(cardH+gapY);
-      var wn = t.warn(r), fl = t.flag(r);
-      out += '<g class="diag-node" data-gopane="'+catId(t.key)+'">'+
-        '<rect x="'+cx0+'" y="'+cy0+'" width="'+cardW+'" height="'+cardH+'" rx="7" fill="var(--surface)" stroke="'+(wn?'var(--band-crit)':'var(--border)')+'" stroke-width="1.5"/>'+
-        '<text x="'+(cx0+12)+'" y="'+(cy0+17)+'" fill="var(--ink)" font-weight="650" font-size="11">'+esc(String(r.name||'').slice(0,28))+'</text>'+
-        '<text x="'+(cx0+12)+'" y="'+(cy0+31)+'" fill="var(--muted)" font-size="9.5">'+esc(t.sub(r).slice(0,44))+'</text>'+
-        (wn ? '<text x="'+(cx0+12)+'" y="'+(cy0+44)+'" fill="var(--band-crit)" font-weight="700" font-size="9.5">'+esc(wn)+'</text>'
-            : (fl ? '<text x="'+(cx0+12)+'" y="'+(cy0+44)+'" fill="var(--accent)" font-weight="600" font-size="9.5">'+esc(fl)+'</text>' : ''))+
+      var wn = t.warn(r), fl = t.flag ? t.flag(r) : null;
+      var fcol = t.flagColor ? t.flagColor(r) : 'var(--accent)';
+      var nm = tcDisp(String(r.name||''));
+      if(nm !== String(r.name||'')) nm = nm + ' · ' + String(r.name).slice(0,8);
+      out += '<g class="diag-node" data-gopane="'+catId(t.key)+'"><title>'+esc(r.name)+' · '+esc(r.resourceGroup||'')+'</title>'+
+        '<rect x="'+cx0+'" y="'+cy0+'" width="'+cardW+'" height="'+cardH+'" rx="7" fill="var(--surface)" stroke="'+(wn?'var(--band-mod)':'var(--border)')+'" stroke-width="1.4"/>'+
+        '<text x="'+(cx0+12)+'" y="'+(cy0+17)+'" fill="var(--ink)" font-weight="650" font-size="10.5">'+esc(tcTrunc(nm,44))+'</text>'+
+        '<text x="'+(cx0+12)+'" y="'+(cy0+31)+'" fill="var(--muted)" font-size="9">'+esc(tcTrunc(t.sub(r),58))+'</text>'+
+        (wn ? '<text x="'+(cx0+12)+'" y="'+(cy0+46)+'" fill="var(--band-mod)" font-weight="700" font-size="9">'+esc(wn)+'</text>'
+            : (fl ? '<text x="'+(cx0+12)+'" y="'+(cy0+46)+'" fill="'+fcol+'" font-weight="650" font-size="9">'+esc(fl)+'</text>' : ''))+
         '</g>';
     });
-    var rowsUsed = Math.ceil(shown.length / perRow);
-    y += rowsUsed*(cardH+gapY);
-    if(t.rows.length > maxCards){
-      out += '<text x="'+x0+'" y="'+(y+2)+'" fill="var(--faint)" font-size="9.5">+ '+(t.rows.length-maxCards)+' more</text>';
-      y += 14;
-    }
-    y += 12;
+    y += Math.ceil(t.rows.length / perRow)*(cardH+gapY) + 12;
   });
-  out = '<path d="M 20 32 V '+(y-24)+'" stroke="var(--band-crit)" stroke-width="2.5" stroke-dasharray="5 4" fill="none"/>' + out;
+  out = '<path d="M 24 32 V '+(y-24)+'" stroke="var(--band-crit)" stroke-width="2.4" stroke-dasharray="6 4" fill="none"/>' + out;
 
   var total = tiers.reduce(function(a,t){ return a+t.rows.length; }, 0);
-  var noWaf = agws.filter(function(r){ return !r.wafEnabled; }).length;
+  var pubLb = lbs.filter(function(r){ return r.hasPublicFrontend; }).length;
+  var basicBas = bas.filter(function(r){ return String(r.sku||'')==='Basic'; }).length;
   return svgWrap('edge', 'Edge & delivery — internet-facing entry points',
-    total+' delivery/edge resource'+(total===1?'':'s')+' across '+tiers.length+' service tier'+(tiers.length===1?'':'s')+
-    (noWaf?'; <b>'+noWaf+' application gateway'+(noWaf===1?'':'s')+' without WAF</b>':'')+
-    '. Each tier is drawn only where the collect found resources; red marks a gateway taking internet traffic with no web application firewall.',
-    out, w, y+8);
+    total+' delivery and edge resources across '+tiers.length+' service tiers. '+
+    (pubLb ? pubLb+' load balancer'+(pubLb===1?' takes':'s take')+' internet traffic on a public frontend'+(agws.length?'':' with no Application Gateway or WAF tier in front')+'. ' : '')+
+    (basicBas ? basicBas+' of '+bas.length+' Bastion hosts run the Basic SKU. ' : '')+
+    'NAT gateways are outbound-only; Bastion carries administrative sessions. Hover a card for the full resource name.',
+    out, W, y+4);
 }
+
 function diagRouting(){
-  /* AB#6928: one row per route table with its 0.0.0.0/0 routes called out --
-     VirtualAppliance next hop = forced tunnelling, warning treatment. */
   var rts = safeArr((inventory['networking.routeTables']||{}).rows);
   if(!rts.length) return '';
-
-  var w = 860;
-  var out = '';
-  var y = 16;
-  rts.forEach(function(rt){
-    /* routes is the collect's per-route summary string "name:prefix->nextHopType; ..." */
-    var defaults = String(rt.routes||'').split(';').map(function(s){ return s.trim(); })
+  function defaults(rt){
+    return String(rt.routes||'').split(';').map(function(s){ return s.trim(); })
       .filter(function(s){ return s.indexOf(':0.0.0.0/0->') !== -1; })
       .map(function(s){ return { name:s.split(':')[0], hop:s.split('->').pop() }; });
-    var bgpOff = !!rt.disableBgpRoutePropagation;
-    var forced = defaults.some(function(d){ return d.hop === 'VirtualAppliance'; });
-    var rh = 44 + defaults.length*16;
-    out += '<g class="diag-node" data-gopane="'+catId('networking.routeTables')+'">'+
-      '<rect x="12" y="'+y+'" width="746" height="'+rh+'" rx="7" fill="var(--surface)" stroke="'+(forced?'var(--band-mod)':'var(--border)')+'" stroke-width="1.5"/>'+
-      '<text x="26" y="'+(y+18)+'" fill="var(--ink)" font-weight="700" font-size="11">'+esc(rt.name)+
-        ' <tspan fill="var(--muted)" font-weight="400">'+(rt.routeCount||0)+' route'+((rt.routeCount||0)===1?'':'s')+' · '+(rt.subnetCount||0)+' subnet'+((rt.subnetCount||0)===1?'':'s')+'</tspan></text>'+
-      '<text x="26" y="'+(y+34)+'" fill="'+(bgpOff?'var(--band-mod)':'var(--muted)')+'" font-size="10"'+(bgpOff?' font-weight="700"':'')+'>'+
-        (bgpOff?'⚠ BGP route propagation disabled':'BGP route propagation on')+' · '+esc(rt.resourceGroup)+'</text>';
-    defaults.forEach(function(d, i){
-      var dy = y + 44 + i*16;
-      var fa = d.hop === 'VirtualAppliance';
-      out += '<text x="40" y="'+(dy+4)+'" fill="'+(fa?'var(--band-crit)':'var(--accent)')+'" font-size="10" font-weight="'+(fa?'700':'600')+'" class="mono">0.0.0.0/0 → '+esc(d.hop)+
-        (fa?' — forced tunnelling':'')+' <tspan fill="var(--faint)" font-weight="400">('+esc(d.name)+')</tspan></text>';
-    });
-    out += '</g>';
-    y += rh + 12;
+  }
+  var groups = { forced:[], internet:[], none:[] };
+  rts.forEach(function(rt){
+    var ds = defaults(rt);
+    var item = { rt:rt, ds:ds };
+    if(ds.some(function(d){ return d.hop==='VirtualAppliance'; })) groups.forced.push(item);
+    else if(ds.some(function(d){ return d.hop==='Internet'; })) groups.internet.push(item);
+    else groups.none.push(item);
   });
+  Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return String(a.rt.name).localeCompare(String(b.rt.name)); }); });
 
-  var forcedCount = rts.filter(function(rt){ return String(rt.defaultRouteNextHopType||'')==='VirtualAppliance'; }).length;
-  return svgWrap('routing', 'Routing & forced tunnelling — user-defined routes',
-    rts.length+' route table'+(rts.length===1?'':'s')+
-    (forcedCount?'; <b>'+forcedCount+' force'+(forcedCount===1?'s':'')+' the default route through a virtual appliance</b> (forced tunnelling)':'; none forces the default route through a virtual appliance')+
-    '. Every 0.0.0.0/0 route is called out with its next hop — that route decides where all outbound traffic leaves the subnet.',
-    out, w, y+4);
+  var W = 1200, y = 14, out = '', rowH = 27;
+  function grp(title, note, items, color, rowNote){
+    if(!items.length) return;
+    out += '<text x="14" y="'+(y+12)+'" fill="'+color+'" font-size="10" font-weight="800" letter-spacing="1.5">'+esc(title)+'</text>'+
+      '<text x="14" y="'+(y+27)+'" fill="var(--muted)" font-size="9.5">'+esc(note)+'</text>';
+    y += 38;
+    var boxY = y, boxH = items.length*rowH + 10;
+    out += '<rect x="14" y="'+boxY+'" width="1172" height="'+boxH+'" rx="9" fill="var(--surface)" stroke="var(--border)" stroke-width="1.2"/>'+
+      '<rect x="14" y="'+boxY+'" width="4" height="'+boxH+'" rx="2" fill="'+color+'"/>';
+    items.forEach(function(it, i){
+      var ry = boxY + 8 + i*rowH;
+      var rt = it.rt, d0 = it.ds[0];
+      out += '<g class="diag-node" data-gopane="'+catId('networking.routeTables')+'"><title>'+esc(rt.name)+' · '+esc(rt.resourceGroup)+'</title>'+
+        '<text x="34" y="'+(ry+13)+'" fill="var(--ink)" font-weight="650" font-size="10">'+esc(tcTrunc(rt.name,34))+'</text>'+
+        '<text x="300" y="'+(ry+13)+'" fill="var(--muted)" font-size="9.5">'+esc(tcRegionLoc(rt.location))+'</text>'+
+        '<text x="410" y="'+(ry+13)+'" fill="var(--muted)" font-size="9.5">'+(rt.routeCount||0)+' routes · '+(rt.subnetCount||0)+' subnet'+((rt.subnetCount||0)===1?'':'s')+'</text>'+
+        (d0 ? '<text x="560" y="'+(ry+13)+'" fill="'+color+'" font-size="9.5" font-weight="650" class="mono">0.0.0.0/0 → '+esc(d0.hop)+'</text>' : '<text x="560" y="'+(ry+13)+'" fill="var(--faint)" font-size="9.5" font-style="italic">no default route</text>')+
+        '<text x="820" y="'+(ry+13)+'" fill="var(--faint)" font-size="9">'+(rt.disableBgpRoutePropagation?'BGP propagation off':'BGP propagation on')+'</text>'+
+        (rowNote ? '<text x="985" y="'+(ry+13)+'" fill="var(--faint)" font-size="9">'+esc(rowNote(it))+'</text>' : '')+
+        '</g>';
+    });
+    y = boxY + boxH + 16;
+  }
+  grp('FORCED TUNNELING — DEFAULT ROUTE THROUGH THE FIREWALL / NVA ('+groups.forced.length+')',
+    'Conforming pattern: outbound traffic leaves through an inspected appliance. BGP propagation off is the expected setting with user-defined routes.',
+    groups.forced, 'var(--band-exc)', null);
+  grp('DEFAULT ROUTE DIRECT TO INTERNET ('+groups.internet.length+')',
+    'On a firewall subnet this is by design — it is the firewall\'s own egress. Anywhere else it bypasses inspection.',
+    groups.internet, 'var(--accent)',
+    function(it){ return /firewall/i.test(it.rt.name||'') ? 'by design — firewall egress' : '⚠ bypasses the firewall'; });
+  grp('NO DEFAULT ROUTE ('+groups.none.length+')',
+    'These subnets fall back to system routing for 0.0.0.0/0 (or receive routes another way, e.g. the SD-WAN appliance interfaces).',
+    groups.none, 'var(--faint)', null);
+
+  return svgWrap('routing', 'Routing & forced tunneling — user-defined routes',
+    rts.length+' route tables, grouped by what their default route does. '+groups.forced.length+' force outbound traffic through a virtual appliance (the conforming forced-tunneling pattern), '+
+    groups.internet.length+' send 0.0.0.0/0 straight to the internet ('+(groups.internet.filter(function(it){ return /firewall/i.test(it.rt.name||''); }).length)+' of them on firewall subnets, where that is the design), and '+
+    groups.none.length+' carry no default route. The 0.0.0.0/0 route decides where every outbound packet leaves the subnet.',
+    out, W, y);
 }
+
 function diagEdgeDeliveryBlade(){
   var d = diagEdgeDelivery();
   return d || '<p class="lede">No delivery or edge services (Front Door, Traffic Manager, Application Gateway, load balancers, NAT gateways, Bastion) collected in this run.</p>';
@@ -1763,7 +2051,7 @@ function diagVnetTopoBlade(){
 }
 function diagHybridBlade(){
   var d = diagHybrid();
-  return d || '<p class="lede">No hybrid connectivity (VPN gateways, Azure Local clusters, or Arc-connected servers) collected in this run.</p>';
+  return d || '<p class="lede">No virtual networks collected in this run, so the site-to-Azure path cannot be drawn.</p>';
 }
 function diagPrivateLinkBlade(){
   var d = diagPrivateLink();
@@ -1774,6 +2062,143 @@ function diagExposureBlade(){
   return d || '<p class="lede">No public-inbound NSG rules collected in this run.</p>';
 }
 
+
+/* ============================================================
+   v1.3 diagrams — region footprint, site-to-Azure traffic flow,
+   SD-WAN / firewall availability, backup coverage.
+   ============================================================ */
+function tcNode(pane, inner){ return '<g class="diag-node" data-gopane="'+catId(pane)+'">'+inner+'</g>'; }
+function tcBox(x,y,w,h,opt){
+  opt = opt||{};
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(opt.rx||10)+'" fill="'+(opt.fill||'var(--surface)')+'" stroke="'+(opt.stroke||'var(--border)')+'" stroke-width="'+(opt.sw||1.5)+'"'+(opt.dash?' stroke-dasharray="'+opt.dash+'"':'')+'/>';
+}
+function tcText(x,y,txt,opt){
+  opt = opt||{};
+  return '<text x="'+x+'" y="'+y+'"'+(opt.anchor?' text-anchor="'+opt.anchor+'"':'')+' fill="'+(opt.fill||'var(--ink)')+'" font-size="'+(opt.fs||10)+'"'+(opt.fw?' font-weight="'+opt.fw+'"':'')+(opt.ls?' letter-spacing="'+opt.ls+'"':'')+'>'+esc(txt)+'</text>';
+}
+function tcArrow(x1,y1,x2,y2,color,dash){
+  var a = Math.atan2(y2-y1,x2-x1), s=7;
+  var p1 = (x2-s*Math.cos(a-0.45))+','+(y2-s*Math.sin(a-0.45)), p2 = (x2-s*Math.cos(a+0.45))+','+(y2-s*Math.sin(a+0.45));
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="2"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>'+
+    '<polygon points="'+x2+','+y2+' '+p1+' '+p2+'" fill="'+color+'"/>';
+}
+
+function diagRegions(){
+  var rows=tcRows('general.azureRegions'); if(!rows.length)return '';
+  var cards=tcRegionCards(rows,function(r,x,y,w,h){var network=Number(r.virtualNetworks||0)>0;
+    return tcNode('general.azureRegions',tcBox(x,y,w,h,{fill:network?'var(--primary-tint)':'var(--surface)',stroke:network?'var(--primary)':'var(--border)',dash:network?null:'6 4'})+
+      tcText(x+14,y+25,r.region||tcRegionLoc(r.location),{fs:12,fw:800})+tcText(x+w-14,y+25,(r.resources||0)+' resources',{anchor:'end',fs:10})+
+      tcText(x+14,y+48,(r.virtualMachines||0)+' VMs · '+(r.storageAccounts||0)+' storage · '+(r.virtualNetworks||0)+' VNets · '+(r.privateEndpoints||0)+' PEs',{fs:10,fill:'var(--muted)'})+
+      tcText(x+14,y+71,network?'Virtual network evidence collected':'No virtual network rows associated with this region',{fs:9.5,fill:'var(--muted)'})+
+      tcText(x+14,y+94,tcTrunc(r.topResourceTypes||'See inventory for resource types and coverage',57),{fs:9,fill:'var(--faint)'}));});
+  return svgWrap('regions','Azure region footprint','Every region present in the collected resource inventory, including unknown or global locations. Network presence alone does not establish endpoint reachability.',cards.svg,cards.width,cards.height);
+}
+
+function tcHubGroups(){
+  var groups=Object.create(null);
+  tcRows('networking.sdwanAppliances').forEach(function(a){var key=String(a.hubVirtualNetwork||a.location||'Unassigned network');if(!groups[key])groups[key]={name:key,location:a.location||'',apps:[]};groups[key].apps.push(a);});
+  return Object.keys(groups).sort().map(function(k){return groups[k];});
+}
+
+function diagTrafficFlow(){
+  var hubs=tcHubGroups(),routes=tcRows('networking.routes',['RouteTables']),firewalls=tcRows('networking.firewallRules',['AzureFirewall']);
+  if(!hubs.length && !routes.length)return '';
+  if(!hubs.length)hubs=[{name:'Collected route configuration',location:'',apps:[]}];
+  var out='',W=1200;
+  hubs.forEach(function(h,i){var y=20+i*215;var aps=h.apps,fw=firewalls.filter(function(r){return h.location && tcLocation(r)===h.location;}),rt=routes.filter(function(r){return !h.location||tcLocation(r)===h.location;});
+    out+=tcBox(15,y,1170,195,{fill:'none'})+tcText(32,y+25,tcTrunc(tcRegionLoc(h.location)+' · '+h.name,115),{fw:800,fs:12});
+    var boxes=[
+      ['networking.sdwanAppliances','Sites / ingress',['Site configuration not collected','Tunnel and breakout policy unknown']],
+      ['networking.sdwanAppliances','Internal load balancer',[aps[0]&&aps[0].internalLoadBalancer||'Association not collected','Usage: '+(aps[0]&&aps[0].loadBalancerUsage||'unknown')]],
+      ['networking.sdwanAppliances','SD-WAN / NVA',[aps.length+' appliance candidates',aps.filter(function(a){return /running/i.test(a.powerState||'');}).length+' reported running']],
+      ['networking.firewallRules','Azure Firewall',[fw.length+' collected configuration rows',fw[0]?String(tcValue(fw[0],['name','Firewall Name'])||'Firewall'):'No matching region evidence']],
+      ['networking.routes','Workload routes',[rt.length+' route rows',rt[0]?String(tcValue(rt[0],['addressPrefix','Address Prefix'])||'Destination not collected'):'Route configuration not collected']]
+    ];
+    boxes.forEach(function(b,j){var x=30+j*232;out+=tcNode(b[0],tcBox(x,y+55,210,93,{stroke:j===0?'var(--border)':'var(--primary)',fill:j===4?'var(--primary-tint)':'var(--surface)'})+tcText(x+12,y+77,b[1],{fw:800,fs:10.5})+tcText(x+12,y+100,tcTrunc(b[2][0],28),{fs:9.5})+tcText(x+12,y+124,tcTrunc(b[2][1],30),{fs:9,fill:'var(--muted)'}));if(j<4)out+=tcArrow(x+212,y+103,x+230,y+103,'var(--faint)','4 3');});
+    out+=tcText(32,y+174,'Dashed links show the configuration-review sequence; actual packet traversal is not established by region membership.',{fs:9.5,fill:'var(--muted)'});
+  });
+  return svgWrap('flow','Site-to-Azure traffic flow — per hub','The reference flow layout, populated from appliance, firewall and route evidence. Review effective routes and DNS before treating it as a verified packet path.',out,W,35+hubs.length*215);
+}
+
+function diagSdwanHa(){
+  var hubs=tcHubGroups();if(!hubs.length)return '';
+  var out='',y=20,W=1200,firewalls=tcRows('networking.firewallRules',['AzureFirewall']);
+  hubs.forEach(function(h){var apps=h.apps,rows=Math.ceil(apps.length/4),height=180+rows*110;
+    out+=tcBox(15,y,1170,height,{fill:'none'})+tcText(32,y+24,tcTrunc(tcRegionLoc(h.location)+' · '+h.name,110),{fw:800,fs:12});
+    var first=apps[0]||{};out+=tcNode('networking.sdwanAppliances',tcBox(405,y+40,390,48,{stroke:'var(--primary)'})+tcText(600,y+59,tcTrunc(first.internalLoadBalancer||'Internal load balancer association not collected',53),{anchor:'middle',fs:10,fw:700})+tcText(600,y+76,'Usage: '+(first.loadBalancerUsage||'unknown')+' · probes: '+(first.loadBalancerProbes==null?'unknown':first.loadBalancerProbes),{anchor:'middle',fs:9,fill:'var(--muted)'}));
+    apps.forEach(function(a,j){var x=30+(j%4)*290,ay=y+105+Math.floor(j/4)*110,known=!!a.powerState,running=/running/i.test(a.powerState||''),color=known?(running?'var(--band-exc)':'var(--band-crit)'):'var(--faint)';
+      if(j<4)out+=tcArrow(600,y+90,x+132,ay-2,'var(--faint)','4 3');
+      out+=tcNode('networking.sdwanAppliances',tcBox(x,ay,270,87,{stroke:color,sw:2,dash:running?null:'6 4'})+tcText(x+12,ay+23,tcTrunc(a.name,33),{fw:800,fs:10})+tcText(x+12,ay+44,String(a.powerState||'Power state unknown'),{fw:700,fill:color,fs:10})+tcText(x+12,ay+63,'Zone: '+(a.availabilityZone||'not collected')+' · '+(a.vmSize||'size unknown'),{fs:9,fill:'var(--muted)'}));
+    });
+    var fw=firewalls.filter(function(f){return h.location && tcLocation(f)===h.location;}),fy=y+110+rows*110;
+    out+=tcNode('networking.firewallRules',tcBox(30,fy,1140,48,{fill:'var(--primary-tint)'})+tcText(45,fy+21,'Firewall evidence: '+fw.length+' configuration rows in this region',{fw:700})+tcText(45,fy+38,'Power state and configuration do not prove active/standby health or failover readiness.',{fs:9.5,fill:'var(--muted)'}));
+    y+=height+20;
+  });
+  return svgWrap('sdwanha','SD-WAN and firewall availability — per hub','Appliances retain their individual power, zone and load-balancer details. Unknown observations remain unknown; no fixed two-appliance or two-region assumption is made.',out,W,y);
+}
+
+function diagBackupCoverage(){
+  var rows=tcRows('management.backupCoverage');if(!rows.length)return '';
+  var vms=rows.filter(function(r){return r.protected!=='Stale item';}), stale=rows.length-vms.length;
+  var parts=[['Protected',vms.filter(function(r){return r.protected==='Yes';}).length,'var(--band-exc)'],['Not protected',vms.filter(function(r){return r.protected==='No';}).length,'var(--band-crit)'],['Unknown',vms.filter(function(r){return r.protected!=='Yes'&&r.protected!=='No';}).length,'var(--faint)']];
+  var out='',x=30,total=vms.length,W=1200;
+  parts.forEach(function(p){if(!p[1])return;var w=1140*p[1]/total;out+=tcNode('management.backupCoverage','<rect x="'+x+'" y="50" width="'+w+'" height="42" rx="4" fill="'+p[2]+'"/><title>'+esc(p[0])+': '+p[1]+'</title>');x+=w;});
+  parts.forEach(function(p,i){out+=tcText(30+i*380,125,p[0]+': '+p[1],{fw:800,fill:p[2]});});
+  out+=tcText(30,25,total+' virtual machines in the collected coverage table',{fs:13,fw:800});
+  out+=tcText(30,155,stale+' stale protection items · '+tcRows('management.backupProtectedItems',['BackupProtectedItems']).length+' collected protected-item rows',{fill:'var(--muted)'});
+  return svgWrap('backup','Backup coverage — virtual machines and protected items','Protection is joined by source resource identity. Unknown or unavailable backup evidence is not counted as unprotected. Stale items require retention review; do not delete recovery points based on this chart.',out,W,185);
+}
+
+function diagRegionsBlade(){ return diagRegions() || '<p class="lede">No regional data collected in this run.</p>'; }
+function diagTrafficFlowBlade(){ return diagTrafficFlow() || '<p class="lede">No SD-WAN or firewall data collected in this run.</p>'; }
+function diagSdwanHaBlade(){ return diagSdwanHa() || '<p class="lede">No SD-WAN appliances collected in this run.</p>'; }
+function diagBackupCoverageBlade(){ return diagBackupCoverage() || '<p class="lede">No backup data collected in this run.</p>'; }
+
+
+function tcRegionName(loc){
+  var m = {westeurope:'West Europe',eastus:'East US',eastus2:'East US 2',northcentralus:'North Central US',southcentralus:'South Central US',centralus:'Central US',westus:'West US',eastasia:'East Asia',koreasouth:'Korea South',swedencentral:'Sweden Central',northeurope:'North Europe'};
+  return m[String(loc||'').toLowerCase()] || loc || '';
+}
+function tcBackupStores(){
+  return tcUnique(tcRows('domains.storage.storageAccounts',['StorageAccounts']));
+}
+
+function tcPeTargets(){
+  var t = {}; safeArr((inventory['networking.privateEndpoints']||{}).rows).forEach(function(p){ t[String(p.targetResourceId||'').toLowerCase()] = 1; }); return t;
+}
+
+function diagTwoPaths(){
+  var apps=tcRows('networking.sdwanAppliances'),pes=tcRows('networking.privateEndpoints'),stores=tcBackupStores();
+  if(!apps.length&&!pes.length&&!stores.length)return '';
+  var out=tcBox(20,155,205,125,{fill:'var(--primary-tint)'})+tcText(122,185,'Client or site',{anchor:'middle',fs:13,fw:800})+tcText(122,213,'DNS and routing depend',{anchor:'middle'})+tcText(122,232,'on the source network',{anchor:'middle'});
+  out+=tcArrow(228,180,338,95,'var(--primary)');
+  out+=tcNode('networking.privateEndpoints',tcBox(340,35,825,120,{stroke:'var(--primary)'})+tcText(360,62,'PATH 1 · private connectivity',{fs:13,fw:800})+tcText(360,89,pes.length+' private endpoint rows · '+apps.length+' appliance candidates',{})+tcText(360,116,'Requires matching DNS, network connectivity and routing evidence.',{fill:'var(--muted)'}));
+  out+=tcArrow(228,250,338,305,'var(--band-mod)','7 5');
+  out+=tcNode('domains.storage.storageAccounts',tcBox(340,245,825,120,{stroke:'var(--band-mod)',dash:'7 5'})+tcText(360,275,'PATH 2 · service public endpoint',{fs:13,fw:800})+tcText(360,302,stores.length+' storage accounts with configuration evidence',{})+tcText(360,329,'Public endpoint configuration does not prove unrestricted or anonymous access.',{fill:'var(--muted)'}));
+  return svgWrap('paths','Private and public access paths','Conceptual paths annotated with collected evidence. A specific site path is not asserted without effective routes, DNS and connectivity validation.',out,1200,395);
+}
+
+function diagAsiaStorage(){
+  var stores=tcBackupStores();if(!stores.length)return '';
+  var targets=tcPeTargets(),out='',W=1200;
+  stores.forEach(function(s,i){var y=20+i*285,location=tcRegionLoc(tcLocation(s))||'Region unknown',hasPe=!!targets[tcId(s)],deny=tcValue(s,['networkDefaultDeny','Default Action','Network Default Action']),tls=tcValue(s,['minTls','Minimum TLS Version','minimumTlsVersion']);
+    out+=tcText(20,y+18,tcTrunc(tcName(s)+' · '+location,105),{fs:13,fw:800});
+    function lane(ly,label,kind,observed){var color=observed?'var(--primary)':'var(--band-mod)';out+=tcText(20,ly,label,{fs:10,fw:800});
+      out+=tcBox(20,ly+12,210,68,{fill:'var(--primary-tint)'})+tcText(125,ly+38,'Client / site',{anchor:'middle',fw:800})+tcText(125,ly+59,'Source network not established',{anchor:'middle',fs:9});
+      out+=tcArrow(233,ly+47,315,ly+47,color,observed?null:'5 4');
+      out+=tcBox(320,ly+12,300,68,{stroke:color})+tcText(470,ly+38,kind,{anchor:'middle',fw:800})+tcText(470,ly+59,observed?'Association collected':'Requires design and validation',{anchor:'middle',fs:9,fill:'var(--muted)'});
+      out+=tcArrow(623,ly+47,705,ly+47,color,observed?null:'5 4');
+      out+=tcNode('domains.storage.storageAccounts',tcBox(710,ly+12,470,68,{stroke:color})+tcText(725,ly+35,tcTrunc(tcName(s),55),{fw:800})+tcText(725,ly+57,location+' · minimum TLS: '+(tls||'unknown'),{fs:9.5}));}
+    lane(y+42,'Collected endpoint configuration',hasPe?'Private endpoint association':'Public endpoint configuration',hasPe);
+    lane(y+153,'Private endpoint placement review','VNet, private DNS and routing',false);
+    out+=tcText(20,y+257,'Network default: '+(deny===true?'Deny':deny===false?'Allow':deny||'unknown')+'. Choose endpoint placement from actual site, VNet, DNS and routing requirements; geographic detours are not assumed.',{fs:9.5,fill:'var(--muted)'});
+  });
+  return svgWrap('asiastore','Regional storage access — private endpoint trade-offs','Current evidence and a clearly labeled private-access design review, using each account’s real region. A missing endpoint row is not proof of public reachability.',out,W,35+stores.length*285);
+}
+
+function diagTwoPathsBlade(){ return diagTwoPaths() || '<p class="lede">No SD-WAN data collected in this run.</p>'; }
+function diagAsiaStorageBlade(){ return diagAsiaStorage() || '<p class="lede">No storage account configuration collected in this run.</p>'; }
+
 function pageDiagrams(){
   var side = '<nav class="side"><div class="sidehead">Diagrams</div>'+
     '<a class="sideitem dgmgo on" data-dpane="dgm-ov" href="#"><span>Overview</span></a>'+
@@ -1783,18 +2208,26 @@ function pageDiagrams(){
     '<a class="sideitem dgmgo" data-dpane="dgm-plink" href="#"><span>Private link &amp; DNS</span></a>'+
     '<a class="sideitem dgmgo" data-dpane="dgm-exposure" href="#"><span>Internet exposure</span></a>'+
     '<a class="sideitem dgmgo" data-dpane="dgm-edge" href="#"><span>Edge &amp; delivery</span></a>'+
-    '<a class="sideitem dgmgo" data-dpane="dgm-routing" href="#"><span>Routing &amp; forced tunnelling</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-routing" href="#"><span>Routing &amp; forced tunneling</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-sdwanha" href="#"><span>SD-WAN &amp; firewall availability</span></a>'+
     '<div class="sidehead">Hybrid</div><a class="sideitem dgmgo" data-dpane="dgm-hybrid" href="#"><span>Site-to-site</span></a>'+
-    '<div class="sidehead">Estate</div><a class="sideitem dgmgo" data-dpane="dgm-estate" href="#"><span>Top categories</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-paths" href="#"><span>Two paths to Azure</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-flow" href="#"><span>Site-to-Azure traffic flow</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-asiastore" href="#"><span>Regional storage trade-off</span></a>'+
+    '<div class="sidehead">Management</div><a class="sideitem dgmgo" data-dpane="dgm-backup" href="#"><span>Backup coverage</span></a>'+
+    '<div class="sidehead">Estate</div><a class="sideitem dgmgo" data-dpane="dgm-regions" href="#"><span>Azure regions</span></a>'+
+    '<a class="sideitem dgmgo" data-dpane="dgm-estate" href="#"><span>Top categories</span></a>'+
     '<div class="sidehead">Assessments</div><a class="sideitem dgmgo" data-dpane="dgm-sev" href="#"><span>Gaps by area</span></a></nav>';
   var dgms = [['mg','Management-group hierarchy','Tenant'],['net','Virtual networks & subnets','Networking'],
-    ['vnettopo','VNet connectivity — hub &amp; spoke','Networking'],['hybrid','Hybrid / site-to-site','Hybrid'],
-    ['plink','Private link &amp; DNS','Networking'],['exposure','Internet exposure','Networking'],
-    ['edge','Edge &amp; delivery','Networking'],['routing','Routing &amp; forced tunnelling','Networking'],
+    ['vnettopo','VNet connectivity — hub & spoke','Networking'],['hybrid','Hybrid / site-to-site','Hybrid'],
+    ['plink','Private link & DNS','Networking'],['exposure','Internet exposure','Networking'],
+    ['edge','Edge & delivery','Networking'],['routing','Routing & forced tunneling','Networking'],
+    ['sdwanha','SD-WAN & firewall availability','Networking'],['paths','Two paths to Azure','Hybrid'],['flow','Site-to-Azure traffic flow','Hybrid'],['asiastore','Regional storage trade-off','Hybrid'],
+    ['regions','Azure region footprint','Estate'],['backup','Backup coverage','Management'],
     ['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
-  var keyDgms = [['sev','Gaps by design area','Assessment'],['estate','Estate — top categories','Estate'],['mg','Management-group hierarchy','Tenant']];
+  var keyDgms = [['sev','Gaps by design area','Assessment'],['regions','Azure region footprint','Estate'],['paths','Two paths to Azure','Hybrid'],['mg','Management-group hierarchy','Tenant']];
   var ov = '<h2>Diagrams</h2>'+
-    '<div class="depth-exec"><p class="lede">The three figures below are the ones that matter most at a glance. Switch to <b>Consultant</b> to browse every diagram.</p>'+
+    '<div class="depth-exec"><p class="lede">The four figures below are the ones that matter most at a glance. Switch to <b>Consultant</b> to browse every diagram.</p>'+
     '<div class="menutiles">'+keyDgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div></div>'+
     '<div class="depth-cons"><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
     '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div></div>';
@@ -1815,15 +2248,15 @@ function pageDiagrams(){
     '<div class="kpi"><div class="l">Subnets</div><div class="v">'+subnets.length+'</div></div>'+
     '<div class="kpi'+(hotSubnets.length?' bad':'')+'"><div class="l">Subnets &gt; 80% full</div><div class="v">'+hotSubnets.length+'</div></div>'+
     '<div class="kpi'+(noDdos?' bad':'')+'"><div class="l">VNets without DDoS</div><div class="v">'+noDdos+'</div><div class="f">of '+vnets.length+'</div></div></div>'+
-    '<p class="lede small">Each box is a VNet with its subnets and how full each address range is. '+(hotSubnets.length?'<b>'+hotSubnets.map(function(s){return esc(s.subnet);}).join(', ')+'</b> '+(hotSubnets.length===1?'is':'are')+' running out of addresses.':'No subnet is near address exhaustion.')+'</p>';
+    '<p class="lede small">Each box is a VNet with its subnets and how full each address range is. '+(hotSubnets.length?'<b>'+hotSubnets.map(function(s){return esc(s.subnet);}).join(', ')+'</b> '+(hotSubnets.length===1?'is':'are')+' running out of addresses.':'No collected utilization value exceeds 80%; missing values remain unknown.')+'</p>';
 
-  var estateCtx = invSorted.length ? '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div></div>'+
+  var estateCtx = invSorted.length ? '<div class="kpis"><div class="kpi"><div class="l">Evidence rows</div><div class="v">'+n(invTotal)+'</div></div>'+
     '<div class="kpi"><div class="l">Largest category</div><div class="v">'+n(invSorted[0][1].count)+'</div><div class="f">'+esc(catLeaf(invSorted[0][1].label))+'</div></div></div>'+
     '<p class="lede small">Where the estate\'s volume actually sits — policy compliance records dominate because every resource is evaluated by every assigned policy.</p>'+
     '<div class="depth-data"><div class="eyebrow">Every category, not just the top of the chart — Data view</div><div class="twrap"><table><tr><th>Category</th><th class="num">Items</th></tr>'+
     invSorted.map(function(p){ return '<tr><td>'+esc(catLeaf(p[1].label||p[0]))+'</td><td class="num">'+n(p[1].count)+'</td></tr>'; }).join('')+'</table></div></div>' : '';
 
-  var a0 = assessments[0];
+  var a0 = primaryAssessment();
   var sevCtx = '';
   if(a0){
     var a0fails = safeArr(a0.findings).filter(function(f){return f.status==='Fail';});
@@ -1838,6 +2271,8 @@ function pageDiagrams(){
     ['dgm-vnettopo', diagVnetTopoBlade()], ['dgm-hybrid', diagHybridBlade()],
     ['dgm-plink', diagPrivateLinkBlade()], ['dgm-exposure', diagExposureBlade()],
     ['dgm-edge', diagEdgeDeliveryBlade()], ['dgm-routing', diagRoutingBlade()],
+    ['dgm-sdwanha', diagSdwanHaBlade()], ['dgm-paths', diagTwoPathsBlade()], ['dgm-flow', diagTrafficFlowBlade()], ['dgm-asiastore', diagAsiaStorageBlade()],
+    ['dgm-regions', diagRegionsBlade()], ['dgm-backup', diagBackupCoverageBlade()],
     ['dgm-estate', estateCtx+diagEstateBars()], ['dgm-sev', sevCtx+diagSeverity()]];
   return '<div class="invlayout">'+side+'<div class="invbody">'+panes.map(function(p,i){ return '<div class="dgmpane'+(i===0?' on':'')+'" id="pane-'+p[0]+'">'+p[1]+'</div>'; }).join('')+'</div></div>';
 }
@@ -1848,7 +2283,7 @@ function pageDiagrams(){
    (the mockup pre-renders once in Node; here the SAME generator
    functions run once in the browser, into the DOM, at boot).
    ============================================================ */
-var navItems = [['ov','Overview'],['inv','Inventory & audit'],['as','Assessments'],['dgm','Diagrams'],['data','Data & drift'],['road','Remediation plan']];
+var navItems = [['ov','Overview'],['inv','Inventory & audit'],['as','Assessments'],['dgm','Diagrams'],['data','Data'],['road','Remediation plan']];
 
 function documentTitle(){
   var bits = [identity.reportTitle, identity.clientName].filter(Boolean);
@@ -1878,13 +2313,13 @@ function assemble(){
     '<div class="pg pg-data">'+pageData()+'</div>'+
     '<div class="pg pg-road">'+pageRoadmap()+'</div>';
 
-  var note = '<div class="note"><b>'+esc(documentTitle())+'.</b> Overview → Inventory &amp; audit (sidebar per category, every category opens its item table) → Assessments (choose one, open its full register: all checks, a gap block for every fail, manual agenda) → Diagrams → Data &amp; drift → Remediation plan.</div>';
+  var note = '<div class="note"><b>'+esc(documentTitle())+'.</b> Overview → Inventory &amp; audit (sidebar per category, every category opens its item table) → Assessments (choose one, open its full register: all checks, a gap block for every fail, manual agenda) → Diagrams → Data → Remediation plan.</div>';
 
   document.getElementById('app').innerHTML = '<div class="page">'+note+topbar+pages+'</div>';
 }
 
 /* ============================================================
-   WIRE — page/nav/blade interactions (ported behaviour from the
+   WIRE — page/nav/blade interactions (ported behavior from the
    approved mockup's own <script> section).
    ============================================================ */
 function setPage(p){
@@ -1926,7 +2361,7 @@ function buildMarkdownExport(){
   var md = [];
   md.push('# '+(identity.reportTitle||'Azure Inventory and Assessment'));
   md.push('\n'+(identity.clientName||'')+' · '+(identity.classification||'')+' · run '+(meta.runId||'')+' · generated '+(meta.generatedOn||'').slice(0,16).replace('T',' '));
-  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, '+counts.error+' errors. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
+  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.partial+' partially met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, '+counts.error+' errors. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
   assessments.forEach(function(a){
     var s = a.score || {};
     md.push('\n## '+a.name);
@@ -1963,16 +2398,21 @@ function buildMarkdownExport(){
 function buildJsonExport(){
   return JSON.stringify({
     meta: meta, identity: identity,
-    summary: { checks: counts.total, met: counts.pass, notMet: counts.fail, highSeverity: counts.high, manual: counts.manual, unknown: counts.unknown, errors: counts.error, notAssessed: counts.notAssessed },
+    summary: { checks: counts.total, met: counts.pass, partiallyMet: counts.partial, notMet: counts.fail, highSeverity: counts.high, manual: counts.manual, unknown: counts.unknown, errors: counts.error, notAssessed: counts.notAssessed },
     subscriptions: subscriptions,
     assessments: assessments.map(function(a){
       return { slug:a.slug, name:a.name, framework:a.framework, score:a.score, areas: dedupeAreas(a.areas),
         findings: safeArr(a.findings).map(function(f){ var c={}; for(var k in f) c[k]=f[k]; c.learnUrl = betterLearnUrl(f); return c; }) };
     }),
-    inventory: (function(){ var o={}; invEntries.forEach(function(p){ o[p[0]] = { label:p[1].label, count:p[1].count }; }); return o; })(),
+    inventory: inventory,
     discovery: discovery,
     drift: drift
   }, null, 1);
+}
+function buildCsvInventory(k){
+  var rows=safeArr((inventory[k]||{}).rows), cols=[];
+  rows.forEach(function(r){Object.keys(r).forEach(function(c){if(cols.indexOf(c)<0)cols.push(c);});});
+  return [cols.map(csvQuote).join(',')].concat(rows.map(function(r){return cols.map(function(c){var v=r[c];return csvQuote(v && typeof v==='object'?JSON.stringify(v):v);}).join(',');})).join('\r\n');
 }
 function csvQuote(v){
   var s = String(v===null||v===undefined?'':v);
@@ -2023,6 +2463,8 @@ function initAbout(){
 }
 
 function wireInteractions(){
+  document.addEventListener('keydown',function(e){var r=e.target.closest && e.target.closest('tr.rowclick');if(r && (e.key==='Enter'||e.key===' ')){e.preventDefault();showRowPopup(r.getAttribute('data-rk'),Number(r.getAttribute('data-ri')));}});
+  document.querySelectorAll('[data-inventory-export]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-inventory-export');dl(filenamePrefix()+'-'+k.replace(/[^a-z0-9_-]/gi,'-')+'.csv',buildCsvInventory(k),'text/csv');});});
   document.querySelectorAll('.nav').forEach(function(b){ b.addEventListener('click', function(){ setPage(b.getAttribute('data-page')); }); });
 
   document.querySelectorAll('.vbtn').forEach(function(b){
@@ -2058,7 +2500,8 @@ function wireInteractions(){
 
   document.querySelectorAll('a[href^="#"]:not(.goto)').forEach(function(a){
     a.addEventListener('click', function(){
-      var el = document.querySelector(a.getAttribute('href'));
+      var hh = a.getAttribute('href') || '', el = null;
+      if(hh.length > 1){ try { el = document.querySelector(hh); } catch(e){ el = null; } }
       if(el){ var d = el.closest('details'); if(d) d.open = true; if(el.tagName==='DETAILS') el.open = true; }
     });
   });
@@ -2102,12 +2545,17 @@ function wireInteractions(){
     });
   });
 
+  document.addEventListener('click', function(e){
+    var tr = e.target.closest && e.target.closest('tr.rowclick');
+    if(!tr || e.target.closest('a,input,button')) return;
+    showRowPopup(tr.getAttribute('data-rk'), parseInt(tr.getAttribute('data-ri'),10));
+  });
   document.querySelectorAll('.catwrap').forEach(function(w){
     var input = w.querySelector('.tfilter'), table = w.querySelector('table');
     if(!table) return;
     if(input) input.addEventListener('input', function(){
       var q = input.value.toLowerCase();
-      [].slice.call(table.rows).slice(1).forEach(function(tr){ tr.style.display = tr.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
+      [].slice.call(table.rows).slice(1).forEach(function(tr){ tr.style.display = (JSON.stringify((ROWREG[tr.getAttribute('data-rk')]||[])[Number(tr.getAttribute('data-ri'))])||tr.textContent).toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
     });
     [].slice.call(table.rows[0].cells).forEach(function(th, ci){
       th.style.cursor='pointer'; th.title='Click to sort';
@@ -2189,7 +2637,9 @@ window.__SCOUT_DIAGRAM_KERNEL__ = {
   routeOrthogonal: routeOrthogonal, layoutTree: layoutTree, placeRingLabels: placeRingLabels,
   diagramNetworkTopology: diagramNetworkTopology, diagramMgHierarchy: diagramMgHierarchy,
   diagVnetTopology: diagVnetTopology, diagHybrid: diagHybrid, diagPrivateLink: diagPrivateLink, diagExposure: diagExposure,
-  diagEdgeDelivery: diagEdgeDelivery, diagRouting: diagRouting
+  diagEdgeDelivery: diagEdgeDelivery, diagRouting: diagRouting,
+  diagRegions:diagRegions, diagTrafficFlow:diagTrafficFlow, diagSdwanHa:diagSdwanHa, diagBackupCoverage:diagBackupCoverage, diagTwoPaths:diagTwoPaths, diagRegionalStorage:diagAsiaStorage,
+  keyCat:keyCat, categoryBlocksFor:categoryBlocksFor, buildCsvInventory:buildCsvInventory, buildJsonExport:buildJsonExport
 };
 })();
 </script>

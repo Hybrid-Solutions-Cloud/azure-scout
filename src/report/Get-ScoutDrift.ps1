@@ -132,13 +132,18 @@ function Get-ScoutDrift {
     $previous = if ($priorCandidates.Count -gt 0) { $priorCandidates[-1] } else { $null }
     $isBaseline = ($null -eq $previous)
 
-    # ---- current run's findings, keyed by Id ----
+    # Assessment membership is part of identity: the same rule may have different
+    # evidence and verdicts in two assessments. Older bare-ID history is not a safe
+    # baseline for those rows; they intentionally start a new per-assessment baseline.
     $currentFindings = @(Get-ScoutDriftProp $Findings 'Findings')
     $currentMap = @{}
     foreach ($f in $currentFindings) {
         $id = Get-ScoutDriftProp $f 'Id'
         if ([string]::IsNullOrEmpty($id)) { continue }
-        $currentMap[$id] = $f
+        $assessment = [string](Get-ScoutDriftProp $f 'Assessment')
+        $key = if ($assessment) { '{0}:{1}:{2}' -f $assessment.Length, $assessment, $id } else { $id }
+        if ($currentMap.ContainsKey($key)) { throw "Duplicate finding identity '$key'." }
+        $currentMap[$key] = $f
     }
 
     $previousStatuses = if ($isBaseline) { $null } else { Get-ScoutDriftProp $previous 'Statuses' }
@@ -160,7 +165,9 @@ function Get-ScoutDrift {
 
         $counts[$driftType]++
         $driftFindings.Add([pscustomobject]@{
-            Id             = $id
+            Id             = Get-ScoutDriftProp $f 'Id'
+            Assessment     = Get-ScoutDriftProp $f 'Assessment'
+            FindingKey     = $id
             Title          = Get-ScoutDriftProp $f 'Title'
             Framework      = Get-ScoutDriftProp $f 'Framework'
             Area           = Get-ScoutDriftProp $f 'Area'
