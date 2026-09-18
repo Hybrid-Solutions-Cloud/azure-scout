@@ -36,7 +36,8 @@ permissions:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux, x64, hcs]
+    # Shared HCS runners exclude public repositories; keep this build isolated.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +67,8 @@ jobs:
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
-    runs-on: [self-hosted, linux, x64, hcs]
+    # Shared HCS runners exclude public repositories; keep this build isolated.
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
