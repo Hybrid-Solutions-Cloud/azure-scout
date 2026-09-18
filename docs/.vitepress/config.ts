@@ -75,6 +75,7 @@ export default defineConfig({
           { text: 'Configuration & Report Tiers', link: '/assessment/configuration' },
           { text: 'Assessment Prerequisites', link: '/assessment/assessment-prerequisites' },
           { text: 'Auth & Permissions per Scan Type', link: '/assessment/assessment-permissions' },
+          { text: 'Multi-tenant Recovery', link: '/how-to/multi-tenant-recovery' },
         ],
       },
       {

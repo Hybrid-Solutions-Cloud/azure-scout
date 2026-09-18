@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.16.2'
+ModuleVersion = '3.17.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.16.2 - HOTFIX. A real multi-tenant run crashed immediately after confirmation with "Cannot find an overload for Contains and the argument count: 1." Invoke-AZSCMultiTenantRun read its invocation parameters with .Contains(name), a Hashtable-only method; production always passes the real $PSBoundParameters (a Dictionary-backed type without a matching .Contains(key) overload), so every real multi-tenant run failed before doing any work. Every prior test used a hashtable literal or fully mocked the function, so the defect shipped undetected in v3.16.0 and v3.16.1. Switched to .ContainsKey(name), which both types support, and added a regression test that builds a genuine PSBoundParametersDictionary. AB#7105.'
+        ReleaseNotes = 'v3.17.0 - Multi-tenant authentication reuse, scope-first setup, versioned resume and failed/selected-tenant retry. Complete processed report inventory, detail dialogs, CSV/JSON exports and evidence-driven diagrams. Normalization failures no longer silently substitute narrower evidence; partial runs and assessment-specific drift stay explicit. AB#9290. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''

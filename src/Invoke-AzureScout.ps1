@@ -17,6 +17,16 @@ $ErrorActionPreference = 'Stop'
 
     >>> IMPORTANT: YOU NEED TO USE THIS PARAMETER FOR TENANTS WITH MULTI-FACTOR AUTHENTICATION. <<<
 
+.PARAMETER ResumeRun
+    Resume a versioned multi-tenant checkpoint in an existing umbrella directory.
+    Uses the original account, module version and saved scan settings; creates new attempt folders.
+
+.PARAMETER RetryFailed
+    With ResumeRun, retry only failed, partial and interrupted tenants.
+
+.PARAMETER RetryTenant
+    With ResumeRun, retry the specified tenant IDs from that checkpoint.
+
 .PARAMETER AllAccessibleTenants
     Scan every tenant the signed-in account can reach. The run creates one isolated folder per
     tenant plus a root report-react.html overview linking to every completed tenant report.
@@ -435,11 +445,20 @@ Function Invoke-AzureScout {
         [string]$DefaultReportMode = 'Consultant',
         [Alias('AllTenants', 'AllReachableTenants')]
         [switch]$AllAccessibleTenants,
+        [string]$ResumeRun,
+        [switch]$RetryFailed,
+        [string[]]$RetryTenant,
+        [Parameter(DontShow)]
+        [switch]$NonInteractiveAuth,
         [Parameter(DontShow)]
         [switch]$PassThru
         )
 
     if ($NoProgress.IsPresent) { $ProgressPreference = 'SilentlyContinue' }
+    if ($ResumeRun) {
+        return Invoke-AZSCMultiTenantRun -InvocationParameters $PSBoundParameters -ResumeRun $ResumeRun -RetryFailed:$RetryFailed -RetryTenant $RetryTenant
+    }
+    if ($RetryFailed -or $RetryTenant) { throw '-RetryFailed and -RetryTenant require -ResumeRun.' }
 
     if ($IncludeOkta.IsPresent -and ([string]::IsNullOrWhiteSpace($OktaOrganizationUrl) -or $null -eq $OktaApiToken)) {
         throw '-IncludeOkta requires both -OktaOrganizationUrl and -OktaApiToken. The token must be supplied as a SecureString.'
@@ -702,7 +721,7 @@ Function Invoke-AzureScout {
         # not force a sign-in the run doesn't need.
         if (-not $FromCollect -and -not ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) -and
             $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
-            $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
+            $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -NonInteractive:$NonInteractiveAuth -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
         # AB#6795 -- 'Estate' no longer exists in the registry; 'CAF: Azure Landing Zone' is the
@@ -779,13 +798,18 @@ Function Invoke-AzureScout {
                 }
             }
             if ($PassThru.IsPresent) {
+                if ($CollectOnly -and (Test-Path -LiteralPath $standaloneRunPath -PathType Leaf)) {
+                    return New-AZSCRunResult -TenantId $TenantID -OutputPath (Split-Path $standaloneRunPath -Parent) -EvidenceFile $standaloneRunPath
+                }
                 $standaloneReact = if ($standaloneRunPath -and (Test-Path -LiteralPath $standaloneRunPath -PathType Container)) {
                     $candidate = Join-Path ([string]$standaloneRunPath) 'report-react.html'
                     if (Test-Path -LiteralPath $candidate -PathType Leaf) { $candidate } else { $null }
                 }
                 else { $null }
                 return New-AZSCRunResult -TenantId $TenantID -OutputPath $standaloneRunPath `
-                    -ReactFile $standaloneReact -SubscriptionCount 0 -ResourceCount 0
+                    -ReactFile $standaloneReact -SubscriptionCount 0 -ResourceCount 0 `
+                    -EvidenceFile $(if (Test-Path (Join-Path $standaloneRunPath 'evidence.json')) { Join-Path $standaloneRunPath 'evidence.json' }) `
+                    -JsonFile $(if (Test-Path (Join-Path $standaloneRunPath 'findings.json')) { Join-Path $standaloneRunPath 'findings.json' })
             }
             return $standaloneRunPath
         }
@@ -827,7 +851,7 @@ Function Invoke-AzureScout {
 
             if ($PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent)
                 {
-                    $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
+                    $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -NonInteractive:$NonInteractiveAuth -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
                 }
 
             # The audit writer takes a single format. -OutputFormat is a list, so
@@ -855,7 +879,7 @@ Function Invoke-AzureScout {
 
     if ($PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent)
         {
-            $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
+            $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -NonInteractive:$NonInteractiveAuth -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
 
 
         }
@@ -1250,6 +1274,23 @@ Function Invoke-AzureScout {
                 $ExtraProcessingTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
         )
 
+        # Build complete collector evidence before either report path consumes it.
+        $collectorProcessingOperation = {
+            Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources `
+                -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath `
+                -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation `
+                -Category $Category -CollectionHealth $CollectionHealth
+        }
+        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+            $null = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
+                -Status 'Running collectors' -PercentComplete 75 -Id 1 `
+                -Operation $collectorProcessingOperation
+        }
+        else {
+            $null = & $collectorProcessingOperation
+        }
+
+
         # AB#6737 -- moved here (from immediately after the extraction call above) so the
         # deferred assessment -- and the PDF it may render -- runs AFTER Start-AZSCExtraJobs has
         # built $DDFile. Start-AZSCExtraJobs's diagram step (Invoke-AZSCDrawIOJob ->
@@ -1271,7 +1312,7 @@ Function Invoke-AzureScout {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Deferred assessment started from the in-memory inventory.'
                 $deferredAssessmentOperation = {
-                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
+                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
                 }
                 if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                     $deferredRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
@@ -1306,6 +1347,7 @@ Function Invoke-AzureScout {
                 if ([string]$_.Exception.Data['AzureScoutFailureKind'] -ne 'AssessmentSourceUnavailable') { throw }
                 if ($AssessmentRunTime -and $AssessmentRunTime.IsRunning) { $AssessmentRunTime.Stop() }
                 $assessmentGap = $_.Exception.Message
+                $CollectionHealth = @($CollectionHealth) + @([pscustomobject]@{ Dataset='AssessmentNormalization'; Status='Failed'; Source='Assessment'; Reason=$assessmentGap })
                 Write-Warning "Azure Scout skipped the scored assessment because required source data was unavailable. The inventory run will continue. $assessmentGap"
                 Write-AZSCLog -Level 'WARN' -Message "Deferred assessment skipped; inventory continues. $assessmentGap" -Exception $_.Exception
 
@@ -1351,7 +1393,7 @@ Function Invoke-AzureScout {
                                 ($fallbackFormats -join ',')
                         )
                         $inventoryFallbackOperation = {
-                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData
+                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
                         }
                         if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                             $inventoryFallbackPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
@@ -1398,7 +1440,7 @@ Function Invoke-AzureScout {
                 $InventoryOutputRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Inventory React/evidence rendering started from the in-memory inventory; assessment rules are disabled.'
                 $inventoryOutputOperation = {
-                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData
+                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
                 }
                 if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                     $inventoryOutputRunPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
@@ -1433,21 +1475,6 @@ Function Invoke-AzureScout {
             }
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
-
-        $collectorProcessingOperation = {
-            Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources `
-                -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath `
-                -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation `
-                -Category $Category -CollectionHealth $CollectionHealth
-        }
-        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-            $null = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
-                -Status 'Running collectors' -PercentComplete 75 -Id 1 `
-                -Operation $collectorProcessingOperation
-        }
-        else {
-            $null = & $collectorProcessingOperation
-        }
 
     $ProcessingRunTime.Stop()
 
@@ -1669,9 +1696,10 @@ Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRe
 $null = Stop-AZSCRunLog -Status 'COMPLETED'
 
 if ($PassThru.IsPresent) {
+    $resultStatus = if (@($CollectionHealth | Where-Object { $_.Status -in @('Failed','Unavailable','Partial') }).Count -gt 0) { 'Partial' } else { 'Completed' }
     return New-AZSCRunResult -TenantId $TenantID -OutputPath $DefaultPath -ReactFile $ReactFile `
         -EvidenceFile $EvidenceFile -JsonFile $JsonFile -SubscriptionCount @($Subscriptions).Count `
-        -ResourceCount $ResourcesCount -Duration $Measure
+        -ResourceCount $ResourcesCount -Duration $Measure -Status $resultStatus
 }
 
     }

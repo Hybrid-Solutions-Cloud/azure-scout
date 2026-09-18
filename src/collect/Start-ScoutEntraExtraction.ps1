@@ -148,17 +148,6 @@ function Start-AZSCEntraExtraction {
     # READY banner over a scan that would render its worksheet empty.
     $entraQueries = @(Get-ScoutEntraQueryCatalog)
     $totalQueries = $entraQueries.Count
-    $requiredGraphScopes = @(
-        'Directory.Read.All'
-        'Policy.Read.All'
-        'AuditLog.Read.All'
-        'Reports.Read.All'
-        'RoleManagement.Read.Directory'
-        'RoleAssignmentSchedule.Read.Directory'
-        'RoleEligibilitySchedule.Read.Directory'
-        'AccessReview.Read.All'
-    )
-
     Write-Host 'Starting Entra ID Extraction: ' -NoNewline
     Write-Host "$totalQueries Resource Types" -ForegroundColor Cyan
 
@@ -168,7 +157,7 @@ function Start-AZSCEntraExtraction {
     # normal token cache, so Invoke-AZSCGraphRequest below remains unchanged.
     $graphHeaders = $null
     try {
-        $graphHeaders = Get-AZSCGraphToken -TenantID $TenantID -Scopes $requiredGraphScopes
+        $graphHeaders = Get-AZSCGraphToken -TenantID $TenantID
     }
     catch {
         $authenticationError = $_.Exception.Message
@@ -252,7 +241,7 @@ function Start-AZSCEntraExtraction {
             # Pin token acquisition to the tenant the operator requested. Without this,
             # Invoke-AZSCGraphRequest can use an ambient context from another tenant and the
             # normalizer below would then incorrectly stamp those objects with $TenantID.
-            $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID -RequiredScopes $requiredGraphScopes
+            $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID -RequiredScopes @($query.Permission)
             $collectedAt = Get-Date
 
             if ($null -ne $result) {
@@ -303,7 +292,7 @@ function Start-AZSCEntraExtraction {
                         }
                         $federationStartedAt = Get-Date
                         try {
-                            $federation = @(Invoke-AZSCGraphRequest -Uri $federationQuery.Uri -TenantID $TenantID -RequiredScopes $requiredGraphScopes)
+                            $federation = @(Invoke-AZSCGraphRequest -Uri $federationQuery.Uri -TenantID $TenantID -RequiredScopes @($query.Permission))
                             Add-NormalizedResource -Items $federation -Query $federationQuery -CollectedAt (Get-Date)
                             $federationStatus = if ($federation.Count -eq 0) { 'Empty' } else { 'Success' }
                             $queryOutcomes.Add((New-QueryOutcome -Query $federationQuery -Status $federationStatus -Success $true -Count $federation.Count -StartedAt $federationStartedAt))

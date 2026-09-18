@@ -2853,13 +2853,19 @@ resources
             Write-Verbose "Invoke-Collect: shaping $($inventoryShaped.Keys.Count) queries from one collection pass (AB#5543/AB#5648); only 'sqlDefenderPricing' still goes to Resource Graph."
         }
         catch {
-            # Never let a shaping bug cost the caller their assessment — fall back to the ARG
-            # path, which is the reference implementation.
+            # A narrower ARG retry cannot prove equivalence to the collected evidence.
+            # Keep raw evidence available for the inventory report, but never score it as
+            # though normalization succeeded.
             if ($OfflineFromInventory) {
-                throw "Invoke-Collect: could not shape the supplied inventory without live fallback: $($_.Exception.Message)"
+                $rawCollectionHealth += [pscustomobject]@{ Dataset='AssessmentNormalization'; Status='Failed'; Source='Inventory shaping'; Reason=$_.Exception.Message }
+                Write-Warning "Assessment normalization failed; the inventory report retains raw collector evidence: $($_.Exception.Message)"
+                $inventoryShaped = @{}
             }
-            Write-Warning "Invoke-Collect: could not shape the collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
-            $inventoryShaped = @{}
+            else {
+                $sourceException = [InvalidOperationException]::new("Invoke-Collect: assessment scoring stopped because inventory normalization failed. Raw evidence must be retained; no ARG substitution was performed. $($_.Exception.Message)", $_.Exception)
+                $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+                throw $sourceException
+            }
         }
     }
 
@@ -3497,6 +3503,7 @@ resources
 
     # ---- shape into the canonical contract ----
     $collect = [pscustomobject]@{
+        entraResources = @(if ($rawInventory -and $rawInventory.PSObject.Properties['EntraResources']) { $rawInventory.EntraResources })
         subscriptions = $r.subscriptions
         tags          = $tags
         discovery     = $discovery

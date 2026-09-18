@@ -265,6 +265,7 @@ function Export-React {
         productName        = 'Azure Scout'
         productVersion     = $productVersion
         productUrl         = $productUrl
+        collectionHealth   = @(Get-ReactSafeProp $metaSrc @('collectionHealth'))
         # Lower-cased to match the front end's own state.mode / data-mode vocabulary
         # ('executive'/'consultant'/'data') verbatim -- see report-react.html.template's
         # loadPersisted(), which should prefer this over its current hardcoded 'executive'
@@ -1005,11 +1006,8 @@ function Export-React {
     # Generic recursive walker over $Collect: every array found (at any depth) becomes its own
     # inventory category keyed by its dotted path, so a category added to Collect tomorrow shows
     # up here with no renderer change. `_meta` and `discovery` are excluded: discovery has its own
-    # completeness explorer and including it here would double-count every asset. Rows are capped
-    # so one enormous category (policy compliance can run into the
-    # thousands) doesn't bloat the embedded payload; `truncated` records the honest shown/actual
-    # split so the UI never presents a cap as a total (AB#6864's own rule, applied here too).
-    $inventoryRowCap = 300
+    # completeness explorer. Retain every row for Data view, details and offline export;
+    # Consultant view limits presentation in the template, never the retained evidence.
     function Get-ReactInventoryLabel {
         param([string[]] $PathSegments)
         $titled = $PathSegments | ForEach-Object {
@@ -1025,12 +1023,12 @@ function Export-React {
         if ($Node -is [System.Collections.IEnumerable] -and $Node -isnot [string] -and $Node -isnot [System.Collections.IDictionary]) {
             $rows = @($Node)
             $key = ($PathSegments -join '.')
-            $shown = @($rows | Select-Object -First $inventoryRowCap)
+            $shown = $rows
             $inventory[$key] = [ordered]@{
                 label     = Get-ReactInventoryLabel -PathSegments $PathSegments
                 count     = $rows.Count
                 rows      = $shown
-                truncated = if ($rows.Count -gt $inventoryRowCap) { [pscustomobject]@{ shown = $shown.Count; actual = $rows.Count } } else { $null }
+                truncated = $null
             }
             return
         }
@@ -1042,10 +1040,19 @@ function Export-React {
         foreach ($p in $props) { Add-ReactInventoryCategory -Node $p.Value -PathSegments ($PathSegments + $p.Name) }
     }
     if ($Collect) {
-        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -notin @('_meta', 'discovery') })) {
+        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -notin @('_meta', '_reportInventory', 'discovery') })) {
             Add-ReactInventoryCategory -Node $p.Value -PathSegments @($p.Name)
         }
     }
+    $processed = Get-ReactSafeProp $Collect @('_reportInventory')
+    if ($processed -is [System.Collections.IDictionary]) {
+        foreach ($key in $processed.Keys) { $inventory[$key] = $processed[$key] }
+    }
+    elseif ($processed) {
+        foreach ($property in $processed.PSObject.Properties) { $inventory[$property.Name] = $property.Value }
+    }
+    if (@($inventory.Keys | Where-Object { $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.inventory = $true }
+    if (@($inventory.Keys | Where-Object { $_ -match '^(collected|domains)\.identity\.' -and $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.entra = $true }
 
     # ---- costProjection{} -------------------------------------------------------------------------
     # AB#7093: a transparent trailing-30-day run-rate extrapolation over finops.costRows (the same
