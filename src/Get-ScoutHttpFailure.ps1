@@ -47,6 +47,7 @@ function Get-ScoutHttpFailure {
         StatusCode = $status
         Code = $code
         Message = $message
-        Summary = ('HTTP {0}; {1}: {2}' -f $(if ($null -ne $status) { $status } else { 'unknown' }), $code, $message)
+        Summary = if ($null -eq $status -and -not $code) { $message }
+            else { ('HTTP {0}; {1}: {2}' -f $(if ($null -ne $status) { $status } else { 'unknown' }), $code, $message) }
     }
 }
