@@ -23,7 +23,7 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCDrawIODiagram {
-    param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnvironment, $ResourceContainers, $Automation, $AZSCModule)
+    param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnvironment, $ResourceContainers, $Automation, $AZSCModule, $DiscoveryContext)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
     # functions run inside Start-Job script blocks that RE-IMPORT the module, so module-scope
@@ -77,7 +77,7 @@ function Start-AZSCDrawIODiagram {
         }
 
     try {
-        New-ScoutUniversalRelationshipDiagram -Resources @($Resources) -Path $UniversalGraphFile | Out-Null
+        New-ScoutUniversalRelationshipDiagram -Resources @($Resources) -Path $UniversalGraphFile -DiscoveryContext $DiscoveryContext | Out-Null
     }
     catch {
         ('DrawIOCoreFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Universal relationship graph skipped: '+$_.Exception.Message) | Out-File -FilePath $LogFile -Append

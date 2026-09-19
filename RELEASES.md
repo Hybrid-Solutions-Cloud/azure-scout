@@ -28,6 +28,7 @@ releases over time*.
 
 | Version | Date | Status | Theme | Driving ADO work |
 |---|---|---|---|---|
+| **3.17.1** | 2026-09-18 | ✅ | Shared discovery/query indexes, detached evidence, faster companion output, always-on sanitized diagnostics, Graph/Sentinel/NIC fixes and corrected report menu wording. | **AB#9294–AB#9304, AB#9306** |
 | **3.17.0** | 2026-09-18 | ✅ | Tenant authentication reuse, checkpoint recovery, complete report inventory and diagrams, explicit partial evidence and assessment-specific drift. | **AB#9290** |
 | **3.16.2** | 2026-08-19 | ✅ | **Hotfix: real multi-tenant runs no longer crash on launch.** A live run crashed immediately after confirmation because `Invoke-AZSCMultiTenantRun` called a `Hashtable`-only `.Contains()` method on the real `$PSBoundParameters` type; switched to `.ContainsKey()` and added a regression test using a genuine bound-parameters object. | **AB#7105** |
 | **3.16.1** | 2026-08-18 | ✅ | **The menu offers it too.** The guided wizard now offers enterprise multi-tenant scanning (single tenant, a chosen set, or every accessible tenant) whenever the signed-in account can reach more than one tenant, and a dispatch-ordering fix makes wizard-driven multi-tenant answers actually route to the orchestrator. | **AB#7105** |

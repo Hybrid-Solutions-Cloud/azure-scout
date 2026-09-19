@@ -111,7 +111,7 @@ function Get-ScoutEntraQueryCatalog {
         },
         @{
             Name         = 'Sign-ins (Last 30 Days)'
-            Uri          = "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $signInStart&`$select=id,createdDateTime,userId,userPrincipalName,appId,appDisplayName,clientAppUsed,status,conditionalAccessStatus,appliedConditionalAccessPolicies,authenticationRequirement,isInteractive,ipAddress,location,deviceDetail,riskDetail,riskLevelAggregated,riskState&`$top=1000"
+            Uri          = "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $signInStart&`$select=id,createdDateTime,userId,userPrincipalName,appId,appDisplayName,clientAppUsed,status,conditionalAccessStatus,appliedConditionalAccessPolicies,isInteractive,ipAddress,location,deviceDetail,riskDetail,riskLevelAggregated,riskState&`$top=1000"
             Type         = 'entra/signins'
             NameProperty = 'userPrincipalName'
             Permission   = 'AuditLog.Read.All'

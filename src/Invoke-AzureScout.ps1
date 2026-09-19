@@ -54,7 +54,7 @@ $ErrorActionPreference = 'Stop'
     Use this parameter to include Quota information
 
 .PARAMETER IncludeTags
-    Show resource tag columns in legacy Excel output. Tags are always acquired and retained in
+    Include resource tags in reports. Tags are always acquired and retained in
     the universal discovery record.
 
 .PARAMETER Debug
@@ -545,7 +545,7 @@ Function Invoke-AzureScout {
         Write-Host " -SkipAdvisory            :  Do not collect Azure Advisory. "
         Write-Host " -SkipPolicy              :  Do not collect Azure Policies. "
         Write-Host " -SecurityCenter          :  Include Security Center Data. "
-        Write-Host " -IncludeTags             :  Show Resource Tags in Excel. "
+        Write-Host " -IncludeTags             :  Include resource tags in reports. "
         Write-Host " -Online                  :  Use Online Modules. "
         Write-Host " -Debug                   :  Run in a Debug mode. "
         Write-Host " -AzureEnvironment        :  Change the Azure Cloud Environment. "
@@ -569,7 +569,7 @@ Function Invoke-AzureScout {
         Write-Host ""
         Write-Host "Including Tags:"
         Write-Host " By Default Azure Resource inventory do not include Resource Tags."
-        Write-Host " To show Tags in Excel use the <-IncludeTags> parameter. Tags are always retained in discovery. "
+        Write-Host " To include resource tags in reports use the <-IncludeTags> parameter. Tags are always retained in discovery. "
         Write-Host "e.g. /> Invoke-AzureScout -TenantID <Azure Tenant ID> -IncludeTags"
         Write-Host ""
         Write-Host "Skipping Azure Advisor:"
@@ -1232,6 +1232,9 @@ Function Invoke-AzureScout {
             Write-Host $ExtractionTotalTime -ForegroundColor Cyan
         }
 
+    # Extraction uses the legacy progress id 0; close it before processing switches to id 1.
+    Write-Progress -Id 0 -Activity 'Azure Inventory' -Completed
+
     #### Creating Excel file variable:
     $FileName = ($ReportName + "_Report_" + (get-date -Format "yyyy-MM-dd_HH_mm") + ".xlsx")
     $File = Join-Path $DefaultPath $FileName
@@ -1243,6 +1246,8 @@ Function Invoke-AzureScout {
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Default Jobs.')
 
+    # One run-owned snapshot includes Advisor rows used by supplemental collectors.
+    $discoveryContext = New-ScoutDiscoveryContext -Resources @(@($Resources) + @($Advisories))
     $ProcessingRunTime = [System.Diagnostics.Stopwatch]::StartNew()
 
         # Returns the Security / Policy / Advisory / Subscriptions results directly. These were
@@ -1258,7 +1263,7 @@ Function Invoke-AzureScout {
                 -DiagramCache $DiagramCache -FullEnv $FullEnv `
                 -ResourceContainers $ResourceContainers -Security $Security `
                 -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef `
-                -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
+                -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation -DiscoveryContext $discoveryContext
         }
         if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
             $ExtraData = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
@@ -1279,7 +1284,7 @@ Function Invoke-AzureScout {
             Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources `
                 -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath `
                 -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation `
-                -Category $Category -CollectionHealth $CollectionHealth
+                -Category $Category -CollectionHealth $CollectionHealth -DiscoveryContext $discoveryContext
         }
         if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
             $null = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
@@ -1312,7 +1317,7 @@ Function Invoke-AzureScout {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Deferred assessment started from the in-memory inventory.'
                 $deferredAssessmentOperation = {
-                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
+                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache -DiscoveryContext $discoveryContext
                 }
                 if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                     $deferredRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
@@ -1393,7 +1398,7 @@ Function Invoke-AzureScout {
                                 ($fallbackFormats -join ',')
                         )
                         $inventoryFallbackOperation = {
-                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
+                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache -DiscoveryContext $discoveryContext
                         }
                         if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                             $inventoryFallbackPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
@@ -1440,7 +1445,7 @@ Function Invoke-AzureScout {
                 $InventoryOutputRunTime = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-AZSCLog -Level 'VERBOSE' -Message 'Inventory React/evidence rendering started from the in-memory inventory; assessment rules are disabled.'
                 $inventoryOutputOperation = {
-                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache
+                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData -ReportCachePath $ReportCache -DiscoveryContext $discoveryContext
                 }
                 if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
                     $inventoryOutputRunPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `

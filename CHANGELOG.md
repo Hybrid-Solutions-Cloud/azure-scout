@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.17.1] - 2026-09-18 - faster assessment and complete diagnostics
+
+### Fixed
+
+- Build discovery once per run and reuse it for diagrams, processing and assessments, while
+  preserving each consumer's coverage view. Avoid traversing timestamp internals. AB#9300 AB#9302.
+- Parse assessment query data once across all assessment groups, detach finding evidence from
+  the full input tree, and copy completed evidence companions instead of repeatedly serializing
+  the entire collection. AB#9303 AB#9304 AB#9306.
+- Persist Scout debug/verbose messages and SDK request diagnostics independently of console
+  verbosity, redact authentication credentials, preserve service error details, and prevent
+  debug logging from prompting. Close stale extraction progress before processing. AB#9298 AB#9301.
+- Remove discovery's first-item pipeline short circuit, which generated misleading
+  "pipeline has been stopped" transcript entries during successful scans. AB#9298.
+- Remove an unsupported beta-only property from the v1.0 Graph sign-in projection. Permission
+  audits distinguish request failures from actual HTTP 403 denials. AB#9294 AB#9295.
+- Mark Sentinel connectors not applicable when the service confirms the workspace is not
+  onboarded. Use a separate internal KQL source column to avoid collisions with existing
+  `TableName` fields while preserving the report schema. AB#9296 AB#9297.
+- Retain private-endpoint and detached NICs while marking their effective NSG/route requests
+  not applicable; preserve failed requests for supported NICs as unavailable evidence. AB#9299.
+- Correct the resource-tag setup option and help text to refer to reports rather than Excel.
+
 ## [3.17.0] - 2026-09-18 - reliable tenant recovery and complete reports
 
 ### Added

@@ -38,7 +38,7 @@ See [Authentication](./authentication.md) for detailed examples of each method.
 | Parameter | Description |
 |-----------|-------------|
 | `-SecurityCenter` | Include Microsoft Defender for Cloud data (assessments, alerts, secure score) |
-| `-IncludeTags` | Include resource tags in Excel worksheets |
+| `-IncludeTags` | Include resource tags in reports |
 | `-SkipPolicy` | Skip Azure Policy compliance collection |
 | `-SkipAdvisory` | Skip Azure Advisor recommendation collection |
 | `-SkipVMDetails` | Skip extra VM detail collection (extensions, boot diagnostics status) |

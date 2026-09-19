@@ -160,6 +160,27 @@ BeforeEach {
 }
 
 Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
+    It 'classifies only the Sentinel onboarding service error as not applicable' {
+        $parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'
+        Mock Invoke-AzRestMethod { [pscustomobject]@{ StatusCode = 400; Content = '{"error":{"code":"BadRequest","message":"Workspace is not onboarded to Microsoft Sentinel."}}' } }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $operations = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources @($parent) -Dataset SentinelDataConnectors -CollectionHealth $health -SourceOperations $operations)
+        $rows.Count | Should -Be 0
+        $health[0].Status | Should -Be 'NotAssessed'
+        $health[0].Reason | Should -Match 'Not applicable'
+        $operations[0].Status | Should -Be 'NotApplicable'
+    }
+
+    It 'keeps other Sentinel HTTP 400 errors unavailable with their service detail' {
+        $parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'
+        Mock Invoke-AzRestMethod { [pscustomobject]@{ StatusCode = 400; Content = '{"error":{"code":"BadRequest","message":"Invalid parameter example"}}' } }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $null = Get-ScoutArmChildResource -Resources @($parent) -Dataset SentinelDataConnectors -CollectionHealth $health -WarningAction SilentlyContinue
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Reason | Should -Match 'Invalid parameter example'
+    }
+
     It 'emits all supported synthetic types in canonical order without retired endpoints' {
         $Rows = @(Get-ScoutArmChildResource -Resources $script:Parents)
         $Types = @($Rows.TYPE | Select-Object -Unique)

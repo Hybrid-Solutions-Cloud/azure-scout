@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Write-AZTIRunLog.ps1') }
 
 <#
 .SYNOPSIS
@@ -575,7 +576,7 @@ function Get-ScoutRawInventory {
             if ($ManagementGroupId -and -not $Batch) { $params.ManagementGroup = $ManagementGroupId }
 
             try {
-                return Search-AzGraph @params
+                return Invoke-ScoutDiagnosticOperation -Operation { Search-AzGraph @params }
             }
             catch {
                 $errText = $_.Exception.Message

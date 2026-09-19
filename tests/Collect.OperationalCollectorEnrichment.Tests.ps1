@@ -35,6 +35,20 @@ BeforeAll {
 Describe 'Get-ScoutOperationalCollectorEnrichment' {
     BeforeEach { Initialize-OperationalStubs }
     AfterEach { Clear-OperationalStubs }
+    It 'retains private endpoint NICs without issuing unsupported effective-state requests' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/private-nic'
+            type = 'microsoft.network/networkinterfaces'; name = 'private-nic'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+            properties = @{ privateEndpoint = @{ id = '/privateEndpoints/example' } }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -CollectionHealth $health)
+        @($script:Calls | Where-Object { $_ -match '/effective' }).Count | Should -Be 0
+        $envelope = @($rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface')[0]
+        $envelope.properties.EffectiveRouteTable.__AZSCStatus | Should -Be 'NotApplicable'
+        $envelope.properties.EffectiveNetworkSecurityGroups.__AZSCStatus | Should -Be 'NotApplicable'
+        @($health | Where-Object Status -eq 'NotAssessed').Count | Should -Be 2
+    }
     It 'returns stable envelopes for all six live-access collector contracts' {
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
         $Rows.type | Should -Be @('AZSC/Operational/VirtualMachine','AZSC/Operational/VMOperationalData','AZSC/Operational/ArcServerOperationalData','AZSC/Operational/ARCServers','AZSC/Operational/StorageAccount','AZSC/Management/SubscriptionEnrichment')
@@ -347,7 +361,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'logs a complete monotonic request ledger and emits terminal progress only after all work is complete' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
         $script:OperationalProgress = [System.Collections.Generic.List[object]]::new()
-        function global:Write-AZSCLog {
+        Mock Write-AZSCLog {
             param($Level, $Message)
             $script:OperationalLogs.Add("$Level|$Message")
         }
@@ -397,14 +411,13 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             }
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }
 
     It 'records every remote wrapper family including dynamic protected-item discovery without identifiers' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
-        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        Mock Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
         function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
         function global:Invoke-AzRestMethod {
             param($Path, $Method, $Payload, $ErrorAction)
@@ -433,7 +446,6 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             $text | Should -Not -Match '(?i)/subscriptions/|resourceGroups/'
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }
@@ -441,7 +453,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'logs retry attempts and one final completion with the accurate attempt count' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
         $script:RetryLedgerAttempts = 0
-        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        Mock Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
         function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
         function global:Invoke-AzRestMethod {
             param($Path, $Method, $Payload, $ErrorAction)
@@ -458,7 +470,6 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished: dataset=VirtualMachine.EstimatedCost; status=Success; attempts=2;' }).Count | Should -Be 1
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }
