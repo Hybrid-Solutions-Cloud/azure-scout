@@ -10,7 +10,9 @@ $ErrorActionPreference = 'Stop'
     Appends benchmark findings when a benchmark is supplied. Tracks ADO Story AB#5035.
 #>
 function Invoke-Assessment {
-    param($Collect, $RuleSet, $Benchmark, [string] $Assessment)
+    param($Collect, $RuleSet, $Benchmark, [string] $Assessment, $QueryContext)
+
+    if ($null -eq $QueryContext) { $QueryContext = New-ScoutQueryContext -InputObject $Collect }
 
     function Write-ScoutRuleTiming {
         param(
@@ -56,7 +58,7 @@ function Invoke-Assessment {
                 # `Write-Output -NoEnumerate`, so @() would produce a one-element array holding the
                 # (possibly empty) result and every prerequisite would read as satisfied.
                 $Rows = $null
-                try { $Rows = Resolve-JsonPath -InputObject $Collect -Path $Path } catch { $Rows = $null }
+                try { $Rows = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $Path } catch { $Rows = $null }
                 $RowCount = if ($null -eq $Rows) { 0 } else { $Rows.Count }
                 if ($RowCount -gt 0) { $Satisfied = $true } else { $Missing += $(if ($Description) { $Description } else { $Path }) }
             }
@@ -86,7 +88,7 @@ function Invoke-Assessment {
 
         foreach ($rule in $set.Rules) {
             $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            $f = Invoke-Rule -Rule $rule -Collect $Collect -Area $set.Area -Framework $set.Framework
+            $f = Invoke-Rule -Rule $rule -Collect $Collect -QueryContext $QueryContext -Area $set.Area -Framework $set.Framework
             $f = $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
                  Add-Member -NotePropertyName AreaWeight -NotePropertyValue $SetWeight -PassThru |
                  Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru

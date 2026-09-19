@@ -20,13 +20,14 @@ function New-ScoutUniversalRelationshipDiagram {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Resources,
-        [Parameter(Mandatory)][string]$Path
+        [Parameter(Mandatory)][string]$Path,
+        $DiscoveryContext
     )
 
     if (-not (Get-Command Get-ScoutResourceCompleteness -ErrorAction SilentlyContinue)) {
         . (Join-Path (Split-Path $PSScriptRoot -Parent) 'Get-ScoutResourceCompleteness.ps1')
     }
-    $discovery = Get-ScoutResourceCompleteness -Resources $Resources
+    $discovery = Get-ScoutResourceCompleteness -Resources $Resources -DiscoveryContext $DiscoveryContext
     $nodesById = [ordered]@{}
     foreach ($resource in @($discovery.Resources)) {
         if (-not $resource.Id) { continue }

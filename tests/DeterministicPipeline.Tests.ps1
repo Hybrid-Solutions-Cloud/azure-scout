@@ -27,6 +27,7 @@ BeforeAll {
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Write-ScoutCacheFile.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutResourceCompleteness.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Write-AZTIRunLog.ps1')
 
     # ── Fixture collector tree ───────────────────────────────────────────────────────────
@@ -283,9 +284,12 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
     }
 
     It 'runs every collector and caches each non-empty category' {
+        $context = New-ScoutDiscoveryContext -Resources $script:SampleResources
+        $null = Get-ScoutResourceCompleteness -Resources $script:SampleResources -Collectors @() -DiscoveryContext $context
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue -DiscoveryContext $context
 
+        $context.BuildCount | Should -Be 1
         $Summary.CollectorCount | Should -Be 6
 
         $Cache = Join-Path -Path $script:RunPath -ChildPath 'ReportCache'

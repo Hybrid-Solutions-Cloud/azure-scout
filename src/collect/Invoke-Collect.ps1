@@ -474,6 +474,7 @@ function Invoke-Collect {
         # combined inventory + assessment run collects once rather than twice. Omitted, the
         # source is decided by -Source below.
         [object]   $FromInventory,
+        [object]   $DiscoveryContext,
 
         # AB#5648 — where the 34 derivable queries get their rows from when no -FromInventory
         # was handed in.
@@ -3485,7 +3486,7 @@ resources
                 . (Join-Path (Split-Path $PSScriptRoot -Parent) 'pipeline/Get-ScoutResourceCompleteness.ps1')
             }
             $discovery = Get-ScoutResourceCompleteness -Resources @($rawInventory.Resources) `
-                -CollectionHealth @($rawCollectionHealth)
+                -CollectionHealth @($rawCollectionHealth) -DiscoveryContext $DiscoveryContext
             $discoveryStatus = if (($discovery.Summary.Partial + $discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
             $discovery | Add-Member -NotePropertyName Status -NotePropertyValue $discoveryStatus -Force
             $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue '' -Force
