@@ -528,12 +528,16 @@ function New-ScoutResourceDiscovery {
             $relationshipRows.Add($edge)
         }
 
-        $providerProperties = @($enrichment | ForEach-Object {
-                Get-ScoutResourceCompletenessValue -InputObject $_ -Path 'Properties.Payload.properties'
-            } | Where-Object { $null -ne $_ } | Select-Object -First 1)
         $providerExposureProperties = $null
-        if ($providerProperties.Count -gt 0) {
-            $providerExposureProperties = $providerProperties[0]
+        # Select-Object -First stops its upstream pipeline by throwing internally. With
+        # transcription enabled this produced hundreds of alarming terminating-error
+        # records during successful discovery. A bounded loop needs no pipeline stop.
+        foreach ($enrichmentItem in $enrichment) {
+            $candidate = Get-ScoutResourceCompletenessValue -InputObject $enrichmentItem -Path 'Properties.Payload.properties'
+            if ($null -ne $candidate) {
+                $providerExposureProperties = $candidate
+                break
+            }
         }
         $exposure = Get-ScoutExposureEvidence -Resource $resource -Relationships @($uniqueReferences) `
             -ProviderProperties $providerExposureProperties

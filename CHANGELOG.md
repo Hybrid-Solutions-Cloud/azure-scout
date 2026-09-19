@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persist Scout debug/verbose messages and SDK request diagnostics independently of console
   verbosity, redact authentication credentials, preserve service error details, and prevent
   debug logging from prompting. Close stale extraction progress before processing. AB#9298 AB#9301.
+- Remove discovery's first-item pipeline short circuit, which generated misleading
+  "pipeline has been stopped" transcript entries during successful scans. AB#9298.
 - Remove an unsupported beta-only property from the v1.0 Graph sign-in projection. Permission
   audits distinguish request failures from actual HTTP 403 denials. AB#9294 AB#9295.
 - Mark Sentinel connectors not applicable when the service confirms the workspace is not
