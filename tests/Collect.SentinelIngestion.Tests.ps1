@@ -39,6 +39,19 @@ Describe 'Sentinel ingestion evidence' {
         $rows[0].AZSC.Source | Should -Be 'Azure Monitor Logs Query API'
     }
 
+    It 'uses an internal source column and preserves the exported TableName field' {
+        Mock Invoke-RestMethod {
+            param($Body)
+            $query = ($Body | ConvertFrom-Json).query
+            $query | Should -Match 'withsource=__AzureScoutIngestionSourceTable'
+            $query | Should -Match 'by TableName=__AzureScoutIngestionSourceTable'
+            $query | Should -Not -Match 'withsource=TableName'
+            [pscustomobject]@{ tables = @() }
+        }
+        $null = Get-ScoutArmChildResource -Resources @($script:parent) -Dataset SentinelIngestion
+        Should -Invoke Invoke-RestMethod -Times 1 -Exactly
+    }
+
     It 'records token failures without pretending that an empty query succeeded' {
         function global:Get-AzAccessToken { throw '403 token denied' }
         $operations=[System.Collections.Generic.List[object]]::new();$health=[System.Collections.Generic.List[object]]::new()

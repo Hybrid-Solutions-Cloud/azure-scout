@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.17.0'
+ModuleVersion = '3.17.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.17.0 - Multi-tenant authentication reuse, scope-first setup, versioned resume and failed/selected-tenant retry. Complete processed report inventory, detail dialogs, CSV/JSON exports and evidence-driven diagrams. Normalization failures no longer silently substitute narrower evidence; partial runs and assessment-specific drift stay explicit. AB#9290. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.17.1 - One discovery build and shared assessment query index, detached evidence and faster companion output. Always-on sanitized debug logging, accurate Graph failure classification, Sentinel query fixes and NIC applicability checks. Resource-tag menu wording corrected. AB#9294 AB#9295 AB#9296 AB#9297 AB#9298 AB#9299 AB#9300 AB#9301 AB#9302 AB#9303 AB#9304 AB#9306. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''

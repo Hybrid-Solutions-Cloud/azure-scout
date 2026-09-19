@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Get-ScoutHttpFailure.ps1') }
 
 <#
 .Synopsis
@@ -439,6 +440,7 @@ function Invoke-AZSCPermissionAudit {
                     }
                 }
                 catch {
+
                     $armAccess = $false
                     $failureMessage = "[$($sub.Name)] Current identity could not prove ARM read access: $($_.Exception.Message)"
                     Write-AuditLine -Status Fail -Text $failureMessage
@@ -687,6 +689,20 @@ function Invoke-AZSCPermissionAudit {
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
+                    $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                    if ($failure.StatusCode -ne 403) {
+                        $graphAccess = $false
+                        foreach ($c in $impact.Collectors) {
+                            $emptyCollectors.Add([PSCustomObject]@{ Collector = $c; Reason = 'Graph request failed'; Permission = $impact.Permission })
+                        }
+                        $remediation = 'Inspect the logged service error and request. A request failure does not establish that a directory role or permission is missing.'
+                        $r = New-CheckResult -Check $checkName -Status 'Fail' -Message "REQUEST FAILED — $($impact.Permission): $($failure.Summary)" -Remediation $remediation
+                        Write-AuditLine -Status Fail -Text "$checkName — REQUEST FAILED; $($failure.Summary)"
+                        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) { Write-AZSCLog -Level ERROR -Message "$checkName — $($failure.Summary)" }
+                        $recommendations.Add("$checkName — $remediation")
+                        $graphDetails.Add($r)
+                        continue
+                    }
                     # Criticality is derived: this permission has consumers, so denying it
                     # empties worksheets, so the run is not READY. There is no list to edit.
                     $graphAccess = $false

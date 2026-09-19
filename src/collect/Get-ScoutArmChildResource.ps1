@@ -1,6 +1,8 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Write-AZTIRunLog.ps1') }
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Get-ScoutHttpFailure.ps1') }
 
 <#
 .SYNOPSIS
@@ -245,6 +247,9 @@ function Get-ScoutArmChildResource {
                 [AllowNull()][string] $Reason,
                 [datetime] $StartedAt = (Get-Date)
             )
+            if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                Write-AZSCLog -Level DEBUG -Message "ARM GET $Uri; dataset=$DatasetName; status=$Status; count=$Count; reason=$Reason"
+            }
             if ($null -eq $SourceOperations) { return }
             [void]$SourceOperations.Add([pscustomobject][ordered]@{
                     Source      = 'Azure Resource Manager'
@@ -304,7 +309,7 @@ function Get-ScoutArmChildResource {
                 else {
                     $RestParameters['Path'] = $CurrentPath
                 }
-                $Response = Invoke-AzRestMethod @RestParameters
+                $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @RestParameters }
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
 
                 $Status = $Response.PSObject.Properties['StatusCode']
@@ -313,7 +318,10 @@ function Get-ScoutArmChildResource {
                     return $null
                 }
                 if ($null -ne $Status -and ([int]$Status.Value -lt 200 -or [int]$Status.Value -ge 300)) {
-                    throw "ARM returned status $($Status.Value)"
+                    $failure = Get-ScoutHttpFailure -Response $Response
+                    $exception = [System.InvalidOperationException]::new($failure.Summary)
+                    $exception.Data['StatusCode'] = [int]$Status.Value
+                    throw $exception
                 }
 
                 $ContentProperty = $Response.PSObject.Properties['Content']
@@ -366,6 +374,19 @@ function Get-ScoutArmChildResource {
         }
         catch {
             $StatusCode = Get-ArmChildHttpStatusCode -ErrorRecord $_
+            if ($DatasetName -eq 'SentinelDataConnectors' -and $StatusCode -eq 400 -and
+                $_.Exception.Message -match 'is not onboarded to Microsoft Sentinel') {
+                $reason = 'Not applicable: this workspace is not onboarded to Microsoft Sentinel.'
+                Add-SourceOperation -Uri $CurrentPath -Status 'NotApplicable' -Reason $reason -StartedAt $requestStartedAt
+                if ($null -ne $CollectionHealth) {
+                    [void]$CollectionHealth.Add([pscustomobject]@{
+                        Dataset = $DatasetName; Status = 'NotAssessed'; Reason = $reason
+                        ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                        ResourceIds = @(($Path -split '/providers/Microsoft.SecurityInsights/', 2)[0])
+                    })
+                }
+                return $null
+            }
             if ($NotFoundIsEmpty -and $StatusCode -eq 404) {
                 Add-SourceOperation -Uri $CurrentPath -Status 'Empty' -StartedAt $requestStartedAt
                 return $null
@@ -1012,8 +1033,10 @@ function Get-ScoutArmChildResource {
                         $uri = "https://api.loganalytics.io/v1/workspaces/$workspaceId/query"
                         $startedAt = Get-Date
                         try {
-                            $query = 'union withsource=TableName * | summarize LastRecord=max(TimeGenerated), Count=count() by TableName | order by Count desc | take 40'
-                            $response = Invoke-RestMethod -Uri $uri -Method POST -Authentication Bearer -Token $logToken -ContentType 'application/json' -Body (@{ query = $query; timespan = 'P30D' } | ConvertTo-Json -Compress) -ErrorAction Stop
+                            $query = 'union withsource=__AzureScoutIngestionSourceTable * | summarize LastRecord=max(TimeGenerated), Count=count() by TableName=__AzureScoutIngestionSourceTable | order by Count desc | take 40'
+                            $response = Invoke-ScoutDiagnosticOperation -Operation {
+                                Invoke-RestMethod -Uri $uri -Method POST -Authentication Bearer -Token $logToken -ContentType 'application/json' -Body (@{ query = $query; timespan = 'P30D' } | ConvertTo-Json -Compress) -ErrorAction Stop
+                            }
                             $table = @($response.tables | Select-Object -First 1)
                             $columns = if ($table.Count -gt 0) { @($table[0].columns.name) } else { @() }
                             $resultRows = [System.Collections.Generic.List[object]]::new()
@@ -1065,6 +1088,8 @@ function Get-ScoutArmChildResource {
                             }
                         }
                         catch {
+                            $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                            Write-AZSCLog -Level ERROR -Message "Sentinel ingestion query for '$ParentName': $($failure.Summary)"
                             if ($null -ne $CollectionHealth) {
                                 [void]$CollectionHealth.Add([pscustomobject]@{
                                         Dataset = $DatasetName

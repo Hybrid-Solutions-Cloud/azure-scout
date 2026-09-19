@@ -448,6 +448,17 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         }
     }
 
+    It 'does not prescribe directory roles for a Graph request schema failure' {
+        Mock -CommandName Invoke-AZSCGraphRequest -MockWith { throw 'HTTP 400 unsupported select property' }
+        $result = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console -Quiet
+        $failed = @($result.GraphDetails | Where-Object { $_.Message -match 'REQUEST FAILED' })
+        $failed.Count | Should -BeGreaterThan 0
+        foreach ($detail in $failed) {
+            $detail.Message | Should -Not -Match 'DENIED'
+            $detail.Remediation | Should -Not -Match 'Assign one of|Grant.*permission'
+        }
+    }
+
     It 'uses Risky Users endpoint-specific roles when the exact delegated scope is present but Graph returns 403' {
         $payload = @{ scp = 'Directory.AccessAsUser.All IdentityRiskyUser.Read.All'; upn = 'user@contoso.com' } | ConvertTo-Json -Compress
         $toBase64Url = {
