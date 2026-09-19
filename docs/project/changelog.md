@@ -14,6 +14,7 @@ AzureScout follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form
 
 | Version | Highlights |
 |---------|------------|
+| **v3.17.1** (2026-09-18) | Shared discovery and assessment query indexes, detached evidence, faster companion output, always-on sanitized debug diagnostics, Graph/Sentinel/NIC collection fixes and corrected resource-tag menu wording. See AB#9294–AB#9304 and AB#9306. |
 | **v3.17.0** (2026-09-18) | Tenant authentication reuse, failed-tenant resume/retry, scope-first menu, complete inventory/report experience and explicit evidence gaps. See AB#9290 and the [recovery guide](../how-to/multi-tenant-recovery.md). |
 | **v3.16.2** (2026-08-19) | **Hotfix: real multi-tenant runs no longer crash on launch.** A live enterprise run crashed immediately after confirmation with a `.Contains()` overload error — `Invoke-AZSCMultiTenantRun` called a `Hashtable`-only method on the real `$PSBoundParameters` type, which every prior test substituted with a hashtable literal. Switched to `.ContainsKey()` and added a regression test using a genuine bound-parameters object. See CHANGELOG.md and AB#7105. |
 | **v3.16.1** (2026-08-18) | **The menu offers it too.** The guided wizard now offers enterprise multi-tenant scanning — single tenant, a chosen set, or every accessible tenant — whenever the signed-in account can reach more than one tenant. A dispatch-ordering fix makes wizard-driven multi-tenant answers actually reach the orchestrator, which could not have worked before this fix. See CHANGELOG.md and AB#7105. |
