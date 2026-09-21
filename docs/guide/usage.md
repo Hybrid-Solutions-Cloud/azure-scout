@@ -126,7 +126,7 @@ Switch parameters to include/exclude specific content:
 | Parameter | Effect |
 |-----------|--------|
 | `-SecurityCenter` | Include Microsoft Defender for Cloud findings |
-| `-IncludeTags` | Include resource tags in Excel worksheets |
+| `-IncludeTags` | Include resource tags in reports |
 | `-IncludeDevOps` | Include Azure DevOps projects, pipelines, service connections, repositories, and agent pools |
 | `-IncludeOkta` | Include the separate Okta control plane; also requires an HTTPS `-OktaOrganizationUrl` and SecureString `-OktaApiToken` |
 | `-IncludeOnPremisesIdentity` | Include local Entra Connect and AD topology from a host with the required read-only modules |
