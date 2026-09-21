@@ -30,8 +30,11 @@ function Invoke-Rule {
         [Parameter(Mandatory)] $Rule,
         [Parameter(Mandatory)] $Collect,
         [string] $Area,
-        [string] $Framework
+        [string] $Framework,
+        $QueryContext
     )
+
+    if ($null -eq $QueryContext) { $QueryContext = New-ScoutQueryContext -InputObject $Collect }
 
     # $evidenceTruncated is initialised HERE, not at the assignment site. A manual rule (and the
     # early-return error path) never reaches the query block, so reading it at the emitter would
@@ -102,7 +105,7 @@ function Invoke-Rule {
         # file. Wrapping it again here nests that array inside a further one-element array, so
         # `.Count` is never 0 even on a genuinely empty result -- found by this feature's own
         # gate test, not by a live run.
-        try { $gateMatches = Resolve-JsonPath -InputObject $Collect -Path $gatePath }
+        try { $gateMatches = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $gatePath }
         catch {
             Write-Warning "Rule $($Rule.id): gate query '$gatePath' failed: $_"
             return [pscustomobject]@{
@@ -137,7 +140,7 @@ function Invoke-Rule {
     if ($Rule.manual -or $Rule.assert.type -eq 'manual') {
         # pre-fill with any evidence the scan DID find, then hand to the human
         if ($Rule.query) {
-            try { $manualMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query }
+            try { $manualMatches = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $Rule.query }
             catch {
                 Write-Warning "Rule $($Rule.id): manual query '$($Rule.query)' failed: $_"
                 return [pscustomobject]@{
@@ -148,7 +151,14 @@ function Invoke-Rule {
                 }
             }
             $evidenceCount = @($manualMatches).Count
-            $evidence = @($manualMatches | Select-Object -First 25)
+            $evidence = @($manualMatches | Select-Object -First 25 | ForEach-Object {
+                # A selected token holds its parent/root tree. Keep only this evidence subtree
+                # so findings cannot retain the complete query index (AB#9304).
+                if ($_ -is [Newtonsoft.Json.Linq.JToken]) {
+                    Write-Output -NoEnumerate -InputObject ($_.DeepClone())
+                }
+                else { $_ }
+            })
             $evidenceTruncated = $evidenceCount -gt 25
         }
         $status = 'Manual'
@@ -162,9 +172,9 @@ function Invoke-Rule {
             # case, and the common one) hit that on every rule.
             $ruleMatches = $null
             if ($hasJoin) {
-                $ruleMatches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
+                $ruleMatches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect -QueryContext $QueryContext)
             } else {
-                $ruleMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+                $ruleMatches = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $Rule.query
             }
         }
         catch {
@@ -216,7 +226,14 @@ function Invoke-Rule {
         # the finding, so every later stage that hands it through a `return`/pipeline boundary
         # keeps unwrapping one array level at a time instead of reaching all the way into a single
         # match's own fields. Same class of bug as the join-assignment guard immediately above.
-        $evidence = @($ruleMatches | Select-Object -First $evidenceCap)
+        $evidence = @($ruleMatches | Select-Object -First $evidenceCap | ForEach-Object {
+                # A selected token holds its parent/root tree. Keep only this evidence subtree
+                # so findings cannot retain the complete query index (AB#9304).
+                if ($_ -is [Newtonsoft.Json.Linq.JToken]) {
+                    Write-Output -NoEnumerate -InputObject ($_.DeepClone())
+                }
+                else { $_ }
+            })
         $evidenceTruncated = $evidenceCount -gt $evidenceCap
         # ConvertFrom-Yaml returns `assert:` as a Hashtable (test fixtures often use a
         # pscustomobject instead), and 'exists'/'notExists' rules legitimately omit a
@@ -240,7 +257,7 @@ function Invoke-Rule {
             'notExists'         { $status = ($evidenceCount -eq   0) ? 'Pass' : 'Fail' }
             'percentageAtLeast' {
                 try {
-                    $denominatorMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.assert.denominatorQuery
+                    $denominatorMatches = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $Rule.assert.denominatorQuery
                     if (-not [string]::IsNullOrWhiteSpace($denominatorKey)) {
                         $denominatorKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
                         foreach ($match in @($denominatorMatches)) {

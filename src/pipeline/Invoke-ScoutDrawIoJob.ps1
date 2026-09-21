@@ -22,7 +22,7 @@ Authors: Claudio Merola
 #>
 
 function Invoke-AZSCDrawIOJob {
-    Param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnv, $ResourceContainers, $Automation, $AZSCModule)
+    Param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnv, $ResourceContainers, $Automation, $AZSCModule, $DiscoveryContext)
 
     <#
         AB#5649 — the last Wait-AZSCJob caller, and the last background job in the run
@@ -62,7 +62,7 @@ function Invoke-AZSCDrawIOJob {
 
     try
         {
-            Start-AZSCDrawIODiagram -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnvironment $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
+            Start-AZSCDrawIODiagram -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnvironment $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule -DiscoveryContext $DiscoveryContext
         }
     catch
         {

@@ -26,6 +26,22 @@ BeforeAll {
 }
 
 Describe 'Universal discovery completeness index (AB#7366)' {
+    It 'uses the first provider exposure payload without emitting pipeline-stop errors to the transcript' {
+        $resource = New-TestResource -Name 'store' -Type 'microsoft.storage/storageaccounts' -Properties ([pscustomobject]@{})
+        $enrichment = foreach ($state in @('Disabled', 'Enabled')) {
+            [pscustomobject]@{ id = $resource.id; type = 'AZSC/ProviderResource/StorageAccount'; properties = @{
+                Payload = @{ properties = @{ publicNetworkAccess = $state } }
+            } }
+        }
+        $transcript = Join-Path $TestDrive 'discovery-console.log'
+        $null = Start-Transcript -Path $transcript
+        try { $result = Get-ScoutResourceCompleteness -Resources (@($resource) + @($enrichment)) -Collectors @() }
+        finally { $null = Stop-Transcript }
+        $result.Resources[0].ExposureEvidence | Should -Contain 'publicNetworkAccess=Disabled'
+        $result.Resources[0].ExposureEvidence | Should -Not -Contain 'publicNetworkAccess=Enabled'
+        Get-Content $transcript -Raw | Should -Not -Match 'The pipeline has been stopped'
+    }
+
     It 'retains an unsupported resource with its full Resource Graph payload and tags' {
         $properties = [pscustomobject]@{ customSetting = 'kept'; nested = [pscustomobject]@{ enabled = $true } }
         $resource = New-TestResource -Name 'future-1' -Type 'contoso.future/widgets' -Properties $properties -Tags ([pscustomobject]@{ Environment = 'Test' })

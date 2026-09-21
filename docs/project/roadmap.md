@@ -41,7 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.17.0 — reliable tenant recovery and complete reports
+## Current Release — v3.17.1 — faster scans and complete diagnostics
+
+Version 3.17.1 shares one discovery build and assessment query index, detaches evidence,
+and avoids repeated companion serialization. The main log retains sanitized Scout and SDK
+debug detail independently of console verbosity. Graph, Sentinel and effective NIC collection
+failures have precise applicability and service-error handling. Discovery no longer emits
+misleading pipeline-stop transcript messages. See AB#9294–AB#9304 and AB#9306.
+
+## Previous Release — v3.17.0 — reliable tenant recovery and complete reports
 
 Version 3.17.0 reuses authentication across tenants, selects scan scope before individual tenants,
 and adds persisted failed/selected-tenant recovery. Reports retain complete collector evidence,

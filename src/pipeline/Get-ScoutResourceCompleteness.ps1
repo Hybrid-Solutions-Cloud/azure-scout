@@ -39,14 +39,15 @@ function Get-ScoutResourceCompletenessValue {
     foreach ($segment in ($Path -split '\.')) {
         if ($null -eq $current) { return $null }
         if ($current -is [System.Collections.IDictionary]) {
-            $matchedKey = @($current.Keys | Where-Object { [string]$_ -ieq $segment } | Select-Object -First 1)
-            if ($matchedKey.Count -eq 0) { return $null }
-            $current = $current[$matchedKey[0]]
+            $matchedKey = $null
+            foreach ($key in $current.Keys) { if ([string]$key -ieq $segment) { $matchedKey = $key; break } }
+            if ($null -eq $matchedKey) { return $null }
+            $current = $current[$matchedKey]
             continue
         }
-        $property = @($current.PSObject.Properties | Where-Object Name -IEQ $segment | Select-Object -First 1)
-        if ($property.Count -eq 0) { return $null }
-        $current = $property[0].Value
+        $property = $current.PSObject.Properties[$segment]
+        if ($null -eq $property) { return $null }
+        $current = $property.Value
     }
     return $current
 }
@@ -172,6 +173,10 @@ function Get-ScoutArmReference {
         return
     }
 
+    # Scalar values cannot contain ARM references. DateTime.Date returns another DateTime:
+    # reflecting it recursively previously walked all the way to MaximumDepth (AB#9300).
+    if ($InputObject.GetType().IsValueType -or $InputObject -is [uri]) { return }
+
     if ($InputObject -is [System.Collections.IDictionary]) {
         foreach ($key in @($InputObject.Keys | Sort-Object { [string]$_ })) {
             Get-ScoutArmReference -InputObject $InputObject[$key] -Path "$Path.$key" -Depth ($Depth + 1) -MaximumDepth $MaximumDepth
@@ -281,15 +286,55 @@ function Get-ScoutExposureEvidence {
     }
 }
 
+function New-ScoutDiscoveryContext {
+    param([AllowNull()][object[]]$Resources)
+    # Explicit run ownership: never reuse this context after mutating the inventory snapshot.
+    # ConditionalWeakTable uses reference identity and is available on every supported PS7
+    # runtime (ReferenceEqualityComparer is absent from the original PS7/.NET Core runtime).
+    $members = [Runtime.CompilerServices.ConditionalWeakTable[object, object]]::new()
+    foreach ($resource in $Resources) {
+        if ($null -eq $resource) { continue }
+        $existing = $null
+        if (-not $members.TryGetValue($resource, [ref]$existing)) { $members.Add($resource, $resource) }
+    }
+    [pscustomobject]@{ Resources = @($Resources); Members = $members; Base = $null; BuildCount = 0 }
+}
+
 function Get-ScoutResourceCompleteness {
     [CmdletBinding()]
-    [OutputType([pscustomobject])]
     param(
         [AllowNull()][object[]]$Resources,
         [AllowNull()][object[]]$CollectionHealth = @(),
         [AllowNull()][object[]]$Collectors,
-        [AllowNull()][string]$DefinitionRoot
+        [AllowNull()][string]$DefinitionRoot,
+        [AllowNull()]$DiscoveryContext
     )
+    if ($null -eq $DiscoveryContext) { $DiscoveryContext = New-ScoutDiscoveryContext -Resources $Resources }
+    $viewIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($resource in $Resources) {
+        if ($null -eq $resource) { continue }
+        $member = $null
+        if (-not $DiscoveryContext.Members.TryGetValue($resource, [ref]$member)) {
+            throw 'Discovery context belongs to a different inventory snapshot.'
+        }
+        if ([string](Get-ScoutResourceCompletenessValue $resource 'type') -notlike 'AZSC/*') {
+            [void]$viewIds.Add([string](Get-ScoutResourceCompletenessValue $resource 'id'))
+        }
+    }
+    if ($null -eq $DiscoveryContext.Base) {
+        $timer = [Diagnostics.Stopwatch]::StartNew()
+        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level DEBUG -Message ('Universal discovery build started: input rows={0}' -f $DiscoveryContext.Resources.Count)
+        }
+        $DiscoveryContext.Base = New-ScoutResourceDiscovery -Resources $DiscoveryContext.Resources
+        $DiscoveryContext.BuildCount++
+        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level DEBUG -Message ('Universal discovery build finished: resources={0}; elapsed={1}' -f $DiscoveryContext.Base.Summary.Resources, $timer.Elapsed)
+        }
+    }
+    elseif (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+        Write-AZSCLog -Level DEBUG -Message 'Universal discovery reused for the current inventory snapshot.'
+    }
 
     if (-not $PSBoundParameters.ContainsKey('Collectors') -or $null -eq $Collectors) {
         $collectorArguments = @{ Category = @('All') }
@@ -342,7 +387,78 @@ function Get-ScoutResourceCompleteness {
     }
     Write-Verbose ("Get-ScoutResourceCompleteness: exact resource-type mappings={0}; wildcard mappings={1}" -f $collectorTypeMap.Count, $collectorPatterns.Count)
 
+    # Normalize coverage once, not once per resource. The base traversal is shared; each
+    # caller still gets independent coverage/collector metadata and summary (AB#9302).
     $healthRows = @($CollectionHealth | Where-Object { $null -ne $_ })
+    $healthIndex = foreach ($health in $healthRows) {
+        [pscustomobject]@{
+            Row = $health
+            Collectors = @((Get-ScoutResourceCompletenessValue $health 'Collectors') | Where-Object { $_ })
+            Types = @((Get-ScoutResourceCompletenessValue $health 'ResourceTypes') | Where-Object { $_ })
+            Ids = @((Get-ScoutResourceCompletenessValue $health 'ResourceIds') | Where-Object { $_ })
+            Reason = [string](Get-ScoutResourceCompletenessValue $health 'Reason')
+        }
+    }
+    $rows = [Collections.Generic.List[object]]::new()
+    foreach ($baseRow in $DiscoveryContext.Base.Resources) {
+        if (-not $viewIds.Contains($baseRow.Id)) { continue }
+        $row = $baseRow.PSObject.Copy()
+        $typeKey = $row.Type.ToLowerInvariant()
+        $matches = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        if ($collectorTypeMap.ContainsKey($typeKey)) {
+            foreach ($name in $collectorTypeMap[$typeKey]) { [void]$matches.Add($name) }
+        }
+        foreach ($pattern in $collectorPatterns) {
+            if ($typeKey -like $pattern.Pattern) { [void]$matches.Add($pattern.Collector) }
+        }
+        $rowHealth = [Collections.Generic.List[object]]::new()
+        $reasons = [Collections.Generic.List[string]]::new()
+        if ($matches.Count -eq 0) { $reasons.Add('No specialized collector declares this resource type; the complete Resource Graph row is retained generically.') }
+        foreach ($entry in $healthIndex) {
+            if ($entry.Ids.Count -gt 0 -and $entry.Ids -notcontains $row.Id) { continue }
+            $applies = $false
+            foreach ($name in $entry.Collectors) { if ($name -and $matches.Contains([string]$name)) { $applies = $true; break } }
+            if (-not $applies) {
+                foreach ($pattern in $entry.Types) { if ($pattern -and $typeKey -like [string]$pattern) { $applies = $true; break } }
+            }
+            if (-not $applies) { continue }
+            $rowHealth.Add($entry.Row)
+            if ($entry.Reason -and -not $reasons.Contains($entry.Reason)) { $reasons.Add($entry.Reason) }
+        }
+        if ($row.PropertyCount -eq 0) { $reasons.Add('Resource Graph returned no properties for this row.') }
+        $row.SpecializedCollectors = @($matches | Sort-Object)
+        $row.CollectionHealth = $rowHealth.ToArray()
+        $row.DetailReasons = $reasons.ToArray()
+        $row.DetailStatus = if ($rowHealth.Count -gt 0 -and $row.PropertyCount -eq 0) { 'Unavailable' }
+            elseif ($rowHealth.Count -gt 0) { 'Partial' }
+            elseif ($matches.Count -gt 0) { 'Detailed' }
+            else { 'GenericOnly' }
+        $rows.Add($row)
+    }
+    $result = $DiscoveryContext.Base.PSObject.Copy()
+    $result.Resources = $rows.ToArray()
+    $result.Relationships = @($DiscoveryContext.Base.Relationships | Where-Object { $viewIds.Contains($_.SourceId) })
+    $result.CollectionHealth = $healthRows
+    $result.Summary = $DiscoveryContext.Base.Summary.PSObject.Copy()
+    $result.Summary.Resources = $rows.Count
+    $result.Summary.Relationships = $result.Relationships.Count
+    foreach ($status in @('Detailed', 'GenericOnly', 'Partial', 'Unavailable')) {
+        $result.Summary.$status = @($rows | Where-Object DetailStatus -eq $status).Count
+    }
+    foreach ($exposure in @('Public', 'Private', 'Mixed', 'None', 'Unknown')) {
+        $property = if ($exposure -in @('None', 'Unknown')) { 'Exposure' + $exposure } else { $exposure }
+        $result.Summary.$property = @($rows | Where-Object Exposure -eq $exposure).Count
+    }
+    return $result
+}
+
+function New-ScoutResourceDiscovery {
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param(
+        [AllowNull()][object[]]$Resources
+    )
+
     $enrichmentById = @{}
     foreach ($candidate in @($Resources)) {
         if ($null -eq $candidate) { continue }
@@ -359,8 +475,17 @@ function Get-ScoutResourceCompleteness {
     $seenIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $resourceRows = [System.Collections.Generic.List[object]]::new()
     $relationshipRows = [System.Collections.Generic.List[object]]::new()
+    $progressTimer = [Diagnostics.Stopwatch]::StartNew()
+    $lastProgress = 0L
+    $processedRows = 0
+    $canLogProgress = $null -ne (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue)
 
     foreach ($resource in @($Resources)) {
+        $processedRows++
+        if ($canLogProgress -and ($processedRows % 100 -eq 0 -or ($progressTimer.ElapsedMilliseconds - $lastProgress) -ge 2000)) {
+            Write-AZSCLog -Level DEBUG -Message ('Universal discovery progress: input={0}/{1}; indexed={2}; elapsed={3}' -f $processedRows, @($Resources).Count, $resourceRows.Count, $progressTimer.Elapsed)
+            $lastProgress = $progressTimer.ElapsedMilliseconds
+        }
         if ($null -eq $resource) { continue }
         $id = [string](Get-ScoutResourceCompletenessValue -InputObject $resource -Path 'id')
         $type = [string](Get-ScoutResourceCompletenessValue -InputObject $resource -Path 'type')
@@ -368,48 +493,12 @@ function Get-ScoutResourceCompleteness {
         if ($type -like 'AZSC/*' -and $enrichmentById.ContainsKey($id.ToLowerInvariant())) { continue }
         if (-not $seenIds.Add($id)) { continue }
 
-        $typeKey = $type.ToLowerInvariant()
-        $matchedCollectors = [System.Collections.Generic.List[string]]::new()
-        if ($collectorTypeMap.ContainsKey($typeKey)) {
-            foreach ($name in $collectorTypeMap[$typeKey]) { if (-not $matchedCollectors.Contains($name)) { $matchedCollectors.Add($name) } }
-        }
-        foreach ($pattern in $collectorPatterns) {
-            if ($typeKey -like $pattern.Pattern -and -not $matchedCollectors.Contains($pattern.Collector)) { $matchedCollectors.Add($pattern.Collector) }
-        }
-
-        $resourceHealth = @(
-            foreach ($health in $healthRows) {
-                $healthCollectors = @((Get-ScoutResourceCompletenessValue -InputObject $health -Path 'Collectors') | Where-Object { $_ })
-                $healthTypes = @((Get-ScoutResourceCompletenessValue -InputObject $health -Path 'ResourceTypes') | Where-Object { $_ })
-                $healthResourceIds = @((Get-ScoutResourceCompletenessValue -InputObject $health -Path 'ResourceIds') | Where-Object { $_ })
-                if ($healthResourceIds.Count -gt 0 -and @($healthResourceIds | Where-Object { [string]$_ -ieq $id }).Count -eq 0) { continue }
-                $collectorMatch = @($healthCollectors | Where-Object { $matchedCollectors -contains [string]$_ }).Count -gt 0
-                $typeMatch = @($healthTypes | Where-Object {
-                    $candidate = ([string]$_).ToLowerInvariant()
-                    $typeKey -eq $candidate -or $typeKey -like $candidate
-                }).Count -gt 0
-                if ($collectorMatch -or $typeMatch) { $health }
-            }
-        )
-
         $properties = Get-ScoutResourceCompletenessValue -InputObject $resource -Path 'properties'
         $enrichment = @()
         if ($enrichmentById.ContainsKey($id.ToLowerInvariant())) {
             $enrichment = @($enrichmentById[$id.ToLowerInvariant()])
         }
         $propertyCount = if ($null -eq $properties) { 0 } else { @($properties.PSObject.Properties).Count }
-        $status = if ($resourceHealth.Count -gt 0 -and $propertyCount -eq 0) { 'Unavailable' }
-            elseif ($resourceHealth.Count -gt 0) { 'Partial' }
-            elseif ($matchedCollectors.Count -gt 0) { 'Detailed' }
-            else { 'GenericOnly' }
-        $statusReasons = [System.Collections.Generic.List[string]]::new()
-        if ($matchedCollectors.Count -eq 0) { [void]$statusReasons.Add('No specialized collector declares this resource type; the complete Resource Graph row is retained generically.') }
-        foreach ($health in $resourceHealth) {
-            $reason = [string](Get-ScoutResourceCompletenessValue -InputObject $health -Path 'Reason')
-            if (-not [string]::IsNullOrWhiteSpace($reason) -and -not $statusReasons.Contains($reason)) { $statusReasons.Add($reason) }
-        }
-        if ($propertyCount -eq 0) { [void]$statusReasons.Add('Resource Graph returned no properties for this row.') }
-
         $references = @(
             @(Get-ScoutArmReference -InputObject $properties -Path 'properties')
             for ($enrichmentIndex = 0; $enrichmentIndex -lt $enrichment.Count; $enrichmentIndex++) {
@@ -439,12 +528,16 @@ function Get-ScoutResourceCompleteness {
             $relationshipRows.Add($edge)
         }
 
-        $providerProperties = @($enrichment | ForEach-Object {
-                Get-ScoutResourceCompletenessValue -InputObject $_ -Path 'Properties.Payload.properties'
-            } | Where-Object { $null -ne $_ } | Select-Object -First 1)
         $providerExposureProperties = $null
-        if ($providerProperties.Count -gt 0) {
-            $providerExposureProperties = $providerProperties[0]
+        # Select-Object -First stops its upstream pipeline by throwing internally. With
+        # transcription enabled this produced hundreds of alarming terminating-error
+        # records during successful discovery. A bounded loop needs no pipeline stop.
+        foreach ($enrichmentItem in $enrichment) {
+            $candidate = Get-ScoutResourceCompletenessValue -InputObject $enrichmentItem -Path 'Properties.Payload.properties'
+            if ($null -ne $candidate) {
+                $providerExposureProperties = $candidate
+                break
+            }
         }
         $exposure = Get-ScoutExposureEvidence -Resource $resource -Relationships @($uniqueReferences) `
             -ProviderProperties $providerExposureProperties
@@ -482,10 +575,10 @@ function Get-ScoutResourceCompleteness {
             Properties         = $protectedProperties
             Enrichment         = $protectedEnrichment
             PropertyCount      = $propertyCount
-            DetailStatus       = $status
-            DetailReasons      = @($statusReasons)
-            SpecializedCollectors = @($matchedCollectors | Sort-Object)
-            CollectionHealth   = @($resourceHealth)
+            DetailStatus       = 'GenericOnly'
+            DetailReasons      = @()
+            SpecializedCollectors = @()
+            CollectionHealth   = @()
             Exposure           = $exposure.Classification
             ExposureConfidence = $exposure.Confidence
             ExposureEvidence   = @($exposure.Evidence)
@@ -515,6 +608,6 @@ function Get-ScoutResourceCompleteness {
         }
         Resources     = $orderedResources
         Relationships = $orderedRelationships
-        CollectionHealth = $healthRows
+        CollectionHealth = @()
     }
 }

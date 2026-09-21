@@ -97,7 +97,8 @@ function Invoke-ScoutProcessing {
 
         [Parameter()]
         [AllowNull()]
-        [object[]]$CollectionHealth = @()
+        [object[]]$CollectionHealth = @(),
+        $DiscoveryContext
 
     )
 
@@ -350,7 +351,7 @@ function Invoke-ScoutProcessing {
             . (Join-Path $PSScriptRoot 'Get-ScoutResourceCompleteness.ps1')
         }
         $Discovery = Get-ScoutResourceCompleteness -Resources @($Resources) `
-            -CollectionHealth @($CollectionHealth) -Collectors @($Collectors) -DefinitionRoot $DefinitionRoot
+            -CollectionHealth @($CollectionHealth) -Collectors @($Collectors) -DefinitionRoot $DefinitionRoot -DiscoveryContext $DiscoveryContext
         $DiscoveryPath = Join-Path $CachePath 'Discovery.json'
         if ($PSCmdlet.ShouldProcess($DiscoveryPath, 'Write universal discovery index')) {
             if (-not (Test-Path -LiteralPath $CachePath)) {

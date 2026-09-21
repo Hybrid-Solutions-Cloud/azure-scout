@@ -182,7 +182,13 @@ Describe 'AB#6880 -- the cross-assessment executive roll-up (clause R-03)' {
 #>
 Describe 'AB#6928 -- single master file supersedes R-01/R-03 for RENDERED documents (data is kept)' {
     It 'the per-assessment renderer list explicitly excludes React' {
-        $script:Source | Should -Match "\`$perAssessmentReporters\s*=\s*@\(\`$reporters \| Where-Object \{ \`$_ -ne 'React' \}\)"
+        $reporters = @('React', 'Json', 'JsonEvidence')
+        $filter = [regex]::Match($script:Source, '\$perAssessmentReporters\s*=\s*(?<filter>@\([^\r\n]+\))').Groups['filter'].Value
+        $filter | Should -Not -BeNullOrEmpty
+        $selected = @(& ([scriptblock]::Create($filter)))
+        $selected | Should -Not -Contain 'React'
+        $selected | Should -Not -Contain 'Json'
+        $selected | Should -Contain 'JsonEvidence'
         $script:Source | Should -Match 'foreach \(\$r in \$perAssessmentReporters\)'
     }
 

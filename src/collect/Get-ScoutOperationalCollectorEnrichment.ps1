@@ -1,6 +1,8 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Write-AZTIRunLog.ps1') }
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Get-ScoutHttpFailure.ps1') }
 
 <#
 .SYNOPSIS
@@ -90,7 +92,8 @@ function Get-ScoutOperationalCollectorEnrichment {
             [Parameter(Mandatory)][string]$Reason,
             [AllowNull()][string]$ParentId,
             [AllowNull()][string]$ResourceType,
-            [AllowNull()][string]$Collector
+            [AllowNull()][string]$Collector,
+            [string]$Status = 'Unavailable'
         )
         $healthKey = "$Dataset|$ParentId"
         if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($healthKey)) { return }
@@ -120,7 +123,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 Dataset       = "Operational/$Dataset"
                 Source        = 'Operational enrichment'
                 SourceDataset = $Dataset
-                Status        = 'Unavailable'
+                Status        = $Status
                 Reason        = $Reason
                 ResourceTypes = @($ownership.ResourceType)
                 Collectors     = @($ownership.Collector)
@@ -185,7 +188,7 @@ function Get-ScoutOperationalCollectorEnrichment {
         )
         $timer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic
         try {
-            $result = & $Operation
+            $result = Invoke-ScoutDiagnosticOperation -Operation $Operation
             Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Success
             return $result
         }
@@ -236,7 +239,7 @@ function Get-ScoutOperationalCollectorEnrichment {
             try {
                 $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
                 if ($null -ne $Payload) { $Arguments['Payload'] = $Payload }
-                $Response = Invoke-AzRestMethod @Arguments
+                $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @Arguments }
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
                 $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
                 if ([int]$Status -eq 202 -and $PollAsync) {
@@ -261,7 +264,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                         $pollArguments = @{ Method = 'GET'; ErrorAction = 'Stop' }
                         if ($location -match '^https?://') { $pollArguments['Uri'] = $location }
                         else { $pollArguments['Path'] = $location }
-                        $Response = Invoke-AzRestMethod @pollArguments
+                        $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @pollArguments }
                         if ($null -eq $Response) { throw 'ARM async status request returned no response.' }
                         $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
                         if ([int]$Status -eq 202) { continue }
@@ -271,7 +274,8 @@ function Get-ScoutOperationalCollectorEnrichment {
                     if (-not $pollComplete) { throw 'ARM asynchronous request did not complete within 30 seconds.' }
                 }
                 if ($null -ne $Status -and ([int]$Status -lt 200 -or [int]$Status -ge 300)) {
-                    $statusException = [System.InvalidOperationException]::new("ARM returned status $Status.")
+                    $failure = Get-ScoutHttpFailure -Response $Response
+                    $statusException = [System.InvalidOperationException]::new("ARM returned status $Status. $($failure.Summary)")
                     $statusException.Data['StatusCode'] = [int]$Status
                     $responseHeaders = Get-ScoutValue -InputObject $Response -Name @('Headers')
                     if ($null -ne $responseHeaders) { $statusException.Data['Headers'] = $responseHeaders }
@@ -291,9 +295,9 @@ function Get-ScoutOperationalCollectorEnrichment {
                 return $Content
             }
             catch {
-                $Message = $_.Exception.Message
-                $StatusMatch = [regex]::Match($Message, 'ARM returned status (\d+)')
-                $StatusCode = if ($StatusMatch.Success) { [int]$StatusMatch.Groups[1].Value } else { $null }
+                $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                $Message = $failure.Summary
+                $StatusCode = $failure.StatusCode
 
                 if ($StatusCode -eq 404 -and $QuietNotFound) {
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status NotConfigured -Attempts $Attempt
@@ -607,6 +611,25 @@ function Get-ScoutOperationalCollectorEnrichment {
     foreach ($Nic in $NetworkInterfaces) {
         $Id = [string](Get-ScoutValue $Nic @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
+        $nicProperties = Get-ScoutValue $Nic @('properties')
+        $attachedVm = Get-ScoutValue $nicProperties @('virtualMachine')
+        $privateEndpoint = Get-ScoutValue $nicProperties @('privateEndpoint')
+        # A minimal/unknown resource shape is not proof of non-applicability. Only skip
+        # when ARM supplied properties establishing that this NIC is not attached to a VM.
+        if ($null -ne $nicProperties -and ($privateEndpoint -or -not $attachedVm)) {
+            $reason = 'Not applicable: effective NIC rules and routes require a network interface attached to a running virtual machine.'
+            foreach ($dataset in @('NetworkInterface.EffectiveNetworkSecurityGroups', 'NetworkInterface.EffectiveRouteTable')) {
+                $timer = Start-ScoutOperationalRequest -Dataset $dataset
+                Add-ScoutOperationalHealth -Dataset $dataset -Reason $reason -ParentId $Id -Status NotAssessed
+                Complete-ScoutOperationalRequest -Dataset $dataset -Timer $timer -Status NotSupported -Attempts 0
+            }
+            $notApplicable = [pscustomobject]@{ __AZSCStatus = 'NotApplicable'; Reason = $reason }
+            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/NetworkInterface' -Parent $Nic -Properties @{
+                EffectiveNetworkSecurityGroups = $notApplicable
+                EffectiveRouteTable = $notApplicable
+            }
+            continue
+        }
         $effectiveNsgs = Invoke-ScoutOperationalArm `
             -Dataset 'NetworkInterface.EffectiveNetworkSecurityGroups' `
             -ParentId $Id `
