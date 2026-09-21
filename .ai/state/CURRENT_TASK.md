@@ -1,33 +1,11 @@
-# Current Task: AB#405 — live high-contrast progress in AzureScout 3.12.5
+# Completed: AzureScout 3.17.1 reliability release
 
-- Status: **IMPLEMENTED — VALIDATION AND RELEASE IN PROGRESS**
-- Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
-- Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
-- Branch: `agent/ab405-live-progress-3.12.5`
-- Target version: `3.12.5`
-- ADO work item: `AB#405` (reopened Active)
+Released and installed 2026-09-19. PR17 merged at `11be3687b7b94d55e66d6acba515ad9698ba6c26`; exact tested tree from `85a9910a446242485fdd7ff7fac60b0e39535c2d`.
 
-## Implemented
+All 3,922 tests passed, plus static analysis, StrictMode and documentation checks. Gallery and installed copies both matched all 527 staged files and imported successfully. All twelve scan bugs (9294–9304 and 9306) are Resolved with release evidence.
 
-- Real auto-refreshing Spectre progress host with spinner, bar, percentage, and elapsed-time column.
-- Extraction calls run exactly once even if the optional renderer fails.
-- High-contrast cyan/white foreground phase labels; no colored text backgrounds.
-- Native/log-friendly fallback for missing module, CI, redirected, and non-interactive hosts.
-- `-NoProgress` explicit quiet mode.
-- Collector, extraction, processing, and completion progress calls route through the shared helper
-  while retaining guarded native fallbacks.
-- Version and public documentation updated for 3.12.5.
+Installed: `C:/Users/KristopherTurner/Documents/PowerShell/Modules/AzureScout/3.17.1`. Existing user PowerShell session remains on its previously loaded version; use a new session for 3.17.1. Original scan artifacts and process were not modified.
 
-## Verified so far
+Active source worktree remains `D:/git/hybrid-solutions-cloud/azure-scout-performance`, branch `fix/scout-run-performance`; origin/main is the release merge. Product changes are committed and published; only local .ai state is uncommitted. The canonical worktree's pre-existing menu edits remain preserved.
 
-- Focused Pester 5.7.1: 57 passed, 0 failed.
-- Real PwshSpectreConsole 2.6.3 smoke: live host executed a three-second blocking operation,
-  accepted an in-operation task update, returned the operation result, and printed its completion
-  summary.
-- Changed-file parser and diff whitespace checks were clean before the documentation/version pass.
-
-## Next
-
-Run the full deterministic release gates, commit and push with the HCS GitHub App, satisfy protected
-PR review and CI/docs, merge, tag v3.12.5, publish the exact tag to PowerShell Gallery, verify the
-downloaded package byte-for-byte, then close AB#405.
+No release or implementation step remains for these twelve scan bugs. See RELIABILITY_REFERENCE.md for the original customer investigation, prior 3.17.0 report/auth/recovery delivery, verification evidence, and boundaries on missing historical logs/export scripts.

@@ -237,10 +237,10 @@ function Start-AZSCWizard {
 
         Write-Host ''
         $extras = Read-AZSCWizardChecklist -Title 'Optional report and enrichment features' -Items @(
-            'Show resource tags in Excel', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
-        ) -DefaultSelected @('Show resource tags in Excel')
+            'Include resource tags in reports', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
+        ) -DefaultSelected @('Include resource tags in reports')
         if ($null -eq $extras) { return $null }
-        if ($extras -contains 'Show resource tags in Excel') { $answers.IncludeTags = [switch]$true }
+        if ($extras -contains 'Include resource tags in reports') { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
         if ($extras -contains 'Cost data') {
             # Cost data silently comes back empty later in the run if Az.CostManagement isn't

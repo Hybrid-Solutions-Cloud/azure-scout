@@ -745,3 +745,108 @@ PIM/RBAC → Identity; DevOps → DevOps; cost cleanup is not a category.
 - diagram-fixture-build.mjs prints "(skip) no data in fixture" against current corpus
   collect.json shapes — non-blocking, worth wiring real fixtures.
 - A fresh tenant collect will light up the AHB audit callout (corpus predates licenseType).
+
+## 2026-09-18 — performance implementation after live-run investigation
+
+User explicitly authorized immediate code fixes during the active scan. Implementation is isolated in `D:/git/hybrid-solutions-cloud/azure-scout-performance`, branch `fix/scout-run-performance`, based on release 3.17.0 / ee8c62fb. Installed module and scan process remain untouched.
+
+Changes: run-owned universal discovery context propagated through diagram, processing, and assessment; independent collector/health overlays; timestamp scalar traversal guard; one lazy JSON query index shared across assessment groups, gates, joins and denominator queries; detached finding evidence; discovery/query debug timing and progress; close stale extraction progress ID 0; carry forward requested resource-tag menu correction.
+
+ADO: AB#9300, AB#9301, AB#9302, AB#9303, AB#9304. Remaining live-run defects remain separate, including comprehensive logging AB#9298.
+
+Validation so far: first focused set 94 passed, 0 failed (Pester 6.2.0). Pester 5.7.1 broader assessment and integration suites running; do not claim final green yet. A coverage overlay bug caught by existing tests was fixed (filter null resource IDs before matching). New runtime checks cover shared discovery, separate coverage views, wrong-snapshot rejection, timestamp traversal, query reuse, detached evidence, actual diagram and processing reuse. Parser checked clean; analyzer running.
+
+Controlled benchmark: synthetic 5,000 rows, 12 identical queries, old implementation 11,789 ms versus shared index 1,464 ms (8.05x); identical match counts, one parse. This is query-only, not an end-to-end scan estimate. Evidence: D:/tmp/scout-query-benchmark.json. Test logs: D:/tmp/scout-performance-assessment.log and D:/tmp/scout-performance-integration.log; summary JSONs written at completion.
+
+Live scan at 21:02 reached Assess: Web; process 27036 remains active. Do not interrupt or modify its module/output. No new release, commit, or PR yet. Next: finish tests/analyzer, correct any regressions, record ADO implementation evidence, review diff, commit scoped fix. Broad historical report/auth/recovery requests must not be claimed complete based on this performance patch.
+
+### Performance patch review state (2026-09-18)
+
+Committed product changes as `e65fd8de`, pushed using the GitHub App to `fix/scout-run-performance`; draft PR https://github.com/Hybrid-Solutions-Cloud/azure-scout/pull/17. Full hosted CI run 35412072719 and documentation run 35412072694 are running. Do not claim released or merged.
+
+Local verification: 332 assessment tests passed; 151 processing/discovery/service-coverage/React tests passed; 31 final report-contract tests passed. Companion reuse/fallback tests passed. An old source-string assertion expected the previous renderer filter and failed; it was replaced with a behavior check and the entire 31-test contract suite passed. Parser/diff whitespace checks clean; analyzer errors zero (196 pre-existing/advisory warnings across changed source). Pester 5.7.1 used for final suites.
+
+Additional fix/bug AB#9306: per-assessment JSON evidence was reserialized from the complete collect for every companion. Reuse root export by byte-preserving copy, avoid duplicate findings serialization, and log companion start/finish. Tests verify no serialization when source exists, identical bytes, same-path handling and missing-source fallback. Existing report file layout remains intact.
+
+ADO 9300/9301/9302/9303/9304/9306 are Active with PR/verification evidence. AB#9298 (comprehensive always-debug logging) and the other live collection defects are still open and are not fixed by this patch. No historical broader task should be closed solely on these changes.
+
+Original 3.17.0 scan completed at 21:13:17; logged total runtime 4h54m24.899s. React output is assessment-report/report-react.html, plus root/per-assessment findings and evidence, diagram and inventory JSON. Installed module, console process and customer run artifacts were not modified.
+
+Next: inspect full CI/docs results, fix any failure, then mark PR ready if green. Merge/release has not been performed. Working-tree .ai state updates remain local, outside the product commit; original workspace retains its pre-existing menu edits.
+
+### Actual-data replay verification
+
+Read-only offline rule replay against the completed scan's collect.json: 41 assessment groups, 550 baseline findings and 550 replay findings, zero differences in Assessment/Id/Framework/Area/Status/EvidenceCount signatures, one JSON parse, 24.233 seconds (832 MiB process private memory at completion). This excludes input loading, collection, discovery, aggregate scoring and report rendering. No Azure calls. Evidence summary: D:/tmp/scout-performance-replay-summary.json; scratch harness: D:/tmp/scout-performance-replay.ps1.
+
+Read-only discovery replay including inventory plus Advisor: 7,217 input rows, 1,535 resources, 1,602 relationships, matching the completed run's ReportCache/Discovery.json totals. One build in 66.823 seconds, reused view 2.806 seconds; identical summaries. Input loading excluded. Earlier raw-only view produced 1,174 resources/1,241 relationships; this is expected because Advisor belongs to the processing view. Import-ScoutReportInventory then hydrates the final collect.discovery from the processing cache, preserving the combined report view. Evidence summary: D:/tmp/scout-performance-discovery-replay-summary.json.
+
+Final output audit: all 41 original assessment folders have findings.json and evidence.json; root React exists (27,283,267 bytes). Root findings: Pass123, Fail158, Manual247, NotAssessed12, Unknown10; no Error verdicts. Artifact presence does not close the filed collection gaps. Documentation CI passed; full CI still in progress as of 21:27 local.
+
+### Final verified review handoff (2026-09-18 21:37 local)
+
+PR #17 is READY FOR REVIEW (draft=false), head e65fd8dead50ba711a7a4848f5425d4f36842c8c. Full hosted CI 35412072719 succeeded on that exact head: 3,909 tests, zero failures/errors/skips/not-run; StrictMode guard and static analysis succeeded. Documentation build 35412072694 succeeded on the same head. Test artifact downloaded to D:/tmp/scout-performance-ci-results.zip; summary D:/tmp/scout-performance-ci-summary.json. ADO 9300/9301/9302/9303/9304/9306 histories updated with CI and ready-for-review state; bugs remain Active because the change is not released.
+
+NO merge, version bump, package publish, installed-module replacement, or fresh Azure scan performed. Product work is committed/pushed; only local .ai state files remain modified in the performance worktree. Next delivery step is PR review/merge and release if requested. Broader collection/logging bugs remain open. Never report the 24.233-second offline rule replay as total scan runtime.
+
+## Completed-run remaining-defect audit
+
+Re-read final scout-run.log, console transcript and collection-health.json following the operator's question about unimplemented findings. Confirmed six existing bugs remain outside PR #17: AB#9294 unsupported Graph sign-in projection, AB#9295 malformed Graph request misclassified as role denial, AB#9296 Sentinel connector HTTP 400, AB#9297 Sentinel ingestion TableName union collision, AB#9298 comprehensive always-debug durable logging, AB#9299 NIC effective NSG/route HTTP 400. Selected discovery/query/companion progress messages in PR #17 do not complete AB#9298. Repeated transcript pipeline-stopped messages are not fully diagnosed; scan completed successfully and those messages alone do not establish cancellation.
+
+Separate coverage constraints remain in the saved health ledger: missing delegated Graph scopes, Entra licensing responses (including PIM), four vaults with metadata HTTP403, and Defender regulatory compliance unavailable without the required plan. Do not misclassify these as the sign-in projection bug. No new late-stage fatal failure found in the completion log. This was a status audit; no code or installed module changed.
+
+## 3.17.1 implementation and release in progress (2026-09-18 23:50 local)
+
+User demanded completion through release; do NOT stop again at a PR-ready status. Active performance worktree branch fix/scout-run-performance, final head ee56449f6ee5c149cb3f1576555bae1fd94c6f55. PR17 title now "fix(reliability): faster scans and complete diagnostics in 3.17.1". New commits 6a4c2149 (remaining six defects), 4da77207 (preserve plain error messages), ee56449f (remove discovery pipeline short circuit). Version bumped to3.17.1 with changelog. Product tree clean; .ai state locally modified.
+
+Implemented AB9294-9299: v1.0 signIn projection removes authenticationRequirement; audit distinguishes non403 requests from role denial; shared Get-ScoutHttpFailure retains status/service codes/body messages and unwraps nested provider errors; Sentinel exact not-onboarded400 becomes explicit NotAssessed/NotApplicable source operation; other400s remain Unavailable; KQL internal __AzureScoutIngestionSourceTable preserves exported TableName; private-endpoint/detached NICs retain NotApplicable envelopes without unsupported POSTs; logs capture private Scout debug/verbose/warnings and real SDK streams independently of console, redact credentials, buffer pre-start diagnostics, retain exceptions, preserve success output, avoid Debug Inquire. Wrapped central Graph, ARM child, operational and ARG requests. Existing quiet-warning root hook remains compatible.
+
+Pipeline-stop transcript noise was reproduced in actual-data discovery and traced to enrichment ForEach/Where/Select-Object -First1. Replaced with bounded foreach. Added regression verifies first payload semantics and absence of transcript pipeline-stopped records.
+
+Tests: first collection/logging suite151 tests had2 test issues (obsolete source assertion prohibiting local preference changes, global logger stub shadowed by newly loaded local logger). Fixed assertions to runtime caller-preference isolation and Pester Mock. Expanded suite176 had175pass/1failure: plain "metrics denied" gained HTTPunknownprefix. 4da77207 fixes that compatibility issue. Final follow-up ResourceCompleteness/Operational/HttpFailure suite37/37passed, including all previously failing behavior. Full final-head CI is authoritative and still pending:35419493393, docs35419493392success. Older CI35419209268 corresponds6a4c2149 and may fail the known plain-message test; CI35419353026 corresponds4da77207. Do not mistake older CI for final head. Prior performance CI35412072719all3909passed.
+
+Actual-data replay with durable log+transcript: D:/tmp/scout-corrected-discovery-replay-summary.json ->7217rows,1535resources,1602relationships,Builds1,FirstSeconds125.684,ReuseSeconds5.426,SummaryEqualtrue,965MiBprivate. Zero pipeline-stopped messages in D:/tmp/scout-corrected-discovery-log/scout-console.log. Runtime includes logging and concurrent test/system contention, excludes initialJSONload for reported timer. Prior unlogged66.823/2.806seconds remains separate evidence. Original41group/550finding replay24.233seconds/oneparse unchanged; no full new Azure scan.
+
+Actual SDK verification: fresh process imported Az.Accounts, cached context, one read-only GET/subscriptions?api-version=2022-12-01 through Invoke-ScoutDiagnosticOperation. HTTP200/PSHttpResponse,80DEBUGrecords with consoleDebugdisabled; authorizationredacted; zero unredactedBearerheaders/JWTshapedvalues. Summary D:/tmp/scout-sdk-log-verification-summary.json; private log D:/tmp/scout-sdk-log-verification/scout-run.log.
+
+ADO9294-9299nowActive with implementation history. Performance9300/9301/9302/9303/9304/9306Active. Release updates still needed for all12. Existing 3.17.0/PR16 scope already delivered authreuse,tenantretry,scope-firstmenu,reportparity (3898tests,53Entra/recovery,headlessEdge and310dataset/550findingprivate renderer replay). Do not claim new work or retest all that unnecessarily. Customer reference path EXISTS now withHTML/collect/evidence/findings, but original August logs/external scripts stillabsent. Original investigation goal tool remainsBlocked; .ai/state/RELIABILITY_REFERENCE.md now records all concerns, evidence, remedies, and remaining external evidence limits. Do not claim original historical rescoring proven.
+
+Release helpers prepared but NOT EXECUTED:
+- D:/tmp/scout-3171-merge.ps1: App auth, checks PR17 expectedhead ee56449f, requires build+test-and-lint success; tolerates onlysuccess/skipped/neutral otherchecks (docsdeployskipped onPRexpected), squashmerges viaApp API; writesD:/tmp/scout-3171-merge-commit.txt.
+- D:/tmp/scout-3171-stage.ps1 -Commit <merge>: worktreeperformance; requires mergedPR17exactsha; archives source/config/manifests/docsroot into D:/tmp/scout-merged-3.17.1-<timestamp>/AzureScout; parser+import+recoveryparameterchecks; hashes; writesD:/tmp/scout-3171-package-path.txt. Need gitfetchoriginmain aftermerge soobjectexists (Appauth mayneeded ifnormalfetchfails; publicread gh/gitworks).
+- D:/tmp/scout-3171-publish.ps1 -SecretName psgallery-api-key: verifiesstageversion/hashes, publishes. Dedicated azure-scoutpublishersecretprevious403; usepsgallery-api-key.
+- D:/tmp/scout-3171-verify.ps1: Save-Module3.17.1freshdownload, allsourcehashmatches/extraneousfilescheck, freshimport, writesD:/tmp/scout-3171-gallery-verification.json.
+- D:/tmp/scout-3171-release.ps1: Appauth, requiresmergedPR17exactsha, createsGitHubv3.17.1release fromD:/tmp/scout-3171-release-notes.md; writesD:/tmp/scout-3171-release-result.json. NotescurrentlyclaimfullCIintended; executeonlyaftergreen.
+- PushhelperD:/tmp/scout-performance-github.ps1 -ActionPush. PRbodyhelperD:/tmp/scout-performance-pr-update.ps1readsD:/tmp/scout-performance-pr.md; rewritebodyfinalvalidationbeforemerge. AllauthfreshKVinmemory,no secretsprinted/saved.
+
+Outstandingtoolsessions: CIremote asabove; localSDK91320completed; correctiontests2474completed37pass; correcteddiscovery84293completed; push63101likelycompleted (poll ifneeded). All local work snapshots now completed. Original userPID27036idlewith~10GiBprivate; leaveitandartifactsuntouched. Do NOT killuserprocess. Need finish finalCI, fixanynewfailures, thenmerge/publish/GitHubrelease/Galleryverify and safe side-by-side installation if useful, ADOResolved, stateupdatesbothworktrees. Finalanswer mustsayreleasedversionandverificationwithoutrequiringuseranotherprompt.
+
+### Final release-head correction and additional verification (2026-09-19 00:04)
+
+Final head is now85a9910a446242485fdd7ff7fac60b0e39535c2d, adding release version synchronization inRELEASES.md,docs/project/changelog.md,docs/project/roadmap.md. All17releasecontracttests passed locally. Apppushcomplete. CI35419964151running,docs35419964147passed. Mergehelper expectedHead updated to85a9910a. Earlierhead ee56449f fullCI35419493393 completed3922total/3919pass/3fail, failures ONLY the three now-corrected versionreferencechecks; zerootherfailures/skips. 6a4c2149CIhadoneadditional already-fixedplainmessagecompatibilityfailure.
+
+Final-code assessment replay withalways-debugfilelogging:41groups,550baseline/replayedfindings,zero signaturedifferences,oneparse,81.64seconds,473MiBprivate. D:/tmp/scout-final-assessment-replay-summary.json. Timeincludesfileloggingandconcurrentlocalwork, notfullcloudscan. ActualNICpayload auditnowconfirmsall6NICsareprivateendpointNICswithnovirtualMachine; matchesapplicabilityfix. D:/tmp/scout-nic-applicability-evidence.json. DurableSDKverification80DEBUGrecords,HTTP200,Authorizationredacted,noJWTshapedvalues. CorrecteddiscoverysummaryD:/tmp/scout-final-discovery-verification.json includes0pipeline-stoppedmessages.
+
+Preparedrelease-gatedADOresolutionD:/tmp/scout-3171-resolve-bugs.ps1 for12bugs; itrequiresGalleryhash/importverificationandGitHubreleaseevidencebeforeResolved. Do notexecuteuntilreleasecomplete. Packageinstallationstill3.17.0inC:/Users/KristopherTurner/Documents/PowerShell/Modules/AzureScout/3.17.0. Install3.17.1sidebysidethenverifyfreshprocess; user'soldPSprocessremainsloaded3.17.0, finaltelluserusefreshPowerShellsession. Do notkillorreloadtheirprocess.
+
+### Release published; final local installation in progress (2026-09-19 00:26)
+
+Final CI35419964151 succeeded on85a9910a:3922total,0failures/errors/skips/notrun. PSSA,StrictMode,docsallpassed; artifact D:/tmp/scout-3171-ci-results.zip andsummaryD:/tmp/scout-3171-ci-summary.json. PR17bodyupdatedwithfinalvalidation, mergedusingGitHubApp to11be3687b7b94d55e66d6acba515ad9698ba6c26. gitfetchoriginmaincompleted; gitdiff85a9910a...11be3687empty, exactlytestedtree. Sourcebranchremains85a9910a.
+
+PackageD:/tmp/scout-merged-3.17.1-20260919001437/AzureScoutpassedfreshWindowsimport,527files,zeroParserErrors; hashesadjacenthashes.json. PackagepathstoredD:/tmp/scout-3171-package-path.txt. PublishedsuccessfullytoPSGalleryusingpsgallery-api-key. GitHubreleasecreatedhttps://github.com/Hybrid-Solutions-Cloud/azure-scout/releases/tag/v3.17.1, target11be3687, evidenceD:/tmp/scout-3171-release-result.json. Main docsdeployment35420734563success; automaticmainCI35420734546maystillrunbuttreeidenticaltothepassedPR.
+
+ACTIVE TOOL SESSION10137: D:/tmp/scout-3171-verify.ps1. Save-Module downloaded3.17.1anddependenciesintoD:/tmp/scout-gallery-3.17.1-20260919002231. It has printed "Gallery source hashes match. Importing the downloaded module." All527filesmatch;freshWindowsdependencyimporttakes~4minutesonthismachine. AfterimportscriptwritesD:/tmp/scout-3171-gallery-verification.json, removesitsownscratchmodulefromitsownprocess, Install-Module3.17.1-ScopeCurrentUser-Force-AllowClobber-SkipPublisherCheck-AcceptLicense, importsinstalledexactversion,andchecksall527installedfilehashes. WritesD:/tmp/scout-3171-installed-verification.json. Do notstartasecondinstallorstopuserPID27036. Poll10137untilcomplete. Galleryverification/installedverificationfilesnotyetconfirmedwrittenasofthishandoff.
+
+Afterthat: executeD:/tmp/scout-3171-resolve-bugs.ps1(guardsGalleryverificationandreleaseevidence) toResolved12bugs9294-9299,9300-9304,9306. UpdateRELIABILITY_REFERENCE.md/CURRENT_TASK.md/HANDOFF.mdinbothworktreeswithcompletedreleaseandinstalledpath. OriginalgoalinvestigationtoolstillBlockedhistorically;standingreferencefulfillsinvestigation/planningobjectivewithhonestexternal-script/originalAugustloglimits,considercompleteoncefinaldeliveryfinished. Finalresponsesay3.17.1released/installed,3922testspassed,12bugsResolved,andusenewPowerShellsessionbecauseuserexistingprocessstillloads3.17.0. Do notclaimfreshend-to-endcloudscanorverificationofmissingoriginalcustomerexportscripts.
+
+## Completed release and installation — 2026-09-19
+
+AzureScout 3.17.1 is published in Gallery and GitHub, installed side by side at C:/Users/KristopherTurner/Documents/PowerShell/Modules/AzureScout/3.17.1, and verified by fresh import and all 527 file hashes. Gallery verification: D:/tmp/scout-3171-gallery-verification.json. Installed verification: D:/tmp/scout-3171-installed-verification.json. The installer warned about already-loaded dependency versions; it retained them and successfully installed/imported AzureScout. No user process was interrupted and no old module version was deleted.
+
+All twelve ADO bugs are Resolved: 9294,9295,9296,9297,9298,9299,9300,9301,9302,9303,9304,9306. Evidence: D:/tmp/scout-3171-resolved-bugs.json. Each history links the release, PR and Gallery package, with CI, replay, SDK logging and scope limits. PR17 merged at11be3687b7b94d55e66d6acba515ad9698ba6c26; tested head85a9910a446242485fdd7ff7fac60b0e39535c2d has identical tree. All3922 tests passed with no failures/errors/skips/notrun; static analysis, StrictMode and docs passed. GitHub release https://github.com/Hybrid-Solutions-Cloud/azure-scout/releases/tag/v3.17.1.
+
+RELIABILITY_REFERENCE.md is the standing investigation/solution record. Corrected its customer artifact inventory: four root reports plus per-assessment companions and51backups,137files total, zero logs/scripts. Original August logs/external export scripts remain unavailable; do not claim historical reconstruction or external script compatibility has been verified. All feasible source fixes from the completed September scan are implemented/released. No new complete cloud scan was run; replay timings must not be described as end-to-end scan duration.
+
+All local verification/install/publish tool processes completed successfully. Existing user PowerShell process27036 and original scan reports remain untouched. A new PowerShell session is needed to load3.17.1. Source branch fix/scout-run-performance remains at85a9910a; origin/main is11be3687. Product work is committed and released. Only local .ai state changes remain, copied to both worktrees; canonical pre-existing menu edits remain intact. No further release action is pending.
+
+The original investigation/planning goal is marked complete. The standing reference distinguishes released fixes from historical questions that still lack original logs or export scripts.
+

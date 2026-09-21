@@ -54,7 +54,7 @@ $ErrorActionPreference = 'Stop'
     Use this parameter to include Quota information
 
 .PARAMETER IncludeTags
-    Show resource tag columns in legacy Excel output. Tags are always acquired and retained in
+    Include resource tags in reports. Tags are always acquired and retained in
     the universal discovery record.
 
 .PARAMETER Debug
@@ -545,7 +545,7 @@ Function Invoke-AzureScout {
         Write-Host " -SkipAdvisory            :  Do not collect Azure Advisory. "
         Write-Host " -SkipPolicy              :  Do not collect Azure Policies. "
         Write-Host " -SecurityCenter          :  Include Security Center Data. "
-        Write-Host " -IncludeTags             :  Show Resource Tags in Excel. "
+        Write-Host " -IncludeTags             :  Include resource tags in reports. "
         Write-Host " -Online                  :  Use Online Modules. "
         Write-Host " -Debug                   :  Run in a Debug mode. "
         Write-Host " -AzureEnvironment        :  Change the Azure Cloud Environment. "
@@ -569,7 +569,7 @@ Function Invoke-AzureScout {
         Write-Host ""
         Write-Host "Including Tags:"
         Write-Host " By Default Azure Resource inventory do not include Resource Tags."
-        Write-Host " To show Tags in Excel use the <-IncludeTags> parameter. Tags are always retained in discovery. "
+        Write-Host " To include resource tags in reports use the <-IncludeTags> parameter. Tags are always retained in discovery. "
         Write-Host "e.g. /> Invoke-AzureScout -TenantID <Azure Tenant ID> -IncludeTags"
         Write-Host ""
         Write-Host "Skipping Azure Advisor:"
