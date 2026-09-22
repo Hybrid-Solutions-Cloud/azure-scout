@@ -57,7 +57,7 @@ function Import-ScoutOpenXmlAssembly {
     if ($loaded) { return }
 
     $repoRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
-    $cacheDir = Join-Path -Path $repoRoot -ChildPath 'output' -AdditionalChildPath '.tools', 'openxml', $Script:ScoutOpenXmlVersion
+    $cacheDir = Join-Path $repoRoot 'output' '.tools' 'openxml' $Script:ScoutOpenXmlVersion
     $requiredDlls = @('DocumentFormat.OpenXml.Framework.dll', 'System.IO.Packaging.dll', 'DocumentFormat.OpenXml.dll')
 
     $haveAll = -not ($requiredDlls | Where-Object { -not (Test-Path (Join-Path $cacheDir $_)) })
@@ -419,15 +419,7 @@ function New-ScoutTable {
 
 #region Data helpers (safe property access, score/severity bands, pagination)
 
-function Get-ScoutPptxProp {
-    # Was `Get-ScoutProp` -- the same name as the collect layer's dotted-path walker in
-    # ConvertFrom-ScoutInventory.ps1. The module loader dot-sources src/ sorted by path, so
-    # report/renderers loaded AFTER collect and this single-name, default-returning version
-    # SHADOWED the collect walker in module scope: every dotted read in the shaper
-    # ('properties.enableDdosProtection', 'sku.name') looked up a literal property of that name,
-    # found nothing, and returned $null -- silently nulling most of what the rules score on every
-    # module-imported collect run (AB#6897). Same failure class as the ImportExcel Export-Excel
-    # collision (AB#6883); Module.FunctionNameCollisions.Tests.ps1 now bans duplicates outright.
+function Get-ScoutProp {
     param($Obj, [Parameter(Mandatory)][string]$Name, $Default = $null)
     if ($null -eq $Obj) { return $Default }
     $p = $Obj.PSObject.Properties[$Name]
@@ -471,8 +463,8 @@ function Get-ScoutPptxEvidenceSummary {
     [OutputType([string])]
     param($Gap)
 
-    $count = Get-ScoutPptxProp -Obj $Gap -Name 'EvidenceCount'
-    $denom = Get-ScoutPptxProp -Obj $Gap -Name 'Denominator'
+    $count = Get-ScoutProp $Gap 'EvidenceCount'
+    $denom = Get-ScoutProp $Gap 'Denominator'
 
     if ($null -eq $count) { return '' }
 
@@ -508,7 +500,7 @@ function Get-ScoutSeverityColor {
     }
 }
 
-function Split-ScoutChunk {
+function Split-ScoutChunks {
     param([array]$Items, [int]$Size)
     $chunks = [System.Collections.Generic.List[object]]::new()
     if (-not $Items -or $Items.Count -eq 0) { return $chunks }
@@ -533,11 +525,6 @@ $Script:Paper = 'FFFFFF'
 $Script:Mist = 'F6F9FD'
 $Script:Line = 'E2E2E2'
 $Script:Gray = '595959'
-
-# AB#6886, clause P-05. A roll-up deck is bounded, and the bound is a design decision rather
-# than an accident of how many areas an estate happens to have: 11 slides is the reference
-# deliverable's readout, and a deck that grows past this stops being a readout.
-$Script:ScoutDeckMaxSlides = 15
 
 $Script:SlideWIn = 13.333
 $Script:SlideHIn = 7.5
@@ -569,7 +556,7 @@ function New-ScoutDeckShell {
     }
 
     # ---- Slide master ----
-    $masterPart = New-ScoutPart -Parent $presPart -PartType ([DocumentFormat.OpenXml.Packaging.SlideMasterPart]) -Id 'rIdMaster1'
+    $masterPart = New-ScoutPart $presPart ([DocumentFormat.OpenXml.Packaging.SlideMasterPart]) 'rIdMaster1'
     $master = New-ScoutEl "$Script:PresNs.SlideMaster"
     $mcsd = New-ScoutEl "$Script:PresNs.CommonSlideData"
     $mcsd.Append((New-ScoutEmptyShapeTree))
@@ -604,7 +591,7 @@ function New-ScoutDeckShell {
     $masterPart.SlideMaster = $master
 
     # ---- Slide layouts (title + content) ----
-    $layoutTitlePart = New-ScoutPart -Parent $masterPart -PartType ([DocumentFormat.OpenXml.Packaging.SlideLayoutPart]) -Id 'rIdLayoutTitle'
+    $layoutTitlePart = New-ScoutPart $masterPart ([DocumentFormat.OpenXml.Packaging.SlideLayoutPart]) 'rIdLayoutTitle'
     $layoutTitle = New-ScoutEl "$Script:PresNs.SlideLayout"
     $layoutTitle.Type = [DocumentFormat.OpenXml.Presentation.SlideLayoutValues]::Title
     $ltCsd = New-ScoutEl "$Script:PresNs.CommonSlideData"
@@ -615,7 +602,7 @@ function New-ScoutDeckShell {
     $layoutTitle.Append($ltCmo)
     $layoutTitlePart.SlideLayout = $layoutTitle
 
-    $layoutContentPart = New-ScoutPart -Parent $masterPart -PartType ([DocumentFormat.OpenXml.Packaging.SlideLayoutPart]) -Id 'rIdLayoutContent'
+    $layoutContentPart = New-ScoutPart $masterPart ([DocumentFormat.OpenXml.Packaging.SlideLayoutPart]) 'rIdLayoutContent'
     $layoutContent = New-ScoutEl "$Script:PresNs.SlideLayout"
     $layoutContent.Type = [DocumentFormat.OpenXml.Presentation.SlideLayoutValues]::Text
     $lcCsd = New-ScoutEl "$Script:PresNs.CommonSlideData"
@@ -627,7 +614,7 @@ function New-ScoutDeckShell {
     $layoutContentPart.SlideLayout = $layoutContent
 
     # ---- Theme (navy/steel/gold corporate palette, matches report.html.template) ----
-    $themePart = New-ScoutPart -Parent $masterPart -PartType ([DocumentFormat.OpenXml.Packaging.ThemePart]) -Id 'rIdTheme1'
+    $themePart = New-ScoutPart $masterPart ([DocumentFormat.OpenXml.Packaging.ThemePart]) 'rIdTheme1'
     $theme = New-ScoutEl "$Script:DrawNs.Theme"
     $theme.Name = 'Azure Scout'
 
@@ -772,7 +759,7 @@ function Add-ScoutSlideToDeck {
     # given layout part, and registers it in the presentation's SlideIdList.
     param($Shell, $SlideElement, $LayoutPart)
     $relId = "rIdSlide$($Shell.NextSlideRelIdNum)"
-    $slidePart = New-ScoutPart -Parent $Shell.PresPart -PartType ([DocumentFormat.OpenXml.Packaging.SlidePart]) -Id $relId
+    $slidePart = New-ScoutPart $Shell.PresPart ([DocumentFormat.OpenXml.Packaging.SlidePart]) $relId
     $slidePart.Slide = $SlideElement
     $null = $slidePart.AddPart($LayoutPart)
 
@@ -845,122 +832,6 @@ function New-ScoutContentSlide {
     Add-ScoutSlideToDeck -Shell $Shell -SlideElement $slide -LayoutPart $Shell.LayoutContentPart
 }
 
-function Add-ScoutSlidePicture {
-    <#
-    .SYNOPSIS
-        Place a rasterised figure on a slide as an embedded picture.
-
-    .DESCRIPTION
-        AB#6883, clauses W-12/D-03 applied to the deck. The picture is EMBEDDED as a part of the
-        package, never linked: a deck emailed to a client has to carry its own images, and a
-        linked one is a broken one the moment the file leaves the machine that built it.
-
-        The image part has to be added to the SLIDE part, not the presentation part, and the
-        relationship id is resolved from the slide -- which is why this runs after the slide part
-        exists rather than while the shape tree is being built.
-
-        EMU are the DrawingML unit: 914,400 per inch, 9,525 per pixel at 96 DPI. The figure is
-        scaled to fit the box while preserving aspect, because a picture stretched to a box of a
-        different ratio is worse than a smaller one.
-    #>
-    param(
-        [Parameter(Mandatory)]$SlidePart,
-        [Parameter(Mandatory)]$Tree,
-        [Parameter(Mandatory)]$Figure,
-        [Parameter(Mandatory)][int]$Id,
-        [double]$X, [double]$Y, [double]$BoxWIn, [double]$BoxHIn
-    )
-
-    # AddNewPart<ImagePart>(contentType): the AddImagePart convenience overload was removed in
-    # DocumentFormat.OpenXml 3.x, which is the version this renderer pins.
-    $imagePart = $SlidePart.AddNewPart[DocumentFormat.OpenXml.Packaging.ImagePart]('image/png')
-    $ms = [System.IO.MemoryStream]::new([byte[]]$Figure.Bytes)
-    try { $imagePart.FeedData($ms) } finally { $ms.Dispose() }
-    $relId = $SlidePart.GetIdOfPart($imagePart)
-
-    # Fit inside the box, preserving aspect.
-    $scale = [Math]::Min($BoxWIn / ($Figure.Width / 96.0), $BoxHIn / ($Figure.Height / 96.0))
-    $wIn = ($Figure.Width / 96.0) * $scale
-    $hIn = ($Figure.Height / 96.0) * $scale
-    $offX = $X + (($BoxWIn - $wIn) / 2)
-
-    $cx = [int64]($wIn * 914400)
-    $cy = [int64]($hIn * 914400)
-    $ox = [int64]($offX * 914400)
-    $oy = [int64]($Y * 914400)
-    $safeName = ConvertTo-ScoutPptxXmlText $Figure.Name
-
-    $pic = New-ScoutEl "$Script:PresNs.Picture"
-    $pic.InnerXml = @"
-<p:nvPicPr xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:cNvPr id="$Id" name="$safeName"/>
-  <p:cNvPicPr><a:picLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></p:cNvPicPr>
-  <p:nvPr/>
-</p:nvPicPr>
-<p:blipFill xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <a:blip xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="$relId"/>
-  <a:stretch xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:fillRect/></a:stretch>
-</p:blipFill>
-<p:spPr xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <a:xfrm xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-    <a:off x="$ox" y="$oy"/><a:ext cx="$cx" cy="$cy"/>
-  </a:xfrm>
-  <a:prstGeom xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" prst="rect"><a:avLst/></a:prstGeom>
-</p:spPr>
-"@
-    $Tree.Append($pic)
-}
-
-function ConvertTo-ScoutPptxXmlText {
-    # Figure names are generated, but escaping is cheap and a malformed name would produce a
-    # package PowerPoint refuses to open rather than a visibly wrong one.
-    param([AllowEmptyString()][AllowNull()][string]$Text)
-    if ([string]::IsNullOrEmpty($Text)) { return 'figure' }
-    return ($Text -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;')
-}
-
-function New-ScoutFigureSlide {
-    <#
-    .SYNOPSIS
-        One slide per rasterised figure, with the caption beneath it.
-
-    .DESCRIPTION
-        AB#6883. One figure per slide rather than a grid: the deck's rule is one idea per slide,
-        and three charts crammed onto one is three ideas nobody reads.
-
-        Non-fatal by design. A deck that loses its figures is still a deck; a run that dies while
-        adding a picture has cost the operator every other format too.
-    #>
-    param($Shell, $Figures, [ref]$PageCounter, [int]$TotalPages)
-
-    $figs = @($Figures)
-    if ($figs.Count -eq 0) { return }
-
-    $picId = 1000
-    foreach ($fig in $figs) {
-        $picId++
-        $captured = $fig
-        $capturedId = $picId
-        try {
-            $tree = New-ScoutEmptyShapeTreeStandalone
-            Add-ScoutSlideChrome -Tree $tree -Title $captured.Caption -PageNum $PageCounter.Value -TotalPages $TotalPages
-
-            $slideEl = New-ScoutSlideElement -Tree $tree
-            # The slide part has to exist before an image part can hang off it, so the deck
-            # registration happens first and the picture is appended to the live tree after.
-            Add-ScoutSlideToDeck -Shell $Shell -SlideElement $slideEl -LayoutPart $Shell.LayoutContentPart
-            $slidePart = $Shell.PresPart.SlideParts | Select-Object -Last 1
-
-            Add-ScoutSlidePicture -SlidePart $slidePart -Tree $tree -Figure $captured -Id $capturedId `
-                -X 0.75 -Y 1.35 -BoxWIn 11.8 -BoxHIn 5.4
-            $PageCounter.Value++
-        }
-        catch {
-            Write-Warning "Export-Pptx: figure '$($captured.Name)' could not be placed on a slide ($($_.Exception.Message)) -- omitted."
-        }
-    }
-}
-
 function Add-ScoutBulletList {
     param($Tree, [double]$X, [double]$Y, [double]$Cx, [string[]]$Lines, [double]$SizePt = 15, [double]$LineGapIn = 0.5)
     $paras = New-ScoutList
@@ -988,7 +859,6 @@ function Add-ScoutScoreCard {
 }
 
 function New-ScoutExecSummarySlide {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'False positive: Frameworks/Areas/Gaps/Manual/Errors are all read inside the -BodyShapeBuilder closure below, which PSScriptAnalyzer does not scan for outer-scope variable usage.')]
     param($Shell, $Frameworks, $Areas, $Gaps, $Manual, $Errors, [int]$PageNum, [int]$TotalPages)
 
     New-ScoutContentSlide -Shell $Shell -Title 'Executive Summary' -PageNum $PageNum -TotalPages $TotalPages -BodyShapeBuilder {
@@ -1003,19 +873,19 @@ function New-ScoutExecSummarySlide {
         } else {
             foreach ($fw in @($Frameworks)) {
                 $x = $startX + ($i * ($cardW + $gap))
-                $label = "$(Get-ScoutPptxProp -Obj $fw -Name 'Framework') Alignment Score"
-                Add-ScoutScoreCard -Tree $tree -X $x -Y 1.25 -Cx $cardW -Cy 1.7 -Label $label -Score (Get-ScoutPptxProp -Obj $fw -Name 'Score')
+                $label = "$(Get-ScoutProp $fw 'Framework') Alignment Score"
+                Add-ScoutScoreCard -Tree $tree -X $x -Y 1.25 -Cx $cardW -Cy 1.7 -Label $label -Score (Get-ScoutProp $fw 'Score')
                 $i++
             }
         }
 
         $areaArr = @($Areas)
-        $passSum = ($areaArr | ForEach-Object { Get-ScoutPptxProp -Obj $_ -Name 'Pass' -Default 0 } | Measure-Object -Sum).Sum
-        $partialSum = ($areaArr | ForEach-Object { Get-ScoutPptxProp -Obj $_ -Name 'Partial' -Default 0 } | Measure-Object -Sum).Sum
-        $failSum = ($areaArr | ForEach-Object { Get-ScoutPptxProp -Obj $_ -Name 'Fail' -Default 0 } | Measure-Object -Sum).Sum
+        $passSum = ($areaArr | ForEach-Object { Get-ScoutProp $_ 'Pass' 0 } | Measure-Object -Sum).Sum
+        $partialSum = ($areaArr | ForEach-Object { Get-ScoutProp $_ 'Partial' 0 } | Measure-Object -Sum).Sum
+        $failSum = ($areaArr | ForEach-Object { Get-ScoutProp $_ 'Fail' 0 } | Measure-Object -Sum).Sum
         $manualCount = @($Manual).Count
         $errorCount = @($Errors).Count
-        $highGaps = (@($Gaps) | Where-Object { (Get-ScoutSeverityLabel (Get-ScoutPptxProp -Obj $_ -Name 'Severity')) -eq 'HIGH' } | Measure-Object).Count
+        $highGaps = (@($Gaps) | Where-Object { (Get-ScoutSeverityLabel (Get-ScoutProp $_ 'Severity')) -eq 'HIGH' } | Measure-Object).Count
 
         $lines = @(
             "Areas assessed: $($areaArr.Count)"
@@ -1029,12 +899,7 @@ function New-ScoutExecSummarySlide {
 }
 
 function New-ScoutAreaTableSlides {
-    # $MaxPages is the slide budget clause P-05 leaves this section after the fixed slides. An
-    # estate with 60 areas would otherwise produce a six-page table and blow the cap; it is
-    # truncated with a stated remainder rather than silently, because a table that stops without
-    # saying so reads as the whole list.
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'tests/Report.Pptx.Tests.ps1 calls this function directly by its exact name; renaming would break out-of-scope test coverage.')]
-    param($Shell, $Areas, [ref]$PageCounter, [int]$TotalPages, [int]$MaxPages = 0)
+    param($Shell, $Areas, [ref]$PageCounter, [int]$TotalPages)
 
     # @(...) wraps the WHOLE pipeline, not just $Areas -- a Sort-Object over zero
     # input collapses the bare assignment to $null, and $null.Count throws
@@ -1042,20 +907,13 @@ function New-ScoutAreaTableSlides {
     # load-bearing pattern Get-Score.ps1 documents for its own Pass/Fail counters.
     $rows = @(@($Areas) | Sort-Object Framework, Area)
     if ($rows.Count -eq 0) { return }
-    $chunks = @(Split-ScoutChunk -Items $rows -Size 10)
-    $dropped = 0
-    if ($MaxPages -gt 0 -and $chunks.Count -gt $MaxPages) {
-        $shown = $MaxPages * 10
-        $dropped = $rows.Count - $shown
-        $chunks = @($chunks | Select-Object -First $MaxPages)
-    }
+    $chunks = Split-ScoutChunks -Items $rows -Size 10
     $pageOfPages = $chunks.Count
 
     $chunkIdx = 0
     foreach ($chunk in $chunks) {
         $chunkIdx++
         $title = if ($pageOfPages -gt 1) { "Area Score Breakdown ($chunkIdx/$pageOfPages)" } else { 'Area Score Breakdown' }
-        if ($dropped -gt 0 -and $chunkIdx -eq $pageOfPages) { $title = "$title — $dropped more in the workbook" }
         $capturedChunk = $chunk
         New-ScoutContentSlide -Shell $Shell -Title $title -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
             param($tree)
@@ -1071,17 +929,17 @@ function New-ScoutAreaTableSlides {
             foreach ($area in $capturedChunk) {
                 $r++
                 $bg = if ($r % 2 -eq 0) { $Script:Mist } else { $Script:Paper }
-                $score = Get-ScoutPptxProp -Obj $area -Name 'Score'
+                $score = Get-ScoutProp $area 'Score'
                 $scoreColor = Get-ScoutScoreColor $score
                 $scoreText = if ($null -eq $score) { '—' } else { "$score" }
                 $cells = New-ScoutList
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Framework')" -Hex $Script:Ink -FillHex $bg))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Framework')" -Hex $Script:Ink -FillHex $bg))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
                 $cells.Add((New-ScoutTableCell -Text $scoreText -Bold $true -Hex $scoreColor -FillHex $bg))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Pass' -Default 0)" -Hex $Script:Ink -FillHex $bg))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Partial' -Default 0)" -Hex $Script:Ink -FillHex $bg))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Fail' -Default 0)" -Hex $Script:Ink -FillHex $bg))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $area -Name 'Manual' -Default 0)" -Hex $Script:Ink -FillHex $bg))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Pass' 0)" -Hex $Script:Ink -FillHex $bg))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Partial' 0)" -Hex $Script:Ink -FillHex $bg))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Fail' 0)" -Hex $Script:Ink -FillHex $bg))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $area 'Manual' 0)" -Hex $Script:Ink -FillHex $bg))
                 $rowsList.Add((New-ScoutTableRow -HeightIn 0.32 -Cells $cells))
             }
 
@@ -1092,7 +950,6 @@ function New-ScoutAreaTableSlides {
 }
 
 function New-ScoutGapsSlides {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'tests/Report.Pptx.Tests.ps1 calls this function directly by its exact name; renaming would break out-of-scope test coverage.')]
     param($Shell, $Gaps, [ref]$PageCounter, [int]$TotalPages, [int]$MaxGaps = 15)
 
     # AB#5089: defensive re-sort at render time too — null/unrecognized severity
@@ -1100,7 +957,7 @@ function New-ScoutGapsSlides {
     # Get-Score's own sort. Both @(...) wraps are load-bearing: a Sort-Object/
     # Select-Object over zero input collapses the bare assignment to $null, and
     # $null.Count throws PropertyNotFoundException under Set-StrictMode -Version Latest.
-    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutPptxProp -Obj $_ -Name 'Severity') } }, Area)
+    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutProp $_ 'Severity') } }, Area)
     $top = @($sorted | Select-Object -First $MaxGaps)
 
     if ($top.Count -eq 0) {
@@ -1112,7 +969,7 @@ function New-ScoutGapsSlides {
         return
     }
 
-    $chunks = Split-ScoutChunk -Items $top -Size 10
+    $chunks = Split-ScoutChunks -Items $top -Size 10
     $pageOfPages = $chunks.Count
     $chunkIdx = 0
     foreach ($chunk in $chunks) {
@@ -1136,12 +993,12 @@ function New-ScoutGapsSlides {
             foreach ($gap in $capturedChunk) {
                 $r++
                 $bg = if ($r % 2 -eq 0) { $Script:Mist } else { $Script:Paper }
-                $sevLabel = Get-ScoutSeverityLabel (Get-ScoutPptxProp -Obj $gap -Name 'Severity')
-                $sevColor = Get-ScoutSeverityColor (Get-ScoutPptxProp -Obj $gap -Name 'Severity')
+                $sevLabel = Get-ScoutSeverityLabel (Get-ScoutProp $gap 'Severity')
+                $sevColor = Get-ScoutSeverityColor (Get-ScoutProp $gap 'Severity')
                 $cells = New-ScoutList
                 $cells.Add((New-ScoutTableCell -Text $sevLabel -Bold $true -Hex $Script:Paper -FillHex $sevColor))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $gap -Name 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
-                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $gap -Name 'Title')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $gap 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
+                $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $gap 'Title')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
                 $cells.Add((New-ScoutTableCell -Text (Get-ScoutPptxEvidenceSummary $gap) -SizePt 11 -Hex $Script:Ink -FillHex $bg -Align 'l'))
                 $rowsList.Add((New-ScoutTableRow -HeightIn 0.4 -Cells $cells))
             }
@@ -1187,8 +1044,8 @@ function New-ScoutManualSlide {
             $r++
             $bg = if ($r % 2 -eq 0) { $Script:Mist } else { $Script:Paper }
             $cells = New-ScoutList
-            $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $m -Name 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
-            $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutPptxProp -Obj $m -Name 'Title')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
+            $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $m 'Area')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
+            $cells.Add((New-ScoutTableCell -Text "$(Get-ScoutProp $m 'Title')" -Hex $Script:Ink -FillHex $bg -Align 'l'))
             $rowsList.Add((New-ScoutTableRow -HeightIn 0.36 -Cells $cells))
         }
         $tree.Append((New-ScoutTable -Name 'ManualTable' -X 0.55 -Y 1.25 -ColWidthsIn $colW -Rows $rowsList))
@@ -1196,86 +1053,6 @@ function New-ScoutManualSlide {
         if ($truncated -gt 0) {
             Add-ScoutBulletList -Tree $tree -X 0.55 -Y 6.55 -Cx 12.2 -Lines @("+$truncated more not shown — see the evidence pack (Excel tier) for the full list.") -SizePt 11 -LineGapIn 0.3
         }
-    }
-    $PageCounter.Value++
-}
-
-function New-ScoutScopeSlide {
-    <#
-    .SYNOPSIS
-        What this assessment did and — more importantly — did NOT look at.
-
-    .DESCRIPTION
-        AB#6886, clause P-03. A deck that states only what it found invites the reader to assume
-        everything else was checked and passed. Roughly 60% of a Scout run is Manual or Unknown,
-        which is a property of the rule set (Epic AB#6454), and a deck that does not say so is
-        overclaiming.
-
-        The numbers here are computed from the run rather than written as boilerplate, so the
-        slide cannot drift away from what was actually assessed.
-    #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Areas', Justification = 'False positive: Areas is read inside the -BodyShapeBuilder closure below, which PSScriptAnalyzer does not scan for outer-scope variable usage.')]
-    param($Shell, $Areas, $AllFindings, $Manual, $Errors, [ref]$PageCounter, [int]$TotalPages)
-
-    $all = @($AllFindings)
-    $manualCount = @($Manual).Count
-    $errorCount = @($Errors).Count
-    $automated = $all.Count - $manualCount - $errorCount
-    if ($automated -lt 0) { $automated = 0 }
-
-    New-ScoutContentSlide -Shell $Shell -Title 'Scope — and what was not assessed' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
-        param($tree)
-        $lines = @(
-            "$automated control(s) were evaluated automatically against $(@($Areas).Count) assessed area(s)."
-            "$manualCount control(s) require manual review and were NOT assessed. They are not passes and not failures."
-            "$errorCount finding(s) could not be evaluated — usually a collector permission or query issue, not a compliance failure."
-            'Assessment depth is bounded by the rule set, not by this report. A control with no automated rule is reported as Not assessed.'
-            'Nothing outside the tenant and subscriptions listed on the title slide was examined.'
-        )
-        Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.5 -Cx 12.2 -Lines $lines -SizePt 16 -LineGapIn 0.7
-    }
-    $PageCounter.Value++
-}
-
-function New-ScoutActFirstSlide {
-    <#
-    .SYNOPSIS
-        The single "act on this first" slide, naming one specific item.
-
-    .DESCRIPTION
-        AB#6886, clause P-04: "exactly one 'act on this first' slide naming a specific item."
-        Exactly one, because a deck with five priorities has none, and a named item because
-        "address high-severity gaps" is not something anyone can be assigned on Monday.
-
-        The item is chosen by the same worst-first ordering the document uses, so the deck and
-        the report cannot disagree about what matters most.
-    #>
-    param($Shell, $Gaps, [ref]$PageCounter, [int]$TotalPages)
-
-    $sorted = @(@($Gaps) | Sort-Object @{ Expression = { Get-ScoutSeverityRank (Get-ScoutPptxProp -Obj $_ -Name 'Severity') } }, Area)
-    $top = $sorted | Select-Object -First 1
-
-    New-ScoutContentSlide -Shell $Shell -Title 'Act on this first' -PageNum $PageCounter.Value -TotalPages $TotalPages -BodyShapeBuilder {
-        param($tree)
-        if ($null -eq $top) {
-            $lines = @(
-                'No gaps were raised by this run.'
-                'Every automatically evaluated control in scope is aligned. The Not assessed items on the scope slide are the remaining work.'
-            )
-        }
-        else {
-            $sev = Get-ScoutSeverityLabel (Get-ScoutPptxProp -Obj $top -Name 'Severity')
-            $area = "$(Get-ScoutPptxProp -Obj $top -Name 'Area')"
-            $title = "$(Get-ScoutPptxProp -Obj $top -Name 'Title')"
-            $evidence = Get-ScoutPptxEvidenceSummary $top
-            $lines = @(
-                "$title"
-                "Area: $area   ·   Severity: $sev$(if ($evidence) { "   ·   Scope: $evidence" })"
-                "$(Get-ScoutPptxProp -Obj $top -Name 'Remediation')"
-                'This is the highest-severity gap in the run. It is one item, on purpose — a deck with five priorities has none.'
-            )
-        }
-        Add-ScoutBulletList -Tree $tree -X 0.55 -Y 1.5 -Cx 12.2 -Lines $lines -SizePt 16 -LineGapIn 0.8
     }
     $PageCounter.Value++
 }
@@ -1326,19 +1103,18 @@ function Export-Pptx {
     $outFile = Join-Path $OutputPath 'assessment_deck.pptx'
     New-Item -ItemType Directory -Path $OutputPath -Force -ErrorAction SilentlyContinue | Out-Null
 
-    $frameworks = @(Get-ScoutPptxProp -Obj $Findings -Name 'Frameworks')
-    $areas = @(Get-ScoutPptxProp -Obj $Findings -Name 'Areas')
-    $gaps = @(Get-ScoutPptxProp -Obj $Findings -Name 'Gaps')
-    $manual = @(Get-ScoutPptxProp -Obj $Findings -Name 'Manual')
-    $errors = @(Get-ScoutPptxProp -Obj $Findings -Name 'Errors')
-    $allFindings = @(Get-ScoutPptxProp -Obj $Findings -Name 'Findings')
-    $generatedOn = Get-ScoutPptxProp -Obj $Findings -Name 'GeneratedOn'
+    $frameworks = @(Get-ScoutProp $Findings 'Frameworks')
+    $areas = @(Get-ScoutProp $Findings 'Areas')
+    $gaps = @(Get-ScoutProp $Findings 'Gaps')
+    $manual = @(Get-ScoutProp $Findings 'Manual')
+    $errors = @(Get-ScoutProp $Findings 'Errors')
+    $generatedOn = Get-ScoutProp $Findings 'GeneratedOn'
     $generatedText = if ($generatedOn) {
         try { ([datetime]$generatedOn).ToString('yyyy-MM-dd') } catch { "$generatedOn" }
     } else { (Get-Date).ToString('yyyy-MM-dd') }
 
-    $scope = Get-ScoutPptxProp -Obj (Get-ScoutPptxProp -Obj $Collect -Name '_meta') -Name 'scope'
-    $mgId = Get-ScoutPptxProp -Obj (Get-ScoutPptxProp -Obj $Collect -Name '_meta') -Name 'managementGroupId'
+    $scope = Get-ScoutProp (Get-ScoutProp $Collect '_meta') 'scope'
+    $mgId = Get-ScoutProp (Get-ScoutProp $Collect '_meta') 'managementGroupId'
     $metaParts = New-Object System.Collections.Generic.List[string]
     $metaParts.Add("Generated $generatedText")
     if ($scope) { $metaParts.Add("Scope: $scope") }
@@ -1346,43 +1122,14 @@ function Export-Pptx {
     $metaLine = [string]::Join('  ·  ', $metaParts)
 
     # Slide count plan (used for the "n / total" footer):
-    #   1 title + 1 scope + 1 summary + 1 act-first + area pages + gap pages (>=1) + 1 manual + 1 next-steps
-    #
-    # AB#6886, clause P-05 caps a roll-up deck at 15 slides, and adding the scope and act-first
-    # slides spends two of that budget. The area and gap page counts are therefore bounded below
-    # rather than left to grow with the estate: an eleven-slide deck that says one thing per
-    # slide beats a forty-slide deck nobody reaches the end of, and the detail those extra pages
-    # would have carried is in the workbook and the document.
-    # AB#6883. Figures are rendered up front so the slide budget can account for them: they are
-    # part of the deck's fixed spine, not an optional extra tacked on after the cap was computed.
-    # Non-fatal -- a deck without figures is still a deck.
-    $figures = @()
-    try {
-        if (-not (Get-Command -Name Export-ScoutFigureSet -ErrorAction SilentlyContinue)) {
-            . "$PSScriptRoot/../Build-ScoutFigure.ps1"
-        }
-        $figures = @(Export-ScoutFigureSet -Findings $Findings -OutputPath $OutputPath)
-    }
-    catch {
-        Write-Warning "Export-Pptx: the figure set did not render ($($_.Exception.Message)) -- the deck ships without figures."
-    }
-
-    $fixedSlides = 6 + $figures.Count
-    $budget = [Math]::Max(2, $Script:ScoutDeckMaxSlides - $fixedSlides)
-
+    #   1 title + 1 summary + area-table pages + gap pages (>=1) + 1 manual + 1 next-steps
     $areaPages = if (@($areas).Count -gt 0) { [Math]::Ceiling(@($areas).Count / 10.0) } else { 0 }
     # @() wraps the WHOLE pipeline -- Select-Object -First over zero input
     # collapses the bare assignment to $null, and $null.Count throws under
     # Set-StrictMode -Version Latest.
     $gapCandidates = @(@($gaps) | Select-Object -First 15)
     $gapPages = if ($gapCandidates.Count -gt 0) { [Math]::Ceiling($gapCandidates.Count / 10.0) } else { 1 }
-
-    # Gaps keep at least one page -- a deck that drops the gap list to fit an area table has
-    # dropped the point of the assessment.
-    $areaPages = [Math]::Max(0, [Math]::Min($areaPages, $budget - 1))
-    $gapPages = [Math]::Max(1, [Math]::Min($gapPages, $budget - $areaPages))
-
-    $totalPages = $fixedSlides + $areaPages + $gapPages
+    $totalPages = 1 + 1 + $areaPages + $gapPages + 1 + 1
 
     $shell = New-ScoutDeckShell -OutFile $outFile
 
@@ -1394,15 +1141,8 @@ function Export-Pptx {
     $page++
 
     $pageRef = [ref]$page
-    # Scope before the detail (P-03) and the single priority right after it (P-04): a reader who
-    # leaves after three slides should still know what was covered and what to do on Monday.
-    New-ScoutScopeSlide -Shell $shell -Areas $areas -AllFindings $allFindings -Manual $manual -Errors $errors -PageCounter $pageRef -TotalPages $totalPages
-    New-ScoutActFirstSlide -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages
-    # Figures follow the priority slide and precede the tables: a chart is an argument about the
-    # whole run, so it belongs where the run is being characterised, not among the detail.
-    New-ScoutFigureSlide -Shell $shell -Figures $figures -PageCounter $pageRef -TotalPages $totalPages
-    New-ScoutAreaTableSlides -Shell $shell -Areas $areas -PageCounter $pageRef -TotalPages $totalPages -MaxPages $areaPages
-    New-ScoutGapsSlides -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages -MaxGaps ($gapPages * 10)
+    New-ScoutAreaTableSlides -Shell $shell -Areas $areas -PageCounter $pageRef -TotalPages $totalPages
+    New-ScoutGapsSlides -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages
     New-ScoutManualSlide -Shell $shell -Manual $manual -PageCounter $pageRef -TotalPages $totalPages
     New-ScoutNextStepsSlide -Shell $shell -PageCounter $pageRef -TotalPages $totalPages
 

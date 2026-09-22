@@ -208,7 +208,7 @@ function Get-ScoutEchartsSum {
     # bare assignment to $null (the same load-bearing @() pattern documented
     # in Get-Score.ps1/Export-Word.ps1) -- this always returns a real number.
     param($Items, [string]$Property)
-    $s = ($Items | ForEach-Object { Get-ScoutEchartsProp -Obj $_ -Name $Property -Default 0 } | Measure-Object -Sum).Sum
+    $s = ($Items | ForEach-Object { Get-ScoutEchartsProp $_ $Property 0 } | Measure-Object -Sum).Sum
     if ($null -eq $s) { return 0 }
     return $s
 }
@@ -229,11 +229,10 @@ function Get-ScoutEchartsLabel {
 #region Chart-data builders
 
 function Get-ScoutEchartsSeverityCounts {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'tests/Report.EChartsDashboard.Tests.ps1 mocks this function by its exact name; renaming would break out-of-scope test coverage.')]
     param($AllFindings)
     $buckets = [ordered]@{ High = 0; Medium = 0; Low = 0; Unknown = 0 }
     foreach ($f in @($AllFindings)) {
-        $bucket = Get-ScoutEchartsSeverityBucket (Get-ScoutEchartsProp -Obj $f -Name 'Severity')
+        $bucket = Get-ScoutEchartsSeverityBucket (Get-ScoutEchartsProp $f 'Severity')
         $buckets[$bucket]++
     }
     return , @(
@@ -244,13 +243,13 @@ function Get-ScoutEchartsSeverityCounts {
     )
 }
 
-function Get-ScoutEchartsAreaScore {
+function Get-ScoutEchartsAreaScores {
     param($Areas)
     $sorted = @(@($Areas) | Sort-Object Framework, Area)
     return , @($sorted | ForEach-Object {
-            $score = Get-ScoutEchartsProp -Obj $_ -Name 'Score'
+            $score = Get-ScoutEchartsProp $_ 'Score'
             [pscustomobject]@{
-                Name     = "$(Get-ScoutEchartsProp -Obj $_ -Name 'Framework') - $(Get-ScoutEchartsProp -Obj $_ -Name 'Area')"
+                Name     = "$(Get-ScoutEchartsProp $_ 'Framework') - $(Get-ScoutEchartsProp $_ 'Area')"
                 Value    = if ($null -eq $score) { 0 } else { $score }
                 HasScore = ($null -ne $score)
                 Color    = "#$(Get-ScoutEchartsScoreColor $score)"
@@ -272,7 +271,7 @@ function Get-ScoutEchartsStatusBreakdown {
     )
 }
 
-function Get-ScoutEchartsResourceCount {
+function Get-ScoutEchartsResourceCounts {
     # Auto-discovers resource categories from whatever Collect actually
     # carries, two levels deep (category container -> array leaf), rather
     # than hardcoding a category list -- so this adapts to schema drift
@@ -320,7 +319,7 @@ function Export-ScoutEchartsHtmlFallback {
     param($Findings, [string] $OutputPath, [string] $Reason)
     if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
     $safeReason = $Reason -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    $generatedOn = Get-ScoutEchartsProp -Obj $Findings -Name 'GeneratedOn' -Default '(unknown)'
+    $generatedOn = Get-ScoutEchartsProp $Findings 'GeneratedOn' '(unknown)'
     $html = @"
 <!DOCTYPE html>
 <html>
@@ -658,22 +657,22 @@ function Export-EChartsDashboard {
             New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
         }
 
-        $allFindings = @(Get-ScoutEchartsProp -Obj $Findings -Name 'Findings')
-        $areas = @(Get-ScoutEchartsProp -Obj $Findings -Name 'Areas')
-        $generatedOn = Get-ScoutEchartsProp -Obj $Findings -Name 'GeneratedOn'
+        $allFindings = @(Get-ScoutEchartsProp $Findings 'Findings')
+        $areas = @(Get-ScoutEchartsProp $Findings 'Areas')
+        $generatedOn = Get-ScoutEchartsProp $Findings 'GeneratedOn'
 
-        $metaSrc = Get-ScoutEchartsProp -Obj $Collect -Name '_meta'
-        $scope = Get-ScoutEchartsProp -Obj $metaSrc -Name 'scope'
-        $mgId = Get-ScoutEchartsProp -Obj $metaSrc -Name 'managementGroupId'
+        $metaSrc = Get-ScoutEchartsProp $Collect '_meta'
+        $scope = Get-ScoutEchartsProp $metaSrc 'scope'
+        $mgId = Get-ScoutEchartsProp $metaSrc 'managementGroupId'
 
         $hasLib = -not [string]::IsNullOrWhiteSpace($Script:ScoutEChartsLibJs)
 
         $payload = [pscustomobject]@{
             Meta              = [pscustomobject]@{ GeneratedOn = $generatedOn; Scope = $scope; ManagementGroupId = $mgId }
             SeverityCounts    = Get-ScoutEchartsSeverityCounts -AllFindings $allFindings
-            AreaScores        = Get-ScoutEchartsAreaScore -Areas $areas
+            AreaScores        = Get-ScoutEchartsAreaScores -Areas $areas
             StatusBreakdown   = Get-ScoutEchartsStatusBreakdown -Areas $areas
-            ResourceCounts    = Get-ScoutEchartsResourceCount -Collect $Collect
+            ResourceCounts    = Get-ScoutEchartsResourceCounts -Collect $Collect
             HasEchartsLib     = $hasLib
         }
 

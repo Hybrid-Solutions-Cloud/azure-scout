@@ -67,6 +67,7 @@ function Build-AZSCSecurityOverviewReport {
     }
 
     if ($AssessRows.Count -gt 0) {
+        $HighStyle = New-ExcelStyle -BackgroundColor ([System.Drawing.Color]::LightCoral) -Bold -Range A1 -AutoSize
         $AssessRows | Export-Excel -Path $File `
             -WorksheetName 'Security Overview' `
             -TableName ('SecAssess_' + $AssessRows.Count) `

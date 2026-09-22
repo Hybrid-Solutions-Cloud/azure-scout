@@ -48,8 +48,7 @@ $ErrorActionPreference = 'Stop'
                    PolicyDefinitionId (AB#6792 — "identify the policy that produced it")
       CompliancePercent — Compliant / (Compliant + Fail) * 100, rounded, matching how
                    Defender for Cloud's compliance blade reads a policy-level pass/fail
-                   split. $null when there is nothing scorable or Scout observed fewer
-                   distinct controls than Initiative.PolicyCount.
+                   split. $null when there is nothing scorable (every control NotAssessed).
       NotAssessedCount
 
 .NOTES
@@ -138,19 +137,7 @@ function Get-ScoutComplianceScore {
 
     $passCount = @($findings | Where-Object Status -eq 'Pass').Count
     $failCount = @($findings | Where-Object Status -eq 'Fail').Count
-    $observedControlCount = @($findings).Count
-    $expectedControlCount = $null
-    if ($Initiative.PSObject.Properties['PolicyCount'] -and $null -ne $Initiative.PolicyCount) {
-        $parsedPolicyCount = 0
-        if ([int]::TryParse([string]$Initiative.PolicyCount, [ref]$parsedPolicyCount) -and $parsedPolicyCount -gt 0) {
-            $expectedControlCount = $parsedPolicyCount
-        }
-    }
-    $unobservedControlCount = if ($null -ne $expectedControlCount -and $expectedControlCount -gt $observedControlCount) {
-        $expectedControlCount - $observedControlCount
-    } else { 0 }
-    $coverageComplete = ($null -eq $expectedControlCount -or $observedControlCount -ge $expectedControlCount)
-    $notAssessedCount = @($findings | Where-Object Status -eq 'NotAssessed').Count + $unobservedControlCount
+    $notAssessedCount = @($findings | Where-Object Status -eq 'NotAssessed').Count
     $scorableCount = $passCount + $failCount
 
     [pscustomobject]@{
@@ -162,13 +149,6 @@ function Get-ScoutComplianceScore {
         Pass              = $passCount
         Fail              = $failCount
         NotAssessed       = $notAssessedCount
-        ObservedControlCount   = $observedControlCount
-        ExpectedControlCount   = $expectedControlCount
-        UnobservedControlCount = $unobservedControlCount
-        CoverageComplete       = $coverageComplete
-        CoveragePercent        = if ($null -ne $expectedControlCount) {
-            [math]::Round([math]::Min($observedControlCount, $expectedControlCount) / $expectedControlCount * 100, 1)
-        } else { $null }
-        CompliancePercent = if ($coverageComplete -and $scorableCount -gt 0) { [math]::Round($passCount / $scorableCount * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+        CompliancePercent = if ($scorableCount -gt 0) { [math]::Round($passCount / $scorableCount * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
     }
 }

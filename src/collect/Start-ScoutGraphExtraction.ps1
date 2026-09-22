@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Parameter-translation shim: maps the v1 inventory extraction contract onto src/collect.
@@ -28,7 +24,7 @@ Behaviour differences from the deleted implementation, all deliberate:
     with an empty -Subscription list.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/collect/Start-ScoutGraphExtraction.ps1
+https://github.com/thisismydemo/azure-scout/src/collect/Start-ScoutGraphExtraction.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -37,16 +33,13 @@ This powershell Module is part of Azure Scout (AZSC)
 Tracks ADO AB#5648 (Epic AB#5638). Original v1 implementation: Claudio Merola, 15th Oct 2024.
 #>
 Function Start-AZSCGraphExtraction {
-    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment, $SkipAPIs, $SkipPolicy, $CategoryPlan)
+    Param($ManagementGroup, $Subscriptions, $SubscriptionID, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $AzureEnvironment, $SkipAPIs, $SkipPolicy)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Starting Extractor function (src/collect single-pass, AB#5648)')
 
     <###################################################### Subscriptions ######################################################################>
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering subscriptions'
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering subscriptions' }
+    Write-Progress -activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering Subscriptions..'
 
     if (![string]::IsNullOrEmpty($ManagementGroup)) {
         $Subscriptions = Get-AZSCManagementGroups -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions
@@ -56,10 +49,7 @@ Function Start-AZSCGraphExtraction {
     $SubCount = [string]@($Subscri).Count
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Subscriptions Found: ' + $SubCount)
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount subscriptions found"
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount subscriptions found" }
+    Write-Progress -activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount Subscriptions found.."
 
     # Preserved verbatim from the v1 contract: a resource-group filter is only meaningful
     # alongside an explicit subscription. Throw rather than Exit -- Exit kills the whole
@@ -69,29 +59,30 @@ Function Start-AZSCGraphExtraction {
         throw 'If using the -ResourceGroup parameter, the -SubscriptionID must also be provided.'
     }
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting resource extraction'
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting resource extraction' }
+    Write-Progress -activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting Resources extraction..'
 
     <######################################################## SINGLE COLLECTION PASS #######################################################>
 
     # The legacy row filters were an if/elseif chain (resource group, else tags, else management
     # group). Get-ScoutRawInventory reproduces that precedence itself, so all three are handed
     # over unconditionally and it decides -- there is no filter logic left in this file.
-    $isSelectivePlan = $null -ne $CategoryPlan -and $CategoryPlan.PSObject.Properties['IsFull'] -and -not [bool]$CategoryPlan.IsFull
     $RawArgs = @{
         SubscriptionIds              = $Subscri
-        IncludeSupportResources      = (($AzureEnvironment -ne 'AzureUSGovernment') -and (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeSupportResources))
-        IncludeBackupResources       = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeBackupResources)
-        IncludeDesktopVirtualization = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeDesktopVirtualization)
-        IncludeUpdateManagerResources = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeUpdateManagerResources)
-        IncludeRetirements           = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeRetirements)
-        IncludeAdvisories            = ((-not [bool]$SkipAdvisory) -and (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeAdvisories))
+        IncludeSupportResources      = ($AzureEnvironment -ne 'AzureUSGovernment')
+        IncludeBackupResources       = $true
+        IncludeDesktopVirtualization = $true
+        IncludeUpdateManagerResources = $true
+        # AB#6771. Unconditionally on, like every other inventory table above it. Setting it to
+        # anything a caller could leave unset would recreate the AB#6755 defect verbatim: the
+        # Lighthouse worksheet was blank for releases precisely because nothing read the one ARG
+        # table its type lives in, and a switch nobody sets is indistinguishable from that.
+        IncludeLighthouseDelegations = $true
+        IncludeRetirements           = $true
+        IncludeAdvisories            = (-not [bool]$SkipAdvisory)
         IncludeSecurityCenter        = [bool]$SecurityCenter
-        IncludeArmChildResources     = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeArmChildResources)
-        IncludeOperationalCollectorEnrichment = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeOperationalCollectorEnrichment)
-        IncludeSubscriptionSecurityPolicy = (-not $isSelectivePlan -or [bool]$CategoryPlan.IncludeSubscriptionSecurityPolicy)
+        IncludeArmChildResources     = $true
+        IncludeOperationalCollectorEnrichment = $true
+        IncludeSubscriptionSecurityPolicy = $true
         # AB#6755. Tenant-wide collection -- management groups, custom role definitions, policy
         # definitions and policy set definitions -- is now UNCONDITIONAL and there is no longer
         # a parameter for it. It was gated by an AB#5933 migration switch no production caller
@@ -105,56 +96,18 @@ Function Start-AZSCGraphExtraction {
         # The sweep costs this path no extra round-trips -- it is the same Get-ScoutApiResources
         # call Start-AZSCExtractionOrchestration used to run AFTER this function returned. The
         # results come back on $Raw.ApiResources and are handed up for that caller to reuse.
-        SkipApiResourceSweep         = ([bool]$SkipAPIs -or ($isSelectivePlan -and -not [bool]$CategoryPlan.IncludeApiResourceSweep))
+        SkipApiResourceSweep         = [bool]$SkipAPIs
         SkipPolicy                   = [bool]$SkipPolicy
         IncludeTags                  = [bool]$IncludeTags
         AzureEnvironment             = $AzureEnvironment
-    }
-    if ($isSelectivePlan) {
-        $RawArgs.CollectResourceTable = [bool]$CategoryPlan.CollectResourceTable
-        $RawArgs.CollectNetworkTable = [bool]$CategoryPlan.CollectNetworkTable
-        $RawArgs.CollectTenantWideResources = [bool]$CategoryPlan.CollectTenantWideResources
-        $RawArgs.CollectGovernance = [bool]$CategoryPlan.CollectGovernance
-        $RawArgs.ResourceTypes = @($CategoryPlan.ResourceTypes)
-        if ([bool]$CategoryPlan.IncludeArmChildResources) {
-            $RawArgs.ArmChildDataset = @($CategoryPlan.ArmChildDataset)
-        }
     }
     if (![string]::IsNullOrEmpty($ResourceGroup)) { $RawArgs.ResourceGroups = @($ResourceGroup) }
     if (![string]::IsNullOrEmpty($TagKey))        { $RawArgs.TagKey = $TagKey }
     if (![string]::IsNullOrEmpty($TagValue))      { $RawArgs.TagValue = $TagValue }
     if (![string]::IsNullOrEmpty($ManagementGroup)) { $RawArgs.ManagementGroupName = $ManagementGroup }
-    $rawInventoryCommand = Get-Command Get-ScoutRawInventory -ErrorAction Stop
-    if ($rawInventoryCommand.Parameters.ContainsKey('IncludeProviderResourceDetails')) {
-        $RawArgs.IncludeProviderResourceDetails = (
-            -not [bool]$SkipAPIs -and (
-            -not $isSelectivePlan -or
-            ($CategoryPlan.PSObject.Properties['IncludeProviderResourceDetails'] -and [bool]$CategoryPlan.IncludeProviderResourceDetails)
-            )
-        )
-    }
-    if ($rawInventoryCommand.Parameters.ContainsKey('CollectBillingEvidence')) {
-        $RawArgs.CollectBillingEvidence = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectGovernance)
-    }
-    if ($rawInventoryCommand.Parameters.ContainsKey('CollectEntraDiagnosticSettings')) {
-        $RawArgs.CollectEntraDiagnosticSettings = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectTenantWideResources)
-    }
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Invoking Get-ScoutRawInventory')
     $Raw = Get-ScoutRawInventory @RawArgs
-
-    $CollectionHealth = @(
-        if ($Raw.PSObject.Properties['CollectionHealth']) { $Raw.CollectionHealth }
-    )
-    if ([bool]$SkipAdvisory) {
-        $CollectionHealth += [pscustomobject]@{
-            Dataset       = 'Advisories'
-            Status        = 'NotAssessed'
-            Reason        = 'Advisor collection was explicitly disabled with -SkipAdvisory.'
-            ResourceTypes = @('microsoft.advisor/recommendations')
-            Collectors    = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
-        }
-    }
 
     $Resources = @($Raw.Resources)
     $ResourceContainers = @($Raw.ResourceContainers)
@@ -167,10 +120,7 @@ Function Start-AZSCGraphExtraction {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Security Center Advisors: ' + $Security.Count)
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Retirements: ' + $ResourceRetirements.Count)
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status 'Resource extraction complete' -PercentComplete 10
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status 'Resource extraction complete' -PercentComplete 10 }
+    Write-Progress -activity 'Azure Inventory' -PercentComplete 10
 
     # Zero-resources guard: an (almost) empty result usually means a permission or scope
     # problem, not an empty tenant (AB#5080). Get-ScoutRawInventory raises its own version of
@@ -194,6 +144,5 @@ Function Start-AZSCGraphExtraction {
         # AB#6779 -- the role/policy-assignment/lock/budget datasets the raw pass collected, so a
         # combined run's assessment half reads them instead of collecting them a second time.
         Governance         = $(if ($Raw.PSObject.Properties['Governance']) { $Raw.Governance } else { $null })
-        CollectionHealth   = @($CollectionHealth)
     }
 }

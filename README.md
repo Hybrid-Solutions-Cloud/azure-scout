@@ -1,32 +1,29 @@
 ---
-ArtifactType: Self-contained React report and machine-readable JSON evidence
+ArtifactType: Excel spreadsheet and JSON with full Azure Scout
 Language: PowerShell
 Platform: Windows / Linux / Mac
-Tags: PowerShell, Azure, Inventory, Entra ID, React Report, JSON Evidence
+Tags: PowerShell, Azure, Inventory, Entra ID, Excel Report, JSON
 ---
 
 <div align="center">
 
-![AzureScout](https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/images/azurescout-banner.svg)
+![AzureScout](https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-banner.svg)
 
 # AzureScout
 
 ### See everything. Own your cloud.
 
-[![GitHub](https://img.shields.io/github/license/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE)
-[![GitHub repo size](https://img.shields.io/github/repo-size/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout)
-[![GitHub last commit](https://img.shields.io/github/last-commit/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout/commits/main)
-[![GitHub top language](https://img.shields.io/github/languages/top/Hybrid-Solutions-Cloud/azure-scout)](https://github.com/Hybrid-Solutions-Cloud/azure-scout)
+[![GitHub](https://img.shields.io/github/license/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout/blob/main/LICENSE)
+[![GitHub repo size](https://img.shields.io/github/repo-size/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout)
+[![GitHub last commit](https://img.shields.io/github/last-commit/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout/commits/main)
+[![GitHub top language](https://img.shields.io/github/languages/top/thisismydemo/azure-scout)](https://github.com/thisismydemo/azure-scout)
 [![Azure](https://badgen.net/badge/icon/azure?icon=azure&label)](https://azure.microsoft.com)
 
 </div>
 
 ## Overview
 
-**AzureScout** (AZSC) is a PowerShell module that inventories an Azure tenant and produces a
-self-contained React report plus machine-readable JSON results and evidence. It covers both ARM
-resources and Entra ID (Azure AD) objects for cloud administrators and technical professionals who
-need a consolidated view of their Azure environment.
+**AzureScout** (AZSC) is a PowerShell module that generates detailed Excel and JSON reports of an Azure tenant, covering both ARM resources and Entra ID (Azure AD) objects. It is designed for Cloud Administrators and technical professionals who need a consolidated view of their Azure environment.
 
 > **v3.0.0 architecture:** inventory collectors are declarative definitions in
 > `manifests/collectors`; AzureScout no longer ships or executes a per-collector PowerShell
@@ -41,17 +38,15 @@ need a consolidated view of their Azure environment.
 ## Key Features
 - ARM and Entra ID inventory
 - Azure DevOps inventory — projects, pipelines, service connections, repos, agent pools
-- One output contract for inventory, assessment, and combined runs: `React`, `Json`, and `JsonEvidence`
+- Excel and JSON output
 - Scoped execution (ARM-only, Entra-only, or both)
 - Streamlined authentication
 - Permission checker — names every collector a missing permission will leave empty
 - Network diagrams
 - Run isolation — a rescan never overwrites the previous run's data
-- Detailed file logging by default — collector/rule status, row/evidence counts, and phase timings
-  are written without adding debug noise to the console
-- Retained evidence — `raw-inventory.json`, `ReportCache/Discovery.json`, `collector-rowcounts.json`,
-  `collection-health.json`, `ReportCache`, and `DiagramCache` remain available after every run
-  until the operator explicitly prunes them; discovery/report payloads redact credential values
+- Evidence artifacts — `raw-inventory.json` (everything collected, before any worksheet
+  filtering) and `collector-rowcounts.json` (per-collector Rows/Empty/Failed) written for
+  every run
 - Unattended execution via Azure Automation Account or GitHub Actions
 - Cross-platform (Windows, Linux, Mac)
 
@@ -65,7 +60,7 @@ need a consolidated view of their Azure environment.
 ### Installation
 
 ```powershell
-git clone https://github.com/Hybrid-Solutions-Cloud/azure-scout.git
+git clone https://github.com/thisismydemo/azure-scout.git
 Import-Module ./azure-scout/AzureScout.psd1
 ```
 
@@ -80,7 +75,7 @@ Import-Module AzureScout
 Invoke-AzureScout
 
 # Scored CAF/WAF assessment (same command, different mode)
-Invoke-AzureScout -Assessment LandingZone -OutputFormat React
+Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
 
 # Inventory AND assessment from one collection against Azure (alias -Both)
 Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment

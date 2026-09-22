@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
+#Requires -Modules Az.ResourceGraph
 
 <#
     Pester tests for src/collect/Invoke-Collect.ps1's parameter wiring:
@@ -15,21 +16,8 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    . "$root/tests/helpers/Search-AzGraph.TestDouble.ps1"
+    Import-Module Az.ResourceGraph -ErrorAction Stop
     . "$root/src/collect/Invoke-Collect.ps1"
-
-    # Invoke-Collect performs this non-ARG sweep independently of category selection. Keep this
-    # unit suite hermetic and focused on query selection/tag shaping.
-    function Get-ScoutDefenderPlanSweep {
-        param([object[]] $Subscriptions)
-        $null = $Subscriptions
-        return @()
-    }
-    function Get-ScoutExternalIdentitiesPolicy {
-        param([string] $TenantID)
-        $null = $TenantID
-        return [pscustomobject]@{ Collected = $false }
-    }
 }
 
 Describe 'Invoke-Collect -Categories query filtering' {

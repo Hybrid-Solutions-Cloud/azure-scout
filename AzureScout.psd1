@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.15.0'
+ModuleVersion = '3.2.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ CompanyName = 'Hybrid Cloud Solutions'
 Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories tenant-wide Azure ARM resources and produces the live React, Json, and JsonEvidence outputs; opt into Entra ID collection with -Scope All; add -Assessment to run a read-only CAF/WAF assessment. Detailed run logs capture debug and verbose diagnostics without adding console noise. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
+Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc); add -Assessment and it runs a read-only CAF/WAF landing-zone assessment, scoring the tenant against Cloud Adoption Framework design areas and Well-Architected pillars and producing Power BI, self-contained HTML, executive PowerPoint, and JSON/Excel evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
 
 # Minimum version of the PowerShell engine required by this module
 # AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
@@ -54,22 +54,8 @@ PowerShellVersion = '7.0'
 # Processor architecture (None, X86, Amd64) required by this module
 # ProcessorArchitecture = ''
 
-# Modules that must be imported into the global environment prior to importing this module.
-# Keep optional feature dependencies (for example Az.CostManagement) out of this list.
-# Declaring the core dependencies here lets Install-Module resolve them and makes a
-# source-tree Import-Module fail cleanly instead of installing software as a side effect.
-# The live progress renderer is built into AzureScout and has no external module dependency.
-RequiredModules = @(
-    'ImportExcel'
-    'Az.Accounts'
-    'Az.ResourceGraph'
-    'Az.Storage'
-    'Az.Compute'
-    'Az.Resources'
-    'Az.Advisor'
-    'Microsoft.Graph.Authentication'
-    'powershell-yaml'
-)
+# Modules that must be imported into the global environment prior to importing this module
+RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -93,9 +79,7 @@ FunctionsToExport = @(
             'Start-AZSCPolicyJob',
             'Start-AZSCSecCenterJob',
             'Start-AZSCSubscriptionJob',
-
-            #Public output maintenance
-            'Clear-AZSCCacheFolder',
+            'Wait-AZSCJob',
 
             #Public Diagram Functions
             'Build-AZSCDiagramSubnet',
@@ -154,25 +138,28 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','React','Json','JsonEvidence')
+        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','Excel','PowerBI')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/thisismydemo/azure-scout/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://labs.hybridsolutions.cloud/azure-scout/'
+        ProjectUri = 'https://thisismydemo.cloud/azure-scout/'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
+        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.15.0 - Complete discovery evidence. Raw schema v2 retains every successful parent and child response with source-operation provenance and explicit collection health. Entra adds exact delegated-scope authentication, Conditional Access impact, MFA registration, legacy authentication, PIM active/eligible schedules, access reviews, emergency-access candidates, and hybrid topology. Optional adapters add Okta, local Entra Connect/AD, Azure billing, Defender controls/compliance/attack paths, Sentinel ingestion and retention, Entra diagnostic export, Azure RBAC PIM, and normalized storage exposure. The declarative catalog grows to 314 collectors, with sparse-payload and golden report coverage. Credential and Key Vault secret values are never persisted. AB#7441.'
+        ReleaseNotes = 'v3.2.0 - Deep governance and compliance analytics (Epic AB#6454). Scout goes from one real assessment to roughly twenty-eight, and from one enumerated source framework to all fourteen. Added five WAF pillar assessments, eight CAF landing-zone design-area assessments, the WAF Maturity Model, the Microsoft Cloud Security Benchmark plus one assessment per regulatory initiative assigned in the scanned scope, Cloud Governance across CAF Govern''s seven risk categories with a 1-10 domain maturity report, and workload reviews for AI, Azure Virtual Desktop, Azure VMware Solution, AVS Landing Zone, CASA and Azure Local, plus the FinOps Review and DevOps Capability Assessment. Compliance is scored from policy state Scout already collected and no rule read, at no additional Azure call. Three-state reporting: NotAssessed is a first-class status excluded from every score denominator by construction, so a control nobody chose to evaluate never reads as a pass or a fail, and a rule whose data source was blocked reports Not assessed rather than a zero - a denied billing API no longer renders as zero spend. Two false-pass rules removed, and waf.storage.yaml retired for scoring a WAF pillar that WAF does not define; a gate now fails any rule file claiming a pillar, design area or framework axis that does not exist. Every rule file must record the framework version it was verified against or the engine refuses to load it, so no coverage figure can ship without naming its source version. Hybrid/ArcSites and Hybrid/VirtualMachines re-sourced off Resource Graph, which indexes neither type - verified live against real estates returning rows where Resource Graph returns none. Orphaned role assignments are resolved locally against already-collected Entra principals, keeping Graph-denied distinct from principal-deleted. v3.1.0 - Service coverage across all eighteen of Microsoft''s published service categories (Epic AB#6741). Scout modelled fifteen; Migration, General and DevOps now exist as first-class categories, Migration going from zero collectors to all five of its services. 62 collectors added across Migration, General, DevOps, Integration, Web, Storage, IoT and Security, taking measured service coverage from 41% to 66% of the 349 services the audit enumerates. Logic Apps were excluded from the Resource Graph query outright in every prior release and are now collected. Child resources are collected for the first time - Key Vault secret and key expiry, blob containers with their public-access level, file shares, lifecycle policies and Backup vault instances - all on the control plane, all within Reader, no secret value or blob content ever read. The rule engine can now express a condition spanning two collected datasets, declared as rule data, so "which VMs have no backup" is answerable; six cross-resource rules ship. The SMART migration-readiness assessment ships with its source framework enumerated and date-stamped. Also fixed: a golden collector suite that failed on any day but the one it was recorded on, and a guided wizard that resolved its assessment manifest outside the repository and so never listed more than one assessment. v3.0.9 - Live-run hardening found against a real 8-subscription tenant. Fixed two fatal crashes: JSON report export ".Count cannot be found" under StrictMode, and the SupportTickets collector crashing on a null date. Each report format (Excel/JSON/Markdown/AsciiDoc/PowerBI) now fails independently instead of aborting the whole run. Removed an ARM Insights metrics call that always 400s for Arc-enabled servers (guest-OS metrics are not exposed that way for Arc). Added retry/backoff to the operational-enrichment ARM helper for 429/409/5xx. Quieted an expected ReplicationEligibility 404. Closed a guided-wizard gap where full Entra ID permissions were detected but never offered, silently defaulting every run to ArmOnly. Added a Cost Data module pre-flight check to the wizard. Clarified a DefenderAlerts null-reference message. v3.0.6-3.0.8 (previously unlisted): Excel/ARC resilience and logging, a StrictMode common-parameter fix, and suppressed Az breaking-change warnings.'
 
         # Prerelease string of this module
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
+
+        # External dependent modules of this module
+        # ExternalModuleDependencies = @()
 
     } # End of PSData hashtable
 

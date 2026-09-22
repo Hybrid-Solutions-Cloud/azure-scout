@@ -1,15 +1,9 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .SYNOPSIS
-    Inventory and assess Azure resources, producing React, Json, and JsonEvidence outputs.
+    This script creates Excel file to Analyze Azure Resources inside a Tenant
 
 .DESCRIPTION
-    Runs a tenant-wide Azure inventory, an assessment, or both from one entry point. Live outputs
-    are the self-contained React report, the inventory/assessment Json export, and JsonEvidence.
-    Use -Scope All or -Scope EntraOnly when Microsoft Entra ID data is required.
+    Do you want to analyze your Azure Advisories in a table format? Document it in xlsx format.
 
 .PARAMETER TenantID
     Specify the tenant ID you want to create a Resource Inventory.
@@ -23,8 +17,7 @@ $ErrorActionPreference = 'Stop'
     Use this parameter to collect all Subscriptions in a Specific Management Group in a Tenant
 
 .PARAMETER Lite
-    Legacy compatibility switch for the held Excel renderer. It does not change the live React,
-    Json, or JsonEvidence outputs.
+    Use this parameter to use only the Import-Excel module and don't create the charts (using Excel's API)
 
 .PARAMETER SecurityCenter
     Use this parameter to collect Security Center Advisories
@@ -39,8 +32,7 @@ $ErrorActionPreference = 'Stop'
     Use this parameter to include Quota information
 
 .PARAMETER IncludeTags
-    Show resource tag columns in legacy Excel output. Tags are always acquired and retained in
-    the universal discovery record.
+    Use this parameter to include Tags of every Azure Resources
 
 .PARAMETER Debug
     Output detailed debug information.
@@ -49,8 +41,7 @@ $ErrorActionPreference = 'Stop'
     Specifies the Azure Cloud Environment to use. Default is 'AzureCloud'.
 
 .PARAMETER Overview
-    Legacy compatibility setting for the held Excel overview design. It does not change the live
-    React, Json, or JsonEvidence outputs.
+    Specifies the Excel overview sheet design. Each value will change the main charts in the Overview sheet. Valid values are 1, 2, or 3. Default is 1.
 
 .PARAMETER AppId
     Specifies the Application (client) ID for service principal authentication. Requires TenantID and either Secret or CertificatePath.
@@ -78,8 +69,8 @@ $ErrorActionPreference = 'Stop'
     modules that depend on unregistered providers are silently skipped for that subscription.
 
 .PARAMETER PermissionAudit
-    Runs a dedicated permissions audit only. No inventory or standard live report is generated.
-    Outputs a colour-coded console report showing ARM/RBAC access across all visible
+    Runs a dedicated permissions audit only. No inventory is collected, no Excel or JSON report is
+    generated. Outputs a colour-coded console report showing ARM/RBAC access across all visible
     subscriptions and resource provider registration status. Add -IncludeEntraPermissions to also
     audit Microsoft Graph / Entra ID permissions.
 
@@ -146,24 +137,6 @@ $ErrorActionPreference = 'Stop'
     Azure DevOps personal access token, used instead of the current Azure sign-in. Needs read
     scopes for Project and Team, Build, Release, Code, Service Connections, and Agent Pools.
 
-.PARAMETER IncludeOkta
-    Also collect read-only Okta federation, authentication-policy, factor-enrollment,
-    application-usage, directory-integration, and administrator-role evidence. Requires both
-    -OktaOrganizationUrl and -OktaApiToken. Okta is a separate control plane and is never queried
-    unless this switch is supplied.
-
-.PARAMETER OktaOrganizationUrl
-    HTTPS base URL of the Okta organization, for example https://example.okta.com.
-
-.PARAMETER OktaApiToken
-    Okta read-only API token as a SecureString. The token is used only in memory and is never
-    written to raw evidence, source-operation records, logs, or reports.
-
-.PARAMETER IncludeOnPremisesIdentity
-    Also run read-only local Entra Connect and Active Directory commands. Run Scout on an Entra
-    Connect/AD-capable host with the ADSync and ActiveDirectory modules installed. Missing local
-    capabilities are recorded as Not assessed rather than interpreted as an empty topology.
-
 .PARAMETER RunName
     Friendly name for this run's output folder instead of the generated timestamp, for example
     -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'.
@@ -175,14 +148,12 @@ $ErrorActionPreference = 'Stop'
 
 .PARAMETER OutputFormat
     Controls which report formats are generated. Valid values:
-    - All (default): Generate every live format: React, Json, and JsonEvidence
-    - React: Generate the self-contained interactive report
-    - Json: Generate the inventory JSON export
-    - JsonEvidence: Generate the resources-only evidence.json export
-    Legacy renderer names remain accepted for compatibility, warn that they are on hold, and are
-    skipped. If every explicitly requested format is held, React is generated as the fallback.
-    PermissionAudit is a specialized exception and retains its Console/Json/Markdown/AsciiDoc
-    output contract.
+    - All (default): Generate Excel (.xlsx), JSON (.json), Markdown (.md), AsciiDoc (.adoc), and Power BI CSV bundle
+    - Excel: Generate only the Excel report
+    - Json: Generate only the JSON report
+    - Markdown (MD): Generate only the Markdown report
+    - AsciiDoc (Adoc): Generate only the AsciiDoc report
+    - PowerBI: Generate only the Power BI CSV bundle (flat CSVs + _relationships.json in a PowerBI/ subfolder)
 
 .PARAMETER SkipPermissionCheck
     Skip the pre-flight permission validation. By default, AZSC checks ARM and Graph
@@ -282,7 +253,7 @@ $ErrorActionPreference = 'Stop'
     THE SOFTWARE.
 
 .LINK
-    Official Repository: https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    Official Repository: https://github.com/thisismydemo/azure-scout
 #>
 function Test-AZSCWizardEligible {
     <#
@@ -324,12 +295,10 @@ function Test-AZSCWizardEligible {
 
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
-        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers and is forwarded as-is to Connect-AZSCLoginSession; changing the parameter type is a breaking change for every existing caller.')]
     param (
         [ValidateSet(1, 2, 3)]
         [int]$Overview = 1,
-        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud', 'AzureGermanCloud')]
         [string]$AzureEnvironment = 'AzureCloud',
         [string]$TenantID,
         [string]$AppId,
@@ -376,8 +345,9 @@ Function Invoke-AzureScout {
         [Alias('EntraAudit','CheckEntraPermissions')]
         [switch]$IncludeEntraPermissions,
         [ValidateSet(
-            # Live formats plus compatibility names for held legacy renderers.
+            # Inventory-mode formats
             'All', 'Excel', 'Json', 'Markdown', 'AsciiDoc', 'MD', 'Adoc', 'PowerBI',
+            # Assessment-mode formats (-Assessment)
             'Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard')]
         [string[]]$OutputFormat = @('All'),
         # ── Assessment mode (AB#5540, per AB#5024) ───────────────────────────
@@ -398,9 +368,6 @@ Function Invoke-AzureScout {
         # opens, and run the default full ARM inventory instead.
         [Alias('NonInteractive')]
         [switch]$NoWizard,
-        # Suppress all interactive progress rendering. CI/unattended hosts also suppress the
-        # native live display automatically and retain log-friendly phase records.
-        [switch]$NoProgress,
         [ValidateSet('All', 'AI', 'Analytics', 'Compute', 'Containers', 'Databases', 'DevOps', 'General', 'Hybrid', 'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking', 'Security', 'Storage', 'Web')]
         [string[]]$Category = @('All'),
         [string]$RunName,
@@ -410,28 +377,8 @@ Function Invoke-AzureScout {
         [Alias('ADOOrganization')]
         [string[]]$DevOpsOrganization,
         [Alias('ADOPat')]
-        [string]$DevOpsPat,
-        [switch]$IncludeOkta,
-        [string]$OktaOrganizationUrl,
-        [securestring]$OktaApiToken,
-        [switch]$IncludeOnPremisesIdentity,
-        # AB#6930 -- operator-supplied report identity for the React report (clientName,
-        # engagementName, classification, preparedBy, etc.). Only meaningful with -Assessment
-        # (or -CollectOnly/-FromCollect, which route to the same assessment core below); unset
-        # keys fall back to neutral defaults, never a vendor name or URL. See
-        # Get-ScoutReportIdentityDefault in src/report/renderers/Export-React.ps1.
-        [hashtable]$ReportIdentity = @{},
-        # AB#6928 follow-up -- which view lens the React report opens on first (Executive/
-        # Consultant/Data) when the browser has nothing persisted yet. Default Consultant.
-        [ValidateSet('Executive', 'Consultant', 'Data')]
-        [string]$DefaultReportMode = 'Consultant'
+        [string]$DevOpsPat
         )
-
-    if ($NoProgress.IsPresent) { $ProgressPreference = 'SilentlyContinue' }
-
-    if ($IncludeOkta.IsPresent -and ([string]::IsNullOrWhiteSpace($OktaOrganizationUrl) -or $null -eq $OktaApiToken)) {
-        throw '-IncludeOkta requires both -OktaOrganizationUrl and -OktaApiToken. The token must be supplied as a SecureString.'
-    }
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Debugging Mode: On. ErrorActionPreference was set to "Continue", every error will be presented.')
 
@@ -483,12 +430,9 @@ Function Invoke-AzureScout {
             $RunLite = $true
             if (!$StorageAccount -or !$StorageContainer)
                 {
-                    throw 'Storage Account and Container are required for Automation mode.'
+                    Write-Output "Storage Account and Container are required for Automation mode. Aborting."
+                    exit
                 }
-        }
-    elseif ($StorageAccount -and -not $StorageContainer)
-        {
-            throw 'StorageContainer is required when StorageAccount is specified.'
         }
     if ($Overview -eq 1 -and $SkipAPIs)
         {
@@ -513,13 +457,13 @@ Function Invoke-AzureScout {
         Write-Host " -SkipAdvisory            :  Do not collect Azure Advisory. "
         Write-Host " -SkipPolicy              :  Do not collect Azure Policies. "
         Write-Host " -SecurityCenter          :  Include Security Center Data. "
-        Write-Host " -IncludeTags             :  Show Resource Tags in Excel. "
+        Write-Host " -IncludeTags             :  Include Resource Tags. "
         Write-Host " -Online                  :  Use Online Modules. "
         Write-Host " -Debug                   :  Run in a Debug mode. "
         Write-Host " -AzureEnvironment        :  Change the Azure Cloud Environment. "
         Write-Host " -ReportName              :  Change the Default Name of the report. "
         Write-Host " -ReportDir               :  Change the Default Path of the report. "
-        Write-Host " -OutputFormat            :  Live formats: All (default), React, Json, JsonEvidence. Legacy names bind but are on hold. "
+        Write-Host " -OutputFormat            :  Choose report format: All (default), Excel, Json, Markdown, AsciiDoc, PowerBI. "
         Write-Host " -Scope                   :  Data scope. ArmOnly (default), EntraOnly, All. Use -Scope All to include Entra ID. "
         Write-Host " -CheckResourceProviders  :  Warn if required Azure resource providers are not registered. "
         Write-Host " -SkipPermissionCheck     :  Skip pre-flight permission validation. "
@@ -537,7 +481,7 @@ Function Invoke-AzureScout {
         Write-Host ""
         Write-Host "Including Tags:"
         Write-Host " By Default Azure Resource inventory do not include Resource Tags."
-        Write-Host " To show Tags in Excel use the <-IncludeTags> parameter. Tags are always retained in discovery. "
+        Write-Host " To include Tags at the inventory use <-IncludeTags> parameter. "
         Write-Host "e.g. /> Invoke-AzureScout -TenantID <Azure Tenant ID> -IncludeTags"
         Write-Host ""
         Write-Host "Skipping Azure Advisor:"
@@ -560,14 +504,8 @@ Function Invoke-AzureScout {
 
     if ($Help.IsPresent) {
         Get-AZSCUsageMode
-        return
+        Exit
     }
-
-    $previousAzBreakingChangeWarningSetting = [Environment]::GetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', 'Process')
-    $restoreAzBreakingChangeWarningSetting = $false
-    $runLogStarted = $false
-    $bufferedWarnings = [System.Collections.Generic.List[string]]::new()
-    try {
 
     # ── Console verbosity (AB#5410) ───────────────────────────────────────────
     # If the user did not explicitly request -Verbose or -Debug, we silently continue
@@ -577,20 +515,10 @@ Function Invoke-AzureScout {
     if (-not ($PSBoundParameters.ContainsKey('Debug') -or $PSBoundParameters.ContainsKey('Verbose'))) {
         $WarningPreference = 'SilentlyContinue'
         $env:SuppressAzurePowerShellBreakingChangeWarnings = 'true'
-        $restoreAzBreakingChangeWarningSetting = $true
         function Write-Warning {
-            # Deliberately shadows the built-in: every existing Write-Warning call in this
-            # call tree (collectors, modules, this function itself) must be redirected to the
-            # structured log without touching every call site individually (AB#5410).
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Deliberate shadow (AB#5410): redirects every Write-Warning call in this call tree to the structured log instead of the console, without editing every call site.')]
             param([Parameter(Mandatory=$true, ValueFromPipeline=$true)][string]$Message)
-            process {
-                if ($runLogStarted -and (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue)) {
-                    Write-AZSCLog -Level Warn -Message $Message
-                }
-                else {
-                    $bufferedWarnings.Add($Message)
-                }
+            if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                Write-AZSCLog -Level Warn -Message $Message
             }
         }
     }
@@ -623,9 +551,6 @@ Function Invoke-AzureScout {
     # assessment can run AFTER the inventory pass and reuse its rows. Declared here so the
     # reference below is always set under StrictMode.
     $deferredAssessArgs = $null
-    $deferredInventoryOutputArgs = $null
-    $ReactFile = $null
-    $EvidenceFile = $null
     if (Test-AZSCWizardEligible -BoundParameters $PSBoundParameters -NoWizard $NoWizard.IsPresent -Interactive (Test-AZSCInteractiveHost)) {
         $wizard = Start-AZSCWizard -AzureEnvironment $AzureEnvironment -PlatOS $PlatOS
         if (-not $wizard) { return }   # operator cancelled
@@ -641,50 +566,28 @@ Function Invoke-AzureScout {
         $wizardRunBoth = $wizard.RunBoth
     }
 
-    # One global output contract for inventory, assessment, and combined runs. Legacy names stay
-    # in the ValidateSet so existing automation still binds, but they are held rather than run.
-    # `All` silently means every live format. An explicit held-only request falls back to React;
-    # a mixed request skips held formats and produces only the live formats the operator named.
-    $requestedFormats = @($OutputFormat)
-    if (-not $PermissionAudit.IsPresent) {
-        $liveFormats = @('React', 'Json', 'JsonEvidence')
-        $heldFormats = @($requestedFormats | Where-Object { $_ -ne 'All' -and $_ -notin $liveFormats } | Select-Object -Unique)
-        if ($heldFormats.Count -gt 0) {
-            Write-Warning ("Invoke-AzureScout: {0} report format(s) are on hold and will not be rendered: {1}. Live formats: React, Json, JsonEvidence." -f
-                $heldFormats.Count, ($heldFormats -join ', '))
-        }
-
-        $effectiveFormats = if ($requestedFormats -contains 'All') {
-            $liveFormats
-        }
-        else {
-            @($requestedFormats | Where-Object { $_ -in $liveFormats } | Select-Object -Unique)
-        }
-        if (@($effectiveFormats).Count -eq 0) {
-            Write-Warning 'Invoke-AzureScout: every requested report format is on hold; rendering the React report instead so the run still produces a deliverable.'
-            $effectiveFormats = @('React')
-        }
-        $OutputFormat = @($effectiveFormats)
-    }
-
     # ── Assessment mode (AB#5540, per AB#5024) ───────────────────────────────
     # One command, two modes. -Assessment routes this run to the CAF/WAF
     # assessment platform instead of the inventory collector. Everything else —
     # sign-in, tenant selection, report directory, category filtering — is the
     # same surface the inventory mode uses.
     if ($Assessment -or $CollectOnly.IsPresent -or $FromCollect) {
+        $inventoryOnlyFormats = @($OutputFormat) | Where-Object { $_ -in @('Markdown', 'MD', 'AsciiDoc', 'Adoc') }
+        if ($inventoryOnlyFormats) {
+            throw "-OutputFormat $($inventoryOnlyFormats -join ', ') is inventory-only and cannot be used with -Assessment. Assessment formats: Html, Pptx, PowerBI, Excel, Json, JsonEvidence, React, Pdf, Word, EChartsDashboard, All."
+        }
+
         # -FromCollect re-assesses an existing collect.json offline, so it must
         # not force a sign-in the run doesn't need.
-        if (-not $FromCollect -and -not ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) -and
-            $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
+        if (-not $FromCollect -and $PlatOS -ne 'Azure CloudShell' -and !$Automation.IsPresent) {
             $TenantID = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -TenantID $TenantID -DeviceLogin:$DeviceLogin -AppId $AppId -Secret $Secret -CertificatePath $CertificatePath -CertificatePassword $CertificatePassword
         }
 
-        # AB#6795 -- 'Estate' no longer exists in the registry; 'CAF: Azure Landing Zone' is the
-        # same default used everywhere else an assessment name is needed and none was given.
-        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('CAF: Azure Landing Zone') } }
+        # AB#6795 -- 'Estate' no longer exists in the registry; 'LandingZone' is the same default
+        # used everywhere else an assessment name is needed and none was given.
+        $assessArgs = @{ Assessment = if ($Assessment) { $Assessment } else { @('LandingZone') } }
         if ($PSBoundParameters.ContainsKey('Scope'))        { $assessArgs.Scope = $Scope }
-        $assessArgs.OutputFormat = @($OutputFormat)
+        if ($PSBoundParameters.ContainsKey('OutputFormat')) { $assessArgs.OutputFormat = @($OutputFormat) }
         if ($ReportDir)                                     { $assessArgs.OutputPath = $ReportDir }
         # 'All' is the inventory default sentinel, not a real assessment category —
         # passing it through would filter the collect down to nothing.
@@ -693,68 +596,26 @@ Function Invoke-AzureScout {
         if ($PermissionAudit.IsPresent)                     { $assessArgs.PermissionAudit = $true }
         if ($CollectOnly.IsPresent)                         { $assessArgs.CollectOnly = $true }
         if ($FromCollect)                                   { $assessArgs.FromCollect = $FromCollect }
-        # AB#6827 -- a standalone `-Assessment 'Microsoft: DevOps Capability' -IncludeDevOps` run
+        # AB#6827 -- a standalone `-Assessment 'DevOps Capability Assessment' -IncludeDevOps` run
         # (no -InventoryAndAssessment) needs these threaded through too, not just the deferred/
         # combined path below.
         if ($IncludeDevOps.IsPresent)                       { $assessArgs.IncludeDevOps = $true }
         if ($DevOpsOrganization)                            { $assessArgs.DevOpsOrganization = $DevOpsOrganization }
         if ($DevOpsPat)                                     { $assessArgs.DevOpsPat = $DevOpsPat }
         if ($TenantID)                                      { $assessArgs.TenantID = $TenantID }
-        if ($ReportIdentity -and $ReportIdentity.Count -gt 0) { $assessArgs.ReportIdentity = $ReportIdentity }
-        if ($PSBoundParameters.ContainsKey('DefaultReportMode')) { $assessArgs.DefaultReportMode = $DefaultReportMode }
 
-        # "Both" from the wizard or command line: DEFER the assessment until after the inventory
-        # pass instead of running it now (AB#5543). Running the assessment here made the command
-        # collect from Azure twice —
+        # "Both" from the wizard: DEFER the assessment until after the inventory pass instead of
+        # running it now (AB#5543). Running it here made the command collect from Azure twice —
         # the assessment issued its own Resource Graph pack, then the inventory re-fetched the
         # same resource types moments later. Inventory already projects the full `properties`
         # bag, so running it first and handing those rows to the assessment collects once.
-        # AB#6775 -- the public switch keeps the collect-once path reachable from scripted callers
-        # as well as the wizard, without collecting from Azure twice to get both reports.
+        # AB#6775 -- $wizardRunBoth used to be set from exactly one source, $wizard.RunBoth, so
+        # the combined run was reachable only by answering a prompt. `Invoke-AzureScout
+        # -Assessment LandingZone -InventoryAndAssessment` had no equivalent at all, which meant
+        # CI and every scripted caller were locked out of the collect-once path and had to run
+        # the command twice, collecting from Azure twice, to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
-        else {
-            $standaloneAssessmentOperation = {
-                Invoke-ScoutAssessmentCore @assessArgs
-            }
-            if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-                $standaloneRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
-                    -Status 'Collecting, scoring, and rendering' -PercentComplete 1 -Id 1 `
-                    -Operation $standaloneAssessmentOperation
-            }
-            else {
-                $standaloneRunPath = & $standaloneAssessmentOperation
-            }
-            # AB#7224 -- same discoverability pointer as the combined path below.
-            if ($standaloneRunPath) {
-                $reactFile = Join-Path ([string]$standaloneRunPath) 'report-react.html'
-                if (Test-Path $reactFile) {
-                    Write-Host ''
-                    Write-Host "  React report : $reactFile" -ForegroundColor Cyan
-                    Write-Host ''
-                }
-            }
-
-            # Standalone assessment returns before the inventory pipeline's shared upload block.
-            # Upload exactly the selected live artifacts here so -Assessment -Automation does not
-            # validate storage settings and then silently leave every deliverable on local disk.
-            if ($StorageAccount -and $standaloneRunPath -and -not $CollectOnly.IsPresent) {
-                $StorageContext = New-AzStorageContext -StorageAccountName $StorageAccount -UseConnectedAccount
-                $assessmentArtifacts = [ordered]@{
-                    React       = 'report-react.html'
-                    Json        = 'findings.json'
-                    JsonEvidence = 'evidence.json'
-                }
-                foreach ($format in @($OutputFormat)) {
-                    if (-not $assessmentArtifacts.Contains($format)) { continue }
-                    $artifactPath = Join-Path ([string]$standaloneRunPath) $assessmentArtifacts[$format]
-                    if (-not (Test-Path -LiteralPath $artifactPath -PathType Leaf)) { continue }
-                    Write-Verbose "Uploading standalone assessment artifact: $artifactPath"
-                    Set-AzStorageBlobContent -File $artifactPath -Container $StorageContainer `
-                        -Context $StorageContext -Force | Out-Null
-                }
-            }
-            return $standaloneRunPath
-        }
+        else { return Invoke-ScoutAssessmentCore @assessArgs }
     }
 
     # ── Inventory mode ───────────────────────────────────────────────────────
@@ -762,29 +623,15 @@ Function Invoke-AzureScout {
     # renderers in one run. The inventory report writers below were written
     # against a scalar, so resolve the requested formats to flags once here.
     $requestedFormats = @($OutputFormat)
+    $assessmentOnlyFormats = $requestedFormats | Where-Object { $_ -in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') }
+    if ($assessmentOnlyFormats) {
+        throw "-OutputFormat $($assessmentOnlyFormats -join ', ') is an assessment format. Add -Assessment to run the CAF/WAF assessment, or choose an inventory format: All, Excel, Json, Markdown, AsciiDoc, PowerBI."
+    }
     $WantExcel    = [bool](@('All', 'Excel')              | Where-Object { $_ -in $requestedFormats })
     $WantJson     = [bool](@('All', 'Json')               | Where-Object { $_ -in $requestedFormats })
     $WantMarkdown = [bool](@('All', 'Markdown', 'MD')     | Where-Object { $_ -in $requestedFormats })
     $WantAsciiDoc = [bool](@('All', 'AsciiDoc', 'Adoc')   | Where-Object { $_ -in $requestedFormats })
     $WantPowerBI  = [bool](@('All', 'PowerBI')            | Where-Object { $_ -in $requestedFormats })
-
-    # Inventory-only React and JsonEvidence are rendered from the already-collected rows through
-    # the assessment core's rule-free/offline mode. Combined runs deliberately do not set this:
-    # their single deferred assessment render owns React and JsonEvidence.
-    if (-not $PermissionAudit.IsPresent -and -not $deferredAssessArgs) {
-        $inventoryOutputFormats = @($requestedFormats | Where-Object { $_ -in @('React', 'JsonEvidence') })
-        if ($inventoryOutputFormats.Count -gt 0) {
-            $deferredInventoryOutputArgs = @{
-                InventoryOnly = $true
-                OutputFormat  = $inventoryOutputFormats
-                Scope         = $Scope
-            }
-            if ($ReportDir) { $deferredInventoryOutputArgs.OutputPath = $ReportDir }
-            if ($TenantID) { $deferredInventoryOutputArgs.TenantID = $TenantID }
-            if ($ReportIdentity -and $ReportIdentity.Count -gt 0) { $deferredInventoryOutputArgs.ReportIdentity = $ReportIdentity }
-            if ($PSBoundParameters.ContainsKey('DefaultReportMode')) { $deferredInventoryOutputArgs.DefaultReportMode = $DefaultReportMode }
-        }
-    }
 
     # ── Permission Audit mode (early exit — no inventory collected) ──────────
     if ($PermissionAudit.IsPresent)
@@ -833,7 +680,8 @@ Function Invoke-AzureScout {
                 Set-AzContext -SubscriptionName $AzureConnection.Subscription -DefaultProfile $AzureConnection
             }
             catch {
-                throw "Failed to set Automation Account requirements: $($_.Exception.Message)"
+                Write-Output "Failed to set Automation Account requirements. Aborting."
+                exit
             }
         }
 
@@ -848,15 +696,25 @@ Function Invoke-AzureScout {
     try {
         $AuthCtx = Get-AzContext -ErrorAction SilentlyContinue
         if ($AuthCtx -and $AuthCtx.Account) {
-            $AuthIdentity = Resolve-AZSCContextIdentity -Context $AuthCtx
-            $AuthUpn = $AuthIdentity.AccountDisplayName
+            $AuthUpn = $AuthCtx.Account.Id
             $AuthSub = if ($AuthCtx.Subscription -and $AuthCtx.Subscription.Name) {
                 "$($AuthCtx.Subscription.Name) ($($AuthCtx.Subscription.Id))"
             } else { 'none selected' }
             Write-Host ''
             Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthUpn -ForegroundColor Cyan
             Write-Host '  Subscription : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthSub -ForegroundColor Cyan
-            Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $AuthIdentity.TenantDisplayName -ForegroundColor Cyan
+            Write-Host '  Tenant       : ' -NoNewline -ForegroundColor DarkGray; Write-Host $TenantID -ForegroundColor Cyan
+
+            # Management group access probe (AB#351). Runs here, not at collection time,
+            # so a missing tenant-root role is reported while the operator is still
+            # watching the login rather than as a silently empty worksheet an hour later.
+            $MgProbe = Test-AZSCManagementGroupAccess
+            Write-Host '  Mgmt groups  : ' -NoNewline -ForegroundColor DarkGray
+            if ($MgProbe.HasAccess) {
+                Write-Host $MgProbe.Count -ForegroundColor Cyan
+            } else {
+                Write-Host 'none visible' -ForegroundColor Yellow
+            }
 
             Write-Host ''
         }
@@ -901,6 +759,21 @@ Function Invoke-AzureScout {
         Write-Host ''
     }
 
+    # --- Pre-flight permission check ---
+    if (-not $SkipPermissionCheck.IsPresent) {
+        Write-Host 'Running pre-flight permission checks...' -ForegroundColor Cyan
+        $permResult = Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
+        foreach ($detail in $permResult.Details) {
+            switch ($detail.Status) {
+                'Pass' { Write-Host "  [PASS] $($detail.Check): $($detail.Message)" -ForegroundColor Green }
+                'Warn' { Write-Warning "[WARN] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
+                'Fail' { Write-Warning "[FAIL] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
+                'Info' { Write-Host "  [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
+            }
+        }
+        Write-Host ''
+    }
+
     # Run isolation (AB#331): each invocation gets its own timestamped folder so a rerun -
     # or a scan of a second tenant - cannot destroy the previous run's cache or report.
     # -Force restores the pre-2.3.0 overwrite-in-place behaviour.
@@ -909,23 +782,6 @@ Function Invoke-AzureScout {
     $DefaultPath = $ReportingPath.DefaultPath
     $DiagramCache = $ReportingPath.DiagramCache
     $ReportCache = $ReportingPath.ReportCache
-
-    # AB#7185 -- $deferredAssessArgs.OutputPath was captured back at the "-Assessment" block
-    # (line ~601) as the bare $ReportDir, before this timestamped per-run folder existed.
-    # Invoke-ScoutAssessmentCore then created ITS OWN run folder directly under that bare root
-    # instead of writing into the folder the inventory pass (React/Json/JsonEvidence)
-    # just wrote to -- a "Both" run produced two sibling output folders, with the React report
-    # (the only renderer the assessment side of a combined run actually produces) landing in the
-    # one the operator had no reason to go looking in. Retarget it to the real run folder now
-    # that Set-AZSCReportPath has created it.
-    if ($deferredAssessArgs) {
-        $deferredAssessArgs.OutputPath = $DefaultPath
-        # Reserve the predictable primary folder up front. If scoring later fails closed because
-        # evidence is unavailable, the inventory-only React fallback can fill this same folder
-        # instead of leaving `assessment-report` empty and hiding the usable report in `_01`.
-        $deferredAssessArgs.ReservedRunPath = Join-Path $DefaultPath 'assessment-report'
-    }
-    if ($deferredInventoryOutputArgs) { $deferredInventoryOutputArgs.OutputPath = $DefaultPath }
 
     if (-not $Force.IsPresent)
         {
@@ -968,11 +824,6 @@ Function Invoke-AzureScout {
             if ($Automation) { 'Automation' }
         ) -join ' '
     }
-    $runLogStarted = $true
-    foreach ($bufferedWarning in $bufferedWarnings) {
-        Write-AZSCLog -Level Warn -Message $bufferedWarning
-    }
-    $bufferedWarnings.Clear()
 
     foreach ($LogSub in @($Subscriptions)) {
         Write-AZSCLog -Message ('  subscription in scope : {0} ({1})' -f $LogSub.Name, $LogSub.Id)
@@ -996,41 +847,6 @@ Function Invoke-AzureScout {
         break
     }
 
-    # --- Pre-flight permission check ---
-    # The audit is intentionally after run-log initialization and the failure trap. A token,
-    # RBAC, or Graph-probe failure is one of the most useful diagnostics to persist, and before
-    # this ordering it could terminate before scout-run.log existed. Test-AZSCPermissions calls
-    # the underlying audit quietly; this loop is the sole pre-flight renderer.
-    if (-not $SkipPermissionCheck.IsPresent) {
-        Write-Host 'Running pre-flight permission checks...' -ForegroundColor Cyan
-        $permissionOperation = {
-            Test-AZSCPermissions -TenantID $TenantID -SubscriptionID $SubscriptionID -Scope $Scope
-        }
-        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-            $permResult = Invoke-ScoutProgressOperation -Activity 'Azure Scout' `
-                -Status 'Validating tenant permissions' -PercentComplete 0 -Id 1 `
-                -Operation $permissionOperation
-        }
-        else {
-            $permResult = & $permissionOperation
-        }
-        foreach ($detail in $permResult.Details) {
-            switch ($detail.Status) {
-                'Pass' { Write-Host "  [PASS] $($detail.Check): $($detail.Message)" -ForegroundColor Green }
-                'Warn' { Write-Warning "[WARN] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
-                'Fail' { Write-Warning "[FAIL] $($detail.Check): $($detail.Message). $($detail.Remediation)" }
-                'Info' { Write-Host "  [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
-            }
-        }
-        if ($Scope -ne 'EntraOnly') {
-            Write-Host '  Coverage contract:' -ForegroundColor Cyan
-            Write-Host '    ARM Reader inventories resource parents and control-plane configuration.' -ForegroundColor DarkGray
-            Write-Host '    Key Vault Reader adds key/secret metadata; Management Group Reader at tenant root adds the full hierarchy.' -ForegroundColor DarkGray
-            Write-Host '    Missing optional detail is recorded as a coverage gap; discovered parent resources are retained.' -ForegroundColor DarkGray
-        }
-        Write-Host ''
-    }
-
     Clear-AZSCCacheFolder -ReportCache $ReportCache
 
     # The ResourceJob_* sweep that stood here is gone with the jobs themselves (AB#5649). The
@@ -1038,10 +854,6 @@ Function Invoke-AzureScout {
     # previous run in this session to clear.
 
     $ExtractionRuntime = [System.Diagnostics.Stopwatch]::StartNew()
-    Write-AZSCLog -Level 'VERBOSE' -Message (
-        'Extraction orchestration started: scope={0}; subscriptions={1}; categories={2}' -f
-            $Scope, @($Subscriptions).Count, @($Category).Count
-    )
 
     # AB#6776 -- the collect-once handoff silently lost tags.
     #
@@ -1058,28 +870,7 @@ Function Invoke-AzureScout {
         $extractionIncludeTags = [switch]$true
     }
 
-    $extractionOperation = {
-        # Keep the named call explicit: these parameters are a safety contract for the
-        # collect-once tag handoff and category/dependency extraction plan.
-        Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions `
-            -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter `
-            -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags `
-            -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails `
-            -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment `
-            -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps `
-            -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat -Category $Category `
-            -IncludeOkta:$IncludeOkta -OktaOrganizationUrl $OktaOrganizationUrl -OktaApiToken $OktaApiToken `
-            -IncludeOnPremisesIdentity:$IncludeOnPremisesIdentity `
-            -PreserveAssessmentDependencies:($null -ne $deferredAssessArgs)
-    }
-    if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-        $ExtractionData = Invoke-ScoutProgressOperation -Activity 'Azure Inventory' `
-            -Status 'Starting extraction' -PercentComplete 1 -Id 1 `
-            -Operation $extractionOperation
-    }
-    else {
-        $ExtractionData = & $extractionOperation
-    }
+        $ExtractionData = Start-AZSCExtractionOrchestration -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions -SubscriptionID $SubscriptionID -ResourceGroup $ResourceGroup -SecurityCenter $SecurityCenter -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -IncludeTags $extractionIncludeTags -TagKey $TagKey -TagValue $TagValue -SkipAPIs $SkipAPIs -SkipVMDetails $SkipVMDetails -IncludeCosts $IncludeCosts -Automation $Automation -AzureEnvironment $AzureEnvironment -Scope $Scope -TenantID $TenantID -IncludeDevOps:$IncludeDevOps -DevOpsOrganization $DevOpsOrganization -DevOpsPat $DevOpsPat
 
     $ExtractionRuntime.Stop()
 
@@ -1088,16 +879,7 @@ Function Invoke-AzureScout {
     # worksheet, and until now it was discarded without being written anywhere. This runs here,
     # ahead of the processing phase, precisely so "before any filtering" is a property of the
     # call site rather than a claim in a comment.
-    $RawDumpTimer = [System.Diagnostics.Stopwatch]::StartNew()
-    Write-AZSCLog -Level 'DEBUG' -Message 'Raw inventory dump started.'
     $RawDumpPath = Export-ScoutRawInventoryDump -ExtractionData $ExtractionData -DefaultPath $DefaultPath
-    $RawDumpTimer.Stop()
-    Write-AZSCLog -Level 'VERBOSE' -Message (
-        'Raw inventory dump finished: status={0}; rows={1}; elapsed={2}' -f
-            $(if ($RawDumpPath) { 'Written' } else { 'Empty' }),
-            @($ExtractionData.Resources).Count,
-            $RawDumpTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-    )
 
     # AB#5543 — the wizard asked for both modes. The inventory pass above has now fetched the
     # resource rows, so hand them to the assessment instead of letting it collect from Azure a
@@ -1128,22 +910,6 @@ Function Invoke-AzureScout {
     $PolicyAssign = $ExtractionData.PolicyAssign
     $PolicyDef = $ExtractionData.PolicyDef
     $PolicySetDef = $ExtractionData.PolicySetDef
-    $CollectionHealth = if ($ExtractionData.PSObject.Properties['CollectionHealth']) { @($ExtractionData.CollectionHealth) } else { @() }
-
-    $KeyVaultCoverageGaps = @($CollectionHealth | Where-Object {
-            $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -in @('KeyVaultSecrets', 'KeyVaultKeys') -or
-            $_.PSObject.Properties['Dataset'] -and $_.Dataset -in @('KeyVaultSecrets', 'KeyVaultKeys')
-        })
-    if ($KeyVaultCoverageGaps.Count -gt 0) {
-        Write-Warning "Azure Scout coverage: Key Vault key/secret metadata is incomplete. Parent vaults remain inventoried; assign Key Vault Reader for metadata-only access. See collection-health.json for details."
-    }
-    $ManagementGroupCoverageGaps = @($CollectionHealth | Where-Object {
-            $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -eq 'ManagementGroups' -or
-            $_.PSObject.Properties['Dataset'] -and $_.Dataset -eq 'ManagementGroups'
-        })
-    if ($ManagementGroupCoverageGaps.Count -gt 0) {
-        Write-Warning 'Azure Scout coverage: the full management-group hierarchy is unavailable. Subscription resources remain inventoried; assign Management Group Reader at the tenant-root management group for hierarchy coverage.'
-    }
 
     $ExtractionTotalTime = $ExtractionRuntime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
@@ -1160,7 +926,6 @@ Function Invoke-AzureScout {
         'Policy definitions' = @($PolicyDef).Count
         'Policy set defs'    = @($PolicySetDef).Count
         'Cost rows'          = @($CostData).Count
-        'Unavailable datasets' = @($CollectionHealth).Count
     }
 
     if ($Automation.IsPresent)
@@ -1191,30 +956,7 @@ Function Invoke-AzureScout {
         # background jobs the reporting phase harvested with Receive-Job; that harvest carried
         # the AB#5629 NotStarted race in four more places, so it is now a plain value handed to
         # Start-AZSCReporOrchestration below. (AB#5649)
-        $ExtraProcessingTimer = [System.Diagnostics.Stopwatch]::StartNew()
-        Write-AZSCLog -Level 'DEBUG' -Message 'Processing subphase for diagram and supplemental datasets started.'
-        $extraProcessingOperation = {
-            Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory `
-                -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions `
-                -Resources $Resources -Advisories $Advisories -DDFile $DDFile `
-                -DiagramCache $DiagramCache -FullEnv $FullEnv `
-                -ResourceContainers $ResourceContainers -Security $Security `
-                -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef `
-                -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
-        }
-        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-            $ExtraData = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
-                -Status 'Building diagrams and supplemental datasets' -PercentComplete 55 -Id 1 `
-                -Operation $extraProcessingOperation
-        }
-        else {
-            $ExtraData = & $extraProcessingOperation
-        }
-        $ExtraProcessingTimer.Stop()
-        Write-AZSCLog -Level 'VERBOSE' -Message (
-            'Processing subphase for diagram and supplemental datasets finished: elapsed={0}' -f
-                $ExtraProcessingTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-        )
+        $ExtraData = Start-AZSCExtraJobs -SkipDiagram $SkipDiagram -SkipAdvisory $SkipAdvisory -SkipPolicy $SkipPolicy -SecurityCenter $Security -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Security $Security -PolicyAssign $PolicyAssign -PolicySetDef $PolicySetDef -PolicyDef $PolicyDef -IncludeCosts $IncludeCosts -CostData $CostData -Automation $Automation
 
         # AB#6737 -- moved here (from immediately after the extraction call above) so the
         # deferred assessment -- and the PDF it may render -- runs AFTER Start-AZSCExtraJobs has
@@ -1235,164 +977,11 @@ Function Invoke-AzureScout {
             $ProcessingRunTime.Stop()
             try {
                 $AssessmentRunTime = [System.Diagnostics.Stopwatch]::StartNew()
-                Write-AZSCLog -Level 'VERBOSE' -Message 'Deferred assessment started from the in-memory inventory.'
-                $deferredAssessmentOperation = {
-                    Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData
-                }
-                if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-                    $deferredRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
-                        -Status 'Scoring and rendering selected assessments' -PercentComplete 70 -Id 1 `
-                        -Operation $deferredAssessmentOperation
-                }
-                else {
-                    $deferredRunPath = & $deferredAssessmentOperation
-                }
-                Write-Output $deferredRunPath
-                # AB#7224 -- the React report is the assessment's deliverable, and on a combined
-                # run it lands in a dated subfolder the operator has no reason to know about
-                # (observed live: the owner searched the run root and concluded it was missing).
-                # Name the exact file on the console at the moment it exists.
-                if ($deferredRunPath) {
-                    $reactFile = Join-Path ([string]$deferredRunPath) 'report-react.html'
-                    if (Test-Path $reactFile) {
-                        $ReactFile = $reactFile
-                        Write-Host ''
-                        Write-Host "  React report : $reactFile" -ForegroundColor Cyan
-                        Write-Host ''
-                    }
-                    $evidenceCandidate = Join-Path ([string]$deferredRunPath) 'evidence.json'
-                    if (Test-Path $evidenceCandidate) { $EvidenceFile = $evidenceCandidate }
-                }
+                Write-Output (Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory $ExtractionData)
                 $AssessmentRunTime.Stop()
                 Write-AZSCLogPhase -Name 'Deferred assessment finished' -Elapsed $AssessmentRunTime.Elapsed.ToString('dd\:hh\:mm\:ss\:fff') -Detail @{
                     'Ran after' = 'diagram build (AB#6737)'
                 }
-            }
-            catch {
-                if ([string]$_.Exception.Data['AzureScoutFailureKind'] -ne 'AssessmentSourceUnavailable') { throw }
-                if ($AssessmentRunTime -and $AssessmentRunTime.IsRunning) { $AssessmentRunTime.Stop() }
-                $assessmentGap = $_.Exception.Message
-                Write-Warning "Azure Scout skipped the scored assessment because required source data was unavailable. The inventory run will continue. $assessmentGap"
-                Write-AZSCLog -Level 'WARN' -Message "Deferred assessment skipped; inventory continues. $assessmentGap" -Exception $_.Exception
-
-                # A partial source must never fabricate scored Pass findings, but it must not
-                # erase the React deliverable either. Render the complete inventory and evidence
-                # we DO have, with assessment rules disabled and collection-health metadata
-                # preserved. This is network-free because -InventoryOnly forces
-                # -OfflineFromInventory inside Invoke-ScoutAssessmentCore.
-                $fallbackFormats = @(
-                    $deferredAssessArgs.OutputFormat |
-                        Where-Object { $_ -in @('React', 'JsonEvidence') } |
-                        Select-Object -Unique
-                )
-                if ($fallbackFormats.Count -gt 0) {
-                    try {
-                        $inventoryFallbackArgs = @{
-                            InventoryOnly = $true
-                            OutputFormat  = $fallbackFormats
-                            OutputPath    = $DefaultPath
-                            Scope         = $Scope
-                        }
-                        if ($TenantID) { $inventoryFallbackArgs.TenantID = $TenantID }
-                        if ($ReportIdentity -and $ReportIdentity.Count -gt 0) {
-                            $inventoryFallbackArgs.ReportIdentity = $ReportIdentity
-                        }
-                        if ($PSBoundParameters.ContainsKey('DefaultReportMode')) {
-                            $inventoryFallbackArgs.DefaultReportMode = $DefaultReportMode
-                        }
-
-                        $primaryAssessmentPath = [string]$deferredAssessArgs.ReservedRunPath
-                        if (
-                            $primaryAssessmentPath -and
-                            (
-                                -not (Test-Path -LiteralPath $primaryAssessmentPath -PathType Container) -or
-                                @(Get-ChildItem -LiteralPath $primaryAssessmentPath -Force -ErrorAction Stop).Count -eq 0
-                            )
-                        ) {
-                            $inventoryFallbackArgs.ReservedRunPath = $primaryAssessmentPath
-                        }
-
-                        Write-AZSCLog -Level 'VERBOSE' -Message (
-                            'Scored assessment unavailable; starting network-free inventory React/evidence fallback. Formats={0}' -f
-                                ($fallbackFormats -join ',')
-                        )
-                        $inventoryFallbackOperation = {
-                            Invoke-ScoutAssessmentCore @inventoryFallbackArgs -FromInventory $ExtractionData
-                        }
-                        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-                            $inventoryFallbackPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
-                                -Status 'Rendering partial-data fallback' -PercentComplete 70 -Id 1 `
-                                -Operation $inventoryFallbackOperation
-                        }
-                        else {
-                            $inventoryFallbackPath = & $inventoryFallbackOperation
-                        }
-                        Write-Output $inventoryFallbackPath
-
-                        if ($inventoryFallbackPath) {
-                            $fallbackReact = Join-Path ([string]$inventoryFallbackPath) 'report-react.html'
-                            if (Test-Path -LiteralPath $fallbackReact -PathType Leaf) {
-                                $ReactFile = $fallbackReact
-                                Write-Host ''
-                                Write-Host '  Scored assessment unavailable; inventory React report: ' -NoNewline -ForegroundColor Yellow
-                                Write-Host $fallbackReact -ForegroundColor Cyan
-                                Write-Host ''
-                            }
-                            $fallbackEvidence = Join-Path ([string]$inventoryFallbackPath) 'evidence.json'
-                            if (Test-Path -LiteralPath $fallbackEvidence -PathType Leaf) {
-                                $EvidenceFile = $fallbackEvidence
-                            }
-                        }
-                        Write-AZSCLog -Level 'WARN' -Message (
-                            'Scored assessment unavailable; inventory-only React/evidence fallback completed: {0}' -f
-                                ([string]$inventoryFallbackPath)
-                        )
-                    }
-                    catch {
-                        Write-Warning "Azure Scout could not render the inventory React fallback after assessment scoring was skipped: $($_.Exception.Message)"
-                        Write-AZSCLog -Level 'WARN' -Message 'Inventory React fallback failed after assessment source became unavailable.' -Exception $_.Exception
-                    }
-                }
-            }
-            finally {
-                $ProcessingRunTime.Start()
-            }
-        }
-        elseif ($deferredInventoryOutputArgs) {
-            $ProcessingRunTime.Stop()
-            try {
-                $InventoryOutputRunTime = [System.Diagnostics.Stopwatch]::StartNew()
-                Write-AZSCLog -Level 'VERBOSE' -Message 'Inventory React/evidence rendering started from the in-memory inventory; assessment rules are disabled.'
-                $inventoryOutputOperation = {
-                    Invoke-ScoutAssessmentCore @deferredInventoryOutputArgs -FromInventory $ExtractionData
-                }
-                if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-                    $inventoryOutputRunPath = Invoke-ScoutProgressOperation -Activity 'Inventory report' `
-                        -Status 'Rendering React and evidence outputs' -PercentComplete 70 -Id 1 `
-                        -Operation $inventoryOutputOperation
-                }
-                else {
-                    $inventoryOutputRunPath = & $inventoryOutputOperation
-                }
-                Write-Output $inventoryOutputRunPath
-                if ($inventoryOutputRunPath -and $deferredInventoryOutputArgs.OutputFormat -contains 'React') {
-                    $reactFile = Join-Path ([string]$inventoryOutputRunPath) 'report-react.html'
-                    if (Test-Path $reactFile) {
-                        $ReactFile = $reactFile
-                        Write-Host ''
-                        Write-Host "  React report : $reactFile" -ForegroundColor Cyan
-                        Write-Host ''
-                    }
-                }
-                if ($inventoryOutputRunPath) {
-                    $evidenceCandidate = Join-Path ([string]$inventoryOutputRunPath) 'evidence.json'
-                    if (Test-Path $evidenceCandidate) { $EvidenceFile = $evidenceCandidate }
-                }
-                $InventoryOutputRunTime.Stop()
-                Write-AZSCLogPhase -Name 'Inventory React/evidence rendering finished' `
-                    -Elapsed $InventoryOutputRunTime.Elapsed.ToString('dd\:hh\:mm\:ss\:fff') -Detail @{
-                        'Formats' = $deferredInventoryOutputArgs.OutputFormat
-                    }
             }
             finally {
                 $ProcessingRunTime.Start()
@@ -1400,28 +989,15 @@ Function Invoke-AzureScout {
         }
         Remove-Variable -Name ExtractionData -ErrorAction SilentlyContinue
 
-        $collectorProcessingOperation = {
-            Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources `
-                -Advisories $Advisories -Retirements $Retirements -DefaultPath $DefaultPath `
-                -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation `
-                -Category $Category -CollectionHealth $CollectionHealth
-        }
-        if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-            $null = Invoke-ScoutProgressOperation -Activity 'Processing inventory' `
-                -Status 'Running collectors' -PercentComplete 75 -Id 1 `
-                -Operation $collectorProcessingOperation
-        }
-        else {
-            $null = & $collectorProcessingOperation
-        }
+        Start-AZSCProcessOrchestration -Subscriptions $Subscriptions -Resources $Resources -Retirements $Retirements -DefaultPath $DefaultPath -Heavy $Heavy -File $File -InTag $InTag -Automation $Automation -Category $Category
 
     $ProcessingRunTime.Stop()
 
     $ProcessingTotalTime = $ProcessingRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
     Write-AZSCLogPhase -Name 'Processing finished' -Elapsed $ProcessingTotalTime -Detail @{
-        'Cache files' = @(Get-ChildItem -Path $ReportCache -Filter '*.json' -ErrorAction SilentlyContinue).Count
-        'Output root' = $DefaultPath
+        'Cache files'  = @(Get-ChildItem -Path $ReportCache -Filter '*.json' -ErrorAction SilentlyContinue).Count
+        'Excel target' = $File
     }
 
     if ($Automation.IsPresent)
@@ -1440,12 +1016,6 @@ Function Invoke-AzureScout {
 
     $ReportingRunTime = [System.Diagnostics.Stopwatch]::StartNew()
 
-    # These values are consumed by the shared completion and upload paths even when their
-    # renderer is not selected, or when a renderer fails and its catch block keeps the run
-    # alive. Initialise them before branching so StrictMode preserves that best-effort design.
-    $TotalRes = 0
-    $JsonFile = $null
-
     # ── Excel Report ─────────────────────────────────────────────────────
     if ($WantExcel)
     {
@@ -1456,14 +1026,7 @@ Function Invoke-AzureScout {
 
             $TotalRes = Start-AZSCExcelCustomization -File $File -TableStyle $TableStyle -PlatOS $PlatOS -Subscriptions $Subscriptions -ExtractionRunTime $ExtractionRuntime -ProcessingRunTime $ProcessingRunTime -ReportingRunTime $ReportingRunTime -IncludeCosts $IncludeCosts -RunLite $RunLite -Overview $Overview -Category $Category
 
-            if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
-                Write-ScoutProgress -Activity 'Azure Inventory' -Status '95% Complete.' -PercentComplete 95 `
-                    -CurrentOperation "Excel customization complete. Total resources inventoried: $TotalRes"
-            }
-            else {
-                Write-Progress -Activity 'Azure Inventory' -Status '95% Complete.' -PercentComplete 95 `
-                    -CurrentOperation "Excel customization complete. Total resources inventoried: $TotalRes"
-            }
+            Write-Progress -activity 'Azure Inventory' -Status "95% Complete." -PercentComplete 95 -CurrentOperation "Excel Customization Completed. Total resources inventoried: $TotalRes"
         }
         catch {
             Write-Warning "Excel report generation failed: $($_.Exception.Message)"
@@ -1493,7 +1056,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Markdown report export.')
-            Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+            $MarkdownFile = Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
         }
         catch {
             Write-Warning "Markdown report generation failed: $($_.Exception.Message)"
@@ -1506,7 +1069,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting AsciiDoc report export.')
-            Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+            $AsciiDocFile = Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
         }
         catch {
             Write-Warning "AsciiDoc report generation failed: $($_.Exception.Message)"
@@ -1519,7 +1082,7 @@ Function Invoke-AzureScout {
     {
         try {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Power BI CSV export.')
-            Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+            $PowerBIDir = Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
         }
         catch {
             Write-Warning "Power BI report generation failed: $($_.Exception.Message)"
@@ -1532,9 +1095,8 @@ Function Invoke-AzureScout {
     $ReportingTotalTime = $ReportingRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
     Write-AZSCLogPhase -Name 'Reporting finished' -Elapsed $ReportingTotalTime -Detail @{
-        'Inventory JSON' = $JsonFile
-        'React report'   = $ReactFile
-        'JSON evidence'  = $EvidenceFile
+        'Excel rows written' = $TotalRes
+        'Report file'        = $File
     }
 
     if ($Automation.IsPresent)
@@ -1551,13 +1113,8 @@ Function Invoke-AzureScout {
         # Clear memory to remove as many memory footprint as possible
         Clear-AZSCMemory
 
-        # Keep every per-run discovery and processing artifact. Operators can intentionally
-        # prune old run folders with Clear-AZSCCacheFolder -OlderThan, but a successful scan
-        # must never delete the data that produced its reports.
-        Write-AZSCLog -Level 'VERBOSE' -Message (
-            'Run evidence retained: raw inventory={0}; report cache={1}; diagram cache={2}' -f
-                $RawDumpPath, $ReportCache, $DiagramCache
-        )
+        # Clear Cache Folder for future runs
+        Clear-AZSCCacheFolder -ReportCache $ReportCache
 
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Finished Charts Phase.')
@@ -1585,11 +1142,6 @@ Function Invoke-AzureScout {
                 Write-Output $JsonFile
                 Set-AzStorageBlobContent -File $JsonFile -Container $StorageContainer -Context $StorageContext -Force | Out-Null
             }
-            foreach ($liveArtifact in @($ReactFile, $EvidenceFile) | Where-Object { $_ } | Select-Object -Unique) {
-                Write-Output "Sending live report artifact to Storage Account:"
-                Write-Output $liveArtifact
-                Set-AzStorageBlobContent -File $liveArtifact -Container $StorageContainer -Context $StorageContext -Force | Out-Null
-            }
             if(!$SkipDiagram.IsPresent -and $DDFile -and (Test-Path -Path $DDFile))
                 {
                     Write-Output "Sending Diagram file to Storage Account:"
@@ -1616,46 +1168,18 @@ Function Invoke-AzureScout {
 
     $Measure = $TotalRunTime.Elapsed.ToString("dd\:hh\:mm\:ss\:fff")
 
-if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
-    Write-ScoutProgress -Activity 'Azure Inventory' -Status '100% Complete.' -Completed
-}
-else {
-    Write-Progress -Activity 'Azure Inventory' -Status '100% Complete.' -Completed
-}
+Write-Progress -activity 'Azure Inventory' -Status "100% Complete." -Completed
 
 Write-AZSCLogPhase -Name 'Run complete' -Elapsed $Measure -Detail @{
     'Resources on Azure' = $ResourcesCount
-    'Output root'        = $DefaultPath
+    'Rows on Excel'      = $TotalRes
+    'Report file'        = $File
 }
 
-Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRes $TotalRes -SkipAdvisory $SkipAdvisory -AdvisoryData $AdvisoryCount -SkipPolicy $SkipPolicy -SkipAPIs $SkipAPIs -PolicyData $PolicyCount -SecurityCenter $SecurityCenter -SecurityCenterData $SecCenterCount -File $File -ExcelRendered:$WantExcel -SkipDiagram $SkipDiagram -DDFile $DDFile
+Out-AZSCReportResults -Measure $Measure -ResourcesCount $ResourcesCount -TotalRes $TotalRes -SkipAdvisory $SkipAdvisory -AdvisoryData $AdvisoryCount -SkipPolicy $SkipPolicy -SkipAPIs $SkipAPIs -PolicyData $PolicyCount -SecurityCenter $SecurityCenter -SecurityCenterData $SecCenterCount -File $File -SkipDiagram $SkipDiagram -DDFile $DDFile
 
 # Closed last so the transcript captures the run summary above, and so the operator is told
 # where the log is on a successful run as well as a failed one (AB#5635).
 $null = Stop-AZSCRunLog -Status 'COMPLETED'
 
-    }
-    finally {
-        # A normal success or the trap above closes and clears the active log path. If control
-        # reaches finally with a log still active (for example, a terminating path outside the
-        # main body), leave a durable terminal marker instead of an apparently frozen log.
-        if ($runLogStarted -and (Get-AZSCRunLogPath)) {
-            try {
-                Write-AZSCLog -Level 'ERROR' -Message 'Run ended without reaching the normal completion or failure handler.'
-                $null = Stop-AZSCRunLog -Status 'FAILED' -Quiet
-            }
-            catch {
-                # Logging is diagnostic-only and must never replace the original error.
-                Write-Debug ('Invoke-AzureScout: unfinished run-log closure failed: ' + $_.Exception.Message)
-            }
-        }
-        if ($restoreAzBreakingChangeWarningSetting) {
-            if ($null -eq $previousAzBreakingChangeWarningSetting) {
-                [Environment]::SetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', $null, 'Process')
-            }
-            else {
-                [Environment]::SetEnvironmentVariable('SuppressAzurePowerShellBreakingChangeWarnings', $previousAzBreakingChangeWarningSetting, 'Process')
-            }
-        }
-    }
 }

@@ -54,7 +54,6 @@ $ErrorActionPreference = 'Stop'
 #>
 function Import-Governance {
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ManagementGroupId', Justification = 'Accepted for call-site parity with Invoke-ScoutAssessmentCore -- Line 206 always passes it -- but every ARG query here runs tenant-wide; MG-scoped filtering is not implemented yet.')]
     param($Collect, [string] $ManagementGroupId)
 
     Import-Module Az.ResourceGraph -ErrorAction Stop
@@ -65,19 +64,12 @@ function Import-Governance {
     # ---- ARG helper: paged, scoped to the management group when one is supplied ----
     # Mirrors Invoke-Collect's paging: Search-AzGraph rejects -Skip 0
     # (ValidateRange minimum is 1), so omit it on the first page.
-    function Invoke-GovArg([string] $Query, [switch] $UseTenantScope) {
+    function Invoke-GovArg([string] $Query) {
         $rows = @(); $skip = 0
         do {
             $params = @{ Query = $Query; First = 1000; ErrorAction = 'Stop' }
             if ($skip -gt 0) { $params.Skip = $skip }
-            # AB#6901 -- management groups are TENANT-level containers, invisible to a default
-            # (subscription-scoped) Resource Graph call: proven live, 0 rows default vs 18 with
-            # -UseTenantScope, same SPN, same tenant. The two scope parameters are mutually
-            # exclusive on Search-AzGraph, and an explicit -ManagementGroupId run is already
-            # scoped to the subtree the caller asked for, so tenant scope only applies when no
-            # management group was supplied.
-            if ($UseTenantScope -and -not $ManagementGroupId) { $params.UseTenantScope = $true }
-            elseif ($ManagementGroupId) { $params.ManagementGroup = $ManagementGroupId }
+            if ($ManagementGroupId) { $params.ManagementGroup = $ManagementGroupId }
             # AB#6779. `@(Search-AzGraph @params)` collects the PSResourceGraphResponse WRAPPER as
             # a single element rather than the rows -- always, not only when the result is empty.
             # That made $batch.Count permanently 1, so this loop's `-eq 1000` condition could NEVER
@@ -100,29 +92,17 @@ function Import-Governance {
         return , $rows
     }
 
-    # 1) management groups (Compare-Benchmark matches archetype names against .name).
-    #    -UseTenantScope is REQUIRED here (AB#6901): without it the query returned zero rows on
-    #    every run in the product's history -- empty in all eight reference tenants across both
-    #    corpus runs -- so archetype matching and the MG-hierarchy rules always scored an estate
-    #    with no management groups at all.
-    $mgQuery = @'
+    # 1) management groups (Compare-Benchmark matches archetype names against .name)
+    $mgs = @()
+    try {
+        $mgs = Invoke-GovArg @'
 resourcecontainers
 | where type =~ "microsoft.management/managementgroups"
 | project name, id, displayName = tostring(properties.displayName),
           parent = tostring(properties.details.parent.name)
 '@
-    $mgs = @()
-    try {
-        $mgs = Invoke-GovArg $mgQuery -UseTenantScope
     }
-    catch {
-        # Tenant scope needs a tenant-level read the caller may not hold (Reader at root MG). The
-        # default-scope retry keeps the old behavior as the floor rather than trading one empty
-        # result for a new hard failure.
-        Write-Verbose "Import-Governance: tenant-scoped management-group query failed, retrying at default scope (AB#6901): $($_.Exception.Message)"
-        try { $mgs = Invoke-GovArg $mgQuery }
-        catch { Write-Warning "Import-Governance: management-group query failed: $($_.Exception.Message)" }
-    }
+    catch { Write-Warning "Import-Governance: management-group query failed: $($_.Exception.Message)" }
 
     # ---- what the collect pass already handed over (AB#6779) ----------------------------------
     # Four of the six datasets below are now collected by Get-ScoutRawInventory, because the four
@@ -149,7 +129,6 @@ resourcecontainers
     # 2) policy assignments - keep the nested `properties` object so rule JSONPaths
     #    (@.properties.enforcementMode / .parameters / .displayName) resolve unchanged.
     $policy = Get-GovAlreadyCollected 'policyAssignments'
-    $policyAssignmentsAvailable = $policy.Count -gt 0
     if ($policy.Count -gt 0) {
         Write-Verbose "Import-Governance: reusing $($policy.Count) policy assignments from the collect pass (AB#6779)."
     }
@@ -160,17 +139,12 @@ policyresources
 | where type =~ "microsoft.authorization/policyassignments"
 | project name, id, type, properties
 '@
-            $policyAssignmentsAvailable = $true
         }
-        catch {
-            $policyAssignmentsAvailable = $false
-            Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)"
-        }
+        catch { Write-Warning "Import-Governance: policy-assignment query failed: $($_.Exception.Message)" }
     }
 
     # 3) role assignments - properties.principalType drives CAF-IDN-01/05.
     $roles = Get-GovAlreadyCollected 'roleAssignments'
-    $roleAssignmentsAvailable = $roles.Count -gt 0
     if ($roles.Count -gt 0) {
         Write-Verbose "Import-Governance: reusing $($roles.Count) role assignments from the collect pass (AB#6779)."
     }
@@ -181,12 +155,8 @@ authorizationresources
 | where type =~ "microsoft.authorization/roleassignments"
 | project name, id, type, properties
 '@
-            $roleAssignmentsAvailable = $true
         }
-        catch {
-            $roleAssignmentsAvailable = $false
-            Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)"
-        }
+        catch { Write-Warning "Import-Governance: role-assignment query failed: $($_.Exception.Message)" }
     }
 
     # 4/5) budgets + resource locks - neither is indexed by Resource Graph, so pull
@@ -202,8 +172,6 @@ authorizationresources
     # collect pass already supplied would double every budget row.
     $budgetsReused = $budgets.Count -gt 0
     $locksReused = $locks.Count -gt 0
-    $budgetsAvailable = $budgetsReused -or $subIds.Count -gt 0
-    $resourceLocksAvailable = $locksReused -or $subIds.Count -gt 0
     if ($budgetsReused -or $locksReused) {
         Write-Verbose "Import-Governance: reusing $($budgets.Count) budgets and $($locks.Count) resource locks from the collect pass (AB#6779)."
     }
@@ -216,12 +184,8 @@ authorizationresources
                     $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
                     if ($val) { $budgets += $val }
                 }
-                else { $budgetsAvailable = $false }
             }
-            catch {
-                $budgetsAvailable = $false
-                Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)"
-            }
+            catch { Write-Warning "Import-Governance: budgets read failed for $sub`: $($_.Exception.Message)" }
         }
 
         if (-not $locksReused) {
@@ -231,12 +195,8 @@ authorizationresources
                     $val = ($resp.Content | ConvertFrom-Json -Depth 100).value
                     if ($val) { $locks += $val }
                 }
-                else { $resourceLocksAvailable = $false }
             }
-            catch {
-                $resourceLocksAvailable = $false
-                Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)"
-            }
+            catch { Write-Warning "Import-Governance: resource-lock read failed for $sub`: $($_.Exception.Message)" }
         }
     }
 
@@ -250,16 +210,11 @@ authorizationresources
     # leaving real policy/role/MG objects untouched.
     $gov = [pscustomobject]@{
         managementGroups      = @($mgs     | Where-Object { $_ })
-        policyAssignmentsAvailable = $policyAssignmentsAvailable
         policyAssignments     = @($policy  | Where-Object { $_ })
-        roleAssignmentsAvailable = $roleAssignmentsAvailable
         roleAssignments       = @($roles   | Where-Object { $_ })
-        budgetsAvailable      = $budgetsAvailable
         budgets               = @($budgets | Where-Object { $_ })
-        resourceLocksAvailable = $resourceLocksAvailable
         resourceLocks         = @($locks   | Where-Object { $_ })
-        pimEligibilityAvailable = $false # Entra P2 + Graph app perms required - see NOTES
-        pimEligibility        = @()
+        pimEligibility        = @()   # Entra P2 + Graph app perms required - see NOTES
         classicAdministrators = @()   # retired ARM API - see NOTES
     }
     $Collect | Add-Member -NotePropertyName governance -NotePropertyValue $gov -Force

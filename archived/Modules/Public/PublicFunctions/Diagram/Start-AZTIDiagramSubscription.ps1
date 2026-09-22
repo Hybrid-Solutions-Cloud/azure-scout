@@ -6,7 +6,7 @@ Subscription Module for Draw.io Diagram
 This module is used for the Subscription topology in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -18,7 +18,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramSubscription {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($Subscriptions,$Resources,$DiagramCache,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -50,7 +49,7 @@ Function Start-AZSCDiagramSubscription {
                 $Script:XmlWriter.WriteEndElement()
             }
 
-        function Set-AZSCDiagramIconStyleVariable {
+        function Set-Variable {
 
         $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
         $Script:RetRound = "rounded=1;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
@@ -237,7 +236,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Bot' + "`n" + 'Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureBotServices -x $TempResLeft -y $TempResTop -w "40" -h "40" -p 1
+                                    Add-Icon $AzureBotServices $TempResLeft $TempResTop "40" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -247,7 +246,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Machine' + "`n" + 'Learning'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureMachineLearning -x $TempResLeft -y $TempResTop -w "40" -h "43" -p 1
+                                    Add-Icon $AzureMachineLearning $TempResLeft $TempResTop "40" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -257,7 +256,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Cognitive' + "`n" + 'Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureCognitive -x $TempResLeft -y $TempResTop -w "58" -h "38" -p 1
+                                    Add-Icon $AzureCognitive $TempResLeft $TempResTop "58" "38" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -270,7 +269,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Databricks'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDatabricks -x $TempResLeft -y $TempResTop -w "48" -h "52" -p 1
+                                    Add-Icon $AzureDatabricks $TempResLeft $TempResTop "48" "52" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -280,7 +279,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Analysis' + "`n" + 'Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAnalysis -x $TempResLeft -y $TempResTop -w "53" -h "41" -p 1
+                                    Add-Icon $AzureAnalysis $TempResLeft $TempResTop "53" "41" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -290,7 +289,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Synapse' + "`n" + 'Analytics'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSynapses -x $TempResLeft -y $TempResTop -w "45" -h "54" -p 1
+                                    Add-Icon $AzureSynapses $TempResLeft $TempResTop "45" "54" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -303,7 +302,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Web App'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconAPPs -x $TempResLeft -y $TempResTop -w "45" -h "45" -p 1
+                                    Add-Icon $IconAPPs $TempResLeft $TempResTop "45" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -313,7 +312,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' App' + "`n" + 'Service Plan'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AppSvcPlan -x $TempResLeft -y $TempResTop -w "43.5" -h "43.5" -p 1
+                                    Add-Icon $AppSvcPlan $TempResLeft $TempResTop "43.5" "43.5" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -323,7 +322,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' App Service' + "`n" + 'Domain'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAppDomain -x $TempResLeft -y $TempResTop -w "50" -h "38" -p 1
+                                    Add-Icon $AzureAppDomain $TempResLeft $TempResTop "50" "38" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -336,7 +335,7 @@ Function Start-AZSCDiagramSubscription {
                             $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' VMware' + "`n" + 'Private Cloud'))
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                Add-Icon -Style $AzureAVSPrivateCloud -x $TempResLeft -y $TempResTop -w "60" -h "46" -p 1
+                                Add-Icon $AzureAVSPrivateCloud $TempResLeft $TempResTop "60" "46" 1
 
                             $Script:XmlWriter.WriteEndElement()
                         }
@@ -349,7 +348,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' AVD' + "`n" + 'Workspaces'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAVDWorkspace -x $TempResLeft -y $TempResTop -w "48" -h "42" -p 1
+                                    Add-Icon $AzureAVDWorkspace $TempResLeft $TempResTop "48" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -359,7 +358,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' VMSS'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconVMSS -x $TempResLeft -y $TempResTop -w "45" -h "45" -p 1
+                                    Add-Icon $IconVMSS $TempResLeft $TempResTop "45" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -369,7 +368,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Service' + "`n" + 'Fabric'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $SvcFabric -x $TempResLeft -y $TempResTop -w "49.4" -h "47.2" -p 1
+                                    Add-Icon $SvcFabric $TempResLeft $TempResTop "49.4" "47.2" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -379,7 +378,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Disk'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Disks -x $TempResLeft -y $TempResTop -w "40.72" -h "40" -p 1
+                                    Add-Icon $Disks  $TempResLeft $TempResTop "40.72" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -389,7 +388,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Virtual' + "`n" + 'Machine'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconVMs -x $TempResLeft -y $TempResTop -w "43" -h "40" -p 1
+                                    Add-Icon $IconVMs  $TempResLeft $TempResTop "43" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -399,7 +398,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Availability' + "`n" + 'Set'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AvSet -x $TempResLeft -y $TempResTop -w "43.5" -h "43.5" -p 1
+                                    Add-Icon $AvSet  $TempResLeft $TempResTop "43.5" "43.5" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -409,7 +408,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Restore' + "`n" + 'Point Collection'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $RestorePoint -x $TempResLeft -y $TempResTop -w "50" -h "40" -p 1
+                                    Add-Icon $RestorePoint  $TempResLeft $TempResTop "50" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -419,7 +418,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Cloud' + "`n" + 'Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureCloudSvc -x $TempResLeft -y $TempResTop -w "51" -h "37" -p 1
+                                    Add-Icon $AzureCloudSvc  $TempResLeft $TempResTop "51" "37" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -429,7 +428,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Images'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureVMImage -x $TempResLeft -y $TempResTop -w "47" -h "44" -p 1
+                                    Add-Icon $AzureVMImage  $TempResLeft $TempResTop "47" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -442,7 +441,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' AKS'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconAKS -x $TempResLeft -y $TempResTop -w "51" -h "45" -p 1
+                                    Add-Icon $IconAKS $TempResLeft $TempResTop "51" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -452,7 +451,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Container' + "`n" + 'Registry'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $ContRegis -x $TempResLeft -y $TempResTop -w "45" -h "40" -p 1
+                                    Add-Icon $ContRegis  $TempResLeft $TempResTop "45" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -462,7 +461,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Kubernetes' + "`n" + 'Azure Arc'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconAKS -x $TempResLeft -y $TempResTop -w "51" -h "45" -p 1
+                                    Add-Icon $IconAKS $TempResLeft $TempResTop "51" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -472,7 +471,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Container' + "`n" + 'Instances'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureContainerInstances -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureContainerInstances $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -482,7 +481,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Container' + "`n" + 'Instances'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureContainerApp -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureContainerApp $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -492,7 +491,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Container' + "`n" + 'Instances'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureContainerAppEnv -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureContainerAppEnv $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -504,7 +503,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Database'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLDB -x $TempResLeft -y $TempResTop -w "36" -h "49" -p 1
+                                    Add-Icon $AzureSQLDB  $TempResLeft $TempResTop "36" "49" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -514,7 +513,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLDBServer -x $TempResLeft -y $TempResTop -w "49" -h "49" -p 1
+                                    Add-Icon $AzureSQLDBServer  $TempResLeft $TempResTop "49" "49" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -524,7 +523,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Data' + "`n" + 'Explorer Cluster'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDataExplorer -x $TempResLeft -y $TempResTop -w "41" -h "41" -p 1
+                                    Add-Icon $AzureDataExplorer  $TempResLeft $TempResTop "41" "41" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -534,7 +533,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Database' + "`n" + 'PostgreSQL'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDBforPostgre -x $TempResLeft -y $TempResTop -w "38" -h "43" -p 1
+                                    Add-Icon $AzureDBforPostgre  $TempResLeft $TempResTop "38" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -544,7 +543,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' PostgreSQL' + "`n" + 'Flexible Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDBforPostgreFlex -x $TempResLeft -y $TempResTop -w "37.94" -h "43" -p 1
+                                    Add-Icon $AzureDBforPostgreFlex  $TempResLeft $TempResTop "37.94" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -554,7 +553,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Redis' + "`n" + 'Cache'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureRedisCa -x $TempResLeft -y $TempResTop -w "55" -h "45" -p 1
+                                    Add-Icon $AzureRedisCa  $TempResLeft $TempResTop "55" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -564,7 +563,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Data' + "`n" + 'Factory'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDataFactory -x $TempResLeft -y $TempResTop -w "44" -h "44" -p 1
+                                    Add-Icon $AzureDataFactory  $TempResLeft $TempResTop "44" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -574,7 +573,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Cosmos' + "`n" + 'Database'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureCosmos -x $TempResLeft -y $TempResTop -w "51" -h "51" -p 1
+                                    Add-Icon $AzureCosmos  $TempResLeft $TempResTop "51" "51" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -584,7 +583,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Elastic Pool'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureElastic -x $TempResLeft -y $TempResTop -w "51" -h "51" -p 1
+                                    Add-Icon $AzureElastic  $TempResLeft $TempResTop "51" "51" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -594,7 +593,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Elastic' + "`n" + 'Job Agent'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureElasticJobAgent -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureElasticJobAgent  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -604,7 +603,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' MySQL' + "`n" + 'Database Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDB4MySQL -x $TempResLeft -y $TempResTop -w "35" -h "46" -p 1
+                                    Add-Icon $AzureDB4MySQL  $TempResLeft $TempResTop "35" "46" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -614,7 +613,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' MySQL' + "`n" + 'Flexible Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDB4MySQL -x $TempResLeft -y $TempResTop -w "35" -h "46" -p 1
+                                    Add-Icon $AzureDB4MySQL  $TempResLeft $TempResTop "35" "46" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -624,7 +623,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Managed Instances' + "`n" + 'Database'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLManagedInstancesDB -x $TempResLeft -y $TempResTop -w "51" -h "47" -p 1
+                                    Add-Icon $AzureSQLManagedInstancesDB  $TempResLeft $TempResTop "51" "47" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -634,7 +633,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Managed Instances'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLManagedInstances -x $TempResLeft -y $TempResTop -w "50" -h "49" -p 1
+                                    Add-Icon $AzureSQLManagedInstances  $TempResLeft $TempResTop "50" "49" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -644,7 +643,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Virtual Machine'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLVM -x $TempResLeft -y $TempResTop -w "50" -h "46" -p 1
+                                    Add-Icon $AzureSQLVM  $TempResLeft $TempResTop "50" "46" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -654,7 +653,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SQL' + "`n" + 'Virtual Cluster'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSQLVirtualCluster -x $TempResLeft -y $TempResTop -w "50" -h "48" -p 1
+                                    Add-Icon $AzureSQLVirtualCluster  $TempResLeft $TempResTop "50" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -664,7 +663,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Database' + "`n" + 'Migration Service'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDBMigration -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureDBMigration  $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -674,7 +673,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Database' + "`n" + 'Migration Service'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDBMigration -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureDBMigration  $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -684,7 +683,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Database' + "`n" + 'Migration Project'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDBMigration -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureDBMigration  $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -694,7 +693,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Purview' + "`n" + 'Account'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzurePurviewAcc -x $TempResLeft -y $TempResTop -w "58" -h "32" -p 1
+                                    Add-Icon $AzurePurviewAcc  $TempResLeft $TempResTop "58" "32" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -704,7 +703,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' MariaDB' + "`n" + 'Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureMariaDB -x $TempResLeft -y $TempResTop -w "34" -h "50" -p 1
+                                    Add-Icon $AzureMariaDB  $TempResLeft $TempResTop "34" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -717,7 +716,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Insight' + "`n" + 'Metrics'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Insight -x $TempResLeft -y $TempResTop -w "33" -h "42" -p 1
+                                    Add-Icon $Insight $TempResLeft $TempResTop "33" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -727,7 +726,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' App' + "`n" + 'Insights'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Insight -x $TempResLeft -y $TempResTop -w "50" -h "42" -p 1
+                                    Add-Icon $Insight $TempResLeft $TempResTop "50" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -737,7 +736,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' DevOps' + "`n" + 'Organization'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDevOpsOrg -x $TempResLeft -y $TempResTop -w "41" -h "41" -p 1
+                                    Add-Icon $AzureDevOpsOrg $TempResLeft $TempResTop "41" "41" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -750,7 +749,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Web' + "`n" + 'Slots'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWebSlot -x $TempResLeft -y $TempResTop -w "44" -h "49" -p 1
+                                    Add-Icon $AzureWebSlot $TempResLeft $TempResTop "44" "49" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -760,7 +759,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Workbooks'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWorkbooks -x $TempResLeft -y $TempResTop -w "39" -h "43" -p 1
+                                    Add-Icon $AzureWorkbooks $TempResLeft $TempResTop "39" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -770,7 +769,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Web' + "`n" + 'Test'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWebTest -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureWebTest $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -783,7 +782,7 @@ Function Start-AZSCDiagramSubscription {
                             $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' B2C' + "`n" + 'Directories'))
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                Add-Icon -Style $AzureB2C -x $TempResLeft -y $TempResTop -w "49" -h "45" -p 1
+                                Add-Icon $AzureB2C $TempResLeft $TempResTop "49" "45" 1
 
                             $Script:XmlWriter.WriteEndElement()
                         }
@@ -796,7 +795,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Service' + "`n" + 'Bus'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $SvcBus -x $TempResLeft -y $TempResTop -w "45.05" -h "39.75" -p 1
+                                    Add-Icon $SvcBus $TempResLeft $TempResTop "45.05" "39.75" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -806,7 +805,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' API' + "`n" + 'Connections'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAPIConnections -x $TempResLeft -y $TempResTop -w "43" -h "43" -p 1
+                                    Add-Icon $AzureAPIConnections $TempResLeft $TempResTop "43" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -816,7 +815,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Logic' + "`n" + 'Apps'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureLogicApp -x $TempResLeft -y $TempResTop -w "57" -h "44" -p 1
+                                    Add-Icon $AzureLogicApp $TempResLeft $TempResTop "57" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -826,7 +825,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Data' + "`n" + 'Catalog'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDataCatalog -x $TempResLeft -y $TempResTop -w "46" -h "52" -p 1
+                                    Add-Icon $AzureDataCatalog $TempResLeft $TempResTop "46" "52" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -836,7 +835,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Logic App' + "`n" + 'Custom Connector'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAPIConnections -x $TempResLeft -y $TempResTop -w "43" -h "43" -p 1
+                                    Add-Icon $AzureAPIConnections $TempResLeft $TempResTop "43" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -846,7 +845,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Event Grid' + "`n" + 'System Topics'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureEventGridSymtopics -x $TempResLeft -y $TempResTop -w "44" -h "40" -p 1
+                                    Add-Icon $AzureEventGridSymtopics $TempResLeft $TempResTop "44" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -856,7 +855,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' App' + "`n" + 'Configuration'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAppConfiguration -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureAppConfiguration $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -866,7 +865,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Integration' + "`n" + 'Accounts'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureIntegrationAcc -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureIntegrationAcc $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -876,7 +875,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Event Grid' + "`n" + 'Topics'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureEvtGridTopics -x $TempResLeft -y $TempResTop -w "44" -h "40" -p 1
+                                    Add-Icon $AzureEvtGridTopics $TempResLeft $TempResTop "44" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -886,7 +885,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' API' + "`n" + 'Management'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAPIMangement -x $TempResLeft -y $TempResTop -w "50" -h "45" -p 1
+                                    Add-Icon $AzureAPIMangement $TempResLeft $TempResTop "50" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -896,7 +895,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Event Grid' + "`n" + 'Domain'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureEvtGridDomain -x $TempResLeft -y $TempResTop -w "50" -h "43" -p 1
+                                    Add-Icon $AzureEvtGridDomain $TempResLeft $TempResTop "50" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -909,7 +908,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Event' + "`n" + 'Hubs'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureEvtHubs -x $TempResLeft -y $TempResTop -w "50" -h "45" -p 1
+                                    Add-Icon $AzureEvtHubs $TempResLeft $TempResTop "50" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -919,7 +918,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' IoT' + "`n" + 'Hubs'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureIoTHubs -x $TempResLeft -y $TempResTop -w "50" -h "43" -p 1
+                                    Add-Icon $AzureIoTHubs $TempResLeft $TempResTop "50" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -932,7 +931,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Recovery' + "`n" + 'Services Vault'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $RecoveryVault -x $TempResLeft -y $TempResTop -w "43.5" -h "38" -p 1
+                                    Add-Icon $RecoveryVault  $TempResLeft $TempResTop "43.5" "38" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -942,7 +941,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Automation' + "`n" + 'Account'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AutAcc -x $TempResLeft -y $TempResTop -w "40" -h "40" -p 1
+                                    Add-Icon $AutAcc  $TempResLeft $TempResTop "40" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -952,7 +951,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Arc' + "`n" + 'Server'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureArcServer -x $TempResLeft -y $TempResTop -w "30" -h "54" -p 1
+                                    Add-Icon $AzureArcServer  $TempResLeft $TempResTop "30" "54" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -965,7 +964,7 @@ Function Start-AZSCDiagramSubscription {
                             $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Migration' + "`n" + 'Project'))
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                Add-Icon -Style $AzureMigration -x $TempResLeft -y $TempResTop -w "62" -h "34" -p 1
+                                Add-Icon $AzureMigration  $TempResLeft $TempResTop "62" "34" 1
 
                             $Script:XmlWriter.WriteEndElement()
                         }
@@ -978,7 +977,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Private' + "`n" + 'Endpoint'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconPVTs -x $TempResLeft -y $TempResTop -w "44" -h "40" -p 1
+                                    Add-Icon $IconPVTs $TempResLeft $TempResTop "44" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -988,7 +987,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Load' + "`n" + 'Balancer'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconLBs -x $TempResLeft -y $TempResTop -w "41" -h "41" -p 1
+                                    Add-Icon $IconLBs $TempResLeft $TempResTop "41" "41" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -998,7 +997,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Public IPs'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzurePIP -x $TempResLeft -y $TempResTop -w "51" -h "42" -p 1
+                                    Add-Icon $AzurePIP $TempResLeft $TempResTop "51" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1008,7 +1007,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Virtual' + "`n" + 'Network'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureVNET -x $TempResLeft -y $TempResTop -w "62" -h "42" -p 1
+                                    Add-Icon $AzureVNET  $TempResLeft $TempResTop "62" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1018,7 +1017,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Network' + "`n" + 'Watcher'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $NetWatcher -x $TempResLeft -y $TempResTop -w "44" -h "44" -p 1
+                                    Add-Icon $NetWatcher  $TempResLeft $TempResTop "44" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1028,7 +1027,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' VPN' + "`n" + 'Gateway'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureVGW -x $TempResLeft -y $TempResTop -w "36" -h "40" -p 1
+                                    Add-Icon $AzureVGW  $TempResLeft $TempResTop "36" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1038,7 +1037,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Connection'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureConnections -x $TempResLeft -y $TempResTop -w "44" -h "44" -p 1
+                                    Add-Icon $AzureConnections  $TempResLeft $TempResTop "44" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1048,7 +1047,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Express' + "`n" + 'Route'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureExpressRoute -x $TempResLeft -y $TempResTop -w "45" -h "40" -p 1
+                                    Add-Icon $AzureExpressRoute  $TempResLeft $TempResTop "45" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1058,7 +1057,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Network' + "`n" + 'Security Group'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureNSG -x $TempResLeft -y $TempResTop -w "37" -h "46" -p 1
+                                    Add-Icon $AzureNSG  $TempResLeft $TempResTop "37" "46" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1068,7 +1067,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' User Defined' + "`n" + 'Route Tables'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureUDRs -x $TempResLeft -y $TempResTop -w "43" -h "42" -p 1
+                                    Add-Icon $AzureUDRs  $TempResLeft $TempResTop "43" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1078,7 +1077,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Route' + "`n" + 'Filters'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureRouteFilters -x $TempResLeft -y $TempResTop -w "54" -h "34" -p 1
+                                    Add-Icon $AzureRouteFilters  $TempResLeft $TempResTop "54" "34" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1088,7 +1087,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Bastion' + "`n" + 'Host'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureBastionHost -x $TempResLeft -y $TempResTop -w "31" -h "37" -p 1
+                                    Add-Icon $AzureBastionHost  $TempResLeft $TempResTop "31" "37" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1098,7 +1097,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Proximity' + "`n" + 'Placement Groups'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Azureproximityplacementgroups -x $TempResLeft -y $TempResTop -w "47" -h "45" -p 1
+                                    Add-Icon $Azureproximityplacementgroups  $TempResLeft $TempResTop "47" "45" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1108,7 +1107,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Private' + "`n" + 'Link Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzurePvtLinks -x $TempResLeft -y $TempResTop -w "56" -h "33" -p 1
+                                    Add-Icon $AzurePvtLinks  $TempResLeft $TempResTop "56" "33" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1118,7 +1117,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' IP' + "`n" + 'Groups'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureIPGroups -x $TempResLeft -y $TempResTop -w "56" -h "33" -p 1
+                                    Add-Icon $AzureIPGroups  $TempResLeft $TempResTop "56" "33" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1128,7 +1127,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Firewall'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureFW -x $TempResLeft -y $TempResTop -w "64" -h "42" -p 1
+                                    Add-Icon $AzureFW  $TempResLeft $TempResTop "64" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1138,7 +1137,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Local' + "`n" + 'Network Gateway'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureLNG -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureLNG  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1148,7 +1147,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Front Door'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureFrontDoor -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureFrontDoor  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1158,7 +1157,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' NAT' + "`n" + 'Gateways'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureNATGateways -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureNATGateways  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1168,7 +1167,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Public IP' + "`n" + 'Prefixes'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzurePIPPrefixes -x $TempResLeft -y $TempResTop -w "51" -h "40" -p 1
+                                    Add-Icon $AzurePIPPrefixes  $TempResLeft $TempResTop "51" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1178,7 +1177,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' CDN' + "`n" + 'Profile'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureCDN -x $TempResLeft -y $TempResTop -w "64" -h "36" -p 1
+                                    Add-Icon $AzureCDN  $TempResLeft $TempResTop "64" "36" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1188,7 +1187,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Service' + "`n" + 'Endpoint Polices'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSvcEndpointPol -x $TempResLeft -y $TempResTop -w "48" -h "50" -p 1
+                                    Add-Icon $AzureSvcEndpointPol  $TempResLeft $TempResTop "48" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1198,7 +1197,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Network' + "`n" + 'Interface'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureVMNIC -x $TempResLeft -y $TempResTop -w "50" -h "42" -p 1
+                                    Add-Icon $AzureVMNIC  $TempResLeft $TempResTop "50" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1208,7 +1207,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' WAF Policies' + "`n" + '(FrontDoor)'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWAFPolicies -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureWAFPolicies  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1218,7 +1217,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' WAF Policies' + "`n" + '(CDN)'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWAFPolicies -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureWAFPolicies  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1228,7 +1227,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' WAF Policies' + "`n" + '(App Gateway)'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureWAFPolicies -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureWAFPolicies  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1238,7 +1237,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' DNS' + "`n" + 'Zone'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDNSZone -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureDNSZone  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1248,7 +1247,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Application' + "`n" + 'Gateway'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAppGateway -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureAppGateway  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1258,7 +1257,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' DDOS' + "`n" + 'Protection'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDDOS -x $TempResLeft -y $TempResTop -w "38" -h "50" -p 1
+                                    Add-Icon $AzureDDOS  $TempResLeft $TempResTop "38" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1268,7 +1267,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Traffic Manager' + "`n" + 'Profiles'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureTrafficManager -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureTrafficManager  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1278,7 +1277,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Arc Private' + "`n" + 'Link Scope'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzurePvtLink -x $TempResLeft -y $TempResTop -w "50" -h "44" -p 1
+                                    Add-Icon $AzurePvtLink  $TempResLeft $TempResTop "50" "44" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1291,7 +1290,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Shared' + "`n" + 'Dashboard'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Dashboard -x $TempResLeft -y $TempResTop -w "50.02" -h "38.25" -p 1
+                                    Add-Icon $Dashboard $TempResLeft $TempResTop "50.02" "38.25" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1301,7 +1300,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Template' + "`n" + 'Specs'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $TemplSpec -x $TempResLeft -y $TempResTop -w "33" -h "39" -p 1
+                                    Add-Icon $TemplSpec  $TempResLeft $TempResTop "33" "39" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1311,7 +1310,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Backup' + "`n" + 'Services Vault'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureBackupVault -x $TempResLeft -y $TempResTop -w "40" -h "36" -p 1
+                                    Add-Icon $AzureBackupVault  $TempResLeft $TempResTop "40" "36" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1321,7 +1320,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' ExpressRoute' + "`n" + 'Direct'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureBackupVault -x $TempResLeft -y $TempResTop -w "45" -h "40" -p 1
+                                    Add-Icon $AzureBackupVault  $TempResLeft $TempResTop "45" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1331,7 +1330,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' AVD' + "`n" + 'Session Host'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAVDSessionHost -x $TempResLeft -y $TempResTop -w "51" -h "51" -p 1
+                                    Add-Icon $AzureAVDSessionHost  $TempResLeft $TempResTop "51" "51" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1341,7 +1340,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' AVD' + "`n" + 'Host Pool'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAVDHostPool -x $TempResLeft -y $TempResTop -w "51" -h "51" -p 1
+                                    Add-Icon $AzureAVDHostPool  $TempResLeft $TempResTop "51" "51" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1351,7 +1350,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Grafana'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureGrafana -x $TempResLeft -y $TempResTop -w "50" -h "48" -p 1
+                                    Add-Icon $AzureGrafana  $TempResLeft $TempResTop "50" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1361,7 +1360,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Network' + "`n" + 'Manager'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureNetworkManager -x $TempResLeft -y $TempResTop -w "46" -h "50" -p 1
+                                    Add-Icon $AzureNetworkManager  $TempResLeft $TempResTop "46" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1374,7 +1373,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Key' + "`n" + 'Vault'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $KeyVault -x $TempResLeft -y $TempResTop -w "40" -h "40" -p 1
+                                    Add-Icon $KeyVault $TempResLeft $TempResTop "40" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1384,7 +1383,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Application' + "`n" + 'Security Group'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureAppSecGroup -x $TempResLeft -y $TempResTop -w "35" -h "43" -p 1
+                                    Add-Icon $AzureAppSecGroup $TempResLeft $TempResTop "35" "43" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1394,7 +1393,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Defender' + "`n" + 'EASM'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDefender -x $TempResLeft -y $TempResTop -w "50" -h "38" -p 1
+                                    Add-Icon $AzureDefender $TempResLeft $TempResTop "50" "38" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1407,7 +1406,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Storage' + "`n" + 'Account'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $StorageAcc -x $TempResLeft -y $TempResTop -w "49.94" -h "40" -p 1
+                                    Add-Icon $StorageAcc $TempResLeft $TempResTop "49.94" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1417,7 +1416,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' NetApp' + "`n" + 'Account'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureNetApp -x $TempResLeft -y $TempResTop -w "40" -h "32" -p 1
+                                    Add-Icon $AzureNetApp  $TempResLeft $TempResTop "40" "32" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1427,7 +1426,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Data Lake' + "`n" + 'Storage Gen1'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureDatalakeGen1 -x $TempResLeft -y $TempResTop -w "54" -h "42" -p 1
+                                    Add-Icon $AzureDatalakeGen1  $TempResLeft $TempResTop "54" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1440,7 +1439,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Media' + "`n" + 'Services'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureMediaServices -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureMediaServices  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1453,7 +1452,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Certificate'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Certificate -x $TempResLeft -y $TempResTop -w "50" -h "42" -p 1
+                                    Add-Icon $Certificate $TempResLeft $TempResTop "50" "42" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1463,7 +1462,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Log' + "`n" + 'Analytics'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $LogAnalytics -x $TempResLeft -y $TempResTop -w "40" -h "40" -p 1
+                                    Add-Icon $LogAnalytics  $TempResLeft $TempResTop "40" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1473,7 +1472,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Private' + "`n" + 'DNS Zone'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $PvtDNS -x $TempResLeft -y $TempResTop -w "40" -h "40" -p 1
+                                    Add-Icon $PvtDNS  $TempResLeft $TempResTop "40" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1483,7 +1482,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SaaS' + "`n" + 'Resource'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSaaS -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureSaaS  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1493,7 +1492,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Relay'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureRelay -x $TempResLeft -y $TempResTop -w "50" -h "50" -p 1
+                                    Add-Icon $AzureRelay  $TempResLeft $TempResTop "50" "50" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1503,7 +1502,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Activity Log' + "`n" + 'Alert Rule'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureLogAlertRule -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureLogAlertRule  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1513,7 +1512,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Smart Detector' + "`n" + 'Alert Rule'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureLogAlertRule -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureLogAlertRule  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1523,7 +1522,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' Log Search' + "`n" + 'Alert Rule'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureLogAlertRule -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureLogAlertRule  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1533,7 +1532,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Count + ' SignalR'))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureSignalR -x $TempResLeft -y $TempResTop -w "48" -h "48" -p 1
+                                    Add-Icon $AzureSignalR  $TempResLeft $TempResTop "48" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1549,7 +1548,7 @@ Function Start-AZSCDiagramSubscription {
                                 #$Script:XmlWriter.WriteAttributeString('label', ([string]$TempResourceType.Name))
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $AzureError -x $TempResLeft -y $TempResTop -w "50" -h "48" -p 1
+                                    Add-Icon $AzureError $TempResLeft $TempResTop "50" "48" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1702,7 +1701,7 @@ Function Start-AZSCDiagramSubscription {
                             $Script:XmlWriter.WriteAttributeString('parent', "0")
                             $Script:XmlWriter.WriteEndElement()
 
-                                Set-AZSCDiagramIconStyleVariable
+                                Set-Variable
 
                                 $Script:CellIDRes = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 
@@ -1760,7 +1759,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', '')
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($CelNum++)))
 
-                                    Add-Icon -Style $Ret -x $XLeft -y $XTop -w $Witd -h $SubHeight -p 1
+                                    Add-Icon $Ret $XLeft $XTop $Witd $SubHeight 1
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -1768,7 +1767,7 @@ Function Start-AZSCDiagramSubscription {
                                 $Script:XmlWriter.WriteAttributeString('label', $SubName)
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $IconSubscription -x 30 -y ($XTop+$SubHeight-20) -w "67" -h "40" -p 1
+                                    Add-Icon $IconSubscription 30 ($XTop+$SubHeight-20) "67" "40" 1
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -1793,7 +1792,7 @@ Function Start-AZSCDiagramSubscription {
                                             $Script:XmlWriter.WriteAttributeString('label', '')
                                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($CelNum++)))
 
-                                                Add-Icon -Style $RetRound -x $RGLeft -y $RGTop -w $RGWitdh -h ($RGHeigh*120) -p 1
+                                                Add-Icon $RetRound $RGLeft $RGTop $RGWitdh ($RGHeigh*120) 1
 
                                             $Script:XmlWriter.WriteEndElement()
 
@@ -1803,7 +1802,7 @@ Function Start-AZSCDiagramSubscription {
                                                     $Script:XmlWriter.WriteAttributeString('label', $RG)
                                                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                                        Add-Icon -Style $IconRG -x ($XLeft+20) -y ($RGTop+($RGHeigh*120)-20) -w "37.5" -h "30" -p 1
+                                                        Add-Icon $IconRG ($XLeft+20) ($RGTop+($RGHeigh*120)-20) "37.5" "30" 1
 
                                                     $Script:XmlWriter.WriteEndElement()
 
@@ -1813,7 +1812,7 @@ Function Start-AZSCDiagramSubscription {
 
                                                     foreach($res0 in $Resource1)
                                                         {
-                                                            Add-ResourceType -TempResourceType $res0 -TempResLeft $ResTypeLeft -TempResTop $ResTypeTop
+                                                            Add-ResourceType $res0 $ResTypeLeft $ResTypeTop
                                                             if($YCounter -ge 8)
                                                                 {
                                                                     $ResTypeLeft = $RGLeft + 60
@@ -1840,7 +1839,7 @@ Function Start-AZSCDiagramSubscription {
                                                     $Script:XmlWriter.WriteAttributeString('label', $RG)
                                                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                                        Add-Icon -Style $IconRG -x ($RGLeft + $RGWitdh - 20) -y ($RGTop+($RGHeigh*120)-20) -w "37.5" -h "30" -p 1
+                                                        Add-Icon $IconRG ($RGLeft + $RGWitdh - 20) ($RGTop+($RGHeigh*120)-20) "37.5" "30" 1
 
                                                     $Script:XmlWriter.WriteEndElement()
 
@@ -1850,7 +1849,7 @@ Function Start-AZSCDiagramSubscription {
 
                                                     foreach($res0 in $Resource1)
                                                         {
-                                                            Add-ResourceType -TempResourceType $res0 -TempResLeft $ResTypeLeft -TempResTop $ResTypeTop
+                                                            Add-ResourceType $res0 $ResTypeLeft $ResTypeTop
                                                             if($YCounter -ge 8)
                                                                 {
                                                                     $ResTypeLeft = $RGLeft + 60
@@ -1893,4 +1892,3 @@ Function Start-AZSCDiagramSubscription {
             Write-Output ('DrawIOSubsFile - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - End of Subscription Function: ')
 
 }
-

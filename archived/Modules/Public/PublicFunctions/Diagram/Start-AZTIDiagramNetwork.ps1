@@ -6,7 +6,7 @@ Network Module for Draw.io Diagram
 This module is use for the Network topology in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -18,11 +18,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramNetwork {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Advisories', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'XMLFiles', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'AZSCModule', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($Subscriptions,$Job,$Advisories,$DiagramCache,$FullEnvironment,$DDFile,$XMLFiles,$LogFile,$Automation,$AZSCModule)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -173,8 +168,6 @@ Function Start-AZSCDiagramNetwork {
 
         <# Function to create the Visio document and import each stencil #>
         Function Publish-AZSCDiagramStensils {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
-            param()
             $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
 
             $Script:IconConnections = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Connections.svg;" #width="68" height="68"
@@ -228,7 +221,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'This Local Network Gateway has Errors')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $IconError -x 40 -y ($Script:Alt+25) -w "25" -h "25" -p 1
+                        New-AZSCDiagramIcon $IconError 40 ($Script:Alt+25) "25" "25" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -242,7 +235,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'No Connections were found in this Local Network Gateway')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $SymInfo -x 40 -y ($Script:Alt+30) -w "20" -h "20" -p 1
+                        New-AZSCDiagramIcon $SymInfo 40 ($Script:Alt+30) "20" "20" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -255,7 +248,7 @@ Function Start-AZSCDiagramNetwork {
                 $Script:XmlWriter.WriteAttributeString('Local_Address_Space', [string]$GTW.properties.localNetworkAddressSpace.addressPrefixes)
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                    New-AZSCDiagramIcon -Style $IconTraffic -x 50 -y $Script:Alt -w "67" -h "40" -p 1
+                    New-AZSCDiagramIcon $IconTraffic 50 $Script:Alt "67" "40" 1
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -278,7 +271,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'This Express Route has Errors')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $IconError -x 51 -y ($Script:Alt+25) -w "25" -h "25" -p 1
+                        New-AZSCDiagramIcon $IconError 51 ($Script:Alt+25) "25" "25" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -292,7 +285,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'No Connections were found in this Express Route')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $SymInfo -x 51 -y ($Script:Alt+30) -w "20" -h "20" -p 1
+                        New-AZSCDiagramIcon $SymInfo 51 ($Script:Alt+30) "20" "20" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -308,7 +301,7 @@ Function Start-AZSCDiagramNetwork {
                 $Script:XmlWriter.WriteAttributeString('Billing_model', $ERs.sku.family)
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                    New-AZSCDiagramIcon -Style $IconExpressRoute -x "61.5" -y $Script:Alt -w "44" -h "40" -p 1
+                    New-AZSCDiagramIcon $IconExpressRoute "61.5" $Script:Alt "44" "40" 1
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -332,7 +325,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'This VPN Site has Errors')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $IconError -x 40 -y ($Script:Alt+25) -w "25" -h "25" -p 1
+                        New-AZSCDiagramIcon $IconError 40 ($Script:Alt+25) "25" "25" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -346,7 +339,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'No vWANs were found in this VPN Site')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $SymInfo -x 40 -y ($Script:Alt+30) -w "20" -h "20" -p 1
+                        New-AZSCDiagramIcon $SymInfo 40 ($Script:Alt+30) "20" "20" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -359,7 +352,7 @@ Function Start-AZSCDiagramNetwork {
                 $Script:XmlWriter.WriteAttributeString('Link_Speed_In_Mbps', [string]$GTW.properties.deviceProperties.linkSpeedInMbps)
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                    New-AZSCDiagramIcon -Style $IconNAT -x 50 -y $Script:Alt -w "67" -h "40" -p 1
+                    New-AZSCDiagramIcon $IconNAT 50 $Script:Alt "67" "40" 1
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -379,7 +372,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'This Express Route Circuit has Errors')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $IconError -x 40 -y ($Script:Alt+25) -w "25" -h "25" -p 1
+                        New-AZSCDiagramIcon $IconError 40 ($Script:Alt+25) "25" "25" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -393,7 +386,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Status', 'No vWANs were found in this Express Route Circuit')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $SymInfo -x 40 -y ($Script:Alt+30) -w "20" -h "20" -p 1
+                        New-AZSCDiagramIcon $SymInfo 40 ($Script:Alt+30) "20" "20" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -406,7 +399,7 @@ Function Start-AZSCDiagramNetwork {
                 $Script:XmlWriter.WriteAttributeString('LinkSpeed_In_Mbps', [string]$GTW.properties.deviceProperties.linkSpeedInMbps)
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                    New-AZSCDiagramIcon -Style $IconNAT -x 50 -y $Script:Alt -w "67" -h "40" -p 1
+                    New-AZSCDiagramIcon $IconNAT 50 $Script:Alt "67" "40" 1
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -424,7 +417,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('label', '')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $Ret -x -520 -y -100 -w "500" -h ($Script:Alt + 100) -p 1
+                        New-AZSCDiagramIcon $Ret -520 -100 "500" ($Script:Alt + 100) 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -432,13 +425,13 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('label', ('On Premises'+ "`n" +'Environment'))
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $OnPrem -x -351 -y (($Script:Alt + 100)/2) -w "168.2" -h "290" -p 1
+                        New-AZSCDiagramIcon $OnPrem -351 (($Script:Alt + 100)/2) "168.2" "290" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
                     Set-AZSCDiagramLabel
 
-                    New-AZSCDiagramIcon -Style $Signature -x -520 -y ($Script:Alt + 100) -w "27.5" -h "22" -p 1
+                    New-AZSCDiagramIcon $Signature -520 ($Script:Alt + 100) "27.5" "22" 1
 
                     $Script:XmlWriter.WriteEndElement()
                 }
@@ -469,7 +462,7 @@ Function Start-AZSCDiagramNetwork {
 
                         $LogResName = [string]$Name2
                         Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Icon ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                        New-AZSCDiagramIcon -Style $IconConnections -x 250 -y $Script:Alt -w "40" -h "40" -p 1
+                        New-AZSCDiagramIcon $IconConnections 250 $Script:Alt "40" "40" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -498,7 +491,7 @@ Function Start-AZSCDiagramNetwork {
 
                         $LogResName = [string]$VGT.Name
                         Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Icon ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                        New-AZSCDiagramIcon -Style $IconVGW2 -x 425 -y ($Script:Alt-4) -w "31.34" -h "48" -p 1
+                        New-AZSCDiagramIcon $IconVGW2 425 ($Script:Alt-4) "31.34" "48" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -544,7 +537,7 @@ Function Start-AZSCDiagramNetwork {
 
                                             $LogResName = [string]$VNET2.Name
                                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Icon ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                                            New-AZSCDiagramIcon -Style $IconVNET -x 600 -y $Script:Alt -w "65" -h "39" -p 1
+                                            New-AZSCDiagramIcon $IconVNET 600 $Script:Alt "65" "39" 1
 
                                         $Script:XmlWriter.WriteEndElement()
 
@@ -560,7 +553,7 @@ Function Start-AZSCDiagramNetwork {
                                             $Script:XmlWriter.WriteAttributeString('label', '')
                                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                                New-AZSCDiagramIcon -Style $IconDDOS -x 580 -y ($Script:Alt + 15) -w "23" -h "28" -p 1
+                                                New-AZSCDiagramIcon $IconDDOS 580 ($Script:Alt + 15) "23" "28" 1
 
                                             $Script:XmlWriter.WriteEndElement()
                                         }
@@ -620,7 +613,7 @@ Function Start-AZSCDiagramNetwork {
             $Script:Source = ($Script:CellID+'-'+($Script:IDNum-1))
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                New-AZSCDiagramIcon -Style $IconVWAN -x 250 -y $Script:Alt -w "40" -h "40" -p 1
+                New-AZSCDiagramIcon $IconVWAN 250 $Script:Alt "40" "40" 1
 
             $Script:XmlWriter.WriteEndElement()
 
@@ -642,7 +635,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('Allow_BranchToBranch_Traffic', [string]$VHUB.properties.allowBranchToBranchTraffic)
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $IconVWAN -x 425 -y $Script:Alt -w "40" -h "40" -p 1
+                        New-AZSCDiagramIcon $IconVWAN 425 $Script:Alt "40" "40" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -688,7 +681,7 @@ Function Start-AZSCDiagramNetwork {
 
                                             $LogResName = [string]$VNET2.Name
                                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VNET ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                                            New-AZSCDiagramIcon -Style $IconVNET -x 600 -y $Script:Alt -w "65" -h "39" -p 1
+                                            New-AZSCDiagramIcon $IconVNET 600 $Script:Alt "65" "39" 1
 
                                         $Script:XmlWriter.WriteEndElement()
 
@@ -705,7 +698,7 @@ Function Start-AZSCDiagramNetwork {
                                             $Script:XmlWriter.WriteAttributeString('label', '')
                                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                                New-AZSCDiagramIcon -Style $IconDDOS -x 580 -y ($Script:Alt + 15) -w "23" -h "28" -p 1
+                                                New-AZSCDiagramIcon $IconDDOS 580 ($Script:Alt + 15) "23" "28" 1
 
                                             $Script:XmlWriter.WriteEndElement()
                                         }
@@ -785,7 +778,7 @@ Function Start-AZSCDiagramNetwork {
 
                                 $LogResName = [string]$VNET2.Name
                                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VNET ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                                New-AZSCDiagramIcon -Style $IconVNET -x 600 -y $Script:Alt -w "65" -h "39" -p 1
+                                New-AZSCDiagramIcon $IconVNET 600 $Script:Alt "65" "39" 1
 
                             $Script:XmlWriter.WriteEndElement()
 
@@ -799,7 +792,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:XmlWriter.WriteAttributeString('label', '')
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    New-AZSCDiagramIcon -Style $IconDDOS -x 580 -y ($Script:Alt + 15) -w "23" -h "28" -p 1
+                                    New-AZSCDiagramIcon $IconDDOS 580 ($Script:Alt + 15) "23" "28" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -827,7 +820,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
                         Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Icon: " + $Script:CellID+'-'+($Script:IDNum))
-                        New-AZSCDiagramIcon -Style $Ret -x -520 -y -100 -w "500" -h ($Script:Alt + 100) -p 1
+                        New-AZSCDiagramIcon $Ret -520 -100 "500" ($Script:Alt + 100) 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -835,13 +828,13 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('label', ('Cloud Only'+ "`n" +'Environment'))
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $Script:CloudOnly -x -460 -y (($Script:Alt + 100)/2) -w "380" -h "275" -p 1
+                        New-AZSCDiagramIcon $Script:CloudOnly -460 (($Script:Alt + 100)/2) "380" "275" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
                     Set-AZSCDiagramLabel
 
-                    New-AZSCDiagramIcon -Style $Signature -x -520 -y ($Script:Alt + 100) -w "27.5" -h "22" -p 1
+                    New-AZSCDiagramIcon $Signature -520 ($Script:Alt + 100) "27.5" "22" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -878,7 +871,7 @@ Function Start-AZSCDiagramNetwork {
 
                                 $LogResName = [string]$VNET2.Name
                                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VNET ($LogResName): " + $Script:CellID+'-'+($Script:IDNum))
-                                New-AZSCDiagramIcon -Style $IconVNET -x 600 -y $Script:Alt -w "65" -h "39" -p 1
+                                New-AZSCDiagramIcon $IconVNET 600 $Script:Alt "65" "39" 1
 
                             $Script:XmlWriter.WriteEndElement()
 
@@ -895,7 +888,7 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('label', '')
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $Ret -x -520 -y -100 -w "500" -h ($Script:Alt + 100) -p 1
+                        New-AZSCDiagramIcon $Ret -520 -100 "500" ($Script:Alt + 100) 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -903,13 +896,13 @@ Function Start-AZSCDiagramNetwork {
                     $Script:XmlWriter.WriteAttributeString('label', ('On Premises'+ "`n" +'Environment'))
                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                        New-AZSCDiagramIcon -Style $OnPrem -x -351 -y (($Script:Alt + 100)/2) -w "168.2" -h "290" -p 1
+                        New-AZSCDiagramIcon $OnPrem -351 (($Script:Alt + 100)/2) "168.2" "290" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
                     Set-AZSCDiagramLabel
 
-                    New-AZSCDiagramIcon -Style $Signature -x -520 -y ($Script:Alt + 100) -w "27.5" -h "22" -p 1
+                    New-AZSCDiagramIcon $Signature -520 ($Script:Alt + 100) "27.5" "22" 1
 
                     $Script:XmlWriter.WriteEndElement()
 
@@ -933,11 +926,11 @@ Function Start-AZSCDiagramNetwork {
 
                         if('gatewaysubnet' -in $VNET2.properties.subnets.name)
                             {
-                                New-AZSCDiagramHubContainer -x ($Script:vnetLoc) -y ($Script:Alt0 - 20) -w $Script:sizeL -h "490" -title $VNET2.Name
+                                New-AZSCDiagramHubContainer ($Script:vnetLoc) ($Script:Alt0 - 20) $Script:sizeL "490" $VNET2.Name
                             }
                         else
                             {
-                                New-AZSCDiagramVNETContainer -x ($Script:vnetLoc) -y ($Script:Alt0 - 20) -w $Script:sizeL -h "490" -title $VNET2.Name
+                                New-AZSCDiagramVNETContainer ($Script:vnetLoc) ($Script:Alt0 - 20) $Script:sizeL "490" $VNET2.Name
                             }
 
                         $Script:VNETSquare = ($Script:CellID+'-'+($Script:IDNum-1))
@@ -948,7 +941,7 @@ Function Start-AZSCDiagramNetwork {
                         $Script:XmlWriter.WriteAttributeString('label', $SubName.name)
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                            New-AZSCDiagramIcon -Style $IconSubscription -x $Script:sizeL -y 460 -w "67" -h "40" -p $Script:ContID
+                            New-AZSCDiagramIcon $IconSubscription $Script:sizeL 460 "67" "40" $Script:ContID
 
                         $Script:XmlWriter.WriteEndElement()
 
@@ -970,13 +963,13 @@ Function Start-AZSCDiagramNetwork {
 
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                New-AZSCDiagramIcon -Style $IconCostMGMT -x ($Script:sizeL + 150) -y 460 -w "30" -h "35" -p $Script:ContID
+                                New-AZSCDiagramIcon $IconCostMGMT ($Script:sizeL + 150) 460 "30" "35" $Script:ContID
 
                             $Script:XmlWriter.WriteEndElement()
 
                         }
 
-                        New-AZSCDiagramSubnet -subloc ($Script:vnetLoc + 15) -VNET $VNET2 -IDNum $Script:IDNum -DiagramCache $DiagramCache -ContID $Script:ContID -LogFile $LogFile
+                        New-AZSCDiagramSubnet ($Script:vnetLoc + 15) $VNET2 $Script:IDNum $DiagramCache $Script:ContID $LogFile
 
                         Start-Sleep -Milliseconds 100
 
@@ -988,11 +981,11 @@ Function Start-AZSCDiagramNetwork {
 
                         if('gatewaysubnet' -in $VNET2.properties.subnets.name)
                             {
-                                New-AZSCDiagramHubContainer -x ($Script:vnetLoc) -y ($Script:Alt0 - 15) -w $Script:sizeL -h "260" -title $VNET2.Name
+                                New-AZSCDiagramHubContainer ($Script:vnetLoc) ($Script:Alt0 - 15) $Script:sizeL "260" $VNET2.Name
                             }
                         else
                             {
-                                New-AZSCDiagramVNETContainer -x ($Script:vnetLoc) -y ($Script:Alt0 - 15) -w $Script:sizeL -h "260" -title $VNET2.Name
+                                New-AZSCDiagramVNETContainer ($Script:vnetLoc) ($Script:Alt0 - 15) $Script:sizeL "260" $VNET2.Name
                             }
 
                         $Script:VNETSquare = ($Script:CellID+'-'+($Script:IDNum-1))
@@ -1003,7 +996,7 @@ Function Start-AZSCDiagramNetwork {
                         $Script:XmlWriter.WriteAttributeString('label', $SubName.name)
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                            New-AZSCDiagramIcon -Style $IconSubscription -x $Script:sizeL -y 225 -w "67" -h "40" -p $Script:ContID
+                            New-AZSCDiagramIcon $IconSubscription $Script:sizeL 225 "67" "40" $Script:ContID
 
                         $Script:XmlWriter.WriteEndElement()
 
@@ -1025,13 +1018,13 @@ Function Start-AZSCDiagramNetwork {
 
                             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                New-AZSCDiagramIcon -Style $IconCostMGMT -x ($Script:sizeL + 150) -y 225 -w "30" -h "35" -p $Script:ContID
+                                New-AZSCDiagramIcon $IconCostMGMT ($Script:sizeL + 150) 225 "30" "35" $Script:ContID
 
                             $Script:XmlWriter.WriteEndElement()
 
                         }
 
-                        New-AZSCDiagramSubnet -subloc ($Script:vnetLoc + 15) -VNET $VNET2 -IDNum $Script:IDNum -DiagramCache $DiagramCache -ContID $Script:ContID -LogFile $LogFile
+                        New-AZSCDiagramSubnet ($Script:vnetLoc + 15) $VNET2 $Script:IDNum $DiagramCache $Script:ContID $LogFile
 
                         Start-Sleep -Milliseconds 100
 
@@ -1107,7 +1100,7 @@ Function Start-AZSCDiagramNetwork {
                             }
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                            New-AZSCDiagramIcon -Style $IconVNET -x $Script:vnetLoc -y $Script:vnetLoc1 -w "67" -h "40" -p 1
+                            New-AZSCDiagramIcon $IconVNET $Script:vnetLoc $Script:vnetLoc1 "67" "40" 1
 
                         $Script:XmlWriter.WriteEndElement()
 
@@ -1144,7 +1137,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:XmlWriter.WriteAttributeString('label', '')
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    New-AZSCDiagramIcon -Style $IconDDOS -x ($Script:vnetLoc - 20) -y ($Script:vnetLoc1 + 15) -w "23" -h "28" -p 1
+                                    New-AZSCDiagramIcon $IconDDOS ($Script:vnetLoc - 20) ($Script:vnetLoc1 + 15) "23" "28" 1
 
                                 $Script:XmlWriter.WriteEndElement()
                             }
@@ -1158,11 +1151,11 @@ Function Start-AZSCDiagramNetwork {
 
                                 if('gatewaysubnet' -in $VNETSUB.properties.subnets.name)
                                     {
-                                        New-AZSCDiagramHubContainer -x ($Script:vnetLoc + 100) -y ($Script:vnetLoc1 - 20) -w $Script:sizeL -h "490" -title $VNETSUB.name
+                                        New-AZSCDiagramHubContainer ($Script:vnetLoc + 100) ($Script:vnetLoc1 - 20) $Script:sizeL "490" $VNETSUB.name
                                     }
                                 else
                                     {
-                                        New-AZSCDiagramVNETContainer -x ($Script:vnetLoc + 100) -y ($Script:vnetLoc1 - 20) -w $Script:sizeL -h "490" -title $VNETSUB.name
+                                        New-AZSCDiagramVNETContainer ($Script:vnetLoc + 100) ($Script:vnetLoc1 - 20) $Script:sizeL "490" $VNETSUB.name
                                     }
 
                                 $Script:VNETSquare = ($Script:CellID+'-'+($Script:IDNum-1))
@@ -1172,7 +1165,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:XmlWriter.WriteAttributeString('label', $SubName.name)
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    New-AZSCDiagramIcon -Style $IconSubscription -x $Script:sizeL -y 460 -w "67" -h "40" -p $Script:ContID
+                                    New-AZSCDiagramIcon $IconSubscription $Script:sizeL 460 "67" "40" $Script:ContID
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -1194,13 +1187,13 @@ Function Start-AZSCDiagramNetwork {
 
                                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                            New-AZSCDiagramIcon -Style $IconCostMGMT -x ($Script:sizeL + 150) -y 460 -w "30" -h "35" -p $Script:ContID
+                                            New-AZSCDiagramIcon $IconCostMGMT ($Script:sizeL + 150) 460 "30" "35" $Script:ContID
 
                                         $Script:XmlWriter.WriteEndElement()
 
                                     }
 
-                                    New-AZSCDiagramSubnet -subloc ($Script:vnetLoc + 120) -VNET $VNETSUB -IDNum $Script:IDNum -DiagramCache $DiagramCache -ContID $Script:ContID -LogFile $LogFile
+                                    New-AZSCDiagramSubnet ($Script:vnetLoc + 120) $VNETSUB $Script:IDNum $DiagramCache $Script:ContID $LogFile
 
                                     Start-Sleep -Milliseconds 100
 
@@ -1216,16 +1209,16 @@ Function Start-AZSCDiagramNetwork {
                                     {
                                         if('gatewaysubnet' -in $VNETSUB.properties.subnets.name)
                                             {
-                                                New-AZSCDiagramHubContainer -x ($Script:vnetLoc + 100) -y ($Script:vnetLoc1 - 20) -w $Script:sizeL -h "260" -title $VNETSUB.name
+                                                New-AZSCDiagramHubContainer ($Script:vnetLoc + 100) ($Script:vnetLoc1 - 20) $Script:sizeL "260" $VNETSUB.name
                                             }
                                         else
                                             {
-                                                New-AZSCDiagramVNETContainer -x ($Script:vnetLoc + 100) -y ($Script:vnetLoc1 - 20) -w $Script:sizeL -h "260" -title $VNETSUB.name
+                                                New-AZSCDiagramVNETContainer ($Script:vnetLoc + 100) ($Script:vnetLoc1 - 20) $Script:sizeL "260" $VNETSUB.name
                                             }
                                     }
                                 else
                                     {
-                                        New-AZSCDiagramBrokenContainer -x ($Script:vnetLoc + 100) -y ($Script:vnetLoc1 - 20) -w "250" -h "260" -title 'Broken Peering'
+                                        New-AZSCDiagramBrokenContainer ($Script:vnetLoc + 100) ($Script:vnetLoc1 - 20) "250" "260" 'Broken Peering'
                                         $Script:sizeL = '250'
                                     }
 
@@ -1237,7 +1230,7 @@ Function Start-AZSCDiagramNetwork {
                                 $Script:XmlWriter.WriteAttributeString('label', $SubName.name)
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    New-AZSCDiagramIcon -Style $IconSubscription -x $Script:sizeL -y 225 -w "67" -h "40" -p $Script:ContID
+                                    New-AZSCDiagramIcon $IconSubscription $Script:sizeL 225 "67" "40" $Script:ContID
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -1259,13 +1252,13 @@ Function Start-AZSCDiagramNetwork {
 
                                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                            New-AZSCDiagramIcon -Style $IconCostMGMT -x ($Script:sizeL + 150) -y 225 -w "30" -h "35" -p $Script:ContID
+                                            New-AZSCDiagramIcon $IconCostMGMT ($Script:sizeL + 150) 225 "30" "35" $Script:ContID
 
                                         $Script:XmlWriter.WriteEndElement()
 
                                     }
 
-                                    New-AZSCDiagramSubnet -subloc ($Script:vnetLoc + 120) -VNET $VNETSUB -IDNum $Script:IDNum -DiagramCache $DiagramCache -ContID $Script:ContID -LogFile $LogFile
+                                    New-AZSCDiagramSubnet ($Script:vnetLoc + 120) $VNETSUB $Script:IDNum $DiagramCache $Script:ContID $LogFile
 
                                     Start-Sleep -Milliseconds 100
 
@@ -1369,7 +1362,7 @@ Function Start-AZSCDiagramNetwork {
         Function Set-AZSCDiagramLabel {
             $Date = get-date -Format "yyyy-MM-dd_HH_mm"
             $Script:XmlWriter.WriteStartElement('object')
-            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/Hybrid-Solutions-Cloud/azure-scout' + "`n" +'Date:' + "`n" + $Date))
+            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/thisismydemo/azure-scout' + "`n" +'Date:' + "`n" + $Date))
             $Script:XmlWriter.WriteAttributeString('author', 'Claudio Merola')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
         }
