@@ -9,7 +9,7 @@ written alongside (or instead of) the Excel report depending on the
 -OutputFormat parameter on Invoke-AzureScout.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -22,8 +22,6 @@ Authors: Claudio Merola
 
 function Export-AZSCJsonReport {
     [CmdletBinding()]
-    [OutputType([string])]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,
@@ -87,7 +85,7 @@ function Export-AZSCJsonReport {
 
     # ── Discover inventory module folders ────────────────────────────────
     $ParentPath   = (Get-Item $PSScriptRoot).Parent.Parent
-    $InventoryModulesPath = Join-Path -Path $ParentPath -ChildPath 'Public' -AdditionalChildPath 'InventoryModules'
+    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
     $ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
 
     # ── Category mapping ─────────────────────────────────────────────────
@@ -126,7 +124,7 @@ function Export-AZSCJsonReport {
         # Collect all modules within this folder into a section object.
         $SectionData = [ordered]@{}
 
-        $ModulePath  = Join-Path -Path $ModuleFolder.FullName -ChildPath '*.ps1'
+        $ModulePath  = Join-Path $ModuleFolder.FullName '*.ps1'
         $ModuleFiles = Get-ChildItem -Path $ModulePath -ErrorAction SilentlyContinue
 
         foreach ($Module in $ModuleFiles) {

@@ -20,9 +20,7 @@ BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
     # Get-ScoutRawInventory's `Import-Module Az.ResourceGraph` must not pull the real module in.
-    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:Root/src/collect/Get-ScoutRawInventory.ps1"
     . "$script:Root/src/collect/Get-ScoutArmChildResource.ps1"
@@ -75,8 +73,7 @@ Describe 'AB#6770 -- Monitor/Outages sees the Resource Health events' {
 
     It 'turns an event carried on the ARM REST sweep into an AZSC/Monitor/Outage envelope' {
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
         }
@@ -96,8 +93,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
         # inventory path, where Start-AZTIExtractionOrchestration already adds them from the
         # ApiResources field this function returns.
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
         }
@@ -112,8 +108,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
         # An EMPTY value on every element is what makes member enumeration throw under
         # StrictMode (AB#5633); a subscription with no incidents is the normal case.
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             @(
                 [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @() }
@@ -132,8 +127,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
         # when the transform runs, so the envelope count is zero no matter what the sweep returns.
         $script:SweepRan = $false
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             $script:SweepRan = $true
             [pscustomobject]@{ Subscription = 'sub-1'; ResourceHealth = @(New-MockHealthEvent) }
@@ -146,7 +140,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
     }
 }
 
-Describe 'AB#7279 -- Azure Lighthouse remains held' {
+Describe 'AB#6771 -- Management/LighthouseDelegations has a table to read' {
 
     BeforeEach {
         $script:Queries = @()
@@ -154,22 +148,87 @@ Describe 'AB#7279 -- Azure Lighthouse remains held' {
             param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             $script:Queries += $Query
+            if ($Query -match '^managedserviceresources') {
+                return @([pscustomobject]@{
+                        id             = '/subscriptions/sub-1/providers/Microsoft.ManagedServices/registrationDefinitions/def-one'
+                        name           = 'def-one'
+                        type           = 'microsoft.managedservices/registrationdefinitions'
+                        subscriptionId = 'sub-1'
+                        tags           = [pscustomobject]@{}
+                        properties     = [pscustomobject]@{ managedByTenantId = 'tenant-managing' }
+                    })
+            }
             return @()
         }
-        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; @() }
+        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; @() }
         function ConvertTo-ScoutManagementGroupHierarchy { param($Root) $null = $Root; @() }
         function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $null = $ApiResources; @() }
     }
 
-    It 'never queries the unsupported managedserviceresources table' {
+    It 'queries managedserviceresources, filtered to registration definitions' {
+        $null = Get-ScoutRawInventory -IncludeLighthouseDelegations
+
+        $joined = $script:Queries -join "`n"
+        $joined | Should -Match '(?m)^managedserviceresources\b'
+        $joined | Should -Match "microsoft\.managedservices/registrationdefinitions"
+    }
+
+    It 'returns the delegation rows on Resources, where the collector reads them' {
+        $result = Get-ScoutRawInventory -IncludeLighthouseDelegations
+
+        $rows = @($result.Resources | Where-Object { $_.type -eq 'microsoft.managedservices/registrationdefinitions' })
+        $rows.Count | Should -Be 1
+        $rows[0].properties.managedByTenantId | Should -Be 'tenant-managing'
+    }
+
+    It 'does not project columns, because the table need not define the resources-table schema' {
+        # A `project` naming a column the table does not have fails the WHOLE query, and this
+        # table is not guaranteed to carry zones/extendedLocation/plan. The patch* tables skip
+        # the projection for the same reason.
+        $null = Get-ScoutRawInventory -IncludeLighthouseDelegations
+
+        $lighthouse = @($script:Queries | Where-Object { $_ -match '^managedserviceresources' })
+        $lighthouse.Count | Should -Be 1
+        $lighthouse[0] | Should -Not -Match '\|\s*project\b'
+    }
+
+    It 'does not query the table when the switch is absent' {
         $null = Get-ScoutRawInventory
 
         ($script:Queries -join "`n") | Should -Not -Match '(?m)^managedserviceresources\b'
     }
+}
 
-    It 'has no released collector manifest for Lighthouse delegations' {
-        Test-Path "$script:Root/manifests/collectors/Management/LighthouseDelegations.psd1" | Should -BeFalse
+Describe 'AB#6771 -- the production splat turns the pass on' {
+
+    BeforeEach {
+        . "$script:Root/src/collect/Start-ScoutGraphExtraction.ps1"
+
+        $script:Splat = $null
+        function Get-ScoutRawInventory {
+            [CmdletBinding()]
+            # Only the parameter under test is named; everything else the production splat carries
+            # lands in -Rest, so this stub does not become a second copy of the real signature.
+            param(
+                $IncludeLighthouseDelegations,
+                [Parameter(ValueFromRemainingArguments)] $Rest
+            )
+            $null = $Rest, $IncludeLighthouseDelegations
+            $script:Splat = $PSBoundParameters
+            [pscustomobject]@{
+                Resources = @(); ResourceContainers = @(); Advisories = @()
+                Security = @(); Retirements = @(); ApiResources = @()
+            }
+        }
+        function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) $null = $ManagementGroup; $Subscriptions }
+    }
+
+    It 'sets -IncludeLighthouseDelegations' {
+        # The assertion the suite was missing for its sibling defect (AB#6755): proving the
+        # function HONOURS a switch says nothing about whether any production caller sets it.
+        $null = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'sub-1' }) -AzureEnvironment 'AzureCloud'
+
+        [bool]$script:Splat['IncludeLighthouseDelegations'] | Should -BeTrue
     }
 }
 
@@ -402,8 +461,7 @@ Describe 'AB#6801 -- Hybrid/ArcSites is re-sourced via ARM REST' {
 
     It 'turns the per-subscription Microsoft.Edge/sites sweep into AZSC/ARMChild/ArcSites rows, not a Resource Graph query' {
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             [pscustomobject]@{
                 Subscription = 'sub-1'
@@ -436,8 +494,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
 
     It 'survives a subscription whose sweep returned no sites at all' {
         function Get-ScoutApiResources {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+            param([Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             @(
                 [pscustomobject]@{ Subscription = 'sub-1'; ArcSites = @() }

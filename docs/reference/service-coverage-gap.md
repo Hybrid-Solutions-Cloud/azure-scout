@@ -1,5 +1,5 @@
 ---
-description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's 245 collectors.
+description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's 242 collectors.
 ---
 
 # Service Coverage Gap
@@ -48,23 +48,23 @@ retire) faster than most of this repository.
 
 | Category | Microsoft services (sourced) | Collected | Not collected | Coverage | Cited figure | Matches? |
 |---|---|---|---|---|---|---|
-| AI + Machine Learning | 31 | 19 | 12 | 61% | 22 | No — see note |
-| Analytics | 19 | 14 | 3 | 82% | — | — |
-| Compute | 22 | 20 | 1 | 95% | 32 | No — see note |
+| AI + Machine Learning | 31 | 16 | 15 | 52% | 22 | No — see note |
+| Analytics | 19 | 6 | 13 | 32% | — | — |
+| Compute | 22 | 14 | 8 | 64% | 32 | No — see note |
 | Containers | 9 | 7 | 2 | 78% | 12 | No — see note |
-| Databases | 15 | 14 | 0 | 100% | — | — |
-| DevOps | 19 | 9 | 3 | 60% | — | — |
+| Databases | 15 | 10 | 5 | 67% | — | — |
+| DevOps | 19 | 8 | 11 | 42% | — | — |
 | General | ambiguous — no published catalogue | 4 of AzureScout's own 5 | n/a | n/a | — | — |
 | Hybrid + multicloud | 14 (marketing list) / ambiguous, see note | 16 collectors, 2 known resource-family gaps | Custom Locations; Arc-enabled VMware/SCVMM | n/a | — | — |
 | Identity | 4 (product-level; ambiguous, see note) | all 4 present | 0 | n/a | — | — |
 | Integration | 7 | 5 | 2 | 71% | — | — |
-| Internet of Things | 16 | 13 | 2 | 87% | — | — |
-| Management and governance | 25 | 17 | 4 | 81% | — | — |
+| Internet of Things | 16 | 6 | 10 | 38% | — | — |
+| Management and governance | 25 | 12 | 13 | 48% | — | — |
 | Migration | 6 | 6 | 0 | 100% | — | — |
 | Monitor | 14 (Learn-derived) | 13 | 1 | 93% | — | — |
-| Networking | 22 | 20 | 2 | 91% | — | — |
-| Security | 19 | 15 | 4 | 79% | — | — |
-| Storage | 19 | 17 | 2 | 94% | — | — |
+| Networking | 22 | 17 | 5 | 77% | — | — |
+| Security | 19 | 13 | 6 | 68% | — | — |
+| Storage | 19 | 11 | 8 | 58% | — | — |
 | Web & Mobile | 15 (union of Web + Mobile) | 12 | 3 | 80% | — | — |
 
 Percentages exclude items marked N/A (not an ARM resource — an OS, an SDK, a GitHub product, or a
@@ -93,41 +93,34 @@ exactly 22.
 | Azure Machine Learning | Collected | `MachineLearning`, `MLComputes`, `MLDatasets`, `MLDatastores`, `MLEndpoints`, `MLModels`, `MLPipelines` |
 | Azure Open Datasets | Not collected | — (data catalogue, not an inventoried resource) |
 | Foundry Tools (Vision/Language/etc. umbrella) | Collected | see individual Cognitive Services rows below |
-| Azure AI Video Indexer | Collected (AB#7086) | `VideoIndexerAccounts` (`microsoft.videoindexer/accounts`) |
+| Azure AI Video Indexer | Not collected | — |
 | Azure AI Custom Vision | Collected | `CustomVision` |
 | Data Science Virtual Machines | Not collected | no dedicated collector (would appear only as a generic `VirtualMachine` row) |
 | Azure AI Language (Foundry Tools) | Collected | `TextAnalytics` |
 | Azure AI Translator (Foundry Tools) | Collected | `Translator` |
-| Azure AI Metrics Advisor | Not collected (out of scope, AB#7086) | retired — [no new resource creation, retiring 1 October 2026](https://azure.microsoft.com/updates/ai-services-metrics-advisor-will-be-retired-on-1-october-2026/); Microsoft's own guidance is to migrate to Azure Monitor/Fabric, not to keep inventorying the service |
+| Azure AI Metrics Advisor | Not collected | — |
 | Azure OpenAI (Foundry Models) | Collected | `OpenAIAccounts`, `OpenAIDeployments` |
-| Azure AI Personalizer | Not collected (out of scope, AB#7086) | retired — [no new resource creation since 20 Sept 2023, retiring 1 October 2026](https://azure.microsoft.com/updates/ai-services-personalizer-will-be-retired-on-1-october-2026/) |
+| Azure AI Personalizer | Not collected | — |
 | Content Safety (Foundry Control Plane) | Collected | `ContentSafety` |
-| Health Bot | Collected (AB#7086) | `HealthBots` (`microsoft.healthbot/healthbots`) |
+| Health Bot | Not collected | — |
 | Azure Document Intelligence (Foundry Tools) | Collected | `FormRecognizer` |
-| AI Anomaly Detector | Not collected (out of scope, AB#7086) | retired — [no new resource creation since 20 Sept 2023, retiring 1 October 2026](https://azure.microsoft.com/updates/ai-services-anomaly-detector-will-be-retired-on-1-october-2026/) |
+| AI Anomaly Detector | Not collected | — |
 | Foundry Models | Partially collected | `OpenAIDeployments` covers OpenAI; other Foundry model families are not enumerated |
-| Microsoft Security Copilot | Not collected (out of scope, AB#7086) | capacity is provisioned and managed through the Security Copilot portal / Microsoft 365 admin center, not a discoverable ARM resource type in Microsoft Learn's public template reference — do not force a guess at an undocumented resource type |
+| Microsoft Security Copilot | Not collected | — |
 | Azure AI Immersive Reader | Collected | `ImmersiveReader` |
 | Phi open models | N/A | model weights, not an ARM resource |
-| Azure Content Understanding (Foundry Tools) | Not collected (out of scope, AB#7086) | a capability of the `AIServices` multi-service Cognitive Services kind, already collected via `AzureAI` (`Kind -eq 'AIServices'`) — no separate ARM discriminator exists to collect it distinctly |
+| Azure Content Understanding (Foundry Tools) | Not collected | — |
 | Azure AI Speech (Foundry Tools) | Collected | `SpeechService` |
-| Microsoft Planetary Computer Pro | Collected (AB#7086) | `PlanetaryComputerGeoCatalogs` (`microsoft.orbital/geocatalogs` — the GeoCatalog resource; the RP namespace is `Microsoft.Orbital`, shared with Azure Orbital, not a `Microsoft.PlanetaryComputer` namespace) |
-| Foundry Agent Service | Not collected (out of scope, AB#7086) | agents are data-plane sub-resources of an AI Foundry project, still preview; no standalone top-level ARM resource to collect |
-| Azure SRE Agent | Not collected (out of scope, AB#7086) | preview-only control-plane API (`2025-05-01-preview`, `Microsoft.App/agents`), not GA |
-| Observability (Foundry Control Plane) | Not collected (out of scope, AB#7086) | a portal/monitoring feature within Foundry, not an ARM resource |
+| Microsoft Planetary Computer Pro | Not collected | — |
+| Foundry Agent Service | Not collected | — |
+| Azure SRE Agent | Not collected | — |
+| Observability (Foundry Control Plane) | Not collected | — |
 | Azure AI Vision (Foundry Tools) | Collected | `ComputerVision` |
-| Foundry IQ | Not collected (out of scope, AB#7086) | preview-only Foundry feature (knowledge/grounding layer), no dedicated ARM resource |
+| Foundry IQ | Not collected | — |
 
 We also collect `AppliedAIServices`, `AzureAI`, `FaceAPI` and `HealthInsights` — general or older
 Cognitive Services surfaces that Microsoft's current catalogue folds into "Foundry Tools" rather than
 listing individually, so they are not double-counted above.
-
-We also collect `ContentModerator` (`microsoft.cognitiveservices/accounts`, `Kind -eq
-'ContentModerator'`), which does not appear in the table above because Microsoft retired it: Content
-Moderator has been unavailable for new resource creation since 15 March 2024 and is scheduled for full
-retirement on 15 March 2027, replaced by Azure AI Content Safety (already tracked above as
-`ContentSafety`). Same shape as the `MariaDB`/`SQLPOOL` note under Databases — a working collector
-pointed at a decommissioned service, not a coverage gap.
 
 ## Analytics
 
@@ -135,25 +128,25 @@ Source: [azure.microsoft.com/products?categories=analytics](https://azure.micros
 
 | Microsoft service | Status | AzureScout collector |
 |---|---|---|
-| Azure Analysis Services | Collected (AB#7082) | `AnalysisServices` (`microsoft.analysisservices/servers`) |
+| Azure Analysis Services | Not collected | — |
 | Azure Data Explorer | Collected | `DataExplorerCluster` |
-| Azure Data Factory | Collected (AB#7082) | `DataFactory` (`microsoft.datafactory/factories`) |
+| Azure Data Factory | Not collected | real gap |
 | Azure Data Lake Storage | Collected (cross-category: Storage) | `StorageAccounts` (Gen2 accounts are still `microsoft.storage/storageaccounts`) |
-| Azure Data Share | Collected (AB#7082) | `DataShare` (`microsoft.datashare/accounts`) |
+| Azure Data Share | Not collected | — |
 | Azure Databricks | Collected | `Databricks` |
 | Azure Stream Analytics | Collected | `Streamanalytics` |
 | Azure Synapse Analytics | Collected | `Synapse` |
 | Data Catalog | N/A | Microsoft retired Azure Data Catalog in 2022 |
 | Data Lake Analytics | N/A | Microsoft retired Azure Data Lake Analytics in 2024 |
 | Event Hubs | Collected | `EvtHub` (namespaces); `EventHubClusters` also collected under Integration |
-| HDInsight | Collected (AB#7082) | `HDInsight` (`microsoft.hdinsight/clusters`) |
-| Power BI Embedded | Collected (AB#7082) | `PowerBIEmbedded` (`microsoft.powerbidedicated/capacities`) |
-| Microsoft Graph Data Connect | Not collected (out of scope, AB#7082) | Not a distinct ARM/Graph-enumerable resource — it is a data-connector capability surfaced *inside* Azure Data Factory / Purview pipelines (a linked-service/dataset configuration, data-plane only), with no `Microsoft.*` resource provider or Graph API of its own to collect against. Same class of exclusion as the pre-existing "linked services" and "firewall rules" rows this doc already carries for Data Factory/Synapse. |
+| HDInsight | Not collected | real gap |
+| Power BI Embedded | Not collected | — |
+| Microsoft Graph Data Connect | Not collected | — |
 | Azure Chaos Studio | Collected (cross-category: DevOps) | `ChaosStudio` |
-| Microsoft Fabric | Collected (AB#7082) | `FabricCapacity` (`microsoft.fabric/capacities` — the ARM-visible capacity resource; Fabric *workspaces/items* are a Fabric-portal/API-only construct with no ARM resource, so only capacity is ARG-collectible) |
+| Microsoft Fabric | Not collected | real gap — no Fabric capacity/workspace collector exists |
 | Microsoft Purview | Collected | `Purview` |
-| Power BI | Not collected (out of scope, AB#7082) | Power BI (the core SaaS product, distinct from Power BI Embedded above) has no ARM resource provider — workspaces/tenants are managed exclusively through the Power BI REST/Admin API, not Azure Resource Manager or Resource Graph. Tracking it would require a Power BI Admin API integration (tenant-level admin consent, a different auth/permission model than every other Scout collector), which is out of scope for an ARM/ARG/Graph-based inventory tool. |
-| Microsoft Planetary Computer Pro | Not collected (out of scope, AB#7082) | Preview-only geospatial vertical (per Microsoft Learn's "What's new" page, the product's own advanced features remain in preview under supplemental preview terms) with negligible enterprise-tenant footprint; the GeoCatalog resource type is real but immature/preview-gated, so it is deferred rather than force-collected against a moving preview surface. Revisit once the service reaches GA. |
+| Power BI | Not collected | — |
+| Microsoft Planetary Computer Pro | Not collected | — |
 
 ## Compute
 
@@ -169,13 +162,13 @@ much larger axis than "sub-services" and is not what this page tracks.
 | Microsoft service | Status | AzureScout collector |
 |---|---|---|
 | App Service | Collected (cross-category: Web) | `APPServices`, `APPServicePlan` |
-| Azure Compute Fleet | Collected (AB#7088) | `ComputeFleet` (`microsoft.azurefleet/fleets` -- the product is marketed as "Compute Fleet" but the ARM/RP namespace is `Microsoft.AzureFleet`, confirmed against `manifests/azure-provider-types.json` and the Microsoft Learn ARM template reference) |
-| Azure Quantum | Collected (AB#7088) | `QuantumWorkspaces` (`microsoft.quantum/workspaces` -- every published API version is `-preview` tagged, same as the previously-collected `microsoft.iotoperations/instances`, but it is ARG-indexed per `manifests/azure-provider-types.json`, which is this repo's collection bar) |
+| Azure Compute Fleet | Not collected | real gap — new (2024) service, no `microsoft.computefleet` collector |
+| Azure Quantum | Not collected | real gap |
 | Azure Spot Virtual Machines | Collected | `VirtualMachine` (same resource type, priority attribute) |
 | Azure Spring Apps | Collected (cross-category: Web) | `SpringApps` |
 | Azure VMware Solution | Collected | `VMWare` |
-| Batch | Collected (AB#7088) | `BatchAccounts` (`microsoft.batch/batchaccounts`) |
-| Cloud Services | Not collected (out of scope, AB#7088) | classic deployment model, retired 31 August 2024 -- no new creation and Microsoft's own guidance is migration to VMSS/VMs, not continued inventorying |
+| Batch | Not collected | real gap — no `microsoft.batch` collector |
+| Cloud Services | Not collected | legacy/retiring platform |
 | Linux Virtual Machines | Collected | `VirtualMachine` (same resource type as Windows) |
 | SQL Server on Azure Virtual Machines | Collected (cross-category: Databases) | `SQLVM` |
 | Static Web Apps | Collected (cross-category: Web) | `StaticWebApps` |
@@ -183,24 +176,16 @@ much larger axis than "sub-services" and is not what this page tracks.
 | Virtual Machines | Collected | `VirtualMachine`, `VMDisk`, `VMOperationalData` |
 | Azure Virtual Desktop | Collected | `AVD`, `AVDApplicationGroups`, `AVDApplications`, `AVDAzureLocal`, `AVDScalingPlans`, `AVDSessionHosts`, `AVDWorkspaces` |
 | Windows Server | N/A | operating system, not an ARM resource |
-| Azure Dedicated Host | Collected (AB#7088) | `DedicatedHostGroups` (`microsoft.compute/hostgroups` -- the tenant-visible ARM resource is the host GROUP; individual hosts are a child collection under it) |
-| Azure VM Image Builder | Collected (AB#7088) | `VMImageTemplates` (`microsoft.virtualmachineimages/imagetemplates`) |
+| Azure Dedicated Host | Not collected | real gap — no `microsoft.compute/dedicatedhosts` collector |
+| Azure VM Image Builder | Not collected | real gap |
 | Azure Kubernetes Service (AKS) | Collected (cross-category: Containers) | `AKS` |
 | Azure Functions | Collected (cross-category: Web) | `FunctionApps` |
 | Azure Container Instances | Collected (cross-category: Containers) | `ContainerGroups` |
 | Azure Container Apps | Collected (cross-category: Containers) | `ContainerApp`, `ContainerAppEnv` |
-| Nutanix Cloud Clusters on Azure | Collected (AB#7088) | `NutanixNodes` (`microsoft.nutanix/nodes` -- NC2 on Azure has no dedicated cluster resource type; the tenant-visible ARM surface is the bare-metal node, confirmed present in the [Azure Resource Graph supported-tables-and-resource-types reference](https://learn.microsoft.com/azure/governance/resource-graph/reference/supported-tables-resources)) |
+| Nutanix Cloud Clusters on Azure | Not collected | real gap — 2024 partner-hosted service |
 
 `AvailabilitySets` is also collected but does not appear as its own line item in Microsoft's catalogue
 (it is a sub-feature of Virtual Machines there).
-
-::: warning Coverage summary table below was stale by one row
-The table's "Not collected" count of 8 never matched a live count of this section's rows marked
-`Not collected` (7, before this pass) -- 14 Collected + 7 Not collected + 1 N/A (Windows Server,
-excluded from both sides of the ratio per this doc's own convention) = 22. AB#7088 closed 6 of
-those 7 genuine gaps, leaving only Cloud Services (retired) not collected. The summary row below
-is corrected to 20/1 accordingly.
-:::
 
 ## Containers
 
@@ -232,8 +217,8 @@ Source: [azure.microsoft.com/products?categories=databases](https://azure.micros
 | Microsoft service | Status | AzureScout collector |
 |---|---|---|
 | Azure Cosmos DB | Collected | `CosmosDB` |
-| Azure DocumentDB | Collected (AB#7090, folds in AB#7071) | `DocumentDB` (`microsoft.documentdb/mongoclusters` — the 2025 vCore-based MongoDB service, a distinct resource provider from the RU-based Cosmos DB `databaseaccounts` above) |
-| Azure SQL (umbrella) | Collected | see SQL DB / MI rows below, plus `SQLSERVER` (the logical `microsoft.sql/servers` resource) |
+| Azure DocumentDB | Not collected | real gap — the 2025 vCore-based MongoDB service is a distinct resource provider from Cosmos DB |
+| Azure SQL (umbrella) | Collected | see SQL DB / MI / Server rows |
 | Azure SQL Database | Collected | `SQLDB` |
 | Azure SQL Managed Instance | Collected | `SQLMI`, `SQLMIDB` |
 | SQL Server on Azure Virtual Machines | Collected (cross-category: Compute) | `SQLVM` |
@@ -241,18 +226,15 @@ Source: [azure.microsoft.com/products?categories=databases](https://azure.micros
 | Azure Database for MySQL | Collected | `MySQL`, `MySQLflexible` |
 | Azure Managed Redis | Collected | `RedisCache` (covers `microsoft.cache/redisenterprise`) |
 | Azure Database Migration Service | Collected (cross-category: Migration) | `DatabaseMigrationServices` |
-| Azure Managed Instance for Apache Cassandra | Collected (AB#7090, folds in AB#7071) | `ManagedCassandra` (`microsoft.documentdb/cassandraclusters`, GA since API version 2024-11-15) |
-| Azure Data Factory | Collected (cross-category: Analytics) — **doc was stale, corrected 2026-08-09** | `DataFactory` (`microsoft.datafactory/factories`, AB#7082). This row previously said "Not collected"; a live grep of `manifests/collectors/Analytics/DataFactory.psd1` shows it has been collected since AB#7082, so this was the coverage doc drifting from the code, not a real gap. |
-| Table Storage | Collected (AB#7090, folds in AB#7071) | `StorageTables` (`AZSC/ARMChild/StorageTables` — same ARM-child sweep pattern as `StorageQueues`/`StorageBlobContainers`/`StorageFileShares`: `tableServices/default/tables` is a control-plane list under the storage account, not its own Resource Graph table) |
+| Azure Managed Instance for Apache Cassandra | Not collected | real gap |
+| Azure Data Factory | Not collected | real gap (also listed under Analytics) |
+| Table Storage | Not collected | no dedicated collector for `microsoft.storage/storageaccounts/tableservices` |
 | Azure confidential ledger | Collected (cross-category: Security) | `ConfidentialLedger` |
-| Azure HorizonDB | Not collected — out of scope for now | Confirmed preview-only as of the 2026-06 release notes (learn.microsoft.com/azure/horizondb/release-notes/release-notes: "Azure HorizonDB is now available in **preview**"); every Learn page for the service is branded "(Preview)". Same class of exclusion as Microsoft Planetary Computer Pro under Analytics — deferred until GA rather than force-collected against a moving preview surface with no stable API version. |
+| Azure HorizonDB | Not collected | real gap — new (2025) service |
 
 We also collect `MariaDB` and `SQLPOOL` (elastic pools), neither of which appears in Microsoft's current
 catalogue — Azure Database for MariaDB was retired by Microsoft in September 2025, so that collector is
-now pointed at a decommissioned service rather than a coverage gap. We also collect `SQLSERVER` (the
-logical `microsoft.sql/servers` resource that hosts Azure SQL Database and Managed Instance) — Microsoft
-does not catalogue "SQL Server" as a separate product from the "Azure SQL" umbrella, which is why it has
-no dedicated row above.
+now pointed at a decommissioned service rather than a coverage gap.
 
 ## DevOps
 
@@ -260,31 +242,29 @@ Source: [azure.microsoft.com/products?categories=devops](https://azure.microsoft
 
 | Microsoft service | Status | AzureScout collector |
 |---|---|---|
-| Azure Artifacts | Not collected | real gap — org-level Azure DevOps REST resource (`_apis/packaging/feeds`), same non-ARM surface as the already-collected `DevOpsProjects`/`DevOpsPipelines`/`DevOpsRepositories`; genuinely collectible via `Start-AZSCDevOpsExtraction`, not yet wired (AB#7084 follow-up) |
-| Azure Boards | Not collected | real gap — same non-ARM Azure DevOps REST surface (per-project default-team `_apis/work/boards`); genuinely collectible, not yet wired (AB#7084 follow-up) |
+| Azure Artifacts | Not collected | real gap |
+| Azure Boards | Not collected | real gap |
 | Azure DevOps (organization) | Collected | `DevOpsProjects` |
 | Azure DevTest Labs | Collected | `DevTestLabs` |
 | Azure Monitor | Collected (cross-category: Monitor) | 22 Monitor collectors |
 | Azure Pipelines | Collected | `DevOpsPipelines`, `DevOpsAgentPools` |
 | Azure Repos | Collected | `DevOpsRepositories` |
-| Azure Test Plans | Not collected | real gap — same non-ARM Azure DevOps REST surface (`_apis/testplan/plans`); genuinely collectible, not yet wired (AB#7084 follow-up) |
+| Azure Test Plans | Not collected | real gap |
 | DevOps tool integrations | N/A | not a resource |
-| Azure App Testing | Out of scope | umbrella/marketing name for a bundle of existing services (Load Testing + Playwright Testing under one portal experience), not a distinct Azure resource provider — `microsoft.loadtestservice` and `microsoft.azureplaywrightservice` are already collected as `LoadTesting`/`PlaywrightTesting`; no separate `microsoft.apptesting/*` (or similar) type exists in the tenant-visible ARM surface (AB#7084) |
-| Azure Managed Grafana | Collected | `ManagedGrafana` (AB#7084) — ordinary ARG-indexed `microsoft.dashboard/grafana`, closed the "no collector anywhere in the estate" gap |
+| Azure App Testing | Not collected | real gap |
+| Azure Managed Grafana | Not collected | real gap — no `microsoft.dashboard/grafana` collector anywhere in the estate |
 | Microsoft Dev Box | Collected | `DevBoxPools`, `DevCenters`, `DevCenterNetworkConnections` |
 | Azure Deployment Environments | Collected | `DeploymentEnvironments` |
-| GitHub Advanced Security for Azure DevOps | Out of scope | not an ARM resource — an Azure DevOps org/project security-feature toggle exposed only via the Advanced Security Administration REST API, which needs elevated licensing/permission scope beyond ordinary project read and has no enumerable list-of-resources shape to collect (AB#7084) |
+| GitHub Advanced Security for Azure DevOps | Not collected | real gap |
 | Microsoft Playwright Testing | Collected | `PlaywrightTesting` |
 | GitHub Enterprise | N/A | not an Azure resource |
 | GitHub Advanced Security | N/A | not an Azure resource |
 | GitHub Copilot | N/A | not an Azure resource |
-| Azure SRE Agent | Out of scope | new (2026) preview service with no top-level ARM resource type — the only related entries in the tenant-visible provider surface are `microsoft.app/locations/sreagentoperationresults` and `.../sreagentoperationstatuses`, async operation-status sub-resources of Container Apps, not a listable resource collection (AB#7084) |
+| Azure SRE Agent | Not collected | real gap — new (2026) service |
 
-We also collect `ApiConnections`, `ChaosStudio`, `LabServices`, `LoadTesting`, `ManagedDevOpsPools` and
-`DevOpsServiceConnections`, none of which are separately listed on Microsoft's DevOps catalogue page
-(Chaos Studio is listed under Analytics there, `DevOpsServiceConnections` is a sub-object of an Azure
-DevOps project rather than its own product, and the rest are sub-features of things already counted
-above).
+We also collect `ApiConnections`, `ChaosStudio`, `LabServices`, `LoadTesting` and `ManagedDevOpsPools`,
+none of which are separately listed on Microsoft's DevOps catalogue page (Chaos Studio is listed under
+Analytics there, and the rest are sub-features of things already counted above).
 
 ## General
 
@@ -334,7 +314,7 @@ is asked for when someone wants the sub-services under a main category.
 | Azure Local storage containers | Collected | `StorageContainers` |
 | Azure VMware Solution | Collected (cross-category: Compute) | `VMWare` |
 | Azure Stack Edge | Collected (cross-category: Migration) | `StackEdge` |
-| Azure Stack Hub | **Out of scope** | not a gap — Azure Scout does not cover Azure Stack Hub. Product decision, 2026-08-04. Do not re-raise this as missing coverage. |
+| Azure Stack Hub | Not collected | real gap — no collector targets Stack Hub's ARM-over-REST endpoint |
 | Azure Operator Nexus / Operator Service Manager | Not collected | real gap — telco-specific, likely low priority |
 | Azure Storage Mover | Not collected | real gap |
 
@@ -351,17 +331,17 @@ Source: [azure.microsoft.com/products?categories=identity](https://azure.microso
 ::: warning This category doesn't fit a Collected/Not collected table
 Microsoft's product catalogue counts **Microsoft Entra ID** as a single product; it doesn't break out
 Entra ID's internal object types (users, groups, app registrations, Conditional Access, PIM, etc.) into
-separate catalogue entries the way the Azure portal's Identity blade — and our 19 Identity collectors —
+separate catalogue entries the way the Azure portal's Identity blade — and our 17 Identity collectors —
 do. So "4 of 4" would be true but not useful. All 4 Microsoft-catalogued identity products have at least
 one collector:
 :::
 
 | Microsoft product | Status | AzureScout collector(s) |
 |---|---|---|
-| Microsoft Entra ID | Collected | 15 of the 17 Identity collectors (`Users`, `Groups`, `AppRegistrations`, `ConditionalAccess`, `DirectoryRoles`, `Domains`, `Licensing`, `ManagedIdentities`, `NamedLocations`, `PIMAssignments`, `RiskyUsers`, `SecurityPolicies`, `ServicePrincipals`, `AdminUnits`, `CrossTenantAccess`) — the remaining 2 (`ManagedIds`, an ARM `Microsoft.ManagedIdentity/userAssignedIdentities` collector distinct from the Entra-Graph `ManagedIdentities`; and `RoleAssignments`, Azure RBAC role assignments) are governance/RBAC primitives filed under the Identity manifest folder rather than Entra-ID directory objects |
+| Microsoft Entra ID | Collected | 12 of the 17 Identity collectors (`Users`, `Groups`, `AppRegistrations`, `ConditionalAccess`, `DirectoryRoles`, `Domains`, `Licensing`, `ManagedIdentities`, `NamedLocations`, `PIMAssignments`, `RiskyUsers`, `SecurityPolicies`, `ServicePrincipals`, `AdminUnits`, `CrossTenantAccess`) |
 | Microsoft Entra Domain Services | Collected (cross-category: Security) | `EntraDomainServices` |
-| Microsoft Entra Verified ID | Collected | `VerifiedIDProfiles` (`/v1.0/identity/verifiedId/profiles` — the configured profiles: recovery/onboarding usage, Face Check, accepted issuer), `VerifiedIDConfiguration` (`/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials` — the tenant-wide enable/disable state and excluded groups). AB#7097. **Not reached:** the separate Verified ID Admin API (issuer DIDs, authorities, contracts) at `verifiedid.did.msidentity.com` — a different host and OAuth resource (`6a8b4b39-c021-437c-b060-5a14a3fd65f3`) than the `graph.microsoft.com` audience every other Entra collector in this repo uses; reaching it needs a second token audience threaded through the shared Graph client, not a per-collector change. |
-| Microsoft Entra External ID | Collected (AB#7098) | `ExternalIdentities` — the tenant-wide DEFAULT cross-tenant access policy (`GET /v1.0/policies/crossTenantAccessPolicy/default`: B2B collaboration/direct connect inbound+outbound access, inbound trust, tenant restrictions) that governs every external organization not covered by a `CrossTenantAccess` partner override. Wired into the live canonical Collect / React payload (`domains.identity.externalIdentitiesPolicy`, via `Get-ScoutExternalIdentitiesPolicy.ps1`); legacy Excel/PPTX export mappings are retained internally but held. |
+| Microsoft Entra Verified ID | Not collected | real gap — no Verified ID credential collector |
+| Microsoft Entra External ID | Not collected | real gap — no distinct External ID tenant/customer directory collector (our `Domains`/`Users` collectors run against the workforce tenant) |
 
 ## Integration
 
@@ -390,9 +370,9 @@ Source: [azure.microsoft.com/products?categories=internet-of-things](https://azu
 | Azure Cosmos DB | Collected (cross-category: Databases) | `CosmosDB` |
 | Azure Digital Twins | Collected | `DigitalTwins` |
 | Azure IoT Central | Collected | `IoTCentral` |
-| Azure IoT Edge | Out of scope (documented) | no ARM-level signal exists — see below |
+| Azure IoT Edge | Not collected | real gap — no distinct IoT Edge deployment collector |
 | Azure IoT Hub | Collected | `IOTHubs` |
-| Azure IoT Operations | Collected (AB#7083) | `IoTOperations` |
+| Azure IoT Operations | Not collected | real gap — new (2024) Arc-enabled Kubernetes IoT workload, no collector |
 | Azure Functions | Collected (cross-category: Web) | `FunctionApps` |
 | Azure Machine Learning | Collected (cross-category: AI) | `MachineLearning` |
 | Azure Maps | Collected | `Maps` |
@@ -400,19 +380,11 @@ Source: [azure.microsoft.com/products?categories=internet-of-things](https://azu
 | Notification Hubs | Collected (cross-category: Web) | `NotificationHubs` |
 | Windows for IoT | N/A | operating system, not an ARM resource |
 | Logic Apps | Collected (cross-category: Integration) | `LogicApps` |
-| Azure Sphere | Out of scope (documented) | Microsoft is retiring Azure Sphere (end of support 2026); no new collector work for a retiring service |
+| Azure Sphere | Not collected | real gap — Microsoft is retiring Azure Sphere (end of support 2026), low priority |
 | Event Grid | Collected (cross-category: Integration) | `EventGrid` |
 
 We also collect `DeviceProvisioningServices`, `DeviceUpdate` and `DefenderForIoT`, none separately
 catalogued by Microsoft under Internet of Things (Defender for IoT is catalogued under Security).
-
-**Azure IoT Edge (AB#7083 investigation).** Edge-enabled devices/modules are a per-device concept
-(`capabilities.iotEdge` on a device twin, deployment manifests, module twins) living entirely in
-the IoT Hub Registry Manager / Device Twin data plane. The full `IotHubProperties` ARM template
-reference has no Edge-specific field on `Microsoft.Devices/IotHubs` itself — not even a coarse
-existence signal — so there is genuinely nothing for Resource Graph to return. Documented as
-CAF-IOT-12 (`src/assess/rules/caf.iot.yaml`) and in `Invoke-Collect.ps1`'s header notes; stays a
-manual assessment item, not a collector gap.
 
 ## Management and governance
 
@@ -423,11 +395,11 @@ Source: [azure.microsoft.com/products?categories=management-and-governance](http
 | Azure Copilot | N/A | assistant experience, not an inventoried resource |
 | Automation | Collected | `AutomationAccounts` |
 | Azure Advisor | Collected | `AdvisorScore` |
-| Defender External Attack Surface Management | Collected (AB#7085) | `DefenderEasmWorkspaces` — the workspace resource itself; the discovered internet-facing asset inventory it produces lives behind the workspace's own data-plane endpoint, not in ARM/ARG, same class of gap as `Get-ScoutCostInventory.ps1`'s separate pipeline |
+| Defender External Attack Surface Management | Not collected | real gap |
 | Azure Backup | Collected | `Backup`, `BackupInstances`, `RecoveryVault` |
-| Azure Blueprints | Out of scope (documented, AB#7085) | Microsoft is retiring Azure Blueprints (Preview) — phased retirement began 2026-07-31, full retirement 2027-01-31; no new blueprint definitions/versions can be created as of this fetch. Recommended replacements (Azure Deployment Stacks, template specs) are themselves built on `Microsoft.Resources/deployments`/`templateSpecs`, already N/A rows above. No new collector for a retiring service |
-| Azure Lighthouse | Held / not collected | Cross-tenant and Lighthouse collection are not part of the released Scout scan contract. The former `managedserviceresources` query used an unsupported ARG table and has been removed. |
-| Azure Managed Applications | Collected (AB#7085) | `ManagedApplications` — ordinary ARG-indexed `microsoft.solutions/applications` |
+| Azure Blueprints | Not collected | real gap |
+| Azure Lighthouse | Collected | `LighthouseDelegations` |
+| Azure Managed Applications | Not collected | real gap |
 | Azure Migrate | Collected (cross-category: Migration) | `AzureMigrateProjects`, `AzureMigrateAssessments` |
 | Microsoft Purview | Collected (cross-category: Analytics) | `Purview` |
 | Azure Monitor | Collected (cross-category: Monitor) | 22 Monitor collectors |
@@ -435,16 +407,16 @@ Source: [azure.microsoft.com/products?categories=management-and-governance](http
 | Azure Resource Manager | N/A | control-plane API, not itself a resource |
 | Azure Resource Manager templates | N/A | deployment artifact, not a resource |
 | Azure Chaos Studio | Collected (cross-category: DevOps) | `ChaosStudio` |
-| Azure Site Recovery | Not collected | real gap, deliberately deferred (AB#7085) — replication protected items are nested proxy resources under a Recovery Services vault's replication fabrics (`.../vaults/replicationFabrics/replicationProtectedItems`), not their own ARG-indexed type. Collecting them needs a per-vault REST enumeration, the same `Get-ScoutArmChildResource.ps1` ARM-child pattern `BackupInstances` already uses — a real, larger change than one ARG query, not attempted in this pass |
+| Azure Site Recovery | Not collected | real gap — no distinct Site Recovery replication collector (Recovery Vault container is collected, replication items are not) |
 | Cloud Shell | N/A | not an inventoried resource |
 | Microsoft Cost Management | Collected (separate pipeline) | `Get-ScoutCostInventory.ps1`, not a `manifests/collectors` definition |
-| Azure Managed Grafana | Collected (cross-category: DevOps, AB#7084) | `ManagedGrafana` — ordinary ARG-indexed `microsoft.dashboard/grafana`, wired under `devops.managedGrafana` and tagged `Management` in the category map |
+| Azure Managed Grafana | Not collected | real gap (also listed under DevOps) |
 | Azure Network Watcher | Collected (cross-category: Networking) | `NetworkWatchers` |
 | Azure Traffic Manager | Collected (cross-category: Networking) | `TrafficManager` |
-| Azure Automanage | Collected (AB#7085) | `AutomanageConfigurationProfiles` — ordinary ARG-indexed `microsoft.automanage/configurationprofiles`. The per-VM/subscription `configurationProfileAssignments` extension resource is deliberately not enumerated here — same per-parent fan-out cost class as diagnostic settings (see `Get-ScoutArmChildResource.ps1`'s header) |
-| Azure Resource Mover | Collected (AB#7085) | `ResourceMoverCollections` — ordinary ARG-indexed `microsoft.migrate/movecollections` (the collection container; individual move resources inside a collection are a nested per-parent REST enumeration, out of scope for the same reason as Site Recovery above) |
-| Update management center | Not collected | real gap, deliberately deferred (AB#7085) — distinct from `MaintenanceConfigurations`, which we do collect. Update Manager's own patch schedule/assignment surface is `Microsoft.Maintenance/configurationAssignments`, a per-target extension resource (VM/Arc machine), the same nested-enumeration cost class as Site Recovery/Automanage assignments above, not one ARG query |
-| Azure SRE Agent | Out of scope (documented, cross-category: DevOps, AB#7084) | new (2026) preview service with no top-level ARM resource type — the only related entries in the tenant-visible provider surface are `microsoft.app/locations/sreagentoperationresults` and `.../sreagentoperationstatuses`, async operation-status sub-resources of Container Apps, not a listable resource collection |
+| Azure Automanage | Not collected | real gap |
+| Azure Resource Mover | Not collected | real gap |
+| Update management center | Not collected | real gap — distinct from `MaintenanceConfigurations`, which we do collect |
+| Azure SRE Agent | Not collected | real gap (also listed under DevOps) |
 
 We also collect `AllSubscriptions`, `Budgets`, `CustomRoleDefinitions`, `ManagementGroups`,
 `MaintenanceConfigurations` and `ResourceLocks`, none separately catalogued as products by Microsoft
@@ -510,22 +482,22 @@ Source: [azure.microsoft.com/products?categories=networking](https://azure.micro
 | Azure DNS | Collected | `PublicDNS`, `PrivateDNS` |
 | Azure ExpressRoute | Collected | `ExpressRoute` |
 | Azure Firewall | Collected | `AzureFirewall` |
-| Azure Content Delivery Network | Collected (AB#7091) | `CdnProfiles` (`microsoft.cdn/profiles`) — WAF policies attached to CDN are separately collected via `WafPolicies` |
-| Azure Route Server | Not collected | not a real gap — Route Server has no distinct ARM resource type; it is deployed as an ordinary `microsoft.network/virtualhubs` resource (a standalone hub, not a member of a Virtual WAN), the same type the `virtualHubs` typed query already collects. AB#7091 verified this against the ARM template reference (Route Server templates deploy `Microsoft.Network/virtualHubs` + `virtualHubs/ipConfigurations` + `virtualHubs/bgpConnections`) rather than authoring a duplicate collector |
+| Azure Content Delivery Network | Not collected | real gap — no `microsoft.cdn/profiles` collector (WAF policies attached to CDN are collected via `WafPolicies`, the CDN profile itself is not) |
+| Azure Route Server | Not collected | real gap |
 | Azure Web Application Firewall | Collected | `WafPolicies` |
 | Azure Front Door | Collected | `Frontdoor` |
-| Azure Network Function Manager | Collected (AB#7091, folds in AB#7071) | `NetworkFunctions` (`microsoft.hybridnetwork/networkfunctions`) — telco/hybrid NF orchestration; a real GA resource type despite the niche use case, so it was collected rather than skipped |
-| Azure Virtual Network Manager | Collected (AB#7091) | `NetworkManagers` (`microsoft.network/networkmanagers`) |
+| Azure Network Function Manager | Not collected | real gap — telco-specific, likely low priority |
+| Azure Virtual Network Manager | Not collected | real gap |
 | Azure NAT Gateway | Collected | `NATGateway` |
 | Azure Load Balancer | Collected | `LoadBalancer` |
 | Azure Private Link | Collected | `PrivateEndpoint` |
-| Azure Firewall Manager | Collected (AB#7091) | `FirewallPolicies` (`microsoft.network/firewallpolicies`) — distinct from `AzureFirewall` instances; a policy can be shared across many firewalls/vHubs |
+| Azure Firewall Manager | Not collected | real gap — firewall policies specifically, distinct from `AzureFirewall` instances |
 | Azure Network Watcher | Collected | `NetworkWatchers` |
 | Azure Traffic Manager | Collected | `TrafficManager` |
 | Azure Virtual Network | Collected | `VirtualNetwork`, `vNETPeering` |
 | Azure Virtual WAN | Collected | `VirtualWAN` |
 | Azure VPN Gateway | Collected | `VirtualNetworkGateways` |
-| Azure Enclave | Not collected | out of scope — confirmed preview-only against Microsoft Learn (2026-08-09): "Azure Enclave is currently in preview and is provided without a service-level agreement. At this time, Azure Enclave shouldn't be used for production workloads." No stable ARM contract to collect against yet; revisit at GA |
+| Azure Enclave | Not collected | real gap — confidential-computing networking, new |
 
 We also collect `Connections`, `NetworkInterface`, `NetworkSecurityGroup`, `PublicIP` and
 `RouteTables`, all genuine Networking resources Microsoft's product catalogue doesn't list as separate
@@ -541,35 +513,24 @@ Source: [azure.microsoft.com/products?categories=security](https://azure.microso
 | Azure Application Gateway | Collected (cross-category: Networking) | `ApplicationGateways` |
 | Microsoft Entra Domain Services | Collected | `EntraDomainServices` |
 | Microsoft Defender for Cloud | Collected | `DefenderAlerts`, `DefenderAssessments`, `DefenderPricing`, `DefenderSecureScore` |
-| Defender External Attack Surface Management | Collected (cross-category: Management, AB#7085) | `DefenderEasmWorkspaces` (`microsoft.easm/workspaces`) — this row was stale, the collector already existed under Management before this pass |
+| Defender External Attack Surface Management | Not collected | real gap (also listed under Management and governance) |
 | Azure Bastion | Collected (cross-category: Networking) | `BastionHosts` |
 | Azure DDoS Protection | Collected | `DdosProtectionPlans` |
 | Azure Cloud HSM | Collected | `CloudHSM` |
 | Azure Firewall | Collected (cross-category: Networking) | `AzureFirewall` |
-| Azure Firewall Manager | Out of scope (AB#7089) | not a distinct ARM resource — Firewall Manager is a portal management surface spanning Firewall Policies (already collected: `AzureFirewall`/`WafPolicies`), secured Virtual WAN hubs (`microsoft.network/virtualhubs`, a Networking-category type), and Network Manager security admin rules (`microsoft.network/networkmanagers`); no single `Microsoft.Network/firewallManager`-shaped resource exists to collect on its own |
+| Azure Firewall Manager | Not collected | real gap (also listed under Networking) |
 | Azure Front Door | Collected (cross-category: Networking) | `Frontdoor` |
-| Azure Information Protection | Out of scope (AB#7089) | deprecated/superseded — the AIP Unified Labeling add-in was retired in April 2024 and the AIP P1 standalone offer stopped for new customers in January 2024; the capability now lives entirely inside Microsoft Purview Information Protection (sensitivity labels, Microsoft 365 compliance center), which is Graph/Purview compliance surface, not an ARM resource type and not part of this repo's Entra-tenant-admin Graph surface |
+| Azure Information Protection | Not collected | real gap — no label/policy collector |
 | Microsoft Sentinel | Collected | `Sentinel` |
 | Azure Key Vault | Collected | `Vault`, `KeyVaultKeys`, `KeyVaultSecrets` |
 | Azure confidential ledger | Collected | `ConfidentialLedger` |
 | Azure VPN Gateway | Collected (cross-category: Networking) | `VirtualNetworkGateways` |
 | Azure Web Application Firewall | Collected (cross-category: Networking) | `WafPolicies` |
-| Microsoft Azure Attestation | Collected (AB#7089) | `Attestation` (`microsoft.attestation/attestationproviders`) |
-| Microsoft Security Copilot | Out of scope (also listed under AI + Machine Learning, AB#7086) | capacity is provisioned and managed through the Security Copilot portal / Microsoft 365 admin center, not a discoverable ARM resource type in Microsoft Learn's public template reference |
+| Microsoft Azure Attestation | Not collected | real gap |
+| Microsoft Security Copilot | Not collected | real gap (also listed under AI + Machine Learning) |
 
-We also collect `AppComplianceAutomation`, `ApplicationSecurityGroups`, `ManagedHSM` and `ArtifactSigning`
-(`microsoft.codesigning/codesigningaccounts` — Azure Artifact Signing, formerly Trusted Signing), none
-separately catalogued as products by Microsoft's Security page (Artifact Signing has its own product
-page at [azure.microsoft.com/products/artifact-signing](https://azure.microsoft.com/en-us/products/artifact-signing)
-but is not tagged into the `?categories=security` catalogue listing checked above).
-
-**AB#7089 close-out (2026-08-09):** of the 5 rows this doc's Security section listed as "Not
-collected" (the summary table at the top of this file said 6 — that count was stale, the section
-body only ever listed 5), one is now collected (`Attestation`), one was already collected and
-mis-marked (`DefenderEasmWorkspaces` under Management, AB#7085), and three are genuinely
-out of scope for the documented reasons above (Firewall Manager, Information Protection, Security
-Copilot). Security is now 15 of 19 collected (79%); the 4 remaining rows are all correctly marked
-out of scope, not gaps.
+We also collect `AppComplianceAutomation`, `ApplicationSecurityGroups` and `ManagedHSM`, none separately
+catalogued as products by Microsoft's Security page.
 
 ## Storage
 
@@ -578,24 +539,24 @@ Source: [azure.microsoft.com/products?categories=storage](https://azure.microsof
 | Microsoft service | Status | AzureScout collector |
 |---|---|---|
 | Archive Storage | Collected (as a tier, not a resource) | `StorageAccounts` (tier is a property, not a separate resource type) |
-| Azure Managed Lustre | Collected (AB#7087) | `ManagedLustre` (`microsoft.storagecache/amlfilesystems`) |
+| Azure Managed Lustre | Not collected | real gap — new (2024) HPC file system |
 | Azure Backup | Collected (cross-category: Management) | `Backup`, `BackupInstances` |
 | Azure Data Lake Storage | Collected (cross-category: Analytics) | `StorageAccounts` |
-| Azure Data Share | Collected (cross-category: Analytics, AB#7082) | `DataShare` (`microsoft.datashare/accounts`) |
+| Azure Data Share | Not collected | real gap (also listed under Analytics) |
 | Azure Files | Collected | `FileShares` |
-| Azure Storage Actions | Collected (AB#7087) | `StorageActions` (`microsoft.storageactions/storagetasks`) |
+| Azure Storage Actions | Not collected | real gap — new (2024) storage task automation |
 | Azure NetApp Files | Collected | `NetApp` |
 | Azure Blob Storage | Collected | `BlobContainers` |
 | Azure Data Box | Collected (cross-category: Migration) | `DataBox` |
 | Azure Disk Storage | Collected | `VMDisk`, `Snapshots`, `DiskEncryptionSets` |
 | Azure confidential ledger | Collected (cross-category: Security) | `ConfidentialLedger` |
 | Azure Elastic SAN | Collected | `ElasticSan` |
-| Queue Storage | Collected (AB#7087) | `StorageQueues` (ARM-child sweep — `queueServices/default/queues`, not ARG-indexed; see `Get-ScoutArmChildResource.ps1`) |
+| Queue Storage | Not collected | real gap — no `microsoft.storage/storageaccounts/queueservices` collector |
 | Storage Accounts | Collected | `StorageAccounts` |
 | Storage Explorer | N/A | a client tool, not an Azure resource |
-| Azure Container Storage | Out of scope (AB#7087) | `Microsoft.ContainerStorage/pools` has only a `2023-07-01-preview` API version — no stable/GA API to collect against; revisit once GA'd |
-| Azure Storage Discovery | Collected (AB#7087) | `StorageDiscovery` (`microsoft.storagediscovery/storagediscoveryworkspaces`) |
-| Azure Storage Mover | Collected (AB#7087) | `StorageMover` (`microsoft.storagemover/storagemovers` + agents/endpoints/projects) |
+| Azure Container Storage | Not collected | real gap (also listed under Containers) |
+| Azure Storage Discovery | Not collected | real gap — new (2025) estate-wide storage insights service |
+| Azure Storage Mover | Not collected | real gap (also listed under Hybrid + multicloud and Migration) |
 
 We also collect `EdgeHardwareCenter`, `LifecyclePolicies`, `PartnerStorage`, and `StorageSync`, none
 separately catalogued as products by Microsoft's Storage page.

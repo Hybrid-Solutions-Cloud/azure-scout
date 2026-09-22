@@ -1,61 +1,54 @@
-# Current Task: AB#7279 — validate AzureScout 3.12.3 in its new HCS home
+# Current Task: Epic AB#6454 — Expand Azure Scout with deep governance and compliance analytics
 
-- Status: **COMPLETE — 3.12.3 MERGED, TAGGED, PUBLISHED, AND VERIFIED**
-- Canonical repo: `https://github.com/Hybrid-Solutions-Cloud/azure-scout`
-- Canonical local path: `D:/git/hybrid-solutions-cloud/azure-scout`
-- Branch: `agent/ab7279-run-errors-3.12.3`
-- Base: migration-only `main` at `11783cd54c766dc4707e2003418e076d61afa8ee`
-- Target: release AzureScout 3.12.3 only after one exact-commit complete test pass.
+- Status: **IN PROGRESS**
+- Started 2026-08-01, off `main` at `449dd86`.
+- Supersedes Epic 6452 (PSScriptAnalyzer), which is Closed.
 
-## Repository cutover state
+## What this Epic is
 
-- The source repository remains at `thisismydemo/azure-scout` as the historical issue, PR,
-  workflow, and original release-timestamp record. Its landing page links to the new homes.
-- All source branches and tags were mirrored. The recovered local product branch was added and
-  then rebuilt cleanly on the new canonical `main` from its seven product/test commits.
-- Target Pages, documentation deployment, releases, and branch protection are configured.
-- The HCS platform registry change merged as ADO PR 17; its docs and MCP deployment pipelines must
-  finish before the live MCP can resolve the new registry identity.
+Nine Features, roughly thirty User Stories. Mapped onto the release plan in
+`docs/audits/AZURE-SCOUT-AUDIT.md` §16, it is **Releases 2 through 6**. Releases 0 and 1 were
+Epic AB#6731 and are done.
 
-## Product scope already implemented
+| Feature | Release | Theme |
+|---|---|---|
+| AB#6744 | 2 | Score the compliance state Scout already collects |
+| AB#6745 | 2b | Enumerate the source framework for every target assessment — **gates every rule file after it** |
+| AB#6746 | 3 | Restructure LandingZone into per-pillar and per-design-area assessments |
+| AB#6747 | 4 | Azure Local Well-Architected Review |
+| AB#6748 | 5 | Workload assessments — AI, AVD, AVS, AVS LZ, CASA |
+| AB#6749 | 6 | FinOps and DevOps capability assessments |
+| AB#6455 | — | RBAC and Azure Policy data collectors |
+| AB#6458 | — | Consultant-grade governance assessment report generator |
+| AB#6461 | — | Validate assessment coverage and reporting (the four source audits) |
 
-- ARM-child, Entra, management-group, Defender, and Azure DevOps failures report honest source
-  availability rather than silently becoming empty successful evidence.
-- Disabled subscriptions are retained in inventory but excluded from downstream query scope.
-- Dynamically loaded optional helpers and their dependencies survive for the collection phase and
-  are removed afterward.
-- Operational collection emits bounded progress, durable heartbeats, and terminal log status.
-- A read-only HCS live acceptance reconciled all 278 released collectors against independent
-  queries. That live reconciliation does not replace the automated gate.
+## Orchestration
 
-## Resolved focused failures recovered after the laptop crash
+Tier A dispatch per the HCS orchestration guidance: waves of at most eight concurrent agents,
+worktree isolation for anything touching shared code paths, integrated one feature at a time
+with an adversarial read of every acceptance criterion before anything is called done.
 
-`tests/Collect.RawInventory.Tests.ps1` exposed three failures on the pre-cutover product tip:
+**Wave 1 — in flight**
 
-1. Enabled subscription scope was received as null rather than `enabled-sub`.
-2. The ARM-child append test could not resolve property `id`.
-3. The ARM-child health merge test hit the same missing-`id` shape.
+| Agent | Stories | Isolation |
+|---|---|---|
+| WAF/CAF enumeration | AB#6745 (WAF pillars, CAF design areas) | main tree, docs only |
+| Workload checklists | AB#6804, 6805–6808 | main tree, docs only |
+| Question sets | AB#6809–6812, 6813–6815 | main tree, docs only |
+| Currency rule | AB#6817 | main tree, docs + one test |
+| Compliance scoring | AB#6744 — 6792, 6793, 6794, 6795 | `feat/ab6744-compliance` |
+| Restructure | AB#6746 — 6796–6800 | `feat/ab6746-restructure` |
+| Azure Local collectors | AB#6747 — 6801, 6802 | `feat/ab6747-azurelocal` |
+| Remaining collectors | AB#6822–6825, 6828, 6829 | `feat/ab6822-collectors` |
 
-All three were stale test-fixture isolation: default non-ARG phases were reaching real helpers.
-The raw-inventory suite now supplies inert phase doubles and passes 56/56 under Pester 5.7.1.
+**Wave 2 — blocked on wave 1's enumerations and restructure**
 
-The exact-commit complete gate subsequently found and closed one real shaping defect plus stale or
-StrictMode-sensitive test contracts. Synthetic `AZSC/*` transport envelopes are no longer counted
-as Azure resource types in diagnostic coverage. The final 134-file run at product commit
-`2c5be8f54fc8f363871ea6017f6a2e9dcf9a298e` passed 3,593/3,593 with zero failures, skips, not-run
-tests, or failed containers, and a clean worktree before and after.
+Rule files: AI + AVD (6818/6819), AVS + AVS LZ + CASA (6820/6821), Azure Local (6803),
+FinOps + DevOps (6826/6827). Plus AB#6455/6456 orphaned-RBAC logic and AB#6458/6459/6448
+governance report generator.
 
-## Required gates
+## Standing constraint
 
-1. Completed: branch pushed with the GitHub App; PR 1 was approved and merged.
-2. Completed at `0df4e636`: HCS CI 3,591/3,591 plus StrictMode and analyzer gates; docs green.
-3. Completed: protected PR approval recorded and PR 1 merged as `898abd85`.
-4. Completed: post-merge HCS CI/docs passed, annotated tag `v3.12.3` was pushed,
-   the allow-listed package was validated and secret-scanned, PowerShell Gallery 3.12.3
-   was published, and a clean download matched all 725 files byte-for-byte.
-
-## PowerShell Gallery transition
-
-Published 3.12.2 metadata still points to the legacy project/source URLs, whose move notice remains
-available. Published 3.12.3 carries the canonical HCS documentation, license, and icon URLs.
-Its public package was downloaded, hash-compared, and imported successfully.
+No rule file may be written for a target assessment until its source framework is tabulated
+under `docs/frameworks/`. This is DQ12 and it is why AB#6745 is wave 1 and every rule file is
+wave 2. Skipping it is how `waf.storage.yaml` came to score a WAF pillar that does not exist.

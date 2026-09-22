@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Export inventory data as a Power BI-ready CSV bundle
@@ -43,7 +39,7 @@ Scan scope: All, ArmOnly, or EntraOnly.
 [string] Path to the PowerBI output folder.
 
 .LINK
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/Export-AZSCPowerBIReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -91,19 +87,6 @@ function Export-AZSCPowerBIReport {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Power BI output folder: $PowerBIDir")
 
     # ── Helpers ──────────────────────────────────────────────────────────
-
-    function ConvertTo-SafeCsvRow {
-        param([Parameter(ValueFromPipeline)]$InputObject)
-        process {
-            $safe = [ordered]@{}
-            foreach ($property in $InputObject.PSObject.Properties) {
-                $value = $property.Value
-                if ($value -is [string] -and $value -match '^[\t\r\n ]*[=+\-@]') { $value = "'$value" }
-                $safe[$property.Name] = $value
-            }
-            [pscustomobject]$safe
-        }
-    }
 
     # Export an array of ordered hashtables / PSObjects to CSV
     function Export-FlatCsv {
@@ -168,7 +151,7 @@ function Export-AZSCPowerBIReport {
             [PSCustomObject]$props
         }
 
-        $rows | ConvertTo-SafeCsvRow | Export-Csv -Path $FilePath -NoTypeInformation -Encoding UTF8 -Force
+        $rows | Export-Csv -Path $FilePath -NoTypeInformation -Encoding UTF8 -Force
         return $rows.Count
     }
 
@@ -188,7 +171,7 @@ function Export-AZSCPowerBIReport {
         [ordered]@{ Property = 'GeneratedAt';    Value = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ') }
         [ordered]@{ Property = 'Scope';          Value = $Scope }
     )
-    $metadataRows | ForEach-Object { [PSCustomObject]$_ } | ConvertTo-SafeCsvRow | Export-Csv -Path $metadataFile -NoTypeInformation -Encoding UTF8 -Force
+    $metadataRows | ForEach-Object { [PSCustomObject]$_ } | Export-Csv -Path $metadataFile -NoTypeInformation -Encoding UTF8 -Force
     $generatedFiles.Add([PSCustomObject]@{ File = '_metadata.csv'; Category = 'Metadata'; Rows = $metadataRows.Count })
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Metadata CSV written.')
@@ -202,12 +185,12 @@ function Export-AZSCPowerBIReport {
                 SubscriptionName = if ($sub.Name) { $sub.Name } else { '' }
             }
         }
-        $subRows | ConvertTo-SafeCsvRow | Export-Csv -Path $subsFile -NoTypeInformation -Encoding UTF8 -Force
+        $subRows | Export-Csv -Path $subsFile -NoTypeInformation -Encoding UTF8 -Force
         $generatedFiles.Add([PSCustomObject]@{ File = 'Subscriptions.csv'; Category = 'Dimension'; Rows = @($subRows).Count })
     }
     else {
         # Write empty dimension table with headers
-        [PSCustomObject]@{ SubscriptionId = ''; SubscriptionName = '' } | ConvertTo-SafeCsvRow | Export-Csv -Path $subsFile -NoTypeInformation -Encoding UTF8 -Force
+        [PSCustomObject]@{ SubscriptionId = ''; SubscriptionName = '' } | Export-Csv -Path $subsFile -NoTypeInformation -Encoding UTF8 -Force
         $generatedFiles.Add([PSCustomObject]@{ File = 'Subscriptions.csv'; Category = 'Dimension'; Rows = 0 })
     }
 

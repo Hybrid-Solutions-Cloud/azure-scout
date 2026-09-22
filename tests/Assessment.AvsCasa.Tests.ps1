@@ -20,13 +20,13 @@
 
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Get-RuleSet.ps1')
-    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Resolve-JsonPath.ps1')
-    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Resolve-RuleJoin.ps1')
-    . (Join-Path -Path $script:Root -ChildPath 'src/assess/engine/Invoke-Rule.ps1')
-    . (Join-Path -Path $script:Root -ChildPath 'src/assess/Invoke-Assessment.ps1')
-    . (Join-Path -Path $script:Root -ChildPath 'src/collect/ConvertFrom-ScoutInventory.ps1')
-    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
+    . (Join-Path $script:Root 'src/assess/engine/Get-RuleSet.ps1')
+    . (Join-Path $script:Root 'src/assess/engine/Resolve-JsonPath.ps1')
+    . (Join-Path $script:Root 'src/assess/engine/Resolve-RuleJoin.ps1')
+    . (Join-Path $script:Root 'src/assess/engine/Invoke-Rule.ps1')
+    . (Join-Path $script:Root 'src/assess/Invoke-Assessment.ps1')
+    . (Join-Path $script:Root 'src/collect/ConvertFrom-ScoutInventory.ps1')
+    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
 
     function New-EmptyCollect {
         [pscustomobject]@{
@@ -70,7 +70,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
     It 'reports the whole set Unknown, not a manufactured Pass, on an estate with zero AVS private clouds' {
         $set = Get-RuleSet -Patterns @('avs.workload', 'caf.avslandingzone')
         $collect = New-EmptyCollect
-        $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
+        $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'AVS Workload'
 
         $findings.Count | Should -Be (27 + 25)
         ($findings | Where-Object Status -ne 'Unknown') | Should -BeNullOrEmpty -Because 'requires: gates the whole set when compute.privateClouds[*] returns zero rows'
@@ -89,7 +89,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
                 identitySourceCount = 0; externalCloudLinkCount = 0
             }
         )
-        $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
+        $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'AVS Workload'
 
         ($findings | Where-Object Status -eq 'Unknown') | Should -BeNullOrEmpty -Because 'the gate is satisfied once compute.privateClouds has a row'
         $reFail = $findings | Where-Object Id -eq 'WAF-AVS-RE-04'
@@ -99,12 +99,12 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
     }
 
     It 'is registered in manifests/assessments.psd1 with a matching RequiresData gate' {
-        $script:Manifest.Keys | Should -Contain 'Workload: AVS'
-        $script:Manifest.Keys | Should -Contain 'Workload: AVS Landing Zone'
-        $script:Manifest['Workload: AVS'].Rules | Should -Be @('avs.workload')
-        $script:Manifest['Workload: AVS Landing Zone'].Rules | Should -Be @('caf.avslandingzone')
-        $script:Manifest['Workload: AVS'].RequiresData | Should -Be @('$.compute.privateClouds[*]')
-        $script:Manifest['Workload: AVS Landing Zone'].RequiresData | Should -Be @('$.compute.privateClouds[*]')
+        $script:Manifest.Keys | Should -Contain 'AVS Workload'
+        $script:Manifest.Keys | Should -Contain 'AVS Landing Zone'
+        $script:Manifest['AVS Workload'].Rules | Should -Be @('avs.workload')
+        $script:Manifest['AVS Landing Zone'].Rules | Should -Be @('caf.avslandingzone')
+        $script:Manifest['AVS Workload'].RequiresData | Should -Be @('$.compute.privateClouds[*]')
+        $script:Manifest['AVS Landing Zone'].RequiresData | Should -Be @('$.compute.privateClouds[*]')
     }
 }
 
@@ -126,23 +126,23 @@ Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
     It 'is proven non-vacuous: CASA-CO-01 flips from Fail to Pass when a Key Vault key is collected' {
         $set = Get-RuleSet -Patterns @('casa.*')
         $collect = New-EmptyCollect
-        $before = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA'
+        $before = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'CASA'
         ($before | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'Fail'
 
         $collect.domains.security.keyVaultKeys = @(
             [pscustomobject]@{ id = '.../keys/k1'; keyVaultName = 'kv1'; keyVaultId = '.../vaults/kv1'; subscriptionId = 's1'; resourceGroup = 'rg1'; contentType = $null; enabled = $true; expires = $null }
         )
-        $after = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA'
+        $after = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'CASA'
         ($after | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'Pass'
     }
 
     It 'is proven non-vacuous: CASA-CO-04 flips from Fail to Pass when a Purview account is collected' {
         $set = Get-RuleSet -Patterns @('casa.*')
         $collect = New-EmptyCollect
-        ((Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA') | Where-Object Id -eq 'CASA-CO-04').Status | Should -Be 'Fail'
+        ((Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'CASA') | Where-Object Id -eq 'CASA-CO-04').Status | Should -Be 'Fail'
 
         $collect.domains.analytics.purviewAccounts = @([pscustomobject]@{ name = 'pv1'; resourceGroup = 'rg1'; subscriptionId = 's1' })
-        ((Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA') | Where-Object Id -eq 'CASA-CO-04').Status | Should -Be 'Pass'
+        ((Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'CASA') | Where-Object Id -eq 'CASA-CO-04').Status | Should -Be 'Pass'
     }
 
     It 'every rule id starts with CASA- and cites an item number from the CASA question set' {
@@ -155,8 +155,8 @@ Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
     }
 
     It 'is registered in manifests/assessments.psd1' {
-        $script:Manifest.Keys | Should -Contain 'Microsoft: CASA'
-        $script:Manifest['Microsoft: CASA'].Rules | Should -Be @('casa.*')
+        $script:Manifest.Keys | Should -Contain 'CASA'
+        $script:Manifest['CASA'].Rules | Should -Be @('casa.*')
     }
 }
 
@@ -208,18 +208,15 @@ Describe 'AB#6820 -- compute.privateClouds: the typed-query and inventory-shapin
 Describe 'AB#6821 -- Invoke-Collect extracts Key Vault secrets/keys from the ARM-child sweep' {
 
     BeforeAll {
-        function Import-Module {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) }
-        . (Join-Path -Path $script:Root -ChildPath 'src/collect/Invoke-Collect.ps1')
+        function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        . (Join-Path $script:Root 'src/collect/Invoke-Collect.ps1')
     }
 
     It 'shapes AZSC/ARMChild/KeyVaultSecrets and KeyVaultKeys rows into domains.security, and requests the scoped ArmChildDataset' {
         $script:capturedIncludeArmChild = $null
         $script:capturedArmChildDataset = $null
         function Get-ScoutRawInventory {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param(
+            param(
                 [switch] $IncludeArmChildResources,
                 [string[]] $ArmChildDataset,
                 [Parameter(ValueFromRemainingArguments)] $Rest
@@ -248,8 +245,7 @@ param(
                 ResourceContainers = @()
             }
         }
-        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
 
         $collect = Invoke-Collect -Categories @('*')
 

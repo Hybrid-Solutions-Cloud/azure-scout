@@ -6,7 +6,7 @@ Subnet Module for Draw.io Diagram
 This module is used for building subnet components in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Build-AZSCDiagramSubnet.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Build-AZSCDiagramSubnet.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -19,7 +19,6 @@ Authors: Claudio Merola
 #>
 
 Function Build-AZSCDiagramSubnet {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Job', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($SubnetLocation,$VNET,$IDNum,$DiagramCache,$ContainerID,$Job,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -66,8 +65,6 @@ Function Build-AZSCDiagramSubnet {
         ###################################################### STENCILS ####################################################
 
         Function Publish-AZSCDiagramStensils {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
-            param()
             $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
 
             $Script:IconConnections = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Connections.svg;" #width="68" height="68"
@@ -196,7 +193,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVMs -x ($SubnetLocation+64) -y ($Alt0+40) -w "69" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVMs ($SubnetLocation+64) ($Alt0+40) "69" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -212,7 +209,7 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteAttributeString('Image_SKU', [string]$RESNames.properties.storageProfile.imageReference.sku)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVMs -x ($SubnetLocation+64) -y ($Alt0+40) -w "69" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVMs ($SubnetLocation+64) ($Alt0+40) "69" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -235,7 +232,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAKS -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAKS ($SubnetLocation+65) ($Alt0+40) "68" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -266,7 +263,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAKS -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAKS ($SubnetLocation+65) ($Alt0+40) "68" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -289,7 +286,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVMSS -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVMSS ($SubnetLocation+65) ($Alt0+40) "68" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -305,7 +302,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVMSS -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVMSS ($SubnetLocation+65) ($Alt0+40) "68" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -338,7 +335,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconLBs -x ($SubnetLocation+65) -y ($Alt0+40) -w "72" -h "72" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconLBs ($SubnetLocation+65) ($Alt0+40) "72" "72" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -357,7 +354,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconLBs -x ($SubnetLocation+65) -y ($Alt0+40) -w "72" -h "72" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconLBs ($SubnetLocation+65) ($Alt0+40) "72" "72" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -381,7 +378,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVGW -x ($SubnetLocation+80) -y ($Alt0+40) -w "52" -h "69" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVGW ($SubnetLocation+80) ($Alt0+40) "52" "69" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -393,7 +390,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconVGW -x ($SubnetLocation+80) -y ($Alt0+40) -w "52" -h "69" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconVGW ($SubnetLocation+80) ($Alt0+40) "52" "69" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -420,7 +417,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconFWs -x ($SubnetLocation+65) -y ($Alt0+40) -w "71" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconFWs ($SubnetLocation+65) ($Alt0+40) "71" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -436,7 +433,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconFWs -x ($SubnetLocation+65) -y ($Alt0+40) -w "71" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconFWs ($SubnetLocation+65) ($Alt0+40) "71" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -459,7 +456,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconPVTs -x ($SubnetLocation+65) -y ($Alt0+40) -w "72" -h "66" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconPVTs ($SubnetLocation+65) ($Alt0+40) "72" "66" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -470,7 +467,7 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconPVTs -x ($SubnetLocation+65) -y ($Alt0+40) -w "72" -h "66" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconPVTs ($SubnetLocation+65) ($Alt0+40) "72" "66" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -499,7 +496,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAppGWs -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAppGWs ($SubnetLocation+65) ($Alt0+40) "64" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -516,7 +513,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAppGWs -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAppGWs ($SubnetLocation+65) ($Alt0+40) "64" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -539,7 +536,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconBastions -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "67" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconBastions ($SubnetLocation+65) ($Alt0+40) "68" "67" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -549,7 +546,7 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconBastions -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "67" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconBastions ($SubnetLocation+65) ($Alt0+40) "68" "67" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -562,7 +559,7 @@ Function Build-AZSCDiagramSubnet {
 
                                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                New-AZSCDiagramSubnetIcon -Style $IconPowerPlatform -x ($SubnetLocation+65) -y ($Alt0+40) -w "65" -h "60" -p $ContainerID
+                                                New-AZSCDiagramSubnetIcon $IconPowerPlatform ($SubnetLocation+65) ($Alt0+40) "65" "60" $ContainerID
 
                                             $XmlTempWriter.WriteEndElement()
 
@@ -581,7 +578,7 @@ Function Build-AZSCDiagramSubnet {
 
                                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                New-AZSCDiagramSubnetIcon -Style $IconAPIMs -x ($SubnetLocation+65) -y ($Alt0+40) -w "65" -h "60" -p $ContainerID
+                                                New-AZSCDiagramSubnetIcon $IconAPIMs ($SubnetLocation+65) ($Alt0+40) "65" "60" $ContainerID
 
                                             $XmlTempWriter.WriteEndElement()
 
@@ -604,7 +601,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAPPs -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAPPs ($SubnetLocation+65) ($Alt0+40) "64" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -626,7 +623,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconAPPs -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "64" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconAPPs ($SubnetLocation+65) ($Alt0+40) "64" "64" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -649,7 +646,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconFunApps -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconFunApps ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -671,7 +668,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconFunApps -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconFunApps ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -695,7 +692,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconBricks -x ($SubnetLocation+65) -y ($Alt0+40) -w "60" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconBricks ($SubnetLocation+65) ($Alt0+40) "60" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -715,7 +712,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconBricks -x ($SubnetLocation+65) -y ($Alt0+40) -w "60" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconBricks ($SubnetLocation+65) ($Alt0+40) "60" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -738,7 +735,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconARO -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconARO ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -757,7 +754,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconARO -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconARO ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -780,7 +777,7 @@ Function Build-AZSCDiagramSubnet {
                                                         }
                                                         $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                            New-AZSCDiagramSubnetIcon -Style $IconContain -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "68" -p $ContainerID
+                                                            New-AZSCDiagramSubnetIcon $IconContain ($SubnetLocation+65) ($Alt0+40) "64" "68" $ContainerID
 
                                                         $XmlTempWriter.WriteEndElement()
                                                     }
@@ -790,7 +787,7 @@ Function Build-AZSCDiagramSubnet {
                                                         $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
                                                         $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                            New-AZSCDiagramSubnetIcon -Style $IconContain -x ($SubnetLocation+65) -y ($Alt0+40) -w "64" -h "68" -p $ContainerID
+                                                            New-AZSCDiagramSubnetIcon $IconContain ($SubnetLocation+65) ($Alt0+40) "64" "68" $ContainerID
 
                                                         $XmlTempWriter.WriteEndElement()
                                                     }
@@ -813,7 +810,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconNetApp -x ($SubnetLocation+65) -y ($Alt0+40) -w "65" -h "52" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconNetApp ($SubnetLocation+65) ($Alt0+40) "65" "52" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -825,7 +822,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconNetApp -x ($SubnetLocation+65) -y ($Alt0+40) -w "65" -h "52" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconNetApp ($SubnetLocation+65) ($Alt0+40) "65" "52" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -848,7 +845,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconDataExplorer -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconDataExplorer ($SubnetLocation+65) ($Alt0+40) "68" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -865,7 +862,7 @@ Function Build-AZSCDiagramSubnet {
                                                     $XmlTempWriter.WriteAttributeString('AutoScale_Enabled', [string]$ResNames.name)
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconDataExplorer -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "68" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconDataExplorer ($SubnetLocation+65) ($Alt0+40) "68" "68" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }
@@ -888,7 +885,7 @@ Function Build-AZSCDiagramSubnet {
                                                     }
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconNIC -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconNIC ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -903,7 +900,7 @@ Function Build-AZSCDiagramSubnet {
 
                                                     $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
-                                                        New-AZSCDiagramSubnetIcon -Style $IconNIC -x ($SubnetLocation+65) -y ($Alt0+40) -w "68" -h "60" -p $ContainerID
+                                                        New-AZSCDiagramSubnetIcon $IconNIC ($SubnetLocation+65) ($Alt0+40) "68" "60" $ContainerID
 
                                                     $XmlTempWriter.WriteEndElement()
 
@@ -927,7 +924,7 @@ Function Build-AZSCDiagramSubnet {
                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-2'))
 
                                 Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding NSG: " + $CellID3+'-2')
-                                New-AZSCDiagramSubnetIcon -Style $IconNSG -x ($SubnetLocation+160) -y ($Alt0+15) -w "26.35" -h "32" -p $ContainerID
+                                New-AZSCDiagramSubnetIcon $IconNSG ($SubnetLocation+160) ($Alt0+15) "26.35" "32" $ContainerID
 
                             $XmlTempWriter.WriteEndElement()
                         }
@@ -942,7 +939,7 @@ Function Build-AZSCDiagramSubnet {
                             $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-3'))
 
                                 Write-Output ('DrawIOSubnet: '+ $CellID2 + ' - ' +(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding UDR: " + $CellID3+'-3')
-                                New-AZSCDiagramSubnetIcon -Style $IconUDR -x ($SubnetLocation+15) -y ($Alt0+15) -w "30.97" -h "30" -p $ContainerID
+                                New-AZSCDiagramSubnetIcon $IconUDR ($SubnetLocation+15) ($Alt0+15) "30.97" "30" $ContainerID
 
                             $XmlTempWriter.WriteEndElement()
 
@@ -950,7 +947,6 @@ Function Build-AZSCDiagramSubnet {
             }
 
         Function Get-AZSCDiagramSubnetResourceType {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
             Param($Sub,$LogFile)
 
             <# Every branch below guards the collection ($sub.properties.delegations, etc.)
@@ -1082,7 +1078,6 @@ Function Build-AZSCDiagramSubnet {
         }
 
         Function Get-AZSCDiagramSubnetResourcesName {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
             Param($sub,$TrueTemp,$LogFile)
 
             # Predeclare: $TrueTemp values that match none of the branches below (e.g.
@@ -1329,7 +1324,7 @@ Function Build-AZSCDiagramSubnet {
                                         if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
-                                            New-AZSCDiagramSubnetIcon -Style "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" -x $SubnetLocation0 -y $Alt1 -w "200" -h "200" -p $ContainerID
+                                            New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 $Alt1 "200" "200" $ContainerID
 
                                         $XmlTempWriter.WriteEndElement()
 
@@ -1357,7 +1352,7 @@ Function Build-AZSCDiagramSubnet {
                                         if(([string]$sub.Name).Length -gt 40){$XmlTempWriter.WriteAttributeString('Full_Subnet_Name', [string]$sub.Name)}
                                         $XmlTempWriter.WriteAttributeString('id', ($CellID2+'-'+$IDNum))
 
-                                            New-AZSCDiagramSubnetIcon -Style "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" -x $SubnetLocation0 -y 40 -w "200" -h "200" -p $ContainerID
+                                            New-AZSCDiagramSubnetIcon "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;" $SubnetLocation0 40 "200" "200" $ContainerID
 
                                         $XmlTempWriter.WriteEndElement()
 

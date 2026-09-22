@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 # Relocated from Modules/Public/PublicFunctions/Jobs for the v3 pipeline.
 .Synopsis
@@ -11,7 +7,7 @@ Start Subscription Job Module
 This script processes and creates the Subscriptions sheet based on resources and their subscriptions.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCSubscriptionJob.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCSubscriptionJob.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)

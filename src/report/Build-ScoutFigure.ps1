@@ -134,7 +134,7 @@ function ConvertTo-ScoutZlibStream {
     )
 }
 
-function ConvertTo-ScoutPngByte {
+function ConvertTo-ScoutPngBytes {
     <#
     .SYNOPSIS
         Encode an RGB pixel buffer as a PNG.
@@ -151,7 +151,7 @@ function ConvertTo-ScoutPngByte {
 
     $expected = $Width * $Height * 3
     if ($Pixels.Length -ne $expected) {
-        throw "ConvertTo-ScoutPngByte: expected $expected pixel bytes for ${Width}x${Height}, got $($Pixels.Length)."
+        throw "ConvertTo-ScoutPngBytes: expected $expected pixel bytes for ${Width}x${Height}, got $($Pixels.Length)."
     }
 
     # Each scanline is prefixed with its filter type. 0 (None) keeps the encoder honest and
@@ -184,7 +184,6 @@ function ConvertTo-ScoutPngByte {
 #region Canvas
 
 function New-ScoutCanvas {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = '"Canvas" is a singular noun; the rule false-positives on words ending in -as.')]
     param(
         [Parameter(Mandatory)][int]$Width,
         [Parameter(Mandatory)][int]$Height,
@@ -384,7 +383,7 @@ function Get-ScoutFigureProp {
     if ($p) { return $p.Value } else { return $Default }
 }
 
-function New-ScoutFigureAreaScore {
+function New-ScoutFigureAreaScores {
     <#
     .SYNOPSIS
         Horizontal bars — alignment score per assessed area, worst first.
@@ -397,8 +396,8 @@ function New-ScoutFigureAreaScore {
     #>
     param($Areas, [int]$Width = 900, [int]$RowHeight = 34)
 
-    $rows = @(@($Areas) | Where-Object { $null -ne (Get-ScoutFigureProp -Obj $_ -Name 'Score') } |
-            Sort-Object @{ Expression = { [double](Get-ScoutFigureProp -Obj $_ -Name 'Score' -Default 0) } } |
+    $rows = @(@($Areas) | Where-Object { $null -ne (Get-ScoutFigureProp $_ 'Score') } |
+            Sort-Object @{ Expression = { [double](Get-ScoutFigureProp $_ 'Score' 0) } } |
             Select-Object -First 14)
     if ($rows.Count -eq 0) { return $null }
 
@@ -414,8 +413,8 @@ function New-ScoutFigureAreaScore {
     for ($i = 0; $i -lt $rows.Count; $i++) {
         $r = $rows[$i]
         $y = $top + ($i * $RowHeight)
-        $score = [double](Get-ScoutFigureProp -Obj $r -Name 'Score' -Default 0)
-        $label = "$(Get-ScoutFigureProp -Obj $r -Name 'Area')"
+        $score = [double](Get-ScoutFigureProp $r 'Score' 0)
+        $label = "$(Get-ScoutFigureProp $r 'Area')"
         if ($label.Length -gt 24) { $label = $label.Substring(0, 24) }
 
         Set-ScoutCanvasText -Canvas $canvas -Text $label -X 16 -Y ($y + 6) -Hex $Script:ScoutFigureInk -Scale 2
@@ -435,7 +434,7 @@ function New-ScoutFigureAreaScore {
         Caption = 'Figure 1 — Alignment score by assessed area, worst first.'
         Width   = $Width
         Height  = $height
-        Bytes   = (ConvertTo-ScoutPngByte -Width $Width -Height $height -Pixels $canvas.Pixels)
+        Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $height -Pixels $canvas.Pixels)
         RawRgb  = $canvas.Pixels
     }
 }
@@ -460,7 +459,7 @@ function New-ScoutFigureStatusComposition {
     $counts = [ordered]@{}
     foreach ($k in $order) { $counts[$k] = 0 }
     foreach ($f in $findings) {
-        $s = "$(Get-ScoutFigureProp -Obj $f -Name 'Status')"
+        $s = "$(Get-ScoutFigureProp $f 'Status')"
         if ($counts.Contains($s)) { $counts[$s]++ } else { $counts['Unknown']++ }
     }
 
@@ -500,7 +499,7 @@ function New-ScoutFigureStatusComposition {
         Caption = 'Figure 2 — Every control evaluated in this run, by status. "Not assessed" is a state, not a failure.'
         Width   = $Width
         Height  = $Height
-        Bytes   = (ConvertTo-ScoutPngByte -Width $Width -Height $Height -Pixels $canvas.Pixels)
+        Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $Height -Pixels $canvas.Pixels)
         RawRgb  = $canvas.Pixels
     }
 }
@@ -512,11 +511,11 @@ function New-ScoutFigureSeverityHeatmap {
     #>
     param($AllFindings, [int]$Width = 900)
 
-    $fails = @(@($AllFindings) | Where-Object { "$(Get-ScoutFigureProp -Obj $_ -Name 'Status')" -eq 'Fail' })
+    $fails = @(@($AllFindings) | Where-Object { "$(Get-ScoutFigureProp $_ 'Status')" -eq 'Fail' })
     if ($fails.Count -eq 0) { return $null }
 
     $severities = @('high', 'medium', 'low')
-    $areas = @($fails | ForEach-Object { "$(Get-ScoutFigureProp -Obj $_ -Name 'Area')" } | Sort-Object -Unique | Select-Object -First 12)
+    $areas = @($fails | ForEach-Object { "$(Get-ScoutFigureProp $_ 'Area')" } | Sort-Object -Unique | Select-Object -First 12)
 
     $cellW = 120
     $cellH = 36
@@ -537,8 +536,8 @@ function New-ScoutFigureSeverityHeatmap {
     foreach ($a in $areas) {
         foreach ($s in $severities) {
             $n = @($fails | Where-Object {
-                    "$(Get-ScoutFigureProp -Obj $_ -Name 'Area')" -eq $a -and
-                    "$(Get-ScoutFigureProp -Obj $_ -Name 'Severity')".ToLowerInvariant() -eq $s
+                    "$(Get-ScoutFigureProp $_ 'Area')" -eq $a -and
+                    "$(Get-ScoutFigureProp $_ 'Severity')".ToLowerInvariant() -eq $s
                 }).Count
             $matrix["$a|$s"] = $n
             if ($n -gt $peak) { $peak = $n }
@@ -574,7 +573,7 @@ function New-ScoutFigureSeverityHeatmap {
         Caption = 'Figure 3 — Failing controls by area and severity. Shading is relative to the busiest cell in this run.'
         Width   = $Width
         Height  = $height
-        Bytes   = (ConvertTo-ScoutPngByte -Width $Width -Height $height -Pixels $canvas.Pixels)
+        Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $height -Pixels $canvas.Pixels)
         RawRgb  = $canvas.Pixels
     }
 }
@@ -602,11 +601,11 @@ function Export-ScoutFigureSet {
     $figDir = Join-Path $OutputPath 'figures'
     if (-not (Test-Path $figDir)) { New-Item -ItemType Directory -Path $figDir -Force | Out-Null }
 
-    $areas = @(Get-ScoutFigureProp -Obj $Findings -Name 'Areas')
-    $all = @(Get-ScoutFigureProp -Obj $Findings -Name 'Findings')
+    $areas = @(Get-ScoutFigureProp $Findings 'Areas')
+    $all = @(Get-ScoutFigureProp $Findings 'Findings')
 
     $builders = @(
-        @{ Name = 'area-scores'; Script = { New-ScoutFigureAreaScore -Areas $areas } }
+        @{ Name = 'area-scores'; Script = { New-ScoutFigureAreaScores -Areas $areas } }
         @{ Name = 'status-composition'; Script = { New-ScoutFigureStatusComposition -AllFindings $all } }
         @{ Name = 'severity-heatmap'; Script = { New-ScoutFigureSeverityHeatmap -AllFindings $all } }
     )

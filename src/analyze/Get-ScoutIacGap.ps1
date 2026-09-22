@@ -153,8 +153,6 @@ function Get-ScoutIacGap {
         @{ Path = 'domains.iot.iotHubs'; Type = 'Microsoft.Devices/IotHubs' }
         @{ Path = 'domains.iot.dpsInstances'; Type = 'Microsoft.Devices/provisioningServices' }
         @{ Path = 'domains.iot.digitalTwinsInstances'; Type = 'Microsoft.DigitalTwins/digitalTwinsInstances' }
-        # AB#7083.
-        @{ Path = 'domains.iot.iotOperationsInstances'; Type = 'Microsoft.IoTOperations/instances' }
         @{ Path = 'domains.analytics.synapseWorkspaces'; Type = 'Microsoft.Synapse/workspaces' }
         @{ Path = 'domains.analytics.purviewAccounts'; Type = 'Microsoft.Purview/accounts' }
     )

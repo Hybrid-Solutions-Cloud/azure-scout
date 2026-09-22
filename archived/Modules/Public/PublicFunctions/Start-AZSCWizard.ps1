@@ -55,7 +55,6 @@ function Start-AZSCWizard {
     # caller (Invoke-AzureScout) is what acts on the answers.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding()]
-    [OutputType([System.Collections.Hashtable])]
     param(
         [string]$AzureEnvironment = 'AzureCloud',
         [string]$PlatOS

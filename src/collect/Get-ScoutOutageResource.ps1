@@ -42,7 +42,7 @@ function Get-ScoutOutageResource {
         return $value
     }
 
-    function ConvertTo-ScoutOutageDescriptionSection {
+    function ConvertTo-ScoutOutageDescriptionSections {
         param([AllowNull()][string] $Description)
 
         $headings = @(
@@ -93,7 +93,7 @@ function Get-ScoutOutageResource {
             subscriptionId = [string](Get-ScoutOutageValue $resource @('subscriptionId'))
             properties     = [pscustomobject]@{
                 SourceResource      = $resource
-                DescriptionSections = ConvertTo-ScoutOutageDescriptionSection -Description $description
+                DescriptionSections = ConvertTo-ScoutOutageDescriptionSections -Description $description
             }
         }
     }

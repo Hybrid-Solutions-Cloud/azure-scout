@@ -6,7 +6,7 @@ Module for Excel Job Processing
 This script processes inventory modules and builds the Excel report.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelJob.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -21,7 +21,7 @@ function Start-AZSCExcelJob {
     Param($ReportCache, $File, $TableStyle)
 
     $ParentPath = (get-item $PSScriptRoot).parent.parent
-    $InventoryModulesPath = Join-Path -Path $ParentPath -ChildPath 'Public' -AdditionalChildPath 'InventoryModules'
+    $InventoryModulesPath = Join-Path $ParentPath 'Public' 'InventoryModules'
     $ModuleFolders = Get-ChildItem -Path $InventoryModulesPath -Directory
 
     Write-Progress -activity 'Azure Inventory' -Status "68% Complete." -PercentComplete 68 -CurrentOperation "Starting the Report Loop.."
@@ -42,7 +42,7 @@ function Start-AZSCExcelJob {
     Foreach ($ModuleFolder in $ModuleFolders)
         {
             $CacheData = $null
-            $ModulePath = Join-Path -Path $ModuleFolder.FullName -ChildPath '*.ps1'
+            $ModulePath = Join-Path $ModuleFolder.FullName '*.ps1'
             $ModuleFiles = Get-ChildItem -Path $ModulePath
 
             $CacheFiles = Get-ChildItem -Path $ReportCache -Recurse

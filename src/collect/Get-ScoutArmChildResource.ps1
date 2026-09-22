@@ -41,11 +41,6 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER Dataset
     Optional subset of the supported dataset names. Defaults to All.
 
-.PARAMETER CollectionHealth
-    Optional caller-owned list that receives one health record per child dataset that could not
-    be read. Health records are never written to the function's output pipeline, so partial
-    successful inventory rows retain their established shape.
-
 .OUTPUTS
     PSCustomObject rows using the synthetic contract documented above.
 
@@ -81,18 +76,12 @@ function Get-ScoutArmChildResource {
             'StorageBlobContainers',
             'StorageFileShares',
             'StorageLifecyclePolicies',
-            'StorageQueues',
-            'StorageTables',
             'BackupInstances',
             'ResourceDiagnosticSettings',
             'ReservationUtilization',
             'AzureLocalVirtualMachineInstances'
         )]
-        [string[]]$Dataset = @('All'),
-
-        [Parameter()]
-        [AllowNull()]
-        [System.Collections.IList]$CollectionHealth
+        [string[]]$Dataset = @('All')
     )
 
     $DatasetOrder = @(
@@ -113,8 +102,6 @@ function Get-ScoutArmChildResource {
         'StorageBlobContainers',
         'StorageFileShares',
         'StorageLifecyclePolicies',
-        'StorageQueues',
-        'StorageTables',
         'BackupInstances',
         'ResourceDiagnosticSettings',
         'ReservationUtilization',
@@ -168,10 +155,6 @@ function Get-ScoutArmChildResource {
         @($DatasetOrder | Where-Object { $Dataset -contains $_ })
     }
 
-    $FailedHealthDatasets = [System.Collections.Generic.HashSet[string]]::new(
-        [System.StringComparer]::OrdinalIgnoreCase
-    )
-
     function Get-ArmParentValue {
         param(
             [Parameter(Mandatory)]$InputObject,
@@ -189,47 +172,14 @@ function Get-ScoutArmChildResource {
         param(
             [Parameter(Mandatory)][string]$Path,
             [Parameter(Mandatory)][string]$DatasetName,
-            [Parameter(Mandatory)][string]$ParentName,
-            [switch]$NotFoundIsEmpty
+            [Parameter(Mandatory)][string]$ParentName
         )
 
-        function Get-ArmChildHttpStatusCode {
-            param([Parameter(Mandatory)][System.Management.Automation.ErrorRecord]$ErrorRecord)
-
-            $ResponseProperty = $ErrorRecord.Exception.PSObject.Properties['Response']
-            if ($ResponseProperty -and $null -ne $ResponseProperty.Value) {
-                $StatusProperty = $ResponseProperty.Value.PSObject.Properties['StatusCode']
-                if ($StatusProperty -and $null -ne $StatusProperty.Value) {
-                    try { return [int]$StatusProperty.Value } catch { return $null }
-                }
-            }
-
-            if ($ErrorRecord.Exception.Data -and $ErrorRecord.Exception.Data.Contains('StatusCode')) {
-                try { return [int]$ErrorRecord.Exception.Data['StatusCode'] } catch { return $null }
-            }
-
-            $StatusMatch = [regex]::Match(
-                [string]$ErrorRecord.Exception.Message,
-                '(?i)(?:HTTP|status(?:\s+code)?)\D{0,20}(?<code>[1-5]\d{2})(?!\d)'
-            )
-            if ($StatusMatch.Success) { return [int]$StatusMatch.Groups['code'].Value }
-            return $null
-        }
-
         try {
-            # Invoke-AzRestMethod returns a PSHttpResponse whose StatusCode can be inspected.
-            # Unlike PowerShell's Invoke-RestMethod, the Az.Accounts cmdlet does not expose
-            # -SkipHttpErrorCheck (including supported Az.Accounts 5.5.2). Expected singleton
-            # 404s are therefore classified from either the response or the caught exception.
             $Response = Invoke-AzRestMethod -Path $Path -Method GET -ErrorAction Stop
-            if ($null -eq $Response) {
-                throw 'ARM returned no response.'
-            }
+            if ($null -eq $Response) { return $null }
 
             $Status = $Response.PSObject.Properties['StatusCode']
-            if ($null -ne $Status -and [int]$Status.Value -eq 404 -and $NotFoundIsEmpty) {
-                return $null
-            }
             if ($null -ne $Status -and ([int]$Status.Value -lt 200 -or [int]$Status.Value -ge 300)) {
                 throw "ARM returned status $($Status.Value)"
             }
@@ -243,23 +193,6 @@ function Get-ScoutArmChildResource {
             return $Content.Value
         }
         catch {
-            $StatusCode = Get-ArmChildHttpStatusCode -ErrorRecord $_
-            if ($NotFoundIsEmpty -and $StatusCode -eq 404) { return $null }
-
-            # Version/deployment lookups are sub-operations of the owning dataset. Reporting a
-            # synthetic type such as AZSC/ARMChild/MLModels.LatestVersion would match no collector
-            # and could let an assessment score partial evidence. Collapse health ownership to
-            # the public dataset while preserving the exact failed operation for diagnostics.
-            $HealthDatasetName = ([string]$DatasetName -split '\.', 2)[0]
-            if ($null -ne $CollectionHealth -and $FailedHealthDatasets.Add($HealthDatasetName)) {
-                [void]$CollectionHealth.Add([pscustomobject]@{
-                        Dataset       = $HealthDatasetName
-                        Operation     = $DatasetName
-                        Status        = 'Unavailable'
-                        Reason        = "Parent '$ParentName' at '$Path': $($_.Exception.Message)"
-                        ResourceTypes = @("AZSC/ARMChild/$HealthDatasetName")
-                    })
-            }
             Write-Warning "Get-ScoutArmChildResource: '$DatasetName' failed for parent '$ParentName' at '$Path' -- skipping this child collection: $($_.Exception.Message)"
             return $null
         }
@@ -608,46 +541,10 @@ function Get-ScoutArmChildResource {
             'StorageLifecyclePolicies' {
                 foreach ($Parent in $StorageAccountParents) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    # Singleton, not a list: an account with no policy returns 404. That absence
-                    # is ordinary empty data and must not become a warning/transcript error.
+                    # Singleton, not a list: an account with no policy returns 404, which
+                    # Get-ArmChildContent already degrades to a warning and $null. The absence IS
+                    # the finding, and the cross-resource rules read it as such.
                     $Content = Get-ArmChildContent -Path "$Base/managementPolicies/default?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    ) -NotFoundIsEmpty
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
-                }
-            }
-
-            # --- Storage queues (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099) -------------
-            #
-            # Same reasoning as StorageBlobContainers/StorageFileShares directly above: Queue
-            # Storage has no Resource Graph table of its own -- `queueServices/default/queues` is
-            # a control-plane list under the storage account, `Microsoft.Storage/storageAccounts/
-            # queueServices/queues/read`, held by Reader. Returns metadata only (name + the
-            # `metadata` key/value bag a caller attached); no queue message is ever read.
-            'StorageQueues' {
-                foreach ($Parent in $StorageAccountParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    $Content = Get-ArmChildContent -Path "$Base/queueServices/default/queues?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    )
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
-                }
-            }
-
-            # --- Table Storage (AB#7090, Story AB#7071/AB#7059, Feature AB#7069, Epic AB#7099) ------
-            #
-            # Same reasoning as StorageQueues directly above: Table Storage has no Resource Graph
-            # table of its own -- `tableServices/default/tables` is a control-plane list under the
-            # storage account, `Microsoft.Storage/storageAccounts/tableServices/tables/read`, held
-            # by Reader. Returns table name and metadata only; no table entity/row is ever read.
-            'StorageTables' {
-                foreach ($Parent in $StorageAccountParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    $Content = Get-ArmChildContent -Path "$Base/tableServices/default/tables?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
                     )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
@@ -779,7 +676,7 @@ function Get-ScoutArmChildResource {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $Content = Get-ArmChildContent -Path "$Base/providers/Microsoft.AzureStackHCI/virtualMachineInstances/default?api-version=2024-01-01" -DatasetName $DatasetName -ParentName (
                         Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    ) -NotFoundIsEmpty
+                    )
                     foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
                         ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
                     }

@@ -85,8 +85,8 @@ Invoke-AzureScout -TenantID <tenant-id> -Category Databases,Analytics,AI
 # Targeted scan with JSON output only (fastest)
 Invoke-AzureScout -TenantID <tenant-id> -Category Networking -OutputFormat Json
 
-# Generate the self-contained React report for Compute only
-Invoke-AzureScout -TenantID <tenant-id> -Category Compute -OutputFormat React
+# Generate Markdown report for Compute only
+Invoke-AzureScout -TenantID <tenant-id> -Category Compute -OutputFormat Markdown
 ```
 
 ### Full Inventory (Default)
@@ -116,7 +116,7 @@ graph TD
     D --> E[Execute Processing blocks]
     E --> F[Azure Resource Graph query - Compute types only]
     F --> G[Execute Reporting blocks]
-    G --> H[Write React report / JSON data]
+    G --> H[Write Excel / JSON / Markdown]
     B -- No / All --> I[Load ALL category modules]
     I --> E
 ```

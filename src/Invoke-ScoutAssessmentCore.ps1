@@ -23,92 +23,6 @@ $script:ScoutHeldRenderers = @(
     'PowerBi', 'Html', 'Pptx', 'Excel', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport'
 )
 
-function Assert-ScoutAssessmentCollectProvenance {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)] [object] $Collect,
-        [Parameter(Mandatory)] [string[]] $RequiredCategories,
-        [string[]] $RequiredIngestors = @()
-    )
-
-    $metadataProperty = $Collect.PSObject.Properties['_meta']
-    $metadata = if ($metadataProperty) { $metadataProperty.Value } else { $null }
-    $categoryProperty = if ($metadata) { $metadata.PSObject.Properties['categories'] } else { $null }
-    $collectedCategories = @(
-        if ($categoryProperty) {
-            $categoryProperty.Value | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
-        }
-    )
-
-    $missingCategories = @()
-    if ($collectedCategories.Count -eq 0) {
-        $missingCategories = @($RequiredCategories)
-    }
-    elseif ($RequiredCategories -contains '*') {
-        if ($collectedCategories -notcontains '*') { $missingCategories = @('*') }
-    }
-    elseif ($collectedCategories -notcontains '*') {
-        $missingCategories = @($RequiredCategories | Where-Object { $collectedCategories -notcontains $_ })
-    }
-
-    $healthProperty = if ($metadata) { $metadata.PSObject.Properties['collectionHealth'] } else { $null }
-    $blockingHealth = @(
-        if ($healthProperty) {
-            foreach ($health in @($healthProperty.Value)) {
-                if (
-                    $null -eq $health -or
-                    -not $health.PSObject.Properties['Status'] -or
-                    [string]$health.Status -notin @('Unavailable', 'Failed')
-                ) { continue }
-
-                $dataset = if ($health.PSObject.Properties['Dataset']) { [string]$health.Dataset } else { 'Unknown source' }
-                if ($dataset -eq 'Advisories' -and $RequiredIngestors -contains 'AdvisorScores') {
-                    $health
-                    continue
-                }
-
-                $collectorProperty = $health.PSObject.Properties['Collectors']
-                $collectors = @(
-                    if ($collectorProperty) {
-                        $collectorProperty.Value | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
-                    }
-                )
-                if ($collectors.Count -eq 0 -or $RequiredCategories -contains '*') {
-                    $health
-                    continue
-                }
-
-                if (@($collectors | Where-Object {
-                            $collectorCategory = ([string]$_ -split '/', 2)[0]
-                            $RequiredCategories -contains $collectorCategory
-                        }).Count -gt 0) {
-                    $health
-                }
-            }
-        }
-    )
-
-    if ($missingCategories.Count -eq 0 -and $blockingHealth.Count -eq 0) { return }
-
-    $details = [System.Collections.Generic.List[string]]::new()
-    if ($missingCategories.Count -gt 0) {
-        $details.Add('missing required categories: {0}' -f (@($missingCategories | Sort-Object -Unique) -join ', '))
-    }
-    if ($blockingHealth.Count -gt 0) {
-        $details.Add('unavailable required datasets: {0}' -f (@($blockingHealth | ForEach-Object {
-                        if ($_.PSObject.Properties['Dataset']) { [string]$_.Dataset } else { 'Unknown source' }
-                    } | Sort-Object -Unique) -join ', '))
-    }
-
-    $message = (
-        'Invoke-ScoutAssessmentCore: the saved collect cannot safely score the selected assessment ({0}). ' +
-        'Create a new collect for this assessment instead of scoring missing evidence.'
-    ) -f ($details -join '; ')
-    $sourceException = [System.InvalidOperationException]::new($message)
-    $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
-    throw $sourceException
-}
-
 <#
 .SYNOPSIS
     Azure Scout assessment entry point — collect, assess, and report.
@@ -125,26 +39,25 @@ function Assert-ScoutAssessmentCollectProvenance {
     re-scanning. Read-only throughout.
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React,Json,JsonEvidence
+    Invoke-AzureScout -Assessment LandingZone -OutputFormat Html,Pptx
 
 .EXAMPLE
     Invoke-AzureScout -Assessment 'Assess: Management'   # governance/policy/update-manager, scored
-    Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat React
+    Invoke-AzureScout -Assessment 'Assess: Monitor' -OutputFormat Html
 
 .EXAMPLE
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React
+    Invoke-AzureScout -Assessment LandingZone -CollectOnly
+    Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
 
 .NOTES
     Tracks ADO Epic AB#5023 (Feature AB#5024, Story AB#5026) and Epic AB#5056.
 
-    `-Scope`: a live assessment Collect is ARG/ARM only — there is no Entra/Graph
-    collection path there, so 'EntraOnly' throws with a redirect to
+    `-Scope`: the Collect layer is ARG/ARM only — there is no Entra/Graph
+    collection path here, so 'EntraOnly' throws with a redirect to
     `Invoke-AzureScout -Scope EntraOnly` (the v1 inventory tool) rather than
     silently running a collect that can never gather anything. 'ArmOnly' and
     'All' are accepted and behave identically (both run the ARM collect) —
-    kept for forward compatibility rather than removed. The internal InventoryOnly path is an
-    exception: it receives already-collected Entra rows and never calls Graph.
+    kept for forward compatibility rather than removed.
 
     `-ManagementGroupId` now actually scopes the ARG collect (`Search-AzGraph
     -ManagementGroup`, threaded through `Invoke-Collect` and
@@ -163,16 +76,15 @@ function Assert-ScoutAssessmentCollectProvenance {
 #>
 function Invoke-ScoutAssessmentCore {
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Return shape genuinely varies by branch (void on -Help, Test-ScoutPermission''s result array on -CheckPermissions, a collect.json path string on -CollectOnly, the run-folder path string otherwise) -- a single OutputType would be misleading.')]
     param(
         # AB#6795 -- 'Estate' (Rules = @(), a full-inventory pull with no scoring) was removed
         # from the assessment registry entirely; it is not this platform's job to double as the
-        # inventory tool. 'CAF: Azure Landing Zone' is the existing pre-checked default everywhere
-        # else (Get-ScoutAvailableAssessment, the wizard), so a bare -CollectOnly / -FromCollect
-        # call with no explicit -Assessment now defaults to the same entry an interactive run would.
-        [string[]] $Assessment = @('CAF: Azure Landing Zone'),   # one, many, or 'All'
+        # inventory tool. 'LandingZone' is the existing pre-checked default everywhere else
+        # (Get-ScoutAvailableAssessment, the wizard), so a bare -CollectOnly / -FromCollect call
+        # with no explicit -Assessment now defaults to the same entry an interactive run would.
+        [string[]] $Assessment = @('LandingZone'),   # one, many, or 'All'
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
-        [string]   $Scope = 'All',              # EntraOnly throws for live assessments; InventoryOnly reuses in-memory rows
+        [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works
         # AB#6922: the React single-page report is the product's deliverable; every other
         # rendered format is ON HOLD and will be regenerated FROM it (see $script:ScoutHeldRenderers
@@ -189,9 +101,6 @@ function Invoke-ScoutAssessmentCore {
         # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
         # rows already in memory instead of querying Azure a second time.
         [object]   $FromInventory,
-        # Render React/JsonEvidence from an inventory pass already in memory. This deliberately
-        # skips assessment rules and forces Invoke-Collect's no-live-fallback shaping path.
-        [switch]   $InventoryOnly,
         # AB#6827 (Feature AB#6749) -- opt-in, same shape as Invoke-AzureScout's own switch. Only
         # threaded to Import-ScoutDevOpsCapability when a chosen assessment's `Ingest` list asks
         # for 'DevOpsCapability'; every other assessment pays nothing for it.
@@ -207,10 +116,21 @@ function Invoke-ScoutAssessmentCore {
         # AB#6928 follow-up -- which view lens the React report opens on first (see Export-Report/
         # Export-React's own doc comments). Threaded to every Export-Report call below.
         [ValidateSet('Executive', 'Consultant', 'Data')]
-        [string] $DefaultReportMode = 'Consultant',
-        [Parameter(DontShow)]
-        [string] $ReservedRunPath
+        [string] $DefaultReportMode = 'Consultant'
     )
+
+    # AB#6902: two runs started within the same second must not share a folder --
+    # the second would overwrite the first's artefacts, and Get-ScoutDrift would
+    # replace the prior history record (same RunId) instead of appending one.
+    $runId   = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $runPath = Join-Path $OutputPath $runId
+    $suffix  = 1
+    while (Test-Path $runPath) {
+        $runPath = Join-Path $OutputPath ('{0}_{1:d2}' -f $runId, $suffix)
+        $suffix++
+    }
+    $runId = Split-Path $runPath -Leaf
+    New-Item -ItemType Directory -Path $runPath -Force | Out-Null
 
     # AB#405: soft dependency -- every call below is skipped entirely when this
     # helper isn't loaded in the session, so the assessment core has zero hard
@@ -227,86 +147,21 @@ function Invoke-ScoutAssessmentCore {
         catch { Write-Verbose "Invoke-ScoutAssessmentCore: Write-ScoutProgress failed, continuing without progress UX: $_" }
     }
 
-    function Write-ScoutAssessmentLog {
-        param(
-            [Parameter(Mandatory)] [string] $Message,
-            [ValidateSet('DEBUG', 'VERBOSE')] [string] $Level = 'DEBUG'
-        )
-        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
-            Write-AZSCLog -Level $Level -Message $Message
-        }
-    }
-
     $manifest = Import-PowerShellDataFile "$PSScriptRoot/../manifests/assessments.psd1"
-    if ($InventoryOnly) { $Assessment = @() }
-    elseif ($Assessment -contains 'All') { $Assessment = @($manifest.Keys) }
+    if ($Assessment -contains 'All') { $Assessment = @($manifest.Keys) }
     # AB#6762 -- fifteen entries were renamed with an `Assess: ` prefix to stop the wizard menu
     # colliding with the fifteen identically-named inventory categories. A scripted
     # `-Assessment Compute` predates that rename and must keep working, so the legacy name is
     # mapped here (with a warning naming the new value) before anything indexes the manifest.
     $Assessment = @(Resolve-ScoutAssessmentName -Name $Assessment -Manifest $manifest)
-    $requiredCategories = @($Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique)
-    $requiredIngestors = @($Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique)
 
     if ($PermissionAudit) {
         return Test-ScoutPermission -Assessment $Assessment -Manifest $manifest
     }
 
-    # Validate paths/scope before allocating a deliverable folder. Permission-only and invalid
-    # invocations must not leave empty assessment-report directories behind.
-    $fromCollectData = $null
-    if ($FromCollect) {
-        $fromCollectData = Get-Content -LiteralPath $FromCollect -Raw -ErrorAction Stop | ConvertFrom-Json -Depth 100
-        if (-not $InventoryOnly -and -not $CollectOnly) {
-            Assert-ScoutAssessmentCollectProvenance -Collect $fromCollectData `
-                -RequiredCategories $requiredCategories -RequiredIngestors $requiredIngestors
-        }
-    }
-    elseif ($Scope -eq 'EntraOnly' -and -not ($InventoryOnly -and $FromInventory)) {
-        throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
-    }
-
-    # Atomically reserve a run-owned folder. Test-Path followed by New-Item -Force allowed two
-    # concurrent callers to select and share the same directory.
-    if ($ReservedRunPath) {
-        $runPath = [System.IO.Path]::GetFullPath($ReservedRunPath)
-        $outputRoot = [System.IO.Path]::GetFullPath($OutputPath).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
-        $runLeaf = Split-Path $runPath -Leaf
-        if (-not $runPath.StartsWith($outputRoot, [System.StringComparison]::OrdinalIgnoreCase) -or $runLeaf -notmatch '^assessment-report(?:_\d+)?$') {
-            throw "ReservedRunPath must be an assessment-report directory beneath OutputPath."
-        }
-        if (-not (Test-Path -LiteralPath $runPath -PathType Container)) {
-            $null = New-Item -ItemType Directory -Path $runPath -ErrorAction Stop
-        }
-        elseif (@(Get-ChildItem -LiteralPath $runPath -Force -ErrorAction Stop).Count -gt 0) {
-            throw "ReservedRunPath '$runPath' is not empty."
-        }
-    }
-    else {
-        $null = New-Item -ItemType Directory -Path $OutputPath -Force -ErrorAction Stop
-        $runPath = $null
-        for ($suffix = 0; $suffix -lt 1000; $suffix++) {
-            $leaf = if ($suffix -eq 0) { 'assessment-report' } else { 'assessment-report_{0:d2}' -f $suffix }
-            $candidate = Join-Path $OutputPath $leaf
-            try {
-                $null = New-Item -ItemType Directory -Path $candidate -ErrorAction Stop
-                $runPath = [System.IO.Path]::GetFullPath($candidate)
-                break
-            }
-            catch {
-                if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { throw }
-            }
-        }
-        if (-not $runPath) { throw "Could not reserve a unique assessment report directory beneath '$OutputPath'." }
-    }
-    $runId = Split-Path $runPath -Leaf
-
     # ---- COLLECT ----
-    $collectTimer = [System.Diagnostics.Stopwatch]::StartNew()
-    $collectSource = if ($FromCollect) { 'file' } elseif ($FromInventory) { 'inventory-memory' } else { 'live' }
-    Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment collect started: source=$collectSource."
     if ($FromCollect) {
-        $collect = $fromCollectData
+        $collect = Get-Content $FromCollect -Raw | ConvertFrom-Json -Depth 100
     }
     else {
         # There is no Entra/Graph collection path in this platform's Collect layer
@@ -315,31 +170,15 @@ function Invoke-ScoutAssessmentCore {
         # silently returning an empty/misleading run. 'ArmOnly' and 'All' are
         # functionally identical today (both just run the ARM collect) and stay
         # accepted for forward compatibility.
-        $categories = if ($InventoryOnly) {
-            @('*')
+        if ($Scope -eq 'EntraOnly') {
+            throw "The assessment core collects ARM/Resource Graph data only -- the assessment platform's Collect layer has no Entra ID collection path. Use 'Invoke-AzureScout -Scope EntraOnly' for Entra ID inventory instead."
         }
-        elseif ($CollectOnly -and $Category) {
-            @($Category | Select-Object -Unique)
-        }
-        elseif ($Category) {
-            # A public category filter may broaden a scored assessment, but it must never remove
-            # evidence required by the selected rule sets. Replacing the manifest categories
-            # allowed omitted Networking/Security data to become empty arrays and false Passes.
-            @($requiredCategories + $Category | Select-Object -Unique)
-        }
-        else {
-            $requiredCategories
-        }
+        $categories = $Assessment | ForEach-Object { $manifest[$_].Collect } | Select-Object -Unique
+        if ($Category) { $categories = $Category }
         Write-ScoutAssessmentProgress -Status 'Collecting Azure resource data' -PercentComplete 5
-        $collectArgs = @{
-            Categories        = $categories
-            Scope             = $Scope
-            ManagementGroupId = $ManagementGroupId
-            TenantID          = $TenantID
-        }
+        $collectArgs = @{ Categories = $categories; Scope = $Scope; ManagementGroupId = $ManagementGroupId }
         # AB#5543 — reuse the inventory pass when this run already made one.
         if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
-        if ($InventoryOnly) { $collectArgs.OfflineFromInventory = $true }
         # AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect (it is an extra
         # Azure call type relative to every other assessment's collect) and is switched on only
         # when a chosen assessment actually scores compliance state.
@@ -354,11 +193,9 @@ function Invoke-ScoutAssessmentCore {
         $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments
-        $ingestors = if ($InventoryOnly) { @() } else { $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique }
+        $ingestors = $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique
         foreach ($i in $ingestors) {
             Write-ScoutAssessmentProgress -Status "Ingesting: $i" -PercentComplete 20
-            $ingestTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            Write-ScoutAssessmentLog -Message "Assessment ingest started: name=$i."
             switch ($i) {
                 # Native governance collector (AB#5041) — ARG + ambient-token ARM
                 # REST, no AzGovViz dependency. Default for every assessment that
@@ -379,37 +216,8 @@ function Invoke-ScoutAssessmentCore {
                 # through a slower API.
                 'AdvisorScores' {
                     $advisorArgs = @{ Collect = $collect }
-                    $advisorInventoryUnavailable = @(
-                        if ($FromInventory -and $FromInventory.PSObject.Properties['CollectionHealth']) {
-                            $FromInventory.CollectionHealth | Where-Object {
-                                $_ -and $_.PSObject.Properties['Dataset'] -and
-                                [string]$_.Dataset -eq 'Advisories' -and
-                                $_.PSObject.Properties['Status'] -and
-                                [string]$_.Status -in @('Unavailable', 'Failed')
-                            }
-                        }
-                    ).Count -gt 0
-                    $advisorInventoryNotAssessed = @(
-                        if ($FromInventory -and $FromInventory.PSObject.Properties['CollectionHealth']) {
-                            $FromInventory.CollectionHealth | Where-Object {
-                                $_ -and $_.PSObject.Properties['Dataset'] -and
-                                [string]$_.Dataset -eq 'Advisories' -and
-                                $_.PSObject.Properties['Status'] -and
-                                [string]$_.Status -eq 'NotAssessed'
-                            }
-                        }
-                    ).Count -gt 0
-                    if ($advisorInventoryNotAssessed) {
-                        $advisorArgs.NotAssessed = $true
-                    }
-                    elseif ($FromInventory -and $FromInventory.PSObject.Properties['Advisories'] -and -not $advisorInventoryUnavailable) {
-                        # Property presence, not row count, proves the inventory query ran. An
-                        # empty successful result is a complete answer and must not trigger a
-                        # second per-subscription Advisor sweep.
+                    if ($FromInventory -and $FromInventory.PSObject.Properties['Advisories']) {
                         $advisorArgs.FromInventory = @($FromInventory.Advisories)
-                    }
-                    elseif ($advisorInventoryUnavailable) {
-                        Write-Warning 'Invoke-ScoutAssessmentCore: the inventory Advisor query was unavailable; attempting the independent per-subscription Advisor API fallback.'
                     }
                     $collect = Import-AdvisorScores @advisorArgs
                 }
@@ -440,26 +248,9 @@ function Invoke-ScoutAssessmentCore {
                     $collect = Import-ScoutDevOpsCapability @devopsArgs
                 }
             }
-            $ingestTimer.Stop()
-            Write-ScoutAssessmentLog -Message (
-                'Assessment ingest finished: name={0}; elapsed={1}' -f
-                    $i, $ingestTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-            )
-        }
-        if ($InventoryOnly) {
-            $entraRows = if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
-                @($FromInventory.EntraResources)
-            }
-            else { @() }
-            $collect | Add-Member -NotePropertyName entraResources -NotePropertyValue $entraRows -Force
         }
         $collect | ConvertTo-Json -Depth 100 | Out-File "$runPath/collect.json"
     }
-    $collectTimer.Stop()
-    Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
-        'Assessment collect finished: source={0}; elapsed={1}' -f
-            $collectSource, $collectTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-    )
     if ($CollectOnly) { return "$runPath/collect.json" }
 
     # ---- ASSESS ----
@@ -477,17 +268,8 @@ function Invoke-ScoutAssessmentCore {
     foreach ($name in $Assessment) {
         $assessmentIndex++
         Write-ScoutAssessmentProgress -Status "Assessing: $name" -PercentComplete (35 + [Math]::Min(30, [Math]::Round(($assessmentIndex / [Math]::Max(1, @($Assessment).Count)) * 30)))
-        $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
-        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment rules started: assessment=$name."
         $spec = $manifest[$name]
-        if (-not $spec.Rules) {
-            $ruleTimer.Stop()
-            Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
-                'Assessment rules finished: assessment={0}; status=Skipped; findings=0; elapsed={1}' -f
-                    $name, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-            )
-            continue
-        }        # inventory-only assessment
+        if (-not $spec.Rules) { continue }        # inventory-only assessment
         # AB#6792/#6793/#6794 (Feature AB#6744) -- a `Compliance = $true` entry scores Azure
         # Policy compliance state Scout already collected, not a YAML rule set. It still needs a
         # matching Rules glob (for the AB#6763 menu gate, see compliance.initiative.yaml), so the
@@ -498,11 +280,6 @@ function Invoke-ScoutAssessmentCore {
             $findings = Invoke-ScoutComplianceAssessment -Collect $collect -Assessment $name
             $allFindings += $findings
             $findingsByAssessment[$name] = @($findings)
-            $ruleTimer.Stop()
-            Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
-                'Assessment rules finished: assessment={0}; status=Completed; findings={1}; elapsed={2}' -f
-                    $name, @($findings).Count, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-            )
             continue
         }
         $ruleSet   = Get-RuleSet -Patterns $spec.Rules
@@ -517,11 +294,6 @@ function Invoke-ScoutAssessmentCore {
         $findings = Invoke-Assessment -Collect $collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment $name
         $allFindings += $findings
         $findingsByAssessment[$name] = @($findings)
-        $ruleTimer.Stop()
-        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
-            'Assessment rules finished: assessment={0}; status=Completed; findings={1}; elapsed={2}' -f
-                $name, @($findings).Count, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-        )
     }
     $scored = Get-Score -Findings $allFindings
     $scored | ConvertTo-Json -Depth 100 | Out-File "$runPath/findings.json"
@@ -534,13 +306,11 @@ function Invoke-ScoutAssessmentCore {
     # persists across dated run folders. Never fatal — a drift failure must not
     # sink an otherwise-good assessment.
     $drift = $null
-    if (-not $InventoryOnly) {
-        try {
-            $drift = Get-ScoutDrift -Findings $scored -HistoryPath (Join-Path $OutputPath '.scout-history') -RunId $runId
-        }
-        catch {
-            Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"
-        }
+    try {
+        $drift = Get-ScoutDrift -Findings $scored -HistoryPath (Join-Path $OutputPath '.scout-history') -RunId $runId
+    }
+    catch {
+        Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"
     }
 
     # ---- REPORT ----
@@ -574,8 +344,6 @@ function Invoke-ScoutAssessmentCore {
     foreach ($r in $reporters) {
         $reporterIndex++
         Write-ScoutAssessmentProgress -Status "Rendering: $r" -PercentComplete (70 + [Math]::Min(29, [Math]::Round(($reporterIndex / [Math]::Max(1, @($reporters).Count)) * 29)))
-        $rendererTimer = [System.Diagnostics.Stopwatch]::StartNew()
-        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message "Assessment renderer started: renderer=$r."
         # Pipe to Out-Null: some renderers (Export-React) RETURN the path they
         # wrote, and that must not leak into this function's output stream — the
         # only thing the assessment core returns is $runPath. Without this,
@@ -583,11 +351,6 @@ function Invoke-ScoutAssessmentCore {
         # caller that expects a single run-folder path (incl. Invoke-ScoutPipeline)
         # breaks.
         Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
-        $rendererTimer.Stop()
-        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message (
-            'Assessment renderer finished: renderer={0}; elapsed={1}' -f
-                $r, $rendererTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-        )
     }
 
     # ---- PER-ASSESSMENT DATA (AB#6879, clause R-01/R-02 -- SUPERSEDED for rendered documents) ----
@@ -666,17 +429,9 @@ function Invoke-ScoutAssessmentCore {
             $af = @($findingsByAssessment[$name])
             if ($af.Count -eq 0) { continue }
             $s = Get-Score -Findings $af
-            $frameworkScores = @($s.Frameworks | Where-Object { $null -ne $_.Score })
-            $assessmentScore = if ($frameworkScores.Count -gt 0) {
-                [math]::Round((($frameworkScores | Measure-Object -Property Score -Average).Average), 0)
-            }
-            else { $null }
             [pscustomobject]@{
                 Assessment = $name
-                Score      = $assessmentScore
-                FrameworkScores = @($s.Frameworks | ForEach-Object {
-                    [pscustomobject]@{ Framework = $_.Framework; Score = $_.Score }
-                })
+                Score      = (Get-AZSCSafeProperty -InputObject $s -Path 'Score')
                 Findings   = $af.Count
                 Failed     = @($af | Where-Object { $_.Status -eq 'Fail' }).Count
                 Manual     = @($af | Where-Object { $_.Status -eq 'Manual' }).Count

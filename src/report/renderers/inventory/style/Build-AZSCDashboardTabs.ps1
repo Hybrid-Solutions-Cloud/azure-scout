@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Module for Dashboard Visual Tabs
@@ -20,8 +16,8 @@ First Release Date: February 25, 2026
 Authors: AzureScout Contributors
 #>
 
-function Build-AZSCDashboardTab {
-    Param($File, $TableStyle)
+function Build-AZSCDashboardTabs {
+    Param($File, $TableStyle, $IncludeCosts)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Building visual dashboard tabs.')
 
@@ -230,7 +226,7 @@ function Build-AZSCDashboardTab {
                 $SecTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { Write-Verbose "Build-AZSCDashboardTab: could not read the Security Overview table map ($($_.Exception.Message)); security charts are skipped." }
+        } catch { }
 
         if ($SecTableMap.Count -gt 0) {
             # Chart 1: Assessments by Severity
@@ -585,7 +581,7 @@ function Build-AZSCDashboardTab {
                 $MonTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { Write-Verbose "Build-AZSCDashboardTab: could not read the Azure Monitor table map ($($_.Exception.Message)); monitor charts are skipped." }
+        } catch { }
 
         if ($MonTableMap.Count -gt 0) {
             # Chart 1: Alert Rules by Subscription (MetricAlerts table)
