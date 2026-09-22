@@ -48,8 +48,6 @@ $ErrorActionPreference = 'Stop'
     once (AB#368); this keeps that fix.
 #>
 function Get-ScoutVmQuotas {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
-        Justification = 'Public function name is load-bearing across tests; renaming is an API break out of scope for a lint-only pass.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] [object[]] $Subscriptions,
@@ -72,31 +70,14 @@ function Get-ScoutVmQuotas {
             )
             if ($locations.Count -eq 0) { continue }
 
-            $contextParams = @{ Subscription = $sub.id; ErrorAction = 'Stop'; WarningAction = 'SilentlyContinue' }
+            $contextParams = @{ Subscription = $sub.id; ErrorAction = 'SilentlyContinue'; WarningAction = 'SilentlyContinue' }
             if ($sub.PSObject.Properties.Name -contains 'TenantId' -and $sub.TenantId) {
                 $contextParams['Tenant'] = $sub.TenantId
             }
             elseif ($originalContext -and $originalContext.PSObject.Properties.Name -contains 'Tenant' -and $originalContext.Tenant -and $originalContext.Tenant.PSObject.Properties.Name -contains 'Id' -and $originalContext.Tenant.Id) {
                 $contextParams['Tenant'] = $originalContext.Tenant.Id
             }
-            try {
-                $selectedContext = Set-AzContext @contextParams
-                if (-not $selectedContext) {
-                    throw "Set-AzContext returned no context for subscription '$($sub.id)'."
-                }
-                $selectedSubscriptionId = if (
-                    $selectedContext.PSObject.Properties['Subscription'] -and
-                    $selectedContext.Subscription -and
-                    $selectedContext.Subscription.PSObject.Properties['Id']
-                ) { [string]$selectedContext.Subscription.Id } else { $null }
-                if ($selectedSubscriptionId -ne [string]$sub.id) {
-                    throw "Set-AzContext returned subscription '$selectedSubscriptionId' instead of '$($sub.id)'."
-                }
-            }
-            catch {
-                Write-Warning "Get-ScoutVmQuotas: could not select subscription '$($sub.id)' -- skipping its quota queries: $($_.Exception.Message)"
-                continue
-            }
+            Set-AzContext @contextParams | Out-Null
             foreach ($loc in $locations) {
                 try {
                     # NOT wrapped in @(): the legacy function assigned the filtered pipeline

@@ -1,6 +1,6 @@
 name: 'Azure Scout Inventory'
 description: 'Generate an Azure ARM + Entra ID inventory report and expose it as a workflow artifact.'
-author: 'Hybrid Solutions Cloud'
+author: 'thisismydemo'
 
 branding:
   icon: 'search'
@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ''
   output-format:
-    description: 'All (React, Json, and JsonEvidence), or a comma-separated selection of React, Json, and JsonEvidence.'
+    description: 'All, Excel, Json, Markdown, AsciiDoc, or PowerBI.'
     required: false
     default: 'All'
   report-name:
@@ -43,11 +43,11 @@ inputs:
     required: false
     default: 'azure-scout-reports'
   module-version:
-    description: 'Optional AzureScout version to install from the PowerShell Gallery. Blank runs the module bundled with the pinned action revision.'
+    description: 'AzureScout version to install from the PowerShell Gallery. Blank installs the latest.'
     required: false
     default: ''
   lite:
-    description: 'Legacy compatibility switch for held Excel output. It has no effect on the live React, Json, and JsonEvidence formats.'
+    description: 'Skip Excel chart customization. Must stay true on hosted runners — chart customization drives Excel over COM and no hosted runner has Excel installed.'
     required: false
     default: 'true'
   include-costs:
@@ -103,7 +103,7 @@ runs:
             Write-Host 'No client-id supplied - relying on an Azure context established by an earlier step.'
         }
 
-    - name: Install dependencies and select AzureScout
+    - name: Install AzureScout and dependencies
       shell: pwsh
       env:
         MODULE_VERSION: ${{ inputs.module-version }}
@@ -124,25 +124,15 @@ runs:
         }
 
         if ([string]::IsNullOrWhiteSpace($env:MODULE_VERSION)) {
-            $modulePath = Join-Path $env:GITHUB_ACTION_PATH 'AzureScout.psd1'
-            if (-not (Test-Path -LiteralPath $modulePath -PathType Leaf)) {
-                throw "Bundled AzureScout manifest was not found: $modulePath"
-            }
-            Write-Host "Using AzureScout bundled with this action: $modulePath"
+            Write-Host 'Installing AzureScout (latest)...'
+            Install-Module AzureScout -Scope CurrentUser -Force -ErrorAction Stop
         } else {
             Write-Host "Installing AzureScout $env:MODULE_VERSION..."
             Install-Module AzureScout -RequiredVersion $env:MODULE_VERSION -Scope CurrentUser -Force -ErrorAction Stop
-            $modulePath = (Get-Module AzureScout -ListAvailable |
-                Where-Object Version -eq ([version]$env:MODULE_VERSION) |
-                Select-Object -First 1).Path
-            if (-not $modulePath) {
-                throw "AzureScout $env:MODULE_VERSION installed but its manifest could not be resolved."
-            }
         }
 
-        $selected = Test-ModuleManifest -Path $modulePath -ErrorAction Stop
-        Write-Host "AzureScout $($selected.Version) selected."
-        "AZURESCOUT_MODULE_PATH=$modulePath" | Out-File -FilePath $env:GITHUB_ENV -Append
+        $installed = (Get-Module AzureScout -ListAvailable | Select-Object -First 1).Version
+        Write-Host "AzureScout $installed installed."
 
     - name: Run Azure Scout
       id: scout
@@ -168,17 +158,12 @@ runs:
         $reportDir = Join-Path $env:GITHUB_WORKSPACE $env:REPORT_DIR
         New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
 
-        $requestedFormats = @($env:OUTPUT_FORMAT -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-        if ($requestedFormats.Count -eq 0) {
-            $requestedFormats = @('All')
-        }
-
         $params = @{
             TenantID            = $env:TENANT_ID
             ReportName          = $env:REPORT_NAME
             ReportDir           = $reportDir
             Scope               = $env:SCOUT_SCOPE
-            OutputFormat        = $requestedFormats
+            OutputFormat        = $env:OUTPUT_FORMAT
             SkipDiagram         = $true
             SkipPermissionCheck = $true
             # -Force keeps output flat in ReportDir. A CI job is a fresh workspace with
@@ -199,7 +184,7 @@ runs:
         if ($env:LITE -eq 'true')          { $params.Lite = $true }
         if ($env:INCLUDE_COSTS -eq 'true') { $params.IncludeCosts = $true }
 
-        Import-Module $env:AZURESCOUT_MODULE_PATH -Force -ErrorAction Stop
+        Import-Module AzureScout -Force
         Invoke-AzureScout @params
 
         $files = @(Get-ChildItem -Path $reportDir -File -Recurse)
@@ -210,8 +195,7 @@ runs:
         "report-count=$($files.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
         if ($files.Count -eq 0) {
-            Write-Host '::error::Azure Scout completed but produced no report files.'
-            exit 1
+            Write-Host '::warning::Azure Scout completed but produced no report files.'
         }
 
     - name: Upload reports
@@ -221,4 +205,4 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.report-dir }}
         retention-days: ${{ inputs.artifact-retention-days }}
-        if-no-files-found: error
+        if-no-files-found: warn

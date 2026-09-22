@@ -11,7 +11,7 @@ Import-Module ./AzureScout.psd1
 Invoke-AzureScout
 ```
 
-With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context. It produces the React report and machine-readable JSON outputs selected by the global output contract.
+With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context, and generates both Excel and JSON reports.
 
 ## Scope
 
@@ -42,27 +42,21 @@ semantics — see [Assessment mode: `-Scope`](../assessment/assessment.md#-scope
 
 ## Output Format
 
-The `-OutputFormat` parameter has the same live values for inventory, assessment, and combined
-runs:
+The `-OutputFormat` parameter controls report file types:
 
 | Value | Produces |
 |-------|----------|
-| `All` (default) | `React`, `Json`, and `JsonEvidence` |
-| `React` | Self-contained `report-react.html` with an Inventory & audit page; assessment sections appear when assessments run |
-| `Json` | Machine-readable run results |
-| `JsonEvidence` | Resources-only evidence export |
+| `All` (default) | Both Excel (.xlsx) and JSON (.json) |
+| `Excel` | Excel only |
+| `Json` | JSON only |
 
 ```powershell
-# Machine-readable results only
+# JSON only output
 Invoke-AzureScout -OutputFormat Json
 
-# Self-contained inventory report
-Invoke-AzureScout -OutputFormat React
+# Excel only output
+Invoke-AzureScout -OutputFormat Excel
 ```
-
-Legacy values such as `Excel`, `Markdown`, `AsciiDoc`, `PowerBI`, `Html`, `Pptx`, `Pdf`, `Word`,
-`EChartsDashboard`, and `GovernanceReport` are on hold. They are not live inventory alternatives.
-Use the export menu inside the React report for Markdown, JSON, CSV, PDF/Print, and standalone HTML.
 
 ## Report Location
 
@@ -88,9 +82,10 @@ Invoke-AzureScout -ReportDir 'D:\Reports' -Force
 Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`, is in
 [Output Files & Formats](./output.md#run-isolation).
 
-Every run retains its complete evidence set: `raw-inventory.json` (everything the Resource Graph
-pass collected, before any manifest filtered it down), `collector-rowcounts.json`,
-`collection-health.json`, and the complete `ReportCache`/`DiagramCache` trees. See
+Every run also writes two evidence artifacts to the run folder, not the report cache, so they
+survive cache cleanup: `raw-inventory.json` (everything the Resource Graph pass collected,
+before any manifest filtered it down to a worksheet) and `collector-rowcounts.json`
+(per-collector Rows / Empty / Failed verdicts). See
 [Output Files & Formats — evidence artifacts](./output.md#evidence-artifacts).
 
 ## Content Toggles

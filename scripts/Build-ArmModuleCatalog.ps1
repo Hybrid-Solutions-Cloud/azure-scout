@@ -34,9 +34,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'reference', 'arm-modules.md' }
+if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $RepoRoot 'docs' 'reference' 'arm-modules.md' }
 
-. (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'pipeline', 'Get-ScoutCollectorDefinition.ps1')
+. (Join-Path $RepoRoot 'src' 'pipeline' 'Get-ScoutCollectorDefinition.ps1')
 
 # The one thing that cannot be derived: what a category is FOR, in a sentence.
 $CategoryBlurb = @{
@@ -51,7 +51,7 @@ $CategoryBlurb = @{
     Identity    = 'Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.'
     Integration = 'Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus.'
     IoT         = 'IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT.'
-    Management  = 'Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors.'
+    Management  = 'Subscriptions, management groups, policy, backup, automation, Advisor, Lighthouse, and the Azure DevOps organisation collectors.'
     Migration   = 'Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge.'
     Monitor     = 'Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.'
     Networking  = 'Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute.'
@@ -60,7 +60,7 @@ $CategoryBlurb = @{
     Web         = 'App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services.'
 }
 
-$DefinitionRoot = Join-Path -Path $RepoRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
+$DefinitionRoot = Join-Path $RepoRoot 'manifests' 'collectors'
 $Folders = @(Get-ChildItem -LiteralPath $DefinitionRoot -Directory | Sort-Object Name)
 
 $Total = 0
@@ -102,8 +102,8 @@ $Header = @(
     'The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also'
     'cataloged on the [Entra ID Modules](entra-modules.md) page.'
     ''
-    'Each definition targets one or more Azure resource types and generally declares legacy Excel'
-    'worksheet metadata. Excel is a held renderer; live runs emit React/Json/JsonEvidence instead.'
+    'Each definition targets one or more Azure resource types and generally produces one worksheet'
+    'in the Excel report.'
     ''
     'Run ARM-only extraction with:'
     ''
@@ -173,18 +173,13 @@ $CoverageSections = foreach ($Folder in $Folders) {
 
 $CoverageContent = (@(
     '---'
-    'description: Every AzureScout inventory collector, the Azure resource type it covers, and its held legacy worksheet metadata.'
+    'description: Every AzureScout inventory collector, the Azure resource type it covers, and the Excel worksheet it writes to.'
     '---'
     ''
     '# Coverage Table'
     ''
-    'Every inventory collector in AzureScout, the Azure resource type(s) it covers, and the legacy'
-    'worksheet metadata retained in its manifest.'
-    ''
-    '::: warning Worksheet does not mean live Excel output'
-    'Excel is a held renderer in every run mode. The Worksheet column documents internal manifest'
-    'metadata retained for compatibility and rebuild work; live outputs are React, Json, and JsonEvidence.'
-    ':::'
+    'Every inventory collector in AzureScout, the Azure resource type(s) it covers, and the Excel'
+    'worksheet it writes to.'
     ''
     '::: tip This page is generated'
     'Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page and'

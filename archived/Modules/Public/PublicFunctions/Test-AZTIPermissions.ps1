@@ -36,7 +36,7 @@
     $result.Details | Format-Table -AutoSize
 
 .LINK
-    https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    https://github.com/thisismydemo/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -48,7 +48,6 @@
 #>
 function Test-AZSCPermissions {
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Public function name, called by that exact name throughout the codebase and by users; renaming is a breaking change out of scope for a lint-only pass.')]
     param(
         [string]$TenantID,
 

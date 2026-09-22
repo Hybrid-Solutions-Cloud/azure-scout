@@ -253,12 +253,10 @@
     THE SOFTWARE.
 
 .LINK
-    Official Repository: https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    Official Repository: https://github.com/thisismydemo/azure-scout
 #>
 Function Invoke-AzureScout {
     [CmdletBinding(PositionalBinding=$false)]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
-        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers and is forwarded as-is to Connect-AZSCLoginSession; changing the parameter type is a breaking change for every existing caller.')]
     param (
         [ValidateSet(1, 2, 3)]
         [int]$Overview = 1,
@@ -909,21 +907,21 @@ Function Invoke-AzureScout {
     if ($WantMarkdown)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Markdown report export.')
-        Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+        $MarkdownFile = Export-AZSCMarkdownReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
     }
 
     # ── AsciiDoc Report ──────────────────────────────────────────────────
     if ($WantAsciiDoc)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting AsciiDoc report export.')
-        Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+        $AsciiDocFile = Export-AZSCAsciiDocReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
     }
 
     # ── Power BI CSV Report ───────────────────────────────────────────────
     if ($WantPowerBI)
     {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Power BI CSV export.')
-        Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope | Out-Null
+        $PowerBIDir = Export-AZSCPowerBIReport -ReportCache $ReportCache -File $File -TenantID $TenantID -Subscriptions $Subscriptions -Scope $Scope
     }
 
     $ReportingRunTime.Stop()

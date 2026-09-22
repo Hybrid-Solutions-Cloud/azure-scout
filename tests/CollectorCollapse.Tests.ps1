@@ -18,19 +18,6 @@
 #>
 
 BeforeAll {
-    # Invoke-Collect always performs these two non-ARG sweeps. Keep fake
-    # subscriptions and tenants inside the test process.
-    function Get-ScoutDefenderPlanSweep {
-        param([object[]] $Subscriptions)
-        $null = $Subscriptions
-        return @()
-    }
-
-    function Get-ScoutExternalIdentitiesPolicy {
-        param([string] $TenantID)
-        $null = $TenantID
-        return [pscustomobject]@{ Collected = $false }
-    }
     $root = Split-Path $PSScriptRoot -Parent
     . "$root/src/collect/ConvertFrom-ScoutInventory.ps1"
 
@@ -217,17 +204,14 @@ Describe 'Invoke-Collect -FromInventory — collects once, not twice' {
         $root = Split-Path $PSScriptRoot -Parent
         # Stub the Az.ResourceGraph surface so the collector runs with no Azure connection and we
         # can count exactly which queries still reach Resource Graph.
-        function Import-Module {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
         . "$root/src/collect/Invoke-Collect.ps1"
     }
 
     It 'sends only the query that cannot be served from inventory to Resource Graph' {
         $script:argQueries = @()
         function Search-AzGraph {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param(
+            param(
                 [string] $Query, [int] $First, [int] $Skip,
                 [string] $ManagementGroup, [string[]] $Subscription,
                 [string] $ErrorAction
@@ -267,8 +251,7 @@ param(
     It 'still queries Resource Graph for every query under -Source TypedQueries' {
         $script:argQueries = @()
         function Search-AzGraph {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param(
+            param(
                 [string] $Query, [int] $First, [int] $Skip,
                 [string] $ManagementGroup, [string[]] $Subscription,
                 [string] $ErrorAction

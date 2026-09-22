@@ -15,7 +15,7 @@
     @{ 'Authorization' = 'Bearer <token>'; 'Content-Type' = 'application/json' }
 
 .LINK
-    https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    https://github.com/thisismydemo/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -27,7 +27,6 @@
 #>
 function Get-AZSCGraphToken {
     [CmdletBinding()]
-    [OutputType([System.Collections.Hashtable])]
     param()
 
     # Script-scope cache — persists across calls within the same module session

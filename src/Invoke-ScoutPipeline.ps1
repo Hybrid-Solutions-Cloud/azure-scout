@@ -47,8 +47,8 @@ $ErrorActionPreference = 'Stop'
     Same assessment selection contract as Invoke-AzureScout -Assessment.
 
 .PARAMETER OutputFormat
-    One or many live report formats (React, Json, JsonEvidence), or 'All'. Legacy renderer names
-    still bind but warn and are held. Same contract as Invoke-AzureScout -OutputFormat.
+    One or many report renderers, or 'All'. Same contract as
+    Invoke-AzureScout -OutputFormat in assessment mode.
 
 .PARAMETER OutputPath
     Parent folder the dated run folder is created under. Same contract as
@@ -67,15 +67,15 @@ $ErrorActionPreference = 'Stop'
     already run its own permission check, e.g. earlier in the same pipeline).
 
 .EXAMPLE
-    Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputFormat All -OutputPath ./output -ManagementGroupId 'contoso-root-mg'
+    Invoke-ScoutPipeline -Assessment LandingZone -OutputFormat All -OutputPath ./output -ManagementGroupId 'contoso-root-mg'
 
-    Full unattended landing-zone run, all three live formats, scoped to a management group.
+    Full unattended landing-zone run, every reporter tier, scoped to a management group.
 
 .EXAMPLE
-    Invoke-ScoutPipeline -Assessment 'Assess: Security', 'Assess: Networking' -OutputFormat React, JsonEvidence -SkipPermissionAudit
+    Invoke-ScoutPipeline -Assessment 'Assess: Security', 'Assess: Networking' -OutputFormat Html, Excel -SkipPermissionAudit
 
-    A CI job that already validated permissions upstream and wants the interactive report plus
-    the resources-only evidence export.
+    A CI job that already validated permissions upstream and only wants two
+    per-category assessments rendered to two tiers.
 
 .EXAMPLE
     try {
@@ -119,8 +119,8 @@ $ErrorActionPreference = 'Stop'
 function Invoke-ScoutPipeline {
     [CmdletBinding()]
     param(
-        [string[]] $Assessment = @('CAF: Azure Landing Zone'),
-        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
+        [string[]] $Assessment = @('LandingZone'),
+        [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'All')]
         [string[]] $OutputFormat = @('All'),
         [string]   $OutputPath = './output',
         [string]   $ManagementGroupId,
@@ -134,35 +134,14 @@ function Invoke-ScoutPipeline {
     $ConfirmPreference  = 'None'
     $ProgressPreference = 'SilentlyContinue'
 
-    # Resolve the public compatibility surface to the formats this run will actually emit before
-    # invoking the core. Keeping this normalization here as well as in the core makes the pipeline
-    # summary truthful: it must describe delivered artifacts, not held renderer names that were
-    # accepted only so existing automation continues to bind.
-    $requestedFormats = @($OutputFormat)
-    $liveFormats = @('React', 'Json', 'JsonEvidence')
-    $heldFormats = @($requestedFormats |
-        Where-Object { $_ -ne 'All' -and $_ -notin $liveFormats } |
-        Select-Object -Unique)
-    if ($heldFormats.Count -gt 0) {
-        Write-Warning ("Invoke-ScoutPipeline: {0} report format(s) are on hold and will not be rendered: {1}. Live formats: React, Json, JsonEvidence." -f
-            $heldFormats.Count, ($heldFormats -join ', '))
-    }
-
-    $effectiveFormats = if ($requestedFormats -contains 'All') {
-        $liveFormats
-    }
-    else {
-        @($requestedFormats | Where-Object { $_ -in $liveFormats } | Select-Object -Unique)
-    }
-    if (@($effectiveFormats).Count -eq 0) {
-        Write-Warning 'Invoke-ScoutPipeline: every requested report format is on hold; rendering the React report instead so the run still produces a deliverable.'
-        $effectiveFormats = @('React')
-    }
-    $OutputFormat = @($effectiveFormats)
-
     $schemaVersion = '1.0'
     $startedOn = Get-Date
     New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
+
+    # Snapshot the folder listing before the orchestrator runs so a thrown exception
+    # (which loses the return value) can still be resolved back to the run folder the
+    # orchestrator had already created before it failed.
+    $priorRunFolders = @(Get-ChildItem -Path $OutputPath -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 
     if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
         try { Write-ScoutProgress -Activity 'Scout Pipeline' -Status 'Permission audit' -PercentComplete 0 -Id 1 }
@@ -232,26 +211,8 @@ function Invoke-ScoutPipeline {
     # AB#397/399/400 per-query resilience) swallowed internally while still completing,
     # so a run that degraded some datasets without hard-failing is visible as such
     # instead of looking identical to a fully clean run.
-    # Own and atomically reserve the run folder before invoking the core. On failure this exact
-    # path remains authoritative; guessing from a directory-listing delta could select another
-    # concurrent caller's folder.
-    $runFolder = $null
-    for ($suffix = 0; $suffix -lt 1000; $suffix++) {
-        $leaf = if ($suffix -eq 0) { 'assessment-report' } else { 'assessment-report_{0:d2}' -f $suffix }
-        $candidate = Join-Path $OutputPath $leaf
-        try {
-            $null = New-Item -ItemType Directory -Path $candidate -ErrorAction Stop
-            $runFolder = [System.IO.Path]::GetFullPath($candidate)
-            break
-        }
-        catch {
-            if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { throw }
-        }
-    }
-    if (-not $runFolder) { throw "Could not reserve a unique assessment report directory beneath '$OutputPath'." }
-    $assessParams.ReservedRunPath = $runFolder
-
     $errSentinelBeforeAssess = if ($Error.Count) { $Error[0] } else { $null }
+    $runFolder       = $null
     $assessmentError = $null
     try {
         $runFolder = Invoke-ScoutAssessmentCore @assessParams
@@ -268,6 +229,13 @@ function Invoke-ScoutPipeline {
     $assessmentHadNonTerminatingErrors = ($assessNewErrors -gt 0)
     if ($assessmentHadNonTerminatingErrors -and -not $assessmentError) {
         Write-Warning "Invoke-ScoutPipeline: the collect/assess/report run completed but recorded $assessNewErrors non-terminating error(s) along the way (AB#402) -- see the warning/verbose output above for detail."
+    }
+
+    if (-not $runFolder) {
+        $recovered = Get-ChildItem -Path $OutputPath -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $priorRunFolders -notcontains $_.Name } |
+            Sort-Object CreationTime -Descending | Select-Object -First 1
+        if ($recovered) { $runFolder = $recovered.FullName }
     }
 
     $finishedOn = Get-Date
@@ -326,7 +294,6 @@ function Invoke-ScoutPipeline {
         finishedOn              = $finishedOn.ToString('o')
         elapsedSeconds          = [math]::Round(($finishedOn - $startedOn).TotalSeconds, 1)
         assessments             = @($Assessment)
-        requestedFormats        = @($requestedFormats)
         formats                 = @($OutputFormat)
         managementGroupId       = $ManagementGroupId
         runFolder               = $runFolder

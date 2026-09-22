@@ -21,7 +21,7 @@
 #>
 
 $ModuleRoot = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
+Import-Module (Join-Path $ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
 
 Describe 'Invoke-AZSCGraphRequest' {
 
@@ -52,30 +52,6 @@ Describe 'Invoke-AZSCGraphRequest' {
             }
             Should -Invoke Invoke-RestMethod -ModuleName AzureScout -ParameterFilter {
                 $Uri -eq 'https://graph.microsoft.com/v1.0/users'
-            }
-        }
-
-        It 'uses the US Government Graph endpoint and token resource when requested' {
-            InModuleScope 'AzureScout' {
-                Invoke-AZSCGraphRequest -Uri '/v1.0/organization' -AzureEnvironment AzureUSGovernment
-            }
-            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -ParameterFilter {
-                $Uri -like 'https://graph.microsoft.us/v1.0/organization*'
-            }
-            Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout -ParameterFilter {
-                $AzureEnvironment -eq 'AzureUSGovernment'
-            }
-        }
-
-        It 'uses the China Graph endpoint and token resource when requested' {
-            InModuleScope 'AzureScout' {
-                Invoke-AZSCGraphRequest -Uri '/v1.0/organization' -AzureEnvironment AzureChinaCloud
-            }
-            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -ParameterFilter {
-                $Uri -like 'https://microsoftgraph.chinacloudapi.cn/v1.0/organization*'
-            }
-            Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout -ParameterFilter {
-                $AzureEnvironment -eq 'AzureChinaCloud'
             }
         }
     }
@@ -296,35 +272,6 @@ Describe 'Invoke-AZSCGraphRequest' {
                 Invoke-AZSCGraphRequest -Uri '/v1.0/users'
             }
             Should -Invoke Get-AZSCGraphToken -ModuleName AzureScout
-        }
-    }
-
-    Context 'Structured caller warning ownership' {
-        BeforeEach {
-            Mock Get-AZSCGraphToken {
-                @{ 'Authorization' = 'Bearer mock-token'; 'Content-Type' = 'application/json' }
-            } -ModuleName AzureScout
-            Mock Invoke-RestMethod {
-                $mockResponse = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::Forbidden)
-                throw [Microsoft.PowerShell.Commands.HttpResponseException]::new('Forbidden', $mockResponse)
-            } -ModuleName AzureScout
-            Mock Write-Warning { } -ModuleName AzureScout
-        }
-
-        It 'suppresses only the helper warning and still rethrows for a structured caller' {
-            { InModuleScope 'AzureScout' {
-                Invoke-AZSCGraphRequest -Uri '/v1.0/users' -SuppressFailureWarning
-            } } | Should -Throw
-            Should -Invoke Write-Warning -ModuleName AzureScout -Times 0 -Scope It
-        }
-
-        It 'retains the helper warning by default' {
-            { InModuleScope 'AzureScout' {
-                Invoke-AZSCGraphRequest -Uri '/v1.0/users'
-            } } | Should -Throw
-            Should -Invoke Write-Warning -ModuleName AzureScout -Times 1 -Scope It -ParameterFilter {
-                $Message -match 'Graph API request failed'
-            }
         }
     }
 }

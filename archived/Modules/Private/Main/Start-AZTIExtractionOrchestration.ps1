@@ -6,7 +6,7 @@ Extraction orchestration for Azure Resource Inventory
 This module orchestrates the extraction of resources for Azure Resource Inventory.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCExtractionOrchestration.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCExtractionOrchestration.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -18,7 +18,6 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCExtractionOrchestration {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($ManagementGroup, $Subscriptions, $SubscriptionID, $SkipPolicy, $ResourceGroup, $SecurityCenter, $SkipAdvisory, $IncludeTags, $TagKey, $TagValue, $SkipAPIs, $SkipVMDetails, $IncludeCosts, $Automation, $AzureEnvironment,
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]$Scope = 'All',

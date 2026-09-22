@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Export inventory data as a structured JSON report
@@ -13,7 +9,7 @@ written alongside (or instead of) the Excel report depending on the
 -OutputFormat parameter on Invoke-AzureScout.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/Export-AZSCJsonReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -26,8 +22,6 @@ Authors: Claudio Merola
 
 function Export-AZSCJsonReport {
     [CmdletBinding()]
-    [OutputType([string])]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = 'Called with -IncludeCosts from src/Invoke-AzureScout.ps1 (outside this task''s src/report+src/assess scope) for interface parity with sibling renderers; removing it would break that caller.')]
     param(
         [Parameter(Mandatory)]
         [string]$ReportCache,

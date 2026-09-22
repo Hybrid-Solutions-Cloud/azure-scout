@@ -6,7 +6,7 @@ Organization Module for Draw.io Diagram
 This module is used for the Organization topology in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramOrganization.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramOrganization.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -18,8 +18,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramOrganization {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ResourceContainers', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($ResourceContainers,$DiagramCache,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -301,7 +299,7 @@ Function Start-AZSCDiagramOrganization {
             # management group tier with no directly-attached subscriptions.
             $MgmtHeight0 = ((@($RoundSubs00).Count * 70) + 80)
 
-            Add-Container0 -x '0' -y '0' -w '200' -h $MgmtHeight0 -title 'tenant root group'
+            Add-Container0 '0' '0' '200' $MgmtHeight0 'tenant root group'
 
             $Script:XmlWriter.WriteStartElement('object')
             $Script:XmlWriter.WriteAttributeString('label', '')
@@ -310,11 +308,11 @@ Function Start-AZSCDiagramOrganization {
 
                 if($RoundSubs00)
                     {
-                        Add-Icon -Style $Script:IconMgmtGroup -x '-30' -y ($MgmtHeight0-15) -w '50' -h '50' -p $Script:ContID0
+                        Add-Icon $Script:IconMgmtGroup '-30' ($MgmtHeight0-15) '50' '50' $Script:ContID0
                     }
                 else
                     {
-                        Add-Icon -Style $Script:IconMgmtGroup -x '75' -y '27' -w '50' -h '50' -p $Script:ContID0
+                        Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID0
                     }
 
             $Script:XmlWriter.WriteEndElement()
@@ -331,7 +329,7 @@ Function Start-AZSCDiagramOrganization {
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
-                    Add-Icon -Style $Ret1 -x $LocalLeft -y $LocalTop -w '150' -h '70' -p $Script:ContID0
+                    Add-Icon $Ret1 $LocalLeft $LocalTop '150' '70' $Script:ContID0
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -348,7 +346,7 @@ Function Start-AZSCDiagramOrganization {
 
                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                    Add-Icon -Style $Script:IconSubscription -x ($LocalLeft+140) -y ($LocalTop+40) -w '31' -h '51' -p $Script:ContID0
+                    Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID0
 
                 $Script:XmlWriter.WriteEndElement()
 
@@ -373,7 +371,7 @@ Function Start-AZSCDiagramOrganization {
 
                 $MgmtHeight = ((@($RoundSubs0).Count * 70) + 80)
 
-                Add-Container1 -x $XLeft -y $XTop -w '200' -h $MgmtHeight -title $1stlvl $Script:ContID0
+                Add-Container1 $XLeft $XTop '200' $MgmtHeight $1stlvl $Script:ContID0
 
                 $Script:XmlWriter.WriteStartElement('object')
                 $Script:XmlWriter.WriteAttributeString('label', '')
@@ -382,11 +380,11 @@ Function Start-AZSCDiagramOrganization {
 
                 if($RoundSubs0)
                     {
-                        Add-Icon -Style $Script:IconMgmtGroup -x '-30' -y ($MgmtHeight-15) -w '50' -h '50' -p $Script:ContID
+                        Add-Icon $Script:IconMgmtGroup '-30' ($MgmtHeight-15) '50' '50' $Script:ContID
                     }
                 else
                     {
-                        Add-Icon -Style $Script:IconMgmtGroup -x '75' -y '27' -w '50' -h '50' -p $Script:ContID
+                        Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID
                     }
 
                 $Script:XmlWriter.WriteEndElement()
@@ -405,7 +403,7 @@ Function Start-AZSCDiagramOrganization {
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
-                            Add-Icon -Style $Ret1 -x $LocalLeft -y $LocalTop -w '150' -h '70' -p $Script:ContID
+                            Add-Icon $Ret1 $LocalLeft $LocalTop '150' '70' $Script:ContID
 
                         $Script:XmlWriter.WriteEndElement()
 
@@ -422,7 +420,7 @@ Function Start-AZSCDiagramOrganization {
 
                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                            Add-Icon -Style $Script:IconSubscription -x ($LocalLeft+140) -y ($LocalTop+40) -w '31' -h '51' -p $Script:ContID
+                            Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID
 
                         $Script:XmlWriter.WriteEndElement()
 
@@ -544,7 +542,7 @@ Function Start-AZSCDiagramOrganization {
 
                         $XXTop = $MgmtHeight + 200
 
-                        Add-Container2 -x $XXLeft -y $XXTop -w '200' -h $MgmtHeight1 -title $2nd -p $Script:ContID
+                        Add-Container2 $XXLeft $XXTop '200' $MgmtHeight1 $2nd $Script:ContID
 
                         $Script:XmlWriter.WriteStartElement('object')
                         $Script:XmlWriter.WriteAttributeString('label', '')
@@ -553,11 +551,11 @@ Function Start-AZSCDiagramOrganization {
 
                         if($RoundSubs)
                             {
-                                Add-Icon -Style $Script:IconMgmtGroup -x '-30' -y ($MgmtHeight1-15) -w '50' -h '50' -p $Script:ContID2
+                                Add-Icon $Script:IconMgmtGroup '-30' ($MgmtHeight1-15) '50' '50' $Script:ContID2
                             }
                         else
                             {
-                                Add-Icon -Style $Script:IconMgmtGroup -x '75' -y '27' -w '50' -h '50' -p $Script:ContID2
+                                Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID2
                             }
 
                         $Script:XmlWriter.WriteEndElement()
@@ -587,7 +585,7 @@ Function Start-AZSCDiagramOrganization {
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
-                                    Add-Icon -Style $Ret2 -x $LocalLeft -y $LocalTop -w '150' -h '70' -p $Script:ContID2
+                                    Add-Icon $Ret2 $LocalLeft $LocalTop '150' '70' $Script:ContID2
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -604,7 +602,7 @@ Function Start-AZSCDiagramOrganization {
 
                                 $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                    Add-Icon -Style $Script:IconSubscription -x ($LocalLeft+140) -y ($LocalTop+40) -w '31' -h '51' -p $Script:ContID2
+                                    Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID2
 
                                 $Script:XmlWriter.WriteEndElement()
 
@@ -724,7 +722,7 @@ Function Start-AZSCDiagramOrganization {
 
                                 $XXXTop = $MgmtHeight1 + 200
 
-                                Add-Container3 -x $XXXLeft -y $XXXTop -w '200' -h $MgmtHeight2 -title $3rd -p $Script:ContID2
+                                Add-Container3 $XXXLeft $XXXTop '200' $MgmtHeight2 $3rd $Script:ContID2
 
                                 $Script:XmlWriter.WriteStartElement('object')
                                 $Script:XmlWriter.WriteAttributeString('label', '')
@@ -733,11 +731,11 @@ Function Start-AZSCDiagramOrganization {
 
                                 if($RoundSubs3)
                                     {
-                                        Add-Icon -Style $Script:IconMgmtGroup -x '-30' -y ($MgmtHeight2-15) -w '50' -h '50' -p $Script:ContID3
+                                        Add-Icon $Script:IconMgmtGroup '-30' ($MgmtHeight2-15) '50' '50' $Script:ContID3
                                     }
                                 else
                                     {
-                                        Add-Icon -Style $Script:IconMgmtGroup -x '75' -y '27' -w '50' -h '50' -p $Script:ContID3
+                                        Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID3
                                     }
 
                                 $Script:XmlWriter.WriteEndElement()
@@ -766,7 +764,7 @@ Function Start-AZSCDiagramOrganization {
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
-                                            Add-Icon -Style $Ret3 -x $LocalLeft -y $LocalTop -w '150' -h '70' -p $Script:ContID3
+                                            Add-Icon $Ret3 $LocalLeft $LocalTop '150' '70' $Script:ContID3
 
                                         $Script:XmlWriter.WriteEndElement()
 
@@ -783,7 +781,7 @@ Function Start-AZSCDiagramOrganization {
 
                                         $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                            Add-Icon -Style $Script:IconSubscription -x ($LocalLeft+140) -y ($LocalTop+40) -w '31' -h '51' -p $Script:ContID3
+                                            Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID3
 
                                         $Script:XmlWriter.WriteEndElement()
 
@@ -905,7 +903,7 @@ Function Start-AZSCDiagramOrganization {
 
                                             $XXXXTop = $MgmtHeight2 + 200
 
-                                            Add-Container4 -x $XXXXLeft -y $XXXXTop -w '200' -h $MgmtHeight3 -title $4th -p $Script:ContID3
+                                            Add-Container4 $XXXXLeft $XXXXTop '200' $MgmtHeight3 $4th $Script:ContID3
 
                                             $Script:XmlWriter.WriteStartElement('object')
                                             $Script:XmlWriter.WriteAttributeString('label', '')
@@ -914,11 +912,11 @@ Function Start-AZSCDiagramOrganization {
 
                                             if($RoundSubs4)
                                                 {
-                                                    Add-Icon -Style $Script:IconMgmtGroup -x '-30' -y ($MgmtHeight3-15) -w '50' -h '50' -p $Script:ContID4
+                                                    Add-Icon $Script:IconMgmtGroup '-30' ($MgmtHeight3-15) '50' '50' $Script:ContID4
                                                 }
                                             else
                                                 {
-                                                    Add-Icon -Style $Script:IconMgmtGroup -x '75' -y '27' -w '50' -h '50' -p $Script:ContID4
+                                                    Add-Icon $Script:IconMgmtGroup '75' '27' '50' '50' $Script:ContID4
                                                 }
 
                                             $Script:XmlWriter.WriteEndElement()
@@ -947,7 +945,7 @@ Function Start-AZSCDiagramOrganization {
                 if(([string]$sub.name).Length -gt 30){$Script:XmlWriter.WriteAttributeString('Full_Subscription_Name', [string]$sub.name)}
                                                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellIDRes+'-'+($Script:CelNum++)))
 
-                                                        Add-Icon -Style $Ret4 -x $LocalLeft -y $LocalTop -w '150' -h '70' -p $Script:ContID4
+                                                        Add-Icon $Ret4 $LocalLeft $LocalTop '150' '70' $Script:ContID4
 
                                                     $Script:XmlWriter.WriteEndElement()
 
@@ -964,7 +962,7 @@ Function Start-AZSCDiagramOrganization {
 
                                                     $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
 
-                                                        Add-Icon -Style $Script:IconSubscription -x ($LocalLeft+140) -y ($LocalTop+40) -w '31' -h '51' -p $Script:ContID4
+                                                        Add-Icon $Script:IconSubscription ($LocalLeft+140) ($LocalTop+40) '31' '51' $Script:ContID4
 
                                                     $Script:XmlWriter.WriteEndElement()
 

@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 # Relocated from Modules/Public/PublicFunctions/Diagram for the v3 pipeline.
 .Synopsis
@@ -11,7 +7,7 @@ Network Module for Draw.io Diagram
 This module is use for the Network topology in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramNetwork.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -23,11 +19,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramNetwork {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'AZSCModule', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'XMLFiles', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Advisories', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($Subscriptions,$Job,$Advisories,$DiagramCache,$FullEnvironment,$DDFile,$XMLFiles,$LogFile,$Automation,$AZSCModule)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -177,7 +168,7 @@ Function Start-AZSCDiagramNetwork {
         }
 
         <# Function to create the Visio document and import each stencil #>
-        Function Publish-AZSCDiagramStensil {
+        Function Publish-AZSCDiagramStensils {
             $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
 
             $Script:IconConnections = "aspect=fixed;html=1;points=[];align=center;image;fontSize=18;image=img/lib/azure2/networking/Connections.svg;" #width="68" height="68"
@@ -1303,19 +1294,15 @@ Function Start-AZSCDiagramNetwork {
 
                         $NameString = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 
-                        $SubnetJob = Start-ThreadJob -Name ('Job_'+$NameString) -ScriptBlock {
+                        Start-ThreadJob -Name ('Job_'+$NameString) -ScriptBlock {
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Subnet function')
 
                             Import-Module $($args[7])
 
                             Build-AZSCDiagramSubnet -SubnetLocation $($args[0]) -VNET $($args[1]) -IDNum $($args[2]) -DiagramCache $($args[3]) -ContainerID $($args[4]) -Job $($args[5])-LogFile $($args[6])
-                        } -ArgumentList $subloc,$VNET,$IDNum,$DiagramCache,$ContID,$Job,$LogFile,$AZSCModule
+                        } -ArgumentList $subloc,$VNET,$IDNum,$DiagramCache,$ContID,$Job,$LogFile,$AZSCModule | Out-Null
 
-                        # Own the actual PSJob object. The former code stored its already-prefixed
-                        # name, then cleanup prefixed `Job_` a second time and tried to resolve a
-                        # runspace variable that the Start-ThreadJob path never created. That
-                        # aborted subnet-fragment merging with `Job_Job_* cannot be retrieved`.
-                        $Script:jobs += $SubnetJob
+                        $Script:jobs += ('Job_'+$NameString)
 
                         <#
                         New-Variable -Name ('Run_'+$NameString) -Scope Script
@@ -1361,26 +1348,32 @@ Function Start-AZSCDiagramNetwork {
         }
 
         Function Remove-AZSCDiagramJob {
-            foreach($Job in $Script:jobs)
+            foreach($job in $Script:jobs)
             {
-                Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue
+                if((get-variable -name ('Job_'+$job) -Scope Script).Value.IsCompleted -eq $true)
+                    {
+                        #((get-variable -name ('Run_'+$job)).Value).EndInvoke((get-variable -name ('Job_'+$job)).Value)
+                        ((get-variable -name ('Run_'+$job)).Value).Dispose()
+                        Remove-Variable -Name ('Run_'+$job) -Scope Script -Force
+                        Remove-Variable -Name ('Job_'+$job) -Scope Script -Force
+                    }
             }
         }
         <# Function to create the Label of Version #>
         Function Set-AZSCDiagramLabel {
             $Date = get-date -Format "yyyy-MM-dd_HH_mm"
             $Script:XmlWriter.WriteStartElement('object')
-            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/Hybrid-Solutions-Cloud/azure-scout' + "`n" +'Date:' + "`n" + $Date))
+            $Script:XmlWriter.WriteAttributeString('label', ('Powered by:'+ "`n" +'Azure Scout v1.0'+ "`n" +'https://github.com/thisismydemo/azure-scout' + "`n" +'Date:' + "`n" + $Date))
             $Script:XmlWriter.WriteAttributeString('author', 'Claudio Merola')
             $Script:XmlWriter.WriteAttributeString('id', ($Script:CellID+'-'+($Script:IDNum++)))
         }
 
         Function Get-AZSCDiagramJobLog {
-            Param($Jobs)
+            Param($JobNames)
 
-            Foreach ($Job in $Jobs)
+            Foreach ($JobName in $JobNames)
                 {
-                    $LogEntries = Receive-Job -Job $Job
+                    $LogEntries = Receive-Job -Name $JobName
                     Foreach ($LogEntry in $LogEntries)
                         {
                             Write-Output $LogEntry
@@ -1469,7 +1462,7 @@ Function Start-AZSCDiagramNetwork {
 
                                 Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Stensils')
 
-                                    Publish-AZSCDiagramStensil
+                                    Publish-AZSCDiagramStensils
 
                                     if($Job.AZLGWs -or $Job.AZEXPROUTEs -or $Job.AZVERs -or $Job.AZVPNSITES)
                                         {
@@ -1504,11 +1497,11 @@ Function Start-AZSCDiagramNetwork {
                         {
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting Job2 to complete')
 
-                            Wait-Job -Job $Script:jobs | Out-Null
+                            Get-job -Name $Script:jobs | Wait-Job | Out-Null
 
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Subnet Job Logs')
 
-                            Get-AZSCDiagramJobLog -Jobs $Script:jobs
+                            Get-AZSCDiagramJobLog -JobNames $Script:jobs
 
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Removing Jobs')
 

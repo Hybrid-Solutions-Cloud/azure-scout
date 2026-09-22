@@ -18,11 +18,11 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
 
     # The shape Resource Graph really returns: every projected COLUMN present (they come from the
     # `| project` list, so they are always there, usually $null), and `properties` holding only the
@@ -51,7 +51,7 @@ BeforeAll {
 
     function Invoke-CollectorOnRow {
         param([string]$Category, [string]$Name, $Row)
-        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1")
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1")
         $Context = @{
             ScriptRoot   = $script:RepoRoot
             Subscriptions = @([pscustomobject]@{ id = '00000000-0000-0000-0000-000000000001'; Name = 'sub-one' })
@@ -85,31 +85,6 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
     @{ Category = 'Security'; Name = 'WafPolicies'; Type = 'microsoft.network/applicationgatewaywebapplicationfirewallpolicies'
        Properties = @{ provisioningState = 'Succeeded' }
        Because = 'a policy with no custom rules has no customRules key' }
-
-    # AB#7358 — types observed live in the independent tenant reconciliation. These are deliberately
-    # sparse so adding a worksheet cannot trade the former no-collector gap for a collector that
-    # disappears whenever an optional nested block is absent.
-    @{ Category = 'Containers'; Name = 'ContainerAppJobs'; Type = 'microsoft.app/jobs'
-       Properties = @{ provisioningState = 'Succeeded'; configuration = [pscustomobject]@{}; template = [pscustomobject]@{} }
-       Because = 'a Container Apps job can exist before its trigger and container template are fully materialised' }
-    @{ Category = 'Containers'; Name = 'ContainerAppManagedCertificates'; Type = 'microsoft.app/managedenvironments/managedcertificates'
-       Properties = @{ provisioningState = 'Succeeded' }
-       Because = 'certificate validation details are absent while a managed certificate is provisioning' }
-    @{ Category = 'Identity'; Name = 'CIAMDirectories'; Type = 'microsoft.azureactivedirectory/ciamdirectories'
-       Properties = @{ provisioningState = 'Succeeded'; createTenantProperties = [pscustomobject]@{}; billingConfig = [pscustomobject]@{} }
-       Because = 'directory creation and billing detail can be partially projected by Resource Graph' }
-    @{ Category = 'AI'; Name = 'AIFoundryAccountProjects'; Type = 'microsoft.cognitiveservices/accounts/projects'
-       Properties = @{ provisioningState = 'Succeeded' }
-       Because = 'a Foundry project without an endpoint projection is still a real project' }
-    @{ Category = 'Monitor'; Name = 'AzureDashboards'; Type = 'microsoft.dashboard/dashboards'
-       Properties = @{ provisioningState = 'Succeeded' }
-       Because = 'the dashboard resource exposes only a minimal ARG control-plane projection' }
-    @{ Category = 'Monitor'; Name = 'AzureMonitorWorkspaces'; Type = 'microsoft.monitor/accounts'
-       Properties = @{ provisioningState = 'Succeeded'; metrics = [pscustomobject]@{}; defaultIngestionSettings = [pscustomobject]@{} }
-       Because = 'ingestion defaults can be absent while an Azure Monitor workspace is provisioning' }
-    @{ Category = 'DevOps'; Name = 'VisualStudioAccounts'; Type = 'microsoft.visualstudio/account'
-       Properties = @{}
-       Because = 'legacy Visual Studio account rows must survive even when AccountURL is not projected' }
 
     # AB#6844 — the second class: a string method called on a payload value that is absent. These
     # four each held an unguarded `.split('/')[N]` and threw "You cannot call a method on a
@@ -206,35 +181,6 @@ Describe 'A sparse Azure payload does not cost the collector its worksheet (AB#6
         $NameColumn | Should -Not -BeNullOrEmpty -Because "$Category/$Name must have a column naming the resource"
         $Rows[0][$NameColumn] | Should -Be 'res-one' -Because "$Category/$Name must still identify the resource"
         $Rows[0]['Location'] | Should -Be 'eastus'
-    }
-}
-
-Describe 'DevOps service connections use the selected subscription scope' {
-    It 'processes a live-shaped ARM connection and marks its target subscription in scope' {
-        $subscriptionId = '00000000-0000-0000-0000-000000000001'
-        $row = New-SparseArgRow -Type 'devops/serviceconnections' -Name 'connection-one' -Properties @{
-            projectName = 'Platform'
-            type        = 'azurerm'
-            data = [pscustomobject]@{
-                subscriptionId  = $subscriptionId
-                subscriptionName = 'sub-one'
-            }
-            authorization = [pscustomobject]@{
-                scheme = 'WorkloadIdentityFederation'
-                parameters = [pscustomobject]@{ serviceprincipalid = 'service-principal-one' }
-            }
-            isShared = $false
-            isReady  = $true
-        }
-        $row | Add-Member -NotePropertyName organization -NotePropertyValue 'hybridcloudsolutions'
-
-        $rows = @(Invoke-CollectorOnRow -Category 'DevOps' -Name 'DevOpsServiceConnections' -Row $row)
-
-        $rows.Count | Should -Be 1
-        $rows[0]['Connection Name'] | Should -Be 'connection-one'
-        $rows[0]['Target Subscription ID'] | Should -Be $subscriptionId
-        $rows[0]['Subscription In Scope'] | Should -Be 'Yes'
-        $rows[0]['Credential Free'] | Should -Be 'Yes'
     }
 }
 

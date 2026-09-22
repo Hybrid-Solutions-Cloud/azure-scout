@@ -73,15 +73,15 @@ BeforeAll {
         }
     }
 
-    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'conformance'
+    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'conformance'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
     $script:DocxPath = Export-Word -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     $script:PptxPath = Export-Pptx -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
-    $null = Export-ScoutEvidenceWorkbook -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
+    $null = Export-Excel -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
     $null = Export-PowerBi -Findings $script:Scored -Collect $script:Collect -OutputPath $script:OutDir
-    $script:PbiDir = Join-Path -Path $script:OutDir -ChildPath 'powerbi'
+    $script:PbiDir = Join-Path $script:OutDir 'powerbi'
 
     Add-Type -AssemblyName System.IO.Compression -ErrorAction SilentlyContinue
     Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
@@ -102,8 +102,7 @@ BeforeAll {
     }
 
     function Get-ZipEntryNames {
-                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([string]$Path)
+        param([string]$Path)
         $zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
         try { return @($zip.Entries | Select-Object -ExpandProperty FullName) }
         finally { $zip.Dispose() }
@@ -238,29 +237,6 @@ Describe 'W — Word document (docs/design/report-conformance.md)' {
         $currentStateAt | Should -BeLessThan $actionItemsAt
     }
 
-    It 'W-12: every figure in the body is an embedded image part, never a link' {
-        $media = @($script:WordEntries | Where-Object { $_ -match '(^|/)media/.*\.png$' })
-        $media.Count | Should -BeGreaterThan 0
-
-        # One drawing per embedded image, and every one of them must reference a relationship id
-        # that resolves inside the package. A `r:link` instead of `r:embed` would render on the
-        # machine that made the file and nowhere else.
-        # The namespace declaration is emitted BEFORE the attribute, so the pattern cannot
-        # assume r:embed follows the element name directly.
-        $drawings = [regex]::Matches($script:WordXml, '<a:blip[^>]*\br:embed="([^"]+)"')
-        @($drawings).Count | Should -Be $media.Count
-        $script:WordXml | Should -Not -Match '<a:blip[^>]*r:link='
-
-        $rels = Get-ZipEntryText -Path $script:DocxPath -Entry 'word/_rels/document.xml.rels'
-        foreach ($d in $drawings) {
-            $rels | Should -Match ('Id="{0}"' -f [regex]::Escape($d.Groups[1].Value))
-        }
-
-        # And each figure carries a caption in the Caption style -- a picture with no caption is
-        # a picture the reader has to interpret unaided.
-        $script:WordXml | Should -Match '<w:pStyle w:val="Caption"'
-    }
-
     It 'W-13: a findings table longer than the row cap is in an appendix, not the body' {
         # The fixture's Networking area has 34 findings against a cap of 30, so this clause is
         # being exercised rather than merely satisfied by a document with no long tables.
@@ -307,24 +283,6 @@ Describe 'P — PowerPoint deck' {
         $slide1 | Should -Match '\d{4}-\d{2}-\d{2}'
     }
 
-    It 'P-03: the deck contains a scope slide stating what was NOT assessed' {
-        $texts = @($script:SlideNames | ForEach-Object { Get-ZipEntryText -Path $script:PptxPath -Entry $_ })
-        $scopeSlides = @($texts | Where-Object { $_ -match 'not assessed' -and $_ -match 'Scope' })
-        $scopeSlides.Count | Should -BeGreaterThan 0
-        # And it must state a NUMBER of unassessed controls, not merely the phrase — "some
-        # things were not checked" is not a scope statement.
-        ($scopeSlides -join ' ') | Should -Match '\d+\s+control\(s\) require manual review'
-    }
-
-    It 'P-04: the deck contains exactly one act-on-this-first slide, naming a specific item' {
-        $titles = @($script:SlideNames | ForEach-Object { Get-ZipEntryText -Path $script:PptxPath -Entry $_ }) |
-            Where-Object { $_ -match 'Act on this first' }
-        # Exactly one. A deck with five priorities has none, which is the point of the clause.
-        @($titles).Count | Should -Be 1
-        # And it names an item rather than a category.
-        @($titles)[0] | Should -Match 'Severity:'
-    }
-
     It 'P-05: a roll-up deck is bounded at 15 slides — one idea per slide' {
         $script:SlideNames.Count | Should -BeGreaterThan 0
         $script:SlideNames.Count | Should -BeLessOrEqual 15
@@ -334,57 +292,11 @@ Describe 'P — PowerPoint deck' {
 Describe 'X — Excel workbook' {
 
     BeforeAll {
-        $script:XlsxPath = Join-Path -Path $script:OutDir -ChildPath 'assessment_evidence.xlsx'
+        $script:XlsxPath = Join-Path $script:OutDir 'assessment_evidence.xlsx'
     }
 
     It 'the workbook was emitted' {
         $script:XlsxPath | Should -Exist
-    }
-
-    It 'X-01: sheet 1 is a Cover carrying scope, a legend, and a contents index with record counts' {
-        $wb = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/workbook.xml'
-        # Position matters, not merely presence: a cover on tab 12 is not a cover.
-        $wb | Should -Match '<sheets>\s*<sheet[^>]*name="Cover"'
-
-        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
-        $strings | Should -Match 'Scan date'
-        $strings | Should -Match 'Legend'
-        $strings | Should -Match 'Contents'
-        $strings | Should -Match 'Records'
-        # The legend has to explain the two columns that make a row actionable, or the reader
-        # meets "None matched" and "review" with no idea what they mean.
-        $strings | Should -Match 'Triage'
-        $strings | Should -Match 'ResourceId'
-    }
-
-    It 'X-02: there is one tab per gap class, named for the gap rather than the collector' {
-        $wb = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/workbook.xml'
-        $names = @([regex]::Matches($wb, '<sheet[^>]*name="([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
-        # The fixture assesses Networking and Security, so both must appear as their own tab.
-        $names | Should -Contain 'Networking'
-        $names | Should -Contain 'Security'
-        # And no VISIBLE tab may be named for a collector or a staging sheet.
-        $visible = @([regex]::Matches($wb, '<sheet\b(?![^>]*state="(hidden|veryHidden)")[^>]*name="([^"]+)"') |
-                ForEach-Object { $_.Groups[2].Value })
-        @($visible | Where-Object { $_ -match '^_dash_src' }) | Should -BeNullOrEmpty
-    }
-
-    It 'X-04: every evidence row carries the full ARM resource id, or says none matched' {
-        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
-        $strings | Should -Match 'ResourceId'
-        # The fixture's findings carry no evidence, so every row must take the explicit
-        # "None matched" rendering. An EMPTY cell would satisfy a weaker test and tell the
-        # reader nothing — that is exactly the failure this clause is about.
-        $strings | Should -Match 'None matched'
-    }
-
-    It 'X-05: every gap row carries a triage verdict' {
-        $strings = Get-ZipEntryText -Path $script:XlsxPath -Entry 'xl/sharedStrings.xml'
-        $strings | Should -Match 'Triage'
-        # Seeded, not guessed: a passing control is closed out, everything else is flagged for
-        # a human. A renderer that invented "by-design" would close real findings.
-        $strings | Should -Match 'review'
-        $strings | Should -Match 'n/a — passing'
     }
 
     It 'X-03: every visible data tab has frozen panes and an autofilter on the header row' {
@@ -409,23 +321,23 @@ Describe 'X — Excel workbook' {
 Describe 'B — Power BI (clauses B-01 to B-05)' {
 
     BeforeAll {
-        $script:PbipPath = Join-Path -Path $script:PbiDir -ChildPath 'AzureScout.pbip'
-        $script:ModelDef = Join-Path -Path $script:PbiDir -ChildPath 'AzureScout.SemanticModel' -AdditionalChildPath 'definition'
-        $script:ReportDir = Join-Path -Path $script:PbiDir -ChildPath 'AzureScout.Report'
+        $script:PbipPath = Join-Path $script:PbiDir 'AzureScout.pbip'
+        $script:ModelDef = Join-Path $script:PbiDir 'AzureScout.SemanticModel' 'definition'
+        $script:ReportDir = Join-Path $script:PbiDir 'AzureScout.Report'
     }
 
     It 'B-01: the output is a PBIP project — semantic model and report as text' {
         $script:PbipPath | Should -Exist
-        (Join-Path -Path $script:PbiDir -ChildPath 'AzureScout.SemanticModel' -AdditionalChildPath 'definition.pbism') | Should -Exist
-        (Join-Path -Path $script:ReportDir -ChildPath 'definition.pbir') | Should -Exist
-        (Join-Path -Path $script:ModelDef -ChildPath 'model.tmdl') | Should -Exist
+        (Join-Path $script:PbiDir 'AzureScout.SemanticModel' 'definition.pbism') | Should -Exist
+        (Join-Path $script:ReportDir 'definition.pbir') | Should -Exist
+        (Join-Path $script:ModelDef 'model.tmdl') | Should -Exist
         # The .pbir must point at the model by path, or the two halves are unrelated files.
-        $pbir = Get-Content (Join-Path -Path $script:ReportDir -ChildPath 'definition.pbir') -Raw | ConvertFrom-Json
+        $pbir = Get-Content (Join-Path $script:ReportDir 'definition.pbir') -Raw | ConvertFrom-Json
         $pbir.datasetReference.byPath.path | Should -Match 'SemanticModel'
     }
 
     It 'B-02: the model declares relationships between fact and dimension tables' {
-        $rels = Get-Content (Join-Path -Path $script:ModelDef -ChildPath 'relationships.tmdl') -Raw
+        $rels = Get-Content (Join-Path $script:ModelDef 'relationships.tmdl') -Raw
         ([regex]::Matches($rels, '(?m)^relationship ')).Count | Should -BeGreaterOrEqual 3
         # A single text key across every table was the previous model, and it is explicitly
         # called out in the design document as non-conformant.
@@ -434,24 +346,24 @@ Describe 'B — Power BI (clauses B-01 to B-05)' {
     }
 
     It 'B-03: the model declares DAX measures' {
-        $findings = Get-Content (Join-Path -Path $script:ModelDef -ChildPath 'tables' -AdditionalChildPath 'Findings.tmdl') -Raw
+        $findings = Get-Content (Join-Path $script:ModelDef 'tables' 'Findings.tmdl') -Raw
         $measures = @([regex]::Matches($findings, "(?m)^\tmeasure '"))
         $measures.Count | Should -BeGreaterOrEqual 4
         $findings | Should -Match "measure 'Compliance rate'"
     }
 
     It 'B-04: the model declares a date dimension, and a fact relates to it' {
-        $datePath = Join-Path -Path $script:ModelDef -ChildPath 'tables' -AdditionalChildPath 'Date.tmdl'
+        $datePath = Join-Path $script:ModelDef 'tables' 'Date.tmdl'
         $datePath | Should -Exist
         (Get-Content $datePath -Raw) | Should -Match 'dataCategory: Time'
-        $rels = Get-Content (Join-Path -Path $script:ModelDef -ChildPath 'relationships.tmdl') -Raw
+        $rels = Get-Content (Join-Path $script:ModelDef 'relationships.tmdl') -Raw
         $rels | Should -Match "toColumn: 'Date'\.Date"
         # And the fact has to actually carry the column, or the relationship is unresolvable.
-        (Get-Content (Join-Path -Path $script:PbiDir -ChildPath 'fact_findings.csv') -Raw) | Should -Match 'ScanDate'
+        (Get-Content (Join-Path $script:PbiDir 'fact_findings.csv') -Raw) | Should -Match 'ScanDate'
     }
 
     It 'B-05: the project contains authored report pages — opening it is not a blank canvas' {
-        $reportJson = Join-Path -Path $script:ReportDir -ChildPath 'report.json'
+        $reportJson = Join-Path $script:ReportDir 'report.json'
         $reportJson | Should -Exist
         $report = Get-Content $reportJson -Raw | ConvertFrom-Json
         @($report.sections).Count | Should -BeGreaterOrEqual 3
@@ -466,64 +378,6 @@ Describe 'B — Power BI (clauses B-01 to B-05)' {
     }
 }
 
-Describe 'D — diagrams and figures' {
-
-    It 'D-01: every generated figure is rasterised to PNG on disk, not only embedded' {
-        $figDir = Join-Path -Path $script:OutDir -ChildPath 'figures'
-        $figDir | Should -Exist
-        $pngs = @(Get-ChildItem $figDir -Filter '*.png')
-        $pngs.Count | Should -BeGreaterThan 0
-        foreach ($p in $pngs) {
-            # A real PNG signature, not a renamed something-else. A zero-byte or misnamed file
-            # in a document package is a corrupt document rather than a missing picture, which
-            # is why clause D-02 requires omission instead.
-            $head = [System.IO.File]::ReadAllBytes($p.FullName)[0..7]
-            ($head -join ',') | Should -Be '137,80,78,71,13,10,26,10'
-            $p.Length | Should -BeGreaterThan 100
-        }
-    }
-
-    It 'D-02: a figure that cannot render is omitted with a note, never emitted broken or empty' {
-        # Driven by making the renderer fail for real rather than by asserting the happy path.
-        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'conformance-nofig'
-        if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
-        $saved = ${function:Export-ScoutFigureSet}
-        try {
-            Set-Item function:Export-ScoutFigureSet -Value { throw 'forced figure failure' }
-            $path = Export-Word -Findings $script:Scored -Collect $script:Collect -OutputPath $dir -WarningAction SilentlyContinue
-            (Split-Path $path -Leaf) | Should -Be 'assessment_report.docx'
-            $xml = Get-ZipEntryText -Path $path -Entry 'word/document.xml'
-            # The document still renders, says so plainly, and carries no dangling drawing.
-            $xml | Should -Match 'No figures were produced for this run'
-            $xml | Should -Not -Match '<a:blip'
-        }
-        finally {
-            Set-Item function:Export-ScoutFigureSet -Value $saved
-            if (Test-Path $dir) { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue }
-        }
-    }
-
-    It 'D-03: figures embedded in the document are the rasterised output, not a link' {
-        # The same property W-12 asserts from the document's side, stated here from the
-        # pipeline's: the bytes in the package are the bytes on disk.
-        $figDir = Join-Path -Path $script:OutDir -ChildPath 'figures'
-        $onDisk = @(Get-ChildItem $figDir -Filter '*.png')
-        $inPackage = @($script:WordEntries | Where-Object { $_ -match '(^|/)media/.*\.png$' })
-        $inPackage.Count | Should -Be $onDisk.Count
-
-        $packagedSizes = @()
-        $zip = [System.IO.Compression.ZipFile]::OpenRead($script:DocxPath)
-        try {
-            foreach ($e in $inPackage) { $packagedSizes += $zip.GetEntry($e).Length }
-        }
-        finally { $zip.Dispose() }
-        # `$onDisk.Length` is the ARRAY's length, not each file's -- member enumeration loses to
-        # the array's own property. ForEach-Object is the only way to mean per-item here.
-        $diskSizes = @($onDisk | ForEach-Object { $_.Length })
-        (@($packagedSizes) | Sort-Object) -join ',' | Should -Be (($diskSizes | Sort-Object) -join ',')
-    }
-}
-
 Describe 'R — run output contract' {
 
     It 'R-04: every renderer consumes the same scored object — none re-derives findings' {
@@ -531,7 +385,7 @@ Describe 'R — run output contract' {
         # than about one emitted package. Every Export-* entry point must take -Findings; a
         # renderer that reached for the raw collect and scored it again is the drift this
         # clause exists to prevent.
-        $renderers = Get-ChildItem (Join-Path -Path $script:Root -ChildPath 'src' -AdditionalChildPath 'report', 'renderers') -Filter 'Export-*.ps1'
+        $renderers = Get-ChildItem (Join-Path $script:Root 'src' 'report' 'renderers') -Filter 'Export-*.ps1'
         $renderers.Count | Should -BeGreaterThan 0
         foreach ($r in $renderers) {
             $src = Get-Content $r.FullName -Raw

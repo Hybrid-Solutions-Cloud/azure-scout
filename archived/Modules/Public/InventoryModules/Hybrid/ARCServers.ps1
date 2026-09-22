@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.hybridcompute/machines an
 Excel Sheet Name: EvHub
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ARCServers.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ARCServers.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).
@@ -23,7 +23,6 @@ Authors: Claudio Merola and Renato Gregio
 
 <######## Default Parameters. Don't modify this ########>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task ,$File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -129,10 +128,11 @@ If ($Task -eq 'Processing')
                             $nonCompliant = @($states | Where-Object { $_.complianceState -eq 'NonCompliant' }).Count
                             $policyCompliant = if ($nonCompliant -eq 0) { 'Compliant' } else { "$nonCompliant NonCompliant" }
                         }
-                    } catch { Write-Debug ('ARCServers: failed to read policy compliance: ' + $_.Exception.Message) }
+                    } catch {}
 
                     # ── Phase 17.2.7: Performance Metrics ────────────────────────────
                     $arcAvgCpu = 'N/A'
+                    $arcAvgMem = 'N/A'
                     try {
                         $monEnd2   = (Get-Date).ToUniversalTime().ToString('o')
                         $monStart2 = (Get-Date).AddDays(-7).ToUniversalTime().ToString('o')
@@ -143,7 +143,7 @@ If ($Task -eq 'Processing')
                             $arcCpuVals = $arcCpuData.value[0].timeseries[0].data.average | Where-Object { $_ -ne $null }
                             if ($arcCpuVals) { $arcAvgCpu = [math]::Round(($arcCpuVals | Measure-Object -Average).Average, 1) }
                         }
-                    } catch { Write-Debug ('ARCServers: failed to read performance metrics: ' + $_.Exception.Message) }
+                    } catch {}
 
                     # ── Phase 17.2.9: Cost / ESU Tracking ─────────────────────────────
                     $esuEnabled     = if ($data.licenseprofile.esuprofile.servertype) { $true } else { $false }
@@ -163,13 +163,14 @@ If ($Task -eq 'Processing')
                         if ($arcCostResp.StatusCode -eq 200) {
                             $arcCostData = $arcCostResp.Content | ConvertFrom-Json
                             $rawArcCost  = $arcCostData.properties.rows[0][0]
-                            if ($null -ne $rawArcCost) { $arcMonthlyCost = [math]::Round([double]$rawArcCost, 2) }
+                            if ($rawArcCost -ne $null) { $arcMonthlyCost = [math]::Round([double]$rawArcCost, 2) }
                         }
-                    } catch { Write-Debug ('ARCServers: failed to read cost/ESU tracking: ' + $_.Exception.Message) }
+                    } catch {}
 
                     # ── Phase 17.2.10: Hybrid Connectivity ─────────────────────────────
                     $proxyConfigured  = if ($data.agentConfiguration.proxy.url) { $true } else { $false }
                     $privateLinkScope = if ($data.privateLinkScopeResourceId) { ($data.privateLinkScopeResourceId -split '/')[-1] } else { 'None' }
+                    $connStatus       = if ($data.status) { $data.status } else { 'N/A' }
 
                     foreach ($Tag in $Tags) {
                         $obj = @{

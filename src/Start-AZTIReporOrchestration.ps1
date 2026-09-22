@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Main module for Excel Report Building
@@ -10,7 +6,7 @@ Main module for Excel Report Building
 This module is the main module for building the Excel Report.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCReporOrchestration.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCReporOrchestration.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -22,7 +18,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCReporOrchestration {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($ReportCache,
     $SecurityCenter,
     $File,

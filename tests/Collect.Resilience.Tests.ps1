@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
+#Requires -Modules Az.ResourceGraph
 
 <#
     Pester tests for src/collect/Invoke-Collect.ps1's collector resilience
@@ -22,28 +23,10 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    . "$root/tests/helpers/Search-AzGraph.TestDouble.ps1"
+    Import-Module Az.ResourceGraph -ErrorAction Stop
     . "$root/src/collect/Invoke-Collect.ps1"
 
-    # Invoke-Collect always performs these two non-ARG sweeps. Keep the
-    # resilience fixtures hermetic: fake subscription ids must never escape to
-    # the caller's ambient Azure/Graph context during a unit-test run.
-    function Get-ScoutDefenderPlanSweep {
-        param([object[]] $Subscriptions)
-        $null = $Subscriptions
-        return @()
-    }
-
-    function Get-ScoutExternalIdentitiesPolicy {
-        param([string] $TenantID)
-        $null = $TenantID
-        return [pscustomobject]@{ Collected = $false }
-    }
-
     function Get-MockSubscriptions {
-        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-        param()
-
         @(
             [pscustomobject]@{ id = 'sub-1'; name = 'sub-1'; state = 'Enabled'; tags = $null }
             [pscustomobject]@{ id = 'sub-2'; name = 'sub-2'; state = 'Enabled'; tags = $null }

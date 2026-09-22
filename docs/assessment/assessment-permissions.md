@@ -16,8 +16,8 @@ Source of truth: `src/assess/Test-ScoutPermission.ps1`,
 
 ::: info Governance data is native by default — no Graph permission required for it
 As of the native governance collector (AB#5041), the 26 assessments whose
-`Ingest` used to be `AzGovViz` (`CAF: Azure Landing Zone`, `Management`, `Identity`,
-`Scout: Governance Baseline`, `Policy`) now use `Ingest = Governance` by default —
+`Ingest` used to be `AzGovViz` (`LandingZone`, `Management`, `Identity`,
+`Governance`, `Policy`) now use `Ingest = Governance` by default —
 `Import-Governance` populates `collect.json`'s `governance` object from
 Azure Resource Graph and ambient-token ARM REST calls, needing **only ARM
 Reader at the management-group root**, the same requirement every other
@@ -32,17 +32,16 @@ longer a default requirement for any assessment.
 | Requirement | Who needs it |
 |---|---|
 | **ARM `Reader` at the tenant-root management group** | **Every assessment, with no exception** — including the 5 governance-data assessments, now served by the native `Import-Governance` collector. |
-| **`Key Vault Reader` on Key Vaults in scope** | **`Workload: AVS` and `Microsoft: CASA`** — their key-management rules inspect key metadata. The role cannot read secret values or private key material. |
 | **Microsoft Graph app permissions** (`User.Read.All`, `Group.Read.All`, `Application.Read.All`, `PrivilegedAccess.Read.AzureResources`) | **Only** if you opt an assessment into the legacy `AzGovViz` ingestor instead of the native `Governance` default. Not required by any assessment out of the box. |
 
-Every entry in [the registry](../design/assessment-registry.md) needs ARM Reader; the two
-key-metadata assessments above additionally need Key Vault Reader. No Graph permission, delegated
-or application, is required unless you deliberately switch an assessment's
+Every entry in [the registry](../design/assessment-registry.md) needs
+**ARM Reader only** by default. No Graph permission, delegated or
+application, is required unless you deliberately switch an assessment's
 `Ingest` back to `AzGovViz`.
 
 ::: tip Check before you scan
 ```powershell
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone','Assess: Identity' -PermissionAudit
+Invoke-AzureScout -Assessment LandingZone,Identity -PermissionAudit
 ```
 Runs `Test-ScoutPermission` for the given assessment(s) and returns/prints a
 table before any collection happens. See [what it actually checks](#what-permissionaudit-actually-verifies)
@@ -83,7 +82,7 @@ gathered, so it never needs a permission the underlying collectors don't already
 of them need these three.
 :::
 
-The **`Scout: Cost Optimization`** assessment has one additional, non-role prerequisite: EA **"AO view charges"** or
+The **`Cost`** assessment has one additional, non-role prerequisite: EA **"AO view charges"** or
 MCA **"Azure charges"** must be enabled by a billing administrator (an Enterprise Administrator
 for EA, a **Billing Profile Owner** for MCA — not a subscription or resource owner). No Azure
 RBAC role, including `Reader` or `Cost Management Reader`, substitutes for this setting. With it
@@ -99,7 +98,7 @@ if you've explicitly switched that assessment's `Ingest` back to the legacy
 
 | Assessment | ARM Reader @ MG root | Governance data | Graph (opt-in `AzGovViz`) |
 |---|---|---|---|
-| `CAF: Azure Landing Zone` | Required | **Yes** (native) | Only if opted in |
+| `LandingZone` | Required | **Yes** (native) | Only if opted in |
 | `Estate` | Required | No | No |
 | `Management` | Required | **Yes** (native) | Only if opted in |
 | `Monitor` | Required | No | No |
@@ -116,11 +115,11 @@ if you've explicitly switched that assessment's `Ingest` back to the legacy
 | `Integration` | Required | No | No |
 | `Hybrid` | Required | No | No |
 | `IoT` | Required | No | No |
-| `Scout: Governance Baseline` | Required | **Yes** (native) | Only if opted in |
+| `Governance` | Required | **Yes** (native) | Only if opted in |
 | `Policy` | Required | **Yes** (native) | Only if opted in |
-| `Scout: Update Manager` | Required | No | No |
-| `Scout: Monitoring Baseline` | Required | No | No |
-| `Scout: Cost Optimization` | Required | No | No |
+| `UpdateManager` | Required | No | No |
+| `Monitoring` | Required | No | No |
+| `Cost` | Required | No | No |
 
 ## The Graph permissions (only if you opt into the legacy `AzGovViz` ingestor)
 
@@ -187,8 +186,8 @@ before relying on a clean `-PermissionAudit` run as proof they're in place.
 
 ## `-ManagementGroupId` and governance data collection
 
-By default, the 5 governance-data assessments (`CAF: Azure Landing Zone`, `Management`,
-`Identity`, `Scout: Governance Baseline`, `Policy`) use the native `Import-Governance`
+By default, the 5 governance-data assessments (`LandingZone`, `Management`,
+`Identity`, `Governance`, `Policy`) use the native `Import-Governance`
 collector, which does **not** need an explicit `-ManagementGroupId` to run —
 it collects via Azure Resource Graph and ambient-token ARM REST calls
 regardless. What actually depends on management-group visibility is the
@@ -199,7 +198,7 @@ rather than a false 0%. This is not a permission failure and will not show
 up in `-PermissionAudit`.
 
 ```powershell
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -ManagementGroup 'contoso-root-mg' -OutputFormat React
+Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -OutputFormat Html
 ```
 
 `-ManagementGroupId` scopes the Resource Graph `Collect` layer —
