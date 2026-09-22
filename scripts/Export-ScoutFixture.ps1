@@ -128,7 +128,7 @@
 #>
 [CmdletBinding(DefaultParameterSetName = 'Capture')]
 param(
-    [string] $OutputPath = (Join-Path $PSScriptRoot '..' 'tests' 'fixtures'),
+    [string] $OutputPath = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'tests', 'fixtures'),
 
     [Parameter(ParameterSetName = 'Capture')]
     [ValidateRange(1, 1000)]
@@ -654,13 +654,13 @@ $script:GraphColumns = @(
     'managedBy', 'sku', 'plan', 'properties', 'identity', 'zones', 'extendedLocation', 'tags'
 )
 
-function Get-ScoutGraphAllPages {
+function Get-ScoutGraphAllPage {
     <#
     .SYNOPSIS
         Page a Resource Graph query to completion, mirroring Invoke-AZSCInventoryLoop's
         SkipToken loop without the job/runspace machinery this script has no need for.
     #>
-    param([string] $Query, [string[]] $Subscription, [string] $ManagementGroupId)
+    param([string] $Query, [string[]] $Subscription, [string] $ManagementGroupId, [int] $First)
 
     $params = @{ Query = $Query; First = $First }
     if ($Subscription) { $params.Subscription = $Subscription }
@@ -678,17 +678,17 @@ function Get-ScoutGraphAllPages {
     return , @($results | Select-Object -Property $script:GraphColumns)
 }
 
-$graphParams = @{ Subscription = $SubscriptionId; ManagementGroupId = $ManagementGroup }
+$graphParams = @{ Subscription = $SubscriptionId; ManagementGroupId = $ManagementGroup; First = $First }
 $projection  = 'project id,name,type,tenantId,kind,location,resourceGroup,subscriptionId,managedBy,sku,plan,properties,identity,zones,extendedLocation,tags'
 
 Write-Host '[Export-ScoutFixture] Querying resources...'
-$resources = Get-ScoutGraphAllPages -Query "resources | $projection | order by id asc" @graphParams
+$resources = Get-ScoutGraphAllPage -Query "resources | $projection | order by id asc" @graphParams
 
 Write-Host '[Export-ScoutFixture] Querying networkresources...'
-$networkResources = Get-ScoutGraphAllPages -Query "networkresources | $projection | order by id asc" @graphParams
+$networkResources = Get-ScoutGraphAllPage -Query "networkresources | $projection | order by id asc" @graphParams
 
 Write-Host '[Export-ScoutFixture] Querying resourcecontainers...'
-$resourceContainers = Get-ScoutGraphAllPages -Query "resourcecontainers | $projection | order by id asc" @graphParams
+$resourceContainers = Get-ScoutGraphAllPage -Query "resourcecontainers | $projection | order by id asc" @graphParams
 
 Write-Host '[Export-ScoutFixture] Querying subscriptions (Get-AzSubscription)...'
 $subscriptionParams = @{}

@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "LegacyAuthentication",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1a-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value",
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1b-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value",
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1c-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value",
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1d-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value",
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1e-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value",
+    "Client Apps=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/legacyauthsummary/legacyauthentication-t1f-1|Last Sign-in=j:\"2026-01-15T10:30:00Z\"|Masked User=s:res-value|Resource U=j:1|Successful Sign-ins=s:res-value|Window Days=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Masked User\tSuccessful Sign-ins\tClient Apps\tLast Sign-in\tWindow Days\tResource U\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1"
+    ],
+    "WithTags": [
+      "Masked User\tSuccessful Sign-ins\tClient Apps\tLast Sign-in\tWindow Days\tResource U\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1\nres-value\tres-value\tres-item-0, res-item-1\t46037.4375\tres-value\t1"
+    ]
+  }
+}

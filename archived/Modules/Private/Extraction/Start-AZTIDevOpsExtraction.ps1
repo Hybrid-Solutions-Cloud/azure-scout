@@ -46,7 +46,7 @@
     [PSCustomObject] with property DevOpsResources (array of normalized objects).
 
 .LINK
-    https://github.com/thisismydemo/azure-scout
+    https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -57,6 +57,7 @@
 #>
 function Start-AZSCDevOpsExtraction {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID', Justification = 'Read via closure inside the nested Add-NormalizedDevOpsResource function, not directly in this scope -- the analyzer cannot see across the nested function boundary.')]
     param(
         [string]$TenantID,
         [string[]]$Organization,

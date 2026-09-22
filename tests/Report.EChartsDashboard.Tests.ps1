@@ -28,24 +28,24 @@ BeforeAll {
     # statuses and deliberately blank/null/unrecognized severities on Fail
     # rows, so the severity-bucketing guard is genuinely exercised.
     $script:Findings = @(
-        (New-DashTestFinding 'net-1' 'CAF' 'Networking' 'Pass' 'low')
-        (New-DashTestFinding 'net-2' 'CAF' 'Networking' 'Fail' 'high')
-        (New-DashTestFinding 'net-3' 'CAF' 'Networking' 'Fail' $null)
-        (New-DashTestFinding 'net-4' 'CAF' 'Networking' 'Fail' '')
-        (New-DashTestFinding 'net-5' 'CAF' 'Networking' 'Fail' 'bogus-severity')
-        (New-DashTestFinding 'sec-1' 'WAF' 'Security' 'Partial' 'medium')
-        (New-DashTestFinding 'sec-2' 'WAF' 'Security' 'Manual')
-        (New-DashTestFinding 'sec-3' 'WAF' 'Security' 'Unknown')
+        (New-DashTestFinding -Id 'net-1' -Framework 'CAF' -Area 'Networking' -Status 'Pass' -Severity 'low')
+        (New-DashTestFinding -Id 'net-2' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'high')
+        (New-DashTestFinding -Id 'net-3' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity $null)
+        (New-DashTestFinding -Id 'net-4' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity '')
+        (New-DashTestFinding -Id 'net-5' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'bogus-severity')
+        (New-DashTestFinding -Id 'sec-1' -Framework 'WAF' -Area 'Security' -Status 'Partial' -Severity 'medium')
+        (New-DashTestFinding -Id 'sec-2' -Framework 'WAF' -Area 'Security' -Status 'Manual')
+        (New-DashTestFinding -Id 'sec-3' -Framework 'WAF' -Area 'Security' -Status 'Unknown')
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
-    $script:CollectPath = Join-Path $script:Root 'tests' 'datadump' 'sample-collect.json'
+    $script:CollectPath = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-collect.json'
     $script:Collect = Get-Content $script:CollectPath -Raw | ConvertFrom-Json -Depth 100
     $script:Collect | Add-Member -NotePropertyName _meta -NotePropertyValue ([pscustomobject]@{
             scope = 'ArmOnly'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o')
         }) -Force
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'echarts'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'echarts'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
     New-Item -ItemType Directory -Path $script:OutDir -Force | Out-Null
 
@@ -192,7 +192,7 @@ Describe 'Export-EChartsDashboard -- SVG/CSS fallback when the vendored library 
 
 Describe 'Export-EChartsDashboard -- non-fatal on failure (AB#344)' {
     It 'writes a clearly-labeled HTML fallback instead of throwing when rendering fails' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'echarts-forcefail'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'echarts-forcefail'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         $savedFn = ${function:Get-ScoutEchartsSeverityCounts}
         try {

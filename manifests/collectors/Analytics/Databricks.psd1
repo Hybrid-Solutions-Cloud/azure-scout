@@ -23,7 +23,7 @@ $ResUCount = 1
                 $data = $1.PROPERTIES
                 $sku = $1.SKU
                 $RetDate = ''
-                $RetFeature = '' 
+                $RetFeature = ''
                 $timecreated = $data.createdDateTime
                 # AB#6844: `[datetime]$null` throws PSInvalidCastException, and the throw took the
                 # whole Databricks worksheet with it. A workspace whose deployment never completed
@@ -34,14 +34,14 @@ $ResUCount = 1
                     {
                         if ($Retirement.id -eq $1.id) { $Retirement }
                     }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -53,7 +53,7 @@ $ResUCount = 1
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null

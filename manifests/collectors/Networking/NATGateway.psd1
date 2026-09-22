@@ -22,14 +22,14 @@ $ResUCount = 1
                     $sub1 = $SUB | Where-Object { $_.Id -eq $1.subscriptionId }
                     $data = $1.PROPERTIES
                     $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [pscustomobject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -41,7 +41,7 @@ $ResUCount = 1
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
@@ -72,7 +72,7 @@ $t_pip_addresses = ''
                                             $t_pip_addresses = [string](Get-AZSCIdSegment -Id $data.publicipaddresses.id -Index 8)
                                         }
 
-                                        
+
                                         if ($data.publicipprefixes) {
                                             $t_pip_prefixes = [string](Get-AZSCIdSegment -Id $data.publicipprefixes.id -Index 8)
                                         }

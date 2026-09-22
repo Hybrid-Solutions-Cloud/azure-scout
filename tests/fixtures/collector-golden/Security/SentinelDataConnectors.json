@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Security",
+  "Name": "SentinelDataConnectors",
+  "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
+  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
+  "Rows": [
+    "Connector=s:sentineldataconnectors-t1a|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1a-1/SentinelDataConnectors/sentineldataconnectors-t1a-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
+    "Connector=s:sentineldataconnectors-t1b|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1b-1/SentinelDataConnectors/sentineldataconnectors-t1b-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
+    "Connector=s:sentineldataconnectors-t1c|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1c-1/SentinelDataConnectors/sentineldataconnectors-t1c-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
+    "Connector=s:sentineldataconnectors-t1d|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1d-1/SentinelDataConnectors/sentineldataconnectors-t1d-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
+    "Connector=s:sentineldataconnectors-t1e|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1e-1/SentinelDataConnectors/sentineldataconnectors-t1e-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
+    "Connector=s:sentineldataconnectors-t1f|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1f-1/SentinelDataConnectors/sentineldataconnectors-t1f-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Workspace\tConnector\tKind\tTenant ID\tSubscription ID\tData Types\tResource U\nres-value\tsentineldataconnectors-t1a\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1b\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1c\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1d\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1e\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1f\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1"
+    ],
+    "WithTags": [
+      "Workspace\tConnector\tKind\tTenant ID\tSubscription ID\tData Types\tResource U\nres-value\tsentineldataconnectors-t1a\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1b\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1c\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1d\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1e\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1\nres-value\tsentineldataconnectors-t1f\tres-value\tres-value\tres-value\t[\"res-item-0\",\"res-item-1\"]\t1"
+    ]
+  }
+}

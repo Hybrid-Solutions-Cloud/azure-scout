@@ -11,7 +11,7 @@ Import-Module ./AzureScout.psd1
 Invoke-AzureScout
 ```
 
-With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context, and generates both Excel and JSON reports.
+With no parameters, AZSC runs a full **ARM-only** inventory (`-Scope ArmOnly` is the default — Entra ID is skipped unless you pass `-Scope All` or `-Scope EntraOnly`) using your current Azure context. It produces the React report and machine-readable JSON outputs selected by the global output contract.
 
 ## Scope
 
@@ -42,21 +42,27 @@ semantics — see [Assessment mode: `-Scope`](../assessment/assessment.md#-scope
 
 ## Output Format
 
-The `-OutputFormat` parameter controls report file types:
+The `-OutputFormat` parameter has the same live values for inventory, assessment, and combined
+runs:
 
 | Value | Produces |
 |-------|----------|
-| `All` (default) | Both Excel (.xlsx) and JSON (.json) |
-| `Excel` | Excel only |
-| `Json` | JSON only |
+| `All` (default) | `React`, `Json`, and `JsonEvidence` |
+| `React` | Self-contained `report-react.html` with an Inventory & audit page; assessment sections appear when assessments run |
+| `Json` | Machine-readable run results |
+| `JsonEvidence` | Resources-only evidence export |
 
 ```powershell
-# JSON only output
+# Machine-readable results only
 Invoke-AzureScout -OutputFormat Json
 
-# Excel only output
-Invoke-AzureScout -OutputFormat Excel
+# Self-contained inventory report
+Invoke-AzureScout -OutputFormat React
 ```
+
+Legacy values such as `Excel`, `Markdown`, `AsciiDoc`, `PowerBI`, `Html`, `Pptx`, `Pdf`, `Word`,
+`EChartsDashboard`, and `GovernanceReport` are on hold. They are not live inventory alternatives.
+Use the export menu inside the React report for Markdown, JSON, CSV, PDF/Print, and standalone HTML.
 
 ## Report Location
 
@@ -82,11 +88,36 @@ Invoke-AzureScout -ReportDir 'D:\Reports' -Force
 Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`, is in
 [Output Files & Formats](./output.md#run-isolation).
 
-Every run also writes two evidence artifacts to the run folder, not the report cache, so they
-survive cache cleanup: `raw-inventory.json` (everything the Resource Graph pass collected,
-before any manifest filtered it down to a worksheet) and `collector-rowcounts.json`
-(per-collector Rows / Empty / Failed verdicts). See
+Every run retains its complete evidence set: `raw-inventory.json` (everything the Resource Graph
+pass collected, before any manifest filtered it down), `ReportCache/Discovery.json` (one
+completeness record per resource plus generic ARM relationships), `collector-rowcounts.json`,
+`collection-health.json`, and the complete `ReportCache`/`DiagramCache` trees. See
 [Output Files & Formats — evidence artifacts](./output.md#evidence-artifacts).
+Discovery/report payloads preserve sensitive field presence but replace credential values with
+`[REDACTED]`.
+
+## Enterprise tenant runs (direct account access)
+
+Use `-AllAccessibleTenants` when the signed-in user is already a member or guest with access in
+several Entra tenants. Azure Scout enumerates those tenants, runs the existing pipeline once per
+tenant, and contains an authentication or permission failure to that tenant. This path does **not**
+use Azure Lighthouse.
+
+```powershell
+# Every tenant visible to the signed-in account
+Invoke-AzureScout -AllAccessibleTenants -Scope All -RunName 'Enterprise-Portfolio'
+
+# Only a selected subset
+Invoke-AzureScout -TenantID '<tenant-a>','<tenant-b>' -Scope All -RunName 'Selected-Tenants'
+```
+
+A multi-tenant run creates one umbrella folder. Its root `report-react.html` (also copied as
+`index.html`) records what was selected, what was skipped, each tenant outcome, resource and
+subscription counts, and links to each detailed tenant report. `run-summary.json` exposes the same
+status for automation.
+
+The automatic enumeration switch is deliberately explicit: a bare `Invoke-AzureScout` remains a
+single-tenant run and cannot unexpectedly launch scans across every tenant the account can reach.
 
 ## Content Toggles
 
@@ -97,9 +128,28 @@ Switch parameters to include/exclude specific content:
 | `-SecurityCenter` | Include Microsoft Defender for Cloud findings |
 | `-IncludeTags` | Include resource tags in Excel worksheets |
 | `-IncludeDevOps` | Include Azure DevOps projects, pipelines, service connections, repositories, and agent pools |
+| `-IncludeOkta` | Include the separate Okta control plane; also requires an HTTPS `-OktaOrganizationUrl` and SecureString `-OktaApiToken` |
+| `-IncludeOnPremisesIdentity` | Include local Entra Connect and AD topology from a host with the required read-only modules |
 | `-SkipAdvisory` | Skip Azure Advisor recommendations |
 | `-SkipPolicy` | Skip Azure Policy compliance data |
 | `-SkipPermissionCheck` | Skip the pre-flight permission validation |
+
+Okta is explicitly opt-in. Supply its token without placing plaintext in shell history:
+
+```powershell
+$oktaToken = Read-Host 'Okta read-only API token' -AsSecureString
+Invoke-AzureScout -Scope All -IncludeOkta `
+  -OktaOrganizationUrl 'https://example.okta.com' -OktaApiToken $oktaToken
+```
+
+For Entra Connect/AD topology, run on a host that can read those local services and modules:
+
+```powershell
+Invoke-AzureScout -Scope All -IncludeOnPremisesIdentity
+```
+
+Unavailable local modules and denied Okta endpoints are recorded as coverage gaps; they are not
+reported as proof that the corresponding configuration is absent.
 
 ## Azure DevOps
 

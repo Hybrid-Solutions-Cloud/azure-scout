@@ -1,9 +1,13 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Extract Entra ID (Azure AD) resources via Microsoft Graph API.
 
 .DESCRIPTION
-    Queries Microsoft Graph for 15 Entra resource types and normalizes each item
+    Queries Microsoft Graph using the Entra query catalog and normalizes each item
     into a standard structure with a synthetic TYPE property (e.g., 'entra/users').
 
     Each normalized resource has:
@@ -21,13 +25,14 @@
 
 .OUTPUTS
     [PSCustomObject] with property EntraResources (array of normalized objects) and
-    QueryOutcomes (array of @{ Type; Name; Success; Count } -- one per catalog entry, AB#6456).
+    QueryOutcomes (one structured Success, Empty, NotAssessed, Unavailable, or Failed outcome per
+    catalog entry).
     QueryOutcomes is what lets a later consumer (Resolve-ScoutOrphanedRoleAssignment) tell
     "this Graph query was denied/failed" apart from "it succeeded and genuinely found nothing" --
     a distinction the normalized rows alone cannot carry, since both cases produce zero rows.
 
 .LINK
-    https://github.com/thisismydemo/azure-scout
+    https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -43,9 +48,6 @@ function Start-AZSCEntraExtraction {
         [string]$TenantID
     )
 
-    Write-Host 'Starting Entra ID Extraction: ' -NoNewline
-    Write-Host '15 Resource Types' -ForegroundColor Cyan
-
     $allEntraResources = [System.Collections.Generic.List[object]]::new()
     # AB#6456 -- one entry per catalog query, recording whether it actually succeeded. A
     # collector consuming these rows later cannot distinguish "Graph denied this permission"
@@ -54,19 +56,52 @@ function Start-AZSCEntraExtraction {
     # reporting a denied permission as a security finding.
     $queryOutcomes = [System.Collections.Generic.List[object]]::new()
 
+    function Get-GraphApiVersion {
+        param([string] $Uri)
+        if ($Uri -match '/(v1\.0|beta)/') { return $Matches[1] }
+        return $null
+    }
+
+    function New-QueryOutcome {
+        param(
+            [Parameter(Mandatory)] $Query,
+            [Parameter(Mandatory)][string] $Status,
+            [Parameter(Mandatory)][bool] $Success,
+            [int] $Count = 0,
+            [AllowNull()][string] $Reason,
+            [datetime] $StartedAt = (Get-Date)
+        )
+
+        return [PSCustomObject][ordered]@{
+            Source      = 'Microsoft Graph'
+            Type        = $Query.Type
+            Name        = $Query.Name
+            Operation   = 'GET'
+            Uri         = $Query.Uri
+            ApiVersion  = Get-GraphApiVersion -Uri $Query.Uri
+            Permission  = $Query.Permission
+            Success     = $Success
+            Count       = $Count
+            Status      = $Status
+            Reason      = $Reason
+            StartedAt   = $StartedAt.ToString('o')
+            CompletedAt = (Get-Date).ToString('o')
+        }
+    }
+
     # ── Helper: normalize a single Graph item into standard structure ──
     function Add-NormalizedResource {
         param(
             [object[]]$Items,
-            [string]$SyntheticType,
-            [string]$NameProperty = 'displayName'
+            [Parameter(Mandatory)]$Query,
+            [datetime]$CollectedAt = (Get-Date)
         )
         foreach ($item in $Items) {
             if ($null -eq $item) { continue }
 
             $name = $null
-            if ($item.PSObject.Properties.Name -contains $NameProperty) {
-                $name = $item.$NameProperty
+            if ($item.PSObject.Properties.Name -contains $Query.NameProperty) {
+                $name = $item.($Query.NameProperty)
             }
             elseif ($item.PSObject.Properties.Name -contains 'displayName') {
                 $name = $item.displayName
@@ -75,12 +110,30 @@ function Start-AZSCEntraExtraction {
                 $name = $item.userPrincipalName
             }
 
+            # AB#7098 -- `crossTenantAccessPolicyConfigurationDefault` (the singleton "default"
+            # cross-tenant access policy External Identities reads) carries no `id` property at
+            # all, unlike every query already in the catalog. An unconditional `$item.id` throws
+            # under StrictMode the moment a query returns a shape without one, and that throw is
+            # caught by the query loop's own try/catch -- so the new query would report SKIP on
+            # every run, not "collected nothing". Guarded the same way `$name` resolution already
+            # is, immediately above.
+            $id = if ($item.PSObject.Properties.Name -contains 'id') { $item.id } else { $null }
+
             $normalized = [PSCustomObject]@{
-                id         = $item.id
+                id         = $id
                 name       = $name
-                TYPE       = $SyntheticType
+                TYPE       = $Query.Type
                 tenantId   = $TenantID
                 properties = $item
+                AZSC       = [PSCustomObject][ordered]@{
+                    Source      = 'Microsoft Graph'
+                    Dataset     = $Query.Name
+                    Operation   = 'GET'
+                    Uri         = $Query.Uri
+                    ApiVersion  = Get-GraphApiVersion -Uri $Query.Uri
+                    Permission  = $Query.Permission
+                    CollectedAt = $CollectedAt.ToString('o')
+                }
             }
 
             $allEntraResources.Add($normalized)
@@ -94,39 +147,132 @@ function Start-AZSCEntraExtraction {
     # mattered, which is why a denied permission outside those four still printed a green
     # READY banner over a scan that would render its worksheet empty.
     $entraQueries = @(Get-ScoutEntraQueryCatalog)
+    $totalQueries = $entraQueries.Count
+    $requiredGraphScopes = @(
+        'Directory.Read.All'
+        'Policy.Read.All'
+        'AuditLog.Read.All'
+        'Reports.Read.All'
+        'RoleManagement.Read.Directory'
+        'RoleAssignmentSchedule.Read.Directory'
+        'RoleEligibilitySchedule.Read.Directory'
+        'AccessReview.Read.All'
+    )
+
+    Write-Host 'Starting Entra ID Extraction: ' -NoNewline
+    Write-Host "$totalQueries Resource Types" -ForegroundColor Cyan
+
+    # Acquire the tenant-scoped token once before entering the per-query loop. A token
+    # acquisition failure is common to every catalog query; retrying it for every dataset
+    # only repeats the same error and wastes time. Successful acquisition populates the
+    # normal token cache, so Invoke-AZSCGraphRequest below remains unchanged.
+    $graphHeaders = $null
+    try {
+        $graphHeaders = Get-AZSCGraphToken -TenantID $TenantID -Scopes $requiredGraphScopes
+    }
+    catch {
+        $authenticationError = $_.Exception.Message
+        Write-Host '  [' -NoNewline
+        Write-Host 'SKIP' -ForegroundColor Yellow -NoNewline
+        Write-Host '] Microsoft Graph authentication: ' -NoNewline
+        Write-Host $authenticationError -ForegroundColor Yellow
+        Write-Warning "[AzureScout] Entra authentication failed once; all $totalQueries Entra datasets are unavailable. Error: $authenticationError"
+
+        foreach ($query in $entraQueries) {
+            $queryOutcomes.Add((New-QueryOutcome -Query $query -Status 'Unavailable' -Success $false -Reason $authenticationError))
+        }
+
+        Write-Host 'Entra ID Extraction Complete: ' -NoNewline -ForegroundColor Green
+        Write-Host "0 total resources across $totalQueries types" -ForegroundColor Cyan
+        return [PSCustomObject]@{
+            EntraResources = $allEntraResources.ToArray()
+            QueryOutcomes  = $queryOutcomes.ToArray()
+        }
+    }
+
+    # The selected Az context issues a delegated Graph token whose scopes cannot be expanded by
+    # Scout. Newer granular surfaces (currently the two Verified ID endpoints) reject a token
+    # that lacks their exact scope even when the operator is Global Reader. Detect that before
+    # making the request. The common Directory.AccessAsUser.All-backed queries remain probed as
+    # before because their effective access is determined by the signed-in user's directory role.
+    $tokenClaim = $null
+    if (Get-Command Get-ScoutGraphTokenClaim -ErrorAction SilentlyContinue) {
+        $tokenClaim = Get-ScoutGraphTokenClaim -Headers $graphHeaders
+    }
+
+    # Risky Users is a licensed-data surface. A definitive missing P2 service plan is ordinary
+    # NotAssessed, not a 403 and not an instruction to grant a permission that cannot help.
+    $licensedFeatureState = @{}
+    foreach ($query in @($entraQueries | Where-Object { $_.ContainsKey('LicensedFeature') })) {
+        $feature = [string] $query.LicensedFeature
+        if (-not $licensedFeatureState.ContainsKey($feature)) {
+            $licensedFeatureState[$feature] = if (Get-Command Test-ScoutTenantLicence -ErrorAction SilentlyContinue) {
+                Test-ScoutTenantLicence -SkuPattern $feature -TenantID $TenantID
+            }
+            else { $null }
+        }
+    }
 
     # ── Execute each query with graceful degradation ──
     $queryIndex = 0
-    $totalQueries = $entraQueries.Count
 
     foreach ($query in $entraQueries) {
+        $queryStartedAt = Get-Date
         $queryIndex++
         $percentComplete = [math]::Round(($queryIndex / $totalQueries) * 100)
 
         Write-Progress -Activity 'Entra ID Extraction' -Status "$($query.Name) ($queryIndex/$totalQueries)" -PercentComplete $percentComplete
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Entra: Querying $($query.Name) [$($query.Uri)]")
 
+        $notAssessedReason = $null
+        if ($query.ContainsKey('Collect') -and -not [bool]$query.Collect) {
+            $notAssessedReason = [string] $query.AvailabilityReason
+        }
+        elseif ($query.ContainsKey('LicensedFeature') -and $licensedFeatureState[[string]$query.LicensedFeature] -eq $false) {
+            $notAssessedReason = "Requires $($query.LicensedProduct), which is not enabled in this tenant."
+        }
+        elseif (
+            $query.ContainsKey('RequireDelegatedScope') -and [bool]$query.RequireDelegatedScope -and
+            $null -ne $tokenClaim -and $tokenClaim.IsDelegated -and
+            @($tokenClaim.Scopes) -notcontains [string]$query.Permission
+        ) {
+            $notAssessedReason = "The selected user token does not contain the delegated scope '$($query.Permission)'; a directory-role assignment cannot add token scopes."
+        }
+
+        if ($notAssessedReason) {
+            Write-Host '  [' -NoNewline
+            Write-Host '--' -ForegroundColor DarkGray -NoNewline
+            Write-Host "] $($query.Name): " -NoNewline
+            Write-Host "Not assessed — $notAssessedReason" -ForegroundColor DarkGray
+            $queryOutcomes.Add((New-QueryOutcome -Query $query -Status 'NotAssessed' -Success $false -Reason $notAssessedReason -StartedAt $queryStartedAt))
+            continue
+        }
+
         try {
-            $result = Invoke-AZSCGraphRequest -Uri $query.Uri
+            # Pin token acquisition to the tenant the operator requested. Without this,
+            # Invoke-AZSCGraphRequest can use an ambient context from another tenant and the
+            # normalizer below would then incorrectly stamp those objects with $TenantID.
+            $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID -RequiredScopes $requiredGraphScopes
+            $collectedAt = Get-Date
 
             if ($null -ne $result) {
                 # Handle single-object endpoints (e.g., authorizationPolicy)
                 if ($query.ContainsKey('SingleObject') -and $query.SingleObject) {
                     # Single object — wrap in array
                     if ($result -is [array]) {
-                        Add-NormalizedResource -Items $result -SyntheticType $query.Type -NameProperty $query.NameProperty
+                        Add-NormalizedResource -Items $result -Query $query -CollectedAt $collectedAt
                     }
                     else {
-                        Add-NormalizedResource -Items @($result) -SyntheticType $query.Type -NameProperty $query.NameProperty
+                        Add-NormalizedResource -Items @($result) -Query $query -CollectedAt $collectedAt
                     }
                 }
                 else {
                     # Collection endpoint — result is already an array from Invoke-AZSCGraphRequest
                     if ($result -is [array]) {
-                        Add-NormalizedResource -Items $result -SyntheticType $query.Type -NameProperty $query.NameProperty
+                        Add-NormalizedResource -Items $result -Query $query -CollectedAt $collectedAt
                     }
                     else {
-                        Add-NormalizedResource -Items @($result) -SyntheticType $query.Type -NameProperty $query.NameProperty
+                        Add-NormalizedResource -Items @($result) -Query $query -CollectedAt $collectedAt
                     }
                 }
 
@@ -136,7 +282,38 @@ function Start-AZSCEntraExtraction {
 
                 $count = if ($result -is [array]) { $result.Count } else { 1 }
                 Write-Host "$count items" -ForegroundColor Cyan
-                $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $true; Count = $count })
+                $queryOutcomes.Add((New-QueryOutcome -Query $query -Status 'Success' -Success $true -Count $count -StartedAt $queryStartedAt))
+
+                # Federation details are a child collection under each federated domain. The
+                # domain list only says Managed/Federated; it does not retain issuer/passive
+                # sign-in endpoints needed to prove the hybrid identity topology.
+                if ($query.Type -eq 'entra/domains') {
+                    foreach ($domain in @($result | Where-Object {
+                                $_.PSObject.Properties['authenticationType'] -and
+                                [string]$_.authenticationType -eq 'Federated' -and
+                                $_.PSObject.Properties['id'] -and $_.id
+                            })) {
+                        $domainId = [uri]::EscapeDataString([string]$domain.id)
+                        $federationQuery = @{
+                            Name         = "Domain Federation Configuration [$($domain.id)]"
+                            Uri          = "/v1.0/domains/$domainId/federationConfiguration"
+                            Type         = 'entra/domainfederationconfigurations'
+                            NameProperty = 'displayName'
+                            Permission   = 'Domain.Read.All'
+                        }
+                        $federationStartedAt = Get-Date
+                        try {
+                            $federation = @(Invoke-AZSCGraphRequest -Uri $federationQuery.Uri -TenantID $TenantID -RequiredScopes $requiredGraphScopes)
+                            Add-NormalizedResource -Items $federation -Query $federationQuery -CollectedAt (Get-Date)
+                            $federationStatus = if ($federation.Count -eq 0) { 'Empty' } else { 'Success' }
+                            $queryOutcomes.Add((New-QueryOutcome -Query $federationQuery -Status $federationStatus -Success $true -Count $federation.Count -StartedAt $federationStartedAt))
+                        }
+                        catch {
+                            Write-Warning "[AzureScout] Federation configuration for domain '$($domain.id)' was unavailable: $($_.Exception.Message)"
+                            $queryOutcomes.Add((New-QueryOutcome -Query $federationQuery -Status 'Failed' -Success $false -Reason $_.Exception.Message -StartedAt $federationStartedAt))
+                        }
+                    }
+                }
             }
             else {
                 Write-Host "  [" -NoNewline
@@ -146,7 +323,7 @@ function Start-AZSCEntraExtraction {
                 # $null is a legitimate "the query ran and there is nothing" response (e.g. no
                 # cross-tenant partners configured), not a failure -- Success stays true so a
                 # genuinely empty dataset is never mistaken for a denied permission downstream.
-                $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $true; Count = 0 })
+                $queryOutcomes.Add((New-QueryOutcome -Query $query -Status 'Empty' -Success $true -StartedAt $queryStartedAt))
             }
         }
         catch {
@@ -163,12 +340,18 @@ function Start-AZSCEntraExtraction {
             # the run itself had not reported. That is the exact failure this Feature exists to
             # end. The console line stays, because it is the readable one; the warning is what
             # makes it detectable.
-            Write-Warning "[AzureScout] Entra collection for '$($query.Name)' failed — the collectors reading '$($query.Type)' will be EMPTY. Permission required: $($query.Permission). Error: $($_.Exception.Message)"
-            $queryOutcomes.Add([PSCustomObject]@{ Type = $query.Type; Name = $query.Name; Success = $false; Count = 0 })
+            Write-Warning "[AzureScout] Entra collection for '$($query.Name)' failed unexpectedly — dependent collectors are unavailable. Error: $($_.Exception.Message)"
+            $queryOutcomes.Add((New-QueryOutcome -Query $query -Status 'Failed' -Success $false -Reason $_.Exception.Message -StartedAt $queryStartedAt))
         }
     }
 
     Write-Progress -Activity 'Entra ID Extraction' -Completed
+
+    if (Get-Command ConvertTo-ScoutEntraDerivedEvidence -ErrorAction SilentlyContinue) {
+        foreach ($derived in @(ConvertTo-ScoutEntraDerivedEvidence -EntraResources $allEntraResources.ToArray() -TenantID $TenantID)) {
+            if ($null -ne $derived) { $allEntraResources.Add($derived) }
+        }
+    }
 
     $entraCount = $allEntraResources.Count
     Write-Host "Entra ID Extraction Complete: " -NoNewline -ForegroundColor Green

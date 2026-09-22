@@ -1,11 +1,11 @@
 name: Azure Scout
 
 # Runs a real, headless Azure Scout inventory using a service-principal
-# (client-secret) login and uploads the generated reports as build artifacts.
+# (client-secret) login and uploads the React/JSON reports as build artifacts.
 #
 # This workflow consumes the repository's own composite action (./), so it
 # exercises the same code path external consumers get from
-# `uses: thisismydemo/azure-scout@v2`.
+# `uses: Hybrid-Solutions-Cloud/azure-scout@v2`.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   AZURE_TENANT_ID        - Entra tenant (directory) ID
@@ -41,6 +41,16 @@ on:
         description: 'Report name prefix'
         required: false
         default: 'AzureScout'
+      outputFormat:
+        description: 'Live report output'
+        required: false
+        default: 'All'
+        type: choice
+        options:
+          - All
+          - React
+          - Json
+          - JsonEvidence
   # Uncomment to run on a schedule (first of every month, 06:00 UTC):
   # schedule:
   #   - cron: '0 6 1 * *'
@@ -50,7 +60,7 @@ permissions:
 
 jobs:
   run-inventory:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, hcs]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -82,8 +92,5 @@ jobs:
           category: ${{ github.event.inputs.category }}
           scope: ${{ github.event.inputs.scope }}
           report-name: ${{ github.event.inputs.reportName }}
-          # Chart customization drives Excel over COM. No GitHub-hosted runner has
-          # Excel installed, so -Lite is mandatory here; the workbook is still
-          # generated, just without the COM-rendered charts.
-          lite: 'true'
+          output-format: ${{ github.event.inputs.outputFormat || 'All' }}
           artifact-name: azure-scout-reports

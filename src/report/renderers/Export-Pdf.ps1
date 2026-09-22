@@ -322,9 +322,9 @@ function Start-ScoutPdfPage {
     $Ctx.Y = $Ctx.Top
 
     $pageNum = $Ctx.Pages.Count + 1
-    Add-ScoutPdfLineSeg $Ctx $Ctx.Margin 40 (612 - $Ctx.Margin) 40 @(0.83, 0.83, 0.83) 0.75
-    Add-ScoutPdfText $Ctx $Ctx.Margin 26 $Ctx.FooterLabel 8 'F1' $Script:ScoutPdfGray
-    Add-ScoutPdfText $Ctx (612 - $Ctx.Margin - 40) 26 "Page $pageNum" 8 'F1' $Script:ScoutPdfGray
+    Add-ScoutPdfLineSeg -Ctx $Ctx -X1 $Ctx.Margin -Y1 40 -X2 (612 - $Ctx.Margin) -Y2 40 -Color @(0.83, 0.83, 0.83) -Width 0.75
+    Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y 26 -Text $Ctx.FooterLabel -Size 8 -Font 'F1' -Color $Script:ScoutPdfGray
+    Add-ScoutPdfText -Ctx $Ctx -X (612 - $Ctx.Margin - 40) -Y 26 -Text "Page $pageNum" -Size 8 -Font 'F1' -Color $Script:ScoutPdfGray
 
     if ($Ctx.HeaderRepeat) { & $Ctx.HeaderRepeat $Ctx }
 }
@@ -426,9 +426,9 @@ function Add-ScoutPdfFigureSection {
 
         ScoutPdfEnsureSpace $Ctx ($hPt + 34)
         $Ctx.Y -= $hPt
-        Add-ScoutPdfImage $Ctx $Ctx.Margin $Ctx.Y $wPt $hPt -Name "Fig$($i + 1)"
+        Add-ScoutPdfImage -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -W $wPt -H $hPt -Name "Fig$($i + 1)"
         $Ctx.Y -= 14
-        Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y $fig.Caption 9 'F1' $Script:ScoutPdfGray
+        Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -Text $fig.Caption -Size 9 -Font 'F1' -Color $Script:ScoutPdfGray
         $Ctx.Y -= 18
     }
 }
@@ -442,7 +442,7 @@ function Add-ScoutPdfFigureSection {
 function Add-ScoutPdfHeading {
     param($Ctx, [string]$Text, [double]$Size = 24, [string]$Font = 'F2', [double[]]$Color = $Script:ScoutPdfNavy)
     ScoutPdfEnsureSpace $Ctx ($Size * 1.4)
-    Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y $Text $Size $Font $Color
+    Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -Text $Text -Size $Size -Font $Font -Color $Color
     $Ctx.Y -= ($Size * 1.4)
 }
 
@@ -452,16 +452,16 @@ function Add-ScoutPdfSubsection {
     # Manual Review Items / Architecture Diagram).
     param($Ctx, [string]$Text)
     ScoutPdfEnsureSpace $Ctx 30
-    Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y $Text 15 'F2' $Script:ScoutPdfNavy
+    Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -Text $Text -Size 15 -Font 'F2' -Color $Script:ScoutPdfNavy
     $underlineY = $Ctx.Y - 4
-    Add-ScoutPdfLineSeg $Ctx $Ctx.Margin $underlineY ($Ctx.Margin + 60) $underlineY $Script:ScoutPdfGold 2
+    Add-ScoutPdfLineSeg -Ctx $Ctx -X1 $Ctx.Margin -Y1 $underlineY -X2 ($Ctx.Margin + 60) -Y2 $underlineY -Color $Script:ScoutPdfGold -Width 2
     $Ctx.Y -= 24
 }
 
 function Add-ScoutPdfLine {
     param($Ctx, [string]$Text, [double]$Size = 10, [string]$Font = 'F1', [double[]]$Color = $Script:ScoutPdfInk)
     ScoutPdfEnsureSpace $Ctx 14
-    Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y $Text $Size $Font $Color
+    Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -Text $Text -Size $Size -Font $Font -Color $Color
     $Ctx.Y -= 14
 }
 
@@ -475,10 +475,10 @@ function Add-ScoutPdfBullet {
     for ($li = 0; $li -lt $lines.Count; $li++) {
         ScoutPdfEnsureSpace $Ctx 14
         if ($li -eq 0) {
-            if ($DotColor) { Add-ScoutPdfDot $Ctx ($Ctx.Margin + 3) ($Ctx.Y + 3) 3.2 $DotColor }
-            else { Add-ScoutPdfRect $Ctx $Ctx.Margin ($Ctx.Y + 2) 4 4 $Script:ScoutPdfGray }
+            if ($DotColor) { Add-ScoutPdfDot -Ctx $Ctx -Cx ($Ctx.Margin + 3) -Cy ($Ctx.Y + 3) -R 3.2 -Color $DotColor }
+            else { Add-ScoutPdfRect -Ctx $Ctx -X $Ctx.Margin -Y ($Ctx.Y + 2) -W 4 -H 4 -Color $Script:ScoutPdfGray }
         }
-        Add-ScoutPdfText $Ctx ($Ctx.Margin + 12) $Ctx.Y $lines[$li] 10 'F1' $Script:ScoutPdfInk
+        Add-ScoutPdfText -Ctx $Ctx -X ($Ctx.Margin + 12) -Y $Ctx.Y -Text $lines[$li] -Size 10 -Font 'F1' -Color $Script:ScoutPdfInk
         $Ctx.Y -= 14
     }
 }
@@ -489,12 +489,12 @@ function Add-ScoutPdfTableHeader {
     # Start-ScoutPdfPage re-invokes it on every continuation page.
     param($Ctx, [double[]]$ColX)
     ScoutPdfEnsureSpace $Ctx 18
-    Add-ScoutPdfRect $Ctx $Ctx.Margin ($Ctx.Y - 2) (612 - 2 * $Ctx.Margin) 16 $Script:ScoutPdfNavy
+    Add-ScoutPdfRect -Ctx $Ctx -X $Ctx.Margin -Y ($Ctx.Y - 2) -W (612 - 2 * $Ctx.Margin) -H 16 -Color $Script:ScoutPdfNavy
     # AB#6862/AB#6892, clause W-14. 'Evidence' is the supporting number for the row; see
     # Get-ScoutPdfEvidenceSummary for why the zero case renders text rather than staying blank.
     $labels = @('ID', 'Severity', 'Status', 'Title', 'Evidence')
     for ($i = 0; $i -lt $labels.Count; $i++) {
-        Add-ScoutPdfText $Ctx ($ColX[$i] + 2) ($Ctx.Y + 2) $labels[$i] 9 'F2' $Script:ScoutPdfWhite
+        Add-ScoutPdfText -Ctx $Ctx -X ($ColX[$i] + 2) -Y ($Ctx.Y + 2) -Text $labels[$i] -Size 9 -Font 'F2' -Color $Script:ScoutPdfWhite
     }
     $Ctx.Y -= 18
 }
@@ -503,25 +503,25 @@ function Add-ScoutPdfAreaHeading {
     param($Ctx, [string]$Text, $Score)
     ScoutPdfEnsureSpace $Ctx 16
     $scoreTxt = if ($null -eq $Score) { '(not scored)' } else { "Score: $Score" }
-    Add-ScoutPdfText $Ctx $Ctx.Margin $Ctx.Y "$Text -- $scoreTxt" 10 'F2' $Script:ScoutPdfSteel
+    Add-ScoutPdfText -Ctx $Ctx -X $Ctx.Margin -Y $Ctx.Y -Text "$Text -- $scoreTxt" -Size 10 -Font 'F2' -Color $Script:ScoutPdfSteel
     $Ctx.Y -= 15
 }
 
 function Add-ScoutPdfTableRow {
     param($Ctx, [double[]]$ColX, $Finding)
     ScoutPdfEnsureSpace $Ctx 14
-    $status = Get-ScoutPdfProp $Finding 'Status' 'Unknown'
-    $sev = Get-ScoutPdfProp $Finding 'Severity' $null
-    $id = "$(Get-ScoutPdfProp $Finding 'Id' '')"
-    $title = "$(Get-ScoutPdfProp $Finding 'Title' '')"
-    Add-ScoutPdfText $Ctx ($ColX[0] + 2) $Ctx.Y (ScoutPdfTruncate $id 13) 9 'F1' $Script:ScoutPdfInk
-    Add-ScoutPdfText $Ctx ($ColX[1] + 2) $Ctx.Y (Get-ScoutPdfSeverityLabel $sev) 9 'F1' (Get-ScoutPdfSeverityColor $sev)
-    Add-ScoutPdfDot $Ctx ($ColX[2] + 5) ($Ctx.Y + 3) 3.2 (Get-ScoutPdfStatusColor $status)
-    Add-ScoutPdfText $Ctx ($ColX[2] + 12) $Ctx.Y (Get-ScoutPdfStatusLabel $status) 9 'F1' $Script:ScoutPdfInk
+    $status = Get-ScoutPdfProp -Obj $Finding -Name 'Status' -Default 'Unknown'
+    $sev = Get-ScoutPdfProp -Obj $Finding -Name 'Severity' -Default $null
+    $id = "$(Get-ScoutPdfProp -Obj $Finding -Name 'Id' -Default '')"
+    $title = "$(Get-ScoutPdfProp -Obj $Finding -Name 'Title' -Default '')"
+    Add-ScoutPdfText -Ctx $Ctx -X ($ColX[0] + 2) -Y $Ctx.Y -Text (ScoutPdfTruncate $id 13) -Size 9 -Font 'F1' -Color $Script:ScoutPdfInk
+    Add-ScoutPdfText -Ctx $Ctx -X ($ColX[1] + 2) -Y $Ctx.Y -Text (Get-ScoutPdfSeverityLabel $sev) -Size 9 -Font 'F1' -Color (Get-ScoutPdfSeverityColor $sev)
+    Add-ScoutPdfDot -Ctx $Ctx -Cx ($ColX[2] + 5) -Cy ($Ctx.Y + 3) -R 3.2 -Color (Get-ScoutPdfStatusColor $status)
+    Add-ScoutPdfText -Ctx $Ctx -X ($ColX[2] + 12) -Y $Ctx.Y -Text (Get-ScoutPdfStatusLabel $status) -Size 9 -Font 'F1' -Color $Script:ScoutPdfInk
     # Title truncation drops 58 -> 42 chars: the column is narrower now that Evidence sits to its
     # right, and an untruncated title would overprint it.
-    Add-ScoutPdfText $Ctx ($ColX[3] + 2) $Ctx.Y (ScoutPdfTruncate $title 42) 9 'F1' $Script:ScoutPdfInk
-    Add-ScoutPdfText $Ctx ($ColX[4] + 2) $Ctx.Y (Get-ScoutPdfEvidenceSummary $Finding) 9 'F1' $Script:ScoutPdfSteel
+    Add-ScoutPdfText -Ctx $Ctx -X ($ColX[3] + 2) -Y $Ctx.Y -Text (ScoutPdfTruncate $title 42) -Size 9 -Font 'F1' -Color $Script:ScoutPdfInk
+    Add-ScoutPdfText -Ctx $Ctx -X ($ColX[4] + 2) -Y $Ctx.Y -Text (Get-ScoutPdfEvidenceSummary $Finding) -Size 9 -Font 'F1' -Color $Script:ScoutPdfSteel
     $Ctx.Y -= 14
 }
 
@@ -541,8 +541,8 @@ function Get-ScoutPdfEvidenceSummary {
     [OutputType([string])]
     param($Finding)
 
-    $count = Get-ScoutPdfProp $Finding 'EvidenceCount' $null
-    $denom = Get-ScoutPdfProp $Finding 'Denominator' $null
+    $count = Get-ScoutPdfProp -Obj $Finding -Name 'EvidenceCount' -Default $null
+    $denom = Get-ScoutPdfProp -Obj $Finding -Name 'Denominator' -Default $null
 
     if ($null -eq $count) { return '' }
 
@@ -756,11 +756,12 @@ function New-ScoutPdfDocument {
 #region Fallback (non-fatal safety net only -- see file header)
 
 function Export-ScoutPdfHtmlFallback {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Collect', Justification = 'Kept for signature parity with Export-Pdf; tests/Report.Pdf.Tests.ps1 (out of this task''s scope) calls this function with -Collect explicitly.')]
     param($Findings, $Collect, [string] $OutputPath, [string] $Reason)
     if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
     $json = ($Findings | ConvertTo-Json -Depth 100) -replace '</', '<\/'
     $safeReason = $Reason -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    $generatedOn = Get-ScoutPdfProp $Findings 'GeneratedOn' '(unknown)'
+    $generatedOn = Get-ScoutPdfProp -Obj $Findings -Name 'GeneratedOn' -Default '(unknown)'
     $html = @"
 <!DOCTYPE html>
 <html>
@@ -809,13 +810,13 @@ function Export-Pdf {
         $ctx = New-ScoutPdfContext
 
         $meta = Get-ScoutPdfMeta $Collect
-        $generatedOn = Get-ScoutPdfProp $Findings 'GeneratedOn' ''
-        $frameworks = @(Get-ScoutPdfProp $Findings 'Frameworks' @())
-        $areas = @(Get-ScoutPdfProp $Findings 'Areas' @())
-        $gaps = @(Get-ScoutPdfProp $Findings 'Gaps' @())
-        $manual = @(Get-ScoutPdfProp $Findings 'Manual' @())
-        $errors = @(Get-ScoutPdfProp $Findings 'Errors' @())
-        $allFindings = @(Get-ScoutPdfProp $Findings 'Findings' @())
+        $generatedOn = Get-ScoutPdfProp -Obj $Findings -Name 'GeneratedOn' -Default ''
+        $frameworks = @(Get-ScoutPdfProp -Obj $Findings -Name 'Frameworks' -Default @())
+        $areas = @(Get-ScoutPdfProp -Obj $Findings -Name 'Areas' -Default @())
+        $gaps = @(Get-ScoutPdfProp -Obj $Findings -Name 'Gaps' -Default @())
+        $manual = @(Get-ScoutPdfProp -Obj $Findings -Name 'Manual' -Default @())
+        $errors = @(Get-ScoutPdfProp -Obj $Findings -Name 'Errors' -Default @())
+        $allFindings = @(Get-ScoutPdfProp -Obj $Findings -Name 'Findings' -Default @())
 
         # ---- AB#379 diagram lookup ----
         $diagram = Get-ScoutPdfDiagram -OutputPath $OutputPath
@@ -836,24 +837,24 @@ function Export-Pdf {
 
         # ==== Cover page ====
         Start-ScoutPdfPage $ctx -FooterLabel 'Azure Scout Assessment Report'
-        Add-ScoutPdfHeading $ctx 'AZURE SCOUT' 13 'F2' $Script:ScoutPdfSteel
-        Add-ScoutPdfHeading $ctx 'Assessment Report' 26 'F2' $Script:ScoutPdfNavy
-        Add-ScoutPdfLine $ctx "Scope: $(if ($meta.Scope) { $meta.Scope } else { '(unspecified)' })" 11 'F1' $Script:ScoutPdfGray
+        Add-ScoutPdfHeading -Ctx $ctx -Text 'AZURE SCOUT' -Size 13 -Font 'F2' -Color $Script:ScoutPdfSteel
+        Add-ScoutPdfHeading -Ctx $ctx -Text 'Assessment Report' -Size 26 -Font 'F2' -Color $Script:ScoutPdfNavy
+        Add-ScoutPdfLine -Ctx $ctx -Text "Scope: $(if ($meta.Scope) { $meta.Scope } else { '(unspecified)' })" -Size 11 -Font 'F1' -Color $Script:ScoutPdfGray
         if ($meta.ManagementGroupId) {
-            Add-ScoutPdfLine $ctx "Management Group: $($meta.ManagementGroupId)" 11 'F1' $Script:ScoutPdfGray
+            Add-ScoutPdfLine -Ctx $ctx -Text "Management Group: $($meta.ManagementGroupId)" -Size 11 -Font 'F1' -Color $Script:ScoutPdfGray
         }
-        Add-ScoutPdfLine $ctx "Generated: $(if ($generatedOn) { $generatedOn } else { '(unknown)' })" 11 'F1' $Script:ScoutPdfGray
+        Add-ScoutPdfLine -Ctx $ctx -Text "Generated: $(if ($generatedOn) { $generatedOn } else { '(unknown)' })" -Size 11 -Font 'F1' -Color $Script:ScoutPdfGray
         $ctx.Y -= 6
 
         Add-ScoutPdfSubsection $ctx 'Framework Alignment'
         if (@($frameworks).Count -eq 0) {
-            Add-ScoutPdfBullet $ctx 'No framework scored for this run.' $Script:ScoutPdfGray
+            Add-ScoutPdfBullet -Ctx $ctx -Text 'No framework scored for this run.' -DotColor $Script:ScoutPdfGray
         }
         else {
             foreach ($fw in @($frameworks)) {
-                $fwScore = Get-ScoutPdfProp $fw 'Score' $null
+                $fwScore = Get-ScoutPdfProp -Obj $fw -Name 'Score' -Default $null
                 $scoreTxt = if ($null -eq $fwScore) { 'not scored' } else { "$fwScore / 100" }
-                Add-ScoutPdfBullet $ctx "$(Get-ScoutPdfProp $fw 'Framework' '?') alignment score: $scoreTxt" (Get-ScoutPdfScoreColor $fwScore)
+                Add-ScoutPdfBullet -Ctx $ctx -Text "$(Get-ScoutPdfProp -Obj $fw -Name 'Framework' -Default '?') alignment score: $scoreTxt" -DotColor (Get-ScoutPdfScoreColor $fwScore)
             }
         }
         $ctx.Y -= 6
@@ -865,11 +866,11 @@ function Export-Pdf {
             $imgW = $diagram.Width * $scale
             $imgH = $diagram.Height * $scale
             ScoutPdfEnsureSpace $ctx ($imgH + 10)
-            Add-ScoutPdfImage $ctx $ctx.Margin ($ctx.Y - $imgH) $imgW $imgH
+            Add-ScoutPdfImage -Ctx $ctx -X $ctx.Margin -Y ($ctx.Y - $imgH) -W $imgW -H $imgH
             $ctx.Y -= ($imgH + 10)
         }
         else {
-            Add-ScoutPdfBullet $ctx $diagramNote $Script:ScoutPdfGray
+            Add-ScoutPdfBullet -Ctx $ctx -Text $diagramNote -DotColor $Script:ScoutPdfGray
         }
 
         # ==== Figures (AB#6883) ====
@@ -895,19 +896,19 @@ function Export-Pdf {
         Start-ScoutPdfPage $ctx
         Add-ScoutPdfSubsection $ctx 'Executive Summary'
         $areaArr = @($areas)
-        $passSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp $_ 'Pass' 0 } | Measure-Object -Sum).Sum
-        $partialSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp $_ 'Partial' 0 } | Measure-Object -Sum).Sum
-        $failSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp $_ 'Fail' 0 } | Measure-Object -Sum).Sum
+        $passSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp -Obj $_ -Name 'Pass' -Default 0 } | Measure-Object -Sum).Sum
+        $partialSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp -Obj $_ -Name 'Partial' -Default 0 } | Measure-Object -Sum).Sum
+        $failSum = ($areaArr | ForEach-Object { Get-ScoutPdfProp -Obj $_ -Name 'Fail' -Default 0 } | Measure-Object -Sum).Sum
         $manualCount = @($manual).Count
         $errorCount = @($errors).Count
-        $highGaps = @($gaps | Where-Object { (Get-ScoutPdfSeverityLabel (Get-ScoutPdfProp $_ 'Severity' $null)) -eq 'HIGH' }).Count
+        $highGaps = @($gaps | Where-Object { (Get-ScoutPdfSeverityLabel (Get-ScoutPdfProp -Obj $_ -Name 'Severity' -Default $null)) -eq 'HIGH' }).Count
 
-        Add-ScoutPdfBullet $ctx "Areas assessed: $($areaArr.Count)"
-        Add-ScoutPdfBullet $ctx "Rules evaluated -- Pass: $passSum, Partial: $partialSum, Fail: $failSum"
+        Add-ScoutPdfBullet -Ctx $ctx -Text "Areas assessed: $($areaArr.Count)"
+        Add-ScoutPdfBullet -Ctx $ctx -Text "Rules evaluated -- Pass: $passSum, Partial: $partialSum, Fail: $failSum"
         $criticalColor = if ($highGaps -gt 0) { $Script:ScoutPdfRed } else { $Script:ScoutPdfGreen }
-        Add-ScoutPdfBullet $ctx "Critical (High severity) gaps: $highGaps" $criticalColor
-        Add-ScoutPdfBullet $ctx "Manual review items pending: $manualCount"
-        Add-ScoutPdfBullet $ctx "Unknown/Error findings (check collector permissions): $errorCount"
+        Add-ScoutPdfBullet -Ctx $ctx -Text "Critical (High severity) gaps: $highGaps" -DotColor $criticalColor
+        Add-ScoutPdfBullet -Ctx $ctx -Text "Manual review items pending: $manualCount"
+        Add-ScoutPdfBullet -Ctx $ctx -Text "Unknown/Error findings (check collector permissions): $errorCount"
 
         # ==== Findings by area (AB#394 header repeat lives here) ====
         Start-ScoutPdfPage $ctx
@@ -921,17 +922,17 @@ function Export-Pdf {
         $grouped = @($allFindings | Group-Object Framework, Area | Sort-Object Name)
         if ($grouped.Count -eq 0) {
             $ctx.HeaderRepeat = $null
-            Add-ScoutPdfLine $ctx 'No findings recorded for this run.'
+            Add-ScoutPdfLine -Ctx $ctx -Text 'No findings recorded for this run.'
         }
         else {
             foreach ($grp in $grouped) {
                 $fw0 = $grp.Group[0].Framework
                 $ar0 = $grp.Group[0].Area
                 $areaMatch = $areaArr | Where-Object { $_.Framework -eq $fw0 -and $_.Area -eq $ar0 } | Select-Object -First 1
-                $areaScore = if ($areaMatch) { Get-ScoutPdfProp $areaMatch 'Score' $null } else { $null }
+                $areaScore = if ($areaMatch) { Get-ScoutPdfProp -Obj $areaMatch -Name 'Score' -Default $null } else { $null }
                 ScoutPdfEnsureSpace $ctx 32   # heading + room for at least one row -- avoid an orphaned heading
-                Add-ScoutPdfAreaHeading $ctx "$fw0 - $ar0" $areaScore
-                foreach ($f in $grp.Group) { Add-ScoutPdfTableRow $ctx $colX $f }
+                Add-ScoutPdfAreaHeading -Ctx $ctx -Text "$fw0 - $ar0" -Score $areaScore
+                foreach ($f in $grp.Group) { Add-ScoutPdfTableRow -Ctx $ctx -ColX $colX -Finding $f }
             }
             $ctx.HeaderRepeat = $null
         }
@@ -940,18 +941,18 @@ function Export-Pdf {
         Start-ScoutPdfPage $ctx
         Add-ScoutPdfSubsection $ctx 'Prioritized Gaps'
         if (@($gaps).Count -eq 0) {
-            Add-ScoutPdfBullet $ctx 'No gaps -- every scorable rule passed.' $Script:ScoutPdfGreen
+            Add-ScoutPdfBullet -Ctx $ctx -Text 'No gaps -- every scorable rule passed.' -DotColor $Script:ScoutPdfGreen
         }
         else {
-            $gapsSorted = @($gaps | Sort-Object @{ Expression = { Get-ScoutPdfSeverityRank (Get-ScoutPdfProp $_ 'Severity' $null) } }, Area)
+            $gapsSorted = @($gaps | Sort-Object @{ Expression = { Get-ScoutPdfSeverityRank (Get-ScoutPdfProp -Obj $_ -Name 'Severity' -Default $null) } }, Area)
             $top = @($gapsSorted | Select-Object -First 25)
             foreach ($g in $top) {
-                $sev = Get-ScoutPdfProp $g 'Severity' $null
-                $label = "[$(Get-ScoutPdfSeverityLabel $sev)] $(Get-ScoutPdfProp $g 'Area' '') -- $(Get-ScoutPdfProp $g 'Title' '')"
-                Add-ScoutPdfBullet $ctx $label (Get-ScoutPdfSeverityColor $sev)
+                $sev = Get-ScoutPdfProp -Obj $g -Name 'Severity' -Default $null
+                $label = "[$(Get-ScoutPdfSeverityLabel $sev)] $(Get-ScoutPdfProp -Obj $g -Name 'Area' -Default '') -- $(Get-ScoutPdfProp -Obj $g -Name 'Title' -Default '')"
+                Add-ScoutPdfBullet -Ctx $ctx -Text $label -DotColor (Get-ScoutPdfSeverityColor $sev)
             }
             if (@($gaps).Count -gt $top.Count) {
-                Add-ScoutPdfLine $ctx "... and $((@($gaps).Count) - $top.Count) more (see the JSON/Excel evidence exports for the full list)." 9 'F1' $Script:ScoutPdfGray
+                Add-ScoutPdfLine -Ctx $ctx -Text "... and $((@($gaps).Count) - $top.Count) more (see the JSON/Excel evidence exports for the full list)." -Size 9 -Font 'F1' -Color $Script:ScoutPdfGray
             }
         }
 
@@ -959,12 +960,12 @@ function Export-Pdf {
         Start-ScoutPdfPage $ctx
         Add-ScoutPdfSubsection $ctx 'Manual Review Items'
         if (@($manual).Count -eq 0) {
-            Add-ScoutPdfBullet $ctx 'No items require manual review.' $Script:ScoutPdfGreen
+            Add-ScoutPdfBullet -Ctx $ctx -Text 'No items require manual review.' -DotColor $Script:ScoutPdfGreen
         }
         else {
             foreach ($m in @($manual)) {
-                $label = "$(Get-ScoutPdfProp $m 'Area' '') -- $(Get-ScoutPdfProp $m 'Title' '')"
-                Add-ScoutPdfBullet $ctx $label $Script:ScoutPdfSteel
+                $label = "$(Get-ScoutPdfProp -Obj $m -Name 'Area' -Default '') -- $(Get-ScoutPdfProp -Obj $m -Name 'Title' -Default '')"
+                Add-ScoutPdfBullet -Ctx $ctx -Text $label -DotColor $Script:ScoutPdfSteel
             }
         }
 

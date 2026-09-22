@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.kubernetes/connectedclust
 Excel Sheet Name: Arc Kubernetes
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcKubernetes.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Hybrid/ArcKubernetes.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).
@@ -23,6 +23,7 @@ Authors: AzureScout Contributors
 
 <######## Default Parameters. Don't modify this ########>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing') {

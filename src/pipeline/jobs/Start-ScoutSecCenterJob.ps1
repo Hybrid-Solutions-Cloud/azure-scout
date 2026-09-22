@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 # Relocated from Modules/Public/PublicFunctions/Jobs for the v3 pipeline.
 .Synopsis
@@ -7,7 +11,7 @@ Start Security Center Job Module
 This script processes and creates the Security Center sheet based on security resources.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCSecCenterJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCSecCenterJob.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)

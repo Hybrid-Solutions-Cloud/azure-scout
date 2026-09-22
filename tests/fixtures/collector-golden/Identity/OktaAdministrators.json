@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "OktaAdministrators",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1a-1/AdminRoleSummary/oktaadministrators-t1a-2|Role Type=s:res-value",
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1b-1/AdminRoleSummary/oktaadministrators-t1b-2|Role Type=s:res-value",
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1c-1/AdminRoleSummary/oktaadministrators-t1c-2|Role Type=s:res-value",
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1d-1/AdminRoleSummary/oktaadministrators-t1d-2|Role Type=s:res-value",
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1e-1/AdminRoleSummary/oktaadministrators-t1e-2|Role Type=s:res-value",
+    "Assignment Count=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Okta/oktaadministrators-t1f-1/AdminRoleSummary/oktaadministrators-t1f-2|Role Type=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Role Type\tAssignment Count\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value"
+    ],
+    "WithTags": [
+      "Role Type\tAssignment Count\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value\nres-value\tres-value"
+    ]
+  }
+}

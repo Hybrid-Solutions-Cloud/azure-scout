@@ -20,8 +20,8 @@ $ErrorActionPreference = 'Stop'
     Two properties matter and both are enforced by where this is called from:
 
       - It runs BEFORE the processing phase, so nothing has been filtered by a manifest yet.
-      - It writes to the RUN folder, not `ReportCache`, so `Clear-AZSCCacheFolder` -- which
-        Invoke-AzureScout runs unconditionally at the end of every run -- does not delete it.
+      - It writes to the RUN folder alongside the other retained evidence. Invoke-AzureScout does
+        not delete raw or processed discovery data when a scan completes.
 
 .PARAMETER ExtractionData
     The object returned by `Start-AZSCExtractionOrchestration`.
@@ -67,7 +67,8 @@ function Export-ScoutRawInventoryDump {
 
     $sets = [ordered]@{}
     foreach ($name in 'Resources', 'ResourceContainers', 'Advisories', 'Security', 'Retirements',
-                      'EntraResources', 'Quotas', 'PolicyAssign', 'PolicyDef', 'PolicySetDef') {
+                      'EntraResources', 'EntraQueryOutcomes', 'Quotas', 'PolicyAssign', 'PolicyDef',
+                      'PolicySetDef', 'CollectionHealth', 'SourceOperations') {
         $sets[$name] = Get-Set -Object $ExtractionData -Name $name
     }
 
@@ -87,8 +88,12 @@ function Export-ScoutRawInventoryDump {
     if (-not $PSCmdlet.ShouldProcess($path, 'Write raw inventory dump')) { return $null }
 
     try {
+        if (-not (Get-Command Write-ScoutJsonStream -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Write-ScoutJsonStream.ps1')
+        }
+
         $payload = [ordered]@{
-            Schema      = 'azure-scout/raw-inventory/v1'
+            Schema      = 'azure-scout/raw-inventory/v2'
             GeneratedAt = (Get-Date).ToString('o')
             Counts      = [ordered]@{}
             ResourceTypes = @(
@@ -102,7 +107,10 @@ function Export-ScoutRawInventoryDump {
         # Depth 100 matches what the assessment layer uses for collect.json. The `properties`
         # bag on a raw ARG row is arbitrarily nested and a shallower depth would silently
         # truncate it to a type name, which is the exact silent loss this artifact exists to end.
-        [PSCustomObject] $payload | ConvertTo-Json -Depth 100 | Out-File -LiteralPath $path -Encoding utf8
+        # Stream each top-level collection row independently: ConvertTo-Json over the complete
+        # payload duplicates the entire estate as one giant string and exhausted memory in a
+        # 50,081-row operator run.
+        Write-ScoutJsonStream -InputObject ([PSCustomObject]$payload) -Path $path -Depth 100 | Out-Null
 
         Write-Verbose "Export-ScoutRawInventoryDump: wrote $((@($sets['Resources'])).Count) resource rows across $($typeCounts.Count) types to '$path'."
         return $path

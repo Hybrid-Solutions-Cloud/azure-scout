@@ -13,7 +13,7 @@ description: AST-based classification of all 174 inventory collectors — how ma
 Every collector under `manifests/collectors/` was parsed with the PowerShell AST
 (`[System.Management.Automation.Language.Parser]::ParseFile`) — never by regex over the source
 text — using
-[`scripts/Invoke-CollectorAudit.ps1`](https://github.com/thisismydemo/azure-scout/blob/main/scripts/Invoke-CollectorAudit.ps1). Discovery reuses
+[`scripts/Invoke-CollectorAudit.ps1`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/scripts/Invoke-CollectorAudit.ps1). Discovery reuses
 `src/pipeline/Get-ScoutCollector.ps1`, the single discovery implementation the deterministic-
 pipeline work (AB#5649) established, rather than re-walking the filesystem a second way.
 
@@ -34,7 +34,7 @@ For each of the 174 collectors the script structurally extracts:
   shaping the `$Resources` array it was handed
 
 The machine-readable result is
-[`tests/fixtures/collector-audit.json`](https://github.com/thisismydemo/azure-scout/blob/main/tests/fixtures/collector-audit.json), one record
+[`tests/fixtures/collector-audit.json`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/tests/fixtures/collector-audit.json), one record
 per collector. Re-run the audit at any time with:
 
 ```powershell

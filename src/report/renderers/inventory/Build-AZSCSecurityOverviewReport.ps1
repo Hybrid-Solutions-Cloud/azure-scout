@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Build the Security Overview tab in the Excel report
@@ -67,7 +71,6 @@ function Build-AZSCSecurityOverviewReport {
     }
 
     if ($AssessRows.Count -gt 0) {
-        $HighStyle = New-ExcelStyle -BackgroundColor ([System.Drawing.Color]::LightCoral) -Bold -Range A1 -AutoSize
         $AssessRows | Export-Excel -Path $File `
             -WorksheetName 'Security Overview' `
             -TableName ('SecAssess_' + $AssessRows.Count) `

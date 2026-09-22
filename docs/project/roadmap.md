@@ -10,7 +10,7 @@ This page outlines what's planned, what's in progress, and what's been delivered
 Community contributions are welcome — see [Contributing](./contributing.md) to get involved.
 
 > The consolidated architecture, work-item index, audit findings, and delivery
-> plan live in the [Master Design & Plan](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md). This roadmap is
+> plan live in the [Master Design & Plan](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/plans/master-plan.md). This roadmap is
 > the public-facing summary of it.
 
 ## v3.0.0 engine rebuild status
@@ -41,7 +41,228 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.2.0 — Deep governance and compliance analytics
+## Current Release — v3.16.2 — hotfix: real multi-tenant runs no longer crash on launch
+
+Released 19 August 2026. A live enterprise run crashed immediately after confirmation with
+`Cannot find an overload for "Contains" and the argument count: "1".` `Invoke-AZSCMultiTenantRun`
+called a `Hashtable`-only `.Contains(name)` method on the real `$PSBoundParameters` type, which
+every existing test substituted with a hashtable literal or fully mocked away, so the defect
+shipped undetected in v3.16.0 and v3.16.1. Switched to `.ContainsKey(name)`, supported by both
+types, and added a regression test that builds a genuine `PSBoundParametersDictionary`. See
+CHANGELOG.md and AB#7105.
+
+## Previous Release — v3.16.1 — the menu offers it too
+
+Released 18 August 2026. The guided wizard now offers enterprise multi-tenant scanning whenever
+the signed-in account can reach more than one tenant: scan just the current tenant, choose
+specific tenants from a checklist, or scan every accessible tenant. `-AllAccessibleTenants` and
+multiple `-TenantID` values previously only worked when typed explicitly on the command line; a
+dispatch-ordering fix also means a wizard-driven multi-tenant answer now actually reaches the
+orchestrator. See CHANGELOG.md and AB#7105.
+
+## Previous Release — v3.16.0 — one account, every reachable tenant
+
+Released 17 August 2026. Enterprise operators can explicitly scan every Azure tenant reachable by
+the signed-in account or select several tenant IDs. Each umbrella run writes a self-contained root
+overview and JSON summary, then isolates every tenant's evidence and detailed React report in its
+own named folder. A tenant failure is recorded without stopping later tenants. This is direct account
+access and remains separate from Azure Lighthouse. See CHANGELOG.md and AB#332/AB#7105.
+
+## Previous Release — v3.15.0 — complete discovery evidence
+
+Released 17 August 2026. Raw evidence schema v2 retains each successful parent and child response
+with its source operation, query outcome, and collection-health record. Twenty-nine report collectors
+add Conditional Access impact, MFA and legacy-auth posture, Entra and Azure RBAC PIM, access reviews,
+hybrid identity, optional Okta, billing, Defender, Sentinel and Log Analytics retention, Entra log
+export, and normalized storage exposure. Unavailable or permission-limited evidence stays explicit;
+credentials and Key Vault secret values are never persisted. See CHANGELOG.md and AB#7441.
+
+## Previous Release — v3.14.0 — large tenants finish cleanly
+
+Released 15 August 2026. Raw inventory and discovery evidence now stream atomically instead of
+building whole JSON documents in memory, and indexed collector shaping avoids repeated scans of a
+large estate. Cost Management calls are subscription-batched, throttling guidance is honored, six
+invalid Resource Graph queries are corrected, and expected metric, storage, Search, Key Vault,
+management-group, and custom-role boundaries are reported precisely without dropping their parent
+resources. See CHANGELOG.md and AB#7366.
+
+## Previous Release — v3.13.0 — every resource accounted for
+
+Released 14 August 2026. Every unique resource discovered by Resource Graph now receives a
+report-visible completeness record. Full scans retain provider-level configuration and collect
+effective routes and NSGs per NIC; normalized exposure evidence and generic ARM relationships feed
+React, JSON, and Draw.io output. Permission or provider gaps remain attached to the affected resource
+instead of dropping it, and recursive redaction keeps credential values out of discovery and report
+payloads. See CHANGELOG.md and AB#7366/AB#7367.
+
+## Previous Release — v3.12.8 — partial evidence stays partial
+
+Released 14 August 2026. A metadata denial from one Key Vault no longer promotes a granular
+ARM-child gap into failure of the entire Azure resource dataset. Only rules that require incomplete
+Key Vault key evidence become `NotAssessed`; unrelated CAF/WAF checks continue scoring. Standard
+PowerShell progress is restored as the stable interactive default, with the experimental bordered
+renderer available only by explicit opt-in. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.7 — the report always comes home
+
+Released 14 August 2026. A combined run whose scored assessment stops safely because
+required evidence is unavailable now reuses the completed inventory to render React and JsonEvidence
+without another Azure call, writing the deliverable into the predictable `assessment-report` folder.
+React indexing tolerates open-ended Azure values, including Boolean `name` fields. The built-in
+progress renderer now shows a high-contrast bordered multi-phase ledger whose elapsed clock continues
+during blocking operations. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.6 — the progress display ships with Scout
+
+Released 13 August 2026. AzureScout ships a self-contained native live renderer with no third-party
+progress dependency. Its spinner, progress bar, phase text, and elapsed clock start during permission
+preflight and cover extraction, diagrams and supplemental processing, assessment and inventory
+rendering, and deterministic collector processing. CI, redirected, and `-NoProgress` runs keep their
+safe fallbacks. See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.5 — the compass keeps moving
+
+Released 13 August 2026. Interactive inventory extraction now uses a real auto-refreshing optional
+Spectre progress host, keeping its spinner and elapsed clock moving during blocking Azure calls.
+High-contrast phase labels use no colored background, `-NoProgress` gives operators an explicit
+quiet mode, native/CI fallbacks remain intact, and renderer failures cannot replay collector work.
+See CHANGELOG.md and AB#405.
+
+## Previous Release — v3.12.4 — close the reconciliation gaps
+
+Released 13 August 2026. Seven dedicated collectors now cover every live resource type found only
+in raw inventory during the independent tenant reconciliation, taking the catalog to 285. ARM child
+collection follows continuation links. Key Vault secret/key inventory uses paged metadata-only LIST
+operations, never reads values or private key material, and reports missing access explicitly rather
+than returning an incomplete first page. Key Vault assessment mapping and network diagram job
+tracking are also corrected. See CHANGELOG.md and AB#7358.
+
+## Previous Release — v3.12.3 — every collector tells the truth
+
+Released 11 August 2026. ARM child discovery now runs on supported Az.Accounts versions and
+propagates exact per-dataset availability. Risky Users, Verified ID, management-group, Defender,
+and Azure DevOps checks report the real permission, licence, provider, or HTTP boundary instead of
+silently returning empty data. Operational extraction shows bounded progress and durable heartbeats,
+and every run log closes with a terminal status. A live read-only HCS acceptance pass independently
+reconciled all 278 collectors while preserving raw inventory and every cache/health artifact. See
+CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.12.2 — honest collection, retained evidence
+
+Released 11 August 2026. Guided runs authenticate and audit once, with management-group and Graph
+readiness based on data the selected identity can actually collect. Scout classifies known Graph
+availability boundaries before requests, removes the held Lighthouse query, retries oversized
+Security Center results with smaller pages, and treats normal 404/provider absence as expected.
+Collection health distinguishes unavailable data from a genuinely empty estate, and every
+raw/cache artifact remains available until explicit operator cleanup. See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.12.1 — one sign-in, one tenant
+
+Released 11 August 2026. Microsoft Graph now uses the same selected Azure PowerShell account and
+tenant as ARM collection and never consults an unrelated Azure CLI session. A common Entra
+authentication failure is attempted and reported once instead of repeated for every dataset.
+See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.12.0 — less waiting, same evidence
+
+Released 10 August 2026. Category-filtered inventory now avoids unrelated remote work through a
+manifest-derived dependency plan and server-side Resource Graph filters. Combined runs reuse the
+completed inventory security/policy sweep; Recovery Services and storage enrichment cache calls at
+subscription or vault scope; and the ARM REST sweep uses pagination and transient-only retry instead
+of fixed success-path sleeps. Full, unknown, and assessment-backed paths retain complete evidence
+coverage. See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.11.0 — one output contract, logs that explain the run
+
+Released 10 August 2026. Inventory, assessment, combined, wizard, and automation paths now
+share one live output contract: React, Json, and JsonEvidence. Inventory-only React and evidence
+reuse the completed collection offline, while Json preserves the inventory contract. Detailed
+DEBUG/VERBOSE phase, row-count, timing, rule, and renderer diagnostics are written to the run log
+by default without increasing console noise. See CHANGELOG.md and AB#7279.
+
+## Previous Release — v3.10.2 — tenant means tenant
+
+Released 10 August 2026. Restores the guided wizard's tenant-first contract: the prompt shows
+the signed-in user and tenant display name, Y keeps that tenant, and N forces a fresh login then
+lists accessible tenants rather than subscriptions. The default tenant-wide ARM inventory no
+longer requests a Microsoft Graph token; Entra collection is an explicit opt-in. See CHANGELOG.md
+and AB#7278.
+
+## Previous Release — v3.10.1 — combined means combined
+
+Released 10 August 2026. Fixes the v3.10.0 startup rejection for a combined inventory +
+assessment run with React/JsonEvidence, then closes the related runtime and correctness gaps
+found by the full audit: tenant-scoped Graph calls, deterministic context and job ownership,
+honest governance/compliance availability, canonical report scoring/evidence, complete rule
+collection dependencies, strict dependency/import behavior, and fail-closed zero-skip release
+gates. See CHANGELOG.md and AB#7278.
+
+## Previous Release — v3.10.0 — the last three, closed for real
+
+Released 9 August 2026. Executive/Consultant/Data view modes now materially differ on every report section, not just 2 of 6; the Azure Landing Zone assessment renders BECU-style per-domain chapters (scorecard, current-state prose, grouped findings, figure) per CAF design area instead of one flat list, with the ALZ benchmark broken into its own section; fixed a self-contradicting scorecard caused by two design areas sharing the literal name "Security", and the underlying evidence-identity defect where a single-match finding's evidence could resolve to .NET type metadata instead of a resource name; PSScriptAnalyzer is at zero Error/Warning violations repo-wide, down from 1,465. See CHANGELOG.md for the full per-story breakdown.
+
+## Previous Release — v3.9.0 — the backlog sweep
+
+Released 9 August 2026. Closes out the open coverage-gap backlog across ten service categories (Analytics, IoT, DevOps, Management and governance, AI and machine learning, Storage, Compute, Security, Databases, Networking) with real new collectors wired end to end into the assessment collect, not only the inventory Excel export; adds cost projections and Azure Local licence/Hybrid Benefit collection; surfaces previously-dropped collected categories (Defender alert/assessment/secure-score detail, Azure Local child resources) in the React report; and makes the wizard's category and format menus honest about what they actually collect, with coverage figures generated from the collector manifests rather than hand-typed. See CHANGELOG.md for the full per-story breakdown.
+
+## Previous Release — v3.6.0 — The collector-payload wiring audit, closed out
+
+Released 8 August 2026. Nearly 100 collector manifests existed, were fully tested, and produced Excel-only rows — but never reached the assessment collect (`collect.json`) the React report actually renders from. This release closes that gap: 95 collectors wired across Networking, Hybrid, Monitor, Defender, Databases, DevOps, Management, Security, Storage, and Update Manager categories (coverage moves from 77 to 172 of 245 tracked manifests), plus 3 genuinely new collectors authored from scratch for services that had none — Microsoft Entra Verified ID and Microsoft Entra External ID (the governance/landing-zone-relevant one), both Graph-backed rather than ARM/ARG. Along the way, a real defect in the test suite's own infrastructure was found and fixed: a shared mock-cleanup idiom silently no-opped, letting mock state leak across test files — corrected everywhere it appeared.
+
+## Previous Release — v3.5.1 — Three things v3.5.0 said were fine
+
+Released 4 August 2026. Three things v3.5.0 said were fine — each found by *using* the product, not by reading test results. The wizard offered every format except the one it renders: picking inventory + assessment (the commonest path) fell through to the inventory-only list, which has no React, while the list it skipped still offered six held renderers with Html as the default; a menu-honesty test now fails if the wizard ever offers a format the product declines to produce. One tenant in eight could not render: dotted member enumeration over an *empty* collection resolves against the array object, so a tenant with management groups but no policy assignments threw and produced nothing — all eight corpus tenants now render. The diagram-overlap gate was green because it inspected nothing — the fixture wrote flat keys while the payload uses dotted paths, so every diagram hit its empty guard; the gate now reads real topology and was proved to fail on a manufactured overlap.
+
+## Previous Release — v3.5.0 — The report is a product, not a page
+
+Released 4 August 2026. The report is a product, not a page. The owner-approved v6 design ships: the React report becomes a multi-page application — Overview, Inventory & audit, Assessments, Diagrams, Data & drift, Remediation plan — rendered from the run's own data. Inventory becomes a blade view on the documented 18-category taxonomy with every collector listed including zeros, filterable/sortable item tables, tenant structure, audit callouts and a full cost-optimization blade. Each assessment carries the complete conformance register: every check, a gap block for every fail (resource-grain evidence, why it matters, numbered fix, per-check Learn link), the manual review agenda, and a What's-next section. A Diagrams page adds MG hierarchy, VNet/subnet IP utilization, estate and gaps figures with full-screen zoom. Executive/Consultant/Data become a depth toggle; exports add Markdown and JSON. Conformance clause R-04 is enforced for real — the renderer no longer re-invokes the scoring engine. All other assessment formats remain on hold. See AB#6928, AB#6936, AB#6937, AB#6938, AB#7035.
+
+## Previous Release — v3.3.4 — One report, and it is the deliverable
+
+Released 4 August 2026. A full multi-tenant render, read end to end rather than counted, found
+every one of the six rendered report formats weak in a different way — a dashboard that drew its
+headers and no data, a maturity report scoring 10/10 without saying what it measured, documents
+that never named which assessment they were, text drawn over text in the PDF, figures running off
+the slide, and a Word file that opened with a repair prompt. Six renderers maintained in parallel
+is why none of them reached deliverable quality.
+
+The **React single-page report** is now the product's deliverable: one self-contained page hosting
+the inventory and every assessment behind an adaptive shell whose navigation is built from what
+actually ran. Each assessment answers what was run (including what was *not* assessed and why),
+what was found, and what to fix against CAF/WAF guidance — and every score carries its own
+arithmetic, so a number can be checked rather than trusted.
+
+Every other rendered format is on hold and will be regenerated from that report rather than
+alongside it. `Json`/`JsonEvidence` are data, not documents, and are never held. A held format
+asked for by name warns, skips, and renders the React report anyway, so a run never returns an
+empty folder.
+
+## Previous Release — v3.3.3 — The corpus told the truth
+
+Released 3 August 2026. Five collection defects fixed, none of which a green unit suite could
+see: the v3.3.2 Recovery Services vault fix never reached the collect result; Export-Pptx's
+module-scope `Get-ScoutProp` shadowed the collect walker and nulled nested `properties.*` on
+every product run (the defect that corrupted the banked corpus); management groups are collected
+for the first time in the product's history (tenant-scoped Resource Graph, 92 groups across the
+eight reference tenants); `security.defenderPlans` is collected per subscription instead of
+shipping as a hardcoded empty array the CAF/WAF security rules queried in vain; and two runs in
+the same second no longer share one run folder. The corpus is now a committed harness —
+per-tenant integrity checks on collection, per-collector coverage verdicts offline: 36 collect
+keys proven working across 8 real tenants, 0 unexplained empties.
+
+## v3.3.2 — Field fixes from real tenant runs
+
+Released 3 August 2026. Every fix in this release came from running Scout against live estates.
+Advisor ingestion is contained per subscription instead of failing tenant-wide on one unregistered
+`Microsoft.Advisor` provider; Entra ID P2-gated Graph features report `NOT LICENSED` instead of a
+misleading `DENIED`; Recovery Services vaults are collected instead of hardcoded to an empty
+array; the `CAF: Azure Landing Zone` assessment scores its own 13 areas instead of sweeping in every workload
+rule set; `GovernanceReport` is reachable from `-OutputFormat All`; and evidence truncation is
+visible in every renderer. The v3.3 line (3.3.0 → 3.3.2) delivered the reporting rebuild of Epic
+AB#6450: conformance-gated Word/Excel/PowerPoint/PDF deliverables, managed-code figure
+rasterisation, and a Power BI PBIP project with a TMDL model and bound visuals.
+
+## v3.2.0 — Deep governance and compliance analytics
 
 Released 31 July 2026. Scout modelled fifteen of Microsoft's eighteen published service
 categories; it now models all eighteen. `Migration` went from zero collectors to all five of its
@@ -66,11 +287,11 @@ enumerated. See **Epic AB#6741**.
 ## CAF/WAF assessment programme
 
 **Planned, from the Epic AB#6731 audit. Scout ships one real assessment
-today: `LandingZone`.** Everything else in
+today: `CAF: Azure Landing Zone`.** Everything else in
 `manifests/assessments.psd1` is either a filtered slice of that same rule set
 (the 15 per-category entries, prefixed `Assess: ` as of this release — see the
 [Assessment Registry](../design/assessment-registry.md)), a sub-bundle, or
-`Cost`. Microsoft's own [assessment catalogue](https://learn.microsoft.com/assessments/browse/)
+`Scout: Cost Optimization`. Microsoft's own [assessment catalogue](https://learn.microsoft.com/assessments/browse/)
 lists 56 published assessments; of those, an owner-decided set of **14** are
 Scout's build targets for the next several releases — chosen because Scout
 already collects data for most of them, or is uniquely positioned to score
@@ -79,7 +300,7 @@ them (Azure Local, in particular — see below).
 | # | Target | Scout's starting position |
 |---|---|---|
 | 1 | Azure Well-Architected Review | `waf.*` rule files exist, tagged by pillar — **~15% solid coverage** against the WAF checklist's ~26 machine-assessable items |
-| 2 | Azure Landing Zone Review | `LandingZone` already aims at this — **~10%** of CAF's ~365 verified design-area recommendations |
+| 2 | Azure Landing Zone Review | `CAF: Azure Landing Zone` already aims at this — **~10%** of CAF's ~365 verified design-area recommendations |
 | 3 | Azure Local \| Well-Architected Review | **Scout's strongest differentiator** — 16 Hybrid collectors, no WAF-shaped rule output yet |
 | 4 | WAF AI workload | AI is Scout's best-inventoried category; rules are thin (`caf.ai`, 5 rules) |
 | 5 | WAF Azure Virtual Desktop workload | 7 AVD collectors exist; no AVD-specific rule file |
@@ -216,7 +437,7 @@ branch through its own duplicate discovery.
 Live-verified: 5:37, 136 resources, 481 Excel rows, zero leftover background jobs, zero collector
 failures.
 
-Full detail: [CHANGELOG.md § 2.11.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2110---2026-07-26).
+Full detail: [CHANGELOG.md § 2.11.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#2110---2026-07-26).
 
 ## Previous Release — v2.10.0 — The Declarative Collectors Actually Run
 
@@ -253,7 +474,7 @@ each collector's `.ps1` reporting branch through its own duplicate discovery, so
 
 Live-verified: 6:37, 136 resources, 481 Excel rows, 43 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.10.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#2100---2026-07-26).
+Full detail: [CHANGELOG.md § 2.10.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#2100---2026-07-26).
 
 ## Previous Release — v2.9.0 — The Collectors Become Data, and the Module Runs Strict
 
@@ -295,7 +516,7 @@ StrictMode passes, 146 emit zero rows because the capture covers only 32 resourc
 
 Live-verified: 4:52, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.9.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#290---2026-07-26).
+Full detail: [CHANGELOG.md § 2.9.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#290---2026-07-26).
 
 ## Previous Release — v2.8.0 — Collection Actually Happens Once
 
@@ -343,7 +564,7 @@ v1 implementations for ARM REST, VM quota/SKU and Cost Management.
 
 Live-verified: 5:11, 124 resources, 438 Excel rows, 42 worksheets, zero leftover background jobs.
 
-Full detail: [CHANGELOG.md § 2.8.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#280---2026-07-26).
+Full detail: [CHANGELOG.md § 2.8.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#280---2026-07-26).
 
 ## Previous Release — v2.7.0 — Reporting Leaves `Modules/`, and Collectors Become Data
 
@@ -382,7 +603,7 @@ fired on the default path. The subscription list was never derived from `resourc
 every later table degraded to a single un-batched tenant-wide call with none of the documented
 per-batch isolation. Same `@($null).Count` class as the empty-Excel-loop bug fixed in v2.6.0.
 
-Full detail: [CHANGELOG.md § 2.7.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#270---2026-07-26).
+Full detail: [CHANGELOG.md § 2.7.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#270---2026-07-26).
 
 ## Previous Release — v2.6.0 — The Engine Stops Using Background Jobs
 
@@ -423,7 +644,7 @@ machinery are **deleted**; the run orchestration starts no background jobs.
 - The Excel report loop invoked every collector whether or not it had data, because it counted
   rows with `@($SmaResources).count` and **`@($null).Count` is 1, not 0**.
 
-Full detail: [CHANGELOG.md § 2.6.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#260---2026-07-25).
+Full detail: [CHANGELOG.md § 2.6.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#260---2026-07-25).
 
 ## Previous Release — v2.5.3 — Empty Is Not Null, and Runs That Explain Themselves
 
@@ -452,7 +673,7 @@ on failure — the full error record including the failing script, line number a
 trace. `scout-console.log` carries the transcript. It paid for itself during this release: two of
 the four defects above were found by reading the log rather than by re-running with `-Debug`.
 
-Full detail: [CHANGELOG.md § 2.5.3](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.3](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#253---2026-07-25).
 
 ## Earlier Release — v2.5.2 — Determinism
 
@@ -471,7 +692,7 @@ Verified by **three consecutive live runs producing byte-identical results**: 22
 994 Excel rows, 40 Power BI files / 1013 rows, 166 Azure DevOps resources, 0 empty-category
 warnings, 0 raw COM errors.
 
-Full detail: [CHANGELOG.md § 2.5.2](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.2](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#252---2026-07-25).
 
 ## Earlier Release — v2.5.1 — Live-Run Hardening
 
@@ -490,7 +711,7 @@ against real collector output. This release also carries the first live-tenant v
 `-IncludeDevOps` collectors — 166 resources across 74 projects — which previously had only mocked
 tests.
 
-Full detail: [CHANGELOG.md § 2.5.1](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#251---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.1](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#251---2026-07-25).
 
 ## Previous Release — v2.5.0 — One Collection Pass
 
@@ -502,7 +723,7 @@ from those rows rather than re-issuing its own Resource Graph pack over the same
 One query still goes to Azure in a combined run — the Defender for SQL pricing lookup, which
 reads a table the inventory does not collect. The assessment-only path is unchanged.
 
-Full detail: [CHANGELOG.md § 2.5.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#250---2026-07-25).
+Full detail: [CHANGELOG.md § 2.5.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#250---2026-07-25).
 
 ## Previous Release — v2.4.0 — One Command, and a Guided Wizard
 
@@ -516,7 +737,7 @@ Released 25 July 2026, published to the PowerShell Gallery.
 | Assessment entry point | The former standalone assessment command is removed in v3.0.0; use `Invoke-AzureScout -Assessment` |
 | Documentation | Corrected pages claiming a PowerShell 5.1 floor the module never had, and collapsed the "Inventory vs Assessment" framing across the site |
 
-Full detail: [CHANGELOG.md § 2.4.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
+Full detail: [CHANGELOG.md § 2.4.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#240---2026-07-25).
 
 ::: tip Resolved in v2.5.0
 The duplicate collection pass described here was collapsed in v2.5.0 (AB#5543) — a combined run
@@ -536,7 +757,7 @@ epic and the external-platform integrations.
 | Reliability | Subscription context restored in a `finally` at all five `Set-AzContext` sites (AB#368); post-login management group access probe naming the role to assign (AB#351) |
 | Documentation | [Category Reference](../reference/category-reference.md) (AB#318/5417) and [Validation Matrix](../reference/validation-matrix.md) (AB#315) |
 
-Full detail: [CHANGELOG.md § 2.3.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#230---2026-07-25).
+Full detail: [CHANGELOG.md § 2.3.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#230---2026-07-25).
 
 ## v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
 
@@ -552,7 +773,7 @@ functions, deeper collector coverage, and a round of platform hardening on top o
 | Config | `Import-ScoutConfig` / `Export-ScoutConfig` (AB#373–375) — save/reload a benchmark + rule-selection + threshold-override config as JSON, with a safe fallback to the built-in default |
 | Platform | CI pipeline (AB#317); a real, non-simulated `azure-inventory` workflow (AB#340); module auto-update check (AB#369); login auth banner (AB#349); five v1 inventory bug fixes (AB#335–340); draw.io merge/StrictMode repairs (AB#342); documented Entra Graph delegated scopes (AB#347/338) |
 
-Full detail: [CHANGELOG.md § 2.2.0](https://github.com/thisismydemo/azure-scout/blob/main/CHANGELOG.md#220---2026-07-24).
+Full detail: [CHANGELOG.md § 2.2.0](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CHANGELOG.md#220---2026-07-24).
 
 ## v2.1.0 — Platform Hardening
 
@@ -645,14 +866,15 @@ Focus: depth, breadth, and multi-tenant scenarios.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. The run-isolation prerequisite shipped in v2.3.0 (AB#331). | :bulb: Idea (AB#323) |
+| Enterprise direct-access tenant scanning | `-AllAccessibleTenants` enumerates every tenant the signed-in user can reach, while multiple `-TenantID` values select a subset. One umbrella run contains a root React overview and isolated per-tenant reports; one tenant failure does not block the others. This deliberately does not use Lighthouse. | :construction: Implemented for next release (AB#332, AB#7105) |
+| Azure Lighthouse delegated scanning | Discover and collect customer subscriptions delegated through Azure Lighthouse without switching the operator into each customer tenant. This remains a separate access model and backlog hierarchy. | :bulb: Idea (AB#323) |
 | Word document export (#22) | Shipped as `-OutputFormat Word` in assessment mode: `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
 | PDF report export (#23) | Shipped as `-OutputFormat Pdf` in assessment mode: `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
 | Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |
 | Bicep / IaC gap detection | Shipped as the offline `Get-ScoutIacGap` function (v2.2.0) — compares discovered resources against a folder of Bicep/ARM-JSON templates and flags unmanaged resources; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#325) |
 | Resource drift reporting | Shipped as the offline `Get-ScoutInventoryDrift` function (v2.2.0) — compares the current `collect.json` against the previous run's snapshot and reports Added/Removed/Changed resources. | :white_check_mark: Done (v2.2.0, AB#326) |
 | Azure DevOps integration | Shipped as `-IncludeDevOps` (v2.3.0) — inventories projects, pipelines, service connections, repositories, and agent pools across one or more organizations, adding five worksheets. Authentication reuses the current Azure sign-in; `-DevOpsPat` covers a separate identity. The ADO Service Connections sheet cross-references each ARM connection against the subscriptions in scope. | :white_check_mark: Done (v2.3.0, AB#327) |
-| GitHub Actions module | Shipped as a composite `action.yml` at the repository root (v2.3.0) — `uses: thisismydemo/azure-scout@v2` installs the module, authenticates, collects, and uploads reports as an artifact. | :white_check_mark: Done (v2.3.0, AB#328) |
+| GitHub Actions module | Shipped as a composite `action.yml` at the repository root (v2.3.0) — `uses: Hybrid-Solutions-Cloud/azure-scout@v2` installs the module, authenticates, collects, and uploads reports as an artifact. | :white_check_mark: Done (v2.3.0, AB#328) |
 | Azure Automation Account | Shipped as first-class unattended execution (v2.3.0) — the eight-step setup guide now exists, plus fixes for the blob-upload collision on a second scheduled run and the diagnostic log that never uploaded. | :white_check_mark: Done (v2.3.0, AB#343) |
 | Fabric / Power BI export (#17) | `-OutputFormat PowerBI` generates a flat normalized CSV bundle (`PowerBI/` folder) with `_metadata.csv`, `Subscriptions.csv`, per-module `Resources_*.csv` and `Entra_*.csv` files, and a `_relationships.json` star-schema manifest for Power BI Desktop / Microsoft Fabric | :white_check_mark: Done |
 | IoT deep coverage | Shipped in the assessment Collect layer (v2.2.0) — `Invoke-Collect` gains Device Provisioning Service and Azure Digital Twins queries; new `caf.iot` rules score them. | :white_check_mark: Done (v2.2.0, AB#330) |
@@ -675,7 +897,7 @@ Turned inventory into a **scored CAF/WAF landing-zone assessment**. Collection s
 
 Three more Epic AB#5023 capabilities shipped ahead of the full per-domain
 analytics epic below. Tagged and released as `v2.1.0` — see
-[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+[`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md)
 for the build ledger.
 
 | Capability | Description | Status |
@@ -691,7 +913,7 @@ analysis functions shipped in v2.2.0 next.
 ## Major — v2.2.0 — Report Tiers, Deeper Analytics, Hardened Collectors
 
 Delivered on `main` — not yet tagged/published, see
-[`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md)
+[`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md)
 for cut status.
 
 | Capability | Description | Status |
@@ -722,7 +944,7 @@ Focus: extend CAF/WAF analytics to **every** Scout category, not just the landin
 | Per-category coverage | CAF/WAF rule coverage authored for each category — Management, Monitor, Networking, Identity, Security, Compute, Storage, Databases, Containers, Web, Analytics, AI, Integration, Hybrid, IoT | :blue_circle: Planned (AB#5061–AB#5075) |
 | Registry document | A table of every possible assessment: category, sub-bundles, CAF areas, WAF pillars, tags | :blue_circle: Planned (AB#5057) |
 
-See [`RELEASES.md`](https://github.com/thisismydemo/azure-scout/blob/main/RELEASES.md) for the build/release ledger.
+See [`RELEASES.md`](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/RELEASES.md) for the build/release ledger.
 
 ## Far-future — Web version of Azure Scout (Epic AB#5093)
 
@@ -769,7 +991,7 @@ static/React reports) *and* the web portal. Same capability, per-surface deliver
 - **Collector / pipeline resilience** (shared engine): per-subscription try/catch/continue, MG
   role-requirement hint, false RP-registration-error swallow, per-group firewall-parse-error
   logging, empty-data guard, pipeline-`HadErrors` warning capture (AB#397–402).
-- **Live-progress UX** — same feature, per-surface delivery: Spectre.Console TUI in the CLI,
+- **Live-progress UX** — same feature, per-surface delivery: AzureScout's native TUI in the CLI,
   browser progress in the web portal (AB#405).
 
 ## Long-term Vision
@@ -806,7 +1028,7 @@ See the [Changelog](./changelog.md) for the full history.
 
 ## Suggest a Feature
 
-Open an issue at [github.com/thisismydemo/azure-scout/issues](https://github.com/thisismydemo/azure-scout/issues) with the label `enhancement`.
+Open an issue at [github.com/Hybrid-Solutions-Cloud/azure-scout/issues](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues) with the label `enhancement`.
 
 Pull requests are welcome — see [Contributing](./contributing.md) for guidelines.
 

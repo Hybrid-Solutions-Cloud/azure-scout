@@ -7,8 +7,8 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/thisismydemo/azure-scout/.claude/hooks/block-secrets.ps1" },
-          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/thisismydemo/azure-scout/.claude/hooks/validate-path.ps1" }
+          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/hybrid-solutions-cloud/azure-scout/.claude/hooks/block-secrets.ps1" },
+          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/hybrid-solutions-cloud/azure-scout/.claude/hooks/validate-path.ps1" }
         ]
       }
     ],
@@ -16,14 +16,14 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/thisismydemo/azure-scout/.claude/hooks/log-tokens.ps1" }
+          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/hybrid-solutions-cloud/azure-scout/.claude/hooks/log-tokens.ps1" }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/thisismydemo/azure-scout/.claude/hooks/summarize-session.ps1" }
+          { "type": "command", "command": "pwsh -NonInteractive -File D:/git/hybrid-solutions-cloud/azure-scout/.claude/hooks/summarize-session.ps1" }
         ]
       }
     ]
@@ -47,7 +47,7 @@
       "Bash(az:*)",
       "Bash(pwsh -NoProfile -Command:*)",
       "Bash(pwsh -NoProfile -File:*)",
-      "Read(//d/git/thisismydemo/azure-scout/**)",
+      "Read(//d/git/hybrid-solutions-cloud/azure-scout/**)",
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",

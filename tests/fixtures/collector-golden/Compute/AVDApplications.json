@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "AVDApplications",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "aa18793f47f540f92ff8475c80e3cdf8c12d9024112002190eb908b46fe52c4b",
+  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
   "Rows": [
     "App Alias=s:res-value|App Group Name=s:avdapplications-t1a-parent|Application Name=s:avdapplications-t1a|Command Line Arguments=s:res-value|Command Line Setting=s:res-value|Description=s:res-value|Executable Path=s:res-value|Friendly Name=s:res-value|Icon Path=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Show In Portal=s:No|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
     "App Alias=s:res-value|App Group Name=s:avdapplications-t1b-parent|Application Name=s:avdapplications-t1b|Command Line Arguments=s:res-value|Command Line Setting=s:res-value|Description=s:res-value|Executable Path=s:res-value|Friendly Name=s:res-value|Icon Path=s:res-value|Resource Group=s:rg-fixture-01|Resource U=j:1|Show In Portal=s:No|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",

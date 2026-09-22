@@ -8,7 +8,7 @@ AzureScout ships a composite action, so a workflow can produce an inventory repo
 installing PowerShell modules by hand or checking anything out.
 
 ```yaml
-- uses: thisismydemo/azure-scout@v2
+- uses: Hybrid-Solutions-Cloud/azure-scout@v2
   with:
     tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
     client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -53,7 +53,7 @@ jobs:
   inventory:
     runs-on: ubuntu-latest
     steps:
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -73,11 +73,11 @@ jobs:
 | `subscription-id` | `''` | Single subscription to scan; blank scans all readable subscriptions |
 | `scope` | `ArmOnly` | `ArmOnly`, `EntraOnly`, or `All` |
 | `category` | `''` | Comma-separated category filter, e.g. `Compute,Networking` |
-| `output-format` | `All` | `All`, `Excel`, `Json`, `Markdown`, `AsciiDoc`, or `PowerBI` |
+| `output-format` | `All` | `All`, `React`, `Json`, or `JsonEvidence`; `All` selects the three live formats |
 | `report-name` | `AzureScout` | Report file name prefix |
 | `report-dir` | `azure-scout-reports` | Output directory, relative to the workspace |
 | `module-version` | `''` | Pin a PSGallery version; blank installs the latest |
-| `lite` | `true` | Skip Excel chart customization — see the note below |
+| `lite` | `true` | Legacy compatibility input for the held Excel renderer; no effect on live React/JSON outputs |
 | `include-costs` | `false` | Collect cost data. Needs `Reader` plus the EA *"AO view charges"* / MCA *"Azure charges"* billing setting — **not** `Cost Management Reader`, which is redundant against `Reader` and cannot unlock the billing gate |
 | `upload-artifact` | `true` | Upload the report directory as an artifact |
 | `artifact-name` | `azure-scout-reports` | Artifact name |
@@ -94,7 +94,7 @@ context established by an earlier step, such as an OIDC login via `azure/login`.
 | `report-count` | Number of report files generated |
 
 ```yaml
-- uses: thisismydemo/azure-scout@v2
+- uses: Hybrid-Solutions-Cloud/azure-scout@v2
   id: scout
   with:
     tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
@@ -106,12 +106,10 @@ context established by an earlier step, such as an OIDC login via `azure/login`.
   run: exit 1
 ```
 
-::: tip `lite: false` is safe on hosted runners since v2.7.0
-Excel chart customization used to drive Excel itself through COM automation, so it failed on
-any runner without a local Excel install — which is every GitHub-hosted runner, Windows
-included. AB#5665 deleted that COM path: chart, shape and tab styling now runs on
-EPPlus/ImportExcel (`Build-AZSCExcelChartStyle`) against the already-open workbook, with no
-Excel host at all. `lite: false` no longer fails at the chart step on a hosted runner.
+::: info `lite` is retained for compatibility
+The Excel renderer is on hold, so `lite` does not affect a live React/JSON output. Its retained
+implementation no longer uses Excel COM; internal compatibility tests run through
+EPPlus/ImportExcel (`Build-AZSCExcelChartStyle`) without an installed Excel application.
 :::
 
 ## Narrowing a scan by category
@@ -119,7 +117,7 @@ Excel host at all. `lite: false` no longer fails at the chart step on a hosted r
 A full tenant scan is expensive. Split it or narrow it:
 
 ```yaml
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -146,7 +144,7 @@ jobs:
           - 'Identity,Security,Management'
           - 'Hybrid,Monitor,Integration'
     steps:
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}
           client-id:     ${{ secrets.AZURE_CLIENT_ID }}
@@ -162,7 +160,7 @@ Give each matrix leg a distinct `artifact-name`; identical names collide on uplo
 The action leaves reports in the workspace, so any upload step can pick them up:
 
 ```yaml
-      - uses: thisismydemo/azure-scout@v2
+      - uses: Hybrid-Solutions-Cloud/azure-scout@v2
         id: scout
         with:
           tenant-id:     ${{ secrets.AZURE_TENANT_ID }}

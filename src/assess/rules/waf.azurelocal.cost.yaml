@@ -7,13 +7,19 @@ verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-0
 # Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one of
 # five separate per-pillar files.
 #
-# EVERY rule in this file is manual. Two items (CO-01/CO-02) are genuinely organisational or
-# pre-deployment and were never candidates for automation (the checklist marks both
-# Unanswerable). The remaining four (CO-03/04/05/06) name fields -- Azure Hybrid Benefit attach
-# state, Update Manager cost, and Hybrid/ArcKubernetes presence -- that are Excel-inventory-only
+# Two items (CO-01/CO-02) are genuinely organisational or pre-deployment and were never
+# candidates for automation (the checklist marks both Unanswerable). CO-05/CO-06 name fields --
+# Update Manager cost and Hybrid/ArcKubernetes presence -- that are Excel-inventory-only
 # collectors not yet wired into collect.json's canonical `domains.*` contract this rule file
 # queries; inventing a query against a path that does not exist there is the exact trap this
-# epic exists to avoid.
+# epic exists to avoid. CO-03/CO-04 (Azure Hybrid Benefit / Software Assurance) were themselves
+# in that same gap until AB#7093 added domains.hybrid.azureLocalClusters[].softwareAssuranceStatus
+# (properties.softwareAssuranceProperties.softwareAssuranceStatus, the documented ARM field --
+# learn.microsoft.com/azure/templates/microsoft.azurestackhci/clusters) to both the live ARG
+# query and the -FromInventory conversion path; both now score automatically.
+requires:
+  - path: "$.domains.hybrid.azureLocalClusters[*]"
+    description: "Azure Local clusters (Hybrid/Clusters)"
 rules:
   - id: WAF-AZLOCAL-CO-01
     title: "Realistic costs are estimated as part of cost modeling"
@@ -34,18 +40,23 @@ rules:
   - id: WAF-AZLOCAL-CO-03
     title: "Licensing costs are optimized (Azure Hybrid Benefit)"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-AZLOCAL-CO-03. domains.hybrid.azureLocalVirtualMachineInstances (added AB#6803, populated only with -IncludeAzureLocalArm) does not yet carry a license-type field, and cluster-level Hybrid Benefit attach state is not collected. Confirm Azure Hybrid Benefit attachment manually."
-    manual: true
+    # AB#7093: Software Assurance is the licensing vehicle Azure Hybrid Benefit for Azure Local
+    # rides on -- a cluster with no Software Assurance intent set (null/empty) has not attached
+    # the benefit. Named in Evidence by resourceGroup/name.
+    query: "$.domains.hybrid.azureLocalClusters[?(@.softwareAssuranceStatus == null || @.softwareAssuranceStatus == '' || @.softwareAssuranceStatus == 'Disabled')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "WAF-AZLOCAL-CO-03. One or more Azure Local clusters has no Software Assurance benefit attached (domains.hybrid.azureLocalClusters[].softwareAssuranceStatus is null/empty/'Disabled'), so Azure Hybrid Benefit licensing savings are not being realised. Enable Software Assurance / Azure Hybrid Benefit for eligible clusters."
+    manual: false
 
   - id: WAF-AZLOCAL-CO-04
     title: "Environment costs are saved (Hybrid Benefit, promotional/trial offers)"
     severity: low
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-AZLOCAL-CO-04. Same gap as CO-03. Confirm manually."
-    manual: true
+    # Same signal as CO-03, scored as a percentage across the estate rather than a hard fail --
+    # a tenant partway through a Software Assurance rollout should read as partial, not zero.
+    query: "$.domains.hybrid.azureLocalClusters[?(@.softwareAssuranceStatus == 'Enabled')]"
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.domains.hybrid.azureLocalClusters[*]" }
+    remediation: "WAF-AZLOCAL-CO-04. Fewer than 80% of Azure Local clusters have Software Assurance / Azure Hybrid Benefit enabled (domains.hybrid.azureLocalClusters[].softwareAssuranceStatus). Promotional/trial offers are not a collected field -- confirm those separately."
+    manual: false
 
   - id: WAF-AZLOCAL-CO-05
     title: "Operational costs are saved (Update Manager, right-sized observability retention)"
