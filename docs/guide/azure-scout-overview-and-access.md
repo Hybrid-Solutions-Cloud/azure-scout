@@ -143,16 +143,39 @@ knowing before you read its output:
 - **`[FAIL] … DENIED — N collectors will be empty`** — a real gap. Granting it fills those
   collectors; leaving it means those findings are reported as *not assessed*.
 
-### About `IdentityRiskyUser.Read.All`
+---
 
-This is the one most often seen as a `[FAIL]`. Two things have to be true for it to return data:
+## 4a. What licence tier affects — and what it does not
 
-1. The application permission is granted **and admin-consented**, and
-2. the tenant is licensed for **Entra ID P2** — Identity Protection is a P2 feature.
+**Scout runs, and produces its full report, on a tenant with no premium Entra licence at all.**
+Licensing changes how much of the *identity* picture can be filled in; it changes nothing about
+the Azure resource inventory or the CAF/WAF assessment, which are control-plane reads.
 
-With consent but no P2, the API returns an empty result and Scout reports `Identity/RiskyUsers`
-as not assessed. That is the correct outcome, not a failure to fix: it is a licensing boundary,
-and the report says so rather than implying no users are risky.
+Scout detects the tenant's licence itself (from `subscribedSkus`) and reports a licence-gated
+feature as **not licensed — reported as Not assessed**, not as a permission failure. You will not
+be told to grant a permission that cannot help.
+
+| Feature | Needs | Without it |
+|---|---|---|
+| Resource inventory, CAF/WAF assessment, policy and compliance state, Defender findings | **Nothing** — Azure RBAC only | Full coverage |
+| Users, groups, apps, service principals, directory roles, domains, administrative units | **Entra ID Free** | Full coverage |
+| Conditional Access policies, named locations, cross-tenant access | **Entra ID P1** | Reported as *Not assessed*. Conditional Access does not exist to read on a Free tenant |
+| **Risky users / Identity Protection** (`IdentityRiskyUser.Read.All`) | **Entra ID P2** | `Identity/RiskyUsers` reported as *Not assessed*. **Granting the permission does not help** — the endpoint returns nothing without P2 |
+| PIM eligibility and activation (`PrivilegedAccess.Read.AzureResources`) | **Entra ID P2** | Reported as *Not assessed*; standing role assignments are still read |
+
+### Reading the permission audit
+
+Three verdicts, and they mean different things:
+
+| Verdict | Meaning | Action |
+|---|---|---|
+| `[FAIL] … DENIED — N collectors will be empty` | A real gap. The permission is missing and granting it fixes the coverage | Grant it |
+| `[WARN] … NOT LICENSED — requires <product>` | A licence boundary, not a misconfiguration | **None**, unless you intend to buy that tier. Granting the permission will not populate it |
+| `[WARN] … queried but NO collector reads the result. Do not grant it.` | Scout asks for something nothing consumes | **Do not grant it** |
+
+In every case the affected findings are reported as **Not assessed** and named in the report —
+never as a pass, never as a zero, and never silently omitted. A gap you chose not to fund still
+appears as a gap.
 
 ### Security data
 
@@ -217,3 +240,15 @@ report rather than hidden as a pass.
 **How long do you need the access?** Only for the collection run. The collected data can be banked
 once and all reporting done offline afterwards, so access can be revoked as soon as collection
 finishes.
+
+**Do we need Entra ID P1 or P2?** No. Scout runs and reports on a tenant with no premium licence.
+P1 and P2 add identity coverage — Conditional Access and Identity Protection respectively — and
+without them those specific findings are reported as *Not assessed* rather than failing the run.
+See section 4a.
+
+**Advisor recommendations are missing for one subscription.** Azure Advisor needs the
+`Microsoft.Advisor` resource provider registered on each subscription, and it produces nothing
+until it has assessed one. Scout skips that subscription, names it, and carries on — the other
+subscriptions are unaffected. To include it:
+`Register-AzResourceProvider -ProviderNamespace Microsoft.Advisor`. To omit Advisor entirely,
+run with `-SkipAdvisory`.
