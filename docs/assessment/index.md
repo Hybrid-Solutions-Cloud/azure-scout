@@ -14,7 +14,7 @@ scores, a prioritised gap list, and evidence for every finding.
 |---|---|
 | [Assessment platform](./assessment.md) | Architecture, the collect → ingest → assess → report flow, run modes, the registry, and scoring |
 | [Analysis features](./analysis-features.md) | Cross-run drift, cost anomaly detection, IaC gap detection, IoT deep coverage |
-| [Configuration and report tiers](./configuration.md) | Saving and loading a config, and what each output tier produces |
+| [Configuration and report tiers](./configuration.md) | Saving/loading config, the three live outputs, and held legacy renderers |
 | [Prerequisites](./assessment-prerequisites.md) | What assessment mode needs beyond a normal inventory run |
 | [Auth and permissions per scan type](./assessment-permissions.md) | The minimum RBAC and Graph permissions each assessment needs |
 

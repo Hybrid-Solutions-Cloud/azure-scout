@@ -30,14 +30,14 @@ $ResUCount = 1
                 $SubscriptionName = if ($sub1) { @($sub1)[0].Name } else { $null }
                 $data = $1.PROPERTIES
                 $Retired = $Retirements | Where-Object { $_.id -eq $1.id }
-                if ($Retired) 
+                if ($Retired)
                     {
                         $RetiredFeature = foreach ($Retire in $Retired)
                             {
                                 $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                 $tmp0 = [pscustomobject]@{
                                         'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                        'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                        'RetiredDate'               = $RetiredServiceID.RetirementDate
                                     }
                                 $tmp0
                             }
@@ -49,7 +49,7 @@ $ResUCount = 1
                         $RetiringDate = [string]$RetiringDate
                         $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                     }
-                else 
+                else
                     {
                         $RetiringFeature = $null
                         $RetiringDate = $null

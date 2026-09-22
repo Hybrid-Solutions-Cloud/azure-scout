@@ -3,10 +3,19 @@
 **Status:** normative. This document is the **definition of done** for every item under Epic
 AB#6450.
 **Work item:** Feature AB#6887; the test is Story AB#6888.
-**Enforced by:** `tests/Report.Conformance.Tests.ps1` (not yet written — Story AB#6888).
+**Enforced by:** `tests/Report.Conformance.Tests.ps1` — written, and green on the clauses below
+marked `automatic` except where a row says otherwise. It emits a package from a synthetic fixture
+and reads the OpenXML / project files back off disk, so a renderer cannot pass a clause by
+claiming to satisfy it.
 **Derived from:** `pmo/research/R4-reference-deliverable-teardown.md` in the repository. Not
 linked: `/pmo` holds internal programme records and is deliberately not published to this site,
 so a relative link out of `docs/` is a dead link at build time.
+
+::: warning Legacy clauses are not live output promises
+React is the only live document renderer; Json and JsonEvidence are the live data outputs. The
+Excel, Power BI, PowerPoint, Word, PDF, standalone HTML, ECharts, and governance clauses below are
+quality gates for held implementations and rebuild work, not formats emitted by a current run.
+:::
 
 ---
 
@@ -108,6 +117,34 @@ and no live data — the test emits a report from a fixture and reads the OpenXM
 | `R-04` | Every renderer consumes the same derived report model. No renderer re-derives findings. | automatic |
 
 ---
+
+## Where the bar stands today
+
+Recorded honestly rather than optimistically, because a bar that reports itself as met is the
+failure this document exists to prevent.
+
+| State | Clauses |
+|---|---|
+| **Asserted and passing** | `W-01`–`W-13`, `W-17`; `P-01`–`P-05`; `X-01`–`X-05`; `D-01`–`D-03`; `B-01`–`B-05`; `R-04` |
+| **Asserted elsewhere** | `R-01`, `R-02`, `R-03` — `tests/Report.PerAssessmentContract.Tests.ps1` |
+| **Judged, never automatic** | `W-14`, `W-15`, `W-16`, `P-06` |
+
+Every `automatic` clause in this document is now asserted. The four `judged` ones are not
+oversights — they need a human reading the artefact beside the reference deliverable, and
+automating a proxy for them would recreate the false-green problem the bar exists to prevent.
+
+The `D` clauses were blocked on diagram rasterisation (`AB#6737`), and `W-12` behind them: a
+document cannot embed a figure the pipeline does not produce as an image. That is closed —
+`src/report/Build-ScoutFigure.ps1` rasterises to PNG in managed code, with no Graphviz, no
+headless browser and no `System.Drawing`, because a report that loses its figures on a machine
+missing a native binary is worse than one that never promised them.
+
+**One thing the Power BI clauses cannot prove here.** `B-01`–`B-05` are asserted against the
+emitted PBIP project's files — the TMDL parses as the shape it claims, the relationships name
+real columns, the report pages carry visuals whose configs deserialise. They do **not** prove
+Power BI Desktop opens it, because Desktop is not available on the CI runner or in the
+authoring environment. Opening the generated project in Desktop is an open verification step,
+not a closed one.
 
 ## Scope note — what the bar does not cover
 

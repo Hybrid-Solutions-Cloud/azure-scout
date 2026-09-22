@@ -35,11 +35,18 @@ $ResUCount = 1
 
             # Applications
             $appsIncluded = ''
+            $appsExcluded = ''
             if ($data.conditions.applications) {
                 if ($data.conditions.applications.includeApplications) {
                     $appsIncluded = ($data.conditions.applications.includeApplications -join ', ')
                 }
+                if ($data.conditions.applications.excludeApplications) {
+                    $appsExcluded = ($data.conditions.applications.excludeApplications -join ', ')
+                }
             }
+            $platforms = if ($data.conditions.platforms) { $data.conditions.platforms | ConvertTo-Json -Depth 20 -Compress } else { '' }
+            $locations = if ($data.conditions.locations) { $data.conditions.locations | ConvertTo-Json -Depth 20 -Compress } else { '' }
+            $conditionsJson = if ($data.conditions) { $data.conditions | ConvertTo-Json -Depth 30 -Compress } else { '' }
 
             # Grant controls
             $grantControls = ''
@@ -48,6 +55,7 @@ $ResUCount = 1
                     $grantControls = ($data.grantControls.builtInControls -join ', ')
                 }
             }
+            $grantControlsJson = if ($data.grantControls) { $data.grantControls | ConvertTo-Json -Depth 20 -Compress } else { '' }
 
             # Session controls
             $sessionControls = ''
@@ -59,6 +67,7 @@ $ResUCount = 1
                 if ($data.sessionControls.applicationEnforcedRestrictions) { $scParts += 'AppEnforcedRestrictions' }
                 $sessionControls = ($scParts -join ', ')
             }
+            $sessionControlsJson = if ($data.sessionControls) { $data.sessionControls | ConvertTo-Json -Depth 20 -Compress } else { '' }
 '@
 
     AdditionalRowLoops = @()
@@ -95,12 +104,36 @@ $ResUCount = 1
             Expression = '$appsIncluded'
         }
         @{
+            Name = 'Apps Excluded'
+            Expression = '$appsExcluded'
+        }
+        @{
+            Name = 'Platforms'
+            Expression = '$platforms'
+        }
+        @{
+            Name = 'Locations'
+            Expression = '$locations'
+        }
+        @{
             Name = 'Grant Controls'
             Expression = '$grantControls'
         }
         @{
+            Name = 'Grant Controls JSON'
+            Expression = '$grantControlsJson'
+        }
+        @{
             Name = 'Session Controls'
             Expression = '$sessionControls'
+        }
+        @{
+            Name = 'Session Controls JSON'
+            Expression = '$sessionControlsJson'
+        }
+        @{
+            Name = 'Conditions JSON'
+            Expression = '$conditionsJson'
         }
         @{
             Name = 'Created DateTime'
@@ -125,8 +158,14 @@ $ResUCount = 1
             'Users Included'
             'Users Excluded'
             'Apps Included'
+            'Apps Excluded'
+            'Platforms'
+            'Locations'
             'Grant Controls'
+            'Grant Controls JSON'
             'Session Controls'
+            'Session Controls JSON'
+            'Conditions JSON'
             'Created DateTime'
             'Modified DateTime'
             'Resource U'

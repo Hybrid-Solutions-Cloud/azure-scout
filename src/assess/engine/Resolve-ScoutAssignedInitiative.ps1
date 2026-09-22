@@ -39,7 +39,7 @@ $ErrorActionPreference = 'Stop'
 #>
 function Resolve-ScoutAssignedInitiative {
     [CmdletBinding()]
-    [OutputType([pscustomobject])]
+    [OutputType([System.Object[]])]
     param(
         [Parameter(Mandatory)] $Collect
     )

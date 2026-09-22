@@ -5,11 +5,9 @@ name: CI
 # Azure login, no secrets — live tenant runs are handled by
 # azure-inventory.yml (workflow_dispatch, service-principal auth).
 #
-# Runs on windows-latest for parity with the machines this module actually ships to; the
-# Excel report customization step no longer depends on a COM object (AB#5662/AB#5665
-# retired src/report/renderers/inventory/style/Build-AZSCExcelChartStyle.ps1's COM
-# predecessor in favour of EPPlus-native chart/shape styling), so this job could run
-# cross-platform if that ever becomes worth doing.
+# This public repository is excluded from the shared HCS runner group. Use an isolated hosted Linux runner (the ci-runners standard exception). The Excel report customization step no longer depends on
+# a COM object (AB#5662/AB#5665 retired its predecessor in favour of EPPlus-native
+# chart/shape styling), so the complete offline suite is cross-platform.
 
 on:
   push:
@@ -24,12 +22,22 @@ permissions:
 
 jobs:
   test-and-lint:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    env:
+      # PowerShell tests historically use $env:TEMP; minimal Linux containers generally
+      # expose TMPDIR only. Keep the test/runtime scratch contract platform-neutral.
+      TEMP: /tmp
+      TMP: /tmp
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Pester and PSScriptAnalyzer
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install test tools and module dependencies
         shell: pwsh
         run: |
           Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -37,15 +45,37 @@ jobs:
           Install-Module Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser -SkipPublisherCheck
           Write-Host 'Installing PSScriptAnalyzer...'
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          Write-Host 'Installing ImportExcel (Excel report tests exercise this dependency)...'
-          Install-Module ImportExcel -Force -Scope CurrentUser
-          # powershell-yaml is a hard #requires on six test files -- every one that loads a
-          # rule file through Get-RuleSet. Without it Pester fails at DISCOVERY, not at run
-          # time, so the affected files reported as errored rather than failed and the real
-          # cause ("the module cannot be found") was buried under a stack trace. It was never
-          # installed here, so those six have never actually run in CI.
-          Write-Host 'Installing powershell-yaml (the rule engine parses YAML rule files)...'
-          Install-Module powershell-yaml -Force -Scope CurrentUser
+
+          # Ephemeral HCS runners are deliberately clean. Install the dependencies declared by
+          # the module itself so source-tree imports and mocks resolve the same command surface
+          # as an Install-Module consumer. This includes ImportExcel, powershell-yaml, and every
+          # required Az module; reading the manifest prevents CI from drifting when that contract
+          # changes later.
+          $manifest = Import-PowerShellDataFile ./AzureScout.psd1
+          foreach ($requiredModule in @($manifest.RequiredModules)) {
+              $install = @{
+                  Force              = $true
+                  Scope              = 'CurrentUser'
+                  SkipPublisherCheck = $true
+              }
+              if ($requiredModule -is [string]) {
+                  $install.Name = $requiredModule
+              }
+              else {
+                  $install.Name = $requiredModule.ModuleName
+                  if ($requiredModule.RequiredVersion) {
+                      $install.RequiredVersion = $requiredModule.RequiredVersion
+                  }
+                  elseif ($requiredModule.ModuleVersion) {
+                      $install.MinimumVersion = $requiredModule.ModuleVersion
+                  }
+                  if ($requiredModule.MaximumVersion) {
+                      $install.MaximumVersion = $requiredModule.MaximumVersion
+                  }
+              }
+              Write-Host "Installing AzureScout dependency: $($install.Name)"
+              Install-Module @install
+          }
 
       - name: Validate declarative collector definitions
         shell: pwsh
@@ -65,6 +95,13 @@ jobs:
         run: |
           Import-Module Pester -RequiredVersion 5.7.1 -Force
 
+          # Get-AZSCGraphToken.Tests proves the module never falls back to Azure CLI. Pester
+          # can mock only a command that exists, so provide an inert command surface on the
+          # deliberately minimal HCS image. Any real invocation still fails the test loudly.
+          if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
+            function global:az { throw 'Azure CLI compatibility shim was invoked.' }
+          }
+
           $resultsDir = Join-Path $env:GITHUB_WORKSPACE 'test-results'
           New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
           $resultsPath = Join-Path $resultsDir 'pester-results.xml'
@@ -81,8 +118,8 @@ jobs:
 
           Write-Host "Pester: Total=$($result.TotalCount) Passed=$($result.PassedCount) Failed=$($result.FailedCount) Skipped=$($result.SkippedCount)"
 
-          if ($result.FailedCount -gt 0) {
-            Write-Host "::error::$($result.FailedCount) Pester test(s) failed."
+          if ($result.Result -ne 'Passed' -or $result.FailedContainersCount -gt 0 -or $result.TotalCount -eq 0) {
+            Write-Host "::error::Pester did not complete cleanly: Result=$($result.Result), FailedTests=$($result.FailedCount), FailedContainers=$($result.FailedContainersCount), Total=$($result.TotalCount)."
             exit 1
           }
 

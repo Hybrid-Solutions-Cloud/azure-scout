@@ -27,11 +27,21 @@ C:\AzureScout\
 ├── 2026-07-25_101500_12345678\      ← run folder: timestamp + short tenant ID
 │   ├── ReportCache\
 │   ├── DiagramCache\
-│   └── AzureScout_Report_<timestamp>.xlsx
+│   ├── AzureScout_Report_<timestamp>.json
+│   └── assessment-report\
+│       ├── report-react.html
+│       ├── evidence.json
+│       ├── collect.json
+│       └── findings.json
 └── 2026-07-25_143022_87654321\      ← a different tenant, untouched by the run above
     ├── ReportCache\
     ├── DiagramCache\
-    └── AzureScout_Report_<timestamp>.xlsx
+    ├── AzureScout_Report_<timestamp>.json
+    └── assessment-report\
+        ├── report-react.html
+        ├── evidence.json
+        ├── collect.json
+        └── findings.json
 ```
 
 Name the folder yourself with `-RunName` instead of taking the generated timestamp:
@@ -43,6 +53,41 @@ Invoke-AzureScout -TenantID '00000000-...' -RunName 'Production-TenantA'
 
 Invalid path characters in a `-RunName` are replaced with `-`.
 
+### Multi-tenant umbrella runs
+
+Direct-access enterprise scans create one root run with a self-contained overview and one isolated
+child run per tenant:
+
+```text
+C:\AzureScout\Enterprise-Portfolio\
+├── index.html
+├── report-react.html
+├── run-summary.json
+├── Contoso_11111111\
+│   ├── ReportCache\
+│   ├── DiagramCache\
+│   └── assessment-report\
+│       └── report-react.html
+└── Fabrikam_22222222\
+    ├── ReportCache\
+    ├── DiagramCache\
+    └── assessment-report\
+        └── report-react.html
+```
+
+The tenant ID suffix prevents two tenants with the same display name from sharing a directory.
+The root overview is rewritten atomically as tenants move from Pending to Running and then to
+Completed or Failed. A failed tenant remains visible with its error and does not block later tenants.
+
+```powershell
+Invoke-AzureScout -AllAccessibleTenants -RunName 'Enterprise-Portfolio'
+Invoke-AzureScout -TenantID '<tenant-a>','<tenant-b>' -RunName 'Selected-Tenants'
+```
+
+These commands use direct account access, not Azure Lighthouse. `-Force`, Automation managed
+identity, offline `-FromCollect`, permission-audit-only mode, and storage upload are not supported
+on the multi-tenant orchestration path in its first release.
+
 ### Writing in place with `-Force`
 
 `-Force` skips the run folder and writes straight into the base path, overwriting whatever was
@@ -51,7 +96,7 @@ fixed path:
 
 ```powershell
 Invoke-AzureScout -TenantID '00000000-...' -ReportDir 'D:\Reports' -Force
-# → D:\Reports\ReportCache\, D:\Reports\AzureScout_Report_<timestamp>.xlsx
+# → D:\Reports\ReportCache\, inventory JSON, and assessment-report\ with React/evidence files
 ```
 
 ### Pruning old runs
@@ -74,24 +119,46 @@ isolation has no lasting effect there — blob storage is the durable copy. See
 
 ## Generated Files
 
+::: danger One output contract in every run mode
+Inventory-only, assessment-only, and combined runs use the same live formats: `React`, `Json`,
+and `JsonEvidence`. `All` selects all three.
+
+The self-contained **React report** (`report-react.html`) carries inventory, evidence, and—when
+selected—assessment findings and the remediation plan. It exports to Markdown, JSON, CSV,
+PDF/Print, and standalone HTML from the page itself. Word, PDF, Excel, PowerPoint, Power BI,
+standalone HTML, ECharts dashboard, Markdown-file, AsciiDoc, and governance renderers are **on
+hold** (**AB#6922**) while they are rebuilt to generate *from* that report. `Json` and
+`JsonEvidence` are live data outputs, not document renderers.
+See [Report tiers](../assessment/configuration.md#report-tiers) and
+[the React report section contract](../reference/react-report-section-contract.md).
+:::
+
 | File | Format | Description |
 |------|--------|-------------|
-| `AzureScout_Report_<timestamp>.xlsx` | Excel | Interactive spreadsheet with all inventory data, charts, pivot tables, and conditional formatting |
-| `AzureScout_Report_<timestamp>.json` | JSON | Machine-readable inventory with `_metadata` envelope |
-| `AzureScout_Report_<timestamp>.md` | Markdown | GitHub-Flavored Markdown with pipe tables per module |
-| `AzureScout_Report_<timestamp>.adoc` | AsciiDoc | AsciiDoc document for Antora/Confluence rendering |
-| `PowerBI/` | CSV bundle | Flat normalized CSVs optimized for Power BI / Microsoft Fabric import (see [Power BI Export](#power-bi-export)) |
+| `assessment-report/report-react.html` | React/HTML | The supported self-contained document. Inventory-only runs use a neutral empty-findings envelope and show inventory/audit content; assessment runs add scored findings and remediation content. The console and final result summary print its exact path. |
+| `AzureScout_Report_<timestamp>.json` | JSON | The existing AzureScout inventory JSON/schema, selected with `Json` |
+| `assessment-report/evidence.json` | JSON | Resources-only canonical Collect data, including collection provenance and already-collected Entra rows, with no scores, rules, or findings; selected with `JsonEvidence` |
+| `assessment-report/collect.json` | JSON | Internal canonical Collect snapshot used to render the React/evidence outputs without another Azure or Graph query |
+| `assessment-report/findings.json` | JSON | Internal scored-findings envelope; neutral and empty for inventory-only runs |
 | `AzureScout_Diagram_<timestamp>.drawio` | Draw.io | Network topology diagram (skip with `-SkipDiagram`) |
-| `scout-run.log` | Log | Structured run log — phases, elapsed times, counts, warnings, and full error detail on failure. Written for every run, including failed ones. See [Troubleshooting](./troubleshooting.md#run-logs) |
+| `scout-run.log` | Log | Detailed structured log — DEBUG/VERBOSE extraction and processing subphases, collector/rule/renderer status, row/evidence counts, timings, warnings, and full error detail on failure. Written by default without adding console noise. See [Troubleshooting](./troubleshooting.md#run-logs) |
 | `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
 | `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
+| `ReportCache/Discovery.json` | JSON | One record per discovered resource, ARG/provider configuration, exposure evidence, generic ARM relationships, and detail status. Secret-valued fields are retained as present but their values are replaced with `[REDACTED]`. |
 | `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |
+| `collection-health.json` | JSON | Upstream dataset availability: Complete, Partial, Not assessed, or Unavailable |
 
 ## Evidence artifacts
 
-These two files exist to make a run auditable. Neither is written to `ReportCache`, so neither is
-removed by the cache cleanup that runs at the end of every scan — both survive for as long as the
-run folder does.
+These files exist to make a run auditable. Azure Scout retains `raw-inventory.json`,
+`ReportCache/Discovery.json`, `collector-rowcounts.json`, `collection-health.json`, every `ReportCache` JSON file, and the
+`DiagramCache` contents after the scan. They remain available for other tools and reporting for as
+long as the run folder exists. Cleanup is operator-controlled through
+`Clear-AZSCCacheFolder -OlderThan <days>`; a successful scan does not delete its own evidence.
+
+The discovery ledger and supported report payloads recursively redact password, token, shared-key,
+private-key, connection-string, access-key, and secure parameter values. Their field names remain
+visible so Scout can report that the configuration exists without writing the credential itself.
 
 ### `raw-inventory.json`
 
@@ -103,7 +170,7 @@ contains rows no report shows.
 
 ```json
 {
-  "Schema": "azure-scout/raw-inventory/v1",
+  "Schema": "azure-scout/raw-inventory/v2",
   "GeneratedAt": "2026-07-31T18:04:14.0000000Z",
   "Counts": { "Resources": 4812, "ResourceContainers": 37, "EntraResources": 1204, "...": 0 },
   "ResourceTypes": [
@@ -112,12 +179,22 @@ contains rows no report shows.
   ],
   "Resources": [ /* full rows, properties bag intact */ ],
   "ResourceContainers": [], "Advisories": [], "Security": [], "Retirements": [],
-  "EntraResources": [], "Quotas": [], "PolicyAssign": [], "PolicyDef": [], "PolicySetDef": []
+  "EntraResources": [], "Quotas": [], "PolicyAssign": [], "PolicyDef": [], "PolicySetDef": [],
+  "CollectionHealth": [],
+  "SourceOperations": [
+    { "Source": "Microsoft Graph", "Dataset": "Sign-ins (Last 30 Days)", "Operation": "GET", "Status": "Success", "Count": 1000 }
+  ],
+  "EntraQueryOutcomes": []
 }
 ```
 
 `ResourceTypes` is the quickest answer to *"what did the estate contain that no worksheet
 showed?"* — compare it against the types listed in [the category reference](../reference/category-reference.md).
+`SourceOperations` is the request ledger: source, dataset, operation/URI, status, row count,
+timestamps, and failure reason. Child-resource, Graph, billing, Defender, Sentinel, Okta, and local
+hybrid-identity reads append to the same ledger. A successful response is retained in the typed raw
+rows; an unavailable response remains visible in `SourceOperations` and `CollectionHealth` instead
+of being represented as a successful empty dataset. Credential values are never retained.
 
 ### `collector-rowcounts.json`
 
@@ -185,9 +262,10 @@ Compare-Object $a $b -Property Category, Collector, Rows, Verdict
 - `entra` — Entra ID objects grouped by type
 - `advisory` / `policy` / `security` / `quotas` — Cross-cutting data collected during the run
 
-## Excel Workbook Tabs
+## Held legacy renderer designs
 
-The Excel report contains the following tab groups (in order):
+The legacy Excel renderer is on hold and does not produce a workbook in a live run. Its retained
+implementation and tests describe these planned tab groups:
 
 1. **Overview** — Tenant metadata, resource summary, execution info
 2. **Cost Management** — Reservations, cost recommendations, spend analysis
@@ -201,31 +279,28 @@ The Excel report contains the following tab groups (in order):
 
 ## Output Format Control
 
-Use `-OutputFormat` to produce only the formats you need:
+Use `-OutputFormat` to select from the three live formats:
 
 ```powershell
-# JSON only — fastest, no Excel formatting overhead
+# Machine-readable run results only
 Invoke-AzureScout -TenantID '00000000-...' -OutputFormat Json
 
-# Excel only
-Invoke-AzureScout -TenantID '00000000-...' -OutputFormat Excel
+# Self-contained report only
+Invoke-AzureScout -TenantID '00000000-...' -OutputFormat React
 
-# Markdown only
-Invoke-AzureScout -TenantID '00000000-...' -OutputFormat Markdown
-
-# AsciiDoc only
-Invoke-AzureScout -TenantID '00000000-...' -OutputFormat AsciiDoc
-
-# Power BI CSV bundle only
-Invoke-AzureScout -TenantID '00000000-...' -OutputFormat PowerBI
-
-# All formats (default)
+# All live formats (default): React, Json, JsonEvidence
 Invoke-AzureScout -TenantID '00000000-...' -OutputFormat All
 ```
 
-## Power BI Export
+Legacy format names may remain accepted for script compatibility, but they are held and do not
+create those artifacts. Use the React report's export menu for Markdown, JSON, CSV, PDF/Print,
+and standalone HTML.
 
-When `-OutputFormat PowerBI` (or `All`) is used, AzureScout generates a `PowerBI/` subfolder alongside the main report containing flat normalized CSV files ready for direct import into Power BI Desktop or Microsoft Fabric.
+## Held Power BI renderer design
+
+The Power BI renderer is on hold and is not part of `All`. The retained implementation is designed
+to create a `PowerBI/` subfolder containing normalized CSV files for Power BI Desktop or Microsoft
+Fabric after the renderer is rebuilt from the React report model.
 
 ### Output Structure
 

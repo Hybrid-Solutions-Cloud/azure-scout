@@ -31,7 +31,9 @@ BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
     # Get-ScoutRawInventory's `Import-Module Az.ResourceGraph` must not pull the real module in.
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 }
 
 Describe 'AB#6755 — the inventory production splat (Start-AZSCGraphExtraction)' {
@@ -57,7 +59,9 @@ Describe 'AB#6755 — the inventory production splat (Start-AZSCGraphExtraction)
                 ApiResources = @([pscustomobject]@{ Subscription = 'sub-1' })
             }
         }
-        function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) $Subscriptions }
+        function Get-AZSCManagementGroups {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($ManagementGroup, $Subscriptions) $Subscriptions }
     }
 
     It 'has no parameter that can turn tenant-wide collection off' {
@@ -122,15 +126,20 @@ Describe 'AB#6755 / AB#6759 — the measured cost of the narrowed sweep' {
 
         $script:Uris = [System.Collections.Generic.List[string]]::new()
         function Get-AzAccessToken {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Synthetic fake-credential value used only to satisfy a SecureString-typed mock return in this test -- not a real secret.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             [pscustomobject]@{ Token = (ConvertTo-SecureString 'stub' -AsPlainText -Force) }
         }
         function Invoke-RestMethod {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest)
             $script:Uris.Add(($Rest -join ' '))
             [pscustomobject]@{ value = @() }
         }
-        function Start-Sleep { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+        function Start-Sleep {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
     }
 
     It 'issues eight calls per subscription for a full sweep and two for -DefinitionsOnly' {
@@ -170,15 +179,20 @@ Describe 'AB#6755 — Get-ScoutRawInventory returns the sweep it ran' {
     BeforeEach {
         . "$script:Root/src/collect/Get-ScoutRawInventory.ps1"
 
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
         function Get-AzContext { $null }
-        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
-        function Get-ScoutTenantWideResource { param([object[]] $ApiResources) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Root) @() }
+        function Get-ScoutTenantWideResource {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $ApiResources) @() }
     }
 
     It 'runs the sweep on an ordinary run, with no switch asked for' {
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
             @([pscustomobject]@{ Subscription = 'sub-1'; SkipPolicyWas = [bool]$SkipPolicy })
         }
 
@@ -191,7 +205,9 @@ Describe 'AB#6755 — Get-ScoutRawInventory returns the sweep it ran' {
 
     It 'forwards -SkipPolicy into the sweep' {
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([object[]] $Subscriptions, [string] $AzureEnvironment, [switch] $SkipPolicy, [switch] $DefinitionsOnly)
             @([pscustomobject]@{ Subscription = 'sub-1'; SkipPolicyWas = [bool]$SkipPolicy })
         }
 
@@ -205,7 +221,9 @@ Describe 'AB#6755 — Get-ScoutRawInventory returns the sweep it ran' {
         # only", and only the policy definitions come from the REST sweep. Management groups and
         # custom role definitions come from Az cmdlets, so skipping the sweep must cost the
         # policy halves and nothing else.
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'the sweep must not run under -SkipApiResourceSweep' }
+        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'the sweep must not run under -SkipApiResourceSweep' }
         $script:TenantWideRan = $false
         function Get-ScoutTenantWideResource {
             param([object[]] $ApiResources)
@@ -228,9 +246,12 @@ Describe 'AB#6755 — Get-ScoutRawInventory returns the sweep it ran' {
     It 'still collects management groups and custom roles when the sweep THROWS' {
         # Same guarantee, arrived at the other way. Folding the sweep and the envelopes into one
         # try block is how the management groups were lost the first time.
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'ARM is having a day' }
+        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) throw 'ARM is having a day' }
         function Get-ScoutTenantWideResource {
-            param([object[]] $ApiResources)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $ApiResources)
             @([pscustomobject]@{ type = 'AZSC/Management/ManagementGroup'; properties = @('root') })
         }
 

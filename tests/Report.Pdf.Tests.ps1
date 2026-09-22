@@ -26,11 +26,11 @@ BeforeAll {
     # multiple pages so the AB#394 header-repeat path actually exercises.
     $script:ManyFindings = 1..45 | ForEach-Object {
         $status = @('Pass', 'Fail', 'Partial')[$_ % 3]
-        New-PdfTestFinding "CAF-NET-$($_.ToString('00'))" 'CAF' 'Networking' $status 'medium'
+        New-PdfTestFinding -Id "CAF-NET-$($_.ToString('00'))" -Framework 'CAF' -Area 'Networking' -Status $status -Severity 'medium'
     }
     $script:ManyFindings += @(
-        (New-PdfTestFinding 'WAF-SEC-01' 'WAF' 'Security' 'Fail' 'high')
-        (New-PdfTestFinding 'WAF-SEC-02' 'WAF' 'Security' 'Manual')
+        (New-PdfTestFinding -Id 'WAF-SEC-01' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity 'high')
+        (New-PdfTestFinding -Id 'WAF-SEC-02' -Framework 'WAF' -Area 'Security' -Status 'Manual')
     )
     $script:Scored = Get-Score -Findings $script:ManyFindings
 
@@ -38,7 +38,7 @@ BeforeAll {
         _meta = [pscustomobject]@{ scope = 'ArmOnly'; managementGroupId = 'mg-test-01' }
     }
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'pdf'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
 
     # Reads the whole PDF as Latin-1 (ISO-8859-1) text -- a byte-for-byte
@@ -116,7 +116,7 @@ Describe 'Export-Pdf -- basic document structure AB#379/394/395' {
     }
 
     It 'is deterministic -- identical input renders byte-identical output' {
-        $repeatDir = Join-Path $script:Root 'tests' 'test-output' 'pdf-repeat'
+        $repeatDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-repeat'
         if (Test-Path $repeatDir) { Remove-Item $repeatDir -Recurse -Force }
         try {
             $repeatPath = Export-Pdf -Findings $script:Scored -Collect $script:Collect -OutputPath $repeatDir
@@ -132,7 +132,7 @@ Describe 'Export-Pdf -- basic document structure AB#379/394/395' {
 
 Describe 'Export-Pdf -- culture safety' {
     It 'never emits a comma decimal separator in content-stream numbers, even on a comma-decimal thread culture' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-culture'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-culture'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         $originalCulture = [System.Threading.Thread]::CurrentThread.CurrentCulture
         try {
@@ -163,30 +163,21 @@ Describe 'Export-Pdf -- AB#379 diagram embed' {
         # phase, so the condition would always see an unset value at
         # discovery). Checking availability inside the It body with
         # Set-ItResult -Skipped is the safe, well-documented alternative.
-        try {
-            Add-Type -AssemblyName System.Drawing.Common -ErrorAction Stop
-        }
-        catch {
-            Set-ItResult -Skipped -Because 'System.Drawing.Common is unavailable on this platform'
-            return
-        }
-
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-diagram'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-diagram'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            $bmp = [System.Drawing.Bitmap]::new(80, 40)
-            $g = [System.Drawing.Graphics]::FromImage($bmp)
-            $g.Clear([System.Drawing.Color]::CornflowerBlue)
-            $bmp.Save((Join-Path $dir 'diagram.jpg'), [System.Drawing.Imaging.ImageFormat]::Jpeg)
-            $g.Dispose(); $bmp.Dispose()
+            # A real 8x4 baseline JPEG fixture, embedded so this offline test does not require
+            # Windows-only System.Drawing support or a native GDI+ library on Linux runners.
+            $jpeg = [Convert]::FromBase64String('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAEAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDq6KKK/os/Kj//2Q==')
+            [IO.File]::WriteAllBytes((Join-Path -Path $dir -ChildPath 'diagram.jpg'), $jpeg)
 
             $path = Export-Pdf -Findings $script:Scored -Collect $script:Collect -OutputPath $dir
             $text = Get-PdfText -Path $path
             $text | Should -Match '/Filter /DCTDecode'
             $text | Should -Match '/Subtype /Image'
-            $text | Should -Match '/Width 80'
-            $text | Should -Match '/Height 40'
+            $text | Should -Match '/Width 8'
+            $text | Should -Match '/Height 4'
             $text | Should -Not -Match 'Architecture diagram not embedded'
         }
         finally {
@@ -195,11 +186,11 @@ Describe 'Export-Pdf -- AB#379 diagram embed' {
     }
 
     It 'skips a malformed diagram.jpg (not really a JPEG) without failing the whole render' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-bad-diagram'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-bad-diagram'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         try {
-            'this is not a jpeg' | Out-File (Join-Path $dir 'diagram.jpg') -Encoding ascii
+            'this is not a jpeg' | Out-File (Join-Path -Path $dir -ChildPath 'diagram.jpg') -Encoding ascii
             # Redirect the warning stream (3) into the success stream so both the
             # returned path (a [string]) and any [WarningRecord]s come back on one
             # pipeline -- more robust than -WarningVariable against a plain (non
@@ -223,31 +214,18 @@ Describe 'Get-ScoutPdfJpegInfo (unit)' {
         Get-ScoutPdfJpegInfo -Bytes ([byte[]]@(1, 2, 3, 4, 5)) | Should -BeNullOrEmpty
     }
 
-    It 'parses width/height/components out of a real baseline JPEG' -Skip:(-not (Get-Command -Name 'Add-Type' -ErrorAction SilentlyContinue)) {
-        try {
-            Add-Type -AssemblyName System.Drawing.Common -ErrorAction Stop
-        }
-        catch {
-            Set-ItResult -Skipped -Because 'System.Drawing.Common is unavailable on this platform'
-            return
-        }
-        $bmp = [System.Drawing.Bitmap]::new(64, 32)
-        $g = [System.Drawing.Graphics]::FromImage($bmp)
-        $g.Clear([System.Drawing.Color]::Red)
-        $ms = [System.IO.MemoryStream]::new()
-        $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Jpeg)
-        $g.Dispose(); $bmp.Dispose()
-
-        $info = Get-ScoutPdfJpegInfo -Bytes $ms.ToArray()
-        $info.Width | Should -Be 64
-        $info.Height | Should -Be 32
+    It 'parses width/height/components out of a real baseline JPEG' {
+        $jpeg = [Convert]::FromBase64String('/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAEAAgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDq6KKK/os/Kj//2Q==')
+        $info = Get-ScoutPdfJpegInfo -Bytes $jpeg
+        $info.Width | Should -Be 8
+        $info.Height | Should -Be 4
         $info.Components | Should -BeIn @(1, 3)
     }
 }
 
 Describe 'Export-Pdf -- edge cases' {
     It 'does not throw on an empty Findings set and still produces a valid PDF' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-empty'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-empty'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $emptyScored = Get-Score -Findings @()
@@ -263,7 +241,7 @@ Describe 'Export-Pdf -- edge cases' {
 
 Describe 'Export-ScoutPdfHtmlFallback (unit)' {
     It 'writes a clearly-labeled fallback HTML file, not a silently-renamed non-PDF' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'pdf-fallback'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'pdf-fallback'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $path = Export-ScoutPdfHtmlFallback -Findings $script:Scored -Collect $script:Collect -OutputPath $dir -Reason 'synthetic test failure'

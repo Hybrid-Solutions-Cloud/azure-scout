@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Test Powershell environment
@@ -6,7 +10,7 @@ Test Powershell environment
 This module is used to test and validate the Powershell environment.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Test-AZSCPS.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Test-AZSCPS.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

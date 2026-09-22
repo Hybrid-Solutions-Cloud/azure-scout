@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Module responsible for retrieving Azure Management Groups.
@@ -6,7 +10,7 @@ Module responsible for retrieving Azure Management Groups.
 This module retrieves Azure Management Groups and their associated subscriptions.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/collect/Get-ScoutManagementGroups.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/collect/Get-ScoutManagementGroups.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -17,6 +21,8 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
 function Get-AZSCManagementGroups {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+        Justification = 'Public function name is load-bearing across tests and the legacy extraction path; renaming is an API break out of scope for a lint-only pass.')]
     Param ($ManagementGroup,$Subscriptions)
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Management group name: ' + $ManagementGroup)

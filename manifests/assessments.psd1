@@ -17,7 +17,7 @@
 #
 @{
     # ---- cross-category roll-ups ----
-    LandingZone = @{
+    'CAF: Azure Landing Zone' = @{
         Description = 'CAF/WAF landing zone audit (all areas)'
         Category    = '*'
         # Rules = caf.*, waf.* pulls in every rule file (all 8 CAF areas + all 5 WAF
@@ -30,7 +30,38 @@
         Ingest      = @('Governance', 'AdvisorScores')
         # 'xr.*' pulls in the cross-resource rules (AB#6835). A landing-zone audit that could not
         # say which VMs have no backup was answering a narrower question than its name claims.
-        Rules       = @('caf.*', 'waf.*', 'xr.*')
+        #
+        # AB#6890. The WAF pillars are ENUMERATED, not globbed. `waf.*` swept in every rule file
+        # whose name happens to start with waf -- which by now includes the WORKLOAD assessments
+        # (waf.ai, waf.avd, waf.azurelocal.*). A run selecting LandingZone and Cloud Governance
+        # was therefore scoring AI-workload, AVD and Azure Local rules it was never asked for, and
+        # the evidence workbook grew a visible tab for each of them: 34 areas where the audit
+        # covers 14. That is the same dangling-glob class that silently cost `Assess: Storage` its
+        # WAF rules, just pointing the other way.
+        #
+        # WAF defines FIVE pillars. If a sixth ever appears, it is added here deliberately;
+        # a new waf.<workload>.yaml must never join a landing-zone audit by filename alone.
+        # tests/Assessment.LandingZoneScope.Tests.ps1 gates exactly that.
+        # The EIGHT CAF landing-zone design areas, named. `caf.*` had the same defect as `waf.*`:
+        # it swept in caf.iot, caf.avslandingzone, caf.ai, caf.storage and the rest, every one of
+        # which is owned by its own assessment further down this file. A landing-zone audit is the
+        # eight design areas, not "every rule file whose name starts with caf".
+        Rules       = @(
+            'caf.billing'
+            'caf.identity'
+            'caf.network'
+            'caf.resourceorg'
+            'caf.security'
+            'caf.management'
+            'caf.governance'
+            'caf.platformauto'
+            'waf.cost'
+            'waf.operational'
+            'waf.performance'
+            'waf.reliability'
+            'waf.security'
+            'xr.*'
+        )
         Frameworks  = @('CAF: all 8 design areas', 'WAF: all 5 pillars', 'XR: Cross-resource posture')
         Tags        = @('caf', 'waf', 'landing-zone', 'cross-resource')
         Benchmark   = 'alz-reference.json'
@@ -62,13 +93,13 @@
     # and warns, so scripted `-Assessment Compute` callers are not broken by a cosmetic change.
     'Assess: Management' = @{
         Description = 'Governance, policy, cost, backup, automation, update manager'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance', 'AdvisorScores')
+        Category    = 'Management'; Collect = @('Management', 'Compute'); Ingest = @('Governance', 'AdvisorScores')
         Rules = @('caf.governance', 'caf.management', 'caf.billing'); Frameworks = @('CAF: Governance', 'CAF: Management', 'CAF: Billing', 'WAF: Operational', 'WAF: Cost')
         Tags = @('caf', 'governance', 'management'); Reporters = @('Html', 'Excel')
     }
     'Assess: Monitor' = @{
         Description = 'Monitoring, alerting, diagnostics coverage'
-        Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
+        Category    = 'Monitor'; Collect = @('Monitor', 'Compute'); Ingest = @()
         Rules = @('caf.management', 'waf.operational'); Frameworks = @('CAF: Management & monitoring', 'WAF: Operational excellence')
         Tags = @('waf', 'monitor'); Reporters = @('Html', 'Excel')
     }
@@ -92,7 +123,7 @@
     }
     'Assess: Compute' = @{
         Description = 'VM resilience, zones, backup, right-size, orphans'
-        Category    = 'Compute'; Collect = @('Compute'); Ingest = @('AdvisorScores')
+        Category    = 'Compute'; Collect = @('Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.reliability', 'waf.cost', 'waf.performance'); Frameworks = @('WAF: Reliability', 'WAF: Cost', 'WAF: Performance efficiency')
         Tags = @('waf', 'compute'); Reporters = @('Html', 'Excel')
     }
@@ -174,7 +205,7 @@
         # ("The gap this leaves") for what general (non-Azure-Local) AVD is NOT covered by this
         # entry.
         Description = 'AVD-on-Azure-Local workload review (Well-Architected Framework) -- 20 items across all 5 pillars; scoped to AVD deployed on Azure Local, not general Azure Virtual Desktop'
-        Category    = 'Compute'; Collect = @('Compute', 'Storage'); Ingest = @()
+        Category    = 'Compute'; Collect = @('Compute', 'Storage', 'Hybrid', 'Management', 'Monitor'); Ingest = @()
         Rules = @('waf.avd'); Frameworks = @('WAF: AVD workload (Azure Local)')
         Tags = @('waf', 'avd', 'azure-local', 'workload-review'); Reporters = @('Html', 'Excel')
     }
@@ -183,7 +214,7 @@
     # 'Policy' used to sit here too, byte-identical to 'Governance' (same Category, Collect,
     # Ingest, Rules, Frameworks — literally the same assessment under two names). Removed by
     # AB#6795; script an explicit -Assessment Governance instead of -Assessment Policy.
-    Governance = @{
+    'Scout: Governance Baseline' = @{
         Description = 'Management sub-bundle — policy assignments, locks, budgets'
         Category    = 'Management'; Collect = @('Management'); Ingest = @('Governance')
         Rules = @('caf.governance'); Frameworks = @('CAF: Governance'); Tags = @('caf', 'governance', 'sub-bundle'); Reporters = @('Html')
@@ -193,12 +224,12 @@
     # same Collect list, just offered again under a narrower name. AB#6795 requires a subset to
     # say so; the description now names the entry it is a subset of rather than leaving that
     # implicit in the rule-file overlap.
-    UpdateManager = @{
+    'Scout: Update Manager' = @{
         Description = 'Management sub-bundle (subset of "Assess: Management") — patch/update compliance only'
-        Category    = 'Management'; Collect = @('Management'); Ingest = @()
+        Category    = 'Management'; Collect = @('Management', 'Compute'); Ingest = @()
         Rules = @('caf.management'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'update-manager', 'sub-bundle'); Reporters = @('Html')
     }
-    Monitoring = @{
+    'Scout: Monitoring Baseline' = @{
         Description = 'Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only'
         Category    = 'Monitor'; Collect = @('Monitor'); Ingest = @()
         Rules = @('waf.operational'); Frameworks = @('WAF: Operational excellence'); Tags = @('waf', 'monitoring', 'sub-bundle'); Reporters = @('Html')
@@ -256,7 +287,7 @@
     'Assess: Cloud Governance' = @{
         Description = 'CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI), radar + heatmap report'
         Category    = 'Management'
-        Collect     = @('Management')
+        Collect     = @('Management', 'Analytics')
         Ingest      = @('Governance', 'AdvisorScores')
         Rules       = @('caf.govern.*')
         Frameworks  = @('CAF: Govern')
@@ -271,7 +302,7 @@
     # (`requires:`), so a direct -Assessment SMART run on an empty estate reports Unknown rather
     # than a manufactured pass. Both halves are needed -- the menu gate is a courtesy, the rule
     # gate is the correctness guarantee.
-    SMART = @{
+    'Microsoft: SMART Migration' = @{
         Description  = 'Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md)'
         Category     = 'Migration'
         Collect      = @('Migration', 'Management', 'Security', 'Compute')
@@ -293,7 +324,7 @@
     # rule files' own `requires:` block repeats (AB#6832's pattern) -- the wizard menu hides the
     # entry, and a direct -Assessment run on an empty estate reports Unknown rather than a
     # manufactured pass either way.
-    'AVS Workload' = @{
+    'Workload: AVS' = @{
         Description  = 'Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md)'
         Category     = '*'
         Collect      = @('*')
@@ -306,7 +337,7 @@
         )
         Reporters    = @('Html', 'Excel')
     }
-    'AVS Landing Zone' = @{
+    'Workload: AVS Landing Zone' = @{
         Description  = 'Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md)'
         Category     = '*'
         Collect      = @('*')
@@ -326,7 +357,7 @@
     # role assignments or zero key vaults is a genuine (if unusual) finding, not a signal the
     # assessment does not apply. Description says plainly that the question text is inferred, per
     # docs/frameworks/casa-question-set.md's own header.
-    CASA = @{
+    'Microsoft: CASA' = @{
         Description = 'Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout''s own inference from the published CAF Secure checklist, not Microsoft''s numbered CASA questions; see docs/frameworks/casa-question-set.md)'
         Category    = '*'
         Collect     = @('*')
@@ -343,17 +374,17 @@
     # each rule file's own header before quoting a coverage figure from either. Both assessments
     # degrade the same way when their gated data source is unavailable: `assert.gate` on the
     # affected rules reports NotAssessed, never a scored zero (Invoke-Rule.ps1, AB#6826).
-    'FinOps Review' = @{
+    'Microsoft: FinOps Review' = @{
         Description = 'FinOps Review -- scores against the FinOps Framework''s 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
-        Collect     = @('FinOps', 'Cost', 'Management')
+        Collect     = @('FinOps', 'Cost', 'Management', 'Compute')
         Ingest      = @('Governance', 'AdvisorScores', 'CostInventory')
         Rules       = @('finops.review')
         Frameworks  = @('FinOps: 22 capabilities')
         Tags        = @('finops', 'cost', 'inferred-enumeration')
         Reporters   = @('Html', 'Excel')
     }
-    'DevOps Capability Assessment' = @{
+    'Microsoft: DevOps Capability' = @{
         Description = 'DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center''s five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
         Collect     = @('DevOps', 'Management')
@@ -367,7 +398,7 @@
     # ---- cross-resource correlation (AB#6835) ----
     # Every rule here spans TWO datasets, so Collect must gather both halves or a rule silently
     # passes on an empty right-hand side. Both categories of every pair are listed deliberately.
-    CrossResource = @{
+    'Scout: Cross-Resource' = @{
         Description = 'Findings that require two collected datasets correlated'
         Category    = '*'
         Collect     = @('Compute', 'Storage', 'Security', 'Networking', 'Management')
@@ -379,7 +410,7 @@
     }
 
     # ---- targeted cost pull ----
-    Cost = @{
+    'Scout: Cost Optimization' = @{
         Description = 'Cost / TCO data pull'
         Category    = '*'; Collect = @('Cost', 'Compute', 'Storage'); Ingest = @('AdvisorScores')
         Rules = @('waf.cost'); Frameworks = @('WAF: Cost optimization'); Tags = @('waf', 'cost'); Reporters = @('Excel', 'PowerBi')

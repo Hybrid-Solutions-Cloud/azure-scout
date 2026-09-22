@@ -151,7 +151,7 @@ param(
     [string] $IterationLeaf = '2026-Q3-S6',
 
     # Used only to build the Hyperlink target for a Bug's GitHub master record.
-    [string] $Repository = 'thisismydemo/azure-scout',
+    [string] $Repository = 'Hybrid-Solutions-Cloud/azure-scout',
 
     [switch] $OmitClassification
 )

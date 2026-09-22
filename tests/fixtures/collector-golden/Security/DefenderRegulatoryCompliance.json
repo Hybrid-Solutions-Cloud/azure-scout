@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Security",
+  "Name": "DefenderRegulatoryCompliance",
+  "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
+  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
+  "Rows": [
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unsupported Controls=<null>",
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unsupported Controls=<null>",
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unsupported Controls=<null>",
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-0000000000ff|Unsupported Controls=<null>",
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unsupported Controls=<null>",
+    "Failed Controls=<null>|ID=<null>|Pass Percent=<null>|Passed Controls=<null>|Resource U=j:1|Skipped Controls=<null>|Standard=<null>|State=<null>|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unsupported Controls=<null>"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription ID\tStandard\tState\tPassed Controls\tFailed Controls\tSkipped Controls\tUnsupported Controls\tPass Percent\tResource U\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-0000000000ff\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1"
+    ],
+    "WithTags": [
+      "Subscription ID\tStandard\tState\tPassed Controls\tFailed Controls\tSkipped Controls\tUnsupported Controls\tPass Percent\tResource U\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-0000000000ff\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1\n00000000-0000-0000-0000-000000000001\t\t\t\t\t\t\t\t1"
+    ]
+  }
+}

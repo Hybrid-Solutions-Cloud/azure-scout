@@ -3,8 +3,8 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:RepoRoot 'src/collect/ConvertTo-ScoutManagementGroupHierarchy.ps1')
-    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutTenantWideResource.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/ConvertTo-ScoutManagementGroupHierarchy.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutTenantWideResource.ps1')
 
     function Get-TestEnvelope {
         param(
@@ -127,7 +127,7 @@ Describe 'Get-ScoutTenantWideResource - integration contract' {
         @($PolicySets.properties.id) | Should -Be @('set-1')
 
         $Source = Get-Content -LiteralPath (
-            Join-Path $script:RepoRoot 'src/collect/Get-ScoutTenantWideResource.ps1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutTenantWideResource.ps1'
         ) -Raw
         $Source | Should -Not -Match 'Get-AzPolicyDefinition|Get-AzPolicySetDefinition'
     }
@@ -230,5 +230,18 @@ Describe 'Get-ScoutTenantWideResource - permission degradation' {
         @($Warnings).Count | Should -Be 2
         ($Warnings -join ' ') | Should -Match 'custom role definitions could not be read'
         ($Warnings -join ' ') | Should -Match 'management groups could not be read'
+    }
+
+    It 'records exact tenant-wide coverage gaps without changing the four-envelope contract' {
+        $health = [System.Collections.Generic.List[object]]::new()
+
+        $resources = @(Get-ScoutTenantWideResource -ApiResources @() -CollectionHealth $health `
+                -WarningAction SilentlyContinue)
+
+        $resources.Count | Should -Be 4
+        @($health).Count | Should -Be 2
+        @($health.SourceDataset) | Should -Contain 'CustomRoleDefinitions'
+        @($health.SourceDataset) | Should -Contain 'ManagementGroups'
+        ($health | Where-Object SourceDataset -eq 'ManagementGroups').Reason | Should -Match 'Management Group Reader'
     }
 }

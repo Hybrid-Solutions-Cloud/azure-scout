@@ -54,6 +54,7 @@ $ErrorActionPreference = 'Stop'
     Tracks ADO Story AB#396.
 #>
 function Export-JsonEvidence {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Findings', Justification = 'AB#396 -- this is a resources-only evidence export (raw Collect only). Findings is kept for the uniform renderer signature dispatched by src/report/Export-Report.ps1.')]
     param($Findings, $Collect, [string] $OutputPath)
 
     try {

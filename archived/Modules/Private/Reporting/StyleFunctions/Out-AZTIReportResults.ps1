@@ -6,7 +6,7 @@ Module for Reporting Results Output
 This script outputs the results of the Azure Resource Inventory report generation.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Out-AZSCReportResults.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Out-AZSCReportResults.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -18,6 +18,7 @@ Authors: Claudio Merola
 #>
 
 function Out-AZSCReportResults {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     param (
         [string]$Measure,
         [string]$ResourcesCount,

@@ -19,13 +19,13 @@
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
-    $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'AzureScout.psd1')
+    $manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'AzureScout.psd1')
     $script:Version = [string] $manifest.ModuleVersion
 
-    $script:Changelog   = Get-Content (Join-Path $script:Root 'CHANGELOG.md') -Raw
-    $script:Releases    = Get-Content (Join-Path $script:Root 'RELEASES.md') -Raw
-    $script:DocsRoadmap = Get-Content (Join-Path $script:Root 'docs/project/roadmap.md') -Raw
-    $script:DocsChange  = Get-Content (Join-Path $script:Root 'docs/project/changelog.md') -Raw
+    $script:Changelog   = Get-Content (Join-Path -Path $script:Root -ChildPath 'CHANGELOG.md') -Raw
+    $script:Releases    = Get-Content (Join-Path -Path $script:Root -ChildPath 'RELEASES.md') -Raw
+    $script:DocsRoadmap = Get-Content (Join-Path -Path $script:Root -ChildPath 'docs/project/roadmap.md') -Raw
+    $script:DocsChange  = Get-Content (Join-Path -Path $script:Root -ChildPath 'docs/project/changelog.md') -Raw
 }
 
 Describe 'Documentation states the shipping version (AB#5630)' {
@@ -59,7 +59,7 @@ Describe 'Documentation states the shipping version (AB#5630)' {
     }
 
     It 'the manifest ReleaseNotes lead with the shipping version' {
-        $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'AzureScout.psd1')
+        $manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'AzureScout.psd1')
         ([string] $manifest.PrivateData.PSData.ReleaseNotes).TrimStart() |
             Should -Match ('^v' + [regex]::Escape($script:Version) + '\b')
     }
@@ -67,7 +67,7 @@ Describe 'Documentation states the shipping version (AB#5630)' {
     It 'the manifest ReleaseNotes stay under the PowerShell Gallery 10,600-character limit' {
         # PSGallery rejects the push with a 400 above this. Appending every release to a
         # cumulative string blew past it on v2.5.1; keep only the recent releases plus a link.
-        $manifest = Import-PowerShellDataFile (Join-Path $script:Root 'AzureScout.psd1')
+        $manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'AzureScout.psd1')
         ([string] $manifest.PrivateData.PSData.ReleaseNotes).Length | Should -BeLessOrEqual 10600
     }
 }
@@ -75,7 +75,7 @@ Describe 'Documentation states the shipping version (AB#5630)' {
 Describe 'The docs deploy fires on a release commit (AB#5630)' {
 
     It 'watches the version-bearing files, not just docs/' {
-        $workflow = Get-Content (Join-Path $script:Root '.github/workflows/documentation.yml') -Raw
+        $workflow = Get-Content (Join-Path -Path $script:Root -ChildPath '.github/workflows/documentation.yml') -Raw
         foreach ($path in 'AzureScout.psd1', 'CHANGELOG.md', 'RELEASES.md', 'docs/**') {
             $workflow | Should -Match ([regex]::Escape("'$path'")) -Because `
                 "a release touching $path must redeploy the site, or it silently goes stale"

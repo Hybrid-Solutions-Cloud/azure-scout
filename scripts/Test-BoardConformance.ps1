@@ -42,7 +42,7 @@
 param(
     [string] $Organization = 'https://dev.azure.com/hybridcloudsolutions',
     [string] $ProjectId    = '85b6e47e-a666-4a38-8c43-de87dd21aa56',
-    [string] $Repository   = 'thisismydemo/azure-scout',
+    [string] $Repository   = 'Hybrid-Solutions-Cloud/azure-scout',
 
     # An Azure DevOps PAT, used in preference to the az CLI when supplied. Also read from
     # $env:ADO_PAT so a caller can export it once. Added because `az account get-access-token`

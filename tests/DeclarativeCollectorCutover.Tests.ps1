@@ -2,15 +2,15 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
 }
 
 Describe 'v3 declarative collector cutover' {
     It 'discovers the shipped manifest catalog without a retired collector tree' {
-        $Definitions = Join-Path $script:RepoRoot 'manifests/collectors'
+        $Definitions = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
         $Collectors = @(Get-ScoutCollector -DefinitionRoot $Definitions)
 
         # 174 through v3.0.9; 242 after AB#6741 added 68; 236 after AB#6767/AB#6842 retired six
@@ -20,9 +20,21 @@ Describe 'v3 declarative collector cutover' {
         # after AB#6801 re-created Hybrid/ArcSites against the confirmed-real, non-RG-indexed
         # `Microsoft.Edge/sites` type (Hybrid/VirtualMachines was re-sourced under AB#6802 without
         # a count change -- it already existed); 242 after AB#6829 added the owned-reservation
-        # utilization collector. The number is pinned rather than derived so that a collector
-        # silently DISAPPEARING is a failure, not an invisible regression.
-        $Collectors.Count | Should -Be 242
+        # utilization collector; 244 after AB#7097 added Identity/VerifiedIDProfiles and
+        # Identity/VerifiedIDConfiguration (Microsoft Entra Verified ID); 245 after AB#7098 added
+        # Identity/ExternalIdentities (Microsoft Entra External ID's default cross-tenant access
+        # policy); 279 after the parallel AB#7059/AB#7069/AB#7099 coverage-gap-closeout sprint
+        # (multiple categories landed collectors in the same window -- see each category's own
+        # manifests for its AB# provenance) plus AB#7091's four Networking additions
+        # (Networking/CdnProfiles, Networking/NetworkManagers, Networking/FirewallPolicies,
+        # Networking/NetworkFunctions). The number is pinned rather than derived so that a
+        # collector silently DISAPPEARING is a failure, not an invisible regression. AB#7279
+        # deliberately removed the unreleased Lighthouse collector, leaving 278. AB#7358 added
+        # seven collectors found by independent tenant reconciliation, bringing the catalog to 285.
+        # AB#7441 adds 29 evidence-completeness collectors spanning Entra, hybrid identity, Okta,
+        # billing, Defender, Log Analytics/Sentinel, and storage exposure, bringing the catalog to
+        # 314. The number remains pinned so an accidental removal is still a release-gate failure.
+        $Collectors.Count | Should -Be 314
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }
@@ -32,17 +44,17 @@ Describe 'v3 declarative collector cutover' {
         $Command.Parameters.ContainsKey('Imperative') | Should -BeFalse
         $Command.Parameters.ContainsKey('ForceImperativeCollectors') | Should -BeFalse
 
-        $Runtime = Get-Content (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutCollector.ps1') -Raw
+        $Runtime = Get-Content (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1') -Raw
         $Runtime | Should -Not -Match 'Set-StrictMode\s+-Off'
         $Runtime | Should -Not -Match 'ImperativeCapture|ImperativeFallback'
     }
 
     It 'contains an invalid definition as a declarative failure rather than executing another path' {
-        $Root = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-v3-cutover-" + [guid]::NewGuid().ToString('N'))
+        $Root = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-v3-cutover-" + [guid]::NewGuid().ToString('N'))
         try {
-            $Dir = Join-Path $Root 'Fixture'; $null = New-Item -ItemType Directory -Path $Dir -Force
+            $Dir = Join-Path -Path $Root -ChildPath 'Fixture'; $null = New-Item -ItemType Directory -Path $Dir -Force
             "@{ ResourceTypes = @('widget'); RowLoopVariable = '1'; Export = @{ WorksheetName = 'Bad'; Columns = @('ID') } }" |
-                Set-Content -LiteralPath (Join-Path $Dir 'Malformed.psd1') -Encoding utf8
+                Set-Content -LiteralPath (Join-Path -Path $Dir -ChildPath 'Malformed.psd1') -Encoding utf8
             $Collector = @(Get-ScoutCollector -DefinitionRoot $Root)[0]
             $Result = Invoke-ScoutCollector -Collector $Collector -Context @{ Resources = @(); Task = 'Processing' } -WarningAction SilentlyContinue
 

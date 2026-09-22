@@ -17,6 +17,8 @@ Authors: AzureScout Contributors
 #>
 
 function Build-AZSCDashboardTabs {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param($File, $TableStyle, $IncludeCosts)
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Building visual dashboard tabs.')
@@ -226,7 +228,7 @@ function Build-AZSCDashboardTabs {
                 $SecTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { }
+        } catch { Write-Debug ('Build-AZSCDashboardTabs: failed to read the Security Overview table map: ' + $_.Exception.Message) }
 
         if ($SecTableMap.Count -gt 0) {
             # Chart 1: Assessments by Severity
@@ -581,7 +583,7 @@ function Build-AZSCDashboardTabs {
                 $MonTableMap[$tbl.Name] = $tbl.Address.ToString()
             }
             Close-ExcelPackage $tmpExcel -NoSave
-        } catch { }
+        } catch { Write-Debug ('Build-AZSCDashboardTabs: failed to read the Azure Monitor table map: ' + $_.Exception.Message) }
 
         if ($MonTableMap.Count -gt 0) {
             # Chart 1: Alert Rules by Subscription (MetricAlerts table)

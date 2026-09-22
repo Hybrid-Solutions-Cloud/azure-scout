@@ -98,7 +98,7 @@ function Export-ScoutGovernanceHtmlFallback {
     param($Findings, [string] $OutputPath, [string] $Reason)
     if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
     $safeReason = $Reason -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;'
-    $generatedOn = Get-ScoutGovProp $Findings 'GeneratedOn' '(unknown)'
+    $generatedOn = Get-ScoutGovProp -Obj $Findings -Name 'GeneratedOn' -Default '(unknown)'
     $html = @"
 <!DOCTYPE html>
 <html>
@@ -389,12 +389,12 @@ function Export-GovernanceReport {
             New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
         }
 
-        $areas = @(Get-ScoutGovProp $Findings 'Areas')
-        $generatedOn = Get-ScoutGovProp $Findings 'GeneratedOn'
+        $areas = @(Get-ScoutGovProp -Obj $Findings -Name 'Areas')
+        $generatedOn = Get-ScoutGovProp -Obj $Findings -Name 'GeneratedOn'
 
-        $metaSrc = Get-ScoutGovProp $Collect '_meta'
-        $scope = Get-ScoutGovProp $metaSrc 'scope'
-        $mgId = Get-ScoutGovProp $metaSrc 'managementGroupId'
+        $metaSrc = Get-ScoutGovProp -Obj $Collect -Name '_meta'
+        $scope = Get-ScoutGovProp -Obj $metaSrc -Name 'scope'
+        $mgId = Get-ScoutGovProp -Obj $metaSrc -Name 'managementGroupId'
 
         # NOT wrapped in @(): Get-GovernanceDomainScore returns its array through
         # `Write-Output -NoEnumerate`, so @() here would produce a one-element array whose
@@ -436,9 +436,9 @@ function Export-GovernanceReport {
         # AB#5087), relabeled onto the same 1-10 scale as the per-domain figures via the
         # exact same ConvertTo-ScoutGovernanceScale helper, so the headline and the seven
         # domain numbers can never use different arithmetic.
-        $frameworks = @(Get-ScoutGovProp $Findings 'Frameworks')
+        $frameworks = @(Get-ScoutGovProp -Obj $Findings -Name 'Frameworks')
         $govFramework = $frameworks | Where-Object { $_.Framework -eq 'Cloud Governance' } | Select-Object -First 1
-        $overallPct = if ($govFramework) { Get-ScoutGovProp $govFramework 'Score' } else { $null }
+        $overallPct = if ($govFramework) { Get-ScoutGovProp -Obj $govFramework -Name 'Score' } else { $null }
         $overallScore = ConvertTo-ScoutGovernanceScale -PercentScore $overallPct
 
         $hasLib = [bool](Get-Variable -Name ScoutEChartsLibJs -Scope Script -ErrorAction SilentlyContinue) -and

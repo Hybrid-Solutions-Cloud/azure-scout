@@ -99,10 +99,10 @@ azure-scout/
 │   ├── analyze/                        #   Offline analysis -- never call Azure (v2.2.0)
 │   │   ├── Get-ScoutCostAnomaly.ps1    #     Cost outlier detection: spike/z-score/IQR (AB#324)
 │   │   └── Get-ScoutIacGap.ps1         #     Bicep/ARM-JSON coverage gap detection (AB#325)
-│   ├── report/                         #   Tiered report rendering (Power BI, HTML, PPTX, Excel, JSON, JsonEvidence, React, Word, EChartsDashboard, Pdf)
+│   ├── report/                         #   React/Json/JsonEvidence live; legacy renderer implementations retained on hold
 │   │   ├── renderers/                  #     9 — incl. Export-React.ps1 (v2.1.0), Export-Word.ps1/Export-EChartsDashboard.ps1/Export-Pdf.ps1/Export-JsonEvidence.ps1 (v2.2.0)
-│   │   │   └── inventory/              #       17 — inventory Excel/JSON/Markdown/AsciiDoc/Power BI
-│   │   │       │                       #       renderers, moved out of Modules/Private/Reporting/ and
+│   │   │   └── inventory/              #       held legacy Excel/Markdown/AsciiDoc/Power BI implementations
+│   │   │       │                       #       retained for rebuild/compatibility work; moved out of Modules/Private/Reporting/ and
 │   │   │       │                       #       renamed so each file matches its function (AB#5662)
 │   │   │       └── style/              #         6 — Overview sheet, pivots/charts, tab ordering and
 │   │   │                               #         EPPlus-native chart styling (Build-AZSCExcelChartStyle).
@@ -125,7 +125,7 @@ azure-scout/
 │   │                                   #   provider/type pairs (AB#6842) — see docs/testing.md
 │   ├── Assessment.Engine.Tests.ps1     #   Assessment engine (Resolve-JsonPath, Invoke-Rule, Get-Score)
 │   ├── Test-ExcelFromDataDump.ps1      #   Renders Excel evidence tier from datadump fixtures
-│   ├── Test-PowerBIFromDataDump.ps1    #   Renders Power BI CSV bundle from datadump fixtures
+│   ├── Test-PowerBIFromDataDump.ps1    #   Exercises held Power BI compatibility code from fixtures
 │   └── Test-PptxFromDataDump.ps1       #   Renders PowerPoint deck from datadump fixtures
 ├── config/                             # Runtime configuration
 ├── package.json                        # VitePress dev dependency + docs:dev/build/preview scripts

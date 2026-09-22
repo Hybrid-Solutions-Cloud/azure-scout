@@ -1,4 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop'
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $files = Get-ChildItem -Path . -Recurse -Include *.ps1, *.psm1 | Where-Object { $_.FullName -notmatch '\\(output|node_modules|\.git|\.ai)\\' }
 
