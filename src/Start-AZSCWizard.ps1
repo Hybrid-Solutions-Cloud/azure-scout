@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .SYNOPSIS
     Guided, interactive setup wizard for Azure Scout.
@@ -14,9 +10,6 @@ $ErrorActionPreference = 'Stop'
     The wizard runs five steps:
 
         1. Tenant      — show the signed-in context, or sign in / pick a tenant.
-                         When the account can reach more than one tenant, also
-                         offers scanning several selected tenants or every
-                         accessible tenant (AB#7105).
         2. Permissions — verify the account actually holds the rights the run
                          needs, and let the operator bail out before a long scan
                          fails halfway through.
@@ -62,7 +55,6 @@ function Start-AZSCWizard {
     # caller (Invoke-AzureScout) is what acts on the answers.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding()]
-    [OutputType([System.Collections.Hashtable])]
     param(
         [string]$AzureEnvironment = 'AzureCloud',
         [string]$PlatOS
@@ -76,9 +68,8 @@ function Start-AZSCWizard {
         'Identity', 'Integration', 'IoT', 'Management', 'Migration', 'Monitor', 'Networking',
         'Security', 'Storage', 'Web'
     )
-    # One honest format pool for every run type. Legacy names remain accepted by the public
-    # parameter for compatibility, but the wizard only offers the three formats that are live.
-    $liveFormats = @('React', 'Json', 'JsonEvidence')
+    $inventoryFormats = @('Excel', 'Json', 'Markdown', 'AsciiDoc', 'PowerBI')
+    $assessmentFormats = @('Html', 'PowerBI', 'Excel', 'Json', 'React', 'Pptx', 'Word', 'Pdf')
 
     Write-AZSCWizardBanner
 
@@ -87,30 +78,24 @@ function Start-AZSCWizard {
 
     $tenantId = $null
     $context = $null
-    $needsSignIn = $false
     try { $context = Get-AzContext -ErrorAction Stop } catch { $context = $null }
 
     if ($context -and $context.Tenant) {
-        $contextIdentity = Resolve-AZSCContextIdentity -Context $context
         Write-Host "  Signed in as : " -NoNewline -ForegroundColor DarkGray
-        Write-Host $contextIdentity.AccountDisplayName -ForegroundColor Cyan
+        Write-Host $context.Account.Id -ForegroundColor Cyan
         Write-Host "  Tenant       : " -NoNewline -ForegroundColor DarkGray
-        Write-Host $contextIdentity.TenantDisplayName -ForegroundColor Cyan
+        Write-Host $context.Tenant.Id -ForegroundColor Cyan
         Write-Host ''
-        if (Read-AZSCWizardConfirm -Prompt 'Use this signed-in account?' -Default $true) {
+        if (Read-AZSCWizardConfirm -Prompt 'Use this account and tenant?' -Default $true) {
             $tenantId = $context.Tenant.Id
-        }
-        else {
-            $needsSignIn = $true
         }
     }
     else {
         Write-Host '  No active Azure session found.' -ForegroundColor Yellow
         Write-Host ''
-        $needsSignIn = $true
     }
 
-    if ($needsSignIn) {
+    if (-not $tenantId) {
         if ($PlatOS -eq 'Azure CloudShell') {
             Write-Host '  Running in Cloud Shell — using the ambient session.' -ForegroundColor DarkGray
             try { $tenantId = (Get-AzContext -ErrorAction Stop).Tenant.Id } catch { $tenantId = $null }
@@ -119,7 +104,7 @@ function Start-AZSCWizard {
             $useDeviceLogin = Read-AZSCWizardConfirm -Prompt 'Sign in with a device code (needed on headless/SSH hosts)?' -Default $false
             Write-Host '  Opening Azure sign-in...' -ForegroundColor DarkGray
             try {
-                $tenantId = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -DeviceLogin:$useDeviceLogin -ForceLogin
+                $tenantId = Connect-AZSCLoginSession -AzureEnvironment $AzureEnvironment -DeviceLogin:$useDeviceLogin
             }
             catch {
                 Write-Host "  Sign-in failed: $_" -ForegroundColor Red
@@ -128,59 +113,68 @@ function Start-AZSCWizard {
         }
     }
 
-    # Discover once, then choose scope before asking for an individual tenant.
-    $accessibleTenants = @(Get-AZSCAccessibleTenant)
-    if (-not $tenantId) { return $null }
-    $tenantIds = @($tenantId)
-    $allAccessibleTenantsAnswer = $false
-    if ($accessibleTenants.Count -gt 1) {
-
+    # If the account can see more than one tenant, let the operator choose.
+    $tenants = @()
+    try { $tenants = @(Get-AzTenant -ErrorAction Stop) } catch { $tenants = @() }
+    if ($tenants.Count -gt 1) {
         Write-Host ''
-        Write-Host "  This account can directly reach $($accessibleTenants.Count) tenants." -ForegroundColor DarkGray
-        $tenantScope = Read-AZSCWizardChoice -Title 'How many tenants do you want to scan?' -Items @(
-            [pscustomobject]@{ Label = "One tenant (choose next)";                      Value = 'Single' }
-            [pscustomobject]@{ Label = 'Choose specific tenants from the list';                  Value = 'Select' }
-            [pscustomobject]@{ Label = "Every accessible tenant ($($accessibleTenants.Count))";  Value = 'All' }
-        )
-        if ($null -eq $tenantScope) { return $null }
-
-        if ($tenantScope -eq 'All') {
-            $allAccessibleTenantsAnswer = $true
-        }
-        elseif ($tenantScope -eq 'Single') {
-            $tenantId = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
-                $accessibleTenants | ForEach-Object { [pscustomobject]@{ Label = "$($_.Name) ($($_.Id))"; Value = $_.Id } }
-            )
-            if (-not $tenantId) { return $null }
-            $tenantIds = @($tenantId)
-        }
-        elseif ($tenantScope -eq 'Select') {
-            Write-Host ''
-            $tenantLabelMap = @{}
-            $tenantLabels = @($accessibleTenants | ForEach-Object {
+        Write-Host '  This account has access to multiple tenants:' -ForegroundColor DarkGray
+        $tenantChoice = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
+            $tenants | ForEach-Object {
                 $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
-                $tenantLabelMap[$label] = $_.Id
-                $label
-            })
-            $defaultLabel = @($tenantLabels | Where-Object { $tenantLabelMap[$_] -eq $tenantId })
-            $chosenLabels = Read-AZSCWizardChecklist -Title 'Select the tenants to scan' -Items $tenantLabels -DefaultSelected $defaultLabel
-            if ($null -eq $chosenLabels) { return $null }
-            $tenantIds = @($chosenLabels | ForEach-Object { $tenantLabelMap[$_] })
-            if ($tenantIds.Count -eq 0) { return $null }
-            $tenantId = $tenantIds[0]
-        }
+                [pscustomobject]@{ Label = $label; Value = $_.Id }
+            }
+        )
+        if ($null -eq $tenantChoice) { return $null }
+        $tenantId = $tenantChoice
+    }
+
+    if (-not $tenantId) {
+        Write-Host '  Could not determine a tenant to scan.' -ForegroundColor Red
+        return $null
     }
 
     # ── Step 2: permissions ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 2 -Total 5 -Title 'Permissions'
-    # The required Graph checks are unknowable until Step 3 establishes whether Entra was
-    # selected. Running an ARM audit here and the selected-scope audit after confirmation made
-    # every guided run enumerate subscriptions/providers twice. Defer the one authoritative
-    # audit to Invoke-AzureScout after all answers are known (AB#7279).
-    Write-Host '  Access will be validated once per tenant after you confirm the selected run scope.' -ForegroundColor DarkGray
+    Write-Host '  Checking that this account holds the rights the run needs...' -ForegroundColor DarkGray
     Write-Host ''
 
+    $blocked = $false
+    $perm = $null
+    try {
+        $perm = Test-AZSCPermissions -TenantID $tenantId -Scope 'All'
+        foreach ($detail in $perm.Details) {
+            switch ($detail.Status) {
+                'Pass' { Write-Host "   [PASS] $($detail.Check)" -ForegroundColor Green }
+                'Warn' { Write-Host "   [WARN] $($detail.Check): $($detail.Message)" -ForegroundColor Yellow }
+                'Fail' { Write-Host "   [FAIL] $($detail.Check): $($detail.Message)" -ForegroundColor Red
+                         Write-Host "          $($detail.Remediation)" -ForegroundColor DarkGray
+                         $blocked = $true }
+                default { Write-Host "   [INFO] $($detail.Check): $($detail.Message)" -ForegroundColor DarkGray }
+            }
+        }
+    }
+    catch {
+        Write-Host "   [WARN] Permission pre-flight could not complete: $_" -ForegroundColor Yellow
+    }
+
+    Write-Host ''
+    if ($blocked) {
+        Write-Host '  One or more permission checks failed. The run will be incomplete.' -ForegroundColor Yellow
+        if (-not (Read-AZSCWizardConfirm -Prompt 'Continue anyway?' -Default $false)) { return $null }
+    }
+
+    # The audit above always checks Entra ID (-Scope 'All'), but the actual run defaults to
+    # ArmOnly unless told otherwise. Without this, a fully-permissioned account silently gets
+    # zero Entra ID data because nothing here ever carried the audit's own recommendation
+    # forward into the assembled command. See ADO Bug 6736.
     $scopeAnswer = 'ArmOnly'
+    if ($perm -and $perm.OverallReadiness -eq 'FullARMAndEntra') {
+        Write-Host '  This account has full Microsoft Graph / Entra ID permissions.' -ForegroundColor DarkGray
+        if (Read-AZSCWizardConfirm -Prompt 'Also collect Entra ID data (users, groups, conditional access, etc.)?' -Default $true) {
+            $scopeAnswer = 'All'
+        }
+    }
 
     # ── Step 3: what to run ──────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 3 -Total 5 -Title 'What to run'
@@ -192,18 +186,7 @@ function Start-AZSCWizard {
     )
     if ($null -eq $mode) { return $null }
 
-    Write-Host ''
-    Write-Host '  Entra ID collection requires a separate Microsoft Graph token.' -ForegroundColor DarkGray
-    if (Read-AZSCWizardConfirm -Prompt 'Also collect Entra ID data (users, groups, conditional access, etc.)?' -Default $false) {
-        $scopeAnswer = 'All'
-    }
-
-    $answers = if ($allAccessibleTenantsAnswer) {
-        @{ AllAccessibleTenants = [switch]$true }
-    }
-    else {
-        @{ TenantID = if ($tenantIds.Count -gt 1) { $tenantIds } else { $tenantId } }
-    }
+    $answers = @{ TenantID = $tenantId }
     if ($scopeAnswer -eq 'All') { $answers.Scope = 'All' }
     $runBoth = ($mode -eq 'Both')
     $wantsInventory = ($mode -in @('Inventory', 'Both'))
@@ -211,36 +194,18 @@ function Start-AZSCWizard {
 
     if ($wantsInventory) {
         Write-Host ''
-        # AB#7101/AB#7102 -- label each category with its live collector coverage
-        # (Collected/Published, from the manifest tree) instead of a bare name, and let the
-        # operator drill into which specific collectors are behind that figure without leaving
-        # the checklist. A coverage read failure (e.g. a packaging fault that hides the
-        # manifest tree) degrades to bare names rather than blocking the step.
-        $categoryLabels = @{}
-        $categoryDetail = @{}
-        try {
-            foreach ($coverage in @(Get-ScoutCategoryCoverage -Category $inventoryCategories)) {
-                $categoryLabels[$coverage.Category] = "$($coverage.Category) ($($coverage.Collected)/$($coverage.Published))"
-                $categoryDetail[$coverage.Category] = @(@($coverage.Services) | ForEach-Object {
-                    $status = if ($_.Collected) { 'collected' } else { 'NOT collected' }
-                    "$($_.Name): $status"
-                })
-            }
-        }
-        catch { Write-Verbose "Start-AZSCWizard: could not compute category coverage, showing bare names: $_" }
-
-        $categories = Read-AZSCWizardChecklist -Title 'Resource categories to inventory' -Items $inventoryCategories -ItemLabels $categoryLabels -ItemDetail $categoryDetail
+        $categories = Read-AZSCWizardChecklist -Title 'Resource categories to inventory' -Items $inventoryCategories
         if ($null -eq $categories) { return $null }
         # All 15 selected is exactly what -Category All means — keep the command
         # line short and let the default sentinel through instead.
         $answers.Category = if ($categories.Count -eq $inventoryCategories.Count) { @('All') } else { $categories }
 
         Write-Host ''
-        $extras = Read-AZSCWizardChecklist -Title 'Optional report and enrichment features' -Items @(
-            'Show resource tags in Excel', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
-        ) -DefaultSelected @('Show resource tags in Excel')
+        $extras = Read-AZSCWizardChecklist -Title 'Optional inventory data (slower, but richer)' -Items @(
+            'Resource tags', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
+        ) -DefaultSelected @('Resource tags')
         if ($null -eq $extras) { return $null }
-        if ($extras -contains 'Show resource tags in Excel') { $answers.IncludeTags = [switch]$true }
+        if ($extras -contains 'Resource tags')             { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
         if ($extras -contains 'Cost data') {
             # Cost data silently comes back empty later in the run if Az.CostManagement isn't
@@ -268,15 +233,7 @@ function Start-AZSCWizard {
                 $answers.IncludeCosts = [switch]$true
             }
         }
-        # AB#7104 -- Invoke-AzureScout's -QuotaUsage switch is declared but never read anywhere
-        # in the pipeline: VM quota usage is gathered unconditionally as part of VM details
-        # (gated only by the undocumented -SkipVMDetails, which the wizard does not offer). So
-        # this checkbox cannot no-op the way an uninstalled Az.CostManagement can -- it is
-        # already a no-op in BOTH directions, and setting -QuotaUsage on the command line would
-        # print a flag that does nothing. Tell the operator the truth instead of the flag.
-        Write-Host ''
-        Write-Host '  Note: VM quota usage is already gathered on every run as part of VM details' -ForegroundColor DarkGray
-        Write-Host '  (this checkbox does not change that yet -- AB#7104).' -ForegroundColor DarkGray
+        if ($extras -contains 'Quota usage')               { $answers.QuotaUsage = [switch]$true }
         if ($extras -notcontains 'Network diagrams')       { $answers.SkipDiagram = [switch]$true }
     }
 
@@ -288,7 +245,7 @@ function Start-AZSCWizard {
         # release. Found while adding the SMART entry below (AB#6832).
         $moduleRoot = Split-Path $PSScriptRoot -Parent
         $manifestPath = Join-Path $moduleRoot 'manifests/assessments.psd1'
-        $assessmentNames = @('CAF: Azure Landing Zone')
+        $assessmentNames = @('LandingZone')
         $assessmentManifest = $null
         if (Test-Path $manifestPath) {
             try {
@@ -301,11 +258,11 @@ function Start-AZSCWizard {
                 # product from an assessment, not a broken one.)
                 $assessmentNames = @(Get-ScoutAvailableAssessment -Manifest $assessmentManifest)
                 if ($assessmentNames.Count -eq 0) {
-                    Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering ''CAF: Azure Landing Zone'' only.'
-                    $assessmentNames = @('CAF: Azure Landing Zone')
+                    Write-Warning 'Start-AZSCWizard: no assessment has rules behind it — offering LandingZone only.'
+                    $assessmentNames = @('LandingZone')
                 }
             }
-            catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to 'CAF: Azure Landing Zone': $_" }
+            catch { Write-Verbose "Start-AZSCWizard: could not read the assessment manifest, falling back to LandingZone: $_" }
         }
         else {
             # AB#6754 -- this used to be reached on every run, because the path climbed three
@@ -314,7 +271,7 @@ function Start-AZSCWizard {
             # noticed for several releases. It is a warning now: reaching it means the module
             # layout is wrong, and the operator should see a short menu explained rather than a
             # short menu asserted.
-            Write-Warning "Start-AZSCWizard: the assessment registry was not found at '$manifestPath' — offering 'CAF: Azure Landing Zone' only. This is a packaging fault, not an empty catalogue."
+            Write-Warning "Start-AZSCWizard: the assessment registry was not found at '$manifestPath' — offering LandingZone only. This is a packaging fault, not an empty catalogue."
         }
 
         # An assessment declaring RequiresData is hidden until the data it scores actually exists
@@ -347,17 +304,12 @@ function Start-AZSCWizard {
                     # Not wrapped in @() — Resolve-JsonPath returns via Write-Output -NoEnumerate,
                     # so @() would count the wrapper and every gate would read as satisfied.
                     try { $rows = Resolve-JsonPath -InputObject $collectObject -Path $path; if ($null -ne $rows -and $rows.Count -gt 0) { return $true } }
-                    catch { Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - RequiresData path '$path' could not be resolved: " + $_.Exception.Message) }
+                    catch { }
                 }
                 return $false
             })
         }
-        # AB#7188 — presentation only. The 40+ entry flat menu mixed three naming
-        # generations with no visible structure; group by source framework instead.
-        # Registry keys and the returned selection are untouched — grouping changes
-        # what the operator SEES, never what the checklist RETURNS.
-        $assessmentGroups = Group-AZSCWizardAssessment -Names $assessmentNames
-        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups $assessmentGroups -DefaultSelected @('CAF: Azure Landing Zone')
+        $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Items $assessmentNames -DefaultSelected @('LandingZone')
         if ($null -eq $chosen) { return $null }
         $answers.Assessment = $chosen
     }
@@ -365,10 +317,11 @@ function Start-AZSCWizard {
     # ── Step 4: output ───────────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 4 -Total 5 -Title 'Output'
 
-    $formatPool = $liveFormats
-    $defaultFormats = @('React')
+    $formatPool = if ($wantsAssessment -and -not $wantsInventory) { $assessmentFormats } else { $inventoryFormats }
+    $defaultFormats = if ($wantsAssessment -and -not $wantsInventory) { @('Html') } else { $inventoryFormats }
     $formats = Read-AZSCWizardChecklist -Title 'Report formats' -Items $formatPool -DefaultSelected $defaultFormats
     if ($null -eq $formats) { return $null }
+    if ($formats.Count -eq $formatPool.Count) { $formats = @('All') }
     $answers.OutputFormat = $formats
 
     # Build the fallback folder based on OS
@@ -379,28 +332,6 @@ function Start-AZSCWizard {
     }
     $dir = Read-AZSCWizardText -Prompt 'Report directory' -Default $defaultDir
     if ($dir) { $answers.ReportDir = $dir }
-
-    # AB#6930 -- report identity, wizard parity with -ReportIdentity. Only asked for an
-    # assessment run: the identity block is the React report's cover/header, and inventory-only
-    # runs never reach that renderer. Every prompt defaults to blank (Enter accepts it), and a
-    # blank answer is simply never added to the hashtable -- Export-React's own neutral defaults
-    # (Get-ScoutReportIdentityDefault) fill anything the operator skipped, so this step can be
-    # skipped in full with four Enters and the report still reads as neutral, never as this
-    # product's own name.
-    if ($wantsAssessment) {
-        Write-Host ''
-        Write-Host '  Report identity (optional -- blank uses a neutral default; Enter to skip)' -ForegroundColor White
-        $reportIdentity = @{}
-        $clientName = Read-AZSCWizardText -Prompt '  Client / organization name' -Default ''
-        if ($clientName) { $reportIdentity.clientName = $clientName }
-        $engagementName = Read-AZSCWizardText -Prompt '  Engagement name' -Default ''
-        if ($engagementName) { $reportIdentity.engagementName = $engagementName }
-        $classification = Read-AZSCWizardText -Prompt '  Classification banner' -Default ''
-        if ($classification) { $reportIdentity.classification = $classification }
-        $preparedBy = Read-AZSCWizardText -Prompt '  Prepared by' -Default ''
-        if ($preparedBy) { $reportIdentity.preparedBy = $preparedBy }
-        if ($reportIdentity.Count -gt 0) { $answers.ReportIdentity = $reportIdentity }
-    }
 
     # ── Step 5: confirm ──────────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 5 -Total 5 -Title 'Confirm'
@@ -522,126 +453,32 @@ function Read-AZSCWizardChoice {
 
 <#
 .SYNOPSIS
-    Sorts assessment registry keys into the wizard's four display groups.
-
-.DESCRIPTION
-    AB#7188 — presentation-only grouping for the assessment checklist. Every key
-    lands in exactly one group, decided by its prefix:
-
-        CAF:*      → Cloud Adoption Framework (CAF)
-        WAF:*      → Well-Architected Framework (WAF)
-        Assess:*   → Service category deep-dives
-        (anything else, including future/unknown keys) → Specialized reviews
-
-    Unknown keys fall into Specialized reviews rather than disappearing — the
-    wizard must never hide an assessment the registry offers (AB#6763). The keys
-    themselves are returned verbatim inside the group arrays; nothing is renamed.
-
-.OUTPUTS
-    An ordered dictionary of heading → string[] of registry keys, in the fixed
-    display order CAF, WAF, Specialized reviews, Service category deep-dives.
-#>
-function Group-AZSCWizardAssessment {
-    param([string[]]$Names)
-
-    $groups = [ordered]@{
-        'Cloud Adoption Framework (CAF)'   = [System.Collections.Generic.List[string]]::new()
-        'Well-Architected Framework (WAF)' = [System.Collections.Generic.List[string]]::new()
-        'Specialized reviews'              = [System.Collections.Generic.List[string]]::new()
-        'Service category deep-dives'      = [System.Collections.Generic.List[string]]::new()
-    }
-    foreach ($name in @($Names)) {
-        if ([string]::IsNullOrWhiteSpace($name)) { continue }
-        $heading = switch -Wildcard ($name) {
-            'CAF:*'    { 'Cloud Adoption Framework (CAF)'; break }
-            'WAF:*'    { 'Well-Architected Framework (WAF)'; break }
-            'Assess:*' { 'Service category deep-dives'; break }
-            default    { 'Specialized reviews' }
-        }
-        $groups[$heading].Add($name)
-    }
-    $result = [ordered]@{}
-    foreach ($key in $groups.Keys) { $result[$key] = @($groups[$key]) }
-    return $result
-}
-
-<#
-.SYNOPSIS
     Multi-select checklist. Everything is selected by default; the operator
     unchecks what they don't want. Returns the selected items, or $null if
     cancelled.
-
-.DESCRIPTION
-    Pass -Groups (an ordered dictionary of heading → item array) instead of
-    -Items to render non-selectable heading lines between item runs (AB#7188).
-    Numbering stays continuous across groups and toggling/select-all/return
-    values are identical to the flat form — the items ARE the flattened groups,
-    in group order. Empty groups render nothing.
-
-    Pass -ItemLabels (item → display string) to show something richer than the
-    bare item next to its checkbox -- e.g. a category's collector coverage,
-    "Analytics (12/12)" (AB#7101) -- without changing what gets toggled,
-    counted, or returned: selection and the answer hashtable always deal in
-    the plain item names.
-
-    Pass -ItemDetail (item → string[] of detail lines) to let the operator type
-    `i<n>` and see those lines inline -- e.g. which collectors in a category
-    are/aren't working -- without leaving the checklist. Omit it and the `i`
-    command is simply not offered.
 #>
 function Read-AZSCWizardChecklist {
     param(
         [string]$Title,
         [string[]]$Items,
-        [string[]]$DefaultSelected,
-        [System.Collections.Specialized.OrderedDictionary]$Groups,
-        [hashtable]$ItemLabels,
-        [hashtable]$ItemDetail
+        [string[]]$DefaultSelected
     )
-
-    if ($null -ne $Groups) {
-        # The flat item list is derived from the groups, so every existing code
-        # path (numbering, toggling, all/none, the returned selection) operates
-        # on exactly the same array the grouped render displays.
-        $Items = @(foreach ($heading in $Groups.Keys) { @($Groups[$heading]) | Where-Object { $_ } })
-    }
 
     $selected = [System.Collections.Generic.HashSet[string]]::new()
     $initial = if ($PSBoundParameters.ContainsKey('DefaultSelected')) { $DefaultSelected } else { $Items }
     foreach ($item in $initial) { [void]$selected.Add($item) }
 
-    $writeItemLine = {
-        param([int]$Index)
-        $mark = if ($selected.Contains($Items[$Index])) { 'x' } else { ' ' }
-        $colour = if ($selected.Contains($Items[$Index])) { 'Green' } else { 'DarkGray' }
-        $label = $Items[$Index]
-        if ($ItemLabels -and $ItemLabels.ContainsKey($label)) { $label = $ItemLabels[$label] }
-        Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($Index + 1), $label) -ForegroundColor $colour
-    }
-
     while ($true) {
         Write-Host ''
         Write-Host "  $Title" -ForegroundColor White
-        if ($null -ne $Groups) {
-            $i = 0
-            foreach ($heading in $Groups.Keys) {
-                $groupItems = @(@($Groups[$heading]) | Where-Object { $_ })
-                if ($groupItems.Count -eq 0) { continue }
-                Write-Host ''
-                Write-Host "    ── $heading ──" -ForegroundColor Cyan
-                for ($j = 0; $j -lt $groupItems.Count; $j++) { & $writeItemLine -Index $i; $i++ }
-            }
-        }
-        else {
-            for ($i = 0; $i -lt $Items.Count; $i++) { & $writeItemLine -Index $i }
+        for ($i = 0; $i -lt $Items.Count; $i++) {
+            $mark = if ($selected.Contains($Items[$i])) { 'x' } else { ' ' }
+            $colour = if ($selected.Contains($Items[$i])) { 'Green' } else { 'DarkGray' }
+            Write-Host ("    [{0}] {1,2}. {2}" -f $mark, ($i + 1), $Items[$i]) -ForegroundColor $colour
         }
         Write-Host ''
         Write-Host '   Toggle with numbers (e.g. "3" or "3,5,9"), a = all, n = none,' -ForegroundColor DarkGray
-        if ($ItemDetail) {
-            Write-Host '   i<n> = detail on an item (e.g. "i3"), Enter = accept, q = quit' -ForegroundColor DarkGray
-        } else {
-            Write-Host '   Enter = accept, q = quit' -ForegroundColor DarkGray
-        }
+        Write-Host '   Enter = accept, q = quit' -ForegroundColor DarkGray
 
         $raw = (Read-Host '  >').Trim()
 
@@ -656,22 +493,6 @@ function Read-AZSCWizardChecklist {
         if ($raw -match '^(q|quit)$') { return $null }
         if ($raw -match '^a(ll)?$')   { foreach ($item in $Items) { [void]$selected.Add($item) }; continue }
         if ($raw -match '^n(one)?$')  { $selected.Clear(); continue }
-        if ($ItemDetail -and $raw -match '^i\s*(\d+)$') {
-            $n = [int]$Matches[1]
-            if ($n -ge 1 -and $n -le $Items.Count) {
-                $item = $Items[$n - 1]
-                Write-Host ''
-                Write-Host "    $item detail:" -ForegroundColor White
-                if ($ItemDetail.ContainsKey($item) -and @($ItemDetail[$item]).Count -gt 0) {
-                    foreach ($line in @($ItemDetail[$item])) { Write-Host "      $line" -ForegroundColor DarkGray }
-                } else {
-                    Write-Host '      (no detail available)' -ForegroundColor DarkGray
-                }
-            } else {
-                Write-Host "   Enter a number between 1 and $($Items.Count)." -ForegroundColor Yellow
-            }
-            continue
-        }
 
         foreach ($token in ($raw -split '[,\s]+' | Where-Object { $_ })) {
             $n = 0
@@ -700,12 +521,6 @@ function Format-AZSCWizardCommand {
         $value = $Answers[$key]
         if ($value -is [switch] -or $value -is [bool]) {
             if ($value) { $parts.Add("-$key") }
-        }
-        elseif ($value -is [hashtable]) {
-            # AB#6930 -- -ReportIdentity. Too free-form to inline as command-line syntax (values
-            # commonly contain spaces/punctuation); name it and point at the wizard instead of
-            # emitting something that would not actually parse if pasted back in.
-            if ($value.Count -gt 0) { $parts.Add("-$key <see wizard prompts -- re-run the wizard to set this>") }
         }
         elseif ($value -is [array]) {
             $parts.Add("-$key $((@($value) | ForEach-Object { if ($_ -match '[\s]') { "'$_'" } else { $_ } }) -join ',')")

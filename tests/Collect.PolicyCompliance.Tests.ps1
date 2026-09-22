@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
+#Requires -Modules Az.ResourceGraph
 
 <#
     AB#6792 (Feature AB#6744) — "issues no Azure call beyond what an inventory run already
@@ -12,21 +13,8 @@
 #>
 
 BeforeAll {
-    # Invoke-Collect always performs these two non-ARG sweeps. Keep fake
-    # subscriptions and tenants inside the test process.
-    function Get-ScoutDefenderPlanSweep {
-        param([object[]] $Subscriptions)
-        $null = $Subscriptions
-        return @()
-    }
-
-    function Get-ScoutExternalIdentitiesPolicy {
-        param([string] $TenantID)
-        $null = $TenantID
-        return [pscustomobject]@{ Collected = $false }
-    }
     $script:Root = Split-Path $PSScriptRoot -Parent
-    . "$script:Root/tests/helpers/Search-AzGraph.TestDouble.ps1"
+    Import-Module Az.ResourceGraph -ErrorAction Stop
     . "$script:Root/src/collect/Invoke-Collect.ps1"
 }
 
@@ -41,8 +29,7 @@ Describe 'AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect' {
         }
         $script:SweepCalls = 0
         function Get-ScoutSubscriptionSecurityPolicySweep {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([object[]] $Subscriptions)
+            param([object[]] $Subscriptions)
             $script:SweepCalls++
             @(
                 [pscustomobject]@{
@@ -77,10 +64,9 @@ param([object[]] $Subscriptions)
     }
 
     It 'a sweep failure degrades to empty compliance data, never throws the whole collect' {
-        function Get-ScoutSubscriptionSecurityPolicySweep {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([object[]] $Subscriptions) throw 'Azure is having a day' }
+        function Get-ScoutSubscriptionSecurityPolicySweep { param([object[]] $Subscriptions) throw 'Azure is having a day' }
 
-        { $null = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue } | Should -Not -Throw
+        { $collect = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue } | Should -Not -Throw
         $collect = Invoke-Collect -Source TypedQueries -Categories @('Management') -IncludePolicyCompliance -WarningAction SilentlyContinue
         @($collect.domains.management.policyComplianceStates).Count | Should -Be 0
     }

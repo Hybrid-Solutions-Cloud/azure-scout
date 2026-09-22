@@ -102,8 +102,8 @@ function Test-AzScoutTaskBranch {
     $Left  = $Node.Left
     $Right = $Node.Right
     $IsTaskVar = { param($E) $E -is [System.Management.Automation.Language.VariableExpressionAst] -and $E.VariablePath.UserPath -ieq 'Task' }
-    $IsValue   = { param($E, $V) $E -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $E.Value -ieq $V }
-    return ((& $IsTaskVar $Left) -and (& $IsValue $Right $Value)) -or ((& $IsTaskVar $Right) -and (& $IsValue $Left $Value))
+    $IsValue   = { param($E) $E -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $E.Value -ieq $Value }
+    return ((& $IsTaskVar $Left) -and (& $IsValue $Right)) -or ((& $IsTaskVar $Right) -and (& $IsValue $Left))
 }
 
 function Get-ProcessingBlock {
@@ -123,7 +123,7 @@ function Get-ProcessingBlock {
     return $null
 }
 
-function Get-ResourceTypeFilter {
+function Get-ResourceTypeFilters {
     <#
         Every `$Var = $Resources | Where-Object { ... $_.TYPE ... }` assignment in the block, as
         an ordered map of variable name -> the resource-type string constant(s) it filters on.
@@ -203,7 +203,7 @@ function Get-ResourceTypeFilter {
     return $Result
 }
 
-function Get-HashtableFieldName {
+function Get-HashtableFieldNames {
     <# Ordered, de-duplicated key list of every `$obj = @{ 'Key' = ...; ... }` literal in the block. #>
     param([System.Management.Automation.Language.Ast]$Block)
 
@@ -235,7 +235,7 @@ function Get-HashtableFieldName {
     return @($Names.Keys)
 }
 
-function Get-ExportColumn {
+function Get-ExportColumns {
     <#
         Ordered `$Exc.Add('Column')` list from the Reporting branch (`$Task -ne 'Processing'`).
         `.Add(...)` is a method call, not a command invocation, so the parser represents it as
@@ -265,7 +265,7 @@ function Get-ExportColumn {
     return $Columns
 }
 
-function Get-ExternalCall {
+function Get-ExternalCalls {
     <#
         Commands in the block that reach Azure/Graph themselves, or depend on an external COM
         runtime, rather than shaping the $Resources array the collector was handed.
@@ -349,11 +349,11 @@ function Test-RowLoopReferencesVariable {
     param([System.Management.Automation.Language.ForEachStatementAst]$RowLoop, [string]$VarName)
 
     if (-not $RowLoop) { return $false }
-    $VariableReads = @($RowLoop.Body.FindAll({ param($n) $n -is [System.Management.Automation.Language.VariableExpressionAst] }, $true))
-    foreach ($Read in $VariableReads) {
-        if ($Read.VariablePath.UserPath -ieq $VarName) { return $true }
-    }
-    return $false
+    $Reads = @($RowLoop.Body.FindAll({
+        param($n)
+        $n -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.VariablePath.UserPath -ieq $VarName
+    }, $true))
+    return $Reads.Count -gt 0
 }
 
 # --- Per-collector audit ------------------------------------------------------------------------
@@ -389,7 +389,7 @@ function Get-CollectorAuditRecord {
 
     $ProcessingBlock = Get-ProcessingBlock -Ast $Ast
 
-    $ResourceFilters = Get-ResourceTypeFilter -Block $ProcessingBlock
+    $ResourceFilters = Get-ResourceTypeFilters -Block $ProcessingBlock
     $Record.ResourceTypeFilterCount = $ResourceFilters.Count
     $Record.ResourceTypes = @($ResourceFilters.Values | ForEach-Object { $_ } | Select-Object -Unique)
     $Record.HasCompoundFilter = @($ResourceFilters.Values | Where-Object { @($_).Count -gt 1 }).Count -gt 0
@@ -398,10 +398,10 @@ function Get-CollectorAuditRecord {
     # @() -- `$x = Get-Foo` collapses a true zero-item result to $null (function output, like
     # any pipeline, flattens empty arrays away), and @() only recovers an empty array when it
     # wraps the point where the objects are produced, not a $null read back out of $x afterwards.
-    $Record.ProcessingFields = @(Get-HashtableFieldName -Block $ProcessingBlock)
+    $Record.ProcessingFields = @(Get-HashtableFieldNames -Block $ProcessingBlock)
     $Record.ProcessingFieldCount = @($Record.ProcessingFields).Count
 
-    $Record.ExportColumns = @(Get-ExportColumn -Ast $Ast)
+    $Record.ExportColumns = @(Get-ExportColumns -Ast $Ast)
     $Record.ExportColumnCount = @($Record.ExportColumns).Count
 
     $Record.UsesSubCorrelation = ($ProcessingBlock -and @($ProcessingBlock.FindAll({
@@ -414,7 +414,7 @@ function Get-CollectorAuditRecord {
         $n -is [System.Management.Automation.Language.VariableExpressionAst] -and $n.VariablePath.UserPath -in @('Retirements', 'Unsupported')
     }, $true)).Count -gt 0)
 
-    $Record.ExternalCalls = @(Get-ExternalCall -Block $ProcessingBlock)
+    $Record.ExternalCalls = @(Get-ExternalCalls -Block $ProcessingBlock)
 
     # A cross-resource join is more than one distinct resource-type filter variable, where a
     # variable OTHER than the one the per-row loop actually iterates is read inside that loop --

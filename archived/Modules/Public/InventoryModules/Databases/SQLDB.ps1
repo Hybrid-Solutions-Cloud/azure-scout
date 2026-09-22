@@ -7,7 +7,7 @@ This script consolidates information for all microsoft.sql/servers/databases res
 Excel Sheet Name: SQLDB
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Database/SQLDB.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Database/SQLDB.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -21,7 +21,6 @@ Authors: Claudio Merola and Renato Gregio
 
 <######## Default Parameters. Don't modify this ########>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task ,$File, $SmaResources, $TableStyle, $Unsupported)
 
 if ($Task -eq 'Processing') {

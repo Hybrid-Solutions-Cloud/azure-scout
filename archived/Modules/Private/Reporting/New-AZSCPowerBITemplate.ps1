@@ -47,7 +47,6 @@ No extra modules required.
 #>
 function New-AZSCPowerBITemplate {
     [CmdletBinding()]
-    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string] $PowerBIDir,
@@ -263,7 +262,7 @@ function New-AZSCPowerBITemplate {
         [void]$mLines.AppendLine("    _path   = FolderPath & `"\\$fileName`",")
         [void]$mLines.AppendLine('    _source = Csv.Document(')
         [void]$mLines.AppendLine('                  File.Contents(_path),')
-        [void]$mLines.AppendLine('                  [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]')
+        [void]$mLines.AppendLine('                  [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]'),
         [void]$mLines.AppendLine('              ),')
         [void]$mLines.AppendLine('    _promoted = Table.PromoteHeaders(_source, [PromoteAllScalars = true]),')
         [void]$mLines.AppendLine('    _typed    = Table.TransformColumnTypes(_promoted,')

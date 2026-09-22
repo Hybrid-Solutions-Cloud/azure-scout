@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
     Azure Login Session Module for Azure Scout
@@ -26,10 +22,6 @@ $ErrorActionPreference = 'Stop'
 .PARAMETER DeviceLogin
     Use device-code authentication flow.
 
-.PARAMETER ForceLogin
-    Ignore an existing current-user context and authenticate again. The guided
-    wizard uses this when the operator declines the displayed account/tenant.
-
 .PARAMETER AppId
     Application (client) ID for service principal authentication.
 
@@ -43,7 +35,7 @@ $ErrorActionPreference = 'Stop'
     Password protecting the certificate file. Passed as SecureString internally.
 
 .LINK
-    https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    https://github.com/thisismydemo/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -59,20 +51,14 @@ function Connect-AZSCLoginSession {
     # no SecureString input path for these non-interactive service-principal flows.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '',
         Justification = 'Headless SPN/cert auth: secret arrives as a plain string arg; no SecureString input path exists.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'CertificatePassword',
-        Justification = 'Headless SPN/cert auth: arrives as a plain string from CI env vars / callers with no SecureString input path; changing the parameter type is a breaking change for every existing caller.')]
     [CmdletBinding()]
     param(
-        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud', 'AzureGermanCloud')]
         [string]$AzureEnvironment = 'AzureCloud',
 
         [string]$TenantID,
 
         [switch]$DeviceLogin,
-
-        [switch]$ForceLogin,
-
-        [switch]$NonInteractive,
 
         [string]$AppId,
 
@@ -132,7 +118,7 @@ function Connect-AZSCLoginSession {
     # -----------------------------------------------------------
     # Priority 4: Device Code
     # -----------------------------------------------------------
-    if ($DeviceLogin.IsPresent -and $ForceLogin.IsPresent -and -not $NonInteractive) {
+    if ($DeviceLogin.IsPresent) {
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Auth method: Device Code')
 
         $deviceParams = @{
@@ -158,93 +144,32 @@ function Connect-AZSCLoginSession {
     $context = Get-AzContext -ErrorAction SilentlyContinue
 
     # If we have a valid context matching the target tenant, reuse it
-    $sameCloud = $context -and $context.PSObject.Properties['Environment'] -and $context.Environment.Name -eq $AzureEnvironment
-    if (-not $ForceLogin.IsPresent -and $sameCloud -and $context.Account -and (-not $TenantID -or $context.Tenant.Id -eq $TenantID)) {
-        try {
-            $null = Get-AzAccessToken -TenantId $context.Tenant.Id -ErrorAction Stop
-            $TenantID = $context.Tenant.Id
-            Write-Host "Using existing Az context for tenant $TenantID" -ForegroundColor Green
-            return $TenantID
-        }
-        catch {
-            if ($NonInteractive) { throw "Tenant '$TenantID' requires authentication before retry: $($_.Exception.Message)" }
-            Write-Verbose 'The existing session cannot acquire a token; continuing to sign-in.'
-        }
+    if ($context -and $context.Account -and (-not $TenantID -or $context.Tenant.Id -eq $TenantID)) {
+        $TenantID = $context.Tenant.Id
+        Write-Host "Using existing Az context for tenant $TenantID" -ForegroundColor Green
+        return $TenantID
     }
-
-    # AB#7105 -- a user who already authenticated to several directly accessible tenants may
-    # have an Az context cached for each one. Switch to that context before considering another
-    # interactive login. This keeps the outer enterprise-tenant loop to one initial sign-in in
-    # the common case while preserving the existing login path when no cached context exists.
-    if (-not $ForceLogin.IsPresent -and $TenantID -and $sameCloud -and $context.Account) {
-        try {
-            $matchingContext = @(
-                Get-AzContext -ListAvailable -ErrorAction Stop |
-                    Where-Object {
-                        $_.Tenant -and [string]$_.Tenant.Id -eq $TenantID -and
-                        $_.Environment.Name -eq $AzureEnvironment -and
-                        $_.Account -and [string]$_.Account.Id -eq [string]$context.Account.Id
-                    }
-            ) | Select-Object -First 1
-            if ($matchingContext) {
-                $null = Set-AzContext -Context $matchingContext -ErrorAction Stop
-                $null = Get-AzAccessToken -TenantId $TenantID -ErrorAction Stop
-                Write-Host "Using cached Az context for tenant $TenantID" -ForegroundColor Green
-                return $TenantID
-            }
-        }
-        catch {
-            Write-Verbose "Could not reuse a cached Az context for tenant '$TenantID': $($_.Exception.Message)"
-        }
-        # Public Az APIs acquire a tenant token from the existing signed-in identity.
-        # Creating a context does not require another interactive Connect-AzAccount.
-        try {
-            $null = Get-AzAccessToken -TenantId $TenantID -ErrorAction Stop
-            $selected = Set-AzContext -Tenant $TenantID -ErrorAction Stop
-            if (-not $selected -or $selected.Tenant.Id -ne $TenantID -or
-                $selected.Account.Id -ne $context.Account.Id -or $selected.Environment.Name -ne $AzureEnvironment) {
-                throw 'Azure returned a context that does not match the requested tenant, account and cloud.'
-            }
-            return $TenantID
-        }
-        catch {
-            if ($NonInteractive) { throw "Tenant '$TenantID' requires authentication before retry: $($_.Exception.Message)" }
-            Write-Verbose "Silent tenant context acquisition failed: $($_.Exception.Message)"
-        }
-    }
-
-    if ($NonInteractive) { throw "Tenant '$TenantID' has no reusable Azure session. Sign in to that tenant and retry the failed tenant." }
 
     # Need to authenticate interactively
     Write-Host 'No valid Az context found — launching interactive login...' -ForegroundColor Yellow
 
     $interactiveParams = @{ Environment = $AzureEnvironment }
-    if ($DeviceLogin) { $interactiveParams.UseDeviceAuthentication = $true }
     if ($TenantID) { $interactiveParams['Tenant'] = $TenantID }
 
-    # Temporarily disable LoginExperienceV2 if enabled (avoids subscription picker). The
-    # authentication call runs exactly once, and a failed login must not leave global Az
-    # configuration changed for the rest of the user's session.
-    $restoreLoginExperienceV2 = $false
+    # Temporarily disable LoginExperienceV2 if enabled (avoids subscription picker)
     try {
-        try {
-            $loginConfig = Get-AzConfig -LoginExperienceV2 -WarningAction SilentlyContinue -InformationAction SilentlyContinue
-            if ($loginConfig.Value -eq 'On') {
-                Update-AzConfig -LoginExperienceV2 Off -Scope Process -ErrorAction Stop | Out-Null
-                $restoreLoginExperienceV2 = $true
-            }
+        $loginConfig = Get-AzConfig -LoginExperienceV2 -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        if ($loginConfig.Value -eq 'On') {
+            Update-AzConfig -LoginExperienceV2 Off | Out-Null
+            Connect-AzAccount @interactiveParams | Out-Null
+            Update-AzConfig -LoginExperienceV2 On | Out-Null
         }
-        catch {
-            Write-Verbose "Could not inspect or temporarily change LoginExperienceV2: $($_.Exception.Message)"
+        else {
+            Connect-AzAccount @interactiveParams | Out-Null
         }
-
-        Connect-AzAccount @interactiveParams -ErrorAction Stop | Out-Null
     }
-    finally {
-        if ($restoreLoginExperienceV2) {
-            try { Update-AzConfig -LoginExperienceV2 On -Scope Process -ErrorAction Stop | Out-Null }
-            catch { Write-Warning "Interactive login completed, but LoginExperienceV2 could not be restored to On: $($_.Exception.Message)" }
-        }
+    catch {
+        Connect-AzAccount @interactiveParams | Out-Null
     }
 
     if (-not $TenantID) {

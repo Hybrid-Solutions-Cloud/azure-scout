@@ -23,7 +23,7 @@
     [PSCustomObject] with property EntraResources (array of normalized objects).
 
 .LINK
-    https://github.com/Hybrid-Solutions-Cloud/azure-scout
+    https://github.com/thisismydemo/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -34,7 +34,6 @@
 #>
 function Start-AZSCEntraExtraction {
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'TenantID', Justification = 'Read via closure inside the nested Add-NormalizedResource function, not directly in this scope -- the analyzer cannot see across the nested function boundary.')]
     param(
         [Parameter(Mandatory)]
         [string]$TenantID

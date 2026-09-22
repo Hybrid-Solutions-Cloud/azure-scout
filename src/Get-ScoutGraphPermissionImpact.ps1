@@ -43,22 +43,15 @@ function Get-ScoutGraphPermissionImpact {
 
     if ([string]::IsNullOrWhiteSpace($CollectorRoot)) {
         $moduleRoot   = Split-Path -Parent $PSScriptRoot
-        $CollectorRoot = Join-Path -Path $moduleRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
+        $CollectorRoot = Join-Path $moduleRoot 'manifests' 'collectors'
     }
 
     # Same standalone-dot-source contract as the pre-flight that calls this.
     if (-not (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue)) {
-        . (Join-Path -Path $PSScriptRoot -ChildPath 'collect/Get-ScoutEntraQueryCatalog.ps1')
+        . (Join-Path $PSScriptRoot 'collect/Get-ScoutEntraQueryCatalog.ps1')
     }
 
-    # Disabled catalog entries remain in extraction outcomes so reports can explain that they
-    # were Not assessed, but they are not released collection work and must not appear in the
-    # permission audit as permissions an operator should consider granting.
-    $catalog = @(
-        Get-ScoutEntraQueryCatalog | Where-Object {
-            -not $_.ContainsKey('Collect') -or [bool]$_.Collect
-        }
-    )
+    $catalog = @(Get-ScoutEntraQueryCatalog)
 
     # type -> collectors that read it. Built once from the manifests rather than asked per
     # permission, because the tree is ~240 files and this runs inside an interactive pre-flight.
@@ -76,11 +69,7 @@ function Get-ScoutGraphPermissionImpact {
             if ($null -eq $definition -or -not $definition.ContainsKey('ResourceTypes')) { continue }
 
             $collectorName = '{0}/{1}' -f $file.Directory.Name, $file.BaseName
-            # SourceDependencies lets a correlation collector declare the retained datasets it
-            # consumes without pretending those source rows are themselves report rows.
-            foreach ($type in @($definition.ResourceTypes) + @(
-                    if ($definition.ContainsKey('SourceDependencies')) { $definition.SourceDependencies }
-                )) {
+            foreach ($type in @($definition.ResourceTypes)) {
                 if ([string]::IsNullOrWhiteSpace($type)) { continue }
                 $key = ([string] $type).ToLowerInvariant()
                 if (-not $byType.ContainsKey($key)) { $byType[$key] = [System.Collections.Generic.List[string]]::new() }

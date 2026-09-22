@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.17.0'
+ModuleVersion = '3.3.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ CompanyName = 'Hybrid Cloud Solutions'
 Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories tenant-wide Azure ARM resources and produces the live React, Json, and JsonEvidence outputs; opt into Entra ID collection with -Scope All; add -Assessment to run a read-only CAF/WAF assessment. Detailed run logs capture debug and verbose diagnostics without adding console noise. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
+Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc); add -Assessment and it runs a read-only CAF/WAF landing-zone assessment, scoring the tenant against Cloud Adoption Framework design areas and Well-Architected pillars and producing Power BI, self-contained HTML, executive PowerPoint, and JSON/Excel evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
 
 # Minimum version of the PowerShell engine required by this module
 # AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
@@ -54,22 +54,8 @@ PowerShellVersion = '7.0'
 # Processor architecture (None, X86, Amd64) required by this module
 # ProcessorArchitecture = ''
 
-# Modules that must be imported into the global environment prior to importing this module.
-# Keep optional feature dependencies (for example Az.CostManagement) out of this list.
-# Declaring the core dependencies here lets Install-Module resolve them and makes a
-# source-tree Import-Module fail cleanly instead of installing software as a side effect.
-# The live progress renderer is built into AzureScout and has no external module dependency.
-RequiredModules = @(
-    'ImportExcel'
-    'Az.Accounts'
-    'Az.ResourceGraph'
-    'Az.Storage'
-    'Az.Compute'
-    'Az.Resources'
-    'Az.Advisor'
-    'Microsoft.Graph.Authentication'
-    'powershell-yaml'
-)
+# Modules that must be imported into the global environment prior to importing this module
+RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -93,9 +79,7 @@ FunctionsToExport = @(
             'Start-AZSCPolicyJob',
             'Start-AZSCSecCenterJob',
             'Start-AZSCSubscriptionJob',
-
-            #Public output maintenance
-            'Clear-AZSCCacheFolder',
+            'Wait-AZSCJob',
 
             #Public Diagram Functions
             'Build-AZSCDiagramSubnet',
@@ -154,25 +138,28 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','React','Json','JsonEvidence')
+        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','Excel','PowerBI')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/thisismydemo/azure-scout/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://labs.hybridsolutions.cloud/azure-scout/'
+        ProjectUri = 'https://thisismydemo.cloud/azure-scout/'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
+        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.17.0 - Multi-tenant authentication reuse, scope-first setup, versioned resume and failed/selected-tenant retry. Complete processed report inventory, detail dialogs, CSV/JSON exports and evidence-driven diagrams. Normalization failures no longer silently substitute narrower evidence; partial runs and assessment-specific drift stay explicit. AB#9290. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.3.1 - Completes the two clauses v3.3.0 shipped as known limitations. Figures now embed in PowerPoint and PDF, not only Word: the deck places one figure per slide as a real picture part, and the PDF embeds them as image XObjects because PDF FlateDecode is zlib -- exactly what the rasteriser already produces -- so the raw pixels go in with no decode round trip, no JPEG and no new dependency, which retires the manual diagram.jpg drop-in as the only route. And the Power BI report pages now bind to the model: a visual container needs three serialised blobs (config, query and dataTransforms) and only config was written, so nothing told Power BI which field belonged in which well and it drew the frames empty, with no error anywhere in that path - the project was structurally valid and the visuals were simply unbound, which is why every file-shape assertion passed while the report was useless. All eleven visuals across the three pages now carry their query and field-well mapping. Verified by re-rendering all eight tenants offline from banked collect data: 29 artefacts each, 0 empty. v3.3.0 - Epic AB#6450: the reports become deliverables. Every report Scout produced was unfit to put in front of an executive, and 103 report work items on this board were already Closed - every one accepted on the existence of a file, none carrying an acceptance criterion naming a required section or a reader. This release fixes the output and the reason it stayed broken. docs/design/report-conformance.md is now normative with 40 numbered clauses, and tests/Report.Conformance.Tests.ps1 asserts every automatic clause against an emitted package read back off disk, so a renderer item can no longer close on the existence of a file. Word: the generated .docx contained three package parts and 0 of 1,803 paragraphs carried a style, which explains the missing navigation pane, the impossible table of contents, the absent cross-references and the un-rebrandable output all at once. It now carries real styles, chapter numbering, a theme, a header and footer with PAGE and NUMPAGES as real fields, a TOC field, a cover naming client and scan date and classification, a Document Information block stating provenance, chapters shaped scorecard then current state then findings then action items, and long tables deferred to an appendix. Figures are rasterised to PNG in managed code and embedded as image parts - the diagram pipeline previously emitted draw.io XML only, so no document could embed a figure at all; AzViz, Graphviz, D2, a headless browser and ImageMagick were each rejected because a report that silently loses its figures when a native binary is missing is worse than one that never promised them. Power BI output is now a PBIP project with a TMDL semantic model, four real relationships, eleven DAX measures, a date dimension and authored report pages, replacing four flat CSVs and a template whose authored layout was 2,190 bytes. The deck states what was not assessed and carries exactly one act-on-this-first slide naming a specific item, bounded at fifteen slides. The workbook gains a cover with per-tab record counts, the full ARM resource id on every evidence row, and a triage verdict seeded for review rather than guessed. Not assessed is honoured throughout: excluded from the compliance denominator, given its own scorecard column and figure segment, never rendered as a zero or a pass. Two defects that only a real multi-tenant run could surface are fixed: Export-Excel shared a name with the cmdlet exported by ImportExcel - which that renderer imports - so ImportExcel shadowed it and every per-assessment workbook silently failed, and Get-ScoutExcelProp threw on evidence rows that are not property bags. Both were live while the unit suite was green. KNOWN LIMITATION: the Power BI report pages render as placeholders - the model loads and the pages exist, but the visuals do not yet bind to it, so clause B-05 is not met and is not claimed. See CHANGELOG.md for the full history. v3.2.0 - Deep governance and compliance analytics (Epic AB#6454). Scout goes from one real assessment to roughly twenty-eight, and from one enumerated source framework to all fourteen. Added five WAF pillar assessments, eight CAF landing-zone design-area assessments, the WAF Maturity Model, the Microsoft Cloud Security Benchmark plus one assessment per regulatory initiative assigned in the scanned scope, Cloud Governance across CAF Govern''''''''s seven risk categories with a 1-10 domain maturity report, and workload reviews for AI, Azure Virtual Desktop, Azure VMware Solution, AVS Landing Zone, CASA and Azure Local, plus the FinOps Review and DevOps Capability Assessment. Compliance is scored from policy state Scout already collected and no rule read, at no additional Azure call. Three-state reporting: NotAssessed is a first-class status excluded from every score denominator by construction, so a control nobody chose to evaluate never reads as a pass or a fail, and a rule whose data source was blocked reports Not assessed rather than a zero - a denied billing API no longer renders as zero spend. Two false-pass rules removed, and waf.storage.yaml retired for scoring a WAF pillar that WAF does not define; a gate now fails any rule file claiming a pillar, design area or framework axis that does not exist. Every rule file must record the framework version it was verified against or the engine refuses to load it, so no coverage figure can ship without naming its source version. Hybrid/ArcSites and Hybrid/VirtualMachines re-sourced off Resource Graph, which indexes neither type - verified live against real estates returning rows where Resource Graph returns none. Orphaned role assignments are resolved locally against already-collected Entra principals, keeping Graph-denied distinct from principal-deleted.'
 
         # Prerelease string of this module
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
+
+        # External dependent modules of this module
+        # ExternalModuleDependencies = @()
 
     } # End of PSData hashtable
 

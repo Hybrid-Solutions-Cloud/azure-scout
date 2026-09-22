@@ -27,7 +27,6 @@ function Invoke-ScoutCollector {
     $Started = Get-Date
     $Rows = @()
     $Failure = $null
-    $ResourceTypes = @()
 
     try {
         if (-not [bool]$Collector.HasDeclarativeDefinition -or
@@ -36,7 +35,6 @@ function Invoke-ScoutCollector {
         }
 
         $Definition = Get-ScoutCollectorDefinition -Path $Collector.DefinitionPath
-        $ResourceTypes = @($Definition.ResourceTypes)
         $Rows = @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context $Context)
     }
     catch {
@@ -50,21 +48,6 @@ function Invoke-ScoutCollector {
         }
     }
 
-    $Duration = (Get-Date) - $Started
-    $RowCount = @($Rows).Count
-    $Status = if ($null -ne $Failure) { 'Failed' } elseif ($RowCount -gt 0) { 'Rows' } else { 'Empty' }
-
-    if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
-        Write-AZSCLog -Level 'DEBUG' -Message (
-            'Collector {0}/{1}: status={2}; rows={3}; elapsed={4}' -f
-                $Collector.FolderCategory,
-                $Collector.Name,
-                $Status,
-                $RowCount,
-                $Duration.ToString('dd\:hh\:mm\:ss\.fff')
-        )
-    }
-
     [PSCustomObject]@{
         Name           = $Collector.Name
         FolderCategory = $Collector.FolderCategory
@@ -72,7 +55,6 @@ function Invoke-ScoutCollector {
         Rows           = $Rows
         Mode           = 'Declarative'
         Error          = $Failure
-        Duration       = $Duration
-        ResourceTypes  = $ResourceTypes
+        Duration       = (Get-Date) - $Started
     }
 }

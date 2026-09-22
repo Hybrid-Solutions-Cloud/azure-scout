@@ -242,7 +242,7 @@ function Add-ScoutExcelDashboard {
     }
 }
 
-function Get-ScoutExcelResourceId {
+function Get-ScoutExcelResourceIds {
     <#
     .SYNOPSIS
         The ARM resource ids behind one finding, as a cell string.
@@ -329,7 +329,7 @@ function Add-ScoutExcelCoverSheet {
         computed once every other sheet exists — a cover written first would either be empty or
         would be a second place the counts are derived, free to drift from the sheets.
     #>
-    param([Parameter(Mandatory)][string]$Path, [string]$ScanDate, [string]$Scope)
+    param([Parameter(Mandatory)][string]$Path, $Findings, [string]$ScanDate, [string]$Scope)
 
     $pkg = Open-ExcelPackage -Path $Path
     try {
@@ -455,7 +455,7 @@ function Export-ScoutEvidenceWorkbook {
             #               the verdict, so it seeds the column and marks it for the reviewer
             #               rather than guessing one.
             $_.Group | Select-Object Id, Framework, Severity, Status, EvidenceCount,
-            @{ n = 'ResourceId'; e = { Get-ScoutExcelResourceId -Finding $_ } },
+            @{ n = 'ResourceId'; e = { Get-ScoutExcelResourceIds -Finding $_ } },
             @{ n = 'Triage'; e = { Get-ScoutExcelTriageSeed -Finding $_ } },
             Title, Remediation |
                 # AB#6883, clause X-03. FreezeTopRow and AutoFilter are not cosmetics on an
@@ -475,7 +475,7 @@ function Export-ScoutEvidenceWorkbook {
         else { (Get-Date).ToString('yyyy-MM-dd') }
         $scope = Get-ScoutExcelProp -Obj (Get-ScoutExcelProp -Obj $Collect -Name '_meta' -Default $null) -Name 'scope' -Default $null
         try {
-            Add-ScoutExcelCoverSheet -Path $xlsx -ScanDate $scanDate -Scope $scope
+            Add-ScoutExcelCoverSheet -Path $xlsx -Findings $Findings -ScanDate $scanDate -Scope $scope
         }
         catch {
             # A cover is worth having but not worth losing the evidence pack over.
@@ -488,15 +488,7 @@ function Export-ScoutEvidenceWorkbook {
         New-Item -ItemType Directory -Path $evDir -Force | Out-Null
         $allFindings | Group-Object Area | ForEach-Object {
             $name = ($_.Name -replace '[^\w]', '_')
-            $_.Group | ForEach-Object {
-                $safe = [ordered]@{}
-                foreach ($property in $_.PSObject.Properties) {
-                    $value = $property.Value
-                    if ($value -is [string] -and $value -match '^[\t\r\n ]*[=+\-@]') { $value = "'$value" }
-                    $safe[$property.Name] = $value
-                }
-                [pscustomobject]$safe
-            } | Export-Csv "$evDir/$name.csv" -NoTypeInformation
+            $_.Group | Export-Csv "$evDir/$name.csv" -NoTypeInformation
         }
     }
 }
