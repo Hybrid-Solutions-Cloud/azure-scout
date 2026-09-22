@@ -37,10 +37,10 @@ features:
     details: Scout never creates, modifies or deletes anything in your tenant. Reader at the root management group is enough, and a pre-flight audit tells you exactly what you can and cannot collect before you run.
     link: /guide/permissions
     linkText: Permissions required
-  - title: Reports in the format you need
-    details: Excel workbooks, Word, PowerPoint, PDF, self-contained HTML, React, Power BI and JSON evidence — generated offline, with no service dependency.
-    link: /guide/output
-    linkText: Output formats
+  - title: One report, and it is the deliverable
+    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. Word, PowerPoint, PDF, Excel and Power BI renderers are on hold while they are rebuilt to generate from it. Inventory runs still write Excel, JSON, Markdown, AsciiDoc and Power BI CSVs.
+    link: /assessment/configuration
+    linkText: Report tiers and what is on hold
   - title: Unattended by design
     details: Azure Automation runbooks, GitHub Actions, or Azure DevOps pipelines. Managed identity or service principal, writing straight to blob storage.
     link: /automation-guide/

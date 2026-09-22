@@ -2,6 +2,27 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# ---- AB#6922: which report formats are live, and which are on hold ----------------------------
+#
+# The React single-page report is the product's deliverable. It hosts inventory and every
+# assessment behind one adaptive shell, and it exports to PDF / Word / Markdown / CSV from the
+# page itself -- so the standalone document renderers are redundant while they are being rebuilt.
+# Maintaining six half-finished renderers in parallel is what let all six ship below deliverable
+# quality; concentrating on one is the correction.
+#
+# LIFTING THE HOLD IS A ONE-LINE EDIT: remove a name from $ScoutHeldRenderers. Nothing else in the
+# codebase decides this, and the renderers themselves are untouched and still tested.
+#
+# Json / JsonEvidence are NOT held: they are machine-readable data, not documents. The corpus
+# harness, the drift history and downstream tooling consume them.
+$script:ScoutAllRenderers = @(
+    'PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word',
+    'EChartsDashboard', 'GovernanceReport'
+)
+$script:ScoutHeldRenderers = @(
+    'PowerBi', 'Html', 'Pptx', 'Excel', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport'
+)
+
 <#
 .SYNOPSIS
     Azure Scout assessment entry point — collect, assess, and report.
@@ -65,8 +86,12 @@ function Invoke-ScoutAssessmentCore {
         [ValidateSet('All', 'ArmOnly', 'EntraOnly')]
         [string]   $Scope = 'All',              # EntraOnly throws -- ARM/ARG collect only, no Entra path here
         [string[]] $Category,                    # existing category filter still works
+        # AB#6922: the React single-page report is the product's deliverable; every other
+        # rendered format is ON HOLD and will be regenerated FROM it (see $script:ScoutHeldRenderers
+        # below). The names stay in the ValidateSet so existing scripts still bind rather than
+        # failing with a parameter-validation error -- a held format warns and is skipped.
         [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
-        [string[]] $OutputFormat = @('Html'),
+        [string[]] $OutputFormat = @('React'),
         [string]   $OutputPath = './output',
         [switch]   $PermissionAudit,
         [switch]   $CollectOnly,                 # stop after collect.json
@@ -82,11 +107,29 @@ function Invoke-ScoutAssessmentCore {
         [switch]   $IncludeDevOps,
         [string[]] $DevOpsOrganization,
         [string]   $DevOpsPat,
-        [string]   $TenantID
+        [string]   $TenantID,
+        # AB#6930 -- operator-supplied report identity (clientName, engagementName,
+        # classification, etc.). Threaded verbatim to every Export-Report call below; unset keys
+        # fall back to Export-React's neutral defaults (never a vendor name or URL). See
+        # Get-ScoutReportIdentityDefault in src/report/renderers/Export-React.ps1.
+        [hashtable] $ReportIdentity = @{},
+        # AB#6928 follow-up -- which view lens the React report opens on first (see Export-Report/
+        # Export-React's own doc comments). Threaded to every Export-Report call below.
+        [ValidateSet('Executive', 'Consultant', 'Data')]
+        [string] $DefaultReportMode = 'Consultant'
     )
 
+    # AB#6902: two runs started within the same second must not share a folder --
+    # the second would overwrite the first's artefacts, and Get-ScoutDrift would
+    # replace the prior history record (same RunId) instead of appending one.
     $runId   = Get-Date -Format 'yyyyMMdd_HHmmss'
     $runPath = Join-Path $OutputPath $runId
+    $suffix  = 1
+    while (Test-Path $runPath) {
+        $runPath = Join-Path $OutputPath ('{0}_{1:d2}' -f $runId, $suffix)
+        $suffix++
+    }
+    $runId = Split-Path $runPath -Leaf
     New-Item -ItemType Directory -Path $runPath -Force | Out-Null
 
     # AB#405: soft dependency -- every call below is skipped entirely when this
@@ -271,7 +314,32 @@ function Invoke-ScoutAssessmentCore {
     }
 
     # ---- REPORT ----
-    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') } else { $OutputFormat }
+    # AB#6863. GovernanceReport was missing from this list. Export-Report dispatches it and the
+    # renderer is fully implemented and tested, but no production caller ever reached it through
+    # the All path -- so the only surface carrying the 1-10 CAF Govern domain maturity score never
+    # rendered on a default run. A renderer that exists, passes its tests and is unreachable is
+    # indistinguishable from one that was never written.
+    # AB#6922 -- the React report is the deliverable; every other RENDERED format is on hold.
+    #
+    # 'All' therefore expands to the React report plus the machine-readable data exports. Json /
+    # JsonEvidence are deliberately NOT held: they are data, not documents -- the corpus harness,
+    # the drift history and downstream tooling read them, so holding them would break automation
+    # that has nothing to do with the reporting rebuild.
+    #
+    # A held format that is asked for EXPLICITLY warns and is skipped rather than silently
+    # producing nothing (a silent skip is how a blank dashboard shipped past a green suite once
+    # already). The ValidateSet still accepts the names, so existing scripts bind and get a clear
+    # message instead of a parameter-binding failure.
+    $requested = if ($OutputFormat -contains 'All') { $script:ScoutAllRenderers } else { $OutputFormat }
+    $held = @($requested | Where-Object { $script:ScoutHeldRenderers -contains $_ })
+    if ($held.Count -gt 0 -and $OutputFormat -notcontains 'All') {
+        Write-Warning ("Invoke-ScoutAssessmentCore: {0} report format(s) are on hold and will not be rendered: {1}. The React report is the supported deliverable (-OutputFormat React); export to PDF/Word/Markdown/CSV from it. See AB#6922." -f $held.Count, ($held -join ', '))
+    }
+    $reporters = @($requested | Where-Object { $script:ScoutHeldRenderers -notcontains $_ })
+    if ($reporters.Count -eq 0) {
+        Write-Warning 'Invoke-ScoutAssessmentCore: every requested report format is on hold; rendering the React report instead so the run still produces a deliverable.'
+        $reporters = @('React')
+    }
     $reporterIndex = 0
     foreach ($r in $reporters) {
         $reporterIndex++
@@ -282,18 +350,36 @@ function Invoke-ScoutAssessmentCore {
         # a run that includes 'React' returns @(reportPath, runPath) and every
         # caller that expects a single run-folder path (incl. Invoke-ScoutPipeline)
         # breaks.
-        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift | Out-Null
+        Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $runPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
     }
 
-    # ---- PER-ASSESSMENT REPORTS (AB#6879, clause R-01/R-02) ----
-    # The run root keeps the merged set, unchanged, so every existing caller and test that reads
-    # $runPath/assessment_report.docx still finds it. Alongside it, each selected assessment now
-    # gets its OWN complete report set under assessments/<slug>/.
+    # ---- PER-ASSESSMENT DATA (AB#6879, clause R-01/R-02 -- SUPERSEDED for rendered documents) ----
+    # Owner decision, 2026-08-04 (AB#6928 follow-up): "we have one master file that allows them to
+    # dig into the data and go into inventory, go into the assessments chosen ... each in the same
+    # overall react page, but separate pages inside that" -- then "ok. I am good with a single file
+    # then." The run-root React report already renders every selected assessment as its own
+    # section (Export-React groups findings by the `Assessment` property into `payload.
+    # assessments[]`), so a SEPARATE report-react.html per assessment folder is now a duplicate of
+    # data already in the master file, not a second deliverable.
     #
-    # Only when there is more than one: a single-assessment run would otherwise write the same
-    # documents twice, which is noise, not a deliverable.
+    # This SUPERSEDES clause R-01 ("a report set per assessment") for RENDERED documents only.
+    # R-01's underlying reason -- Phase 0's measurement that a single merged document made three
+    # unrelated tenants produce reports within 258 bytes of each other -- no longer applies: the
+    # merged React report's per-assessment sections carry each assessment's own score/areas/
+    # findings, so the "which assessment did what" signal R-01 existed to restore is now IN the
+    # one file, not achieved by writing more files.
+    #
+    # What is KEPT: each assessment's own findings.json under assessments/<slug>/ (machine-
+    # readable data, cheap to write, and the corpus harness / drift history / downstream tooling
+    # may read it independently of any rendered document -- same reasoning AB#6922 already applied
+    # to Json/JsonEvidence at the run-root level). What is DROPPED: rendering into that folder.
+    # 'React' is filtered out of the per-assessment renderer list explicitly (not by relying on
+    # $reporters being empty) so a future non-held renderer requested via -OutputFormat still
+    # writes its per-assessment copy exactly as before -- only the master-file-duplicating React
+    # render is removed.
     if (@($findingsByAssessment.Keys).Count -gt 1) {
         $assessmentRoot = Join-Path $runPath 'assessments'
+        $perAssessmentReporters = @($reporters | Where-Object { $_ -ne 'React' })
         foreach ($name in $findingsByAssessment.Keys) {
             $perFindings = @($findingsByAssessment[$name])
             if ($perFindings.Count -eq 0) { continue }
@@ -304,18 +390,21 @@ function Invoke-ScoutAssessmentCore {
             $perPath = Join-Path $assessmentRoot $slug
             $null = New-Item -ItemType Directory -Path $perPath -Force
 
-            # Scored INDEPENDENTLY. A per-assessment report must show that assessment's own score,
-            # not the run-wide one -- reusing $scored would print the same number in every folder
-            # and defeat the point of splitting them.
+            # Scored INDEPENDENTLY. The per-assessment findings.json must show that assessment's
+            # own score, not the run-wide one -- reusing $scored would print the same number in
+            # every folder and defeat the point of splitting them. Written unconditionally: this
+            # is the machine-readable data AB#6928 kept, independent of which (if any) document
+            # renderer is requested below.
             $perScored = Get-Score -Findings $perFindings
             $perScored | ConvertTo-Json -Depth 100 | Out-File "$perPath/findings.json"
 
+            if ($perAssessmentReporters.Count -eq 0) { continue }
             Write-ScoutAssessmentProgress -Status "Rendering: $name"
-            foreach ($r in $reporters) {
+            foreach ($r in $perAssessmentReporters) {
                 # Never fatal. One assessment's renderer failing must not cost the operator the
                 # other assessments' reports, nor the merged set already written above.
                 try {
-                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift | Out-Null
+                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
                 }
                 catch {
                     Write-Warning "Invoke-ScoutAssessmentCore: '$r' failed for assessment '$name': $($_.Exception.Message)"
@@ -323,16 +412,16 @@ function Invoke-ScoutAssessmentCore {
             }
         }
 
-        # ---- EXECUTIVE ROLL-UP (AB#6880, clause R-03) ----
-        # "Here is your estate, and here is how it scored across every framework assessed."
-        # Scout has never produced this artefact, and it is the one an executive actually reads:
-        # the per-assessment reports answer "how did Landing Zone do", but nobody was answering
-        # "how did we do overall, and which of these is the worst".
-        #
-        # It renders from the SAME merged $scored the run root uses -- this is a roll-up, not a
-        # re-assessment -- into executive/, next to the per-assessment folders. Deck and PDF only:
-        # the roll-up is the read-in-ten-minutes artefact, and shipping a full workbook and Power
-        # BI project beside it would bury the point.
+        # ---- EXECUTIVE ROLL-UP DATA (AB#6880, clause R-03 -- SUPERSEDED for rendered documents) ----
+        # Same owner decision as above: the run-root React report's per-assessment sections ARE
+        # the cross-assessment comparison ("how did we do overall, and which of these is the
+        # worst") the roll-up existed to provide -- reading every section of one file rather than
+        # a separate deck. rollup.json (machine-readable, same reasoning as findings.json above)
+        # is still written. The renderer loop below only ever named 'Pptx'/'Pdf' -- both already
+        # held under AB#6922 -- so it was not rendering React before this change either; the
+        # explicit exclusion here is defensive documentation, not a functional change, in case a
+        # future lift of the Pptx/Pdf hold (AB#6922 is a one-line-edit hold, not a removal) would
+        # otherwise silently reintroduce a duplicate roll-up document.
         $execPath = Join-Path $runPath 'executive'
         $null = New-Item -ItemType Directory -Path $execPath -Force
 
@@ -352,9 +441,9 @@ function Invoke-ScoutAssessmentCore {
 
         Write-ScoutAssessmentProgress -Status 'Rendering: executive roll-up'
         foreach ($r in @('Pptx', 'Pdf')) {
-            if ($reporters -notcontains $r) { continue }
+            if ($reporters -notcontains $r -or $r -eq 'React') { continue }
             try {
-                Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $execPath -Drift $drift | Out-Null
+                Export-Report -Renderer $r -Findings $scored -Collect $collect -OutputPath $execPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
             }
             catch {
                 Write-Warning "Invoke-ScoutAssessmentCore: '$r' failed for the executive roll-up: $($_.Exception.Message)"

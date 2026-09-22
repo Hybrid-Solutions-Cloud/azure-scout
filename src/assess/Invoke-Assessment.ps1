@@ -72,6 +72,23 @@ function Invoke-Assessment {
                  Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru
         }
     }
-    if ($Benchmark) { $findings += Compare-Benchmark -Collect $Collect -Benchmark $Benchmark }
+    # AB#6929 follow-up -- Compare-Benchmark builds its findings as bare pscustomobjects (no
+    # Assessment/AreaWeight/FrameworkVersion), unlike every rule-set finding above, which each get
+    # the Add-Member chain inside the ruleset loop. Appending them unstamped left every benchmark
+    # finding (LandingZone's ALZ management-group/policy checks) with NO Assessment property at
+    # all -- Export-React's per-assessment grouping fell back to a literal "(unassigned)" bucket,
+    # which rendered as a nameless 0%-scoring assessment card next to the real ones. These findings
+    # unambiguously belong to the assessment whose Benchmark declared them (only LandingZone's
+    # manifest entry names one today), so stamp the SAME $Assessment this whole function was
+    # called for -- not a fabricated bucket. AreaWeight/FrameworkVersion are deliberately left
+    # unset (not even added as $null): Get-Score's `$null -ne $_.PSObject.Properties['AreaWeight']`
+    # check treats an ABSENT property as "use the 1.0 default", which is correct here, whereas
+    # adding the property with a $null value would cast to 0.0 and zero out the area's weight.
+    if ($Benchmark) {
+        $benchmarkFindings = Compare-Benchmark -Collect $Collect -Benchmark $Benchmark
+        $findings += $benchmarkFindings | ForEach-Object {
+            $_ | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru
+        }
+    }
     return $findings
 }

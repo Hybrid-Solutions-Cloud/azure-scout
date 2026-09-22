@@ -5,8 +5,8 @@ description: Every CAF, WAF and specialised assessment Azure Scout performs, wit
 # Assessment Catalogue
 
 Azure Scout ships **46 assessments** backed by **44 rule files** holding
-**395 rules**, of which **170 are evaluated automatically** and
-**225 require manual confirmation**.
+**395 rules**, of which **171 are evaluated automatically** and
+**224 require manual confirmation**.
 
 Run one, several, or all of them:
 
@@ -47,7 +47,7 @@ worklist, not a grade.
 | **CAF: Resource organization** | CAF landing zone design area — Resource organization (management groups, subscriptions, tags) | 6 | 4 | 2 | **Gov** | `caf.resourceorg` |
 | **CAF: Security** | CAF landing zone design area — Security | 7 | 6 | 1 | **Gov** | `caf.security` |
 | **Governance** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
-| **LandingZone** | CAF/WAF landing zone audit (all areas) | 285 | 131 | 154 | **Gov** | `caf.ai`<br>`caf.analytics`<br>`caf.avslandingzone`<br>`caf.billing`<br>`caf.containers`<br>`caf.databases`<br>`caf.govern.ai`<br>`caf.govern.cm`<br>`caf.govern.dg`<br>`caf.govern.op`<br>`caf.govern.rc`<br>`caf.govern.rm`<br>`caf.govern.sc`<br>`caf.governance`<br>`caf.hybrid`<br>`caf.identity`<br>`caf.integration`<br>`caf.iot`<br>`caf.management`<br>`caf.network`<br>`caf.platformauto`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.storage`<br>`caf.web`<br>`waf.ai`<br>`waf.avd`<br>`waf.azurelocal.cost`<br>`waf.azurelocal.operational`<br>`waf.azurelocal.performance`<br>`waf.azurelocal.reliability`<br>`waf.azurelocal.security`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
+| **LandingZone** | CAF/WAF landing zone audit (all areas) | 93 | 58 | 35 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
 | **UpdateManager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
 
 ## Well-Architected Framework (9)
@@ -97,7 +97,7 @@ worklist, not a grade.
 | **CASA** | Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout's own inference from the published CAF Secure checklist, not Microsoft's numbered CASA questions; see docs/frameworks/casa-question-set.md) | 32 | 8 | 24 | **Gov** | `casa.security` |
 | **CrossResource** | Findings that require two collected datasets correlated | 6 | 6 | 0 |  | `xr.crossresource` |
 | **DevOps Capability Assessment** | DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center's five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero. | 18 | 9 | 9 | **Gov** | `devops.capability` |
-| **FinOps Review** | FinOps Review -- scores against the FinOps Framework's 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 22 | 6 | 16 | **Gov** | `finops.review` |
+| **FinOps Review** | FinOps Review -- scores against the FinOps Framework's 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 22 | 7 | 15 | **Gov** | `finops.review` |
 | **SMART** | Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md) | 11 | 7 | 4 | **Gov** | `smart.migration` |
 
 ## Rule files
@@ -135,7 +135,7 @@ Each file declares one framework area. An assessment selects files by glob.
 | `casa.security` | 32 | 8 | 24 |
 | `compliance.initiative` | 0 | 0 | 0 |
 | `devops.capability` | 18 | 9 | 9 |
-| `finops.review` | 22 | 6 | 16 |
+| `finops.review` | 22 | 7 | 15 |
 | `smart.migration` | 11 | 7 | 4 |
 | `waf.ai` | 34 | 2 | 32 |
 | `waf.avd` | 20 | 6 | 14 |
@@ -151,6 +151,6 @@ Each file declares one framework area. An assessment selects files by glob.
 | `waf.security` | 7 | 5 | 2 |
 | `xr.crossresource` | 6 | 6 | 0 |
 
-**Total — 44 files, 395 rules, 170 automated, 225 manual.**
+**Total — 44 files, 395 rules, 171 automated, 224 manual.**
 
 

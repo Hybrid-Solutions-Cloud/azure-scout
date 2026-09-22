@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
                      azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
                      privateEndpoints[{targetResourceId,targetProvider,targetType}] }
-        compute    { virtualMachines[{name,zoneRedundant,zoneEligible}],
+        compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType}],
                      avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
                      avdSessionHosts[{hostPoolName,status,agentVersion}],
                      avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
@@ -356,8 +356,18 @@ resources
   )
 // `id` is projected for the cross-resource joins (AB#6835): "which VMs have no backup"
 // correlates this id against a backup protected item's sourceResourceId.
+// licenseType is how Azure Hybrid Benefit is expressed on a VM, and it is ABSENT from the
+// payload unless AHB is actually configured -- so an empty string here is the finding, not
+// missing data. Projected alongside osType because the benefit only applies to Windows
+// Server and to RHEL/SLES BYOS: without osType a rule cannot tell "eligible but not
+// claimed" (real money) from "Linux, never eligible" (noise). The legacy Excel inventory
+// path already surfaced this (manifests/collectors/Compute/VirtualMachine.psd1's "Hybrid
+// Benefit" column) but the assess pipeline reads collect.json, which never carried it --
+// which is why finops.review.yaml correctly reported it as uncollected. (AB#6928 follow-up)
 | project id, name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
-          size = tostring(properties.hardwareProfile.vmSize)
+          size = tostring(properties.hardwareProfile.vmSize),
+          licenseType = tostring(properties.licenseType),
+          osType = tostring(properties.storageProfile.osDisk.osType)
 '@
         orphanedDisks = @'
 resources | where type =~ "microsoft.compute/disks" and properties.diskState =~ "Unattached"
@@ -1152,6 +1162,17 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
     $r['arcSites'] = if ($inventoryShaped.ContainsKey('arcSites')) { @($inventoryShaped['arcSites']) } else { @() }
     $r['azureLocalVirtualMachineInstances'] = if ($inventoryShaped.ContainsKey('azureLocalVirtualMachineInstances')) { @($inventoryShaped['azureLocalVirtualMachineInstances']) } else { @() }
 
+    # AB#6896. `recoveryVaults` is the SAME case and was missed: AB#6895 taught
+    # ConvertFrom-ScoutInventory to shape Recovery Services vaults out of the raw `resources`
+    # rows, but gave it no `$q` entry (there is no typed KQL for it) -- so the copy loop above,
+    # which walks `$q.Keys` and nothing else, never visited the key and the shaped vaults were
+    # dropped on the floor. The AB#6895 fix was therefore a no-op in production: vaults still
+    # reported zero on every run while `backupProtectedItems` returned rows, which is the
+    # vanishing-parent class (AB#6845) it was supposed to close.
+    # `Collect.ShapedDatasetsReachTheResult.Tests.ps1` now fails if any shaped dataset is left
+    # without a `$q` entry and without an explicit copy here, so the next one cannot go unnoticed.
+    $r['recoveryVaults'] = if ($inventoryShaped.ContainsKey('recoveryVaults')) { @($inventoryShaped['recoveryVaults']) } else { @() }
+
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
     # that Resource Graph hands back as-is; walking it needs real conditional logic,
@@ -1351,6 +1372,24 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
         }
     }
 
+    # ---- Defender for Cloud plan sweep (AB#6903) ----
+    # security.defenderPlans shipped as a hard-coded @() placeholder while caf.security /
+    # waf.security rules query $.security.defenderPlans[?(@.properties.pricingTier ==
+    # 'Standard')] -- those rules could never pass on any tenant. Unconditional (no gate:
+    # Defender plan assignment is core security posture); one ARM GET per subscription, and
+    # an unregistered Microsoft.Security provider stays quiet (AB#6900).
+    $defenderPlans = @()
+    try {
+        if (-not (Get-Command Get-ScoutDefenderPlanSweep -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Get-ScoutDefenderPlanSweep.ps1')
+        }
+        $defenderPlans = @(Get-ScoutDefenderPlanSweep -Subscriptions @($r.subscriptions))
+    }
+    catch {
+        Write-Warning "Invoke-Collect: the Defender plan sweep failed; security.defenderPlans will be empty for this run: $($_.Exception.Message)"
+        $defenderPlans = @()
+    }
+
     # ---- every declared dataset exists, even when nothing populated it ----
     #
     # `$r` is a hashtable, and under Set-StrictMode -Version Latest reading a key that was never
@@ -1394,13 +1433,27 @@ resources | where type =~ "microsoft.azureplaywrightservice/accounts"
             privateClouds   = $r.privateClouds
         }
         management    = [pscustomobject]@{
-            recoveryVaults = @(); deployments = $r.deployments
+            # AB#6895: was hardcoded @(), so no run in the product's history ever reported a
+            # Recovery Services vault -- while backupProtectedItems returned rows, leaving a child
+            # with no parent (the AB#6845 class). The vault itself lives in the ordinary
+            # `resources` table, not in recoveryservicesresources, so the inverted path shapes it
+            # from rows the raw pass already holds and it costs no extra round-trip.
+            #
+            # Read defensively: the typed-query path has no such key, and a dot-access would throw
+            # PropertyNotFound under StrictMode.
+            # `$r` is a HASHTABLE. `$r.PSObject.Properties['x']` is the dictionary adapter's member
+            # list -- Keys, Values, Count -- and never the keys themselves, so that guard was
+            # unconditionally false and this read returned `@()` on every run regardless of what
+            # had been collected (AB#6896). `ContainsKey` is the only correct test here.
+            recoveryVaults = @(if ($r.ContainsKey('recoveryVaults')) { $r['recoveryVaults'] } else { @() })
+            deployments = $r.deployments
             logAnalyticsWorkspaces = $r.logAnalyticsWorkspaces
             # The right-hand side of XR-BKP-01/02 (AB#6835). Filed under management because that
             # is where the vault lives, not under compute where the protected VM does.
             backupProtectedItems = $r.backupProtectedItems
         }
-        security      = [pscustomobject]@{ defenderPlans = @() }
+        # AB#6903: was hardcoded @() -- see the sweep above.
+        security      = [pscustomobject]@{ defenderPlans = $defenderPlans }
         governance    = [pscustomobject]@{
             managementGroups = @()
             policyAssignments = $rawGovernance.policyAssignments

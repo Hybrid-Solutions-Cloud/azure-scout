@@ -44,7 +44,26 @@ $ErrorActionPreference = 'Stop'
 function Get-ScoutExcelProp {
     param($Obj, [Parameter(Mandatory)][string] $Name, $Default = $null)
     if ($null -eq $Obj) { return $Default }
-    $prop = $Obj.PSObject.Properties[$Name]
+
+    # AB#6883. Not every value reaching this helper is a property bag. Evidence rows in
+    # particular are not uniformly shaped across collector generations -- some are objects, some
+    # are plain strings, some are hashtables -- and `$Obj.PSObject.Properties[...]` throws
+    # "The property 'Properties' cannot be found on this object" under StrictMode for the ones
+    # that are not. The first real-tenant run produced that error eight times while the whole
+    # conformance suite was green, which is precisely why fixture-only verification is not
+    # enough.
+    #
+    # Hashtables are handled explicitly rather than left to PSObject: a hashtable's PSObject
+    # exposes its .NET members (Keys, Count, ...), NOT its entries, so a key lookup through the
+    # property bag silently returns $Default for a key that is right there.
+    if ($Obj -is [System.Collections.IDictionary]) {
+        if ($Obj.Contains($Name)) { return $Obj[$Name] }
+        return $Default
+    }
+
+    $psObj = $Obj.PSObject
+    if ($null -eq $psObj) { return $Default }
+    $prop = $psObj.Properties[$Name]
     if ($prop) { return $prop.Value } else { return $Default }
 }
 
@@ -249,12 +268,23 @@ function Get-ScoutExcelResourceIds {
     $ids = @($ids | Where-Object { $_ } | Select-Object -Unique)
     if ($ids.Count -eq 0) { return 'None matched' }
 
+    # AB#6864. The engine caps the Evidence payload, so what is in hand may be the first 25 of
+    # far more. Saying "25 of 198 matched" is the difference between a complete list and a
+    # sample -- and before the flag existed the two were indistinguishable in the workbook.
+    $total = Get-ScoutExcelProp -Obj $Finding -Name 'EvidenceCount' -Default $ids.Count
+    $truncated = [bool](Get-ScoutExcelProp -Obj $Finding -Name 'EvidenceTruncated' -Default $false)
+
     # A cell is capped in what a reader can usefully see; the full list stays in the JSON
     # evidence export, and the cell says how many it is not showing rather than truncating
     # silently.
     $shown = @($ids | Select-Object -First 10)
     $text = [string]::Join([Environment]::NewLine, $shown)
-    if ($ids.Count -gt $shown.Count) {
+    if ($truncated) {
+        # The engine truncated before this renderer ever saw the rows, so the honest statement is
+        # about the TOTAL, not about the ten shown.
+        $text += "$([Environment]::NewLine)($($ids.Count) of $total matched — full list in evidence.json)"
+    }
+    elseif ($ids.Count -gt $shown.Count) {
         $text += "$([Environment]::NewLine)(+$($ids.Count - $shown.Count) more — see evidence.json)"
     }
     return $text
@@ -357,7 +387,25 @@ function Add-ScoutExcelCoverSheet {
     }
 }
 
-function Export-Excel {
+function Export-ScoutEvidenceWorkbook {
+    <#
+    .SYNOPSIS
+        Render the assessment evidence workbook.
+
+    .DESCRIPTION
+        AB#6883. RENAMED from `Export-Excel`, which was a name this file shared with the cmdlet
+        exported by ImportExcel -- the module this very function imports. Once that import
+        happened, ImportExcel's command shadowed ours for the rest of the session, so the
+        dispatcher's `Export-Excel -Findings ...` resolved to theirs and died with "A parameter
+        cannot be found that matches parameter name 'Findings'".
+
+        It failed for every PER-ASSESSMENT workbook while the run-root one succeeded, because the
+        root ran first and did the import. Only a real multi-assessment tenant run surfaced it.
+
+        Resolving it by `function:` path is not enough: ImportExcel is a script module, so its
+        Export-Excel is itself a FUNCTION and shadows ours in that drive too. A distinct name is
+        the only fix that cannot be re-broken by import order.
+    #>
     param($Findings, $Collect, [string] $OutputPath)
     $xlsx = "$OutputPath/assessment_evidence.xlsx"
     # $Findings.Findings dots directly into a possibly-$null $Findings, or a

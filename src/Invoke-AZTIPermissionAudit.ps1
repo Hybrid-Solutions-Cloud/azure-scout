@@ -58,6 +58,61 @@
     First Release Date: February 24, 2026
     Authors: AzureScout Contributors
 #>
+# AB#6893 — Graph permissions whose data is gated by a LICENCE, not by consent.
+#
+# These are the ones where "grant the permission" is the wrong advice: the endpoint fails on an
+# unlicensed tenant however much consent it has. Reporting that as DENIED sends the customer to
+# chase a checkbox that cannot fix it, and since most tenants do not carry Entra ID P2, that was
+# the COMMON case being reported as an error.
+#
+# Keyed by permission so the audit can look it up without a special case in the flow.
+$Script:ScoutGraphLicensedFeature = @{
+    'IdentityRiskyUser.Read.All' = @{
+        Product    = 'Microsoft Entra ID P2'
+        # subscribedSkus servicePlan names carry the feature, not the SKU marketing name --
+        # AAD_PREMIUM_P2 appears in EMS E5 / Microsoft 365 E5 as well as standalone Entra ID P2,
+        # so matching the service plan catches every route to the licence.
+        SkuPattern = 'AAD_PREMIUM_P2'
+    }
+}
+
+function Test-ScoutTenantLicence {
+    <#
+    .SYNOPSIS
+        Is a service plan present on any subscribed SKU in this tenant?
+
+    .DESCRIPTION
+        AB#6893. Returns $true (present), $false (definitively absent) or $null (could not tell).
+
+        The three-state return is the point. A caller must be able to distinguish "this tenant has
+        no P2" from "I could not read the SKUs", because downgrading a genuine permission denial to
+        a licensing note on the strength of a failed lookup would hide a real problem. Only an
+        explicit $false softens the verdict.
+    #>
+    [OutputType([object])]
+    param([Parameter(Mandatory)][string]$SkuPattern)
+
+    try {
+        $skus = @(Invoke-AZSCGraphRequest -Uri '/v1.0/subscribedSkus' -SinglePage)
+        if ($skus.Count -eq 0) { return $null }
+        foreach ($s in $skus) {
+            $plans = $s.PSObject.Properties['servicePlans']
+            if (-not $plans -or -not $plans.Value) { continue }
+            foreach ($p in @($plans.Value)) {
+                $name = $p.PSObject.Properties['servicePlanName']
+                if ($name -and "$($name.Value)" -like "*$SkuPattern*") { return $true }
+            }
+        }
+        return $false
+    }
+    catch {
+        # Cannot read subscribedSkus (needs Organization.Read.All, which may itself be denied).
+        # Unknown, not absent.
+        Write-Verbose "Test-ScoutTenantLicence: could not read subscribedSkus ($($_.Exception.Message)); licence state unknown."
+        return $null
+    }
+}
+
 function Invoke-AZSCPermissionAudit {
     [CmdletBinding()]
     param(
@@ -447,6 +502,36 @@ function Invoke-AZSCPermissionAudit {
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
+                    # AB#6893. A LICENSED-FEATURE permission is not a misconfiguration. Identity
+                    # Protection is Entra ID P2; on a tenant without P2 the risky-users endpoint
+                    # fails no matter how much consent is granted, and reporting that as
+                    # "DENIED - grant this permission" sends the customer to chase a checkbox
+                    # that will not fix it. Most tenants do not have P2, so this was the common
+                    # case being reported as an error.
+                    #
+                    # Scout already collects subscribedSkus, so the licence state is knowable
+                    # rather than guessable -- and when it is not knowable this stays a Fail,
+                    # because silently downgrading a real denial would be the worse error.
+                    if ($Script:ScoutGraphLicensedFeature.ContainsKey($impact.Permission)) {
+                        $req = $Script:ScoutGraphLicensedFeature[$impact.Permission]
+                        $licensed = Test-ScoutTenantLicence -SkuPattern $req.SkuPattern
+                        if ($licensed -eq $false) {
+                            foreach ($c in $impact.Collectors) {
+                                $emptyCollectors.Add([PSCustomObject]@{
+                                        Collector  = $c
+                                        Reason     = "Not licensed — requires $($req.Product)"
+                                        Permission = $impact.Permission
+                                    })
+                            }
+                            $r = New-CheckResult $checkName 'Warn' `
+                                "NOT LICENSED — $($impact.Permission) ($purpose) requires $($req.Product), which this tenant does not have. $($impact.CollectorCount) collector(s) will be empty and are reported as Not assessed: $($impact.Collectors -join ', ')" `
+                                "No action needed unless you intend to license $($req.Product). Granting the permission alone will not populate these collectors."
+                            Write-AuditLine -Status Warn -Text "$checkName — not licensed ($($req.Product)); reported as Not assessed"
+                            $graphDetails.Add($r)
+                            continue
+                        }
+                    }
+
                     # Criticality is derived: this permission has consumers, so denying it
                     # empties worksheets, so the run is not READY. There is no list to edit.
                     $graphAccess = $false

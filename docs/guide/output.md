@@ -74,6 +74,20 @@ isolation has no lasting effect there — blob storage is the durable copy. See
 
 ## Generated Files
 
+::: danger This page is the inventory pipeline. Assessment reporting is React-only.
+Everything below describes what a bare `Invoke-AzureScout` **inventory** run writes. Those files
+are unaffected by the reporting hold.
+
+An **assessment** run (`-Assessment`) produces exactly one document: the self-contained
+**React report** (`report-react.html`), which carries the inventory, every assessment, the
+evidence and the remediation plan, and exports to Markdown, JSON, CSV, PDF (print) and a
+standalone HTML copy from the page itself. Word, PDF, Excel, PowerPoint, Power BI, the standalone
+HTML renderer and the ECharts dashboard are **on hold** (**AB#6922**) while they are rebuilt to
+generate *from* that report. `Json` / `JsonEvidence` are data, not documents, and are never held.
+See [Report tiers](../assessment/configuration.md#report-tiers) and
+[the React report section contract](../reference/react-report-section-contract.md).
+:::
+
 | File | Format | Description |
 |------|--------|-------------|
 | `AzureScout_Report_<timestamp>.xlsx` | Excel | Interactive spreadsheet with all inventory data, charts, pivot tables, and conditional formatting |

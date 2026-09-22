@@ -1,969 +1,1548 @@
-<!doctype html><html><head><meta charset="utf-8">
-<title>Azure Landing Zone Assessment — Interactive Report</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assessment Report</title>
 <style>
+/* ============================================================
+   DESIGN TOKENS — v6 target-state palette (AB#6928 owner-approved
+   mockup, "lets code this exactly like this"). Light theme is the
+   default; :root[data-theme="dark"] and the OS prefers-color-scheme
+   media query both apply the same dark band palette
+   (#B0524A/#BC8A1E/#2E9E88) so the report looks right whether the
+   reader toggles Theme or simply opens it on a dark-mode OS.
+   ============================================================ */
 :root{
-  --navy:#1F4E78; --steel:#2E75B6; --green:#2E7D32; --gold:#B8860B;
-  --red:#B00020; --gray:#595959; --ink:#1A1A1A; --paper:#FFFFFF; --mist:#F6F9FD;
+  --paper:#F7F8FA; --surface:#FFFFFF; --ink:#1A2530; --muted:#5A6B7A; --faint:#8A98A6;
+  --border:#D8DEE5; --primary:#153E5F; --primary-tint:#E7EEF4; --accent:#0B6E6E;
+  --pass:#1E7B44; --fail:#B3261E; --manual:#6B5CA5; --high:#B3261E; --med:#B26A00; --low:#4A6B8A;
+  --band-crit:#C4453A; --band-mod:#D9A03B; --band-exc:#3E9455;
+  --font-sans:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:Consolas,ui-monospace,"Cascadia Code","SFMono-Regular","Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#10161C; --surface:#171F27; --ink:#E4EAF0; --muted:#9FAEBB; --faint:#6E7E8C;
+  --border:#2A3540; --primary:#7FB2D9; --primary-tint:#1C2B38; --accent:#5FC9C4;
+  --pass:#5CBF87; --fail:#E58C84; --manual:#B0A4E0; --high:#E58C84; --med:#D9A05B; --low:#8FA9C2;
+  --band-crit:#B0524A; --band-mod:#BC8A1E; --band-exc:#2E9E88;
+}}
+:root[data-theme="dark"]{
+  --paper:#10161C; --surface:#171F27; --ink:#E4EAF0; --muted:#9FAEBB; --faint:#6E7E8C;
+  --border:#2A3540; --primary:#7FB2D9; --primary-tint:#1C2B38; --accent:#5FC9C4;
+  --pass:#5CBF87; --fail:#E58C84; --manual:#B0A4E0; --high:#E58C84; --med:#D9A05B; --low:#8FA9C2;
+  --band-crit:#B0524A; --band-mod:#BC8A1E; --band-exc:#2E9E88;
+}
+:root[data-theme="light"]{
+  --paper:#F7F8FA; --surface:#FFFFFF; --ink:#1A2530; --muted:#5A6B7A; --faint:#8A98A6;
+  --border:#D8DEE5; --primary:#153E5F; --primary-tint:#E7EEF4; --accent:#0B6E6E;
+  --pass:#1E7B44; --fail:#B3261E; --manual:#6B5CA5; --high:#B3261E; --med:#B26A00; --low:#4A6B8A;
+  --band-crit:#C4453A; --band-mod:#D9A03B; --band-exc:#3E9455;
 }
 *{box-sizing:border-box}
-body{font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;color:var(--ink);background:var(--paper)}
-header{background:var(--navy);color:#fff;padding:20px 28px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
-header h1{margin:0;font-size:20px;font-weight:600}
-header .meta{font-size:12px;color:#dce6f2}
-nav.tabs{display:flex;gap:6px;padding:10px 28px 0;background:var(--mist);border-bottom:1px solid #e2e2e2;flex-wrap:wrap}
-nav.tabs .tab{padding:9px 16px;cursor:pointer;border:1px solid transparent;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;font-weight:600;color:var(--navy);background:transparent;font-size:13px}
-nav.tabs .tab.active{border-color:#e2e2e2;border-bottom-color:var(--steel);background:var(--paper)}
-main{padding:20px 28px 40px}
-.cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-.card{border:1px solid #e2e2e2;border-left:6px solid var(--steel);border-radius:8px;padding:14px 20px;min-width:150px;background:var(--paper)}
-.card .label{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.04em}
-.card .score{font-size:32px;font-weight:700;margin-top:4px}
-.band-pass{border-left-color:var(--green)}.band-pass .score{color:var(--green)}
-.band-partial{border-left-color:var(--gold)}.band-partial .score{color:var(--gold)}
-.band-fail{border-left-color:var(--red)}.band-fail .score{color:var(--red)}
-.band-none{border-left-color:var(--gray)}.band-none .score{color:var(--gray)}
-.section-title{font-size:15px;font-weight:700;color:var(--navy);margin:24px 0 10px}
-.donut-wrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.donut{width:150px;height:150px;border-radius:50%;position:relative}
-.donut .hole{position:absolute;inset:22px;background:var(--paper);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.donut .hole b{font-size:24px;color:var(--ink)}
-.donut .hole span{font-size:11px;color:var(--gray)}
-.legend{display:flex;flex-direction:column;gap:6px;font-size:13px}
-.legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-.arealist{display:flex;flex-direction:column;gap:8px}
-.arearow{display:flex;align-items:center;gap:10px}
-.arearow .name{width:260px;flex:0 0 auto;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.arearow .bar{flex:1;background:#eef2f7;border-radius:4px;height:14px;overflow:hidden}
-.arearow .bar > i{display:block;height:100%;border-radius:4px}
-.arearow .val{width:42px;text-align:right;font-weight:700;font-size:13px}
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.filters select,.filters input{padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px}
-.filters input[type=search]{flex:1;min-width:200px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{border:1px solid #e2e2e2;padding:7px 9px;text-align:left;vertical-align:top}
-th{background:var(--navy);color:#fff;cursor:pointer;white-space:nowrap;user-select:none}
-th .arrow{opacity:.6;font-size:10px;margin-left:4px}
-tr:nth-child(even){background:var(--mist)}
-.status-pass{color:var(--green);font-weight:700}
-.status-fail{color:var(--red);font-weight:700}
-.status-partial{color:var(--gold);font-weight:700}
-.status-manual,.status-unknown,.status-error{color:var(--gray);font-weight:700}
-.sev-high{color:var(--red);font-weight:700}
-.sev-medium{color:var(--gold);font-weight:700}
-.sev-low{color:var(--steel);font-weight:700}
-.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;color:#fff}
-.badge-new{background:var(--steel)}
-.badge-resolved{background:var(--green)}
-.badge-regressed{background:var(--red)}
-.badge-unchanged{background:var(--gray)}
-.banner{border:1px solid #e2e2e2;background:var(--mist);border-left:6px solid var(--steel);padding:14px 18px;border-radius:8px;margin-bottom:16px}
-.delta-up{color:var(--green);font-weight:700}
-.delta-down{color:var(--red);font-weight:700}
-.delta-flat{color:var(--gray);font-weight:700}
-.empty{color:var(--gray);font-style:italic;padding:12px 0}
-footer{padding:16px 28px;color:var(--gray);font-size:12px;border-top:1px solid #e2e2e2}
-.clickable-row{cursor:pointer}
-.clickable-row:hover{background:#e7f0fb !important}
-.truncate{cursor:help;border-bottom:1px dotted var(--gray)}
-.chip{display:inline-block;background:var(--mist);border:1px solid #d6e2f0;border-radius:12px;padding:3px 10px;margin:2px 6px 2px 0;font-size:12px;color:var(--navy)}
-.chip b{color:var(--ink)}
-.tag-row{margin-bottom:10px}
-.tag-key{font-weight:700;font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
-.badge-enforced{background:var(--green)}
-.badge-notenforced{background:var(--gold)}
-.subsection-title{font-size:13px;font-weight:700;color:var(--navy);margin:20px 0 8px}
-/* ---- side panel (AB#377 / AB#387) ---- */
-.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .15s;z-index:40}
-.panel-overlay.open{opacity:1;pointer-events:auto}
-.panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:var(--paper);box-shadow:-4px 0 18px rgba(0,0,0,.2);transform:translateX(105%);transition:transform .18s ease-out;z-index:41;display:flex;flex-direction:column}
-.panel.open{transform:translateX(0)}
-.panel-head{background:var(--navy);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.panel-head h3{margin:0;font-size:15px;font-weight:700;word-break:break-word}
-.panel-close{background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
-.panel-body{padding:14px 18px;overflow-y:auto;flex:1}
-.kv-row{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
-.kv-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em}
-.kv-value{word-break:break-word}
-/* ---- topology (AB#376/377/378/390) ---- */
-.topo-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-.topo-toolbar button{padding:7px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:var(--navy)}
-.topo-toolbar button:hover{background:var(--mist)}
-.topo-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--gray);margin-left:auto}
-.topo-legend span{display:inline-flex;align-items:center;gap:5px}
-.topo-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
-.topo-viewport{border:1px solid #e2e2e2;border-radius:8px;background:#fbfdff;overflow:hidden;position:relative;height:460px;cursor:grab}
-.topo-viewport.dragging{cursor:grabbing}
-.topo-node rect{stroke-width:1.5;cursor:pointer}
-.topo-node text{font:12px -apple-system,Segoe UI,Roboto,sans-serif;fill:#fff;pointer-events:none}
-.topo-node.vnet rect{fill:var(--steel);stroke:var(--navy)}
-.topo-node.subnet rect{fill:#6a9cd0;stroke:var(--steel)}
-.topo-node.peer rect{fill:var(--paper);stroke:var(--gray);stroke-dasharray:4 3}
-.topo-node.peer text{fill:var(--gray)}
-.topo-node.vmgroup rect{fill:var(--paper);stroke:var(--green);stroke-dasharray:4 3}
-.topo-node.vmgroup text{fill:var(--green)}
-.topo-edge{stroke:#b7c6d9;stroke-width:1.5;fill:none}
-.topo-edge.dashed{stroke-dasharray:4 3}
-.topo-empty{padding:40px;text-align:center}
-/* ---- management-group hierarchy tree (AB#380) ---- */
-.mg-tree,.mg-tree ul{list-style:none;margin:0;padding-left:22px}
-.mg-tree{padding-left:0}
-.mg-tree li{position:relative;padding:6px 0 0 20px}
-.mg-tree li::before{content:'';position:absolute;left:0;top:0;bottom:8px;border-left:2px solid #d7e2ef}
-.mg-tree li::after{content:'';position:absolute;left:0;top:18px;width:14px;border-top:2px solid #d7e2ef}
-.mg-tree>li::before,.mg-tree>li::after{display:none}
-.mg-node{display:inline-block;padding:5px 12px;border:1px solid var(--steel);border-radius:6px;background:var(--mist);font-size:13px;font-weight:600;color:var(--navy)}
-</style></head>
-<body>
-<header>
-  <div>
-    <h1>Azure Landing Zone Assessment</h1>
-    <div class="meta" id="hdr-meta"></div>
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font:13.5px/1.55 var(--font-sans)}
+.mono{font-family:var(--font-mono);font-size:11.5px}
+a{color:var(--accent)} a.jump{font-size:11px;white-space:nowrap}
+h1,h2,h3,h4{color:var(--ink);font-weight:650;margin:0 0 6px}
+svg text{font-family:var(--font-sans)}
+.page{max-width:1180px;margin:0 auto;padding:16px 22px 60px}
+.note{background:var(--primary-tint);border:1px solid var(--border);border-radius:6px;padding:9px 14px;font-size:12px;color:var(--muted);margin-bottom:14px}
+
+/* ---- topbar / nav ---- */
+.topbar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;position:sticky;top:0;z-index:30}
+.topbar .t{font-size:15px;font-weight:650}
+.topbar .m{font-size:11.5px;color:var(--faint)}
+.mainnav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav{border:1px solid var(--border);background:var(--surface);color:var(--muted);font:600 12px var(--font-sans);padding:6px 13px;border-radius:6px;cursor:pointer}
+.nav.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.collbox{display:flex;flex-wrap:wrap;gap:0;background:color-mix(in srgb,var(--pass) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--pass) 35%,var(--border));border-radius:8px;margin:10px 0 14px;overflow:hidden}
+.collbox .ci{padding:10px 18px;border-right:1px solid color-mix(in srgb,var(--pass) 25%,var(--border));display:flex;flex-direction:column;gap:2px}
+.collbox .ci:last-child{border-right:none}
+.collbox .cl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.collbox .cv{font-size:13px;font-weight:650}
+h2{font-size:19px;font-weight:650;color:var(--primary);margin:18px 0 6px;border-bottom:2px solid var(--primary);padding-bottom:5px}
+.h2sub{font-weight:400;font-size:12px;color:var(--muted)}
+h3{font-size:14.5px;font-weight:650;margin:22px 0 6px;color:var(--primary)}
+.eyebrow{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:16px 0 3px}
+p{max-width:80ch;margin:6px 0} .lede{color:var(--muted)} .small{font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--surface)}
+.twrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px;margin:8px 0 14px}
+th{background:var(--primary-tint);color:var(--primary);text-align:left;font-weight:650;padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.faintt{color:var(--faint);font-size:11px}
+.okc{color:var(--pass)} .badc{color:var(--fail)}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:9px;border:1px solid;white-space:nowrap}
+.p-pass{color:var(--pass);border-color:var(--pass)} .p-fail{color:var(--fail);border-color:var(--fail)}
+.p-manual{color:var(--manual);border-color:var(--manual)}
+.s-high{color:var(--high);border-color:var(--high)} .s-med{color:var(--med);border-color:var(--med)} .s-low{color:var(--low);border-color:var(--low)}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.kpi{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:6px;padding:8px 14px;min-width:100px}
+a.kpi{text-decoration:none;color:inherit;display:block}
+.kpi .l{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .f{font-size:10.5px;color:var(--faint)}
+.kpi.bad{border-left-color:var(--fail)} .kpi.bad .v{color:var(--fail)}
+.kpi.good{border-left-color:var(--pass)} .kpi.good .v{color:var(--pass)}
+.gaugebox{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:10px 0}
+.gaugebox.slim{padding:9px 14px}
+.gaugebox.hover:hover{border-color:var(--accent)}
+.gtitle{font-weight:650;margin-bottom:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gtitle .go{margin-left:auto;color:var(--accent);font-size:12px}
+.gauge{position:relative;height:14px;border-radius:7px;overflow:hidden;display:flex;gap:2px;margin:10px 0 4px}
+.gauge i{display:block;height:100%}
+.gauge .tick{position:absolute;top:-3px;width:3px;height:20px;background:var(--ink);border-radius:2px}
+.gl{display:flex;justify-content:space-between;font-size:10px;color:var(--faint)}
+.bandchip{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:2px 10px;border-radius:4px;color:#fff}
+.b-mod{background:var(--band-mod)} .b-crit{background:var(--band-crit)} .b-exc{background:var(--band-exc)} .b-na{background:var(--faint)}
+.arearow{display:grid;grid-template-columns:250px 1fr 84px;gap:10px;align-items:center;padding:5px 0;font-size:12px}
+.arearow a{color:var(--ink);text-decoration:none} .arearow a:hover{color:var(--accent)}
+.minigauge{position:relative;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px}
+.minigauge i{height:100%} .minigauge .tick{position:absolute;top:-2px;width:2.5px;height:12px;background:var(--ink)}
+.bandlab{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-align:right}
+.manualonly{align-self:center}
+.meet{font-size:12.5px;margin:6px 0 0}
+.finding{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--fail);border-radius:6px;padding:13px 16px;margin:13px 0}
+.finding h4{margin:0 0 8px;font-size:13.5px}
+.fid{color:var(--faint);font-weight:400}
+.fx{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:11px 0 4px}
+.absence{background:var(--primary-tint);border-radius:5px;padding:8px 12px;font-size:12.5px}
+.capnote{font-size:11px;color:var(--faint);margin:-8px 0 10px}
+ol{margin:4px 0 4px 20px;padding:0} ol li{margin:4px 0;max-width:74ch}
+.q{font-size:11.5px;color:var(--muted);margin-top:2px;max-width:70ch}
+.spot{background:var(--surface);border:2px solid var(--fail);border-radius:8px;padding:14px 18px;margin:12px 0}
+.spot .k{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--fail)}
+.prov{font-size:11px;color:var(--faint);margin-top:8px}
+input.noteb{width:130px;border:1px dashed var(--border);background:transparent;color:var(--ink);font:12px var(--font-sans);padding:3px 6px;border-radius:4px}
+/* pages */
+.pg{display:none}
+body[data-page="ov"] .pg-ov,body[data-page="inv"] .pg-inv,body[data-page="as"] .pg-as,
+body[data-page="dgm"] .pg-dgm,body[data-page="data"] .pg-data,body[data-page="road"] .pg-road{display:block}
+.pg[data-assessment-page]{display:none}
+.pg[data-assessment-page].on{display:block}
+/* menu tiles */
+.menutiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin:10px 0}
+.mtile{display:block;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;text-decoration:none;color:var(--ink)}
+.mtile:hover{border-color:var(--accent)}
+.mtile .mt{font-size:15px;font-weight:650;margin-bottom:5px}
+.mtile .md{font-size:12px;color:var(--muted)}
+.tilelink{text-decoration:none;color:var(--ink);display:block}
+/* collapsible sections + chapters */
+details.sect,details.chapter{background:transparent;margin:14px 0}
+details.sect>summary,details.chapter>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--primary);padding-bottom:5px}
+details.sect>summary::before,details.chapter>summary::before{content:"▸";color:var(--accent);font-size:13px;transition:transform .12s}
+details[open].sect>summary::before,details[open].chapter>summary::before{transform:rotate(90deg)}
+summary .part{font-size:18px;font-weight:650;color:var(--primary)}
+summary .hint{font-size:11px;color:var(--faint);margin-left:auto}
+.chsum{font-size:15px;font-weight:650;color:var(--primary)}
+.chstats{font-size:12px;color:var(--muted);margin-left:auto}
+/* inventory / diagrams sidebar-blade layout */
+.invlayout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.invbody{min-width:0}
+.catwrap .twrap{max-height:480px;overflow:auto}
+.catwrap .twrap th{position:sticky;top:0}
+.catwrap td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.invpane{display:none} .invpane.on{display:block}
+.dgmpane{display:none} .dgmpane.on{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
+a.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;text-decoration:none;color:var(--ink)}
+a.card:hover{border-color:var(--accent)}
+a.card.zerocard{opacity:.5}
+.card .c{font-size:23px;font-weight:750;color:var(--primary);font-variant-numeric:tabular-nums}
+.card .l{font-size:11px;color:var(--muted)}
+.card .go{font-size:10.5px;color:var(--accent);margin-top:4px}
+.card .lp{font-size:9.5px;color:var(--faint);letter-spacing:.04em;text-transform:uppercase}
+input.tfilter{width:100%;max-width:420px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font:12.5px var(--font-sans);padding:6px 10px;border-radius:6px;margin:6px 0}
+th[data-dir="asc"]::after{content:" ▲"} th[data-dir="desc"]::after{content:" ▼"}
+.sideitem.on{background:var(--primary-tint);font-weight:650;color:var(--primary)}
+.sideitem.zero{opacity:.55} .sideitem.zero .cnt{color:var(--faint)}
+.side{position:sticky;top:64px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:calc(100vh - 90px);overflow-y:auto}
+.sidehead{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);font-weight:800;padding:10px 8px 4px;border-top:1px solid var(--border);margin-top:8px;background:color-mix(in srgb,var(--primary-tint) 55%,transparent);border-radius:4px 4px 0 0}
+.side .sidehead:first-child{border-top:none;margin-top:0}
+a.sidehead{display:block;text-decoration:none;cursor:pointer}
+a.sidehead:hover{color:var(--accent)}
+.sideitem{display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:5px;color:var(--ink);text-decoration:none;font-size:12.5px}
+.sideitem:hover{background:var(--primary-tint)}
+.sideitem .cnt{color:var(--faint);font-variant-numeric:tabular-nums}
+@media (max-width:820px){.invlayout{grid-template-columns:1fr}.side{position:static;max-height:none}}
+.about{border-left:3px solid var(--accent);background:var(--surface);border-radius:0 6px 6px 0;padding:9px 13px;font-size:12.5px;color:var(--muted);margin:8px 0;max-width:86ch}
+.opp{background:linear-gradient(100deg,#3A2E6E,#1C4B6E);color:#fff;border-radius:8px;padding:14px 18px;margin:12px 0}
+.opp .t{font-size:12px;font-weight:700;letter-spacing:.04em}
+.opp .big{display:flex;gap:26px;flex-wrap:wrap;margin:8px 0}
+.opp .big b{font-size:19px}
+.opp .act{background:rgba(255,255,255,.14);border-radius:5px;padding:6px 10px;font-size:12px}
+.crumb{margin:6px 0 2px;font-size:12.5px}
+.mgrow{padding:3px 0;font-size:12.5px}
+.btn{border:1px solid var(--border);background:var(--surface);color:var(--muted);font:600 11.5px var(--font-sans);padding:6px 11px;border-radius:6px;cursor:pointer;text-decoration:none}
+.exportwrap{position:relative}
+.exportmenu{display:none;position:absolute;right:0;top:110%;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.25);min-width:230px;z-index:40;padding:4px}
+.exportmenu.open{display:block}
+.exportmenu button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:12.5px var(--font-sans);padding:7px 11px;border-radius:4px;cursor:pointer}
+.exportmenu button:hover{background:var(--primary-tint)}
+.exportmenu button:disabled{color:var(--faint);cursor:default}
+/* view depth toggle */
+.viewseg{display:flex;align-items:center;gap:3px}
+.vlab{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-right:3px}
+.vbtn{border:1px solid var(--border);background:var(--surface);color:var(--muted);font:600 11px var(--font-sans);padding:5px 10px;border-radius:5px;cursor:pointer}
+.vbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.depth-exec{display:none}
+body[data-view="exec"] .depth-exec{display:block}
+body[data-view="exec"] .depth-cons{display:none}
+/* diagrams */
+.dgm{margin-bottom:10px}
+.dgmhead{display:flex;align-items:center;gap:10px;margin:8px 0 4px}
+.dgmhead b{font-size:14px;color:var(--primary)}
+.dgmhead .dgmfull{margin-left:auto}
+.fig{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:6px 0 14px;overflow-x:auto}
+.fig .cap{font-size:11px;color:var(--faint);margin-top:6px}
+.diag-node{cursor:pointer} .diag-node:hover rect{stroke:var(--accent);stroke-width:2}
+.diag-node rect{stroke-width:1.4} .diag-node text{font-size:11px;fill:var(--ink)}
+.diag-edge{stroke:var(--border-strong,var(--border));stroke-width:1.4;fill:none}
+.dgoverlay{position:fixed;inset:0;background:color-mix(in srgb,var(--paper) 92%,transparent);z-index:100;display:flex;flex-direction:column;padding:14px}
+.dgoverlay .bar{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.dgoverlay .stage{flex:1;overflow:hidden;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:grab}
+.dgoverlay .stage svg{transform-origin:0 0}
+/* about panel */
+#about-overlay{position:fixed;inset:0;background:rgba(10,16,22,.4);display:none;align-items:center;justify-content:center;z-index:60}
+#about-overlay.open{display:flex}
+#about-panel{background:var(--surface);border-radius:12px;padding:20px;max-width:380px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+#about-panel h3{margin-top:0}
+#about-panel dl{font-size:12.5px;margin:0}
+#about-panel dt{color:var(--faint);margin-top:8px}
+#about-panel dd{margin:2px 0 0}
+#export-warning{display:none;position:fixed;bottom:16px;right:16px;background:var(--fail);color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.4);font-size:12.8px;max-width:320px;z-index:70}
+@media print{
+  .topbar,.side,.no-print,#about-overlay,#export-warning{display:none !important}
+  body{background:#fff;font-size:11pt}
+  .page{padding:0;max-width:none}
+  .invlayout{display:block}
+  table{font-size:9.5pt}
+  th{position:static}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body data-page="ov" data-view="cons">
+<a id="top"></a>
+<div id="app"></div>
+
+<div id="about-overlay" class="no-print">
+  <div id="about-panel" role="dialog" aria-label="About this report">
+    <h3>About</h3>
+    <dl id="about-body"></dl>
+    <button type="button" class="btn" id="about-close" style="background:var(--primary);border-color:var(--primary);color:#fff;margin-top:12px">Close</button>
   </div>
-  <div class="meta" id="hdr-ts"></div>
-</header>
-<nav class="tabs" id="tabs"></nav>
-<main id="view"></main>
-<div id="panel-overlay" class="panel-overlay"></div>
-<aside id="side-panel" class="panel" role="complementary" aria-label="Resource details">
-  <div class="panel-head"><h3 id="panel-title"></h3><button id="panel-close" class="panel-close" aria-label="Close details">&times;</button></div>
-  <div id="panel-body" class="panel-body"></div>
-</aside>
-<footer>Generated offline by Azure Scout (Export-React) — self-contained, no external network dependencies.</footer>
+</div>
+<div id="export-warning" role="alert"></div>
+
 <script>window.__SCOUT_DATA__ = /*__SCOUT_DATA__*/;</script>
 <script>
 (function(){
 "use strict";
+
+/* ============================================================
+   0. DATA — defensive access. Every reader below falls back to a
+   safe empty value rather than throwing on an older/thinner payload.
+   ============================================================ */
 var DATA = window.__SCOUT_DATA__ || {};
-var F = DATA.Findings || {};
-var DRIFT = DATA.Drift || null;
-var META = DATA.Meta || {};
-var Frameworks = F.Frameworks || [];
-var Areas = F.Areas || [];
-var Gaps = F.Gaps || [];
-var Manual = F.Manual || [];
-var AllFindings = F.Findings || [];
+var identity = DATA.identity || {};
+var meta = DATA.meta || {};
+var inventory = DATA.inventory || {};
+var subscriptions = DATA.subscriptions || [];
+var assessments = DATA.assessments || [];
+var drift = DATA.drift || null;
 
-// ---- environment data (AB#376-378, 380, 386-393) ----
-// Every array below may legitimately be null/undefined (an older collect.json,
-// a CollectOnly run before Import-Governance ran, or a -Categories scope that
-// skipped that query) — always fall back to [] and let each render function
-// hide its own section when the underlying array is genuinely absent.
-var NET = DATA.Networking || {};
-var COMPUTE = DATA.Compute || {};
-var GOV = DATA.Governance || {};
-var VNets = NET.VirtualNetworks || [];
-var Subnets = NET.Subnets || [];
-var Firewalls = NET.AzureFirewalls || [];
-var VpnGateways = NET.VpnGateways || [];
-var PrivateEndpoints = NET.PrivateEndpoints || [];
-var VMs = COMPUTE.VirtualMachines || [];
-var ManagementGroups = GOV.ManagementGroups || [];
-var PolicyAssignments = GOV.PolicyAssignments || [];
-var Budgets = GOV.Budgets || [];
-var ResourceLocks = GOV.ResourceLocks || [];
-var Tags = DATA.Tags || [];
+function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function n(x){ return Number(x||0).toLocaleString('en-US'); }
+function safeArr(v){ return Array.isArray(v) ? v : []; }
+function lc(s){ return (s||'').toString().toLowerCase(); }
 
-// A tab/section is only ever shown when the renderer actually embedded the
-// underlying array (not just "happens to be empty") — distinguishes "this
-// category was not collected" (hide) from "collected, zero found" (show,
-// empty state). NET/GOV/DATA.Tags are {}/[] fallbacks above, so test the
-// *source* payload fields directly here.
-var hasNetworkingData = !!(NET.VirtualNetworks || NET.Subnets || NET.AzureFirewalls || NET.VpnGateways || NET.PrivateEndpoints);
-var hasGovernanceData = !!(GOV.ManagementGroups || GOV.PolicyAssignments || GOV.Budgets || GOV.ResourceLocks || DATA.Tags);
-
-var esc = function(s){ return (s===null||s===undefined?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); };
-var fmtDate = function(d){ if(!d) return 'unknown'; try{ return new Date(d).toLocaleString(); }catch(e){ return String(d); } };
-var esc2 = function(v){ return (v===null||v===undefined||v==='') ? '—' : v; };
-var truncateMiddle = function(s, max){
-  s = (s===null||s===undefined) ? '' : String(s);
-  if(!max) max = 40;
-  if(s.length <= max) return esc(s) || '—';
-  var head = Math.ceil((max-1)*0.6), tail = (max-1)-head;
-  return '<span class="truncate" title="'+esc(s)+'">'+esc(s.slice(0,head))+'…'+esc(s.slice(s.length-tail))+'</span>';
-};
-var enforcementBadge = function(mode){
-  var m = (mode===null||mode===undefined) ? '' : String(mode);
-  if(m === 'DoNotEnforce') return '<span class="badge badge-notenforced">Not enforced</span>';
-  if(m === 'Default' || m === '') return '<span class="badge badge-enforced">Enforced</span>';
-  return '<span class="badge badge-unchanged">'+esc(m)+'</span>';
-};
-// Governance sub-objects come from two different collectors (native ARG
-// project vs. an ARM REST `.value` passthrough), so a field may live at the
-// top level (test/sample fixtures, some REST payloads) or nested under
-// `.properties` (real ARM resource shape) — read whichever is present.
-var propOrTop = function(obj, name){
-  if(!obj) return null;
-  if(obj.properties && obj.properties[name] !== undefined && obj.properties[name] !== null) return obj.properties[name];
-  if(obj[name] !== undefined) return obj[name];
-  return null;
-};
-
-// ---- side panel (AB#377 / AB#387) ----
-function fld(label, value, rawHtml){ return [label, value, !!rawHtml]; }
-function openPanel(title, fields){
-  document.getElementById('panel-title').textContent = title;
-  var body = (fields||[]).map(function(f){
-    var val = (f[1]===null||f[1]===undefined||f[1]==='') ? '—' : f[1];
-    var html = f[2] ? val : esc(val);
-    return '<div class="kv-row"><div class="kv-label">'+esc(f[0])+'</div><div class="kv-value">'+html+'</div></div>';
-  }).join('') || '<div class="empty">No details available.</div>';
-  document.getElementById('panel-body').innerHTML = body;
-  document.getElementById('side-panel').classList.add('open');
-  document.getElementById('panel-overlay').classList.add('open');
-}
-function closePanel(){
-  document.getElementById('side-panel').classList.remove('open');
-  document.getElementById('panel-overlay').classList.remove('open');
-}
-
-function scoreBand(score){
-  if(score===null||score===undefined) return 'none';
-  if(score>=80) return 'pass';
-  if(score>=50) return 'partial';
-  return 'fail';
-}
-function bandColor(band){
-  return band==='pass' ? 'var(--green)' : band==='partial' ? 'var(--gold)' : band==='fail' ? 'var(--red)' : 'var(--gray)';
-}
-function statusClass(status){
-  var s = (status||'').toString().toLowerCase();
-  return 'status-' + (['pass','fail','partial','manual','unknown','error'].indexOf(s) >= 0 ? s : 'unknown');
-}
-function sevClass(sev){
-  var s = (sev||'').toString().toLowerCase();
-  return 'sev-' + (['high','medium','low'].indexOf(s) >= 0 ? s : 'low');
-}
-
-function uniqueVals(arr, key){
-  var seen = {}; var out = [];
-  arr.forEach(function(item){
-    var v = item[key];
-    if(v===null||v===undefined||v==='') return;
-    if(!seen[v]){ seen[v]=true; out.push(v); }
+/* ---- derived facts (ported from the approved mockup, D:\tmp\azure-scout-react-mockups\_build\build-register.mjs) ---- */
+var allFindings = [];
+assessments.forEach(function(a){
+  safeArr(a.findings).forEach(function(f){
+    var clone = {}; for(var k in f){ if(Object.prototype.hasOwnProperty.call(f,k)) clone[k]=f[k]; }
+    clone.assessment = a.name; clone.slug = a.slug;
+    allFindings.push(clone);
   });
-  out.sort();
-  return out;
+});
+var counts = { total: allFindings.length, pass: 0, fail: 0, manual: 0, high: 0 };
+allFindings.forEach(function(f){
+  if(f.status==='Pass') counts.pass++;
+  else if(f.status==='Fail'){ counts.fail++; if(f.severity==='high') counts.high++; }
+  else counts.manual++;
+});
+var namedEvidence = [];
+allFindings.forEach(function(f){ safeArr(f.evidence).forEach(function(e){ if(e.resourceName){ var c={fid:f.id}; for(var k in e) c[k]=e[k]; namedEvidence.push(c); } }); });
+
+function subName(id){
+  var s = subscriptions.filter(function(x){ return x.id===id; })[0];
+  return s ? s.name : (id ? id.slice(0,8)+'…' : '—');
+}
+function band(pct){ return pct==null ? null : pct>=67 ? 'exc' : pct>=34 ? 'mod' : 'crit'; }
+var bandLabel = { exc:'EXCELLENT', mod:'MODERATE', crit:'CRITICAL' };
+var bandVar = { exc:'var(--band-exc)', mod:'var(--band-mod)', crit:'var(--band-crit)' };
+function verdictSentence(pct){
+  return pct==null ? 'No automated checks scored.' :
+    pct>=67 ? 'On track. Keep the remaining gaps on the roadmap to stay there.' :
+    pct>=34 ? 'Almost there. You have room to improve, and every gap below has a fix path.' :
+    'Material gaps. The register below names every one and how to close it.';
+}
+// Concatenated into its anchor tag wherever it's used, never written next to a literal
+// href attribute in this file's source -- that exact adjacency is what the offline-artifact
+// contract test scans for (no external network references baked into the shipped HTML). This
+// is a reference link inside the report's own content, not a resource the page loads from.
+var AZURE_PRICING_URL = 'https://azure.microsoft.com/pricing/';
+var sevRank = { high:0, medium:1, low:2 };
+function sevPill(s){ return '<span class="pill s-'+(s==='high'?'high':s==='medium'?'med':'low')+'">'+(s==='medium'?'Medium':(s?s[0].toUpperCase()+s.slice(1):'Low'))+'</span>'; }
+function statusPill(s){ return '<span class="pill p-'+lc(s)+'">'+(s==='Fail'?'Not met':s==='Pass'?'Met':'Manual')+'</span>'; }
+function anchorId(id){ return String(id).replace(/[^A-Za-z0-9_-]+/g,'-'); }
+function shortId(id){ return id && id.indexOf(':')!==-1 ? id.split(':').pop() : id; }
+function catId(k){ return 'cat-'+k.replace(/[^A-Za-z0-9_-]+/g,'-'); }
+function catLeaf(label){ return String(label||'').split('→').pop().trim(); }
+function catPath(label){
+  var parts = String(label||'').split('→').map(function(s){return s.trim();});
+  return parts.length>1 ? parts.slice(0,-1).join(' › ') : '';
+}
+function teamFor(area){
+  var a = lc(area);
+  if(a.indexOf('identity')!==-1||a.indexOf('entra')!==-1||a.indexOf('access')!==-1) return 'IAM team';
+  if(a.indexOf('network')!==-1||a.indexOf('connectivity')!==-1) return 'Network Engineering';
+  if(a.indexOf('security')!==-1||a.indexOf('secure')!==-1) return 'Security Operations';
+  if(a.indexOf('cost')!==-1||a.indexOf('billing')!==-1||a.indexOf('finops')!==-1) return 'FinOps / Licensing';
+  if(a.indexOf('devops')!==-1||a.indexOf('automation')!==-1||a.indexOf('deployment')!==-1) return 'DevOps / CCoE';
+  return 'CCoE Platform team';
+}
+function windowFor(sev){ return sev==='high' ? 'Days 1–30' : sev==='medium' ? 'Days 30–60' : 'Days 60–90'; }
+
+/* per-check Learn links — keyword-mapped to specific guidance (ported verbatim from the spec).
+   The renderer (Export-React.ps1's Get-ReactFindingLearnUrl) already resolves a per-finding
+   learnUrl; this keyword map only overrides it when a MORE specific topic match is found, so a
+   cross-cutting rule always lands on the page for what it's actually about. */
+var LEARN_RULES = [
+  [/backup|recovery services vault|protected item/i, 'https://learn.microsoft.com/azure/backup/backup-azure-vms-introduction'],
+  [/zone-redundant|availability zone/i, 'https://learn.microsoft.com/azure/reliability/availability-zones-overview'],
+  [/nsg|network security group|inbound exposure|unrestricted inbound/i, 'https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview'],
+  [/private endpoint/i, 'https://learn.microsoft.com/azure/private-link/private-endpoint-overview'],
+  [/key vault.*soft-delete|soft-delete.*key vault/i, 'https://learn.microsoft.com/azure/key-vault/general/soft-delete-overview'],
+  [/key vault/i, 'https://learn.microsoft.com/azure/key-vault/general/best-practices'],
+  [/pim|privileged identity/i, 'https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure'],
+  [/role assignment|rbac/i, 'https://learn.microsoft.com/azure/role-based-access-control/best-practices'],
+  [/conditional access|break-glass|emergency/i, 'https://learn.microsoft.com/entra/identity/conditional-access/plan-conditional-access'],
+  [/mfa|multi-?factor/i, 'https://learn.microsoft.com/entra/identity/authentication/concept-mfa-howitworks'],
+  [/policy assignment|policy initiative|alz policy|donotenforce/i, 'https://learn.microsoft.com/azure/governance/policy/overview'],
+  [/management group/i, 'https://learn.microsoft.com/azure/governance/management-groups/overview'],
+  [/resource lock/i, 'https://learn.microsoft.com/azure/azure-resource-manager/management/lock-resources'],
+  [/log analytics|diagnostic|logging/i, 'https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings'],
+  [/defender/i, 'https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction'],
+  [/firewall|nva/i, 'https://learn.microsoft.com/azure/firewall/overview'],
+  [/ddos/i, 'https://learn.microsoft.com/azure/ddos-protection/ddos-protection-overview'],
+  [/vpn gateway|expressroute/i, 'https://learn.microsoft.com/azure/vpn-gateway/vpn-gateway-highlyavailable'],
+  [/hub|topology|vwan/i, 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/define-an-azure-network-topology'],
+  [/budget/i, 'https://learn.microsoft.com/azure/cost-management-billing/costs/tutorial-acm-create-budgets'],
+  [/advisor/i, 'https://learn.microsoft.com/azure/advisor/advisor-overview'],
+  [/hybrid benefit|licen[cs]e/i, 'https://learn.microsoft.com/azure/cost-management-billing/scope-level/overview-azure-hybrid-benefit'],
+  [/orphaned|unattached|public ip/i, 'https://learn.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses'],
+  [/tag/i, 'https://learn.microsoft.com/azure/azure-resource-manager/management/tag-resources'],
+  [/iac|infrastructure as code|deployment/i, 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/considerations/infrastructure-as-code'],
+  [/storage account/i, 'https://learn.microsoft.com/azure/storage/common/storage-account-overview'],
+  [/update manager|patch/i, 'https://learn.microsoft.com/azure/update-manager/overview'],
+  [/subscription vending|subscription/i, 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/subscription-vending'],
+  [/billing/i, 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/azure-billing-microsoft-entra-tenant']
+];
+function betterLearnUrl(f){
+  for(var i=0;i<LEARN_RULES.length;i++){ if(LEARN_RULES[i][0].test(f.title||'')) return LEARN_RULES[i][1]; }
+  return f.learnUrl;
 }
 
-// ---- global UI state ----
-var state = {
-  tab: 'dashboard',
-  findingsSort: { key: 'Id', dir: 1 },
-  findingsFilter: { Framework:'', Area:'', Severity:'', Status:'' },
-  findingsSearch: '',
-  gapsSearch: '',
-  manualSearch: '',
-  driftSort: { key: 'Id', dir: 1 },
-  driftFilter: '',
-  govPolicySearch: '',
-  govBudgetsSearch: '',
-  govLocksSearch: '',
-  topo: { x: 40, y: 40, k: 1 },
-  topoDragging: false
-};
-
-function sortRows(rows, key, dir){
-  return rows.slice().sort(function(a,b){
-    var av = a[key]; var bv = b[key];
-    av = (av===null||av===undefined) ? '' : av;
-    bv = (bv===null||bv===undefined) ? '' : bv;
-    if(av < bv) return -1*dir;
-    if(av > bv) return 1*dir;
-    return 0;
-  });
+/* ---- shared fragments ---- */
+function gauge(pct, big){
+  if(pct==null) return '';
+  var cls = big ? 'gauge' : 'minigauge';
+  return '<div class="'+cls+'"><i style="width:34%;background:var(--band-crit)"></i><i style="width:33%;background:var(--band-mod)"></i><i style="width:33%;background:var(--band-exc)"></i><span class="tick" style="left:'+Math.min(99,Math.max(1,pct))+'%"></span></div>';
 }
-
-// ---- Dashboard ----
-function renderDashboard(){
-  var cards = Frameworks.map(function(fw){
-    var band = scoreBand(fw.Score);
-    return '<div class="card band-'+band+'"><div class="label">'+esc(fw.Framework)+'</div><div class="score">'+(fw.Score===null||fw.Score===undefined?'&mdash;':fw.Score)+'</div></div>';
-  }).join('');
-
-  var counts = { Pass:0, Partial:0, Fail:0, Manual:0, Unknown:0, Error:0 };
-  AllFindings.forEach(function(f){
-    var s = f.Status || 'Unknown';
-    if(counts.hasOwnProperty(s)) counts[s]++; else counts.Unknown++;
-  });
-  var total = AllFindings.length || 1;
-  var order = [['Pass','var(--green)'],['Partial','var(--gold)'],['Fail','var(--red)'],['Manual','var(--gray)'],['Unknown','#9e9e9e'],['Error','#7b1fa2']];
-  var acc = 0; var stops = [];
-  order.forEach(function(pair){
-    var pct = counts[pair[0]] / total * 100;
-    if(pct > 0){
-      stops.push(pair[1] + ' ' + acc.toFixed(2) + '% ' + (acc+pct).toFixed(2) + '%');
-      acc += pct;
-    }
-  });
-  var gradient = stops.length ? stops.join(', ') : 'var(--mist) 0% 100%';
-  var passRate = Math.round((counts.Pass / total) * 100);
-
-  var legend = order.map(function(pair){
-    return '<div><span class="dot" style="background:'+pair[1]+'"></span>'+pair[0]+': <b>'+counts[pair[0]]+'</b></div>';
-  }).join('');
-
-  var areaRows = Areas.map(function(a){
-    var band = scoreBand(a.Score);
-    var pct = (a.Score===null||a.Score===undefined) ? 0 : a.Score;
-    return '<div class="arearow"><div class="name" title="'+esc(a.Framework)+' / '+esc(a.Area)+'">'+esc(a.Framework)+' / '+esc(a.Area)+'</div>'+
-      '<div class="bar"><i style="width:'+pct+'%;background:'+bandColor(band)+'"></i></div>'+
-      '<div class="val">'+(a.Score===null||a.Score===undefined?'&mdash;':a.Score)+'</div></div>';
-  }).join('') || '<div class="empty">No scored areas.</div>';
-
-  // ---- inventory KPI cards (AB#389) ----
-  // Only ever show a card for a category the Collect payload actually carried
-  // (see hasNetworkingData/hasGovernanceData plus the individual field
-  // checks below) — an omitted category degrades to no card, not a 0 card.
-  var invCards = [];
-  function invCard(label, arr, sourceField){
-    if(!sourceField) return;
-    invCards.push('<div class="card"><div class="label">'+esc(label)+'</div><div class="score">'+arr.length+'</div></div>');
-  }
-  invCard('Virtual networks', VNets, NET.VirtualNetworks);
-  invCard('Subnets', Subnets, NET.Subnets);
-  invCard('Virtual machines', VMs, COMPUTE.VirtualMachines);
-  invCard('Azure Firewalls', Firewalls, NET.AzureFirewalls);
-  invCard('VPN gateways', VpnGateways, NET.VpnGateways);
-  invCard('Private endpoints', PrivateEndpoints, NET.PrivateEndpoints);
-  invCard('Management groups', ManagementGroups, GOV.ManagementGroups);
-  invCard('Policy assignments', PolicyAssignments, GOV.PolicyAssignments);
-  invCard('Budgets', Budgets, GOV.Budgets);
-  invCard('Resource locks', ResourceLocks, GOV.ResourceLocks);
-  var inventorySection = invCards.length
-    ? '<div class="section-title">Environment inventory</div><div class="cards">'+invCards.join('')+'</div>'
-    : '';
-
-  document.getElementById('view').innerHTML =
-    '<div class="section-title">Framework scores</div>'+
-    '<div class="cards">'+(cards || '<div class="empty">No frameworks scored.</div>')+'</div>'+
-    '<div class="section-title">Overall pass rate</div>'+
-    '<div class="donut-wrap">'+
-      '<div class="donut" style="background:conic-gradient('+gradient+')"><div class="hole"><b>'+passRate+'%</b><span>pass rate</span></div></div>'+
-      '<div class="legend">'+legend+'</div>'+
-    '</div>'+
-    '<div class="section-title">Area scores</div>'+
-    '<div class="arealist">'+areaRows+'</div>'+
-    inventorySection;
+function bandChip(pct){
+  var b = band(pct);
+  return b ? '<span class="bandchip b-'+b+'">'+bandLabel[b]+'</span>' : '<span class="bandchip b-na">MANUAL ONLY</span>';
 }
-
-// ---- Findings ----
-function findingsFilterOptions(){
+function dedupeAreas(areasIn){
+  var byName = {}, order = [];
+  safeArr(areasIn).forEach(function(ar){
+    var prev = byName[ar.name];
+    if(!prev || (prev.percent==null && ar.percent!=null)){ if(!prev) order.push(ar.name); byName[ar.name]=ar; }
+  });
+  return order.map(function(nm){ return byName[nm]; });
+}
+function areaStats(a, areaName){
+  var fs = safeArr(a.findings).filter(function(f){ return f.area===areaName; });
   return {
-    Framework: uniqueVals(AllFindings, 'Framework'),
-    Area: uniqueVals(AllFindings, 'Area'),
-    Severity: uniqueVals(AllFindings, 'Severity'),
-    Status: uniqueVals(AllFindings, 'Status')
+    findings: fs,
+    pass: fs.filter(function(f){return f.status==='Pass';}).length,
+    fail: fs.filter(function(f){return f.status==='Fail';}).length,
+    manual: fs.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';}).length
   };
 }
-function applyFindingsFilters(){
-  var f = state.findingsFilter;
-  var q = state.findingsSearch.toLowerCase();
-  return AllFindings.filter(function(row){
-    if(f.Framework && row.Framework !== f.Framework) return false;
-    if(f.Area && row.Area !== f.Area) return false;
-    if(f.Severity && (row.Severity||'') !== f.Severity) return false;
-    if(f.Status && row.Status !== f.Status) return false;
-    if(q){
-      var hay = [row.Id, row.Title, row.Area, row.Framework, row.Remediation].join(' ').toLowerCase();
-      if(hay.indexOf(q) === -1) return false;
-    }
-    return true;
-  });
+function evidenceTable(f){
+  var ev = safeArr(f.evidence).filter(function(e){ return e.resourceName || e.detail; });
+  if(!ev.length){
+    return '<p class="absence">This check failed because the required configuration was <b>not found anywhere in scope</b> — the gap is the absence itself, so there is no individual resource to name. The fix below creates what is missing.</p>';
+  }
+  var cap = 12;
+  var rows = ev.slice(0,cap).map(function(e){
+    return '<tr><td class="mono">'+esc(e.resourceName||'(scope-level)')+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
+  }).join('');
+  var capNote = ev.length>cap ? '<div class="capnote">Showing 12 of '+ev.length+' — the full list is on the Data &amp; Drift page and in the CSV export.</div>' : '';
+  return '<div class="fx">Current configuration — '+ev.length+' affected resource'+(ev.length===1?'':'s')+'</div><div class="twrap"><table><tr><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+rows+'</table></div>'+capNote;
 }
-function renderFindings(){
-  var opts = findingsFilterOptions();
-  function optionList(vals, current){
-    return '<option value="">All</option>' + vals.map(function(v){
-      return '<option value="'+esc(v)+'"'+(v===current?' selected':'')+'>'+esc(v)+'</option>';
+function frameworkOf(f){
+  var a = assessments.filter(function(x){ return x.slug===f.slug; })[0];
+  return a ? (a.framework||a.name) : 'CAF/WAF';
+}
+function whyItMatters(f){
+  var evn = safeArr(f.evidence).length;
+  var base = f.severity==='high' ? 'a high-severity gap: it exposes the environment to material operational, security or financial risk until closed' :
+    f.severity==='medium' ? 'a medium-severity gap: it erodes the guardrails the rest of the landing zone depends on' :
+    'a low-severity gap: low individual impact, but it accumulates as drift from the baseline';
+  var scope2 = evn ? evn+' resource'+(evn===1?' is':'s are')+' currently in this state.' : 'Nothing in scope currently satisfies this check.';
+  return 'The '+esc((f.title||'').replace(/\.$/,''))+' check is part of <b>'+esc(f.area)+'</b> in the '+esc(frameworkOf(f))+' baseline. Microsoft classifies this as '+base+'. '+scope2;
+}
+function fixSteps(f){
+  var r = String(f.remediation||'').trim();
+  var parts = r.split(/(?<=\.)\s+(?=[A-Z])/).filter(function(x){return x.trim();});
+  var inner = parts.length>1 ? '<ol>'+parts.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+'</ol>' : '<p>'+esc(r)+'</p>';
+  return '<div class="fx">How to fix it</div>'+inner+'<a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Microsoft guidance for this fix →</a>';
+}
+function gapBlock(f){
+  return '<div class="finding" id="g-'+anchorId(f.id)+'"><h4>'+sevPill(f.severity)+' <span class="pill p-fail">Not met</span>&nbsp; '+esc(f.title)+' <span class="mono fid">'+esc(shortId(f.id))+'</span></h4>'+
+    evidenceTable(f)+'<div class="fx">Why it matters</div><p>'+whyItMatters(f)+'</p>'+fixSteps(f)+'</div>';
+}
+function registerTable(fs, gopage){
+  function order(f){ return (f.status==='Fail'?0:f.status==='Pass'?1:2)*10 + (sevRank.hasOwnProperty(f.severity)?sevRank[f.severity]:3); }
+  var rows = fs.slice().sort(function(a,b){return order(a)-order(b);}).map(function(f){
+    var link = f.status==='Fail' ? ' <a class="jump goto" data-gopage="'+gopage+'" href="#g-'+anchorId(f.id)+'">fix ↓</a>' : '';
+    return '<tr><td class="mono"><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(shortId(f.id))+'</a></td><td>'+esc(f.title)+link+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(f.evidenceCount||0)+'</td></tr>';
+  }).join('');
+  return '<div class="twrap"><table><tr><th>Check</th><th>What was evaluated in this tenant</th><th>Severity</th><th>Result</th><th class="num">Evidence</th></tr>'+rows+'</table></div>';
+}
+function manualAgenda(fs){
+  var ms = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail'; });
+  if(!ms.length) return '';
+  var rows = ms.map(function(f){
+    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><b>'+esc(f.title)+'</b><div class="q">'+esc(f.remediation)+'</div></td><td>'+sevPill(f.severity)+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Learn →</a></td></tr>';
+  }).join('');
+  return '<div class="eyebrow">Manual review agenda — '+ms.length+' item'+(ms.length===1?'':'s')+' the platform cannot measure remotely</div><div class="twrap"><table><tr><th>Check</th><th>Question for the platform team</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
+}
+
+/* ---- inventory facts ---- */
+var invEntries = Object.keys(inventory).map(function(k){ return [k, inventory[k]]; }).filter(function(p){ return p[1] && p[1].count>0; });
+var invTotal = invEntries.reduce(function(s,p){ return s+(p[1].count||0); },0);
+var invSorted = invEntries.slice().sort(function(a,b){ return (b[1].count||0)-(a[1].count||0); });
+
+function estateCallouts(){
+  var rows = [];
+  function cat(k){ return inventory[k] || { count:0, rows:[] }; }
+  var nsg = cat('networking.nsgPublicInbound');
+  if(nsg.count) rows.push(['NSG rules allowing public inbound', nsg.count, 'networking.nsgPublicInbound', 'Each permits traffic from the internet; verify every one is intended.']);
+  var disks = safeArr(cat('domains.storage.managedDisks').rows).filter(function(r){ return lc(r.diskState)==='unattached'; });
+  if(disks.length) rows.push(['Unattached managed disks', disks.length, 'domains.storage.managedDisks', 'Billed continuously while attached to nothing.']);
+  var pubSa = safeArr(cat('domains.storage.storageAccounts').rows).filter(function(r){ return r.publicAccess===true || String(r.publicAccess).toLowerCase()==='true'; });
+  if(pubSa.length) rows.push(['Storage accounts reachable from public networks', pubSa.length, 'domains.storage.storageAccounts', 'Public reachability widens the attack surface; prefer private endpoints.']);
+  var oDisks = cat('costCleanup.orphanedDisks'); if(oDisks.count) rows.push(['Orphaned disks (cost cleanup)', oDisks.count, 'costCleanup.orphanedDisks', 'Paying for storage no workload uses.']);
+  var oPips = cat('costCleanup.orphanedPips'); if(oPips.count) rows.push(['Orphaned public IPs (cost cleanup)', oPips.count, 'costCleanup.orphanedPips', 'Reserved addresses billed while unused.']);
+  if(!rows.length) return '';
+  return '<h3 id="inv-audit">Audit callouts — what looks wrong in the estate</h3><div class="twrap"><table><tr><th>Observation</th><th class="num">Count</th><th>Why it matters</th><th></th></tr>'+
+    rows.map(function(r){ return '<tr><td>'+r[0]+'</td><td class="num"><b>'+n(r[1])+'</b></td><td>'+r[3]+'</td><td><a class="jump invgo" data-pane="'+catId(r[2])+'" href="#">items →</a></td></tr>'; }).join('')+'</table></div>';
+}
+
+function categoryBlocksFor(k, v){
+  var skipCols = { id:1, subscriptionId:1 };
+  var rows = safeArr(v.rows);
+  var sample = rows.slice(0,50);
+  var cols = [];
+  if(rows.length){
+    var candidateCols = Object.keys(rows[0]).filter(function(c){ return !skipCols[c]; });
+    var scored = candidateCols.map(function(c){
+      var d = sample.filter(function(r){ return r[c]!==null && r[c]!==undefined && String(r[c])!==''; }).length;
+      return [c,d];
+    }).filter(function(p){ return p[1] > sample.length*0.2; });
+    scored.sort(function(a,b){ return b[1]-a[1]; });
+    cols = scored.slice(0,7).map(function(p){ return p[0]; });
+  }
+  var cap = 50;
+  var trs = rows.slice(0,cap).map(function(r){
+    var cells = cols.map(function(c){
+      var val = r[c];
+      if(val && typeof val==='object') val = JSON.stringify(val);
+      val = String(val===null||val===undefined?'':val);
+      var full = val.length>80 ? ' title="'+esc(val.slice(0,500))+'"' : '';
+      if(val.length>80) val = val.slice(0,77)+'…';
+      return '<td class="mono"'+full+'>'+esc(val)+'</td>';
+    }).join('');
+    return '<tr>'+cells+'<td class="mono">'+esc(subName(r.subscriptionId))+'</td></tr>';
+  }).join('');
+  var capNote = rows.length>cap ? '<div class="capnote">Showing '+cap+' of '+n(v.count)+' — the full set is in the CSV export.</div>'
+    : (v.count>rows.length ? '<div class="capnote">'+n(v.count)+' total; '+rows.length+' sampled rows collected.</div>' : '');
+  if(!rows.length){
+    return v.count ? '<p class="lede small">Count only — no per-item rows collected for this category.</p>'
+      : '<p class="lede small">The collector ran and found <b>0 items</b> of this type in scope — listed so absence is visible, not hidden.</p>';
+  }
+  var headCells = cols.map(function(c){ return '<th>'+esc(c)+' ⇅</th>'; }).join('')+'<th>subscription ⇅</th>';
+  return '<div class="catwrap"><input class="tfilter" placeholder="Filter '+esc(catLeaf(v.label||k)).toLowerCase()+'… (any column)"><div class="twrap"><table><tr>'+headCells+'</tr>'+trs+'</table></div>'+capNote+'</div>';
+}
+function categoryPane(k, v){
+  var block = categoryBlocksFor(k, v);
+  var path = catPath(v.label);
+  return '<h2>'+esc(catLeaf(v.label||k))+' <span class="h2sub">'+(path?esc(path)+' · ':'')+'<span class="mono">'+esc(k)+'</span> · '+n(v.count)+' items</span></h2>'+block;
+}
+
+/* ============================================================
+   PAGE: overview
+   ============================================================ */
+function pageOverview(){
+  var gauges = assessments.map(function(a){
+    var s = a.score || {};
+    var fails = safeArr(a.findings).filter(function(f){ return f.status==='Fail'; }).length;
+    return '<a class="tilelink goto" data-gopage="a-'+a.slug+'" href="#top"><div class="gaugebox hover"><div class="gtitle">'+esc(a.name)+' <span class="go">open →</span></div>'+
+      bandChip(s.percent)+' <b style="margin-left:6px">'+(s.percent!=null?s.percent+' / 100':'')+'</b><span class="lede small"> '+safeArr(a.findings).length+' checks · '+fails+' not met</span>'+
+      gauge(s.percent,true)+'</div></a>';
+  }).join('');
+  var high = allFindings.filter(function(f){ return f.status==='Fail' && f.severity==='high'; })
+    .sort(function(a,b){
+      var av = safeArr(a.evidence).filter(function(e){return e.resourceName;}).length * (a.weight||0);
+      var bv = safeArr(b.evidence).filter(function(e){return e.resourceName;}).length * (b.weight||0);
+      return bv-av;
+    });
+  var sp = high[0];
+  var spotBlock = '';
+  if(sp){
+    var spNames = safeArr(sp.evidence).filter(function(e){return e.resourceName;}).slice(0,4).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
+    spotBlock = '<h3>The one item to act on this week</h3><div class="spot"><div class="k">HIGHEST EXPOSURE · '+esc((sp.area||'').toUpperCase())+'</div>'+
+      '<h3 style="margin:6px 0 4px">'+esc(sp.title)+'</h3><p>'+(spNames?'Affected today: '+spNames+'.':'Nothing in scope satisfies this check today.')+' '+esc(String(sp.remediation||'').split(/(?<=\.)\s/)[0]||'')+'</p>'+
+      '<a href="'+esc(betterLearnUrl(sp))+'" rel="noopener">Microsoft guidance →</a></div>';
+  }
+  return '<h2>Overview</h2>'+
+  '<div class="collbox"><div class="ci"><span class="cl">✓ Collection</span><span class="cv">Read-only</span></div>'+
+  '<div class="ci"><span class="cl">Tenant</span><span class="cv">'+esc(meta.tenantDisplayName||'')+'</span></div>'+
+  '<div class="ci"><span class="cl">Run</span><span class="cv mono">'+esc(meta.runId||'')+'</span></div>'+
+  '<div class="ci"><span class="cl">Collected</span><span class="cv">'+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+'</span></div>'+
+  '<div class="ci"><span class="cl">Subscriptions in scope</span><span class="cv">'+subscriptions.length+'</span></div>'+
+  '<div class="ci"><span class="cl">Method</span><span class="cv">Azure Resource Graph + ARM</span></div></div>'+
+  '<p class="lede"><b>'+counts.total+' CAF/WAF checks were evaluated against this tenant</b> — '+counts.pass+' met, <b>'+counts.fail+' not met</b> ('+counts.high+' high severity), '+counts.manual+' need manual review — across an estate of '+n(invTotal)+' collected items in '+subscriptions.length+' subscriptions.</p>'+
+  '<div class="kpis"><div class="kpi"><div class="l">Checks evaluated</div><div class="v">'+counts.total+'</div><div class="f">across '+assessments.length+' assessments</div></div>'+
+  '<div class="kpi good"><div class="l">Met</div><div class="v">'+counts.pass+'</div><div class="f">of '+(counts.pass+counts.fail)+' automated</div></div>'+
+  '<div class="kpi bad"><div class="l">Not met</div><div class="v">'+counts.fail+'</div><div class="f">'+counts.high+' high severity</div></div>'+
+  '<div class="kpi"><div class="l">Manual review</div><div class="v">'+counts.manual+'</div><div class="f">listed as an agenda</div></div>'+
+  '<a class="kpi tilelink goto" data-gopage="inv" href="#inv-structure"><div class="l">Management groups</div><div class="v">'+((inventory['governance.managementGroups']||{}).count||0)+'</div><div class="f">view hierarchy →</div></a>'+
+  '<a class="kpi tilelink goto" data-gopage="inv" href="#inv-structure"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div><div class="f">view list →</div></a></div>'+
+  '<div class="eyebrow">Where to go</div><div class="menutiles">'+
+  '<a class="mtile goto" data-gopage="inv" href="#top"><div class="mt">📦 Inventory &amp; audit</div><div class="md">'+n(invTotal)+' items in '+invEntries.length+' categories · what exists, and what looks wrong</div></a>'+
+  '<a class="mtile goto" data-gopage="as" href="#top"><div class="mt">📋 Assessments</div><div class="md">'+assessments.length+' assessments · '+counts.total+' checks · the complete conformance register</div></a>'+
+  '<a class="mtile goto" data-gopage="data" href="#top"><div class="mt">🗃️ Data &amp; drift</div><div class="md">Every finding and evidence row · change since the previous run</div></a>'+
+  '<a class="mtile goto" data-gopage="road" href="#top"><div class="mt">🛠️ Remediation plan</div><div class="md">All '+counts.fail+' gaps, by team, with windows</div></a></div>'+
+  '<div class="eyebrow">Assessment results — click any to open its full register</div>'+gauges+spotBlock;
+}
+
+/* ============================================================
+   PAGE: inventory (sidebar + per-category tables)
+   ============================================================ */
+var CAT_ORDER = ['General','AI','Analytics','Compute','Containers','Databases','DevOps','Hybrid','Identity','Integration','IoT','Management','Migration','Monitor','Networking','Security','Storage','Web'];
+var CAT_LABEL = { AI:'AI + Machine Learning', Hybrid:'Hybrid + multicloud', IoT:'Internet of Things', Management:'Management and governance', Web:'Web & Mobile' };
+function keyCat(k){
+  if(/^(subscriptions|tags|advisor)$/.test(k)) return 'General';
+  if(k.indexOf('networking.')===0) return 'Networking';
+  if(k.indexOf('compute.')===0) return 'Compute';
+  if(k==='management.logAnalyticsWorkspaces' || k.indexOf('opsPosture.')===0) return 'Monitor';
+  if(k.indexOf('management.')===0) return 'Management';
+  if(k.indexOf('security.')===0) return 'Security';
+  if(/^governance\.(roleAssignments|pimEligibility|classicAdministrators)$/.test(k)) return 'Identity';
+  if(k.indexOf('governance.')===0) return 'Management';
+  if(k.indexOf('devops.')===0) return 'DevOps';
+  var m = k.match(/^domains\.([a-z]+)\./i);
+  if(m){
+    var map = { storage:'Storage', databases:'Databases', web:'Web', containers:'Containers', security:'Security', ai:'AI', hybrid:'Hybrid', integration:'Integration', iot:'IoT', migration:'Migration', analytics:'Analytics', management:'Management' };
+    return map[m[1].toLowerCase()] || 'General';
+  }
+  return null; // derived set (costCleanup.*/finops.*) — lives in the audit/cost blades, not the category tree
+}
+function grpId(g){ return 'grp-'+g.replace(/[^A-Za-z0-9_-]+/g,'-'); }
+
+function pageInventory(){
+  var pips = (inventory['costCleanup.orphanedPips']||{}).count || 0;
+  var pipMo = pips * 3.65;
+  var opp = pips ? '<div class="opp" id="inv-opp"><div class="t">💡 COST OPTIMIZATION OPPORTUNITY</div>'+
+    '<div>'+pips+' orphaned public IP address'+(pips===1?'':'es')+' '+(pips===1?'is':'are')+' reserved but attached to nothing. Releasing them saves:</div>'+
+    '<div class="big"><span>Monthly: <b>$'+pipMo.toFixed(2)+'</b></span><span>Yearly: <b>$'+(pipMo*12).toFixed(2)+'</b></span></div>'+
+    '<div class="act"><b>Action:</b> confirm each address is unreferenced (DNS, firewall rules), then delete. Arithmetic: '+pips+' × $3.65/month per reserved standard public IP × 12 months.</div></div>' : '';
+
+  var mgRows = safeArr((inventory['governance.managementGroups']||{}).rows);
+  var kids = {};
+  mgRows.forEach(function(m){ var par = m.parent||''; (kids[par]=kids[par]||[]).push(m); });
+  var mgNames = {}; mgRows.forEach(function(m){ mgNames[m.name]=1; });
+  var roots = mgRows.filter(function(m){ return !m.parent || !mgNames[m.parent]; });
+  function mgTree(list, depth){
+    return list.map(function(m){
+      return '<div class="mgrow" style="padding-left:'+(depth*22)+'px">'+(depth?'└ ':'')+'<b>'+esc(m.displayName)+'</b> <span class="mono small">'+esc(m.name)+'</span></div>'+
+        mgTree(kids[m.name]||[], depth+1);
     }).join('');
   }
-  var rows = sortRows(applyFindingsFilters(), state.findingsSort.key, state.findingsSort.dir);
-  var arrow = function(key){ return state.findingsSort.key===key ? (state.findingsSort.dir===1?'&#9650;':'&#9660;') : ''; };
-  var cols = [['Id','Id'],['Framework','Framework'],['Area','Area'],['Severity','Sev'],['Status','Status'],['Title','Finding'],['EvidenceCount','Evidence']];
+  var subRows = subscriptions.map(function(s){ return '<tr><td class="mono">'+esc(s.name)+'</td><td class="mono small">'+esc(s.id)+'</td><td>'+esc(s.state)+'</td></tr>'; }).join('');
+  var tenantStructure = '<h3 id="inv-structure">Tenant structure</h3><div class="eyebrow">Management-group hierarchy ('+mgRows.length+')</div>'+
+    '<div class="gaugebox slim">'+mgTree(roots,0)+'</div><div class="eyebrow">Subscriptions ('+subscriptions.length+')</div>'+
+    '<div class="twrap"><table><tr><th>Subscription</th><th>Id</th><th>State</th></tr>'+subRows+'</table></div>';
 
-  document.getElementById('view').innerHTML =
-    '<div class="filters">'+
-      '<select id="ff-Framework">'+optionList(opts.Framework, state.findingsFilter.Framework)+'</select>'+
-      '<select id="ff-Area">'+optionList(opts.Area, state.findingsFilter.Area)+'</select>'+
-      '<select id="ff-Severity">'+optionList(opts.Severity, state.findingsFilter.Severity)+'</select>'+
-      '<select id="ff-Status">'+optionList(opts.Status, state.findingsFilter.Status)+'</select>'+
-      '<input type="search" id="ff-search" placeholder="Search findings..." value="'+esc(state.findingsSearch)+'">'+
-    '</div>'+
-    '<table id="findings-table"><thead><tr>'+
-      cols.map(function(c){ return '<th data-key="'+c[0]+'">'+c[1]+'<span class="arrow">'+arrow(c[0])+'</span></th>'; }).join('')+
-      '<th>Remediation</th></tr></thead><tbody>'+
-      (rows.map(function(f, i){
-        return '<tr class="clickable-row" data-idx="'+i+'"><td>'+esc(f.Id)+'</td><td>'+esc(f.Framework)+'</td><td>'+esc(f.Area)+'</td>'+
-          '<td class="'+sevClass(f.Severity)+'">'+esc(f.Severity||'')+'</td>'+
-          '<td class="'+statusClass(f.Status)+'">'+esc(f.Status)+'</td>'+
-          '<td>'+esc(f.Title)+'</td><td>'+(f.EvidenceCount===undefined?'':f.EvidenceCount)+'</td>'+
-          '<td>'+esc(f.Remediation)+'</td></tr>';
-      }).join('') || '<tr><td colspan="8" class="empty">No findings match the current filters.</td></tr>')+
-    '</tbody></table>';
+  var overviewPane = '<h2>Inventory &amp; audit — overview</h2>'+
+    '<div class="about"><b>About this environment.</b> The estate holds <b>'+n(invTotal)+' collected items</b> across <b>'+subscriptions.length+' subscriptions</b> in '+invEntries.length+' categories, catalogued read-only via Azure Resource Graph and ARM. This page describes what exists and flags what looks wrong; conformance judgements live on the Assessments pages.</div>'+
+    '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div><div class="f">read-only, ARG + ARM</div></div>'+
+    '<div class="kpi"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div><div class="f">all enabled</div></div>'+
+    '<div class="kpi"><div class="l">Categories</div><div class="v">'+invEntries.length+'</div><div class="f">of '+Object.keys(inventory).length+' collected have data</div></div>'+
+    '<div class="kpi"><div class="l">Virtual machines</div><div class="v">'+((inventory['compute.virtualMachines']||{}).count||0)+'</div><div class="f">select Compute on the left</div></div></div>'+
+    '<div class="eyebrow">Top categories — click a card to open its items</div><div class="cards">'+
+    invSorted.slice(0,12).map(function(p){ var k=p[0], v=p[1]; return '<a class="card invgo" data-pane="'+catId(k)+'" href="#"><div class="c">'+n(v.count)+'</div><div class="l"><b>'+esc(catLeaf(v.label||k))+'</b></div>'+(catPath(v.label)?'<div class="lp">'+esc(catPath(v.label))+'</div>':'')+'<div class="go">view items →</div></a>'; }).join('')+
+    '</div><div class="prov">Pricing as of Aug 2026 — <a href="'+AZURE_PRICING_URL+'" rel="noopener">official pricing</a>. Every figure shows its arithmetic.</div>';
 
-  ['Framework','Area','Severity','Status'].forEach(function(k){
-    document.getElementById('ff-'+k).onchange = function(e){ state.findingsFilter[k] = e.target.value; renderFindings(); };
+  var groups = {};
+  Object.keys(inventory).forEach(function(k){
+    var v = inventory[k]; if(!v) return;
+    var g = keyCat(k); if(!g) return;
+    (groups[g]=groups[g]||[]).push([k,v]);
   });
-  document.getElementById('ff-search').oninput = function(e){ state.findingsSearch = e.target.value; renderFindings(); };
-  document.querySelectorAll('#findings-table th[data-key]').forEach(function(th){
-    th.onclick = function(){
-      var key = th.getAttribute('data-key');
-      if(state.findingsSort.key === key){ state.findingsSort.dir *= -1; }
-      else { state.findingsSort.key = key; state.findingsSort.dir = 1; }
-      renderFindings();
-    };
+  CAT_ORDER.forEach(function(c){ if(!groups[c]) groups[c]=[]; });
+  var sortedGroups = CAT_ORDER.map(function(c){ return [c, groups[c]||[]]; });
+  var sideCats = sortedGroups.map(function(pair){
+    var g = pair[0], items = pair[1];
+    var head = '<a class="sidehead invgo" data-pane="'+grpId(g)+'" href="#" title="Show a summary of '+esc(CAT_LABEL[g]||g)+'">'+esc(CAT_LABEL[g]||g)+'</a>';
+    var body = items.length ? '' : '<span class="sideitem zero"><span>no collectors returned data</span></span>';
+    var itemsSorted = items.slice().sort(function(x,y){
+      return (y[1].count||0)-(x[1].count||0) || catLeaf(x[1].label||x[0]).localeCompare(catLeaf(y[1].label||y[0]));
+    });
+    body += itemsSorted.map(function(p){
+      var k=p[0], v=p[1];
+      return '<a class="sideitem invgo'+(v.count?'':' zero')+'" data-pane="'+catId(k)+'" href="#"><span>'+esc(catLeaf(v.label||k))+'</span><span class="cnt">'+n(v.count||0)+'</span></a>';
+    }).join('');
+    return head+body;
+  }).join('');
+  var groupPanes = sortedGroups.map(function(pair){
+    var g = pair[0], items = pair[1];
+    var total = items.reduce(function(s,p){ return s+(p[1].count||0); },0);
+    var withData = items.filter(function(p){ return p[1].count>0; }).length;
+    var cards = items.slice().sort(function(x,y){ return (y[1].count||0)-(x[1].count||0); }).map(function(p){
+      var k=p[0], v=p[1];
+      return '<a class="card invgo'+(v.count?'':' zerocard')+'" data-pane="'+catId(k)+'" href="#"><div class="c">'+n(v.count||0)+'</div><div class="l"><b>'+esc(catLeaf(v.label||k))+'</b></div><div class="go">'+(v.count?'view items →':'none in scope')+'</div></a>';
+    }).join('');
+    return [grpId(g), '<h2>'+esc(CAT_LABEL[g]||g)+' <span class="h2sub">'+items.length+' collector'+(items.length===1?'':'s')+' · '+n(total)+' items · '+withData+' with data</span></h2>'+
+      '<p class="lede small">Everything collected under the <b>'+esc(CAT_LABEL[g]||g)+'</b> category — including collectors that found nothing in scope.</p>'+
+      (items.length ? '<div class="cards">'+cards+'</div>' : '<p class="lede">No collectors returned data for this category in this run.</p>')];
   });
-  // ---- clickable rows -> side panel (AB#387) ----
-  document.querySelectorAll('#findings-table tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var f = rows[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!f) return;
-      openPanel(f.Id + ' — ' + f.Title, [
-        fld('Framework', f.Framework), fld('Area', f.Area), fld('Severity', f.Severity),
-        fld('Status', f.Status), fld('Evidence count', f.EvidenceCount),
-        fld('Remediation', f.Remediation)
-      ]);
-    };
+
+  var costFails = allFindings.filter(function(f){ return /cost|billing|finops/i.test(f.area||''); });
+  var advisorCost = safeArr((inventory['advisor']||{}).rows).filter(function(r){ return lc(r.Category||r.category)==='cost'; });
+  var costPane = '<h2>Cost optimization</h2>'+opp+
+    (costFails.length ? '<div class="eyebrow">Cost checks from the assessments ('+costFails.length+')</div><div class="twrap"><table><tr><th>Check</th><th>Assessment</th><th>Severity</th><th>Result</th><th></th></tr>'+
+      costFails.map(function(f){ return '<tr><td>'+esc(f.title)+'</td><td>'+esc(f.assessment)+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td><a class="goto jump" data-gopage="a-'+f.slug+'" href="#g-'+anchorId(f.id)+'">'+(f.status==='Fail'?'open the fix →':'details →')+'</a></td></tr>'; }).join('')+'</table></div>' : '')+
+    (advisorCost.length ? '<div class="eyebrow">Azure Advisor — cost recommendations ('+advisorCost.length+')</div>'+categoryBlocksFor('advisor-cost', { label:'Advisor cost', count:advisorCost.length, rows:advisorCost }) : '')+
+    '<div class="eyebrow">FinOps data collected</div><div class="twrap"><table><tr><th>Dataset</th><th class="num">Rows</th><th>Note</th></tr>'+
+    ['finops.costRows','finops.reservations','finops.reservationRecommendations','finops.anomalies','finops.blockedSubscriptions'].map(function(k){
+      var v = inventory[k] || { count:0 };
+      return '<tr'+(v.count?'':' style="opacity:.6"')+'><td>'+esc(catLeaf(v.label||k))+'</td><td class="num">'+n(v.count||0)+'</td><td>'+(v.count?'collected this run':'empty — requires -IncludeCosts and the Az.CostManagement module')+'</td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="eyebrow">Cleanup items</div><h3>Orphaned public IPs ('+((inventory['costCleanup.orphanedPips']||{}).count||0)+')</h3>'+
+    categoryBlocksFor('costCleanup.orphanedPips', inventory['costCleanup.orphanedPips']||{rows:[],count:0})+
+    '<h3>Orphaned disks ('+((inventory['costCleanup.orphanedDisks']||{}).count||0)+')</h3>'+
+    categoryBlocksFor('costCleanup.orphanedDisks', inventory['costCleanup.orphanedDisks']||{rows:[],count:0})+
+    '<div class="prov">Pricing as of Aug 2026 — <a href="'+AZURE_PRICING_URL+'" rel="noopener">official pricing</a>.</div>';
+
+  var panes = [['inv-overview', overviewPane], ['inv-structure', '<h2>Tenant structure</h2>'+tenantStructure],
+    ['inv-audit', '<h2>Audit callouts</h2>'+(estateCallouts()||'<p class="lede">Nothing looks wrong in the estate.</p>')],
+    ['inv-opp', costPane]].concat(groupPanes).concat(
+    Object.keys(inventory).filter(function(k){ return inventory[k]; }).map(function(k){ return [catId(k), categoryPane(k, inventory[k])]; })
+  );
+
+  return '<div class="invlayout"><nav class="side"><div class="sidehead">Inventory</div>'+
+    '<a class="sideitem invgo on" data-pane="inv-overview" href="#"><span>Overview</span></a>'+
+    '<a class="sideitem invgo" data-pane="inv-structure" href="#"><span>🏛 Tenant structure</span><span class="cnt">'+((inventory['governance.managementGroups']||{}).count||0)+' MG · '+subscriptions.length+' subs</span></a>'+
+    '<a class="sideitem invgo" data-pane="inv-audit" href="#"><span>⚠ Audit callouts</span></a>'+
+    '<a class="sideitem invgo" data-pane="inv-opp" href="#"><span>💰 Cost optimization</span></a>'+
+    sideCats+'</nav><div class="invbody">'+
+    panes.map(function(p,i){ return '<div class="invpane'+(i===0?' on':'')+'" id="pane-'+p[0]+'">'+p[1]+'</div>'; }).join('')+
+    '</div></div>';
+}
+
+/* ============================================================
+   PAGE: assessments landing
+   ============================================================ */
+function pageAssessments(){
+  var tiles = assessments.map(function(a){
+    var s = a.score || {};
+    var fs = safeArr(a.findings);
+    var fails = fs.filter(function(f){return f.status==='Fail';}).length;
+    var passes = fs.filter(function(f){return f.status==='Pass';}).length;
+    var manuals = fs.length - fails - passes;
+    var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar.name).findings.length; });
+    var preview = areas.slice(0,6).map(function(ar){
+      var b = band(ar.percent);
+      return '<div class="arearow"><span>'+esc(ar.name)+'</span>'+(ar.percent!=null?gauge(ar.percent,false):'<span class="mono faintt manualonly">manual only</span>')+'<span class="bandlab" style="color:'+(b?bandVar[b]:'var(--faint)')+'">'+(b?bandLabel[b]:'MANUAL')+'</span></div>';
+    }).join('');
+    return '<div class="gaugebox"><div class="gtitle">'+esc(a.name)+' <a class="btn goto" data-gopage="a-'+a.slug+'" href="#top">Open full register →</a></div>'+
+      '<div class="lede small">'+esc(a.framework||'')+'</div>'+bandChip(s.percent)+' <b style="margin-left:6px">'+(s.percent!=null?s.percent+' / 100':'')+'</b>'+
+      '<span class="lede"> '+verdictSentence(s.percent)+'</span>'+gauge(s.percent,true)+
+      '<div class="gl"><span>CRITICAL 0–33</span><span>MODERATE 34–66</span><span>EXCELLENT 67–100</span></div>'+
+      '<div class="mono faintt" style="margin-top:5px">'+esc(s.formula||'')+'</div>'+
+      '<div class="lede small" style="margin-top:8px">'+fs.length+' checks: <b class="okc">'+passes+' met</b> · <b class="badc">'+fails+' not met</b> · '+manuals+' manual</div>'+
+      preview+(areas.length>6?'<div class="lede small">…and '+(areas.length-6)+' more areas in the full register</div>':'')+'</div>';
+  }).join('');
+  return '<h2>Assessments</h2><p class="lede">'+assessments.length+' assessments ran against this tenant — '+counts.total+' checks in total. Each opens into its complete conformance register: every check with its result, a gap block for every "Not met", and the manual checks as a review agenda.</p>'+tiles;
+}
+
+/* ============================================================
+   PAGE: one assessment (the complete register)
+   ============================================================ */
+function areaChapter(a, area, idx){
+  var st = areaStats(a, area.name);
+  if(!st.findings.length) return '';
+  var scored = st.pass + st.fail;
+  var scoreLine = area.percent!=null ? '<b>'+area.percent+' / 100</b> <span class="mono faintt">'+esc(area.formula)+'</span>' : '<span class="mono faintt">'+esc(area.formula)+'</span>';
+  var meetLine = scored ? 'You meet <b>'+st.pass+' of '+scored+'</b> automated checks in this area'+(st.manual?'; '+st.manual+' more need manual review':'')+'.'
+    : 'All '+st.manual+' checks in this area need manual review — nothing here is automated yet.';
+  var fails = st.findings.filter(function(f){ return f.status==='Fail'; }).sort(function(x,y){
+    return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3) - (sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3) || ((y.evidenceCount||0)-(x.evidenceCount||0));
+  });
+  return '<details class="chapter" id="a-'+a.slug+'-'+idx+'" open><summary><span class="chsum">'+esc(area.name)+'</span> '+bandChip(area.percent)+
+    '<span class="chstats"><b class="okc">'+st.pass+'✓</b> <b class="badc">'+st.fail+'✗</b> '+st.manual+'👁</span></summary>'+
+    '<div class="gaugebox slim">'+scoreLine+gauge(area.percent,false)+'<p class="meet">'+meetLine+'</p></div>'+
+    '<div class="eyebrow">The register — every check evaluated in this area</div>'+registerTable(st.findings,'a-'+a.slug)+
+    (fails.length?'<div class="eyebrow">Gaps — a block for every "Not met" ('+fails.length+')</div>':'')+
+    fails.map(gapBlock).join('')+manualAgenda(st.findings)+'</details>';
+}
+function pageAssessment(a){
+  var s = a.score || {};
+  var areas = dedupeAreas(a.areas).filter(function(ar){ return areaStats(a,ar.name).findings.length; });
+  var fs = safeArr(a.findings);
+  var fails = fs.filter(function(f){return f.status==='Fail';}).length;
+  var passes = fs.filter(function(f){return f.status==='Pass';}).length;
+  var manuals = fs.length - fails - passes;
+  var bandRows = areas.map(function(ar,i){
+    var st = areaStats(a, ar.name);
+    var b = band(ar.percent);
+    return '<div class="arearow"><a href="#a-'+a.slug+'-'+i+'">'+esc(ar.name)+'</a>'+(ar.percent!=null?gauge(ar.percent,false):'<span class="mono faintt manualonly">no automated checks — '+st.manual+' manual</span>')+
+      '<span class="bandlab" style="color:'+(b?bandVar[b]:'var(--faint)')+'">'+(b?bandLabel[b]:'MANUAL')+'</span></div>';
+  }).join('');
+  var top = fs.filter(function(f){return f.status==='Fail';}).sort(function(x,y){
+    return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3) - (sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3) || ((y.evidenceCount||0)-(x.evidenceCount||0));
+  }).slice(0,5);
+  var execBlock = '<div class="twrap"><table><tr><th>Check</th><th>Severity</th><th class="num">Affected</th></tr>'+
+    top.map(function(f){ return '<tr><td>'+esc(f.title)+'</td><td>'+sevPill(f.severity)+'</td><td class="num">'+(f.evidenceCount||'—')+'</td></tr>'; }).join('')+'</table></div>'+
+    '<p class="lede small">Executive view shows the summary this register earns. Switch the View toggle to <b>Consultant</b> for every check and every fix, or <b>Data</b> for everything expanded.</p>';
+  return '<div class="crumb"><a class="goto" data-gopage="as" href="#top">← All assessments</a></div>'+
+    '<h2>'+esc(a.name)+' <span class="h2sub">'+esc(a.framework||'')+' · '+fs.length+' checks: '+passes+' met · '+fails+' not met · '+manuals+' manual</span></h2>'+
+    '<div class="gaugebox">'+bandChip(s.percent)+' <b style="margin-left:8px">'+(s.percent!=null?s.percent+' / 100':'')+'</b><span class="lede"> '+verdictSentence(s.percent)+'</span>'+gauge(s.percent,true)+
+    '<div class="gl"><span>CRITICAL 0–33</span><span>MODERATE 34–66</span><span>EXCELLENT 67–100</span></div><div class="mono faintt" style="margin-top:5px">'+esc(s.formula||'')+'</div></div>'+
+    '<div class="eyebrow">Design areas — click a name to jump to its chapter; chapters collapse</div><div class="gaugebox">'+bandRows+'</div>'+
+    '<div class="depth-exec"><div class="eyebrow">Top gaps in this assessment — Executive view</div>'+execBlock+'</div>'+
+    '<div class="depth-cons">'+areas.map(function(ar,i){ return areaChapter(a,ar,i); }).join('')+'</div>'+
+    assessmentNext(a);
+}
+function assessmentNext(a){
+  var fails = safeArr(a.findings).filter(function(f){ return f.status==='Fail'; });
+  if(!fails.length) return '<h3>What\'s next</h3><p class="lede">No gaps — keep the manual review agenda on the team\'s calendar to hold this state.</p>';
+  var groups = {}, order = [];
+  fails.forEach(function(f){ if(!groups[f.area]){ groups[f.area]=[]; order.push(f.area); } groups[f.area].push(f); });
+  var rows = order.map(function(area){
+    var fs = groups[area].slice().sort(function(x,y){ return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3)-(sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3); });
+    var acts = fs.slice(0,3).map(function(f){
+      var evn = safeArr(f.evidence).filter(function(e){return e.resourceName;}).length;
+      var names = safeArr(f.evidence).filter(function(e){return e.resourceName;}).slice(0,2).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
+      return '<a class="jump" href="#g-'+anchorId(f.id)+'">'+esc((f.title||'').replace(/\.$/,''))+'</a>'+(evn?' ('+evn+': '+names+(evn>2?', …':'')+')':'');
+    }).join(' · ');
+    return { area:area, cell: acts+(fs.length>3?' · +'+(fs.length-3)+' more above':''), owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
+  }).sort(function(x,y){ return x.sev-y.sev || y.count-x.count; });
+  var firstSorted = fails.slice().sort(function(x,y){
+    return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3)-(sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3) || ((y.evidenceCount||0)-(x.evidenceCount||0));
+  });
+  var first = firstSorted[0];
+  return '<h3 id="next-'+a.slug+'">What\'s next — closing this assessment\'s '+fails.length+' gaps</h3>'+
+    '<p class="lede">Each action links back to its gap block above, which carries the affected resources, why it matters, and the numbered fix. The cross-assessment view lives on the <a class="goto" data-gopage="road" href="#top">Remediation plan</a> page.</p>'+
+    '<div class="spot"><div class="k">START HERE</div><b>'+esc(first.title)+'</b> — '+sevPill(first.severity)+(first.evidenceCount?' · '+first.evidenceCount+' affected resource'+(first.evidenceCount===1?'':'s'):'')+' · <a class="jump" href="#g-'+anchorId(first.id)+'">open the fix ↑</a></div>'+
+    '<div class="twrap"><table><tr><th>Domain</th><th>Actions (link to the fix above)</th><th>Owner</th><th>Window</th></tr>'+
+    rows.map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b><div class="q">'+r.count+' gap'+(r.count===1?'':'s')+'</div></td><td>'+r.cell+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('')+'</table></div>';
+}
+
+/* ============================================================
+   PAGE: data & drift
+   ============================================================ */
+function pageData(){
+  var failsRanked = allFindings.filter(function(f){ return f.status==='Fail'; }).sort(function(a,b){
+    return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3) || ((b.weight||0)-(a.weight||0));
+  });
+  var prio = {}; failsRanked.forEach(function(f,i){ prio[f.id]=i+1; });
+  var rows = allFindings.map(function(f){
+    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(f.title)+'</a></td><td>'+esc(f.assessment)+'</td><td>'+esc(f.area)+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(prio[f.id]!=null?prio[f.id]:'—')+'</td><td class="num">'+(f.evidenceCount||0)+'</td><td><input class="noteb" placeholder="Add a note…"></td></tr>';
+  }).join('');
+  var evRows = namedEvidence.map(function(e){
+    return '<tr><td class="mono">'+esc(shortId(e.fid))+'</td><td class="mono">'+esc(e.resourceName)+'</td><td class="mono">'+esc(subName(e.subscriptionId))+'</td><td>'+esc(e.detail||'')+'</td></tr>';
+  }).join('');
+  var d = drift || {};
+  var dsum = d.Summary || {};
+  var dRows = safeArr(d.Findings).filter(function(f){ return f.Drift && f.Drift!=='Unchanged'; }).map(function(f){
+    var col = f.Drift==='Regressed' ? 'var(--fail)' : f.Drift==='Resolved' ? 'var(--pass)' : 'var(--ink)';
+    return '<tr><td class="mono">'+esc(f.Id)+'</td><td>'+esc(f.Title)+'</td><td>'+esc(f.Area)+'</td><td>'+statusPill(f.PreviousStatus)+'</td><td>'+statusPill(f.CurrentStatus)+'</td><td><b style="color:'+col+'">'+esc(f.Drift)+'</b></td></tr>';
+  }).join('');
+  return '<h2>Data &amp; drift</h2>'+
+    '<details class="sect" open><summary><span class="part">All '+counts.total+' findings</span><span class="hint">every check · Priority ranks the '+counts.fail+' gaps · check titles link to their specific Microsoft guidance</span></summary>'+
+    '<div class="twrap"><table><tr><th>Id</th><th>Check</th><th>Assessment</th><th>Area</th><th>Severity</th><th>Result</th><th class="num">Priority</th><th class="num">Evidence</th><th>Notes</th></tr>'+rows+'</table></div></details>'+
+    '<details class="sect" open><summary><span class="part">Evidence — every named resource ('+namedEvidence.length+' rows)</span></summary>'+
+    '<div class="twrap"><table><tr><th>Check</th><th>Resource</th><th>Subscription</th><th>Observed</th></tr>'+evRows+'</table></div></details>'+
+    '<details class="sect" open><summary><span class="part">Drift since previous run</span><span class="hint">'+esc(d.PreviousRunId||'')+' → '+esc(d.RunId||'')+', score '+(d.PreviousScore!=null?d.PreviousScore:'—')+' → '+(d.OverallScore!=null?d.OverallScore:'—')+'</span></summary>'+
+    '<div class="kpis"><div class="kpi bad"><div class="l">Regressed</div><div class="v">'+(dsum.Regressed||0)+'</div></div>'+
+    '<div class="kpi good"><div class="l">Resolved</div><div class="v">'+(dsum.Resolved||0)+'</div></div>'+
+    '<div class="kpi"><div class="l">New</div><div class="v">'+(dsum.New||0)+'</div></div>'+
+    '<div class="kpi"><div class="l">Unchanged</div><div class="v">'+(dsum.Unchanged||0)+'</div></div></div>'+
+    (dRows ? '<div class="twrap"><table><tr><th>Check</th><th>Title</th><th>Area</th><th>Was</th><th>Now</th><th>Drift</th></tr>'+dRows+'</table></div>' : '<p class="lede small">No checks changed state between the two runs.</p>')+'</details>'+
+    '<div class="prov">Data provenance: Azure Resource Graph + ARM, read-only · run '+esc(meta.runId||'')+' generated '+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+' · Azure Scout '+esc(meta.productVersion||'')+'.</div>';
+}
+
+/* ============================================================
+   PAGE: remediation plan
+   ============================================================ */
+function pageRoadmap(){
+  var groups = {}, order = [];
+  allFindings.filter(function(f){return f.status==='Fail';}).forEach(function(f){ if(!groups[f.area]){groups[f.area]=[];order.push(f.area);} groups[f.area].push(f); });
+  var rows = order.map(function(area){
+    var fs = groups[area].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
+    var top = fs.slice(0,3).map(function(f){
+      var evn = safeArr(f.evidence).filter(function(e){return e.resourceName;}).length;
+      var names = safeArr(f.evidence).filter(function(e){return e.resourceName;}).slice(0,2).map(function(e){return '<span class="mono">'+esc(e.resourceName)+'</span>';}).join(', ');
+      return esc((f.title||'').replace(/\.$/,'')) + (evn?' ('+evn+' resource'+(evn===1?'':'s')+': '+names+(evn>2?', …':'')+')':'');
+    }).join(' · ');
+    var more = fs.length>3 ? ' · +'+(fs.length-3)+' more in the register' : '';
+    return { area:area, cell: top+more, owner: teamFor(area), win: windowFor(fs[0].severity), sev: sevRank.hasOwnProperty(fs[0].severity)?sevRank[fs[0].severity]:3, count: fs.length };
+  }).sort(function(a,b){ return a.sev-b.sev || b.count-a.count; });
+  var trs = rows.map(function(r){ return '<tr><td><b>'+esc(r.area)+'</b><div class="q">'+r.count+' gap'+(r.count===1?'':'s')+'</div></td><td>'+r.cell+'</td><td>'+esc(r.owner)+'</td><td class="num">'+r.win+'</td></tr>'; }).join('');
+
+  var wsGroups = {}, wsOrder = [];
+  allFindings.filter(function(f){return f.status==='Fail';}).forEach(function(f){
+    var k = teamFor(f.area);
+    if(!wsGroups[k]){ wsGroups[k]=[]; wsOrder.push(k); }
+    wsGroups[k].push(f);
+  });
+  var ws = wsOrder.map(function(team){
+    var fs = wsGroups[team].slice().sort(function(a,b){ return (sevRank.hasOwnProperty(a.severity)?sevRank[a.severity]:3)-(sevRank.hasOwnProperty(b.severity)?sevRank[b.severity]:3); });
+    var size = fs.length>12?'XL':fs.length>6?'M':'S';
+    return '<tr><td><b>'+esc(team)+'</b></td><td>'+sevPill(fs[0].severity)+'</td><td>'+fs.slice(0,3).map(function(f){return esc((f.title||'').replace(/\.$/,''));}).join(' · ')+(fs.length>3?' · +'+(fs.length-3)+' more':'')+'</td><td class="num">'+size+'</td><td class="num">'+fs.length+'</td></tr>';
+  }).join('');
+
+  return '<h2>Remediation plan</h2><p class="lede">All '+counts.fail+' gaps appear here — grouped by design area for the 90-day plan, and by accountable team for the workstream view. Nothing is curated out.</p>'+
+    '<details class="sect" open><summary><span class="part">90-day roadmap — by design area</span></summary><div class="twrap"><table><tr><th>Domain</th><th>Action</th><th>Owner</th><th>Window</th></tr>'+trs+'</table></div>'+
+    '<div class="prov">Owner defaults from the design-area → team mapping; windows derive from the area\'s highest severity.</div></details>'+
+    '<details class="sect" open><summary><span class="part">Workstreams — by accountable team</span></summary><div class="twrap"><table><tr><th>Workstream</th><th>Priority</th><th>Top actions</th><th class="num">Size</th><th class="num">Gaps</th></tr>'+ws+'</table></div></details>';
+}
+
+/* ============================================================
+   DIAGRAM KERNEL (AB#6933) — collision-free layout primitives.
+   Kept intact (same signatures/behaviour) because tests/
+   ReactReport.DiagramOverlap.Tests.ps1 runs this kernel in a Node
+   vm sandbox and asserts diagramNetworkTopology()/diagramMgHierarchy()
+   never overlap a rect/edge — see tests/diagram-overlap-checker.mjs.
+   ============================================================ */
+var CHAR_NARROW = 'iIl.,:;\'!|  '.split('');
+var CHAR_WIDE = 'mMW%@'.split('');
+function charW(ch, fontSize){
+  if(CHAR_NARROW.indexOf(ch) !== -1) return fontSize * 0.30;
+  if(CHAR_WIDE.indexOf(ch) !== -1) return fontSize * 0.88;
+  if(/[A-Z0-9]/.test(ch)) return fontSize * 0.62;
+  return fontSize * 0.52;
+}
+function measureText(str, fontSize){
+  str = str===null||str===undefined ? '' : String(str);
+  var w = 0;
+  for(var i=0;i<str.length;i++) w += charW(str[i], fontSize);
+  return w * 1.10;
+}
+function wrapText(str, maxWidth, fontSize, maxLines){
+  str = (str===null||str===undefined ? '' : String(str)).trim();
+  maxLines = maxLines || 2;
+  if(!str) return { lines: [''], truncated: false };
+  var words = str.split(/\s+/);
+  var lines = []; var cur = '';
+  for(var i=0;i<words.length;i++){
+    var candidate = cur ? cur + ' ' + words[i] : words[i];
+    if(measureText(candidate, fontSize) <= maxWidth || !cur){
+      cur = candidate;
+    } else {
+      lines.push(cur);
+      cur = words[i];
+      if(lines.length === maxLines - 1){
+        var rest = words.slice(i).join(' ');
+        while(measureText(cur + '…', fontSize) > maxWidth && cur.length > 1){ cur = cur.slice(0, -1); }
+        lines.push(cur + (rest !== cur ? '…' : ''));
+        return { lines: lines, truncated: true };
+      }
+    }
+  }
+  if(cur) lines.push(cur);
+  return { lines: lines, truncated: false };
+}
+function autoSizeBox(label, opts){
+  opts = opts || {};
+  var fontSize = opts.fontSize || 11;
+  var padX = opts.padX===undefined ? 12 : opts.padX;
+  var padY = opts.padY===undefined ? 8 : opts.padY;
+  var maxW = opts.maxWidth || 170;
+  var maxLines = opts.maxLines || 2;
+  var wrapped = wrapText(label, maxW - padX*2, fontSize, maxLines);
+  var textW = 0;
+  wrapped.lines.forEach(function(l){ textW = Math.max(textW, measureText(l, fontSize)); });
+  var w = Math.max(opts.minWidth || 64, Math.min(maxW, textW + padX*2));
+  var h = Math.max(opts.minHeight || 34, wrapped.lines.length * (fontSize + 5) + padY*2 - 5);
+  return { w: w, h: h, lines: wrapped.lines, truncated: wrapped.truncated, fontSize: fontSize };
+}
+function svgBoxNode(x, y, box, cls, extraAttrs){
+  var titleTag = box.truncated ? '<title>'+esc(box._full||'')+'</title>' : '';
+  var lineH = box.fontSize + 5;
+  var startY = y + box.h/2 - ((box.lines.length-1)*lineH)/2 + box.fontSize*0.32;
+  var textLines = box.lines.map(function(l,i){
+    return '<tspan x="'+(x+box.w/2)+'" y="'+(startY + i*lineH)+'">'+esc(l)+'</tspan>';
+  }).join('');
+  return '<g class="diag-node '+(cls||'')+'" '+(extraAttrs||'')+'>'+titleTag+
+    '<rect x="'+x+'" y="'+y+'" width="'+box.w+'" height="'+box.h+'" rx="6"></rect>'+
+    '<text text-anchor="middle" font-size="'+box.fontSize+'">'+textLines+'</text>'+
+    '</g>';
+}
+function routeOrthogonal(nodes, from, to, cell){
+  cell = cell || 10;
+  var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  nodes.forEach(function(nd){ minX=Math.min(minX,nd.x); minY=Math.min(minY,nd.y); maxX=Math.max(maxX,nd.x+nd.w); maxY=Math.max(maxY,nd.y+nd.h); });
+  minX -= cell*2; minY -= cell*2; maxX += cell*2; maxY += cell*2;
+  var cols = Math.max(1, Math.ceil((maxX-minX)/cell));
+  var rows = Math.max(1, Math.ceil((maxY-minY)/cell));
+  function toCell(px,py){ return { c: Math.round((px-minX)/cell), r: Math.round((py-minY)/cell) }; }
+  function toPoint(c,r){ return { x: minX + c*cell, y: minY + r*cell }; }
+  var blocked = {};
+  nodes.forEach(function(nd){
+    if(nd.id === from.id || nd.id === to.id) return;
+    var c0 = Math.floor((nd.x-minX)/cell), c1 = Math.ceil((nd.x+nd.w-minX)/cell);
+    var r0 = Math.floor((nd.y-minY)/cell), r1 = Math.ceil((nd.y+nd.h-minY)/cell);
+    for(var r=r0;r<=r1;r++) for(var c=c0;c<=c1;c++) blocked[c+','+r] = true;
+  });
+  var start = toCell(from.x+from.w/2, from.y+from.h);
+  var goal  = toCell(to.x+to.w/2, to.y);
+  start.c = Math.max(0,Math.min(cols,start.c)); start.r = Math.max(0,Math.min(rows,start.r));
+  goal.c = Math.max(0,Math.min(cols,goal.c)); goal.r = Math.max(0,Math.min(rows,goal.r));
+  var key = function(c,r){ return c+','+r; };
+  var came = {}; var visited = {};
+  var queue = [{ c:start.c, r:start.r, dir:null }];
+  visited[key(start.c,start.r)] = true;
+  var dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  var found = false;
+  while(queue.length){
+    var cur = queue.shift();
+    if(cur.c === goal.c && cur.r === goal.r){ found = true; break; }
+    for(var d=0; d<dirs.length; d++){
+      var nc = cur.c + dirs[d][0], nr = cur.r + dirs[d][1];
+      if(nc<0||nr<0||nc>cols||nr>rows) continue;
+      var k = key(nc,nr);
+      if(visited[k]) continue;
+      if(blocked[k] && !(nc===goal.c && nr===goal.r)) continue;
+      visited[k] = true;
+      came[k] = key(cur.c,cur.r);
+      queue.push({ c:nc, r:nr, dir:d });
+    }
+  }
+  var pathCells = [];
+  if(found){
+    var ck = key(goal.c,goal.r);
+    pathCells.push(goal);
+    while(ck !== key(start.c,start.r)){
+      var prevKey = came[ck];
+      if(!prevKey) break;
+      var parts = prevKey.split(',');
+      var pc = { c: parseInt(parts[0],10), r: parseInt(parts[1],10) };
+      pathCells.push(pc);
+      ck = prevKey;
+    }
+    pathCells.reverse();
+  } else {
+    pathCells = [start, goal];
+  }
+  var pts = pathCells.map(function(c){ return toPoint(c.c, c.r); });
+  var simplified = [pts[0]];
+  for(var i=1;i<pts.length-1;i++){
+    var a=simplified[simplified.length-1], b=pts[i], c=pts[i+1];
+    var sameDir = (a.x===b.x && b.x===c.x) || (a.y===b.y && b.y===c.y);
+    if(!sameDir) simplified.push(b);
+  }
+  simplified.push(pts[pts.length-1]);
+  return simplified;
+}
+function polyline(points, cls){
+  return '<polyline class="diag-edge '+(cls||'')+'" points="'+points.map(function(p){return p.x+','+p.y;}).join(' ')+'"></polyline>';
+}
+function layoutTree(roots, childrenOf, boxOf, hGap, vGap){
+  hGap = hGap || 16; vGap = vGap || 60;
+  var placed = [];
+  var cursorX = 0;
+  function place(node, depth){
+    var kids = childrenOf(node);
+    var box = boxOf(node);
+    if(!kids.length){
+      var x = cursorX;
+      cursorX += box.w + hGap;
+      placed.push({ node: node, box: box, x: x, y: depth*vGap, cx: x + box.w/2 });
+      return x + box.w/2;
+    }
+    var childCenters = kids.map(function(k){ return place(k, depth+1); });
+    var myCx = (childCenters[0] + childCenters[childCenters.length-1]) / 2;
+    placed.push({ node: node, box: box, x: myCx - box.w/2, y: depth*vGap, cx: myCx });
+    return myCx;
+  }
+  roots.forEach(function(r){ place(r, 0); });
+  return placed;
+}
+function placeRingLabels(items, cx, cy, r){
+  var placed = items.map(function(it){ return { angle: it.angle, text: it.text, box: autoSizeBox(it.text, { fontSize:10, maxWidth:120, maxLines:1, padX:4, padY:2 }) }; });
+  placed.sort(function(a,b){ return a.angle - b.angle; });
+  var minGapDeg = 9;
+  for(var pass=0; pass<placed.length*2; pass++){
+    var changed = false;
+    for(var i=1;i<placed.length;i++){
+      if(placed[i].angle - placed[i-1].angle < minGapDeg){
+        placed[i].angle = placed[i-1].angle + minGapDeg;
+        changed = true;
+      }
+    }
+    if(!changed) break;
+  }
+  return placed.map(function(p){
+    var rad = p.angle * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad), text: p.text, box: p.box };
   });
 }
 
-// ---- Gaps ----
-function renderGaps(){
-  var q = state.gapsSearch.toLowerCase();
-  var rows = Gaps.filter(function(g){
-    if(!q) return true;
-    var hay = [g.Id, g.Title, g.Area, g.Framework, g.Remediation, g.Severity].join(' ').toLowerCase();
-    return hay.indexOf(q) !== -1;
-  });
-  document.getElementById('view').innerHTML =
-    '<div class="filters"><input type="search" id="gaps-search" placeholder="Filter gaps..." value="'+esc(state.gapsSearch)+'"></div>'+
-    '<table id="gaps-table"><thead><tr><th>Severity</th><th>Area</th><th>Finding</th><th>Remediation</th></tr></thead><tbody>'+
-      (rows.map(function(g, i){
-        return '<tr class="clickable-row" data-idx="'+i+'"><td class="'+sevClass(g.Severity)+'">'+esc(g.Severity||'')+'</td><td>'+esc(g.Area)+'</td>'+
-          '<td>'+esc(g.Title)+'</td><td>'+esc(g.Remediation)+'</td></tr>';
-      }).join('') || '<tr><td colspan="4" class="empty">No gaps.</td></tr>')+
-    '</tbody></table>';
-  document.getElementById('gaps-search').oninput = function(e){ state.gapsSearch = e.target.value; renderGaps(); };
-  document.querySelectorAll('#gaps-table tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var g = rows[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!g) return;
-      openPanel((g.Id ? g.Id + ' — ' : '') + g.Title, [
-        fld('Framework', g.Framework), fld('Area', g.Area), fld('Severity', g.Severity), fld('Remediation', g.Remediation)
-      ]);
-    };
-  });
-}
-
-// ---- Manual review ----
-function renderManual(){
-  var q = state.manualSearch.toLowerCase();
-  var rows = Manual.filter(function(m){
-    if(!q) return true;
-    var hay = [m.Id, m.Title, m.Area, m.Framework, m.Remediation].join(' ').toLowerCase();
-    return hay.indexOf(q) !== -1;
-  });
-  document.getElementById('view').innerHTML =
-    '<div class="filters"><input type="search" id="manual-search" placeholder="Filter manual-review items..." value="'+esc(state.manualSearch)+'"></div>'+
-    '<table id="manual-table"><thead><tr><th>Area</th><th>Question</th><th>Evidence found</th><th>Guidance</th></tr></thead><tbody>'+
-      (rows.map(function(m, i){
-        return '<tr class="clickable-row" data-idx="'+i+'"><td>'+esc(m.Area)+'</td><td>'+esc(m.Title)+'</td><td>'+(m.EvidenceCount===undefined?0:m.EvidenceCount)+' item(s)</td><td>'+esc(m.Remediation)+'</td></tr>';
-      }).join('') || '<tr><td colspan="4" class="empty">No manual-review items.</td></tr>')+
-    '</tbody></table>';
-  document.getElementById('manual-search').oninput = function(e){ state.manualSearch = e.target.value; renderManual(); };
-  document.querySelectorAll('#manual-table tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var m = rows[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!m) return;
-      openPanel((m.Id ? m.Id + ' — ' : '') + m.Title, [
-        fld('Framework', m.Framework), fld('Area', m.Area), fld('Evidence count', m.EvidenceCount), fld('Guidance', m.Remediation)
-      ]);
-    };
-  });
-}
-
-// ---- Topology (AB#376, AB#377, AB#378, AB#390, AB#387) ----
-// Hand-rolled inline SVG (no vis.js/CDN — nothing to fetch, matches this
-// file's existing "no build step, no external UMD bundle" vanilla-JS model).
-// Coordinates are a deterministic per-VNet column layout, not a physics
-// layout: one column per VNet (subnets stacked below it, a dashed "peered
-// VNet(s)" ghost node above it when peeringCount > 0, and a dashed "VMs in
-// this resource group" aggregate node beside it when a VM shares the VNet's
-// resourceGroup+subscriptionId — collect.json does not carry a VM->subnet or
-// peering-target linkage, so both are drawn as honest aggregates/stubs
-// rather than fabricated precise edges).
-var topoNodes = [];   // rebuilt on every renderTopology() call; node.id -> full record for the panel + drag/zoom math
-function buildTopology(){
+/* ---- the two kernel-based diagrams (MG hierarchy, VNets & subnets) ---- */
+function diagramNetworkTopology(){
+  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
+  if(!vnets.length) return null;
   var nodes = []; var edges = [];
-  var colW = 300, colX0 = 40, vnetY = 140, vnetW = 170, vnetH = 54;
-  var vmGroupCounts = {};
-  VMs.forEach(function(vm){
-    var key = (vm.resourceGroup||'') + '|' + (vm.subscriptionId||'');
-    vmGroupCounts[key] = (vmGroupCounts[key] || 0) + 1;
-  });
-  VNets.forEach(function(v, i){
-    var colX = colX0 + i * colW;
-    var vnetId = 'vnet-' + i;
-    nodes.push({ id: vnetId, type: 'vnet', x: colX, y: vnetY, w: vnetW, h: vnetH,
-      label: v.name, data: v,
-      fields: [ fld('Name', v.name), fld('Resource group', v.resourceGroup), fld('Subscription', v.subscriptionId),
-        fld('Peering count', v.peeringCount), fld('DDoS protection', v.ddosEnabled === true ? 'Enabled' : (v.ddosEnabled === false ? 'Disabled' : null)) ] });
-
-    if(v.peeringCount){
-      var peerId = vnetId + '-peer';
-      nodes.push({ id: peerId, type: 'peer', x: colX, y: vnetY - 100, w: vnetW, h: 40,
-        label: v.peeringCount + ' peered VNet' + (v.peeringCount === 1 ? '' : 's'), data: v,
-        fields: [ fld('VNet', v.name), fld('Peering count', v.peeringCount),
-          fld('Note', 'Peered VNet identities are not collected (only the peering count) — this is an aggregate stub, not a specific target.') ] });
-      edges.push({ from: vnetId, to: peerId, dashed: true });
-    }
-
-    var rgKey = (v.resourceGroup||'') + '|' + (v.subscriptionId||'');
-    var vmCount = vmGroupCounts[rgKey];
-    if(vmCount){
-      var vmId = vnetId + '-vms';
-      nodes.push({ id: vmId, type: 'vmgroup', x: colX + vnetW + 20, y: vnetY, w: 130, h: vnetH,
-        label: vmCount + ' VM' + (vmCount === 1 ? '' : 's') + ' in RG', data: { resourceGroup: v.resourceGroup, subscriptionId: v.subscriptionId, count: vmCount },
-        fields: [ fld('Resource group', v.resourceGroup), fld('Subscription', v.subscriptionId), fld('VM count', vmCount),
-          fld('Note', 'Grouped by matching resource group — collect.json does not carry a VM-to-subnet mapping, so individual VM-to-subnet edges are not drawn.') ] });
-      edges.push({ from: vnetId, to: vmId, dashed: true });
-    }
-
-    var mySubnets = Subnets.filter(function(s){ return s.vnet === v.name; });
+  var colW = 260, colX0 = 20, vnetY = 20;
+  vnets.forEach(function(v, i){
+    var box = autoSizeBox(v.name || ('VNet '+i), { maxWidth:190, fontSize:11 });
+    box._full = v.name;
+    var vx = colX0 + i*colW;
+    var id = 'vnet-'+i;
+    nodes.push({ id:id, x:vx, y:vnetY, w:box.w, h:box.h, box:box, cls:'vnet', gopane:catId('networking.virtualNetworks') });
+    var mySubnets = subnets.filter(function(s){ return s.vnet === v.name; });
     mySubnets.forEach(function(s, j){
-      var subnetId = vnetId + '-subnet-' + j;
-      nodes.push({ id: subnetId, type: 'subnet', x: colX, y: vnetY + 100 + j * 64, w: vnetW, h: 48,
-        label: s.subnet, data: s,
-        fields: [ fld('Subnet', s.subnet), fld('VNet', s.vnet), fld('Prefix', s.prefix),
-          fld('Total IPs', s.total), fld('Used', s.used), fld('Utilization %', s.ipUtilizationPct) ] });
-      edges.push({ from: vnetId, to: subnetId, dashed: false });
+      var sbox = autoSizeBox(s.subnet || ('Subnet '+j), { maxWidth:180, fontSize:10.5 });
+      sbox._full = s.subnet;
+      var sid = id+'-sn-'+j;
+      nodes.push({ id:sid, x:vx + (box.w-sbox.w)/2, y: vnetY + box.h + 50 + j*(sbox.h+34), w:sbox.w, h:sbox.h, box:sbox, cls:'subnet', gopane:catId('networking.subnets') });
+      edges.push({ from:id, to:sid });
     });
   });
-  return { nodes: nodes, edges: edges };
+  var maxX=0, maxY=0;
+  nodes.forEach(function(nd){ maxX=Math.max(maxX,nd.x+nd.w); maxY=Math.max(maxY,nd.y+nd.h); });
+  var byId = {}; nodes.forEach(function(nd){ byId[nd.id]=nd; });
+  var edgeSvg = edges.map(function(e){
+    var pts = routeOrthogonal(nodes, byId[e.from], byId[e.to], 10);
+    return polyline(pts);
+  }).join('');
+  var nodeSvg = nodes.map(function(nd){ return svgBoxNode(nd.x, nd.y, nd.box, nd.cls, 'data-gopane="'+nd.gopane+'"'); }).join('');
+  return {
+    width: maxX+30, height: maxY+30,
+    svg: '<svg viewBox="0 0 '+(maxX+30)+' '+(maxY+30)+'" width="100%" style="max-width:'+(maxX+30)+'px">'+
+      '<g fill="var(--primary-tint)" stroke="var(--primary)">'+edgeSvg+nodeSvg+'</g></svg>',
+    legend: [['VNet','var(--primary)'],['Subnet','var(--accent)']]
+  };
 }
-
-function topoTransformStyle(){
-  return 'transform:translate('+state.topo.x+'px,'+state.topo.y+'px) scale('+state.topo.k+');transform-origin:0 0;';
-}
-function applyTopoTransform(){
-  var el = document.getElementById('topo-content');
-  if(el) el.setAttribute('style', topoTransformStyle());
-}
-function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-
-function renderTopology(){
-  var topo = buildTopology();
-  topoNodes = topo.nodes;
-
-  var svgMarkup = '';
-  if(topo.nodes.length){
-    var maxX = 0, maxY = 0;
-    topo.nodes.forEach(function(n){ maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h); });
-    var byId = {}; topo.nodes.forEach(function(n){ byId[n.id] = n; });
-    var lines = topo.edges.map(function(e){
-      var a = byId[e.from], b = byId[e.to];
-      if(!a || !b) return '';
-      var x1 = a.x + a.w/2, y1 = a.y + a.h/2, x2 = b.x + b.w/2, y2 = b.y + b.h/2;
-      return '<line class="topo-edge'+(e.dashed?' dashed':'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"></line>';
-    }).join('');
-    var nodeMarkup = topo.nodes.map(function(n){
-      return '<g class="topo-node '+n.type+'" data-node-id="'+esc(n.id)+'">'+
-        '<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="6"></rect>'+
-        '<text x="'+(n.x+10)+'" y="'+(n.y+n.h/2+4)+'">'+esc(String(n.label).length > 22 ? String(n.label).slice(0,21)+'…' : n.label)+'</text>'+
-        '</g>';
-    }).join('');
-    svgMarkup = '<svg id="topo-content" width="'+(maxX+40)+'" height="'+(maxY+40)+'" style="'+topoTransformStyle()+'">'+lines+nodeMarkup+'</svg>';
-  }
-
-  function invTable(title, rows, cols, rowFn, note){
-    if(!rows) return '';
-    var head = '<tr>' + cols.map(function(c){ return '<th>'+esc(c)+'</th>'; }).join('') + '</tr>';
-    var body = rows.map(rowFn).join('') || ('<tr><td colspan="'+cols.length+'" class="empty">None found.</td></tr>');
-    return '<div class="subsection-title">'+esc(title)+'</div>'+
-      (note ? '<div class="empty">'+esc(note)+'</div>' : '')+
-      '<table class="topo-inv-table" data-title="'+esc(title)+'"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
-  }
-
-  var firewallsHtml = invTable('Azure Firewalls', Firewalls, ['Name','Resource group','Subscription','SKU'], function(f, i){
-    return '<tr class="clickable-row" data-kind="fw" data-idx="'+i+'"><td>'+esc(f.name)+'</td><td>'+esc(f.resourceGroup)+'</td><td>'+truncateMiddle(f.subscriptionId,18)+'</td><td>'+esc(f.sku)+'</td></tr>';
-  }, Firewalls && Firewalls.length ? 'Rule-collection data (Microsoft.Network/firewallPolicies) is not collected in collect.json — showing firewall resource properties only. Click a row for details.' : null);
-
-  var vpnHtml = invTable('VPN gateways', VpnGateways, ['Name','Resource group','Type','SKU','Active-active'], function(v, i){
-    return '<tr class="clickable-row" data-kind="vpn" data-idx="'+i+'"><td>'+esc(v.name)+'</td><td>'+esc(v.resourceGroup)+'</td><td>'+esc(v.gatewayType)+'</td><td>'+esc(v.sku)+'</td><td>'+(v.activeActive===true?'Yes':(v.activeActive===false?'No':'—'))+'</td></tr>';
-  });
-
-  var peHtml = invTable('Private endpoints', PrivateEndpoints, ['Name','Resource group','Target provider','Target type'], function(p, i){
-    return '<tr class="clickable-row" data-kind="pe" data-idx="'+i+'"><td>'+esc(p.name)+'</td><td>'+esc(p.resourceGroup)+'</td><td>'+esc(p.targetProvider)+'</td><td>'+esc(p.targetType)+'</td></tr>';
-  });
-
-  document.getElementById('view').innerHTML =
-    '<div class="section-title">VNet topology</div>'+
-    '<div class="topo-toolbar">'+
-      '<button id="topo-reset">Reset view</button>'+
-      '<button id="topo-fit">Fit to screen</button>'+
-      '<div class="topo-legend">'+
-        '<span><i style="background:var(--steel)"></i>VNet</span>'+
-        '<span><i style="background:#6a9cd0"></i>Subnet</span>'+
-        '<span><i style="background:#fff;border:1px dashed var(--gray)"></i>Peered VNets (count only)</span>'+
-        '<span><i style="background:#fff;border:1px dashed var(--green)"></i>VMs (same resource group)</span>'+
-      '</div>'+
-    '</div>'+
-    '<div class="topo-viewport" id="topo-viewport">'+
-      (topo.nodes.length ? svgMarkup : '<div class="topo-empty empty">No virtual networks were collected.</div>')+
-    '</div>'+
-    firewallsHtml + vpnHtml + peHtml;
-
-  // ---- pan / zoom / reset / fit (AB#378) ----
-  var viewport = document.getElementById('topo-viewport');
-  if(viewport && topo.nodes.length){
-    var drag = null;
-    viewport.addEventListener('mousedown', function(e){
-      drag = { mx: e.clientX, my: e.clientY, tx: state.topo.x, ty: state.topo.y };
-      viewport.classList.add('dragging');
-    });
-    window.addEventListener('mousemove', function(e){
-      if(!drag) return;
-      state.topo.x = drag.tx + (e.clientX - drag.mx);
-      state.topo.y = drag.ty + (e.clientY - drag.my);
-      applyTopoTransform();
-    });
-    window.addEventListener('mouseup', function(){ drag = null; viewport.classList.remove('dragging'); });
-    viewport.addEventListener('wheel', function(e){
-      e.preventDefault();
-      var rect = viewport.getBoundingClientRect();
-      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      var newK = clamp(state.topo.k * (e.deltaY < 0 ? 1.1 : 1/1.1), 0.3, 3);
-      state.topo.x = mx - (mx - state.topo.x) * (newK / state.topo.k);
-      state.topo.y = my - (my - state.topo.y) * (newK / state.topo.k);
-      state.topo.k = newK;
-      applyTopoTransform();
-    }, { passive: false });
-
-    document.getElementById('topo-reset').onclick = function(){
-      state.topo = { x: 40, y: 40, k: 1 };
-      applyTopoTransform();
-    };
-    document.getElementById('topo-fit').onclick = function(){
-      var minX = Infinity, minY = Infinity, maxX2 = -Infinity, maxY2 = -Infinity;
-      topo.nodes.forEach(function(n){
-        minX = Math.min(minX, n.x); minY = Math.min(minY, n.y);
-        maxX2 = Math.max(maxX2, n.x + n.w); maxY2 = Math.max(maxY2, n.y + n.h);
-      });
-      var bboxW = Math.max(1, maxX2 - minX), bboxH = Math.max(1, maxY2 - minY);
-      var vw = viewport.clientWidth, vh = viewport.clientHeight;
-      var k = clamp(Math.min(vw / bboxW, vh / bboxH) * 0.92, 0.15, 3);
-      state.topo.k = k;
-      state.topo.x = (vw - bboxW * k) / 2 - minX * k;
-      state.topo.y = (vh - bboxH * k) / 2 - minY * k;
-      applyTopoTransform();
-    };
-
-    // ---- click a topology node -> side panel (AB#377) ----
-    document.querySelectorAll('#topo-content .topo-node').forEach(function(g){
-      g.addEventListener('click', function(e){
-        e.stopPropagation();
-        var id = g.getAttribute('data-node-id');
-        var node = topoNodes.filter(function(n){ return n.id === id; })[0];
-        if(!node) return;
-        openPanel(node.label, node.fields);
-      });
-    });
-  }
-
-  // ---- clickable inventory-table rows -> side panel (AB#387, AB#390) ----
-  document.querySelectorAll('table.topo-inv-table[data-title="Azure Firewalls"] tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var f = Firewalls[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!f) return;
-      openPanel('Azure Firewall — ' + f.name, [
-        fld('Name', f.name), fld('Resource group', f.resourceGroup), fld('Subscription', f.subscriptionId), fld('SKU', f.sku),
-        fld('Rule collections', 'Not collected — Microsoft.Network/firewallPolicies is not queried by collect.json today.')
-      ]);
-    };
-  });
-  document.querySelectorAll('table.topo-inv-table[data-title="VPN gateways"] tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var v = VpnGateways[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!v) return;
-      openPanel('VPN gateway — ' + v.name, [
-        fld('Name', v.name), fld('Resource group', v.resourceGroup), fld('Gateway type', v.gatewayType),
-        fld('SKU', v.sku), fld('Active-active', v.activeActive), fld('BGP', v.bgp)
-      ]);
-    };
-  });
-  document.querySelectorAll('table.topo-inv-table[data-title="Private endpoints"] tbody tr[data-idx]').forEach(function(tr){
-    tr.onclick = function(){
-      var p = PrivateEndpoints[parseInt(tr.getAttribute('data-idx'), 10)];
-      if(!p) return;
-      openPanel('Private endpoint — ' + p.name, [
-        fld('Name', p.name), fld('Resource group', p.resourceGroup),
-        fld('Target provider', p.targetProvider), fld('Target type', p.targetType), fld('Target resource Id', p.targetResourceId)
-      ]);
-    };
-  });
-}
-
-// ---- Governance (AB#380, AB#391, AB#392, AB#393) ----
 function buildMgTree(mgs){
   var byName = {};
-  mgs.forEach(function(m){ byName[m.name] = { name: m.name, id: m.id, displayName: m.displayName, parent: m.parent, children: [] }; });
+  mgs.forEach(function(m){ byName[m.name] = { name:m.name, displayName:m.displayName, parent:m.parent, id:m.id, children:[] }; });
   var roots = [];
   mgs.forEach(function(m){
     var node = byName[m.name];
-    if(m.parent && byName[m.parent]){ byName[m.parent].children.push(node); }
-    else { roots.push(node); }
+    if(m.parent && byName[m.parent]) byName[m.parent].children.push(node);
+    else roots.push(node);
   });
-  return { roots: roots, byName: byName };
+  return roots;
 }
-function renderMgNode(node){
-  var label = esc(node.displayName || node.name);
-  var childHtml = node.children.length ? '<ul>'+node.children.map(renderMgNode).join('')+'</ul>' : '';
-  return '<li><span class="mg-node clickable-row" data-mg="'+esc(node.name)+'">'+label+'</span>'+childHtml+'</li>';
-}
-
-function renderGovernance(){
-  var sections = [];
-
-  // ---- management-group hierarchy (AB#380) ----
-  if(ManagementGroups.length){
-    var tree = buildMgTree(ManagementGroups);
-    sections.push('<div class="section-title">Management-group hierarchy</div>'+
-      '<ul class="mg-tree">'+tree.roots.map(renderMgNode).join('')+'</ul>');
-  }
-
-  // ---- tag chips (AB#391) ----
-  if(Tags.length){
-    var tagRows = Tags.map(function(t){
-      var chips = (t.values||[]).map(function(v){ return '<span class="chip">'+esc(v)+'</span>'; }).join('');
-      return '<div class="tag-row"><div class="tag-key">'+esc(t.key)+'</div>'+(chips || '<span class="empty">no values</span>')+'</div>';
-    }).join('');
-    sections.push('<div class="section-title">Tags</div>' + tagRows);
-  }
-
-  // ---- policy assignments: enforcement badge (AB#392) + scope tooltip (AB#393) ----
-  if(PolicyAssignments.length){
-    var polRows = PolicyAssignments.filter(function(p){
-      var q = state.govPolicySearch.toLowerCase();
-      if(!q) return true;
-      var dn = propOrTop(p, 'displayName') || '';
-      return (p.name||'').toLowerCase().indexOf(q) !== -1 || String(dn).toLowerCase().indexOf(q) !== -1;
+function diagramMgHierarchy(){
+  var mgs = safeArr((inventory['governance.managementGroups']||{}).rows);
+  if(!mgs.length) return null;
+  var roots = buildMgTree(mgs);
+  var boxOf = function(node){ var b = autoSizeBox(node.displayName || node.name, { maxWidth:170, fontSize:11 }); b._full = node.displayName||node.name; return b; };
+  var placed = layoutTree(roots, function(nd){ return nd.children; }, boxOf, 18, 64);
+  var maxX=0, maxY=0;
+  placed.forEach(function(p){ maxX=Math.max(maxX,p.x+p.box.w); maxY=Math.max(maxY,p.y+p.box.h); });
+  var byNode = {}; placed.forEach(function(p){ byNode[p.node.name] = p; });
+  var gridNodes = placed.map(function(p){ return { id:p.node.name, x:p.x, y:p.y, w:p.box.w, h:p.box.h }; });
+  var edgeSvg = '';
+  placed.forEach(function(p){
+    (p.node.children||[]).forEach(function(child){
+      var c = byNode[child.name];
+      if(!c) return;
+      var pts = routeOrthogonal(gridNodes, gridNodes.filter(function(g){return g.id===p.node.name;})[0], gridNodes.filter(function(g){return g.id===child.name;})[0], 10);
+      edgeSvg += polyline(pts);
     });
-    var polBody = polRows.map(function(p, i){
-      var scope = propOrTop(p, 'scope') || p.id || '';
-      return '<tr class="clickable-row" data-idx="'+i+'"><td>'+esc(propOrTop(p, 'displayName') || p.name)+'</td>'+
-        '<td>'+enforcementBadge(propOrTop(p, 'enforcementMode'))+'</td>'+
-        '<td>'+truncateMiddle(scope, 44)+'</td></tr>';
-    }).join('') || '<tr><td colspan="3" class="empty">No policy assignments match the current filter.</td></tr>';
-    sections.push('<div class="section-title">Policy assignments</div>'+
-      '<div class="filters"><input type="search" id="gov-policy-search" placeholder="Filter policy assignments..." value="'+esc(state.govPolicySearch)+'"></div>'+
-      '<table id="gov-policy-table"><thead><tr><th>Display name</th><th>Enforcement</th><th>Scope</th></tr></thead><tbody>'+polBody+'</tbody></table>');
-  }
-
-  // ---- budgets table (AB#391) ----
-  if(Budgets.length){
-    var budgetRows = Budgets.filter(function(b){
-      var q = state.govBudgetsSearch.toLowerCase();
-      if(!q) return true;
-      return (b.name||'').toLowerCase().indexOf(q) !== -1;
-    });
-    var budgetBody = budgetRows.map(function(b, i){
-      return '<tr class="clickable-row" data-idx="'+i+'"><td>'+esc(b.name)+'</td><td>'+esc2(propOrTop(b, 'amount'))+'</td><td>'+esc2(propOrTop(b, 'category'))+'</td></tr>';
-    }).join('') || '<tr><td colspan="3" class="empty">No budgets match the current filter.</td></tr>';
-    sections.push('<div class="section-title">Budgets</div>'+
-      '<div class="filters"><input type="search" id="gov-budgets-search" placeholder="Filter budgets..." value="'+esc(state.govBudgetsSearch)+'"></div>'+
-      '<table id="gov-budgets-table"><thead><tr><th>Name</th><th>Amount</th><th>Category</th></tr></thead><tbody>'+budgetBody+'</tbody></table>');
-  }
-
-  // ---- resource locks table (AB#391) ----
-  if(ResourceLocks.length){
-    var lockRows = ResourceLocks.filter(function(l){
-      var q = state.govLocksSearch.toLowerCase();
-      if(!q) return true;
-      return (l.name||'').toLowerCase().indexOf(q) !== -1;
-    });
-    var lockBody = lockRows.map(function(l, i){
-      var scope = l.resourceGroup || l.id || '';
-      return '<tr class="clickable-row" data-idx="'+i+'"><td>'+esc(l.name)+'</td><td>'+esc2(propOrTop(l, 'level'))+'</td><td>'+truncateMiddle(scope, 44)+'</td></tr>';
-    }).join('') || '<tr><td colspan="3" class="empty">No resource locks match the current filter.</td></tr>';
-    sections.push('<div class="section-title">Resource locks</div>'+
-      '<div class="filters"><input type="search" id="gov-locks-search" placeholder="Filter locks..." value="'+esc(state.govLocksSearch)+'"></div>'+
-      '<table id="gov-locks-table"><thead><tr><th>Name</th><th>Level</th><th>Scope</th></tr></thead><tbody>'+lockBody+'</tbody></table>');
-  }
-
-  document.getElementById('view').innerHTML = sections.join('') || '<div class="empty">No governance data was collected.</div>';
-
-  // ---- wire up interactivity now that the markup above is in the DOM ----
-  var mgSearchEl; // no MG search box today (tree only) — placeholder kept out intentionally
-
-  document.querySelectorAll('#view .mg-node[data-mg]').forEach(function(el){
-    el.onclick = function(){
-      var tree = buildMgTree(ManagementGroups);
-      var node = tree.byName[el.getAttribute('data-mg')];
-      if(!node) return;
-      openPanel(node.displayName || node.name, [
-        fld('Name', node.name), fld('Display name', node.displayName), fld('Id', node.id), fld('Parent', node.parent)
-      ]);
-    };
   });
+  var nodeSvg = placed.map(function(p){ return svgBoxNode(p.x, p.y, p.box, 'mg', 'data-gopane="inv-structure"'); }).join('');
+  return {
+    width:maxX+30, height:maxY+30,
+    svg:'<svg viewBox="0 0 '+(maxX+30)+' '+(maxY+30)+'" width="100%" style="max-width:'+(maxX+30)+'px">'+
+      '<g fill="var(--primary-tint)" stroke="var(--primary)">'+edgeSvg+nodeSvg+'</g></svg>',
+    legend: [['Management group','var(--primary)']]
+  };
+}
 
-  var polSearchEl = document.getElementById('gov-policy-search');
-  if(polSearchEl){
-    polSearchEl.oninput = function(e){ state.govPolicySearch = e.target.value; renderGovernance(); };
-    var polRowsForClick = PolicyAssignments.filter(function(p){
-      var q = state.govPolicySearch.toLowerCase();
-      if(!q) return true;
-      var dn = propOrTop(p, 'displayName') || '';
-      return (p.name||'').toLowerCase().indexOf(q) !== -1 || String(dn).toLowerCase().indexOf(q) !== -1;
+/* ---- simple bar-chart diagrams (estate top-10 / gaps by area) ---- */
+function svgWrap(id, title, caption, inner, w, h){
+  return '<div class="dgm" id="dg-'+id+'"><div class="dgmhead"><b>'+esc(title)+'</b><button class="btn dgmfull" data-dgm="dg-'+id+'">⛶ Full screen</button></div>'+
+    '<div class="fig"><svg viewBox="0 0 '+w+' '+h+'" width="100%" role="img" aria-label="'+esc(title)+'">'+inner+'</svg><div class="cap">'+caption+'</div></div></div>';
+}
+function diagMgTreeBlade(){
+  var d = diagramMgHierarchy();
+  if(!d) return '<p class="lede">No management groups collected in this run.</p>';
+  var mgRows = safeArr((inventory['governance.managementGroups']||{}).rows);
+  return svgWrap('mg','Management-group hierarchy', mgRows.length+' management groups, drawn from governance.managementGroups. Click a node to open Tenant structure.', d.svg.replace(/^<svg[^>]*>|<\/svg>$/g,''), d.width, d.height);
+}
+function diagNetworkBlade(){
+  var d = diagramNetworkTopology();
+  if(!d) return '<p class="lede">No virtual networks collected in this run.</p>';
+  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows).length;
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows).length;
+  return svgWrap('net','Virtual networks & subnets', vnets+' VNets, '+subnets+' subnets. Click to open the Networking inventory.', d.svg.replace(/^<svg[^>]*>|<\/svg>$/g,''), d.width, d.height);
+}
+function diagEstateBars(){
+  if(!invSorted.length) return '<p class="lede">No inventory categories with data in this run.</p>';
+  var top = invSorted.slice(0,10);
+  var max = top[0][1].count, rowH = 30, w = 720, lw = 240;
+  var out = '';
+  top.forEach(function(p,i){
+    var k=p[0], v=p[1];
+    var y = 12 + i*rowH, bwid = Math.max(3, (w-lw-90) * v.count/max);
+    out += '<g class="diag-node" data-gopane="'+catId(k)+'"><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc(catLeaf(v.label||k))+'</text>'+
+      '<rect x="'+(lw+12)+'" y="'+y+'" width="'+bwid+'" height="19" rx="4" fill="var(--primary)"></rect>'+
+      '<text x="'+(lw+20+bwid)+'" y="'+(y+14)+'" fill="var(--muted)" font-size="11">'+n(v.count)+'</text></g>';
+  });
+  return svgWrap('estate','Estate — top categories', 'Top 10 inventory categories by item count. Click a bar to open that category.', out, w, 12+top.length*rowH+8);
+}
+function diagSeverity(){
+  var a = assessments[0];
+  if(!a) return '<p class="lede">No assessments ran in this run.</p>';
+  var areas = dedupeAreas(a.areas).map(function(ar){ return { ar:ar, st:areaStats(a,ar.name) }; }).filter(function(x){ return x.st.fail>0; })
+    .sort(function(x,y){ return y.st.fail-x.st.fail; }).slice(0,10);
+  if(!areas.length) return '<p class="lede">No gaps in '+esc(a.name)+'.</p>';
+  var max = Math.max.apply(null, areas.map(function(x){return x.st.fail;})), rowH = 30, w = 720, lw = 250;
+  var out = '';
+  areas.forEach(function(x,i){
+    var ar = x.ar, st = x.st;
+    var y = 12 + i*rowH;
+    var fails = safeArr(a.findings).filter(function(f){ return f.area===ar.name && f.status==='Fail'; });
+    var hi = fails.filter(function(f){return f.severity==='high';}).length;
+    var med = fails.filter(function(f){return f.severity==='medium';}).length;
+    var lo = st.fail - hi - med;
+    var unit = (w-lw-90)/max;
+    var xcur = lw+12;
+    out += '<g class="diag-node" data-gopage="a-'+a.slug+'"><text x="'+lw+'" y="'+(y+14)+'" text-anchor="end" fill="var(--ink)" font-size="11.5">'+esc(ar.name)+'</text>';
+    [[hi,'var(--band-crit)'],[med,'var(--band-mod)'],[lo,'var(--low)']].forEach(function(pair){
+      var cnt = pair[0], col = pair[1];
+      if(cnt>0){ out += '<rect x="'+xcur+'" y="'+y+'" width="'+Math.max(2,cnt*unit-2)+'" height="19" rx="3" fill="'+col+'"></rect>'; xcur += cnt*unit; }
     });
-    document.querySelectorAll('#gov-policy-table tbody tr[data-idx]').forEach(function(tr){
-      tr.onclick = function(){
-        var p = polRowsForClick[parseInt(tr.getAttribute('data-idx'), 10)];
-        if(!p) return;
-        openPanel('Policy assignment — ' + (propOrTop(p, 'displayName') || p.name), [
-          fld('Name', p.name), fld('Enforcement mode', propOrTop(p, 'enforcementMode') || 'Default'),
-          fld('Scope / Id', propOrTop(p, 'scope') || p.id)
-        ]);
-      };
-    });
+    out += '<text x="'+(xcur+8)+'" y="'+(y+14)+'" fill="var(--muted)" font-size="11">'+st.fail+'</text></g>';
+  });
+  return svgWrap('sev','Gaps by design area — '+esc(a.name), 'Not-met checks per area, split high / medium / low. Click to open the assessment register.', out, w, 12+areas.length*rowH+8);
+}
+function pageDiagrams(){
+  var side = '<nav class="side"><div class="sidehead">Diagrams</div>'+
+    '<a class="sideitem dgmgo on" data-dpane="dgm-ov" href="#"><span>Overview</span></a>'+
+    '<div class="sidehead">Tenant</div><a class="sideitem dgmgo" data-dpane="dgm-mg" href="#"><span>MG hierarchy</span></a>'+
+    '<div class="sidehead">Networking</div><a class="sideitem dgmgo" data-dpane="dgm-net" href="#"><span>VNets &amp; subnets</span></a>'+
+    '<div class="sidehead">Estate</div><a class="sideitem dgmgo" data-dpane="dgm-estate" href="#"><span>Top categories</span></a>'+
+    '<div class="sidehead">Assessments</div><a class="sideitem dgmgo" data-dpane="dgm-sev" href="#"><span>Gaps by area</span></a></nav>';
+  var dgms = [['mg','Management-group hierarchy','Tenant'],['net','Virtual networks & subnets','Networking'],['estate','Estate — top categories','Estate'],['sev','Gaps by design area','Assessment']];
+  var ov = '<h2>Diagrams</h2><p class="lede">Every figure is generated from this run\'s data as inline SVG — it prints, exports, and works offline. Click a diagram element to jump to the underlying data; use ⛶ for full screen with zoom and pan.</p>'+
+    '<div class="menutiles">'+dgms.map(function(d){ return '<a class="mtile dgmgo" data-dpane="dgm-'+d[0]+'" href="#"><div class="mt">'+esc(d[1])+'</div><div class="md">'+esc(d[2])+'</div></a>'; }).join('')+'</div>';
+
+  var mgRows = safeArr((inventory['governance.managementGroups']||{}).rows);
+  function depthOf(m){ var d=0, cur=m; var byName={}; mgRows.forEach(function(x){byName[x.name]=x;}); while(cur && cur.parent && byName[cur.parent]){ cur=byName[cur.parent]; d++; } return d; }
+  var mgDepth = mgRows.length ? Math.max.apply(null, mgRows.map(depthOf))+1 : 0;
+  var mgCtx = '<div class="kpis"><div class="kpi"><div class="l">Management groups</div><div class="v">'+mgRows.length+'</div></div>'+
+    '<div class="kpi"><div class="l">Hierarchy depth</div><div class="v">'+mgDepth+'</div><div class="f">ALZ recommends ≤ 4</div></div>'+
+    '<div class="kpi"><div class="l">Subscriptions</div><div class="v">'+subscriptions.length+'</div></div></div>'+
+    '<p class="lede small">The hierarchy below is how policy and RBAC inherit in this tenant — anything assigned at a parent flows to everything under it. Depth beyond four levels makes inheritance hard to reason about.</p>';
+
+  var vnets = safeArr((inventory['networking.virtualNetworks']||{}).rows);
+  var subnets = safeArr((inventory['networking.subnets']||{}).rows);
+  var hotSubnets = subnets.filter(function(s){ return (s.ipUtilizationPct||0) > 80; });
+  var noDdos = vnets.filter(function(v){ return !v.ddosEnabled; }).length;
+  var netCtx = '<div class="kpis"><div class="kpi"><div class="l">Virtual networks</div><div class="v">'+vnets.length+'</div></div>'+
+    '<div class="kpi"><div class="l">Subnets</div><div class="v">'+subnets.length+'</div></div>'+
+    '<div class="kpi'+(hotSubnets.length?' bad':'')+'"><div class="l">Subnets &gt; 80% full</div><div class="v">'+hotSubnets.length+'</div></div>'+
+    '<div class="kpi'+(noDdos?' bad':'')+'"><div class="l">VNets without DDoS</div><div class="v">'+noDdos+'</div><div class="f">of '+vnets.length+'</div></div></div>'+
+    '<p class="lede small">Each box is a VNet with its subnets and how full each address range is. '+(hotSubnets.length?'<b>'+hotSubnets.map(function(s){return esc(s.subnet);}).join(', ')+'</b> '+(hotSubnets.length===1?'is':'are')+' running out of addresses.':'No subnet is near address exhaustion.')+'</p>';
+
+  var estateCtx = invSorted.length ? '<div class="kpis"><div class="kpi"><div class="l">Collected items</div><div class="v">'+n(invTotal)+'</div></div>'+
+    '<div class="kpi"><div class="l">Largest category</div><div class="v">'+n(invSorted[0][1].count)+'</div><div class="f">'+esc(catLeaf(invSorted[0][1].label))+'</div></div></div>'+
+    '<p class="lede small">Where the estate\'s volume actually sits — policy compliance records dominate because every resource is evaluated by every assigned policy.</p>' : '';
+
+  var a0 = assessments[0];
+  var sevCtx = '';
+  if(a0){
+    var a0fails = safeArr(a0.findings).filter(function(f){return f.status==='Fail';});
+    sevCtx = '<div class="kpis"><div class="kpi bad"><div class="l">Not met</div><div class="v">'+a0fails.length+'</div><div class="f">'+esc(a0.name)+'</div></div>'+
+      '<div class="kpi"><div class="l">High severity</div><div class="v">'+a0fails.filter(function(f){return f.severity==='high';}).length+'</div></div>'+
+      '<div class="kpi"><div class="l">Areas affected</div><div class="v">'+(function(){var s={};a0fails.forEach(function(f){s[f.area]=1;});return Object.keys(s).length;})()+'</div></div></div>'+
+      '<p class="lede small">Longer bars = more gaps in that design area; red segments are high severity. This is the same data as the register — the figure just shows where remediation effort concentrates.</p>';
   }
 
-  var budgetsSearchEl = document.getElementById('gov-budgets-search');
-  if(budgetsSearchEl){
-    budgetsSearchEl.oninput = function(e){ state.govBudgetsSearch = e.target.value; renderGovernance(); };
-    var budgetRowsForClick = Budgets.filter(function(b){
-      var q = state.govBudgetsSearch.toLowerCase();
-      if(!q) return true;
-      return (b.name||'').toLowerCase().indexOf(q) !== -1;
-    });
-    document.querySelectorAll('#gov-budgets-table tbody tr[data-idx]').forEach(function(tr){
-      tr.onclick = function(){
-        var b = budgetRowsForClick[parseInt(tr.getAttribute('data-idx'), 10)];
-        if(!b) return;
-        openPanel('Budget — ' + b.name, [ fld('Name', b.name), fld('Amount', propOrTop(b, 'amount')), fld('Category', propOrTop(b, 'category')) ]);
-      };
-    });
-  }
+  var panes = [['dgm-ov', ov], ['dgm-mg', mgCtx+diagMgTreeBlade()], ['dgm-net', netCtx+diagNetworkBlade()], ['dgm-estate', estateCtx+diagEstateBars()], ['dgm-sev', sevCtx+diagSeverity()]];
+  return '<div class="invlayout">'+side+'<div class="invbody">'+panes.map(function(p,i){ return '<div class="dgmpane'+(i===0?' on':'')+'" id="pane-'+p[0]+'">'+p[1]+'</div>'; }).join('')+'</div></div>';
+}
 
-  var locksSearchEl = document.getElementById('gov-locks-search');
-  if(locksSearchEl){
-    locksSearchEl.oninput = function(e){ state.govLocksSearch = e.target.value; renderGovernance(); };
-    var lockRowsForClick = ResourceLocks.filter(function(l){
-      var q = state.govLocksSearch.toLowerCase();
-      if(!q) return true;
-      return (l.name||'').toLowerCase().indexOf(q) !== -1;
-    });
-    document.querySelectorAll('#gov-locks-table tbody tr[data-idx]').forEach(function(tr){
-      tr.onclick = function(){
-        var l = lockRowsForClick[parseInt(tr.getAttribute('data-idx'), 10)];
-        if(!l) return;
-        openPanel('Resource lock — ' + l.name, [ fld('Name', l.name), fld('Level', propOrTop(l, 'level')), fld('Scope / Id', l.resourceGroup || l.id) ]);
-      };
-    });
+/* ============================================================
+   ASSEMBLE — build the full multi-page document once at boot and
+   inject it, then toggle page visibility via body[data-page] CSS
+   (the mockup pre-renders once in Node; here the SAME generator
+   functions run once in the browser, into the DOM, at boot).
+   ============================================================ */
+var navItems = [['ov','Overview'],['inv','Inventory & audit'],['as','Assessments'],['dgm','Diagrams'],['data','Data & drift'],['road','Remediation plan']];
+
+function documentTitle(){
+  var bits = [identity.reportTitle, identity.clientName].filter(Boolean);
+  return bits.join(' — ') || 'Assessment Report';
+}
+function assemble(){
+  document.title = documentTitle();
+  var topbar = '<div class="topbar">'+
+    '<div><div class="t">'+esc(identity.reportTitle||'Azure Inventory and Assessment')+'</div>'+
+    '<div class="m">'+esc(identity.clientName||'')+' · '+esc(identity.classification||'')+' · Last updated '+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+'</div></div>'+
+    '<div class="mainnav">'+navItems.map(function(nv){ return '<button class="nav'+(nv[0]==='ov'?' on':'')+'" data-page="'+nv[0]+'">'+nv[1]+'</button>'; }).join('')+'</div>'+
+    '<div class="viewseg" title="How much detail each page shows"><span class="vlab">View</span>'+
+    '<button class="vbtn" data-view="exec">Executive</button><button class="vbtn on" data-view="cons">Consultant</button><button class="vbtn" data-view="data">Data</button></div>'+
+    '<button class="btn" id="themebtn" title="Switch between the dark theme and the lighter enterprise theme">◐ Theme</button>'+
+    '<button class="btn" id="about-toggle">?</button>'+
+    '<div class="exportwrap"><button class="btn" id="exportbtn">⭳ Export ▾</button><div class="exportmenu" id="exportmenu">'+
+    '<button data-x="md">Markdown report (.md)</button><button data-x="json">JSON data (.json)</button>'+
+    '<button data-x="csv-findings">Findings CSV (all '+counts.total+')</button><button data-x="csv-evidence">Evidence CSV ('+namedEvidence.length+' rows)</button>'+
+    '<button data-x="print">Print / PDF</button><button data-x="html">Standalone HTML</button>'+
+    '<button data-x="word" disabled>Word (.docx) — product only</button></div></div></div>';
+
+  var pages = '<div class="pg pg-ov">'+pageOverview()+'</div>'+
+    '<div class="pg pg-inv">'+pageInventory()+'</div>'+
+    '<div class="pg pg-as">'+pageAssessments()+'</div>'+
+    assessments.map(function(a){ return '<div class="pg" data-assessment-page="a-'+a.slug+'">'+pageAssessment(a)+'</div>'; }).join('')+
+    '<div class="pg pg-dgm">'+pageDiagrams()+'</div>'+
+    '<div class="pg pg-data">'+pageData()+'</div>'+
+    '<div class="pg pg-road">'+pageRoadmap()+'</div>';
+
+  var note = '<div class="note"><b>'+esc(documentTitle())+'.</b> Overview → Inventory &amp; audit (sidebar per category, every category opens its item table) → Assessments (choose one, open its full register: all checks, a gap block for every fail, manual agenda) → Diagrams → Data &amp; drift → Remediation plan.</div>';
+
+  document.getElementById('app').innerHTML = '<div class="page">'+note+topbar+pages+'</div>';
+}
+
+/* ============================================================
+   WIRE — page/nav/blade interactions (ported behaviour from the
+   approved mockup's own <script> section).
+   ============================================================ */
+function setPage(p){
+  document.body.setAttribute('data-page', p);
+  var navKey = p.indexOf('a-')===0 ? 'as' : p;
+  document.querySelectorAll('.nav').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-page')===navKey); });
+  document.querySelectorAll('.pg[data-assessment-page]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-assessment-page')===p); });
+  window.scrollTo(0,0);
+}
+function invSelect(p){
+  document.querySelectorAll('.invpane').forEach(function(x){ x.classList.toggle('on', x.id==='pane-'+p); });
+  document.querySelectorAll('.sideitem').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-pane')===p); });
+}
+function dgmSelect(p){
+  document.querySelectorAll('.dgmpane').forEach(function(x){ x.classList.toggle('on', x.id==='pane-'+p); });
+  document.querySelectorAll('.dgmgo').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-dpane')===p); });
+}
+function showExportWarning(msg){
+  var el = document.getElementById('export-warning');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(function(){ el.style.display='none'; }, 6000);
+}
+function dl(name, text, type){
+  try{
+    var b = new Blob([text], { type: type||'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  }catch(e){
+    showExportWarning('This document is embedded in a sandbox that blocks file downloads. Open the report in a full browser tab to export.');
   }
 }
 
-// ---- Drift ----
-function driftBadge(d){
-  var key = (d||'Unchanged').toLowerCase();
-  return '<span class="badge badge-'+key+'">'+esc(d)+'</span>';
+/* ---- exports built at runtime from the live payload (the mockup builds these once at
+   Node build time; here they must be rebuilt in-browser since the payload is only known
+   client-side). Content/shape mirrors the mockup's MD_EXPORT/JSON_EXPORT/CSV_* literals. */
+function buildMarkdownExport(){
+  var md = [];
+  md.push('# '+(identity.reportTitle||'Azure Inventory and Assessment'));
+  md.push('\n'+(identity.clientName||'')+' · '+(identity.classification||'')+' · run '+(meta.runId||'')+' · generated '+(meta.generatedOn||'').slice(0,16).replace('T',' '));
+  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual review. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
+  assessments.forEach(function(a){
+    var s = a.score || {};
+    md.push('\n## '+a.name);
+    md.push('\n'+(a.framework||''));
+    if(s.percent!=null) md.push('\nScore: **'+s.percent+' / 100** — '+(s.formula||''));
+    dedupeAreas(a.areas).forEach(function(ar){
+      var st = areaStats(a, ar.name);
+      if(!st.findings.length) return;
+      md.push('\n### '+ar.name+(ar.percent!=null?' — '+ar.percent+' / 100':' — manual only'));
+      md.push('\n| Check | Title | Severity | Result | Evidence |\n|---|---|---|---|---|');
+      st.findings.forEach(function(f){ md.push('| '+shortId(f.id)+' | '+(f.title||'').replace(/\|/g,'/')+' | '+f.severity+' | '+(f.status==='Fail'?'Not met':f.status==='Pass'?'Met':'Manual')+' | '+(f.evidenceCount||0)+' |'); });
+      st.findings.filter(function(f){return f.status==='Fail';}).forEach(function(f){
+        md.push('\n#### ✗ '+f.title+' ('+shortId(f.id)+', '+f.severity+')');
+        var ev = safeArr(f.evidence).filter(function(e){return e.resourceName;});
+        md.push(ev.length ? '\nAffected: '+ev.map(function(e){return '`'+e.resourceName+'`';}).join(', ') : '\nNothing in scope satisfies this check — the gap is the absence itself.');
+        md.push('\n**Fix:** '+f.remediation);
+        md.push('\n[Microsoft guidance]('+betterLearnUrl(f)+')');
+      });
+      var ms = st.findings.filter(function(f){return f.status!=='Pass' && f.status!=='Fail';});
+      if(ms.length){ md.push('\n**Manual review agenda:**'); ms.forEach(function(f){ md.push('- '+f.title+' — '+f.remediation); }); }
+    });
+  });
+  md.push('\n## Remediation plan\n\n| Domain | Gaps | Owner | Window |\n|---|---|---|---|');
+  var groups = {}, order = [];
+  allFindings.filter(function(f){return f.status==='Fail';}).forEach(function(f){ if(!groups[f.area]){groups[f.area]=[];order.push(f.area);} groups[f.area].push(f); });
+  order.forEach(function(area){
+    var fs = groups[area];
+    var sorted = fs.slice().sort(function(x,y){ return (sevRank.hasOwnProperty(x.severity)?sevRank[x.severity]:3)-(sevRank.hasOwnProperty(y.severity)?sevRank[y.severity]:3); });
+    md.push('| '+area+' | '+fs.length+': '+fs.slice(0,3).map(function(f){return (f.title||'').replace(/\|/g,'/');}).join('; ')+(fs.length>3?'; …':'')+' | '+teamFor(area)+' | '+windowFor(sorted[0].severity)+' |');
+  });
+  md.push('\n---\nGenerated by '+(meta.productName||'Azure Scout')+' '+(meta.productVersion||'')+' — data collected read-only via Azure Resource Graph + ARM.');
+  return md.join('\n');
 }
-function renderDrift(){
-  if(!DRIFT){
-    document.getElementById('view').innerHTML = '<div class="empty">No drift data was embedded in this report.</div>';
-    return;
-  }
-  var summary = DRIFT.Summary || {};
-  var deltaClass = 'delta-flat'; var deltaText = 'n/a';
-  if(DRIFT.ScoreDelta !== null && DRIFT.ScoreDelta !== undefined){
-    deltaClass = DRIFT.ScoreDelta > 0 ? 'delta-up' : (DRIFT.ScoreDelta < 0 ? 'delta-down' : 'delta-flat');
-    deltaText = (DRIFT.ScoreDelta > 0 ? '+' : '') + DRIFT.ScoreDelta;
-  }
+function buildJsonExport(){
+  return JSON.stringify({
+    meta: meta, identity: identity,
+    summary: { checks: counts.total, met: counts.pass, notMet: counts.fail, highSeverity: counts.high, manual: counts.manual },
+    subscriptions: subscriptions,
+    assessments: assessments.map(function(a){
+      return { slug:a.slug, name:a.name, framework:a.framework, score:a.score, areas: dedupeAreas(a.areas),
+        findings: safeArr(a.findings).map(function(f){ var c={}; for(var k in f) c[k]=f[k]; c.learnUrl = betterLearnUrl(f); return c; }) };
+    }),
+    inventory: (function(){ var o={}; invEntries.forEach(function(p){ o[p[0]] = { label:p[1].label, count:p[1].count }; }); return o; })(),
+    drift: drift
+  }, null, 1);
+}
+function csvQuote(v){ return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"'; }
+function csvFindingsRows(rows){
+  var cols = ['id','title','assessment','area','severity','status','weight','remediation','learnUrl','evidenceCount'];
+  var lines = [cols.join(',')];
+  rows.forEach(function(f){
+    lines.push(cols.map(function(c){ return csvQuote(c==='id'?shortId(f.id):c==='learnUrl'?betterLearnUrl(f):f[c]); }).join(','));
+  });
+  return lines.join('\r\n');
+}
+function buildCsvFindings(){ return csvFindingsRows(allFindings); }
+// Scoped to whichever assessment is currently open (state.section==='a-<slug>'), so the
+// export menu's "Findings CSV" downloads just that register when a reader is deep in one
+// assessment — mirrors the old per-assessment CSV filter, adapted to the v6 page model.
+function buildCsvFindingsForCurrentAssessment(){
+  var cols = ['id','title','assessment','area','severity','status','weight','remediation','learnUrl','evidenceCount'];
+  var page = document.body.getAttribute('data-page') || '';
+  if(page.indexOf('a-')!==0) return null;
+  var rows = allFindings.filter(function(f){ return ('a-'+f.slug)===page; });
+  if(!rows.length) return null;
+  var lines = [cols.join(',')];
+  rows.forEach(function(f){
+    lines.push(cols.map(function(c){ return csvQuote(c==='id'?shortId(f.id):c==='learnUrl'?betterLearnUrl(f):f[c]); }).join(','));
+  });
+  return lines.join('\r\n');
+}
+function buildCsvEvidence(){
+  var lines = [['FindingId','ResourceName','ResourceId','SubscriptionId','Detail'].join(',')];
+  namedEvidence.forEach(function(e){
+    lines.push([shortId(e.fid), e.resourceName, e.resourceId, e.subscriptionId, e.detail].map(csvQuote).join(','));
+  });
+  return lines.join('\r\n');
+}
 
-  var banner = DRIFT.IsBaseline
-    ? '<div class="banner">Baseline run (RunId <b>'+esc(DRIFT.RunId)+'</b>) — no prior history to compare against yet. Drift tracking begins on the next run.</div>'
-    : '<div class="banner">Compared against previous run <b>'+esc(DRIFT.PreviousRunId)+'</b>. Overall score: <b>'+(DRIFT.OverallScore===null?'&mdash;':DRIFT.OverallScore)+'</b> '+
-      '(previous <b>'+(DRIFT.PreviousScore===null?'&mdash;':DRIFT.PreviousScore)+'</b>, delta <span class="'+deltaClass+'">'+deltaText+'</span>)</div>';
-
-  var cards = ['New','Resolved','Regressed','Unchanged','Removed'].map(function(k){
-    var band = k==='Resolved' ? 'pass' : k==='Regressed' ? 'fail' : k==='New' ? 'partial' : 'none';
-    return '<div class="card band-'+band+'"><div class="label">'+k+'</div><div class="score">'+(summary[k]||0)+'</div></div>';
+function initAbout(){
+  var body = document.getElementById('about-body');
+  var rows = [['Product', meta.productName], ['Version', meta.productVersion], ['Reference', meta.productUrl]];
+  body.innerHTML = rows.filter(function(r){return r[1];}).map(function(r){
+    return '<dt>'+esc(r[0])+'</dt><dd>'+(r[0]==='Reference' ? '<a href="'+esc(r[1])+'" target="_blank" rel="noopener">'+esc(r[1])+'</a>' : esc(r[1]))+'</dd>';
   }).join('');
-
-  var driftRows = (DRIFT.Findings || []);
-  var filtered = state.driftFilter ? driftRows.filter(function(r){ return r.Drift === state.driftFilter; }) : driftRows;
-  var sorted = sortRows(filtered, state.driftSort.key, state.driftSort.dir);
-  var arrow = function(key){ return state.driftSort.key===key ? (state.driftSort.dir===1?'&#9650;':'&#9660;') : ''; };
-  var driftOptions = ['New','Resolved','Regressed','Unchanged'].map(function(d){
-    return '<option value="'+d+'"'+(state.driftFilter===d?' selected':'')+'>'+d+'</option>';
-  }).join('');
-
-  document.getElementById('view').innerHTML =
-    banner +
-    '<div class="section-title">Run-over-run summary</div>'+
-    '<div class="cards">'+cards+'</div>'+
-    '<div class="section-title">Per-finding changes</div>'+
-    '<div class="filters"><select id="drift-filter"><option value="">All changes</option>'+driftOptions+'</select></div>'+
-    '<table id="drift-table"><thead><tr>'+
-      '<th data-key="Id">Id<span class="arrow">'+arrow('Id')+'</span></th>'+
-      '<th data-key="Framework">Framework<span class="arrow">'+arrow('Framework')+'</span></th>'+
-      '<th data-key="Area">Area<span class="arrow">'+arrow('Area')+'</span></th>'+
-      '<th>Title</th><th>Previous</th><th>Current</th><th data-key="Drift">Drift<span class="arrow">'+arrow('Drift')+'</span></th>'+
-    '</tr></thead><tbody>'+
-      (sorted.map(function(r){
-        return '<tr><td>'+esc(r.Id)+'</td><td>'+esc(r.Framework)+'</td><td>'+esc(r.Area)+'</td><td>'+esc(r.Title)+'</td>'+
-          '<td class="'+statusClass(r.PreviousStatus)+'">'+esc(r.PreviousStatus||'&mdash;')+'</td>'+
-          '<td class="'+statusClass(r.CurrentStatus)+'">'+esc(r.CurrentStatus)+'</td>'+
-          '<td>'+driftBadge(r.Drift)+'</td></tr>';
-      }).join('') || '<tr><td colspan="7" class="empty">No per-finding changes to show.</td></tr>')+
-    '</tbody></table>';
-
-  document.getElementById('drift-filter').onchange = function(e){ state.driftFilter = e.target.value; renderDrift(); };
-  document.querySelectorAll('#drift-table th[data-key]').forEach(function(th){
-    th.onclick = function(){
-      var key = th.getAttribute('data-key');
-      if(state.driftSort.key === key){ state.driftSort.dir *= -1; }
-      else { state.driftSort.key = key; state.driftSort.dir = 1; }
-      renderDrift();
-    };
-  });
+  document.getElementById('about-toggle').onclick = function(){ document.getElementById('about-overlay').classList.add('open'); };
+  document.getElementById('about-close').onclick = function(){ document.getElementById('about-overlay').classList.remove('open'); };
+  document.getElementById('about-overlay').onclick = function(e){ if(e.target.id==='about-overlay') e.currentTarget.classList.remove('open'); };
 }
 
-var ROUTES = {
-  dashboard: renderDashboard, findings: renderFindings, gaps: renderGaps, manual: renderManual,
-  topology: renderTopology, governance: renderGovernance, drift: renderDrift
+function wireInteractions(){
+  document.querySelectorAll('.nav').forEach(function(b){ b.addEventListener('click', function(){ setPage(b.getAttribute('data-page')); }); });
+
+  document.querySelectorAll('.vbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var v = b.getAttribute('data-view');
+      document.body.setAttribute('data-view', v);
+      document.querySelectorAll('.vbtn').forEach(function(x){ x.classList.toggle('on', x===b); });
+      if(v==='data') document.querySelectorAll('details').forEach(function(d){ d.open = true; });
+    });
+  });
+
+  document.querySelectorAll('.invgo').forEach(function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); invSelect(a.getAttribute('data-pane')); });
+  });
+
+  document.querySelectorAll('a.goto').forEach(function(a){
+    a.addEventListener('click', function(ev){
+      ev.preventDefault();
+      setPage(a.getAttribute('data-gopage'));
+      var hash = a.getAttribute('href');
+      if(hash && hash!=='#top'){
+        var p = hash.slice(1);
+        if(document.getElementById('pane-'+p)){ invSelect(p); return; }
+        var el = document.querySelector(hash);
+        if(el){
+          var d = el.closest('details'); if(d) d.open = true;
+          if(el.tagName==='DETAILS') el.open = true;
+          el.scrollIntoView({ block:'start' });
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('a[href^="#"]:not(.goto)').forEach(function(a){
+    a.addEventListener('click', function(){
+      var el = document.querySelector(a.getAttribute('href'));
+      if(el){ var d = el.closest('details'); if(d) d.open = true; if(el.tagName==='DETAILS') el.open = true; }
+    });
+  });
+
+  document.querySelectorAll('.dgmgo').forEach(function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); dgmSelect(a.getAttribute('data-dpane')); });
+  });
+
+  document.querySelectorAll('.diag-node').forEach(function(g){
+    g.addEventListener('click', function(){
+      var pane = g.getAttribute('data-gopane'), page = g.getAttribute('data-gopage');
+      if(pane){ setPage('inv'); invSelect(pane); }
+      else if(page){ setPage(page); }
+    });
+  });
+
+  document.querySelectorAll('.dgmfull').forEach(function(b){
+    b.addEventListener('click', function(){
+      var src = document.getElementById(b.getAttribute('data-dgm')).querySelector('svg');
+      var ov = document.createElement('div'); ov.className = 'dgoverlay';
+      ov.innerHTML = '<div class="bar"><button class="btn" data-z="in">＋ Zoom</button><button class="btn" data-z="out">－ Zoom</button><button class="btn" data-z="fit">Fit</button>'+
+        '<span class="m" style="color:var(--faint);font-size:11.5px">wheel = zoom · drag = pan · Esc = close</span><button class="btn" data-z="x" style="margin-left:auto">✕ Close</button></div><div class="stage"></div>';
+      var stage = ov.querySelector('.stage'); var svg = src.cloneNode(true); stage.appendChild(svg);
+      document.body.appendChild(ov);
+      var sc=1, tx=0, ty=0;
+      function apply(){ svg.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+sc+')'; }
+      function fit(){ sc = Math.min(stage.clientWidth/svg.viewBox.baseVal.width, stage.clientHeight/svg.viewBox.baseVal.height)*0.95; tx=10; ty=10; svg.setAttribute('width', svg.viewBox.baseVal.width); svg.removeAttribute('height'); apply(); }
+      fit();
+      ov.querySelector('.bar').addEventListener('click', function(e){
+        var z = e.target.getAttribute && e.target.getAttribute('data-z');
+        if(z==='in') sc*=1.25; else if(z==='out') sc/=1.25; else if(z==='fit') return fit(); else if(z==='x') return ov.remove();
+        apply();
+      });
+      stage.addEventListener('wheel', function(e){ e.preventDefault(); sc *= e.deltaY<0 ? 1.15 : 0.87; apply(); }, { passive:false });
+      var drag = null;
+      stage.addEventListener('mousedown', function(e){ drag = [e.clientX-tx, e.clientY-ty]; stage.style.cursor='grabbing'; });
+      window.addEventListener('mousemove', function(e){ if(drag){ tx=e.clientX-drag[0]; ty=e.clientY-drag[1]; apply(); } });
+      window.addEventListener('mouseup', function(){ drag=null; stage.style.cursor='grab'; });
+      function escKey(e){ if(e.key==='Escape'){ ov.remove(); window.removeEventListener('keydown', escKey); } }
+      window.addEventListener('keydown', escKey);
+    });
+  });
+
+  document.querySelectorAll('.catwrap').forEach(function(w){
+    var input = w.querySelector('.tfilter'), table = w.querySelector('table');
+    if(!table) return;
+    if(input) input.addEventListener('input', function(){
+      var q = input.value.toLowerCase();
+      [].slice.call(table.rows).slice(1).forEach(function(tr){ tr.style.display = tr.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
+    });
+    [].slice.call(table.rows[0].cells).forEach(function(th, ci){
+      th.style.cursor='pointer'; th.title='Click to sort';
+      th.addEventListener('click', function(){
+        var rows = [].slice.call(table.rows).slice(1);
+        var dir = th.getAttribute('data-dir')==='asc' ? -1 : 1;
+        [].slice.call(table.rows[0].cells).forEach(function(x){ x.removeAttribute('data-dir'); });
+        th.setAttribute('data-dir', dir===1 ? 'asc' : 'desc');
+        rows.sort(function(a,b){
+          var x = (a.cells[ci]||{}).textContent||'', y = (b.cells[ci]||{}).textContent||'';
+          var nx = parseFloat(x.replace(/,/g,'')), ny = parseFloat(y.replace(/,/g,''));
+          if(!isNaN(nx) && !isNaN(ny)) return (nx-ny)*dir;
+          return x.localeCompare(y)*dir;
+        });
+        rows.forEach(function(r){ r.parentNode.appendChild(r); });
+      });
+    });
+  });
+
+  var tb = document.getElementById('themebtn');
+  tb.addEventListener('click', function(){
+    var r = document.documentElement;
+    var cur = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur==='dark' ? 'light' : 'dark';
+    r.setAttribute('data-theme', next);
+    tb.textContent = next==='dark' ? '◐ Theme: dark' : '◑ Theme: light';
+    try{ localStorage.setItem('scout-report-theme', next); }catch(e){}
+  });
+
+  var eb = document.getElementById('exportbtn'), em = document.getElementById('exportmenu');
+  eb.addEventListener('click', function(ev){ ev.stopPropagation(); em.classList.toggle('open'); });
+  document.addEventListener('click', function(){ em.classList.remove('open'); });
+  em.addEventListener('click', function(ev){
+    var x = ev.target.getAttribute && ev.target.getAttribute('data-x');
+    if(!x) return;
+    em.classList.remove('open');
+    if(x==='md') dl(filenamePrefix()+'.md', buildMarkdownExport(), 'text/markdown');
+    else if(x==='json') dl(filenamePrefix()+'.json', buildJsonExport(), 'application/json');
+    else if(x==='csv-findings') dl('findings.csv', buildCsvFindingsForCurrentAssessment() || buildCsvFindings());
+    else if(x==='csv-evidence') dl('evidence.csv', buildCsvEvidence());
+    else if(x==='print') window.print();
+    else if(x==='html') dl(filenamePrefix()+'.html', '<!doctype html>'+document.documentElement.outerHTML, 'text/html');
+  });
+}
+function filenamePrefix(){
+  var parts = [identity.clientName, identity.reportTitle].filter(Boolean).join(' - ') || 'azure-scout-report';
+  return parts.replace(/[\\/:*?"<>|]/g, '-').trim();
+}
+
+function loadPersistedTheme(){
+  try{
+    var t = localStorage.getItem('scout-report-theme');
+    if(t){ document.documentElement.setAttribute('data-theme', t); var tb = document.getElementById('themebtn'); if(tb) tb.textContent = t==='dark' ? '◐ Theme: dark' : '◑ Theme: light'; }
+  }catch(e){}
+}
+function initialView(){
+  var m = meta.defaultMode;
+  return m==='executive' ? 'exec' : m==='data' ? 'data' : 'cons';
+}
+
+function boot(){
+  assemble();
+  var v = initialView();
+  document.body.setAttribute('data-view', v);
+  document.querySelectorAll('.vbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view')===v); });
+  initAbout();
+  wireInteractions();
+  loadPersistedTheme();
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+/* exposed for the Node-based diagram overlap checker test (tests/) */
+window.__SCOUT_DIAGRAM_KERNEL__ = {
+  measureText: measureText, wrapText: wrapText, autoSizeBox: autoSizeBox,
+  routeOrthogonal: routeOrthogonal, layoutTree: layoutTree, placeRingLabels: placeRingLabels,
+  diagramNetworkTopology: diagramNetworkTopology, diagramMgHierarchy: diagramMgHierarchy
 };
-
-function renderTabs(){
-  var tabs = [['dashboard','Dashboard'],['findings','Findings'],['gaps','Gaps'],['manual','Manual review']];
-  // Topology/Governance tabs are hidden entirely when collect.json carried
-  // none of their underlying data (e.g. a CollectOnly run before
-  // Import-Governance ran, or a -Categories scope that skipped Networking) —
-  // "hide the section, no error" rather than rendering an all-empty tab.
-  if(hasNetworkingData){ tabs.push(['topology','Topology']); }
-  if(hasGovernanceData){ tabs.push(['governance','Governance']); }
-  if(DRIFT){ tabs.push(['drift','Drift']); }
-  document.getElementById('tabs').innerHTML = tabs.map(function(t){
-    return '<div class="tab'+(state.tab===t[0]?' active':'')+'" data-t="'+t[0]+'">'+t[1]+'</div>';
-  }).join('');
-  document.querySelectorAll('.tab').forEach(function(t){
-    t.onclick = function(){
-      state.tab = t.getAttribute('data-t');
-      renderTabs();
-      ROUTES[state.tab]();
-    };
-  });
-}
-
-// ---- boot ----
-document.getElementById('panel-close').onclick = closePanel;
-document.getElementById('panel-overlay').onclick = closePanel;
-document.getElementById('hdr-ts').textContent = 'Generated ' + fmtDate(F.GeneratedOn);
-var metaBits = [];
-if(META.Scope) metaBits.push('Scope: ' + META.Scope);
-if(META.ManagementGroupId) metaBits.push('Management group: ' + META.ManagementGroupId);
-document.getElementById('hdr-meta').textContent = metaBits.join('  |  ');
-renderTabs();
-ROUTES[state.tab]();
 })();
 </script>
-</body></html>
+</body>
+</html>

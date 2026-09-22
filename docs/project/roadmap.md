@@ -41,7 +41,56 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.2.0 — Deep governance and compliance analytics
+## Current Release — v3.5.0 — The report is a product, not a page
+
+Released 4 August 2026. The report is a product, not a page. The owner-approved v6 design ships: the React report becomes a multi-page application — Overview, Inventory & audit, Assessments, Diagrams, Data & drift, Remediation plan — rendered from the run's own data. Inventory becomes a blade view on the documented 18-category taxonomy with every collector listed including zeros, filterable/sortable item tables, tenant structure, audit callouts and a full cost-optimization blade. Each assessment carries the complete conformance register: every check, a gap block for every fail (resource-grain evidence, why it matters, numbered fix, per-check Learn link), the manual review agenda, and a What's-next section. A Diagrams page adds MG hierarchy, VNet/subnet IP utilization, estate and gaps figures with full-screen zoom. Executive/Consultant/Data become a depth toggle; exports add Markdown and JSON. Conformance clause R-04 is enforced for real — the renderer no longer re-invokes the scoring engine. All other assessment formats remain on hold. See AB#6928, AB#6936, AB#6937, AB#6938, AB#7035.
+
+## Previous Release — v3.3.4 — One report, and it is the deliverable
+
+Released 4 August 2026. A full multi-tenant render, read end to end rather than counted, found
+every one of the six rendered report formats weak in a different way — a dashboard that drew its
+headers and no data, a maturity report scoring 10/10 without saying what it measured, documents
+that never named which assessment they were, text drawn over text in the PDF, figures running off
+the slide, and a Word file that opened with a repair prompt. Six renderers maintained in parallel
+is why none of them reached deliverable quality.
+
+The **React single-page report** is now the product's deliverable: one self-contained page hosting
+the inventory and every assessment behind an adaptive shell whose navigation is built from what
+actually ran. Each assessment answers what was run (including what was *not* assessed and why),
+what was found, and what to fix against CAF/WAF guidance — and every score carries its own
+arithmetic, so a number can be checked rather than trusted.
+
+Every other rendered format is on hold and will be regenerated from that report rather than
+alongside it. `Json`/`JsonEvidence` are data, not documents, and are never held. A held format
+asked for by name warns, skips, and renders the React report anyway, so a run never returns an
+empty folder.
+
+## Previous Release — v3.3.3 — The corpus told the truth
+
+Released 3 August 2026. Five collection defects fixed, none of which a green unit suite could
+see: the v3.3.2 Recovery Services vault fix never reached the collect result; Export-Pptx's
+module-scope `Get-ScoutProp` shadowed the collect walker and nulled nested `properties.*` on
+every product run (the defect that corrupted the banked corpus); management groups are collected
+for the first time in the product's history (tenant-scoped Resource Graph, 92 groups across the
+eight reference tenants); `security.defenderPlans` is collected per subscription instead of
+shipping as a hardcoded empty array the CAF/WAF security rules queried in vain; and two runs in
+the same second no longer share one run folder. The corpus is now a committed harness —
+per-tenant integrity checks on collection, per-collector coverage verdicts offline: 36 collect
+keys proven working across 8 real tenants, 0 unexplained empties.
+
+## v3.3.2 — Field fixes from real tenant runs
+
+Released 3 August 2026. Every fix in this release came from running Scout against live estates.
+Advisor ingestion is contained per subscription instead of failing tenant-wide on one unregistered
+`Microsoft.Advisor` provider; Entra ID P2-gated Graph features report `NOT LICENSED` instead of a
+misleading `DENIED`; Recovery Services vaults are collected instead of hardcoded to an empty
+array; the LandingZone assessment scores its own 13 areas instead of sweeping in every workload
+rule set; `GovernanceReport` is reachable from `-OutputFormat All`; and evidence truncation is
+visible in every renderer. The v3.3 line (3.3.0 → 3.3.2) delivered the reporting rebuild of Epic
+AB#6450: conformance-gated Word/Excel/PowerPoint/PDF deliverables, managed-code figure
+rasterisation, and a Power BI PBIP project with a TMDL model and bound visuals.
+
+## v3.2.0 — Deep governance and compliance analytics
 
 Released 31 July 2026. Scout modelled fifteen of Microsoft's eighteen published service
 categories; it now models all eighteen. `Migration` went from zero collectors to all five of its
