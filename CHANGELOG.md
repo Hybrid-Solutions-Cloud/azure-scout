@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.2] - 2026-08-03 — field fixes: Advisor, licence detection, and two collector defects
+
+Fixes found by running against real customer tenants rather than fixtures.
+
+### One bad subscription no longer costs the tenant
+
+Get-AzAdvisorRecommendation could abort the Advisor sweep for an **entire tenant** and surface
+as a raw stack trace mid-run:
+
+
+
+That is a defect in Az.Advisor 3.0.0 — Azure returned a plain-text error sentence (almost
+always Microsoft.Advisor not registered on that subscription) and the generated cmdlet
+deserialises it as JSON regardless. Scout cannot prevent it, but it can contain it: the try/catch
+is now **per subscription**, each failure is named, the parse error is translated into what it
+actually means, and a closing summary gives the Register-AzResourceProvider command that fixes
+it.
+
+### A licence boundary is no longer reported as a permission denial
+
+IdentityRiskyUser.Read.All reported [FAIL] DENIED — grant this permission on tenants that
+had already consented to it. Identity Protection is an **Entra ID P2** feature; without P2 the
+endpoint returns nothing however much consent it has, so that advice could never work — and since
+most tenants do not carry P2, the **common** case was being reported as an error.
+
+Scout now reads subscribedSkus and reports NOT LICENSED — requires Microsoft Entra ID P2,
+naming the product and stating that granting the permission will not help. The affected collectors
+are still reported as *Not assessed*, so the coverage gap stays visible.
+
+The licence check is three-state — licensed, not licensed, or **could not tell**. Only a definitive
+*not licensed* softens the verdict; if the SKU list itself cannot be read the verdict stays
+Fail, because silently downgrading a real denial would hide a genuine problem.
+
+### Recovery Services vaults are collected
+
+management.recoveryVaults was **hardcoded to an empty array**, so no run in the product''s
+history has ever reported a vault — while backupProtectedItems returned rows. A child with no
+parent. Found by auditing eight banked tenants; costs no extra Resource Graph round-trip, because
+the vault lives in the ordinary resources table the raw pass already reads.
+
+### A landing-zone audit scores the landing zone
+
+LandingZone declared Rules = caf.*, waf.*, which by now swept in every workload rule set —
+AI, AVD, Azure Local, IoT, AVS — each of which has its own assessment. A run selecting LandingZone
+scored **34 areas where the audit covers 14**, and the evidence workbook grew a visible tab for
+each. The eight CAF design areas and five WAF pillars are now enumerated, and a new workload rule
+file can no longer join by filename alone.
+
+### Also
+
+- GovernanceReport was missing from the -OutputFormat All list, so the CAF Govern maturity
+  score never rendered on a default run.
+- Evidence truncation is now visible: a finding with 198 matches said 25 and looked identical to
+  one with 26. Rows now read *25 of 198 matched*.
+- Docs: licence tiers (what needs P1, what needs P2, what needs neither) and both field errors.
+
+### Known limitation
+
+networking.subnets returns no rows. Diagnosed, not yet fixed — it is not shipped half-verified.
+
 ## [3.3.1] - 2026-08-03 — figures reach every format, and the Power BI pages actually bind
 
 Completes the two clauses v3.3.0 shipped as known limitations.

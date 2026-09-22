@@ -268,12 +268,23 @@ function Get-ScoutExcelResourceIds {
     $ids = @($ids | Where-Object { $_ } | Select-Object -Unique)
     if ($ids.Count -eq 0) { return 'None matched' }
 
+    # AB#6864. The engine caps the Evidence payload, so what is in hand may be the first 25 of
+    # far more. Saying "25 of 198 matched" is the difference between a complete list and a
+    # sample -- and before the flag existed the two were indistinguishable in the workbook.
+    $total = Get-ScoutExcelProp -Obj $Finding -Name 'EvidenceCount' -Default $ids.Count
+    $truncated = [bool](Get-ScoutExcelProp -Obj $Finding -Name 'EvidenceTruncated' -Default $false)
+
     # A cell is capped in what a reader can usefully see; the full list stays in the JSON
     # evidence export, and the cell says how many it is not showing rather than truncating
     # silently.
     $shown = @($ids | Select-Object -First 10)
     $text = [string]::Join([Environment]::NewLine, $shown)
-    if ($ids.Count -gt $shown.Count) {
+    if ($truncated) {
+        # The engine truncated before this renderer ever saw the rows, so the honest statement is
+        # about the TOTAL, not about the ten shown.
+        $text += "$([Environment]::NewLine)($($ids.Count) of $total matched — full list in evidence.json)"
+    }
+    elseif ($ids.Count -gt $shown.Count) {
         $text += "$([Environment]::NewLine)(+$($ids.Count - $shown.Count) more — see evidence.json)"
     }
     return $text

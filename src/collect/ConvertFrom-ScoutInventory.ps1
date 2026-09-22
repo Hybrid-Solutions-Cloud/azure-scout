@@ -620,6 +620,33 @@ function ConvertFrom-ScoutInventory {
     # a fifth round-trip on the default assessment collect and the only one AB#6741 added. It buys
     # XR-BKP-01, "which VMs have no backup", which was the single most-requested finding in the
     # audit's §7. Recorded in tests/Collect.SinglePassInversion.Tests.ps1 rather than absorbed.
+    # AB#6895. The VAULT itself lives in the ordinary `resources` table, not in
+    # recoveryservicesresources -- only its child protected items and policies are in that second
+    # table. So the vault list is shaped from rows the raw pass already has, and costs no extra
+    # round-trip.
+    #
+    # Before this, Invoke-Collect hardcoded `recoveryVaults = @()`, so no run in the product's
+    # history reported a vault while backupProtectedItems returned rows -- a child with no parent,
+    # the same class as AB#6845. A renderer reading recoveryVaults saw "none found" and could not
+    # tell that from "never collected".
+    $result['recoveryVaults'] = @(
+        Select-ByType 'microsoft.recoveryservices/vaults' | ForEach-Object {
+            [pscustomobject]@{
+                id             = [string] (Get-ScoutProp $_ 'id')
+                name           = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
+                sku            = [string] (Get-ScoutProp $_ 'sku.name')
+                publicAccess   = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                immutability   = [string] (Get-ScoutProp $_ 'properties.securitySettings.immutabilitySettings.state')
+                softDelete     = [string] (Get-ScoutProp $_ 'properties.securitySettings.softDeleteSettings.softDeleteState')
+                crossRegion    = [string] (Get-ScoutProp $_ 'properties.redundancySettings.crossRegionRestore')
+                storageType    = [string] (Get-ScoutProp $_ 'properties.redundancySettings.standardTierStorageRedundancy')
+            }
+        }
+    )
+
     $result['backupProtectedItems'] = @(
         Select-ByType 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems' | ForEach-Object {
             [pscustomobject]@{
